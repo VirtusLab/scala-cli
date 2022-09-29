@@ -2455,22 +2455,40 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     if (actualScalaVersion.startsWith("2.13.")) ""
     else "import me.shadaj.scalapy.py" + System.lineSeparator()
 
-  test("scalapy") {
+  def scalapyTest(useDirective: Boolean): Unit = {
+    val maybeDirective =
+      if (useDirective)
+        """//> using python
+          |""".stripMargin
+      else
+        ""
+    val maybeCliArg =
+      if (useDirective) Nil
+      else Seq("--python")
     val inputs = TestInputs(
-      os.rel / "helloscalapy.sc" ->
-        s"""$maybeScalapyPrefix
-           |import py.SeqConverters
-           |val len = py.Dynamic.global.len(List(0, 2, 3).toPythonProxy)
-           |println(s"Length is $$len")
-           |""".stripMargin
+      os.rel / "helloscalapy.sc" -> {
+        maybeDirective +
+          s"""$maybeScalapyPrefix
+             |import py.SeqConverters
+             |val len = py.Dynamic.global.len(List(0, 2, 3).toPythonProxy)
+             |println(s"Length is $$len")
+             |""".stripMargin
+      }
     )
 
     inputs.fromRoot { root =>
-      val res    = os.proc(TestUtil.cli, "run", extraOptions, ".", "--python").call(cwd = root)
+      val res    = os.proc(TestUtil.cli, "run", extraOptions, ".", maybeCliArg).call(cwd = root)
       val output = res.out.trim()
       val expectedOutput = "Length is 3"
       expect(output == expectedOutput)
     }
+  }
+
+  test("scalapy from CLI") {
+    scalapyTest(useDirective = false)
+  }
+  test("scalapy via directive") {
+    scalapyTest(useDirective = true)
   }
 
   if (actualScalaVersion.startsWith("2.12."))

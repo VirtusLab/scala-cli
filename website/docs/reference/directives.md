@@ -180,6 +180,15 @@ Set contextual parameters for publishing
 
 `//> using publish.secretKey "env:PUBLISH_SECRET_KEY"`
 
+### Python
+
+Enable Python support
+
+`//> using python
+
+#### Examples
+`//> using python`
+
 ### Repository
 
 Add a repository for dependency resolution
