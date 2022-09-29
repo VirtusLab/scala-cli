@@ -73,14 +73,8 @@ jobs:
 
 To check the code style of your sources, you can use [Scalafmt](https://scalameta.org/scalafmt/). 
 
-Before running Scalafmt, you need to create a `.scalafmt.conf` configuration file:
 
-```scala
-version = 3.5.2
-runner.dialect = scala3
-```
-
-and then check your code format in GitHub CI by adding new job `format`:
+To check your code format in GitHub CI by adding new job `format`:
 ```yaml
   format:
     runs-on: "ubuntu-latest"
