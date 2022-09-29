@@ -73,6 +73,10 @@ class BuildServerProxy(
   override def buildTargetWrappedSources(params: WrappedSourcesParams)
     : CompletableFuture[WrappedSourcesResult] = bspServer().buildTargetWrappedSources(params)
 
+  override def buildTargetOutputPaths(params: b.OutputPathsParams)
+    : CompletableFuture[b.OutputPathsResult] =
+    bspServer().buildTargetOutputPaths(params)
+
   override def workspaceReload(): CompletableFuture[AnyRef] =
     onReload()
 

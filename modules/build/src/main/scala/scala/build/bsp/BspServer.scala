@@ -262,6 +262,9 @@ class BspServer(
     CompletableFuture.completedFuture(res)
   }
 
+  def buildTargetOutputPaths(params: b.OutputPathsParams): CompletableFuture[b.OutputPathsResult] =
+    ???
+
   private val shutdownPromise = Promise[Unit]()
   override def buildShutdown(): CompletableFuture[Object] = {
     if (!shutdownPromise.isCompleted)

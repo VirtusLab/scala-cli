@@ -51,4 +51,7 @@ trait LoggingBuildServer extends b.BuildServer {
   override def buildTargetDependencyModules(params: DependencyModulesParams)
     : CompletableFuture[DependencyModulesResult] =
     underlying.buildTargetDependencyModules(pprint.err.log(params)).logF
+  override def buildTargetOutputPaths(params: b.OutputPathsParams)
+    : CompletableFuture[b.OutputPathsResult] =
+    underlying.buildTargetOutputPaths(pprint.err.log(params)).logF
 }
