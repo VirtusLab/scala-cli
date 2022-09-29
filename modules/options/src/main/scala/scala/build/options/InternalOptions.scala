@@ -23,11 +23,14 @@ final case class InternalOptions(
     * really needed.
     */
   keepResolution: Boolean = false,
-  extraSourceFiles: Seq[Positioned[os.Path]] = Nil
+  extraSourceFiles: Seq[Positioned[os.Path]] = Nil,
+  addStubsDependencyOpt: Option[Boolean] = None
 ) {
   def verbosityOrDefault: Int = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault: Boolean =
     strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
+  def addStubsDependency: Boolean =
+    addStubsDependencyOpt.getOrElse(true)
 }
 
 object InternalOptions {

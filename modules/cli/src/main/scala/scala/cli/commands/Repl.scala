@@ -45,10 +45,8 @@ object Repl extends ScalaCommand[ReplOptions] {
         ),
         python = sharedPython.python,
         pythonSetup = sharedPython.pythonSetup,
-        scalaPyVersion = sharedPython.scalaPyVersion
-      ),
-      internalDependencies = baseOptions.internalDependencies.copy(
-        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt
+        scalaPyVersion = sharedPython.scalaPyVersion,
+        addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt
           .orElse(Some(false))
       )
     )

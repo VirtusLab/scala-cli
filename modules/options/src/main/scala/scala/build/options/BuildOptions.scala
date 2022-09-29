@@ -64,7 +64,7 @@ final case class BuildOptions(
   }
 
   def addRunnerDependency: Option[Boolean] =
-    internalDependencies.addRunnerDependencyOpt
+    notForBloopOptions.addRunnerDependencyOpt
       .orElse {
         if (platform.value == Platform.JVM && !scalaVersionIsExotic) None
         else Some(false)
@@ -425,7 +425,7 @@ final case class BuildOptions(
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
-      addStubs = internalDependencies.addStubsDependency,
+      addStubs = internal.addStubsDependency,
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,

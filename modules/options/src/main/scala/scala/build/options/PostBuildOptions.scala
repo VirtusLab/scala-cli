@@ -10,7 +10,8 @@ final case class PostBuildOptions(
   runWithManifest: Option[Boolean] = None,
   pythonSetup: Option[Boolean] = None,
   python: Option[Boolean] = None,
-  scalaPyVersion: Option[String] = None
+  scalaPyVersion: Option[String] = None,
+  addRunnerDependencyOpt: Option[Boolean] = None
 ) {
 
   def doSetupPython: Option[Boolean] =

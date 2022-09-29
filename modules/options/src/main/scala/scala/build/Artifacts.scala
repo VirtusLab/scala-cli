@@ -34,6 +34,7 @@ final case class Artifacts(
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
   extraClassPath: Seq[os.Path],
   extraCompileOnlyJars: Seq[os.Path],
+  extraRuntimeClassPath: Seq[os.Path],
   extraSourceJars: Seq[os.Path],
   scalaOpt: Option[ScalaArtifacts],
   hasJvmRunner: Boolean,
@@ -58,7 +59,7 @@ final case class Artifacts(
       .toVector
       .distinct
   lazy val classPath: Seq[os.Path] =
-    artifacts.map(_._2) ++ extraClassPath
+    artifacts.map(_._2) ++ extraClassPath ++ extraRuntimeClassPath
   lazy val compileClassPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath ++ extraCompileOnlyJars
   lazy val sourcePath: Seq[os.Path] =
@@ -98,12 +99,6 @@ object Artifacts {
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, Artifacts] = either {
 
-    val addJvmRunner0 = addJvmRunner.getOrElse(true)
-    val jvmRunnerDependencies =
-      if (addJvmRunner0)
-        Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion")
-      else
-        Nil
     val jvmTestRunnerDependencies =
       if (addJvmTestRunner)
         Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
@@ -115,11 +110,9 @@ object Artifacts {
     }
 
     val maybeSnapshotRepo = {
-      val hasSnapshots = (jvmRunnerDependencies ++ jvmTestRunnerDependencies)
-        .exists(_.version.endsWith("SNAPSHOT")) ||
+      val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
-      val stubsNeedSonatypeSnapshots = addStubs && stubsVersion.endsWith("SNAPSHOT")
-      if (hasSnapshots || stubsNeedSonatypeSnapshots)
+      if (hasSnapshots)
         Seq(coursier.Repositories.sonatype("snapshots").root)
       else
         Nil
@@ -282,8 +275,7 @@ object Artifacts {
     }
 
     val internalDependencies =
-      jvmRunnerDependencies.map(Positioned.none) ++
-        jvmTestRunnerDependencies.map(Positioned.none) ++
+      jvmTestRunnerDependencies.map(Positioned.none) ++
         scalaOpt.toSeq.flatMap(_.internalDependencies).map(Positioned.none) ++
         jmhDependencies.map(Positioned.none)
     val updatedDependencies = dependencies ++ internalDependencies
@@ -323,20 +315,57 @@ object Artifacts {
     }
 
     val extraStubsJars =
-      // stubs add classes for 'import $ivy' and 'import $dep' to work
-      // we only need those in Scala sources, not in pure Java projects
-      if (scalaOpt.nonEmpty && addStubs)
-        value {
-          artifacts(
-            Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
-            allExtraRepositories,
-            scalaArtifactsParamsOpt.map(_.params),
-            logger,
-            cache.withMessage("Downloading internal stub dependency")
-          ).map(_.map(_._2))
+      if (scalaOpt.nonEmpty)
+        // stubs add classes for 'import $ivy' and 'import $dep' to work
+        // we only need those in Scala sources, not in pure Java projects
+        if (addStubs) {
+          val maybeSnapshotRepo =
+            if (stubsVersion.endsWith("SNAPSHOT"))
+              Seq(coursier.Repositories.sonatype("snapshots").root)
+            else Nil
+          value {
+            artifacts(
+              Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
+              allExtraRepositories,
+              scalaArtifactsParamsOpt.map(_.params),
+              logger,
+              cache.withMessage("Downloading internal stub dependency")
+            ).map(_.map(_._2))
+          }
         }
+        else
+          Nil
       else
         Nil
+
+    val (hasRunner, extraRunnerJars) =
+      if (scalaOpt.nonEmpty) {
+        val addJvmRunner0 = addJvmRunner.getOrElse(false)
+        val runnerJars =
+          if (addJvmRunner0) {
+            val maybeSnapshotRepo =
+              if (runnerVersion.endsWith("SNAPSHOT"))
+                Seq(coursier.Repositories.sonatype("snapshots").root)
+              else Nil
+            value {
+              artifacts(
+                Positioned.none(
+                  Seq(dep"$runnerOrganization::$runnerModuleName:$runnerVersion,intransitive")
+                ),
+                extraRepositories ++ maybeSnapshotRepo,
+                scalaArtifactsParamsOpt.map(_.params),
+                logger,
+                cache.withMessage("Downloading runner dependency")
+              ).map(_.map(_._2))
+            }
+          }
+          else
+            Nil
+
+        (addJvmRunner0, runnerJars)
+      }
+      else
+        (false, Nil)
 
     val javacPlugins0 = value {
       javacPluginDependencies
@@ -366,9 +395,10 @@ object Artifacts {
       },
       extraClassPath,
       extraCompileOnlyJars ++ extraStubsJars,
+      extraRunnerJars,
       extraSourceJars,
       scalaOpt,
-      addJvmRunner0,
+      hasRunner,
       if (keepResolution) Some(fetchRes.resolution) else None
     )
   }

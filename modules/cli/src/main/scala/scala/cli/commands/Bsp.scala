@@ -105,9 +105,9 @@ object Bsp extends ScalaCommand[BspOptions] {
       scalaOptions = baseOptions.scalaOptions.copy(
         generateSemanticDbs = baseOptions.scalaOptions.generateSemanticDbs.orElse(Some(true))
       ),
-      internalDependencies = baseOptions.internalDependencies.copy(
+      notForBloopOptions = baseOptions.notForBloopOptions.copy(
         addRunnerDependencyOpt =
-          baseOptions.internalDependencies.addRunnerDependencyOpt.orElse(Some(false))
+          baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
   }

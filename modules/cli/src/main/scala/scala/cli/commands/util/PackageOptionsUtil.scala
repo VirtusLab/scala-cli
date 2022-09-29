@@ -96,15 +96,13 @@ object PackageOptionsUtil {
               graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)
             ),
             useDefaultScaladocOptions = defaultScaladocOptions
-          )
+          ),
+          addRunnerDependencyOpt = Some(false)
         ),
         internal = baseOptions.internal.copy(
           // computing the provided modules sub-graph need the final Resolution instance
           // Spark packaging adds provided modules, so it needs it too
           keepResolution = provided.nonEmpty || packageTypeOpt.contains(PackageType.Spark)
-        ),
-        internalDependencies = baseOptions.internalDependencies.copy(
-          addRunnerDependencyOpt = Some(false)
         )
       )
     }

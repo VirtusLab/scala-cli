@@ -77,15 +77,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           }
         }
       ),
-      internalDependencies = baseOptions.internalDependencies.copy(
-        addRunnerDependencyOpt = baseOptions.internalDependencies.addRunnerDependencyOpt.orElse {
-          runMode(options) match {
-            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
-              Some(false)
-            case RunMode.Default => None
-          }
-        }
-      ),
       internal = baseOptions.internal.copy(
         keepResolution = baseOptions.internal.keepResolution || {
           runMode(options) match {
@@ -98,7 +89,14 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         runWithManifest = options.sharedRun.useManifest,
         python = options.sharedRun.sharedPython.python,
         pythonSetup = options.sharedRun.sharedPython.pythonSetup,
-        scalaPyVersion = options.sharedRun.sharedPython.scalaPyVersion
+        scalaPyVersion = options.sharedRun.sharedPython.scalaPyVersion,
+        addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse {
+          runMode(options) match {
+            case RunMode.StandaloneSparkSubmit | RunMode.SparkSubmit | RunMode.HadoopJar =>
+              Some(false)
+            case RunMode.Default => None
+          }
+        }
       )
     )
   }
