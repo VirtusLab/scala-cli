@@ -123,4 +123,58 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       expect(output == "Hello from foo")
     }
   }
+
+  test("scalapy") {
+
+    def maybeScalapyPrefix =
+      if (actualScalaVersion.startsWith("2.13.")) ""
+      else "import me.shadaj.scalapy.py" + System.lineSeparator()
+
+    val sbv =
+      if (actualScalaVersion.startsWith("3.")) "3"
+      else actualScalaVersion.split('.').take(2).mkString(".")
+
+    val org  = "test-org"
+    val name = "test-name"
+    val ver  = "0.3.6"
+
+    val inputs = TestInputs(
+      os.rel / "src" / "Hello.scala" ->
+        s"""$maybeScalapyPrefix
+           |object Hello {
+           |  def main(args: Array[String]): Unit = {
+           |    py.Dynamic.global.print("Hello from Python", flush = true)
+           |  }
+           |}
+           |""".stripMargin
+    )
+
+    val publishArgs = Seq(
+      "--organization",
+      org,
+      "--name",
+      name,
+      "--version",
+      ver
+    )
+
+    inputs.fromRoot { root =>
+      val repoRoot = root / "tmp-repo"
+      os.proc(TestUtil.cli, "publish", "--python", "--publish-repo", repoRoot, "src", publishArgs)
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+      val res = os.proc(
+        TestUtil.cs,
+        "launch",
+        "--python",
+        "--no-default",
+        "-r",
+        "central",
+        "-r",
+        repoRoot.toNIO.toUri.toASCIIString,
+        s"$org:${name}_$sbv:$ver"
+      ).call(cwd = root)
+      val output = res.out.trim()
+      expect(output == "Hello from Python")
+    }
+  }
 }

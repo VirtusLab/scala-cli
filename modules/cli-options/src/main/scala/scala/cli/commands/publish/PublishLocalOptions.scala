@@ -2,7 +2,13 @@ package scala.cli.commands.publish
 
 import caseapp._
 
-import scala.cli.commands.{CrossOptions, MainClassOptions, SharedOptions, SharedWatchOptions}
+import scala.cli.commands.{
+  CrossOptions,
+  MainClassOptions,
+  SharedOptions,
+  SharedPythonOptions,
+  SharedWatchOptions
+}
 
 // format: off
 final case class PublishLocalOptions(
@@ -17,7 +23,9 @@ final case class PublishLocalOptions(
   @Recurse
     publishParams: PublishParamsOptions = PublishParamsOptions(),
   @Recurse
-    sharedPublish: SharedPublishOptions = SharedPublishOptions()
+    sharedPublish: SharedPublishOptions = SharedPublishOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions()
 )
 // format: on
 

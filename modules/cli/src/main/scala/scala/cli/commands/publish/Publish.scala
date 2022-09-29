@@ -45,6 +45,7 @@ import scala.cli.commands.{
   Package => PackageCmd,
   ScalaCommand,
   SharedOptions,
+  SharedPythonOptions,
   WatchUtil
 }
 import scala.cli.config.{ConfigDb, Keys}
@@ -70,6 +71,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
+    sharedPython: SharedPythonOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
@@ -149,7 +151,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             if (publishParams.isCi) contextualOptions
             else PublishContextualOptions()
           ))
-        )
+        ),
+        python = sharedPython.python,
+        pythonSetup = sharedPython.pythonSetup,
+        scalaPyVersion = sharedPython.scalaPyVersion
       )
     )
   }
@@ -182,6 +187,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       options.publishParams,
       options.sharedPublish,
       options.publishRepo,
+      options.sharedPython,
       options.mainClass,
       options.ivy2LocalLike
     ).orExit(logger)

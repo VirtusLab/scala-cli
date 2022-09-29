@@ -954,7 +954,7 @@ Dummy mode - don't upload any secret to GitHub
 
 Available in commands:
 
-[`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
+[`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
