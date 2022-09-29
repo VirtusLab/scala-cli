@@ -15,9 +15,15 @@ trait Directories {
   def bloopWorkingDir: os.Path
   def secretsDir: os.Path
   def cacheDir: os.Path
+
+  final def dbPath: os.Path =
+    secretsDir / Directories.defaultDbFileName
 }
 
 object Directories {
+
+  def defaultDbFileName: String =
+    "config.json"
 
   final case class OsLocations(projDirs: ProjectDirectories) extends Directories {
     lazy val localRepoDir: os.Path =

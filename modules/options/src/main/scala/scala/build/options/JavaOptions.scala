@@ -1,17 +1,14 @@
 package scala.build.options
 
-import coursier.cache.FileCache
+import coursier.cache.{ArchiveCache, FileCache}
+import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
-import coursier.jvm.JvmIndex
-import coursier.jvm.JvmCache
-import coursier.jvm.JavaHome
-import coursier.cache.ArchiveCache
 import dependency.AnyDependency
 
-import scala.build.{Position, Positioned}
 import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.OsLibc
 import scala.build.options.BuildOptions.JavaHomeInfo
+import scala.build.{Os, Position, Positioned}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NonFatal
 
@@ -78,9 +75,14 @@ final case class JavaOptions(
             val enforceLiberica =
               finalJvmIndexOs == "linux-musl" &&
               jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+            val enforceZulu =
+              Os.isArmArchitecture &&
+              jvmId.forall(c => c.isDigit || c == '.' || c == '-')
             val jvmId0 =
               if (enforceLiberica)
                 s"liberica:$jvmId" // FIXME Workaround, until this is automatically handled by coursier-jvm
+              else if (enforceZulu) // default jvmId adoptium doesn't support java 8 for M1
+                s"zulu:$jvmId"
               else
                 jvmId
             val javaHomeManager0 = javaHomeManager(archiveCache, cache, verbosity)

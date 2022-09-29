@@ -11,15 +11,16 @@ import java.util.Base64
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
-import scala.cli.signing.shared.{PasswordOption, Secret}
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def hidden     = false
-  override def inSipScala = false
+  override def hidden       = false
+  override def isRestricted = true
   override def names = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")
@@ -147,7 +148,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
         publicKey(
           options.shared.repoOrg,
           options.shared.repoName,
-          options.shared.token.get(),
+          options.shared.token.get().toConfig,
           backend,
           logger
         ).orExit(logger)
@@ -165,7 +166,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
       createOrUpdate(
         options.shared.repoOrg,
         options.shared.repoName,
-        options.shared.token.get(),
+        options.shared.token.get().toConfig,
         name,
         secretValue,
         pubKey,

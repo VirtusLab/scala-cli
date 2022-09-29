@@ -69,7 +69,7 @@ class ScalaCliCommands(
     (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
 
   def commands =
-    allCommands.filter(c => !isSipScala || c.inSipScala) ++
+    allCommands.filter(c => !isSipScala || !c.isRestricted) ++
       (if (pgpUseBinaryCommands) Nil else pgpCommands.allExternalCommands.toSeq) ++
       (if (pgpUseBinaryCommands) pgpBinaryCommands.allExternalCommands.toSeq else Nil)
 

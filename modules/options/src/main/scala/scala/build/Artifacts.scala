@@ -1,14 +1,15 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Classifier, Module}
+import coursier.core.{Classifier, Module, ModuleName, Organization}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Fetch, Resolution, Dependency as CsDependency, core as csCore, util as csUtil}
+import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
 import dependency.*
 import os.Path
 
 import java.net.URL
+
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -19,6 +20,7 @@ import scala.build.errors.{
   NoScalaVersionProvidedError,
   RepositoryFormatError
 }
+import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.PositionedScalaDependencyOps
@@ -70,8 +72,10 @@ object Artifacts {
     compilerPlugins: Seq[Positioned[AnyDependency]],
     addJsTestBridge: Option[String],
     addNativeTestInterface: Option[String],
+    scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
-    scalaNativeCliVersion: Option[String]
+    scalaNativeCliVersion: Option[String],
+    addScalapy: Option[String]
   )
 
   def apply(
@@ -174,8 +178,15 @@ object Artifacts {
 
         val scalaJsCliDependency =
           scalaArtifactsParams.scalaJsCliVersion.map { version =>
+            val scalaJsVersion =
+              scalaArtifactsParams.scalaJsVersion.getOrElse(Constants.scalaJsVersion)
             val mod =
-              if (version.contains("-sc")) cmod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+              if (version.contains("-sc"))
+                Module(
+                  Organization("io.github.alexarchambault.tmp"),
+                  ModuleName(s"scalajscli-${scalaJsVersion}_2.13"),
+                  Map.empty
+                )
               else cmod"org.scala-js:scalajs-cli_2.13"
             Seq(coursier.Dependency(mod, version))
           }
@@ -243,7 +254,17 @@ object Artifacts {
             dep"org.scala-native::test-interface::$scalaNativeVersion"
           }
 
-        val internalDependencies = jsTestBridgeDependencies ++ nativeTestInterfaceDependencies
+        val scalapyDependencies = scalaArtifactsParams.addScalapy match {
+          case Some(scalaPyVersion) =>
+            Seq(dep"${scalaPyOrganization(scalaPyVersion)}::scalapy-core::$scalaPyVersion")
+          case None =>
+            Nil
+        }
+
+        val internalDependencies =
+          jsTestBridgeDependencies ++
+            nativeTestInterfaceDependencies ++
+            scalapyDependencies
 
         val scala = ScalaArtifacts(
           compilerDependencies,
@@ -350,6 +371,14 @@ object Artifacts {
       addJvmRunner0,
       if (keepResolution) Some(fetchRes.resolution) else None
     )
+  }
+
+  def scalaPyOrganization(version: String): String = {
+    def sortAfterPlus(v: String) = coursier.core.Version(v.replace("+", "-"))
+    if (sortAfterPlus(version).compareTo(sortAfterPlus("0.5.2+9-623f0807")) < 0)
+      "me.shadaj"
+    else
+      "dev.scalapy"
   }
 
   private[build] def artifacts(

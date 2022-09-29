@@ -5,7 +5,9 @@ import scala.build.options.ConfigMonoid
 final case class DebianOptions(
   conflicts: List[String] = Nil,
   dependencies: List[String] = Nil,
-  architecture: Option[String] = None
+  architecture: Option[String] = None,
+  priority: Option[String] = None,
+  section: Option[String] = None
 )
 
 object DebianOptions {

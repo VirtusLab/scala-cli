@@ -5,16 +5,18 @@
 # If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
 #
 # Project page: https://github.com/lefou/millw
-# Script Version: 0.4.2
+# Script Version: 0.4.3
 #
 # If you want to improve this script, please also contribute your changes back!
 #
 # Licensed under the Apache License, Version 2.0
 
-
-DEFAULT_MILL_VERSION=0.10.0
-
 set -e
+
+if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
+  DEFAULT_MILL_VERSION=0.10.7
+fi
+
 
 MILL_REPO_URL="https://github.com/com-lihaoyi/mill"
 
@@ -43,6 +45,8 @@ fi
 if [ -z "${MILL_VERSION}" ] ; then
   if [ -f ".mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+  elif [ -f ".config/mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .config/mill-version 2> /dev/null)"
   fi
 fi
 

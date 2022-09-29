@@ -1,5 +1,5 @@
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.2.0.202206071550-r`
+import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r`
 import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
@@ -86,7 +86,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
         .getOrElse(state.format())
     }
     else {
-      val rawVersion = os.proc("git", "describe", "--tags").call().out.text().trim
+      val rawVersion = os.proc("git", "describe", "--tags").call().out.trim()
         .stripPrefix("v")
         .replace("latest", "0.0.0")
         .replace("nightly", "0.0.0")

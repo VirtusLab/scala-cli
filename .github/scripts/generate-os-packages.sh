@@ -45,8 +45,10 @@ generate_deb() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli.deb" \
     --description "Scala CLI" \
-    --maintainer "Scala CLI" \
-    --launcher-app "scala-cli"
+    --maintainer "scala-cli@virtuslab.com" \
+    --launcher-app "scala-cli" \
+    --priority "optional" \
+    --section "devel"
   mv "$ARTIFACTS_DIR/scala-cli.deb" "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.deb"
 }
 
@@ -57,7 +59,7 @@ generate_rpm() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-linux.rpm" \
     --description "Scala CLI" \
-    --maintainer "Scala CLI" \
+    --maintainer "scala-cli@virtuslab.com" \
     --license "ASL 2.0" \
     --launcher-app "scala-cli"
 }
@@ -84,7 +86,7 @@ generate_msi() {
     --source-app-path "$(launcher)" \
     --output "$ARTIFACTS_DIR/scala-cli-x86_64-pc-win32.msi" \
     --product-name "Scala CLI" \
-    --maintainer "Scala CLI" \
+    --maintainer "scala-cli@virtuslab.com" \
     --launcher-app "scala-cli" \
     --license-path "./LICENSE" \
     --exit-dialog "To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be found, ensure that the Command window was opened after Scala CLI was installed." \

@@ -5,6 +5,7 @@ import coursier.jvm.{JavaHome, JvmIndex}
 import java.io.IOException
 import java.nio.charset.Charset
 
+import scala.build.Os
 import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.util.{Properties, Try}
 
@@ -68,7 +69,8 @@ object OsLibc {
       .forall(_ >= 17)
     if (os == "linux-musl") s"liberica:$jvmVersion" // zulu could work too
     else if (java17OrHigher) s"temurin:$jvmVersion"
-    else s"adopt:$jvmVersion"
+    else if (Os.isArmArchitecture) s"zulu:$jvmVersion" // adopt doesn't support Java 8 on macOS arm
+    else s"temurin:$jvmVersion"
   }
 
   def defaultJvm(os: String): String = {
@@ -88,7 +90,7 @@ object OsLibc {
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
-    ).out.text().trim()
+    ).out.trim()
     parseJavaVersion(javaVersionOutput).getOrElse {
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }
@@ -103,7 +105,7 @@ object OsLibc {
       stdout = os.Pipe,
       stderr = os.Pipe,
       mergeErrIntoOut = true
-    ).out.text().trim()
+    ).out.trim()
     val javaVersion = parseJavaVersion(javaVersionOutput).getOrElse {
       throw new Exception(s"Could not parse java version from output: $javaVersionOutput")
     }

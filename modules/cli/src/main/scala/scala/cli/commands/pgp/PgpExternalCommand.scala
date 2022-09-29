@@ -7,13 +7,17 @@ import dependency._
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.internal.{Constants, FetchExternalBinary, Runner}
+import scala.build.internal.{
+  Constants,
+  ExternalBinary,
+  ExternalBinaryParams,
+  FetchExternalBinary,
+  Runner
+}
 import scala.cli.ScalaCli
 import scala.cli.commands.util.CommonOps._
-import scala.util.Properties
-import scala.build.internal.ExternalBinaryParams
-import scala.build.internal.ExternalBinary
 import scala.cli.commands.util.JvmUtils
+import scala.util.Properties
 
 abstract class PgpExternalCommand extends ExternalCommand {
   def progName: String = ScalaCli.progName
@@ -85,7 +89,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
       logger,
       allowExecve = true,
       () =>
-        JvmUtils.javaOptions(options.jvm).javaHome(
+        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
           ArchiveCache().withCache(cache),
           cache,
           logger.verbosity

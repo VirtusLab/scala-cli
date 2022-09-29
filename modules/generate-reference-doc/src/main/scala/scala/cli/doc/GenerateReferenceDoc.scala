@@ -15,6 +15,7 @@ import scala.build.preprocessing.directives.{
   UsingDirectiveHandler
 }
 import scala.cli.ScalaCliCommands
+import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
@@ -81,10 +82,14 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   private def cliOptionsContent(
     commands: Seq[Command[_]],
     allArgs: Seq[Arg],
-    nameFormatter: Formatter[Name]
+    nameFormatter: Formatter[Name],
+    onlyRestricted: Boolean = false
   ): String = {
+    val argsToShow = if (!onlyRestricted) allArgs
+    else
+      allArgs.filterNot(RestrictedCommandsParser.isExperimentalOrRestricted)
 
-    val argsByOrigin = allArgs.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
+    val argsByOrigin = argsToShow.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
 
     val commandOrigins = for {
       command <- commands
@@ -97,78 +102,96 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           (k, v.map(_._2).distinct.sortBy(_.name))
       }
 
-    val b = new StringBuilder
+    val mainOptionsContent   = new StringBuilder
+    val hiddenOptionsContent = new StringBuilder
 
-    b.append(
-      """---
-        |title: Command-line options
-        |sidebar_position: 1
-        |---
-        |
-        |This is a summary of options that are available for each subcommand of the `scala-cli` command.
-        |
-        |""".stripMargin
+    mainOptionsContent.append(
+      s"""---
+         |title: Command-line options
+         |sidebar_position: 1
+         |---
+         |
+         |${
+          if (onlyRestricted)
+            "**This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**"
+          else ""
+        }
+         |
+         |This is a summary of options that are available for each subcommand of the `scala-cli` command.
+         |
+         |""".stripMargin
     )
 
     for ((origin, originArgs) <- argsByOrigin.toVector.sortBy(_._1)) {
-      val originArgs0     = originArgs.map(_.withOrigin(None)).distinct
-      val originCommands  = commandOriginsMap.getOrElse(origin, Nil)
-      val formattedOrigin = formatOrigin(origin)
-      val formattedCommands = originCommands.map { c =>
-        // https://scala-cli.virtuslab.org/docs/reference/commands#install-completions
-        val names = c.names.map(_.mkString(" "))
-        val text  = names.map("`" + _ + "`").mkString(" / ")
-        s"[$text](./commands.md#${names.head.replace(" ", "-")})"
-      }
-      val availableIn = "Available in commands:\n" + formattedCommands.map("- " + _ + "\n").mkString
-      b.append(
-        s"""## $formattedOrigin options
-           |
-           |$availableIn
-           |
-           |<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-           |
-           |""".stripMargin
-      )
-
-      for (arg <- originArgs0.distinct) {
-        import caseapp.core.util.NameOps._
-        arg.name.option(nameFormatter)
-        val aliases = arg.extraNames.map(_.option(nameFormatter))
+      val distinctArgs          = originArgs.map(_.withOrigin(None)).distinct
+      val originCommands        = commandOriginsMap.getOrElse(origin, Nil)
+      val onlyForHiddenCommands = originCommands.nonEmpty && originCommands.forall(_.hidden)
+      val allArgsHidden         = distinctArgs.forall(_.noHelp)
+      val isInternal            = onlyForHiddenCommands || allArgsHidden
+      val b                     = if (isInternal) hiddenOptionsContent else mainOptionsContent
+      if (originCommands.nonEmpty) {
+        val formattedOrigin = formatOrigin(origin)
+        val formattedCommands = originCommands.map { c =>
+          // https://scala-cli.virtuslab.org/docs/reference/commands#install-completions
+          val names = c.names.map(_.mkString(" "))
+          val text  = names.map("`" + _ + "`").mkString(" , ")
+          s"[$text](./commands.md#${names.head.replace(" ", "-")})"
+        }
+        val availableIn = "Available in commands:\n\n" + formattedCommands.mkString(", ")
+        val header      = if (isInternal) "###" else "##"
         b.append(
-          s"""#### `${arg.name.option(nameFormatter)}`
+          s"""$header $formattedOrigin options
+             |
+             |$availableIn
+             |
+             |<!-- Automatically generated, DO NOT EDIT MANUALLY -->
              |
              |""".stripMargin
         )
-        if (aliases.nonEmpty)
-          b.append(
-            s"""Aliases: ${aliases.map("`" + _ + "`").mkString(", ")}
-               |
-               |""".stripMargin
-          )
-        for (desc <- arg.helpMessage.map(_.message))
-          b.append(
-            s"""$desc
-               |
-               |""".stripMargin
-          )
+
+        for (arg <- distinctArgs) {
+          import caseapp.core.util.NameOps._
+          arg.name.option(nameFormatter)
+          val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
+          b.append(s"### `${names.head}`\n\n")
+          if (names.tail.nonEmpty)
+            b.append(names.tail.map(n => s"`$n`").mkString("Aliases: ", ", ", "\n\n"))
+
+          if (isInternal || arg.noHelp) b.append("[Internal]\n")
+
+          for (desc <- arg.helpMessage.map(_.message))
+            b.append(
+              s"""$desc
+                 |
+                 |""".stripMargin
+            )
+        }
       }
     }
 
-    b.toString
+    mainOptionsContent.append("## Internal options \n")
+    mainOptionsContent.append(hiddenOptionsContent.toString)
+    mainOptionsContent.toString
   }
 
-  private def commandsContent(commands: Seq[Command[_]]): String = {
+  private def commandsContent(commands: Seq[Command[_]], onlyRestricted: Boolean): String = {
 
     val b = new StringBuilder
 
     b.append(
-      """---
-        |title: Commands
-        |sidebar_position: 3
-        |---
-        |
-        |""".stripMargin
+      s"""---
+         |title: Commands
+         |sidebar_position: 3
+         |---
+         |
+         |${
+          if (onlyRestricted)
+            "**This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**"
+          else ""
+        }
+         |
+         |
+         |""".stripMargin
     )
 
     val (hiddenCommands, mainCommands) = commands.partition(_.hidden)
@@ -179,19 +202,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
       val headerPrefix = "#" * additionalIndentation
       val names        = c.names.map(_.mkString(" "))
-      b.append(
-        s"""$headerPrefix## `${names.head}`
-           |
-           |""".stripMargin
-      )
-      if (names.lengthCompare(1) > 0) {
-        b.append("Aliases:\n")
-        for (n <- names.tail) {
-          b.append(s"- `$n`")
-          b.append("\n")
-        }
-        b.append("\n")
-      }
+
+      b.append(s"$headerPrefix## ${names.head}\n\n")
+      if (names.tail.nonEmpty) b.append(names.tail.mkString("Aliases: `", "`, `", "`\n\n"))
 
       for (desc <- c.messages.helpMessage.map(_.message))
         b.append(
@@ -210,11 +223,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           s"[$cleanedUp](./cli-options.md#$linkPart-options)"
         }
         b.append(
-          """Accepts options:
-            |""".stripMargin
+          s"""Accepts option groups: ${links.mkString(", ")}
+             |""".stripMargin
         )
-        for (link <- links)
-          b.append(s"- $link\n")
         b.append("\n")
       }
     }
@@ -234,19 +245,26 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   private def usingContent(
     usingHandlers: Seq[UsingDirectiveHandler],
-    requireHandlers: Seq[RequireDirectiveHandler]
+    requireHandlers: Seq[RequireDirectiveHandler],
+    onlyRestricted: Boolean
   ): String = {
     val b = new StringBuilder
 
     b.append(
-      """---
-        |title: Directives
-        |sidebar_position: 2
-        |---
-        |
-        |## using directives
-        |
-        |""".stripMargin
+      s"""---
+         |title: Directives
+         |sidebar_position: 2
+         |---
+         |
+         |${
+          if (onlyRestricted)
+            "**This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**"
+          else ""
+        }
+         |
+         |## using directives
+         |
+         |""".stripMargin
     )
 
     def addHandlers(handlers: Seq[DirectiveHandler[_]]): Unit =
@@ -291,23 +309,40 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   def run(options: InternalDocOptions, args: RemainingArgs): Unit = {
 
-    val scalaCli      = new ScalaCliCommands("scala-cli", isSipScala = false)
-    val commands      = scalaCli.commands
+    val scalaCli = new ScalaCliCommands("scala-cli", isSipScala = false)
+    val commands = scalaCli.commands
+    val restrictedCommands =
+      commands.iterator.collect { case s: ScalaCommand[_] if !s.isRestricted => s }.toSeq
     val allArgs       = commands.flatMap(actualHelp(_).args)
     val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter
 
-    val cliOptionsContent0 = cliOptionsContent(commands, allArgs, nameFormatter)
-    val commandsContent0   = commandsContent(commands)
-    val usingContent0 = usingContent(
+    val allCliOptionsContent = cliOptionsContent(commands, allArgs, nameFormatter)
+    val restrictedCliOptionsContent =
+      cliOptionsContent(restrictedCommands, allArgs, nameFormatter, onlyRestricted = true)
+
+    val allCommandsContent        = commandsContent(commands, onlyRestricted = false)
+    val restrictedCommandsContent = commandsContent(restrictedCommands, onlyRestricted = true)
+
+    val allDirectivesContent = usingContent(
       ScalaPreprocessor.usingDirectiveHandlers,
-      ScalaPreprocessor.requireDirectiveHandlers
+      ScalaPreprocessor.requireDirectiveHandlers,
+      onlyRestricted = false
     )
+    val restrictedDirectivesContent = usingContent(
+      ScalaPreprocessor.usingDirectiveHandlers.filterNot(_.isRestricted),
+      ScalaPreprocessor.requireDirectiveHandlers.filterNot(_.isRestricted),
+      onlyRestricted = true
+    )
+    val restrictedDocsDir = os.rel / "scala-command"
 
     if (options.check) {
       val content = Seq(
-        (os.rel / "cli-options.md") -> cliOptionsContent0,
-        (os.rel / "commands.md")    -> commandsContent0,
-        (os.rel / "directives.md")  -> usingContent0
+        (os.rel / "cli-options.md")                     -> allCliOptionsContent,
+        (os.rel / "commands.md")                        -> allCommandsContent,
+        (os.rel / "directives.md")                      -> allDirectivesContent,
+        (os.rel / restrictedDocsDir / "cli-options.md") -> restrictedCliOptionsContent,
+        (os.rel / restrictedDocsDir / "commands.md")    -> restrictedCommandsContent,
+        (os.rel / restrictedDocsDir / "directives.md")  -> restrictedDirectivesContent
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
@@ -328,9 +363,19 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
         sys.exit(1)
     }
     else {
-      maybeWrite(options.outputPath / "cli-options.md", cliOptionsContent0)
-      maybeWrite(options.outputPath / "commands.md", commandsContent0)
-      maybeWrite(options.outputPath / "directives.md", usingContent0)
+      maybeWrite(options.outputPath / "cli-options.md", allCliOptionsContent)
+      maybeWrite(options.outputPath / "commands.md", allCommandsContent)
+      maybeWrite(options.outputPath / "directives.md", allDirectivesContent)
+
+      maybeWrite(
+        options.outputPath / restrictedDocsDir / "cli-options.md",
+        restrictedCliOptionsContent
+      )
+      maybeWrite(options.outputPath / restrictedDocsDir / "commands.md", restrictedCommandsContent)
+      maybeWrite(
+        options.outputPath / restrictedDocsDir / "directives.md",
+        restrictedDirectivesContent
+      )
     }
   }
 }

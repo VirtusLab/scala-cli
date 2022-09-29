@@ -23,8 +23,8 @@ import java.util.concurrent.Executors
 import java.util.function.Supplier
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build._
+import scala.build.Ops.*
+import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
 import scala.build.internal.Util
@@ -33,12 +33,13 @@ import scala.build.options.publish.{ComputeVersion, Developer, License, Signer =
 import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.MainClassOptionsUtil._
-import scala.cli.commands.util.ScalaCliSttpBackend
-import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.commands.util.PublishUtils._
+import scala.cli.commands.util.MainClassOptionsUtil.*
+import scala.cli.commands.util.PublishUtils.*
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{
   MainClassOptions,
   Package => PackageCmd,
@@ -55,12 +56,12 @@ import scala.cli.errors.{
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
-import scala.cli.util.ConfigPasswordOptionHelpers._
+import scala.cli.util.ConfigPasswordOptionHelpers.*
 
-object Publish extends ScalaCommand[PublishOptions] {
+object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
-  override def group: String       = "Main"
-  override def inSipScala: Boolean = false
+  override def group: String         = "Main"
+  override def isRestricted: Boolean = true
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
@@ -72,7 +73,7 @@ object Publish extends ScalaCommand[PublishOptions] {
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
-    val baseOptions = shared.buildOptions()
+    val baseOptions = shared.buildOptions().orExit(shared.logger)
     val contextualOptions = PublishContextualOptions(
       repository = publishRepo.publishRepository.filter(_.trim.nonEmpty),
       repositoryIsIvy2LocalLike = ivy2LocalLike,
@@ -189,13 +190,12 @@ object Publish extends ScalaCommand[PublishOptions] {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
+    val compilerMaker    = options.shared.compilerMaker(threads).orExit(logger)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true).orExit(logger)
 
     val cross = options.compileCross.cross.getOrElse(false)
 
-    lazy val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    lazy val configDb = options.shared.configDb
 
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)
@@ -472,8 +472,7 @@ object Publish extends ScalaCommand[PublishOptions] {
 
     val mainJar = {
       val mainClassOpt = build.options.mainClass.orElse {
-        val potentialMainClasses = build.foundMainClasses()
-        build.retainedMainClass(potentialMainClasses, logger) match {
+        build.retainedMainClass(logger) match {
           case Left(_: NoMainClassFoundError) => None
           case Left(err) =>
             logger.debug(s"Error while looking for main class: $err")
@@ -686,16 +685,16 @@ object Publish extends ScalaCommand[PublishOptions] {
           hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
         val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
           case None if isSonatype =>
-            value(configDb().get(Keys.sonatypePassword))
-          case other => other
+            value(configDb().get(Keys.sonatypePassword).wrapConfigException)
+          case other => other.map(_.toConfig)
         }
         passwordOpt.map(_.get()) match {
           case None => None
           case Some(password) =>
             val userOpt = publishOptions.contextual(isCi).repoUser match {
               case None if isSonatype =>
-                value(configDb().get(Keys.sonatypeUser))
-              case other => other
+                value(configDb().get(Keys.sonatypeUser).wrapConfigException)
+              case other => other.map(_.toConfig)
             }
             val realmOpt = publishOptions.contextual(isCi).repoRealm match {
               case None if isSonatype =>
@@ -885,8 +884,9 @@ object Publish extends ScalaCommand[PublishOptions] {
                   .secretKeyPassword
                   .orNull
                   .get(configDb())
-                  .orExit(logger),
-                secretKey,
+                  .orExit(logger)
+                  .toCliSigning,
+                secretKey.toCliSigning,
                 getLauncher,
                 logger
               )
@@ -897,8 +897,9 @@ object Publish extends ScalaCommand[PublishOptions] {
                   .secretKeyPassword
                   .orNull
                   .get(configDb())
-                  .orExit(logger),
-                secretKey,
+                  .orExit(logger)
+                  .toCliSigning,
+                secretKey.toCliSigning,
                 getLauncher,
                 logger
               )

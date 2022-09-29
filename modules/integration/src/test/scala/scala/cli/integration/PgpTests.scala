@@ -42,7 +42,7 @@ class PgpTests extends ScalaCliSuite {
   test("pgp key-id") {
     pubKeyInputs.fromRoot { root =>
       val res            = os.proc(TestUtil.cli, "pgp", "key-id", "key.pub").call(cwd = root)
-      val output         = res.out.text().trim
+      val output         = res.out.trim()
       val expectedOutput = "914d298df8fa4d20"
       expect(output == expectedOutput)
     }
@@ -52,7 +52,7 @@ class PgpTests extends ScalaCliSuite {
     // random key that I pushed to the default ker server at some point
     val res = os.proc(TestUtil.cli, "pgp", "pull", "0x914d298df8fa4d20")
       .call()
-    val output = res.out.text().trim
+    val output = res.out.trim()
     val start  = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
     val end    = "-----END PGP PUBLIC KEY BLOCK-----"
     val expectedLines = Seq(

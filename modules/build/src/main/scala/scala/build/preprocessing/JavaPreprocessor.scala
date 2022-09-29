@@ -35,7 +35,7 @@ final case class JavaPreprocessor(
     input: Inputs.SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: Inputs.JavaFile => Some(either {
@@ -56,7 +56,7 @@ final case class JavaPreprocessor(
             Right(j.path),
             scopePath,
             logger,
-            withRestrictedFeatures
+            allowRestrictedFeatures
           ))
           Seq(PreprocessedSource.OnDisk(
             j.path,

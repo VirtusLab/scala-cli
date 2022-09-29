@@ -3,6 +3,8 @@ title: Directives
 sidebar_position: 2
 ---
 
+
+
 ## using directives
 
 ### Compiler options
@@ -206,6 +208,8 @@ Add Scala Native options
 `//> using nativeClang` _value_
 
 `//> using nativeClangPP` _value_
+
+`//> using nativeEmbedResources` _true|false_
 
 #### Examples
 `//> using nativeVersion "0.4.0"`

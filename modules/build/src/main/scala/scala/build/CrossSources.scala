@@ -137,7 +137,7 @@ object CrossSources {
                 elem,
                 logger,
                 maybeRecoverOnError,
-                inputs.withRestrictedFeatures
+                inputs.allowRestrictedFeatures
               ).iterator
             )
             .take(1)

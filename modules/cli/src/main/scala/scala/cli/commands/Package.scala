@@ -1,8 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
-import coursier.launcher._
-import packager.config._
+import ai.kien.python.Python
+import caseapp.*
+import coursier.launcher.*
+import packager.config.*
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
 import packager.mac.dmg.DmgPackage
@@ -16,56 +17,53 @@ import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
-import scala.build._
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  MalformedCliInputError,
-  NoMainClassFoundError,
-  ScalaNativeBuildError
-}
+import scala.build.Ops.*
+import scala.build.*
+import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
-import scala.build.internal.Util._
+import scala.build.internal.Util.*
+import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.{PackageType, Platform}
 import scala.cli.CurrentParams
-import scala.cli.commands.OptionsHelper._
+import scala.cli.commands.OptionsHelper.*
+import scala.cli.commands.Run.orPythonDetectionError
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.util.MainClassOptionsUtil._
-import scala.cli.commands.util.PackageOptionsUtil._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import scala.cli.commands.util.MainClassOptionsUtil.*
+import scala.cli.commands.util.PackageOptionsUtil.*
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
-object Package extends ScalaCommand[PackageOptions] {
+object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name                                                          = "package"
   override def group                                                         = "Main"
-  override def inSipScala                                                    = false
+  override def isRestricted                                                  = true
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   def run(options: PackageOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options, options.baseBuildOptions)
-
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+    val logger           = options.shared.logger
+    val baseBuildOptions = options.baseBuildOptions.orExit(logger)
+    val inputs           = options.shared.inputs(args.remaining).orExit(logger)
+    maybePrintGroupHelp(options)
+    maybePrintSimpleScalacOutput(options, baseBuildOptions)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
     val initialBuildOptions = buildOptions(options)
     val threads             = BuildThreads.create()
-    val compilerMaker       = options.compilerMaker(threads)
+    val compilerMaker       = options.compilerMaker(threads).orExit(logger)
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
-    val cross = options.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val cross    = options.compileCross.cross.getOrElse(false)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -87,6 +85,7 @@ object Package extends ScalaCommand[PackageOptions] {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
+            s.copyOutput(options.shared)
             val mtimeDestPath = doPackage(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
@@ -126,6 +125,7 @@ object Package extends ScalaCommand[PackageOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
+          s.copyOutput(options.shared)
           val res0 = doPackage(
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),
@@ -259,7 +259,7 @@ object Package extends ScalaCommand[PackageOptions] {
             .map(_.stripSuffix("_sc"))
             .map(_ + extension)
         }
-        .orElse(build.retainedMainClass(build.foundMainClasses(), logger).map(
+        .orElse(build.retainedMainClass(logger).map(
           _.stripSuffix("_sc") + extension
         ).toOption)
         .orElse(build.sources.paths.collectFirst(_._1.baseName + extension))
@@ -286,7 +286,7 @@ object Package extends ScalaCommand[PackageOptions] {
       def mainClass: Either[BuildException, String] =
         build.options.mainClass match {
           case Some(cls) => Right(cls)
-          case None      => build.retainedMainClass(build.foundMainClasses(), logger)
+          case None      => build.retainedMainClass(logger)
         }
 
       def mainClassOpt: Option[String] =
@@ -304,20 +304,20 @@ object Package extends ScalaCommand[PackageOptions] {
           val content = Library.libraryJar(build)
           alreadyExistsCheck()
           if (force) os.write.over(destPath, content)
-          else os.write(destPath, content)
+          else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.SourceJar =>
           val now     = System.currentTimeMillis()
           val content = sourceJar(build, now)
           alreadyExistsCheck()
-          if (force) os.write.over(destPath, content)
-          else os.write(destPath, content)
+          if (force) os.write.over(destPath, content, createFolders = true)
+          else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
           val docJarPath = value(docJar(build, logger, extraArgs))
           alreadyExistsCheck()
-          if (force) os.copy.over(docJarPath, destPath)
-          else os.copy(docJarPath, destPath)
+          if (force) os.copy.over(docJarPath, destPath, createFolders = true)
+          else os.copy(docJarPath, destPath, createFolders = true)
           destPath
         case a: PackageType.Assembly =>
           value {
@@ -371,7 +371,7 @@ object Package extends ScalaCommand[PackageOptions] {
           value(buildJs(build, destPath, value(mainClass), logger))
 
         case PackageType.Native =>
-          buildNative(build, value(mainClass), destPath, logger)
+          value(buildNative(build, value(mainClass), destPath, logger))
           destPath
 
         case PackageType.GraalVMNativeImage =>
@@ -406,7 +406,9 @@ object Package extends ScalaCommand[PackageOptions] {
             architecture = packageOptions.debianOptions.architecture.mandatory(
               "--deb-architecture",
               "debian"
-            )
+            ),
+            priority = packageOptions.debianOptions.priority,
+            section = packageOptions.debianOptions.section
           )
 
           lazy val macOSSettings = MacOSSettings(
@@ -461,7 +463,7 @@ object Package extends ScalaCommand[PackageOptions] {
           }
           destPath
         case PackageType.Docker =>
-          docker(build, value(mainClass), logger)
+          value(docker(build, value(mainClass), logger))
           destPath
       }
 
@@ -581,7 +583,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build: Build.Successful,
     mainClass: String,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
     val packageOptions = build.options.notForBloopOptions.packageOptions
 
     if (build.options.platform.value == Platform.Native && (Properties.isMac || Properties.isWin)) {
@@ -622,7 +624,7 @@ object Package extends ScalaCommand[PackageOptions] {
     build.options.platform.value match {
       case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
       case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => buildNative(build, mainClass, appPath, logger)
+      case Platform.Native => value(buildNative(build, mainClass, appPath, logger))
     }
 
     logger.message(
@@ -914,9 +916,25 @@ object Package extends ScalaCommand[PackageOptions] {
     mainClass: String,
     dest: os.Path,
     logger: Logger
-  ): Unit = {
+  ): Either[BuildException, Unit] = either {
 
-    val cliOptions = build.options.scalaNativeOptions.configCliOptions()
+    val cliOptions =
+      build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
+
+    val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+    val pythonLdFlags =
+      if (setupPython)
+        value {
+          val python       = Python()
+          val flagsOrError = python.ldflags
+          logger.debug(s"Python ldflags: $flagsOrError")
+          flagsOrError.orPythonDetectionError
+        }
+      else
+        Nil
+    val pythonCliOptions = pythonLdFlags.flatMap(f => Seq("--linking-option", f)).toList
+
+    val allCliOptions = pythonCliOptions ++ cliOptions
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
@@ -924,17 +942,18 @@ object Package extends ScalaCommand[PackageOptions] {
     val cacheData =
       CachedBinary.getCacheData(
         build,
-        cliOptions,
+        allCliOptions,
         dest,
         nativeWorkDir
       )
 
-    if (cacheData.changed)
+    if (cacheData.changed) {
+      NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = build.fullClassPath.map(_.toString) :+ mainJar.toString
+        val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
         val args =
-          cliOptions ++
+          allCliOptions ++
             logger.scalaNativeCliInternalLoggerOptions ++
             List[String](
               "--outpath",
@@ -965,5 +984,6 @@ object Package extends ScalaCommand[PackageOptions] {
         else
           throw new ScalaNativeBuildError
       }
+    }
   }
 }

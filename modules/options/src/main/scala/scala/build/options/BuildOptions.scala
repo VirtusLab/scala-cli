@@ -10,6 +10,7 @@ import java.io.File
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
+
 import scala.build.EitherCps.{either, value}
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 import scala.build.errors.*
@@ -395,10 +396,17 @@ final case class BuildOptions(
           compilerPlugins = value(compilerPlugins),
           addJsTestBridge = addJsTestBridge.filter(_ => isTests),
           addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),
+          scalaJsVersion =
+            if (platform.value == Platform.JS) Some(scalaJsOptions.finalVersion) else None,
           scalaJsCliVersion =
-            if (platform.value == Platform.JS) Some(scalaJsCliVersion) else None,
+            if (platform.value == Platform.JS) Some(Constants.scalaJsCliVersion) else None,
           scalaNativeCliVersion =
-            if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None
+            if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
+          addScalapy =
+            if (notForBloopOptions.doSetupPython.getOrElse(false))
+              Some(notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+            else
+              None
         )
         Some(params)
       case None =>

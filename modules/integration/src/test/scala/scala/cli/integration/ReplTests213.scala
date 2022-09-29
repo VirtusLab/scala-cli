@@ -12,6 +12,20 @@ class ReplTests213 extends ReplTestDefinitions(
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
+  test("repl custom repositories work") {
+    TestInputs.empty.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "repl",
+        "--repl-dry-run",
+        "--scala",
+        Constants.scalaSnapshot213,
+        "--repository",
+        "https://scala-ci.typesafe.com/artifactory/scala-integration"
+      ).call(cwd = root)
+    }
+  }
+
   test("ammonite with extra JAR") {
     TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
@@ -40,7 +54,7 @@ class ReplTests213 extends ReplTestDefinitions(
       )
       // format: on
       val res    = os.proc(cmd).call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == "Here's an HList: 2 :: true :: a :: HNil")
     }
   }

@@ -23,7 +23,7 @@ class RunTests212 extends RunTestDefinitions(
         cwd = root,
         check = false,
         stderr = os.Pipe
-      ).err.text().trim
+      ).err.trim()
       expect(
         output.contains(
           s"Used Scala Native version $nativeVersion is incompatible with Scala $actualScalaVersion."

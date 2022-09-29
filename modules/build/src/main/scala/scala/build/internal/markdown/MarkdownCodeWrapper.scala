@@ -1,9 +1,8 @@
 package scala.build.internal.markdown
 
 import scala.annotation.tailrec
-import scala.build.internal.AmmUtil
 import scala.build.internal.markdown.MarkdownCodeBlock
-import scala.build.internal.Name
+import scala.build.internal.{AmmUtil, Name}
 
 /** A util for extraction and wrapping of code blocks in Markdown files.
   */

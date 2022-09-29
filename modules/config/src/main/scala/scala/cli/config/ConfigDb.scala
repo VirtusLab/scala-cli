@@ -1,15 +1,13 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{Key as _, *}
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.parse.RawJson
+import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import java.nio.file.attribute.PosixFilePermission
-import scala.build.{Directories, Logger}
-import scala.build.errors.BuildException
-import scala.cli.commands.SharedOptions
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
+import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
+import java.nio.file.{Files, Path}
+
 import scala.collection.immutable.ListMap
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 /** In-memory representation of a configuration DB content.
@@ -42,19 +40,6 @@ final class ConfigDb private (
           }
           .map(Some(_))
     }
-
-  /** Gets an entry.
-    *
-    * If the value cannot be decoded or the key isn't in the DB, None is returned.
-    *
-    * Otherwise, the value is returned wrapped in Some.
-    */
-  def getOrNone[T](key: Key[T], logger: Logger): Option[T] = get[T](key) match {
-    case Right(maybeValue) => maybeValue
-    case Left(ex) =>
-      logger.debug(ex)
-      None
-  }
 
   /** Sets an entry in memory */
   def set[T](key: Key[T], value: T): this.type = {
@@ -102,7 +87,7 @@ final class ConfigDb private (
             }
             (k, serialize(v0))
         }
-      val sortedMap: Map[String, RawJson] = ListMap.from(keyValues)
+      val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
       writeToArray(sortedMap)(ConfigDb.codec)
     }
 
@@ -120,17 +105,25 @@ final class ConfigDb private (
     serializeMap(rawEntries)
   }
 
-  def saveUnsafe(path: os.Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
-    val dir = path / os.up
+  def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
+    val dir = path.getParent
 
     if (Properties.isWin) {
-      os.write.over(path, dump, createFolders = true)
+      Files.createDirectories(dir)
+      Files.write(path, dump)
       Right(())
     }
     else {
-      if (!os.exists(dir))
-        os.makeDir.all(dir, perms = "rwx------")
-      val dirPerms = os.perms(dir)
+      if (!Files.exists(dir))
+        Files.createDirectories(
+          dir,
+          PosixFilePermissions.asFileAttribute(Set(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE,
+            PosixFilePermission.OWNER_EXECUTE
+          ).asJava)
+        )
+      val dirPerms = Files.getPosixFilePermissions(dir).asScala.toSet
       val permsOk =
         !dirPerms.contains(PosixFilePermission.GROUP_READ) &&
         !dirPerms.contains(PosixFilePermission.GROUP_WRITE) &&
@@ -139,7 +132,15 @@ final class ConfigDb private (
         !dirPerms.contains(PosixFilePermission.OTHERS_WRITE) &&
         !dirPerms.contains(PosixFilePermission.OTHERS_EXECUTE)
       if (permsOk) {
-        os.write.over(path, dump, perms = "rw-------", createFolders = false)
+        Files.write(path, Array.emptyByteArray)
+        Files.setPosixFilePermissions(
+          path,
+          Set(
+            PosixFilePermission.OWNER_READ,
+            PosixFilePermission.OWNER_WRITE
+          ).asJava
+        )
+        Files.write(path, dump)
         Right(())
       }
       else
@@ -147,26 +148,21 @@ final class ConfigDb private (
     }
   }
 
-  /** Saves this DB at the config directory of the passed Directories */
-  def save(directories: Directories): Either[BuildException, Unit] = {
+  /** Saves this DB at the passed path */
+  def save(path: Path): Either[Exception, Unit] =
     // no file locks…
-    val path = ConfigDb.dbPath(directories)
     saveUnsafe(path)
-  }
 }
 
 object ConfigDb {
 
-  def dbPath(directories: Directories): os.Path =
-    directories.secretsDir / defaultDbFileName
-
   final class ConfigDbFormatError(
     message: String,
     causeOpt: Option[Throwable] = None
-  ) extends BuildException(message, cause = causeOpt.orNull)
+  ) extends Exception(message, causeOpt.orNull)
 
-  final class ConfigDbPermissionsError(path: os.Path, perms: os.PermSet)
-      extends BuildException(s"$path has wrong permissions $perms (expected rwx------)")
+  final class ConfigDbPermissionsError(path: Path, perms: Set[PosixFilePermission])
+      extends Exception(s"$path has wrong permissions $perms (expected rwx------)")
 
   private val codec: JsonValueCodec[Map[String, RawJson]] = JsonCodecMaker.make
 
@@ -213,9 +209,6 @@ object ConfigDb {
     maybeRawEntries.map(rawEntries => new ConfigDb(rawEntries))
   }
 
-  def defaultDbFileName: String =
-    "config.json"
-
   /** Creates a ConfigDb from a file
     *
     * @param path:
@@ -223,31 +216,11 @@ object ConfigDb {
     * @return
     *   either an error on failure, or a ConfigDb instance on success
     */
-  def open(path: os.Path): Either[BuildException, ConfigDb] =
-    if (os.exists(path))
-      apply(os.read.bytes(path), Some(path.toString))
+  def open(path: Path): Either[Exception, ConfigDb] =
+    if (Files.exists(path))
+      apply(Files.readAllBytes(path), Some(path.toString))
     else
       Right(empty)
-
-  /** Creates a ConfigDb from Scala CLI directories
-    *
-    * @param directories:
-    *   a Scala CLI Directories instance
-    * @return
-    *   either an error on failure, or a ConfigDb instance on success
-    */
-  def open(directories: Directories): Either[BuildException, ConfigDb] =
-    open(dbPath(directories))
-
-  /** Creates a ConfigDb from Scala CLI [[scala.cli.commands.SharedOptions]]
-    *
-    * @param sharedOptions:
-    *   a Scala CLI shared options instance
-    * @return
-    *   either an error on failure, or a ConfigDb instance on success
-    */
-  def open(sharedOptions: SharedOptions): Either[BuildException, ConfigDb] =
-    open(sharedOptions.directories.directories)
 
   def empty: ConfigDb =
     new ConfigDb(Map())

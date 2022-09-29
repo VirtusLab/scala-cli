@@ -7,21 +7,20 @@ import java.io.File
 import scala.build.options.Scope
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
-object Compile extends ScalaCommand[CompileOptions] {
+object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
-  def outputPath(options: CompileOptions): Option[os.Path] =
-    options.output.filter(_.nonEmpty).map(p => os.Path(p, Os.pwd))
-
   def run(options: CompileOptions, args: RemainingArgs): Unit = {
     maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options, options.shared.buildOptions())
     val logger = options.shared.logger
+    maybePrintSimpleScalacOutput(options, options.shared.buildOptions().orExit(logger))
     CurrentParams.verbosity = options.shared.logging.verbosity
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -36,8 +35,8 @@ object Compile extends ScalaCommand[CompileOptions] {
       Update.checkUpdateSafe(logger)
 
     val cross = options.cross.cross.getOrElse(false)
-    if (options.classPath && cross) {
-      System.err.println(s"Error: cannot specify both --class-path and --cross")
+    if (options.printClassPath && cross) {
+      System.err.println(s"Error: cannot specify both --print-class-path and --cross")
       sys.exit(1)
     }
 
@@ -66,22 +65,20 @@ object Compile extends ScalaCommand[CompileOptions] {
             build <- builds.get(Scope.Test).orElse(builds.get(Scope.Main))
             s     <- build.successfulOpt
           } yield s
-        if (options.classPath)
+        if (options.printClassPath)
           for (s <- successulBuildOpt) {
             val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
             println(cp)
           }
-        for (output <- outputPath(options); s <- successulBuildOpt)
-          os.copy.over(s.output, output)
+        successulBuildOpt.foreach(_.copyOutput(options.shared))
       }
     }
 
-    val buildOptions = options.shared.buildOptions()
+    val buildOptions = options.shared.buildOptions().orExit(logger)
     val threads      = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val configDb      = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

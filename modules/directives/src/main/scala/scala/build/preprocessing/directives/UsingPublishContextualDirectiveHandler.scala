@@ -3,8 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, MalformedInputError, UnexpectedDirectiveError}
-import scala.build.options.publish.ComputeVersion
-import scala.build.options.publish.ConfigPasswordOption
+import scala.build.options.publish.{ComputeVersion, ConfigPasswordOption}
 import scala.build.options.{
   BuildOptions,
   PostBuildOptions,

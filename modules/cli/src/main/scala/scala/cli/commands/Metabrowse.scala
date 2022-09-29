@@ -8,16 +8,17 @@ import java.io.File
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.util.Properties
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
-  override def hidden     = true
-  override def inSipScala = false
-  override def group      = "Miscellaneous"
+  override def hidden       = true
+  override def isRestricted = true
+  override def group        = "Miscellaneous"
   override def names = List(
     List("browse"),
     List("metabrowse")
@@ -46,7 +47,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
-    val baseOptions = options.shared.buildOptions()
+    val baseOptions = options.shared.buildOptions().orExit(logger)
     val initialBuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = Some(true)
@@ -57,9 +58,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     )
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val configDb      = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

@@ -33,9 +33,9 @@ class TestTestsDefault extends TestTestDefinitions(scalaVersionOpt = None) {
     )
 
     inputs.fromRoot { root =>
-      val compileRes = os.proc(TestUtil.cli, "compile", "--class-path", baseExtraOptions, ".")
+      val compileRes = os.proc(TestUtil.cli, "compile", "--print-class-path", baseExtraOptions, ".")
         .call(cwd = root)
-      val cp = compileRes.out.text().trim.split(File.pathSeparator)
+      val cp = compileRes.out.trim().split(File.pathSeparator)
       expect(cp.length == 1) // only class dir, no scala JARs
       os.proc(TestUtil.cli, "test", baseExtraOptions, ".")
         .call(cwd = root, stdout = os.Inherit)

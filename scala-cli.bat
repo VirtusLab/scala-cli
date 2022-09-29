@@ -7,7 +7,7 @@ rem Download the latest version of this script at https://github.com/VirtusLab/s
 
 setlocal enabledelayedexpansion
 
-set "SCALA_CLI_VERSION=0.1.12"
+set "SCALA_CLI_VERSION=0.1.15"
 
 set SCALA_CLI_URL=https://github.com/VirtusLab/scala-cli/releases/download/v%SCALA_CLI_VERSION%/scala-cli.bat
 set CACHE_BASE=%localappdata%/Coursier/v1

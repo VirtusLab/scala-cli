@@ -8,6 +8,7 @@ import dependency._
 
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
 import scala.build.internal.{Constants, OsLibc, Runner}
+import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.commands.util.CommonOps._
@@ -83,14 +84,7 @@ object LauncherCli {
     val snapshotRepoUrl =
       s"https://oss.sonatype.org/content/repositories/snapshots/org/virtuslab/scala-cli/cli_${scalaParameters.scalaBinaryVersion}/"
     val artifact = Artifact(snapshotRepoUrl).withChanging(true)
-    val res = cache.logger.use {
-      try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
-      catch {
-        case NonFatal(e) => throw new Exception(e)
-      }
-    }
-
-    res match {
+    cache.fileWithTtl0(artifact) match {
       case Left(_) =>
         System.err.println("Unable to find nightly Scala CLI version")
         sys.exit(1)

@@ -4,8 +4,8 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
-import scala.build.Build
 import scala.build.internal.Constants
+import scala.build.{Build, Inputs}
 
 object CachedBinary {
 
@@ -23,10 +23,48 @@ object CachedBinary {
     String.format(s"%040x", calculatedSum)
   }
 
+  private def hashResources(build: Build.Successful) = {
+    def hashResourceDir(path: os.Path) =
+      os.walk(path)
+        .filter(os.isFile(_))
+        .map { filePath =>
+          val md = MessageDigest.getInstance("SHA-1")
+          md.update(os.read.bytes(filePath))
+          s"$filePath:" + new BigInteger(1, md.digest()).toString()
+        }
+
+    val classpathResourceDirsIt =
+      build.options
+        .classPathOptions
+        .resourcesDir
+        .flatMap(dir => hashResourceDir(dir))
+        .iterator ++
+        Iterator("\n")
+
+    val projectResourceDirsIt = build.inputs.elements.iterator.flatMap {
+      case elem: Inputs.OnDisk =>
+        val content = elem match {
+          case resDirInput: Inputs.ResourceDirectory =>
+            hashResourceDir(resDirInput.path)
+          case _ => List.empty
+        }
+        Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")
+      case _ =>
+        Iterator.empty
+    }
+
+    (classpathResourceDirsIt ++ projectResourceDirsIt)
+      .map(_.getBytes(StandardCharsets.UTF_8))
+  }
+
   private def projectSha(build: Build.Successful, config: List[String]) = {
     val md      = MessageDigest.getInstance("SHA-1")
     val charset = StandardCharsets.UTF_8
     md.update(build.inputs.sourceHash().getBytes(charset))
+    md.update("<resources>".getBytes())
+    // Resource changes for SN require relinking, so they should also be hashed
+    hashResources(build).foreach(md.update)
+    md.update("</resources>".getBytes())
     md.update(0: Byte)
     md.update("<config>".getBytes(charset))
     for (elem <- config) {

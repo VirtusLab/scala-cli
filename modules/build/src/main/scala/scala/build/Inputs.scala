@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.annotation.tailrec
-import scala.build.Inputs.WorkspaceOrigin
+import scala.build.Inputs.{Element, WorkspaceOrigin}
 import scala.build.errors.{BuildException, InputsException}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
@@ -14,7 +14,6 @@ import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
 import scala.util.Properties
 import scala.util.matching.Regex
-import scala.build.Inputs.Element
 
 final case class Inputs(
   elements: Seq[Inputs.Element],
@@ -24,7 +23,7 @@ final case class Inputs(
   mayAppendHash: Boolean,
   workspaceOrigin: Option[WorkspaceOrigin],
   enableMarkdown: Boolean,
-  withRestrictedFeatures: Boolean
+  allowRestrictedFeatures: Boolean
 ) {
 
   def isEmpty: Boolean =
@@ -114,11 +113,6 @@ final case class Inputs(
           case dirInput: Inputs.Directory =>
             Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
-          case resDirInput: Inputs.ResourceDirectory =>
-            // Resource changes for SN require relinking, so they should also be hashed
-            Seq("resource-dir:") ++ os.walk(resDirInput.path)
-              .filter(os.isFile(_))
-              .map(filePath => s"$filePath:" + os.read(filePath))
           case _ => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
@@ -206,6 +200,10 @@ object Inputs {
       extends OnDisk with SourceFile with Compiled {
     lazy val path: os.Path = base / subPath
   }
+  final case class CFile(base: os.Path, subPath: os.SubPath)
+      extends OnDisk with SourceFile with Compiled {
+    lazy val path = base / subPath
+  }
   final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile {
     lazy val path: os.Path = base / subPath
@@ -245,6 +243,8 @@ object Inputs {
           Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
           Inputs.Script(d.path, p.subRelativeTo(d.path))
+        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
+          Inputs.CFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".md") && enableMarkdown =>
           Inputs.MarkdownFile(d.path, p.subRelativeTo(d.path))
       }
@@ -274,6 +274,7 @@ object Inputs {
           case _: Inputs.JavaFile          => "java:"
           case _: Inputs.SettingsScalaFile => "config:"
           case _: Inputs.SourceScalaFile   => "scala:"
+          case _: Inputs.CFile             => "c:"
           case _: Inputs.Script            => "sc:"
           case _: Inputs.MarkdownFile      => "md:"
         }
@@ -301,10 +302,11 @@ object Inputs {
     directories: Directories,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Inputs = {
 
-    assert(validElems.nonEmpty)
+    assert(extraClasspathWasPassed || validElems.nonEmpty)
 
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
       val settingsFiles = projectSettingsFiles(validElems)
@@ -362,7 +364,7 @@ object Inputs {
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin0),
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = withRestrictedFeatures
+      allowRestrictedFeatures = allowRestrictedFeatures
     )
   }
 
@@ -460,6 +462,7 @@ object Inputs {
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
       else if (arg.endsWith(".scala")) Right(Seq(SourceScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
+      else if (arg.endsWith(".c") || arg.endsWith(".h")) Right(Seq(CFile(dir, subPath)))
       else if (arg.endsWith(".md")) Right(Seq(MarkdownFile(dir, subPath)))
       else if (os.isDir(path)) Right(Seq(Directory(path)))
       else if (acceptFds && arg.startsWith("/dev/fd/")) {
@@ -488,7 +491,8 @@ object Inputs {
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds)
@@ -502,7 +506,7 @@ object Inputs {
       val validElems = validatedArgsAndSnippets.collect {
         case Right(elem) => elem
       }.flatten
-      assert(validElems.nonEmpty)
+      assert(extraClasspathWasPassed || validElems.nonEmpty)
 
       Right(forValidatedElems(
         validElems,
@@ -510,7 +514,8 @@ object Inputs {
         directories,
         forcedWorkspace,
         enableMarkdown,
-        withRestrictedFeatures
+        allowRestrictedFeatures,
+        extraClasspathWasPassed
       ))
     }
     else
@@ -531,10 +536,11 @@ object Inputs {
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] =
     if (
-      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty
+      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty && !extraClasspathWasPassed
     )
       defaultInputs().toRight(new InputsException(
         "No inputs provided (expected files with .scala, .sc, .java or .md extensions, and / or directories)."
@@ -553,7 +559,8 @@ object Inputs {
         acceptFds,
         forcedWorkspace,
         enableMarkdown,
-        withRestrictedFeatures
+        allowRestrictedFeatures,
+        extraClasspathWasPassed
       )
 
   def default(): Option[Inputs] =
@@ -568,7 +575,7 @@ object Inputs {
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = false
+      allowRestrictedFeatures = false
     )
 
   def empty(projectName: String): Inputs =

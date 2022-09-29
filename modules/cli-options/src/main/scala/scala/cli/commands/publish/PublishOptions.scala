@@ -3,7 +3,7 @@ package scala.cli.commands.publish
 import caseapp._
 
 import scala.cli.commands.{
-  CompileCrossOptions,
+  CrossOptions,
   MainClassOptions,
   SharedDirectoriesOptions,
   SharedOptions,
@@ -17,7 +17,7 @@ final case class PublishOptions(
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
-    compileCross: CompileCrossOptions = CompileCrossOptions(),
+    compileCross: CrossOptions = CrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
   @Recurse

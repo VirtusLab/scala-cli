@@ -1,6 +1,7 @@
 package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeWrapper
@@ -14,7 +15,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     input: Inputs.SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case markdown: Inputs.MarkdownFile =>
@@ -28,7 +29,7 @@ case object MarkdownPreprocessor extends Preprocessor {
               ScopePath.fromPath(markdown.path),
               logger,
               maybeRecoverOnError,
-              withRestrictedFeatures
+              allowRestrictedFeatures
             )
           }
           preprocessed
@@ -46,7 +47,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    withRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
     def preprocessSnippets(
       maybeCode: Option[String],
@@ -63,7 +64,7 @@ case object MarkdownPreprocessor extends Preprocessor {
                   scopeRoot = scopePath / os.up,
                   logger = logger,
                   maybeRecoverOnError = maybeRecoverOnError,
-                  withRestrictedFeatures = withRestrictedFeatures
+                  allowRestrictedFeatures = allowRestrictedFeatures
                 )
               }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
             val processedCode = processingOutput.updatedContent.getOrElse(code)

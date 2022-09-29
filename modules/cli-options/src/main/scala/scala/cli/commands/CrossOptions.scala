@@ -4,6 +4,7 @@ import caseapp._
 
 // format: off
 final case class CrossOptions(
+    @HelpMessage("[experimental] Run given command against all provided Scala versions and/or platforms")
     cross: Option[Boolean] = None
 )
 // format: on

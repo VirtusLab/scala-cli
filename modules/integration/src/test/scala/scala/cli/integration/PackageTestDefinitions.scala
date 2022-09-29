@@ -54,7 +54,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = maybeUseBash(launcher)(cwd = root).out.text().trim
+      val output = maybeUseBash(launcher)(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -81,7 +81,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = maybeUseBash(launcher.toString)(cwd = root).out.text().trim
+      val output = maybeUseBash(launcher.toString)(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -108,7 +108,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -166,7 +166,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -194,7 +194,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
 
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
-      val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
+      val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -263,11 +263,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val launcher = root / destDir / "main.js"
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
-      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
-  def smallModulesJsTest(): Unit = {
+  def smallModulesJsTest(jvm: Boolean): Unit = {
     val fileName = "Hello.scala"
     val message  = "Hello World from JS"
     val inputs = TestInputs(
@@ -287,6 +287,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destDir = fileName.stripSuffix(".scala")
     inputs.fromRoot { root =>
+      val extraArgs = if (jvm) Seq("--js-cli-on-jvm") else Nil
       os.proc(
         TestUtil.cli,
         "package",
@@ -294,7 +295,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         fileName,
         "--js",
         "-o",
-        destDir
+        destDir,
+        extraArgs
       ).call(
         cwd = root,
         stdin = os.Inherit,
@@ -304,7 +306,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val launcher = root / destDir / "main.js"
       val nodePath = TestUtil.fromPath("node").getOrElse("node")
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
-      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -347,8 +349,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     test("multi modules js") {
       multiModulesJsTest()
     }
-    test("small modules js") {
-      smallModulesJsTest()
+    test("small modules js with native scalajs-cli") {
+      smallModulesJsTest(jvm = false)
+    }
+    test("small modules js with jvm scalajs-cli") {
+      smallModulesJsTest(jvm = true)
     }
     test("js header in release mode") {
       jsHeaderTest()
@@ -384,7 +389,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -436,7 +441,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         }
       val runnableLauncherSize = os.size(runnableLauncher)
 
-      val output = maybeUseBash(runnableLauncher.toString)(cwd = root).out.text().trim
+      val output                  = maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
       val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
       expect(output == message)
       expect(runnableLauncherSize < maxRunnableLauncherSize)
@@ -478,7 +483,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(!util.Arrays.equals(contentStart, preambleStart))
 
       val output = os.proc("java", "-cp", launcher, "hello.Hello")
-        .call(cwd = root).out.text().trim
+        .call(cwd = root).out.trim()
       expect(output == "Hello from assembly")
     }
   }
@@ -577,10 +582,10 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       val scalaLibCp =
         os.proc(TestUtil.cs, "fetch", "--classpath", s"$providedModule:$actualScalaVersion")
-          .call(cwd = root).out.text().trim
+          .call(cwd = root).out.trim()
       val output =
         os.proc("java", "-cp", s"$launcher${File.pathSeparator}$scalaLibCp", "hello.Hello")
-          .call(cwd = root).out.text().trim
+          .call(cwd = root).out.trim()
       val expectedScalaVerInOutput =
         if (actualScalaVersion.startsWith("2.")) actualScalaVersion
         else {
@@ -626,7 +631,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val outputName = if (Properties.isWin) "Main.bat" else "Main"
       val launcher   = root / outputName
 
-      val output = os.proc(launcher.toString).call(cwd = root).out.text().trim
+      val output = os.proc(launcher.toString).call(cwd = root).out.trim()
       expect(output == "Hello World")
     }
   }
@@ -754,7 +759,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       // FIXME Check that dest is indeed a binary?
 
       val res    = os.proc(root / dest).call(cwd = root)
-      val output = res.out.text().trim
+      val output = res.out.trim()
       expect(output == message)
     }
   }
@@ -776,7 +781,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         "--list-main-classes"
       )
         .call(cwd = root)
-      val output      = res.out.text().trim
+      val output      = res.out.trim()
       val mainClasses = output.split(" ").toSet
       expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
@@ -807,8 +812,26 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         s"-Dbar=$barProp",
         "-f"
       ).call(cwd = root)
-      val output = os.proc(root / destFile).call(cwd = root).out.text().trim
+      val output = os.proc(root / destFile).call(cwd = root).out.trim()
       expect(output == s"$fooProp$barProp")
+    }
+  }
+
+  test("ensure directories are created recursively when packaging a jar") {
+    TestInputs(
+      os.rel / "Simple.scala" -> s"""object Simple extends App { println() }"""
+    ).fromRoot { (root: os.Path) =>
+      val jarPath =
+        os.rel / "out" / "inner-out" / "Simple.jar" // the `out` directory doesn't exist and should be created
+      os.proc(
+        TestUtil.cli,
+        "package",
+        ".",
+        "--library",
+        "-o",
+        jarPath,
+        extraOptions
+      ).call(cwd = root)
     }
   }
 
@@ -838,7 +861,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         s"-Dbar=$barProp",
         "-f"
       ).call(cwd = root)
-      val output = os.proc("docker", "run", imageName).call(cwd = root).out.text().trim
+      val output = os.proc("docker", "run", imageName).call(cwd = root).out.trim()
       expect(output == s"$fooProp$barProp")
     }
   }

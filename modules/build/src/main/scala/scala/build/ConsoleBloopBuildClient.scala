@@ -153,9 +153,10 @@ object ConsoleBloopBuildClient {
 
   def diagnosticPrefix(severity: bsp4j.DiagnosticSeverity): String =
     severity match {
-      case bsp4j.DiagnosticSeverity.ERROR   => s"[${red}error$reset] "
-      case bsp4j.DiagnosticSeverity.WARNING => s"[${yellow}warn$reset] "
-      case bsp4j.DiagnosticSeverity.HINT    => s"[${yellow}hint$reset] "
+      case bsp4j.DiagnosticSeverity.ERROR       => s"[${red}error$reset] "
+      case bsp4j.DiagnosticSeverity.WARNING     => s"[${yellow}warn$reset] "
+      case bsp4j.DiagnosticSeverity.INFORMATION => "[info] "
+      case bsp4j.DiagnosticSeverity.HINT        => s"[${yellow}hint$reset] "
     }
 
   def diagnosticPrefix(severity: Severity): String = diagnosticPrefix(severity.toBsp4j)

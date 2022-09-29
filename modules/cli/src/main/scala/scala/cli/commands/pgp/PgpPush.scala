@@ -11,8 +11,8 @@ import scala.cli.internal.PgpProxyMakerSubst
 
 object PgpPush extends ScalaCommand[PgpPushOptions] {
 
-  override def hidden     = true
-  override def inSipScala = false
+  override def hidden       = true
+  override def isRestricted = true
   override def names = List(
     List("pgp", "push")
   )
@@ -44,7 +44,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       val keyContent = os.read(path)
 
       val javaCommand = () =>
-        JvmUtils.javaOptions(options.jvm).javaHome(
+        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
           ArchiveCache().withCache(coursierCache),
           coursierCache,
           logger.verbosity

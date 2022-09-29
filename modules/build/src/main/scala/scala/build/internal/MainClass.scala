@@ -1,6 +1,13 @@
 package scala.build.internal
 
 import org.objectweb.asm
+import org.objectweb.asm.ClassReader
+
+import java.io.{ByteArrayInputStream, InputStream}
+import java.util.zip.ZipEntry
+
+import scala.build.Inputs.{Element, resolve}
+import scala.build.internal.zip.WrappedZipInputStream
 
 object MainClass {
 
@@ -36,20 +43,46 @@ object MainClass {
       if (foundMainClass) nameOpt else None
   }
 
-  def find(output: os.Path): Seq[String] =
-    os.walk(output)
-      .iterator
-      .filter(os.isFile(_))
-      .filter(_.last.endsWith(".class"))
-      .flatMap { path =>
-        val is = os.read.inputStream(path)
-        try {
-          val reader  = new asm.ClassReader(is)
-          val checker = new MainMethodChecker
-          reader.accept(checker, 0)
-          checker.mainClassOpt.iterator
-        }
-        finally is.close()
+  def findInClass(path: os.Path): Iterator[String] =
+    findInClass(os.read.inputStream(path))
+  def findInClass(is: InputStream): Iterator[String] =
+    try {
+      val reader  = new ClassReader(is)
+      val checker = new MainMethodChecker
+      reader.accept(checker, 0)
+      checker.mainClassOpt.iterator
+    }
+    finally is.close()
+
+  def findInJar(path: os.Path): Iterator[String] = {
+    val content        = os.read.bytes(path)
+    val jarInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
+    jarInputStream.entries().flatMap(ent =>
+      if !ent.isDirectory && ent.getName.endsWith(".class") then {
+        val content     = jarInputStream.readAllBytes()
+        val inputStream = new ByteArrayInputStream(content)
+        findInClass(inputStream)
       }
-      .toVector
+      else Iterator.empty
+    )
+  }
+
+  def find(output: os.Path): Seq[String] =
+    output match {
+      case o if os.isFile(o) && o.last.endsWith(".class") =>
+        findInClass(o).toVector
+      case o if os.isFile(o) && o.last.endsWith(".jar") =>
+        findInJar(o).toVector
+      case o if os.isDir(o) =>
+        os.walk(o)
+          .iterator
+          .filter(os.isFile)
+          .flatMap {
+            case classFilePath if classFilePath.last.endsWith(".class") =>
+              findInClass(classFilePath)
+            case _ => Iterator.empty
+          }
+          .toVector
+      case _ => Vector.empty
+    }
 }

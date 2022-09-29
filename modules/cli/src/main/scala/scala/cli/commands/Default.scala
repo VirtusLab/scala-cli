@@ -2,9 +2,9 @@ package scala.cli.commands
 
 import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
-import scala.cli.commands.util.SharedOptionsUtil.*
 
 import scala.build.internal.Constants
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.{CurrentParams, ScalaCliHelp}
 
 class Default(
@@ -14,8 +14,6 @@ class Default(
 
   private def defaultHelp: String     = actualHelp.help(ScalaCliHelp.helpFormat)
   private def defaultFullHelp: String = actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true)
-
-  override protected def commandLength = 0
 
   override def group                                                         = "Main"
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
@@ -36,7 +34,8 @@ class Default(
       {
         val shouldDefaultToRun =
           args.remaining.nonEmpty || options.shared.snippet.executeScript.nonEmpty ||
-          options.shared.snippet.executeScala.nonEmpty || options.shared.snippet.executeJava.nonEmpty
+          options.shared.snippet.executeScala.nonEmpty || options.shared.snippet.executeJava.nonEmpty ||
+          (options.shared.extraJarsAndClassPath.nonEmpty && options.sharedRun.mainClass.mainClass.nonEmpty)
         if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser
       }.parse(rawArgs) match
         case Left(e)                              => error(e)

@@ -12,9 +12,10 @@ import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                                                      = "Main"
@@ -25,7 +26,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   def buildOptions(opts: TestOptions): BuildOptions = {
     import opts._
-    val baseOptions = shared.buildOptions()
+    val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
@@ -63,11 +64,10 @@ object Test extends ScalaCommand[TestOptions] {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
+    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
-    val cross = options.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val cross    = options.compileCross.cross.getOrElse(false)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -215,7 +215,7 @@ object Test extends ScalaCommand[TestOptions] {
               args,
               logger
             )
-          }
+          }.flatten
         }
       case Platform.JVM =>
         val classPath = build.fullClassPath

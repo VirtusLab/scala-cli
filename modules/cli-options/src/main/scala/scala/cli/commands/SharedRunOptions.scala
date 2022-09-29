@@ -14,20 +14,22 @@ final case class SharedRunOptions(
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
-    compileCross: CompileCrossOptions = CompileCrossOptions(),
+    compileCross: CrossOptions = CrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
   @Group("Run")
   @Hidden
-  @HelpMessage("Run as a Spark job, using the spark-submit command")
+  @HelpMessage("[experimental] Run as a Spark job, using the spark-submit command")
   @ExtraName("spark")
     sparkSubmit: Option[Boolean] = None,
   @Group("Run")
-  @HelpMessage("Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
+  @HelpMessage("[experimental] Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
   @ExtraName("sparkStandalone")
     standaloneSpark: Option[Boolean] = None,
   @Group("Run")
-  @HelpMessage("Run as a Hadoop job, using the \"hadoop jar\" command")
+  @HelpMessage("[experimental] Run as a Hadoop job, using the \"hadoop jar\" command")
   @ExtraName("hadoop")
     hadoopJar: Boolean = false,
   @Group("Run")

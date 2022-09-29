@@ -39,7 +39,7 @@ class TestsLs extends munit.FunSuite {
     // check
     val scalaCLILauncher = if(Properties.isWin) "scala-cli.bat" else "scala-cli"
     val foundFiles =
-      os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.text().trim
+      os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.trim()
 
     expectedFiles.map(_.toString).foreach { file =>
       assert(foundFiles.contains(file))
@@ -73,14 +73,8 @@ jobs:
 
 To check the code style of your sources, you can use [Scalafmt](https://scalameta.org/scalafmt/). 
 
-Before running Scalafmt, you need to create a `.scalafmt.conf` configuration file:
 
-```scala
-version = 3.5.2
-runner.dialect = scala3
-```
-
-and then check your code format in GitHub CI by adding new job `format`:
+To check your code format in GitHub CI by adding new job `format`:
 ```yaml
   format:
     runs-on: "ubuntu-latest"

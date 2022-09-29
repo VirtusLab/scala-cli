@@ -2,14 +2,17 @@ import coursier.mavenRepositoryString
 import mill._, scalalib._
 
 import scala.util.Properties
+import $file.utils, utils.isArmArchitecture
 
 object Scala {
   def scala212     = "2.12.16"
   def scala213     = "2.13.8"
+  def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3       = "3.2.0"
   val allScala2    = Seq(scala213, scala212)
   val all          = allScala2 ++ Seq(scala3)
   val mainVersions = Seq(scala3, scala213)
+  val runnerScalaVersions = runnerScala3 +: allScala2
 
   def scalaJs = "1.10.1"
 
@@ -49,22 +52,27 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc5"
+    def scalaJsCli    = "1.1.1-sc6"
   }
 }
 
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier      = "2.1.0-M6-53-gb4f448130"
-    def coursierCli   = "2.1.0-M5-18-gfebf9838c"
-    def jsoniterScala = "2.17.0"
-    def scalaMeta     = "4.5.13"
-    def scalaNative   = "0.4.7"
-    def scalaPackager = "0.1.27"
-    def signingCli    = "0.1.9"
+    def coursier           = "2.1.0-M6-53-gb4f448130"
+    def coursierCli        = "2.1.0-M5-18-gfebf9838c"
+    def coursierM1Cli      = "2.1.0-M6-53-gb4f448130"
+    def jsoniterScala      = "2.17.3"
+    def jsoniterScalaJava8 = "2.13.5"
+    def scalaMeta          = "4.5.13"
+    def scalaNative        = "0.4.7"
+    def scalaPackager      = "0.1.28"
+    def signingCli         = "0.1.9"
   }
-  def ammonite = ivy"com.lihaoyi:ammonite_3.1.3:2.5.4-19-cd76521f"
+  // DO NOT hardcode a Scala version in this dependency string
+  // This dependency is used to ensure that Ammonite is available for Scala versions
+  // that Scala CLI supports.
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.4-22-4a9e6989"
   def asm      = ivy"org.ow2.asm:asm:9.3"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.3-sc-1"
@@ -83,15 +91,21 @@ object Deps {
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
   def guava         = ivy"com.google.guava:guava:31.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.2.0.202206071550-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
-  def jsoniterCore =
+  def jsoniterCore213 =
     ivy"com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:${Versions.jsoniterScala}"
+  def jsoniterCore =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
+  def jsoniterCoreJava8 =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterMacros =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
+  def jsoniterMacrosJava8 =
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.10"
-  def libsodiumjni  = ivy"io.github.alexarchambault.tmp.libsodiumjni:libsodiumjni:0.0.3"
+  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
@@ -99,9 +113,10 @@ object Deps {
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def organizeImports            = ivy"com.github.liancheng::organize-imports:0.5.0"
+  def organizeImports            = ivy"com.github.liancheng::organize-imports:0.6.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
   def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
+  def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
@@ -120,6 +135,7 @@ object Deps {
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   // Force using of 2.13 - is there a better way?
   def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
+  def scalaPy                  = ivy"me.shadaj::scalapy-core::0.5.2+5-83f1eb68"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
@@ -134,7 +150,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
-  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.7.6"
+  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.0"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
@@ -156,7 +172,8 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 
-def buildCsVersion = Deps.Versions.coursierCli
+def buildCsVersion   = Deps.Versions.coursierCli
+def buildCsM1Version = Deps.Versions.coursierM1Cli
 
 // Native library used to encrypt GitHub secrets
 def libsodiumVersion = "1.0.18"

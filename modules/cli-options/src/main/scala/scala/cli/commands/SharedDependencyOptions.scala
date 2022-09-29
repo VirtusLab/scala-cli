@@ -9,7 +9,6 @@ final case class SharedDependencyOptions(
   @Group("Dependency")
   @HelpMessage("Add dependencies")
   @Name("dep")
-  @Name("d")
     dependency: List[String] = Nil,
 
   @Group("Dependency")

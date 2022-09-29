@@ -10,12 +10,12 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sources}
 import scala.cli.CurrentParams
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.cli.config.{ConfigDb, Keys}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 
 object Bsp extends ScalaCommand[BspOptions] {
   override def hidden = true
@@ -62,7 +62,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val sharedOptions = getSharedOptions()
       BspReloadableOptions(
         buildOptions = buildOptions(sharedOptions),
-        bloopRifleConfig = sharedOptions.bloopRifleConfig(),
+        bloopRifleConfig = sharedOptions.bloopRifleConfig().orExit(sharedOptions.logger),
         logger = sharedOptions.logging.logger,
         verbosity = sharedOptions.logging.verbosity
       )
@@ -71,8 +71,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val logger = getSharedOptions().logging.logger
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val configDb = ConfigDb.open(options.shared.directories.directories)
-      .orExit(logger)
+    val configDb = options.shared.configDb
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -97,7 +96,8 @@ object Bsp extends ScalaCommand[BspOptions] {
   }
 
   private def buildOptions(sharedOptions: SharedOptions): BuildOptions = {
-    val baseOptions = sharedOptions.buildOptions()
+    val logger      = sharedOptions.logger
+    val baseOptions = sharedOptions.buildOptions().orExit(logger)
     baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))

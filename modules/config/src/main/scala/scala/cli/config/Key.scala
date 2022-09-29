@@ -3,12 +3,11 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.errors.BuildException
-import scala.cli.signing.shared.PasswordOption
+import scala.cli.config.Util._
 
 /** A configuration key
   */
-sealed abstract class Key[T] {
+abstract class Key[T] {
 
   /** Key prefix, such as "foo.a" in "foo.a.b" */
   def prefix: Seq[String]
@@ -48,7 +47,7 @@ object Key {
   abstract class EntryError(
     message: String,
     causeOpt: Option[Throwable] = None
-  ) extends BuildException(message, cause = causeOpt.orNull)
+  ) extends Exception(message, causeOpt.orNull)
 
   final class JsonReaderError(cause: JsonReaderException)
       extends EntryError("Error parsing config JSON", Some(cause))

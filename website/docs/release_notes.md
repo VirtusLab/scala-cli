@@ -5,6 +5,364 @@ sidebar_position: 99
 
 # Release notes
 
+## [v0.1.15](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.15)
+
+## The M1 native launcher is here! (experimental)
+
+We are happy to announce that there is a new dedicated launcher for M1 users. You can find it [here](https://github.com/VirtusLab/scala-cli/releases/download/v0.1.15/scala-cli-aarch64-apple-darwin.gz).
+
+Please note that the `package` sub-command is unstable for this launcher.
+
+Added in [#1396](https://github.com/VirtusLab/scala-cli/pull/1396) by [@lwronski](https://github.com/lwronski)
+
+## `--python` option for `repl` sub-command (experimental)
+
+Passing the `--python` option allows using `ScalaPy` with the `repl` sub-command:
+
+```
+▶ scala-cli --python
+Welcome to Scala 3.2.0 (17.0.2, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                
+scala> import me.shadaj.scalapy.py
+                                                                                
+scala> py.Dynamic.global.range(1, 4)
+val res0: me.shadaj.scalapy.py.Dynamic = range(1, 4)
+```
+
+Added in [#1336](https://github.com/VirtusLab/scala-cli/pull/1336) by [@alexarchambault](https://github.com/alexarchambault)
+
+## `-d`, `-classpath` and `compile` sub-command's `--output` options changes
+
+To be backward compatible with the `scala` command, some changes have been made to the following options:
+* The `compile` sub-command's  `--output` option has been renamed to `--compilation-output`. This option is now also available from the `run` and `package` sub-commands.
+
+```
+▶ scala-cli compile Hello.scala --compilation-output out
+▶ scala-cli --main-class Hello -classpath out
+Hello
+```
+
+* The `-d` option is no longer an alias for `--dependency`, but for `--compilation-output`. 
+  * `-O -d -O path/to/compilation/output` now defaults to `-d path/to/compilation/output`.
+
+```
+▶ scala-cli compile Hello.scala -d out
+▶ scala-cli --main-class Hello -classpath out
+Hello
+```
+
+* The old `--classpath` option has been renamed to `--print-classpath`.
+  *  `--classpath`, `--class-path` and `-classpath` options are now aliases for the `--extra jars` option.
+  * `-O -classpath -O path/to/classpath` now defaults to `--extra-jars path/to/classpath`.
+
+```
+▶ scala-cli compile --print-classpath Hello.scala
+# ~/Projects/debug-test/.scala-build/project_103be31561_103be31561-7a1ed8dde0/classes/main:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.0/scala3-library_3-3.2.0.jar:~/Library/Caches/ScalaCli/local-repo/v0.1.15/org.virtuslab.scala-cli/runner_3/0.1.15/jars/runner_3.jar:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.8/scala-library-2.13.8.jar
+```
+
+Added in [#1340](https://github.com/VirtusLab/scala-cli/pull/1340) by [@Gedochao](https://github.com/Gedochao)
+
+## Make inputs optional when `-classpath` and `--main-class` are passed
+
+The following changes have been made to improve backward compatibility with the `scala` command:
+* Passing the `--main-class` option along with `-classpath` to the default command now defaults to `run` instead of `repl`:
+
+```
+▶ scala-cli --main-class Hello -classpath out
+Hello
+```
+
+* If the `run` sub-command is passed explicitly, it's sufficient to have a main class on the classpath (inputs aren't necessary then):
+
+```
+▶ scala-cli compile Hello.scala -d out
+▶ scala-cli run -classpath out 
+Hello
+```
+
+Added in [#1369](https://github.com/VirtusLab/scala-cli/pull/1369) by [@Gedochao](https://github.com/Gedochao)
+
+## Debugging with the `run` and `test` sub-commands
+
+It is now possible to debug code ran by `run` and `test` sub-commands:
+
+```
+▶ scala-cli Main.scala --debug
+Listening for transport dt_socket at address: 5005
+Hello
+```
+
+This addresses [#1212](https://github.com/VirtusLab/scala-cli/issues/1212)
+
+Added in [#1389](https://github.com/VirtusLab/scala-cli/pull/1389) by [@wleczny](https://github.com/wleczny)
+
+## `--platform` option
+
+This option can be used to choose the platform, which should be used to compile and run the application.
+
+```
+▶ scala-cli Main.scala --platform js
+Hello
+```
+
+Note that `--platform js` is an alias for `--js` and `--platform native` is an alias for `--native`.
+
+This addresses [#1214](https://github.com/VirtusLab/scala-cli/issues/1214)
+
+Added in [#1347](https://github.com/VirtusLab/scala-cli/pull/1347) by [@wleczny](https://github.com/wleczny)
+
+## Other changes
+
+### Fixes
+
+* Ensure directories are created recursively when the `package` sub-command is called by [@Gedochao](https://github.com/Gedochao) in [#1371](https://github.com/VirtusLab/scala-cli/pull/1371)
+* Fix calculation of Scala version and turn off the `-release` flag for 2.12.x < 2.12.5 by [@Gedochao](https://github.com/Gedochao) in [#1377](https://github.com/VirtusLab/scala-cli/pull/1377)
+* Fix finding main classes in external jars by [@Gedochao](https://github.com/Gedochao) in [#1380](https://github.com/VirtusLab/scala-cli/pull/1380)
+* Fix Js split style SmallModulesFor in pure JVM by [@lwronski](https://github.com/lwronski) in [#1394](https://github.com/VirtusLab/scala-cli/pull/1394)
+
+### Build and internal changes
+
+* Remove mill-scalafix customization by [@alexarchambault](https://github.com/alexarchambault) in [#1360](https://github.com/VirtusLab/scala-cli/pull/1360)
+* Split config db stuff to a separate config module by [@alexarchambault](https://github.com/alexarchambault) in [#1367](https://github.com/VirtusLab/scala-cli/pull/1367)
+* Detect sip when installed by coursier by [@lwronski](https://github.com/lwronski) in [#1368](https://github.com/VirtusLab/scala-cli/pull/1368)
+* Create empty class to enforce resolving ivy deps by mill for dummy modules by [@lwronski](https://github.com/lwronski) in [#1374](https://github.com/VirtusLab/scala-cli/pull/1374)
+* Use millw launcher instead of running mill by cs by [@lwronski](https://github.com/lwronski) in [#1375](https://github.com/VirtusLab/scala-cli/pull/1375)
+* Add --debug option for integration tests by [@wleczny](https://github.com/wleczny) in [#1378](https://github.com/VirtusLab/scala-cli/pull/1378)
+* NIT ScalaVersionUtil refactor by [@Gedochao](https://github.com/Gedochao) in [#1384](https://github.com/VirtusLab/scala-cli/pull/1384)
+* Make config module compatible with Java 8 by [@alexarchambault](https://github.com/alexarchambault) in [#1387](https://github.com/VirtusLab/scala-cli/pull/1387)
+* Add HTTP proxy-related keys in config module by [@alexarchambault](https://github.com/alexarchambault) in [#1388](https://github.com/VirtusLab/scala-cli/pull/1388)
+* Add repositories-related keys in config module by [@alexarchambault](https://github.com/alexarchambault) in [#1395](https://github.com/VirtusLab/scala-cli/pull/1395)
+
+### Updates
+
+* Update scala-cli.sh launcher for 0.1.14 by [@github-actions](https://github.com/features/actions) in [#1362](https://github.com/VirtusLab/scala-cli/pull/1362)
+* Update jsoniter-scala-core_2.13 to 2.17.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1364](https://github.com/VirtusLab/scala-cli/pull/1364)
+* Update core_2.13 to 3.8.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1365](https://github.com/VirtusLab/scala-cli/pull/1365)
+* Bump VirtusLab/scala-cli-setup from 0.1.13 to 0.1.14.1 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#1376](https://github.com/VirtusLab/scala-cli/pull/1376)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.14...v0.1.15
+
+## [v0.1.14](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.14)
+
+## Hotfix printing stacktraces from Scala CLI runner for Scala 3.x < 3.2.0
+We fixed a nasty bug breaking any Scala CLI run using any Scala 3 version earlier than 3.2.0 on printing stacktraces.
+Only Scala CLI 0.1.13 was affected.
+```
+$ scala-cli about
+Scala CLI version: 0.1.13
+Scala version (default): 3.2.0
+$ scala-cli -S 3.1.3 -e 'throw Exception("Broken")'
+Compiling project (Scala 3.1.3, JVM)
+Compiled project (Scala 3.1.3, JVM)
+Exception in thread "main" java.lang.NoSuchMethodError: 'long scala.runtime.LazyVals$.getOffsetStatic(java.lang.reflect.Field)'
+        at scala.cli.runner.StackTracePrinter.<clinit>(StackTracePrinter.scala:101)
+        at scala.cli.runner.StackTracePrinter$.coloredStackTraces(StackTracePrinter.scala:104)
+        at scala.cli.runner.StackTracePrinter$.$lessinit$greater$default$4(StackTracePrinter.scala:11)
+        at scala.cli.runner.Runner$.main(Runner.scala:18)
+        at scala.cli.runner.Runner.main(Runner.scala)
+```
+Added in [#1358](https://github.com/VirtusLab/scala-cli/pull/1358) by [@romanowski](https://github.com/romanowski)
+
+### Build and internal changes
+* Disable mill-scala-cli for now by [@alexarchambault](https://github.com/alexarchambault) in [#1335](https://github.com/VirtusLab/scala-cli/pull/1335)
+* Update scala-cli.sh launcher for 0.1.13 by [@github-actions](https://github.com/features/actions) in [#1351](https://github.com/VirtusLab/scala-cli/pull/1351)
+* Remove backslash which skip execution of `mv` command by [@lwronski](https://github.com/lwronski) in [#1353](https://github.com/VirtusLab/scala-cli/pull/1353)
+* Fix import ordering by [@alexarchambault](https://github.com/alexarchambault) in [#1359](https://github.com/VirtusLab/scala-cli/pull/1359)
+
+### Updates
+* Update scalafix stuff… by [@alexarchambault](https://github.com/alexarchambault) in [#1333](https://github.com/VirtusLab/scala-cli/pull/1333)
+* Bump VirtusLab/scala-cli-setup from 0.1.12 to 0.1.13 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#1354](https://github.com/VirtusLab/scala-cli/pull/1354)
+
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.13...v0.1.14
+
+
+## [v0.1.13](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.13)
+
+## Change the default sub-command to `repl` when no args are passed
+
+We no longer default to the `help` sub-command when no arguments are passed. Starting with `0.1.13` running  Scala CLI with no args will launch the `repl`.
+
+```
+$ scala-cli -S 3
+Welcome to Scala 3.1.3 (17.0.3, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+
+scala> 
+```
+
+When inputs are provided, Scala CLI defaults to the `run` sub-command, as before.
+
+```
+$ cat hello.sc
+println("Hello World")
+$ scala-cli hello.sc
+Hello World
+```
+
+This change was added by [@Gedochao](https://github.com/Gedochao) in [#1268]( https://github.com/VirtusLab/scala-cli/pull/1268)
+
+## Marking the project's workspace root with the `project.settings.scala` file
+
+Scala CLI now supports marking the workspace root directory with an optional configuration file: `project.settings.scala`.  The workspace root determines where the `.bsp` and `.scala-build` directories will be saved (which mostly affects what path should be opened in your IDE to import the Scala CLI project through BSP).
+
+The settings file is also the recommended input for your project's `using directives`. Otherwise, it functions similarly to other `.scala` sources.
+
+```
+$ cat project.settings.scala
+//> using scala "2.13.4"
+$ cat hello.sc
+println(util.Properties.versionString)
+$ scala-cli hello.sc .
+version 2.13.4
+```
+
+To see how exactly is the root directory resolved, see [this document](https://github.com/VirtusLab/scala-cli/blob/932c942b78bc35fc0906f2f9e2f6a0c56bef712b/website/docs/reference/root-dir.md)
+
+Added in [#1260]( https://github.com/VirtusLab/scala-cli/pull/1260) by [@wleczny](https://github.com/wleczny)
+
+## Scala CLI is now built with Scala 3.2.0
+
+We now rely on Scala `3.2.0` as the default internal Scala version used to build the project.
+
+This change was added by [@lwronski](https://github.com/lwronski) in [#1314](https://github.com/VirtusLab/scala-cli/pull/1314)
+
+## Add resources support for Scala Native
+
+Scala CLI now allows embedding resources (by default) in a Scala Native binary with the `--native` flag.
+
+```
+$ cat resources/scala-native/foo.c 
+int foo(int i) {
+  return i + 42;
+}
+$ cat hello.scala 
+//> using platform "native"
+//> using resourceDir "resources"
+
+import scalanative.unsafe.*
+
+@extern
+def foo(int: CInt): CInt = extern
+
+@main def main =
+  println(foo(3))
+$ scala-cli hello.scala --native 
+45
+```
+
+Added in [#812]( https://github.com/VirtusLab/scala-cli/pull/812) by [@jchyb](https://github.com/jchyb)
+
+##  Default to the `run` sub-command instead of `repl` when the `-e`, `--execute-script`, `--execute-scala` or `--execute-java` options are passed.
+
+Even though we default to the `repl` sub-command when no arguments are passed to Scala CLI, an exception to that rule is when a snippet is passed with one of the following options: `-e`, `--execute-script`, `--execute-scala` or `--execute-java`. In that case, the passed snippets are treated as inputs to be executed and switch the default to the `run` sub-command.
+```
+$ scala-cli -e 'println("Hello")'
+Hello
+```
+
+If you still want to pass a snippet to the `repl`, you can either pass the `repl` sub-command explicitly or use one of the following options, as before: `--script-snippet`, `--scala-snippet` or `--java-snippet`.
+```
+$ scala-cli --script-snippet 'println("Hello")'
+Welcome to Scala 3.1.3 (17.0.2, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                                                                                             
+scala> snippet_sc.main(Array.empty)
+Hello
+```
+This change was introduced to make the `-e` option backwards compatible with the `scala` command.
+
+Added in [#1313]( https://github.com/VirtusLab/scala-cli/pull/1313) by [@Gedochao](https://github.com/Gedochao)
+
+## Work in progress
+
+### Support for Markdown (experimental)
+
+Scala CLI can now accept `.md` inputs and run/compile a snippet of Scala code inside the markdown. Markdown sources are ignored by default unless passed explicitly as inputs. You can also enable including non-explicit `.md` inputs by passing the `--enable-markdown` option.
+
+Plain `scala` snippets are treated similarly to `.sc` scripts which can be run by `scala-cli`:
+
+````markdown
+$ cat Example.md
+This is a simple example of an `.md` file with a Scala snippet.
+
+```scala
+val message = "Hello from Markdown"
+println(message)
+```
+````
+
+```
+scala-cli Example.md
+Hello from Markdown
+```
+
+See [this document](https://github.com/VirtusLab/scala-cli/blob/5f15ada41fbdcce9b9efd93bd63d513e3476a69a/website/docs/guides/markdown.md) for more details about the experimental Markdown support.
+
+Added in [#1268]( https://github.com/VirtusLab/scala-cli/pull/1268) by [@Gedochao](https://github.com/Gedochao)
+
+## Add `--python` option for the `run` sub-command (experimental)
+
+The `run` sub-command can now run ScalaPy when the `--python` option is passed.
+
+```
+$ cat helloscalapy.sc
+import py.SeqConverters
+val len = py.Dynamic.global.len(List(0, 2, 3).toPythonProxy)
+println(s"Length is $len")
+$ scala-cli helloscalapy.sc --python -S 2.13
+Length is 3
+```
+
+Added in [#1295]( https://github.com/VirtusLab/scala-cli/pull/1295) by [@alexarchambault](https://github.com/alexarchambault)
+
+## Other changes
+
+#### Documentation
+
+* Correct using directives on configuration.md by [@megri](https://github.com/megri) in [#1278](https://github.com/VirtusLab/scala-cli/pull/1278)
+* Improve dependencies doc by [@Gedochao](https://github.com/Gedochao) in [#1287](https://github.com/VirtusLab/scala-cli/pull/1287)
+
+### Fixes
+
+* Fix path to sourceMappingURL by [@lwronski](https://github.com/lwronski) in [#1286](https://github.com/VirtusLab/scala-cli/pull/1286)
+
+#### Build and internal changes
+
+* Improve the error message for when a build's main class is ambiguous by [@Gedochao](https://github.com/Gedochao) in [#1323](https://github.com/VirtusLab/scala-cli/pull/1323)
+* Improve the error message for unsupported Scala version with Ammonite by [@Gedochao](https://github.com/Gedochao) in [#1327](https://github.com/VirtusLab/scala-cli/pull/1327)
+* Detect ARM64 macs when downloading coursier launcher by [@keynmol](https://github.com/keynmol) in  [#1282](https://github.com/VirtusLab/scala-cli/pull/1282)
+* Make test("...".only) work again in RunTestDefinitions by [alexarchambault](https://github.com/alexarchambault) in [#1294](https://github.com/VirtusLab/scala-cli/pull/1294)
+* Use os-lib short-hand method trim when possible by [alexarchambault](https://github.com/alexarchambault) in [#1334](https://github.com/VirtusLab/scala-cli/pull/1334)
+* Add missing repl tests by [alexarchambault](https://github.com/alexarchambault) in [#1332](https://github.com/VirtusLab/scala-cli/pull/1332)
+* Scala CLI deb package - Priority and Section flag by [@lwronski](https://github.com/lwronski) in [#1338](https://github.com/VirtusLab/scala-cli/pull/1338)
+
+#### Updates
+
+* Update ammonite to 2.5.4-16-7317286d by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1283](https://github.com/VirtusLab/scala-cli/pull/1283)
+* Update mill-main to 0.10.7 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1284](https://github.com/VirtusLab/scala-cli/pull/1284)
+* Update scalajs-env-nodejs_2.13 to 1.4.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1303](https://github.com/VirtusLab/scala-cli/pull/1303)
+* Update jsoniter-scala-core_2.13 to 2.16.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1302](https://github.com/VirtusLab/scala-cli/pull/1302)
+* Update core_2.13 to 3.7.6 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1299](https://github.com/VirtusLab/scala-cli/pull/1299)
+* Update ammonite to 2.5.4-19-cd76521f by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1298](https://github.com/VirtusLab/scala-cli/pull/1298)
+* Update bsp4j to 2.1.0-M1 by [@lwronski](https://github.com/lwronski) in [#1277](https://github.com/VirtusLab/scala-cli/pull/1277)
+* Bump VirtusLab/scala-cli-setup from 0.1.11 to 0.1.12 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#1306](https://github.com/VirtusLab/scala-cli/pull/1306)
+* Update jsoniter-scala-core_2.13 to 2.17.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1311](https://github.com/VirtusLab/scala-cli/pull/1311)
+* Update test-runner, tools to 0.4.7 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1317](https://github.com/VirtusLab/scala-cli/pull/1317)
+* Update jsoniter-scala-core_2.13 to 2.17.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1320](https://github.com/VirtusLab/scala-cli/pull/1320)
+* Update ammonite_3.1.3 to 2.5.4-22-4a9e6989 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1329](https://github.com/VirtusLab/scala-cli/pull/1329)
+* Update jsoniter-scala-core_2.13 to 2.17.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1343](https://github.com/VirtusLab/scala-cli/pull/1343)
+* Update python-native-libs to 0.2.4 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1341](https://github.com/VirtusLab/scala-cli/pull/1341)
+* Update org.eclipse.jgit to 6.3.0.202209071007-r by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1344](https://github.com/VirtusLab/scala-cli/pull/1344)
+
+## New Contributors
+* [@megri](https://github.com/megri) made their first contribution in [#1278](https://github.com/VirtusLab/scala-cli/pull/1278)
+* [@keynmol](https://github.com/keynmol) made their first contribution in [#1282](https://github.com/VirtusLab/scala-cli/pull/1282)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.12...v0.1.13
+
+
 ## [v0.1.12](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.12)
 
 ### Add `--spark`, `--spark-standalone` and `--hadoop` options for the `run` sub-command

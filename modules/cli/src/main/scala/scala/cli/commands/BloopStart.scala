@@ -15,8 +15,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object BloopStart extends ScalaCommand[BloopStartOptions] {
-  override def hidden     = true
-  override def inSipScala = false
+  override def hidden       = true
+  override def isRestricted = true
   override def names: List[List[String]] = List(
     List("bloop", "start")
   )
@@ -24,7 +24,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
   private def mkBloopRifleConfig(opts: BloopStartOptions): BloopRifleConfig = {
     import opts._
     val buildOptions = BuildOptions(
-      javaOptions = JvmUtils.javaOptions(jvm),
+      javaOptions = JvmUtils.javaOptions(jvm).orExit(logging.logger),
       internal = InternalOptions(
         cache = Some(coursier.coursierCache(logging.logger.coursierLogger("")))
       )

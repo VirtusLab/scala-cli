@@ -42,13 +42,14 @@ object cli extends Cli
 
 object `cli-options`  extends CliOptions
 object `build-macros` extends BuildMacros
+object config         extends Cross[Config](Scala.all: _*)
 object options        extends Options
 object scalaparse     extends ScalaParse
 object directives     extends Directives
 object core           extends Core
 object `build-module` extends Build
-object runner         extends Cross[Runner](Scala.all: _*)
-object `test-runner`  extends Cross[TestRunner](Scala.all: _*)
+object runner         extends Cross[Runner](Scala.runnerScalaVersions: _*)
+object `test-runner`  extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
 object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
 object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
@@ -135,16 +136,13 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listAll: _*)
+  // Temporarily filtering out 3.2.0, until com-lihaoyi/Ammonite#1286 is merged.
+  object amm extends Cross[Amm](Scala.listAll.filter(_ != "3.2.0"): _*)
   class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps = Agg(
       Deps.ammonite
     )
-    def compile = T {
-      resolvedRunIvyDeps()
-      null: mill.scalalib.api.CompilationResult
-    }
   }
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop    = true
@@ -152,10 +150,6 @@ object dummy extends Module {
     def ivyDeps = Agg(
       Deps.scalafmtCli
     )
-    def compile = T {
-      resolvedRunIvyDeps()
-      null: mill.scalalib.api.CompilationResult
-    }
   }
 }
 
@@ -164,10 +158,6 @@ trait BuildMacros extends ScalaCliSbtModule
     with ScalaCliScalafixModule
     with HasTests {
   def scalaVersion = Scala.defaultInternal
-  def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
-  }
   def compileIvyDeps = T {
     if (scalaVersion().startsWith("3"))
       super.compileIvyDeps()
@@ -297,16 +287,16 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
-    val testRunnerMainClass = `test-runner`(Scala.defaultInternal)
+    val testRunnerMainClass = `test-runner`(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
-    val runnerMainClass = runner(Scala.defaultInternal)
+    val runnerMainClass = runner(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
-    val testRunnerOrganization = `test-runner`(Scala.defaultInternal)
+    val testRunnerOrganization = `test-runner`(Scala.runnerScala3)
       .pomSettings()
       .organization
     val code =
@@ -330,13 +320,13 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def stubsVersion = "${stubs.publishVersion()}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
-         |  def testRunnerModuleName = "${`test-runner`(Scala.defaultInternal).artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`(Scala.defaultInternal).publishVersion()}"
+         |  def testRunnerModuleName = "${`test-runner`(Scala.runnerScala3).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(Scala.runnerScala3).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
          |
-         |  def runnerOrganization = "${runner(Scala.defaultInternal).pomSettings().organization}"
-         |  def runnerModuleName = "${runner(Scala.defaultInternal).artifactName()}"
-         |  def runnerVersion = "${runner(Scala.defaultInternal).publishVersion()}"
+         |  def runnerOrganization = "${runner(Scala.runnerScala3).pomSettings().organization}"
+         |  def runnerModuleName = "${runner(Scala.runnerScala3).artifactName()}"
+         |  def runnerVersion = "${runner(Scala.runnerScala3).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
          |
          |  def semanticDbPluginOrganization = "${Deps.scalametaTrees.dep.module.organization.value}"
@@ -377,6 +367,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
+         |
+         |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -405,7 +397,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def ivyDeps = super.ivyDeps() ++ Agg(
     // Deps.asm,
     Deps.bloopConfig,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.pprint,
     Deps.scalametaTrees,
     Deps.scalaparse,
@@ -443,6 +435,32 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
     // }
   }
+}
+
+class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
+    with ScalaCliScalafixModule {
+  def ivyDeps = {
+    val maybeCollectionCompat =
+      if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
+      else Nil
+    super.ivyDeps() ++ maybeCollectionCompat ++ Agg(
+      Deps.jsoniterCoreJava8
+    )
+  }
+  def compileIvyDeps = super.compileIvyDeps() ++ Agg(
+    Deps.jsoniterMacrosJava8
+  )
+  def scalacOptions = T {
+    super.scalacOptions() ++ Seq("-release", "8")
+  }
+
+  // Disabling Scalafix in 2.13 and 3, so that it doesn't remove
+  // some compatibility-related imports, that are actually only used
+  // in Scala 2.12.
+  def fix(args: String*) =
+    if (crossScalaVersion.startsWith("2.12.")) super.fix(args: _*)
+    else T.command(())
 }
 
 trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
@@ -502,10 +520,6 @@ class Scala3Graal(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     )
     super.resources() ++ Seq(mill.PathRef(extraResourceDir))
   }
-  def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
-  }
 }
 
 trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
@@ -524,7 +538,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     scalaparse,
     directives,
     `scala-cli-bsp`,
-    `test-runner`(scalaVer),
+    `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
     `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
@@ -539,7 +553,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.asm,
     Deps.collectionCompat,
     Deps.javaClassName,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
@@ -587,7 +601,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
 trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.osLib,
     Deps.signingCliOptions
   )
@@ -656,8 +670,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def scalaVersion = T(myScalaVersion)
 
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion()) ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil)
+    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
   }
   def javacOptions = T {
     super.javacOptions() ++ Seq("--release", "16")
@@ -665,8 +678,8 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps = Seq(
     `build-module`,
     `cli-options`,
-    `test-runner`(myScalaVersion),
-    `scala3-graal`(myScalaVersion)
+    config(Scala.scala3),
+    `scala3-graal`(Scala.scala3)
   )
 
   def repositories = super.repositories ++ customRepositories
@@ -677,9 +690,10 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierPublish,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.jsoniterCore,
+    Deps.jsoniterCore213,
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
+    Deps.pythonNativeLibs,
     Deps.scalaPackager,
     Deps.signingCli,
     Deps.slf4jNop, // to silence jgit
@@ -701,7 +715,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
-    val cp = res.out.text().trim
+    val cp = res.out.trim()
     cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
   }
 
@@ -729,7 +743,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     PathRef(T.dest / "working-dir")
   }
   def scalacOptions = T {
-    super.scalacOptions() ++ Seq("-Xasync", "-Ywarn-unused", "-deprecation")
+    super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
   }
 
   def modulesPath = T {
@@ -757,7 +771,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.coursier
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
-      Deps.jsoniterCore,
+      Deps.jsoniterCore213,
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
@@ -841,11 +855,24 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       def test(args: String*) = {
         val argsTask = T.task {
           val launcher = launcherTask().path
+          val debugReg = "^--debug$|^--debug:([0-9]+)$".r
+          val debugPortOpt = args.find(debugReg.matches).flatMap {
+            case debugReg(port) => Option(port).orElse(Some("5005"))
+            case _              => None
+          }
+          val debugArgs = debugPortOpt match {
+            case Some(port) =>
+              System.err.println(
+                s"--debug option has been passed. Listening for transport dt_socket at address: $port"
+              )
+              Seq(s"-Dtest.scala-cli.debug.port=$port")
+            case _ => Seq.empty
+          }
           val extraArgs = Seq(
             s"-Dtest.scala-cli.path=$launcher",
             s"-Dtest.scala-cli.kind=$cliKind"
           )
-          args ++ extraArgs
+          args ++ extraArgs ++ debugArgs
         }
         T.command {
           val res            = testTask(argsTask, T.task(Seq.empty[String]))()
@@ -944,11 +971,7 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
-      else Nil
-    } ++ Seq("-release", "8")
-
+    super.scalacOptions() ++ Seq("-release", "8")
   }
   def mainClass = Some("scala.cli.runner.Runner")
   def sources = T.sources {
@@ -970,10 +993,7 @@ class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused", "-deprecation")
-      else Nil
-    } ++ Seq("-release", "8")
+    super.scalacOptions() ++ Seq("-release", "8")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
@@ -988,9 +1008,7 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def scalacOptions = T {
-    super.scalacOptions() ++
-      (if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused") else Nil) ++
-      Seq("-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bsp4j,
@@ -1028,12 +1046,6 @@ class BloopRifle(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
 class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def scalacOptions = T(
-    super.scalacOptions() ++ {
-      if (scalaVersion().startsWith("2.")) Seq("-Ywarn-unused")
-      else Nil
-    }
-  )
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
@@ -1067,12 +1079,12 @@ object `local-repo` extends LocalRepo {
       stubs
     )
     val crossModules = for {
-      sv   <- Scala.all
+      sv   <- Scala.runnerScalaVersions
       proj <- Seq(runner, `test-runner`)
     } yield proj(sv)
     javaModules ++ crossModules
   }
-  def version = runner(Scala.defaultInternal).publishVersion()
+  def version = runner(Scala.runnerScala3).publishVersion()
 }
 
 // Helper CI commands
@@ -1234,7 +1246,7 @@ private def commitChanges(
   repoDir: os.Path,
   force: Boolean = false
 ): Unit = {
-  if (os.proc("git", "status").call(cwd = repoDir).out.text().trim.contains("nothing to commit"))
+  if (os.proc("git", "status").call(cwd = repoDir).out.trim().contains("nothing to commit"))
     println("Nothing Changes")
   else {
     os.proc("git", "add", "-A").call(cwd = repoDir)
@@ -1353,7 +1365,7 @@ object ci extends Module {
       .call(
         cwd = targetDir,
         stdin = binarySha256
-      ).out.text().trim
+      ).out.trim()
 
     val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
     val template            = os.read(templateFormulaPath)

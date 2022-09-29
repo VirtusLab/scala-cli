@@ -24,7 +24,7 @@ object SparkTests212 {
           s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
       }
       val baseDir =
-        os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.text().trim, os.pwd)
+        os.Path(os.proc(TestUtil.cs, "get", "--archive", url).call().out.trim(), os.pwd)
       val home = os.list(baseDir) match {
         case Seq(dir) if os.isDir(dir) => dir
         case _                         => baseDir
@@ -105,7 +105,7 @@ class SparkTests212 extends SparkTestDefinitions {
         .call(cwd = root)
 
       val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "8").call().out.trim(), os.pwd)
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
 
       val ext = if (Properties.isWin) ".cmd" else ""
       val res =

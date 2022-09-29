@@ -3,8 +3,8 @@ package scala.build.actionable
 import dependency._
 
 import scala.build.Position
-import scala.build.errors.{Diagnostic, Severity}
 import scala.build.errors.Diagnostic.RelatedInformation
+import scala.build.errors.{Diagnostic, Severity}
 
 abstract class ActionableDiagnostic extends Diagnostic {
 

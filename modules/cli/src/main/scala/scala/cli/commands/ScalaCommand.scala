@@ -8,40 +8,65 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
+import scala.annotation.tailrec
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
+import scala.cli.ScalaCli
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
-    extends Command()(parser, help) with NeedsArgvCommand with CommandHelpers {
+abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
+    extends Command()(myParser, help) with NeedsArgvCommand with CommandHelpers {
+
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
   override def hasFullHelp = true
 
-  def inSipScala: Boolean = true
+  override def parser: Parser[T] =
+    RestrictedCommandsParser(myParser)
+
+  def isRestricted: Boolean = false
 
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {
     argvOpt = Some(argv)
   }
 
+  /** @return the actual Scala CLI program name which was run */
+  protected def progName: String = ScalaCli.progName
+
   // TODO Manage to have case-app give use the exact command name that was used instead
-  protected def commandLength: Int = names.headOption.fold(1)(_.length)
+  /** The actual sub-command name that was used. If the sub-command name is a list of strings, space
+    * is used as the separator. If [[argvOpt]] hasn't been defined, it defaults to [[name]].
+    */
+  protected def actualCommandName: String =
+    argvOpt.map { argv =>
+      @tailrec
+      def validCommand(potentialCommandName: List[String]): Option[List[String]] =
+        if potentialCommandName.isEmpty then None
+        else
+          names.find(_ == potentialCommandName) match {
+            case cmd @ Some(_) => cmd
+            case _             => validCommand(potentialCommandName.dropRight(1))
+          }
+
+      val maxCommandLength: Int    = names.map(_.length).max max 1
+      val maxPotentialCommandNames = argv.slice(1, maxCommandLength + 1).toList
+      validCommand(maxPotentialCommandNames).getOrElse(List(""))
+    }.getOrElse(List(name)).mkString(" ")
+
+  protected def actualFullCommand: String =
+    if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
 
   override def error(message: Error): Nothing = {
-    System.err.println(message.message)
-
-    for (argv <- argvOpt if argv.length >= 1 + commandLength) {
-      System.err.println()
-      System.err.println("To list all available options, run")
-      System.err.println(
-        s"  ${Console.BOLD}${argv.take(1 + commandLength).mkString(" ")} --help${Console.RESET}"
-      )
-    }
-
+    System.err.println(
+      s"""${message.message}
+         |
+         |To list all available options, run
+         |  ${Console.BOLD}$actualFullCommand --help${Console.RESET}""".stripMargin
+    )
     sys.exit(1)
   }
 
@@ -62,8 +87,9 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         val candidates = arg.name.name match {
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
-              val cache = sharedOptions.coursierCache
-              val sv = sharedOptions.buildOptions()
+              val logger = sharedOptions.logger
+              val cache  = sharedOptions.coursierCache
+              val sv = sharedOptions.buildOptions().orExit(logger)
                 .scalaParams
                 .toOption
                 .flatten
@@ -171,7 +197,7 @@ abstract class ScalaCommand[T](implicit parser: Parser[T], help: Help[T])
         else
           // That's how Ammonite gets the terminal width, but I'd rather not spawn a sub-process upfront in Scala CLI…
           //   val pathedTput = if (os.isFile(os.Path("/usr/bin/tput"))) "/usr/bin/tput" else "tput"
-          //   val width = os.proc("sh", "-c", s"$pathedTput cols 2>/dev/tty").call(stderr = os.Pipe).out.text().trim.toInt
+          //   val width = os.proc("sh", "-c", s"$pathedTput cols 2>/dev/tty").call(stderr = os.Pipe).out.trim().toInt
           //   Some(width)
           // Ideally, we should do an ioctl, like jansi does here:
           //   https://github.com/fusesource/jansi/blob/09722b7cccc8a99f14ac1656db3072dbeef34478/src/main/java/org/fusesource/jansi/AnsiConsole.java#L344

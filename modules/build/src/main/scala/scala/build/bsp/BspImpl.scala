@@ -8,8 +8,10 @@ import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.io.{InputStream, OutputStream}
 import java.util.concurrent.{CompletableFuture, Executor}
-import scala.build.*
+
 import scala.build.EitherCps.{either, value}
+import scala.build.*
+import scala.build.actionable.ActionablePreprocessor
 import scala.build.bloop.BloopServer
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
@@ -20,7 +22,6 @@ import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
-import scala.build.actionable.ActionablePreprocessor
 
 /** The implementation for [[Bsp]].
   *

@@ -10,8 +10,8 @@ import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
-import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
+import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
 import scala.build.{Logger, Positioned}
 import scala.util.Properties

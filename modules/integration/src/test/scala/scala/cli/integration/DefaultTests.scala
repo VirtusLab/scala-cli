@@ -6,7 +6,7 @@ class DefaultTests extends ScalaCliSuite {
   test("running scala-cli with no args should default to repl") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--repl-dry-run").call(cwd = root, mergeErrIntoOut = true)
-      expect(res.out.trim() == "Dry run, not running REPL.")
+      expect(res.out.trim() == replDryRunOutput)
     }
   }
   test("running scala-cli with no args should not accept run-only options") {
@@ -18,7 +18,7 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(runSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(runSpecificOption))
     }
   }
   test("running scala-cli with args should not accept repl-only options") {
@@ -30,7 +30,7 @@ class DefaultTests extends ScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
     }
   }
 
@@ -41,7 +41,7 @@ class DefaultTests extends ScalaCliSuite {
       val res =
         os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", TestUtil.extraOptions)
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -57,7 +57,7 @@ class DefaultTests extends ScalaCliSuite {
           TestUtil.extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -73,7 +73,7 @@ class DefaultTests extends ScalaCliSuite {
           TestUtil.extraOptions
         )
           .call(cwd = root)
-      expect(res.out.text().trim == msg)
+      expect(res.out.trim() == msg)
     }
   }
 
@@ -90,17 +90,70 @@ class DefaultTests extends ScalaCliSuite {
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      expect(res.out.trim == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
     }
   }
 
-  private def unrecognizedArgMessage(argName: String) = {
-    val scalaCli = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  test("default to the run sub-command if -classpath and --main-class are passed") {
+    val expectedOutput = "Hello"
+    val mainClassName  = "Main"
+    TestInputs(
+      os.rel / s"$mainClassName.scala" -> s"""object $mainClassName extends App { println("$expectedOutput") }"""
+    ).fromRoot { (root: os.Path) =>
+      val compilationOutputDir = os.rel / "compilationOutput"
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        ".",
+        "-d",
+        compilationOutputDir
+      ).call(cwd = root)
+
+      // next, run while relying on the pre-compiled class instead of passing inputs
+      val runRes = os.proc(
+        TestUtil.cli,
+        "--main-class",
+        mainClassName,
+        "-classpath",
+        (os.rel / compilationOutputDir).toString
+      ).call(cwd = root)
+      expect(runRes.out.trim() == expectedOutput)
+    }
+  }
+
+  test("default to the repl sub-command if -classpath is passed, but --main-class isn't") {
+    val expectedOutput = "Hello"
+    val mainClassName  = "Main"
+    TestInputs(
+      os.rel / s"$mainClassName.scala" -> s"""object $mainClassName extends App { println("$expectedOutput") }"""
+    ).fromRoot { (root: os.Path) =>
+      val compilationOutputDir = os.rel / "compilationOutput"
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        ".",
+        "-d",
+        compilationOutputDir
+      ).call(cwd = root)
+
+      // next, run the repl while relying on the pre-compiled classes
+      val runRes = os.proc(
+        TestUtil.cli,
+        "--repl-dry-run",
+        "-classpath",
+        (os.rel / compilationOutputDir).toString
+      ).call(cwd = root, mergeErrIntoOut = true)
+      expect(runRes.out.trim == replDryRunOutput)
+    }
+  }
+
+  private def unrecognizedArgMessage(argName: String) =
     s"""
        |Unrecognized argument: $argName
        |
        |To list all available options, run
-       |  ${Console.BOLD}$scalaCli --help${Console.RESET}
+       |  ${Console.BOLD}${TestUtil.detectCliPath} --help${Console.RESET}
        |""".stripMargin.trim
-  }
+
+  private lazy val replDryRunOutput = "Dry run, not running REPL."
 }

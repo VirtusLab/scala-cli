@@ -135,6 +135,12 @@ Note that this requires `node` to be [installed](/install#scala-js) on your syst
 scala-cli Hello.scala --js
 ```
 
+It is also possible to achieve it using `--platform` option:
+
+```bash
+scala-cli Hello.scala --platform js
+```
+
 See our dedicated [Scala.js guide](../guides/scala-js.md) for more information.
 
 ## Scala Native
@@ -146,7 +152,22 @@ Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en
 scala-cli Hello.scala --native -S 2.13.6
 ```
 
+It is also possible to achieve it using `--platform` option:
+
+```bash
+scala-cli Hello.scala --platform native
+```
+
 We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.
+
+## Platform
+
+The `--platform` option can be used to choose the platform, which should be used to compile and run application. Available platforms are:
+* JVM (`jvm`)
+* Scala.js (`scala.js` | `scala-js` | `scalajs` | `js`)
+* Scala Native (`scala-native` | `scalanative` | `native`)
+
+Passing the `--platform` along with `--js` or `--native` is not recommended. If two different types of platform are passed, Scala CLI throws an error.
 
 ## Scala Scripts
 
@@ -182,4 +203,22 @@ object HelloWorld extends App {
 ```bash ignore
 docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
 # Hello world
+```
+
+## Debugging
+
+It is possible to debug code by passing `--debug` flag.
+
+Additional debug options:
+* `--debug-mode` (attach by default)
+* `--debug-port` (5005 by default)
+
+Available debug modes:
+* Attach (`attach` | `att` | `a`)
+* Listen (`listen` | `lis` | `l`)
+
+Example debugging with scala-cli:
+
+```bash ignore
+scala-cli Foo.scala --debug --debug-mode l --debug-port 5006
 ```

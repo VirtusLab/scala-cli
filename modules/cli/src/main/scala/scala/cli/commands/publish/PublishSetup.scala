@@ -12,6 +12,7 @@ import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.{CrossSources, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.{ScalaCliSttpBackend, SharedOptionsUtil}
 import scala.cli.commands.{CommandUtils, ScalaCommand}
@@ -20,8 +21,8 @@ import scala.cli.internal.Constants
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
-  override def group      = "Main"
-  override def inSipScala = false
+  override def group        = "Main"
+  override def isRestricted = true
 
   override def names = List(
     List("publish", "setup")
@@ -34,7 +35,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val logger        = options.logging.logger
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
 
-    lazy val configDb = ConfigDb.open(options.directories.directories)
+    lazy val configDb = ConfigDb.open(options.directories.directories.dbPath.toNIO)
+      .wrapConfigException
       .orExit(logger)
 
     val inputArgs = args.all
@@ -131,7 +133,12 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       .orExit(logger)
 
     lazy val token = options.token
-      .orElse(configDb.get(Keys.ghToken).orExit(logger))
+      .map(_.toConfig)
+      .orElse {
+        configDb.get(Keys.ghToken)
+          .wrapConfigException
+          .orExit(logger)
+      }
       .map(_.get())
       .getOrElse {
         System.err.println(

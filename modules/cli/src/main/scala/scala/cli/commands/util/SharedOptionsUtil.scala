@@ -8,39 +8,40 @@ import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
+import java.nio.file.Paths
+
+import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.build.errors.BuildException
+import scala.build.errors.{AmbiguousPlatformError, BuildException}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
+import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
+import scala.cli.ScalaCli
 import scala.cli.commands.ScalaJsOptions
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.{ConfigDb, ConfigDbException, Keys}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.cli.ScalaCli
 
 object SharedOptionsUtil extends CommandHelpers {
 
   private def downloadInputs(cache: FileCache[Task]): String => Either[String, Array[Byte]] = {
     url =>
       val artifact = Artifact(url).withChanging(true)
-      val res = cache.logger.use {
-        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      res
-        .left.map(_.describe)
+      cache.fileWithTtl0(artifact)
+        .left
+        .map(_.describe)
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
   }
 
@@ -58,7 +59,8 @@ object SharedOptionsUtil extends CommandHelpers {
     scriptSnippetList: List[String],
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
-    enableMarkdown: Boolean = false
+    enableMarkdown: Boolean = false,
+    extraClasspathWasPassed: Boolean = false
   ): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -67,7 +69,7 @@ object SharedOptionsUtil extends CommandHelpers {
           logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
         path
       }
-      .map(Inputs.ResourceDirectory)
+      .map(Inputs.ResourceDirectory.apply)
     val maybeInputs = Inputs(
       args,
       Os.pwd,
@@ -81,7 +83,8 @@ object SharedOptionsUtil extends CommandHelpers {
       acceptFds = !Properties.isWin,
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
-      withRestrictedFeatures = ScalaCli.withRestrictedFeatures
+      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
+      extraClasspathWasPassed = extraClasspathWasPassed
     )
     maybeInputs.map { inputs =>
       val forbiddenDirs =
@@ -154,11 +157,25 @@ object SharedOptionsUtil extends CommandHelpers {
       enableJmh: Boolean = false,
       jmhVersion: Option[String] = None,
       ignoreErrors: Boolean = false
-    ): bo.BuildOptions = {
-      val platformOpt =
-        if (js.js) Some(Platform.JS)
-        else if (native.native) Some(Platform.Native)
-        else None
+    ): Either[BuildException, bo.BuildOptions] = either {
+      val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
+      val platformOpt = value {
+        (parsedPlatform, js.js, native.native) match {
+          case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
+          case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
+          case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
+          case (Some(p), _, _) =>
+            val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
+            val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
+            val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
+            Left(new AmbiguousPlatformError(platformsSeq.distinct.map(_.toString)))
+          case (_, true, true) =>
+            Left(new AmbiguousPlatformError(Seq(Platform.JS.toString, Platform.Native.toString)))
+          case (_, true, _) => Right(Some(Platform.JS))
+          case (_, _, true) => Right(Some(Platform.Native))
+          case _            => Right(None)
+        }
+      }
       bo.BuildOptions(
         scalaOptions = bo.ScalaOptions(
           scalaVersion = scalaVersion
@@ -168,12 +185,11 @@ object SharedOptionsUtil extends CommandHelpers {
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           generateSemanticDbs = semanticDb,
-          scalacOptions = ShadowingSeq.from(
-            scalac.scalacOption
-              .filter(_.nonEmpty)
-              .map(ScalacOpt(_))
-              .map(Positioned.commandLine)
-          ),
+          scalacOptions = scalac
+            .scalacOption
+            .toScalacOptShadowingSeq
+            .filterNonRedirected
+            .map(Positioned.commandLine),
           compilerPlugins =
             SharedOptionsUtil.parseDependencies(
               dependencies.compilerPlugin.map(Positioned.none),
@@ -186,7 +202,7 @@ object SharedOptionsUtil extends CommandHelpers {
         ),
         scalaJsOptions = scalaJsOptions(js),
         scalaNativeOptions = scalaNativeOptions(native),
-        javaOptions = scala.cli.commands.util.JvmUtils.javaOptions(jvm),
+        javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
         internalDependencies = bo.InternalDependenciesOptions(
           addStubsDependencyOpt = addStubs,
           addRunnerDependencyOpt = runner
@@ -198,14 +214,8 @@ object SharedOptionsUtil extends CommandHelpers {
           runJmh = if (enableJmh) Some(true) else None
         ),
         classPathOptions = bo.ClassPathOptions(
-          extraClassPath = extraJars
-            .flatMap(_.split(File.pathSeparator).toSeq)
-            .filter(_.nonEmpty)
-            .map(os.Path(_, os.pwd)),
-          extraCompileOnlyJars = extraCompileOnlyJars
-            .flatMap(_.split(File.pathSeparator).toSeq)
-            .filter(_.nonEmpty)
-            .map(os.Path(_, os.pwd)),
+          extraClassPath = extraJarsAndClassPath,
+          extraCompileOnlyJars = extraCompileOnlyClassPath,
           extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
           extraDependencies = ShadowingSeq.from(
             SharedOptionsUtil.parseDependencies(
@@ -227,13 +237,46 @@ object SharedOptionsUtil extends CommandHelpers {
       )
     }
 
+    extension (rawClassPath: List[String]) {
+      def extractedClassPath: List[os.Path] =
+        rawClassPath
+          .flatMap(_.split(File.pathSeparator).toSeq)
+          .filter(_.nonEmpty)
+          .distinct
+          .map(os.Path(_, os.pwd))
+          .flatMap {
+            case cp if os.isDir(cp) =>
+              val jarsInTheDirectory =
+                os.walk(cp)
+                  .filter(p => os.isFile(p) && p.last.endsWith(".jar"))
+              List(cp) ++ jarsInTheDirectory // .jar paths have to be passed directly, unlike .class
+            case cp => List(cp)
+          }
+    }
+
+    def extraJarsAndClassPath: List[os.Path] =
+      (extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath"))
+        .extractedClassPath
+
+    def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
+
     def globalInteractiveWasSuggested: Option[Boolean] =
-      configDb.getOrNone(Keys.globalInteractiveWasSuggested, logger)
+      configDb.get(Keys.globalInteractiveWasSuggested) match {
+        case Right(opt) => opt
+        case Left(ex) =>
+          logger.debug(ConfigDbException(ex))
+          None
+      }
 
     def interactive: Interactive =
       (
         logging.verbosityOptions.interactive,
-        configDb.getOrNone(Keys.interactive, logger),
+        configDb.get(Keys.interactive) match {
+          case Right(opt) => opt
+          case Left(ex) =>
+            logger.debug(ConfigDbException(ex))
+            None
+        },
         globalInteractiveWasSuggested
       ) match {
         case (Some(true), _, Some(true)) => InteractiveAsk
@@ -249,7 +292,7 @@ object SharedOptionsUtil extends CommandHelpers {
               configDb
                 .set(Keys.interactive, true)
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(v.directories.directories)
+                .save(v.directories.directories.dbPath.toNIO)
               logger.message(
                 "--interactive is now set permanently. All future scala-cli commands will run with the flag set to true."
               )
@@ -259,7 +302,7 @@ object SharedOptionsUtil extends CommandHelpers {
             case _ =>
               configDb
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(v.directories.directories)
+                .save(v.directories.directories.dbPath.toNIO)
               logger.message(
                 "If you want to turn this setting permanently on at any point, just run `scala-cli config interactive true`."
               )
@@ -268,7 +311,10 @@ object SharedOptionsUtil extends CommandHelpers {
         case _ => InteractiveNop
       }
 
-    def configDb: ConfigDb = ConfigDb.open(v).orExit(logger)
+    def configDb: ConfigDb =
+      ConfigDb.open(v.directories.directories.dbPath.toNIO)
+        .wrapConfigException
+        .orExit(logger)
 
     def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
       implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
@@ -291,9 +337,8 @@ object SharedOptionsUtil extends CommandHelpers {
       javaCmd
     }
 
-    def bloopRifleConfig(): BloopRifleConfig = {
-
-      val options = buildOptions(false, None)
+    def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
+      val options = value(buildOptions(false, None))
       lazy val defaultJvmCmd =
         downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
       val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
@@ -314,17 +359,21 @@ object SharedOptionsUtil extends CommandHelpers {
       )
     }
 
-    def compilerMaker(threads: BuildThreads, scaladoc: Boolean = false): ScalaCompilerMaker =
+    def compilerMaker(
+      threads: BuildThreads,
+      scaladoc: Boolean = false
+    ): Either[BuildException, ScalaCompilerMaker] = either {
       if (scaladoc)
         SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
       else if (compilationServer.server.getOrElse(true))
         new BloopCompilerMaker(
-          bloopRifleConfig(),
+          value(bloopRifleConfig()),
           threads.bloop,
           strictBloopJsonCheckOrDefault
         )
       else
         SimpleScalaCompilerMaker("java", Nil)
+    }
 
     def coursierCache = cached(v)(coursier.coursierCache(logging.logger.coursierLogger("")))
 
@@ -345,7 +394,8 @@ object SharedOptionsUtil extends CommandHelpers {
         scriptSnippetList = allScriptSnippets,
         scalaSnippetList = allScalaSnippets,
         javaSnippetList = allJavaSnippets,
-        enableMarkdown = v.markdown.enableMarkdown
+        enableMarkdown = v.markdown.enableMarkdown,
+        extraClasspathWasPassed = v.extraJarsAndClassPath.nonEmpty
       )
 
     def allScriptSnippets: List[String] = v.snippet.scriptSnippet ++ v.snippet.executeScript

@@ -1,12 +1,11 @@
 package scala.build
 
-import scala.quoted.*
-
-import coursier.core.{Module, Dependency => CDependency}
+import coursier.core.{Dependency => CDependency, Module}
 import coursier.parse.{DependencyParser, ModuleParser}
-
 import dependency.{DependencyLike, NameAttributes}
+
 import scala.build.internal.Constants
+import scala.quoted.*
 
 def noArgs(args: Expr[Seq[Any]])(using Quotes): Unit = {} // TODO
 

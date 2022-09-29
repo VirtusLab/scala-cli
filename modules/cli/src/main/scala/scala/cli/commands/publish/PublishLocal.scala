@@ -10,8 +10,8 @@ import scala.cli.config.ConfigDb
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
-  override def group: String       = "Main"
-  override def inSipScala: Boolean = false
+  override def group: String         = "Main"
+  override def isRestricted: Boolean = true
   override def sharedOptions(options: PublishLocalOptions): Option[SharedOptions] =
     Some(options.shared)
 
@@ -40,8 +40,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
+    val compilerMaker    = options.shared.compilerMaker(threads).orExit(logger)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true).orExit(logger)
 
     val cross = options.compileCross.cross.getOrElse(false)
 

@@ -4,9 +4,8 @@ import caseapp._
 
 import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
-import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
-import scala.cli.ScalaCli
+import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
@@ -18,7 +17,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       options.directories.directories,
       defaultInputs = () => Inputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
-      withRestrictedFeatures = ScalaCli.withRestrictedFeatures
+      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
+      extraClasspathWasPassed = false
     ) match {
       case Left(message) =>
         System.err.println(message)

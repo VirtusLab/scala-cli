@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
@@ -23,9 +24,9 @@ final case class UserCheck(
     either {
       if (options.publishParams.setupCi) {
         val user0 = options.publishRepo.user match {
-          case Some(value0) => value0
+          case Some(value0) => value0.toConfig
           case None =>
-            val userOpt = value(configDb().get(Keys.sonatypeUser))
+            val userOpt = value(configDb().get(Keys.sonatypeUser).wrapConfigException)
             userOpt match {
               case Some(user) =>
                 logger.message("publish.user:")
@@ -53,7 +54,7 @@ final case class UserCheck(
           Seq(SetSecret("PUBLISH_USER", user0.get(), force = true))
         )
       }
-      else if (value(configDb().get(Keys.sonatypeUser)).isDefined) {
+      else if (value(configDb().get(Keys.sonatypeUser).wrapConfigException).isDefined) {
         logger.message("publish.user:")
         logger.message(s"  found ${Keys.sonatypeUser.fullName} in Scala CLI configuration")
         OptionCheck.DefaultValue.empty
