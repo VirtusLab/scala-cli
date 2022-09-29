@@ -271,7 +271,7 @@ object Build {
       val inputs0 = updateInputs(
         allInputs,
         mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
-        Some(testOptions)
+        Some(testOptions).filter(_ != mainOptions)
       )
 
       def doBuildScope(
