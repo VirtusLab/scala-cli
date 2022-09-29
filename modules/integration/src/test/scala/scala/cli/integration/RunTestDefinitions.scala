@@ -2537,4 +2537,22 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(res.out.trim == expectedOutput)
       }
   }
+
+  if (!Properties.isWin)
+    test("-encoding CP1252 should be handled correctly in .scala files") {
+      TestInputs(
+        charsetName = "Windows-1252",
+        os.rel / "s.scala" -> """object Main extends App { println("€") }"""
+      )
+        .fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            "s.scala",
+            "-encoding",
+            "cp1252",
+            extraOptions
+          ).call(cwd = root)
+          expect(res.out.trim == "€")
+        }
+    }
 }
