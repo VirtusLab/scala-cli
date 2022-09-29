@@ -40,11 +40,9 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  // Temporarily filtering out 3.2.0, until com-lihaoyi/Ammonite#1286 is merged.
-  if (actualScalaVersion != "3.2.0")
-    test("ammonite") {
-      ammoniteTest()
-    }
+  test("ammonite") {
+    ammoniteTest()
+  }
 
   test("ammonite scalapy") {
     TestInputs.empty.fromRoot { root =>

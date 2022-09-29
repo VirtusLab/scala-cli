@@ -30,22 +30,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   def buildOptions(ops: ReplOptions): BuildOptions = {
     import ops._
     import ops.sharedRepl._
-    val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
-
-    val logger = ops.shared.logger
-    val baseOptions = shared.copy(scalaVersion =
-      if (
-        ammonite.contains(true) &&
-        (shared.scalaVersion.isEmpty || shared.scalaVersion.contains("3.2.0")) &&
-        ammoniteVersionOpt.isEmpty
-      ) {
-        // TODO remove this once ammonite adds support for 3.2.0
-        System.err.println("Scala 3.2.0 is not yet supported with this version of ammonite")
-        System.err.println("Defaulting to Scala 3.1.3")
-        Some("3.1.3")
-      }
-      else shared.scalaVersion
-    ).buildOptions().orExit(logger)
+    val baseOptions = shared.buildOptions().orExit(ops.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
@@ -55,7 +40,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         replOptions = baseOptions.notForBloopOptions.replOptions.copy(
           useAmmoniteOpt = ammonite,
-          ammoniteVersionOpt = ammoniteVersionOpt,
+          ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty),
           ammoniteArgs = ammoniteArg
         ),
         python = sharedPython.python,
