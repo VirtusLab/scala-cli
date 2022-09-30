@@ -1475,6 +1475,50 @@ object ci extends Module {
 
     commitChanges(s"Update Debian packages for $version", branch, packagesDir)
   }
+  def updateChocolateyPackage() = T.command {
+    val version = cli.publishVersion()
+
+    val packagesDir = os.pwd / "target" / "scala-cli-packages"
+    val chocoDir    = os.pwd / ".github" / "scripts" / "choco"
+
+    val msiPackagePath = packagesDir / s"scala-cli_$version.msi"
+    os.copy(
+      os.pwd / "artifacts" / "scala-cli-x86_64-pc-win32.msi",
+      msiPackagePath,
+      createFolders = true
+    )
+
+    // prepare ps1 file
+    val ps1Path = chocoDir / "tools" / "chocolateyinstall.ps1"
+
+    val launcherURL =
+      s"https://github.com/VirtusLab/scala-cli/releases/download/v$version/scala-cli-x86_64-pc-win32.msi"
+    val bytes  = os.read.stream(msiPackagePath)
+    val sha256 = os.proc("sha256sum").call(cwd = packagesDir, stdin = bytes).out.trim.take(64)
+    val ps1UpdatedContent = os.read(ps1Path)
+      .replace("@LAUNCHER_URL@", launcherURL)
+      .replace("@LAUNCHER_SHA256@", sha256.toUpperCase)
+
+    os.write.over(ps1Path, ps1UpdatedContent)
+
+    // prepare nuspec file
+    val nuspecPath           = chocoDir / "scala-cli.nuspec"
+    val nuspecUpdatedContent = os.read(nuspecPath).replace("@LAUNCHER_VERSION@", version)
+    os.write.over(nuspecPath, nuspecUpdatedContent)
+
+    os.proc("choco", "pack", nuspecPath, "--out", chocoDir).call(cwd = chocoDir)
+    val chocoKey =
+      Option(System.getenv("CHOCO_SECRET")).getOrElse(sys.error("CHOCO_SECRET not set"))
+    os.proc(
+      "choco",
+      "push",
+      chocoDir / s"scala-cli.$version.nupkg",
+      "-s",
+      "https://push.chocolatey.org/",
+      "-k",
+      chocoKey
+    ).call(cwd = chocoDir)
+  }
   def updateCentOsPackages() = T.command {
     val version = cli.publishVersion()
 
