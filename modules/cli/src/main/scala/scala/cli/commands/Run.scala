@@ -539,12 +539,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     build: Build.Successful,
     mainClass: String,
     logger: Logger
-  )(f: os.Path => T): Either[BuildException, T] = {
-    val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
-    Package.buildNative(build, mainClass, dest, logger).map { _ =>
-      f(dest)
-    }
-  }
+  )(f: os.Path => T): Either[BuildException, T] =
+    Package.buildNative(build, mainClass, logger).map(f)
 
   final class PythonDetectionError(cause: Throwable) extends BuildException(
         s"Error detecting Python environment: ${cause.getMessage}",
