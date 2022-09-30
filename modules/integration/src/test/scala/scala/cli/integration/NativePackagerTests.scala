@@ -48,7 +48,7 @@ class NativePackagerTests extends ScalaCliSuite {
         val pkgAppPath = root / pkgAppFile
         expect(os.isFile(pkgAppPath))
 
-        if (TestUtil.isCI && !TestUtil.isArmArchitecture) {
+        if (TestUtil.isCI) {
           os.proc("installer", "-pkg", pkgAppFile, "-target", "CurrentUserHomeDirectory").call(
             cwd = root,
             stdin = os.Inherit,

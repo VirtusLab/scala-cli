@@ -3,7 +3,6 @@ package scala.cli.integration
 import os.{CommandResult, Path}
 
 import java.io.File
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
@@ -20,9 +19,6 @@ object TestUtil {
   val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
   val detectCliPath                = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
   val cli: Seq[String]             = cliCommand(cliPath)
-
-  lazy val isArmArchitecture: Boolean =
-    sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT) == "aarch64"
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
