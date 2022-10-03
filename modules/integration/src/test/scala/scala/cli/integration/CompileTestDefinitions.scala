@@ -63,7 +63,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root).out.text()
+      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root)
     }
   }
 
