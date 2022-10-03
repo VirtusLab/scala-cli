@@ -2,6 +2,7 @@ package scala.cli.commands.util
 
 import scala.build.errors.MainClassError
 import scala.build.{Build, Logger, Os}
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, SharedOptions}
 
 trait BuildCommandHelpers { self: ScalaCommand[_] =>
@@ -21,7 +22,7 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
       */
     def copyOutput(sharedOptions: SharedOptions): Unit =
       sharedOptions.compilationOutput.filter(_.nonEmpty)
-        .orElse(sharedOptions.scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-d"))
+        .orElse(sharedOptions.scalac.scalacOption.getScalacOption("-d"))
         .filter(_.nonEmpty)
         .map(os.Path(_, Os.pwd)).foreach(output =>
           os.copy.over(successfulBuild.output, output, createFolders = true)

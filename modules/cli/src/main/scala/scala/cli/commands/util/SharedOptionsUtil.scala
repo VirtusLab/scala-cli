@@ -158,7 +158,7 @@ object SharedOptionsUtil extends CommandHelpers {
       jmhVersion: Option[String] = None,
       ignoreErrors: Boolean = false
     ): Either[BuildException, bo.BuildOptions] = either {
-      val releaseOpt = scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-release")
+      val releaseOpt = scalac.scalacOption.getScalacOption("-release")
       val targetOpt  = scalac.scalacOption.getScalacPrefixOption("-target")
       jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
         case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
@@ -264,7 +264,7 @@ object SharedOptionsUtil extends CommandHelpers {
     }
 
     def extraJarsAndClassPath: List[os.Path] =
-      (extraJars ++ scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-classpath"))
+      (extraJars ++ scalac.scalacOption.getScalacOption("-classpath"))
         .extractedClassPath
 
     def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath

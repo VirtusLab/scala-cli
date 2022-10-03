@@ -22,6 +22,8 @@ object ScalacOptionsUtil {
     def getScalacPrefixOption(prefixKey: String): Option[String] =
       opts.find(_.startsWith(s"$prefixKey:")).map(_.stripPrefix(s"$prefixKey:"))
 
+    def getScalacOption(key: String): Option[String] = opts.toScalacOptShadowingSeq.getOption(key)
+
   }
 
   extension (opts: ShadowingSeq[ScalacOpt]) {
@@ -29,7 +31,7 @@ object ScalacOptionsUtil {
       opts.filterKeys(_.key.exists(f))
     def filterNonRedirected: ShadowingSeq[ScalacOpt] =
       opts.filterScalacOptionKeys(!ScalacOptions.ScalaCliRedirectedOptions.contains(_))
-    def getScalacOption(key: String): Option[String] =
+    def getOption(key: String): Option[String] =
       opts.get(ScalacOpt(key)).headOption.map(_.value)
   }
 }
