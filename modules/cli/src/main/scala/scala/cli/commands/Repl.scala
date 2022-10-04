@@ -55,6 +55,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   }
 
   def run(options: ReplOptions, args: RemainingArgs): Unit = {
+    maybePrintGroupHelp(options)
     CurrentParams.verbosity = options.shared.logging.verbosity
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
