@@ -371,7 +371,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           value(buildJs(build, destPath, value(mainClass), logger))
 
         case PackageType.Native =>
-          value(buildNative(build, value(mainClass), destPath, logger))
+          val cachedDest = value(buildNative(build, value(mainClass), logger))
+          if (force) os.copy.over(cachedDest, destPath, createFolders = true)
+          else os.copy(cachedDest, destPath, createFolders = true)
           destPath
 
         case PackageType.GraalVMNativeImage =>
@@ -622,9 +624,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
-      case Platform.JVM    => bootstrap(build, appPath, mainClass, () => ())
-      case Platform.JS     => buildJs(build, appPath, mainClass, logger)
-      case Platform.Native => value(buildNative(build, mainClass, appPath, logger))
+      case Platform.JVM => bootstrap(build, appPath, mainClass, () => ())
+      case Platform.JS  => buildJs(build, appPath, mainClass, logger)
+      case Platform.Native =>
+        val dest = value(buildNative(build, mainClass, logger))
+        os.copy(dest, appPath)
     }
 
     logger.message(
@@ -914,9 +918,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   def buildNative(
     build: Build.Successful,
     mainClass: String,
-    dest: os.Path,
     logger: Logger
-  ): Either[BuildException, Unit] = either {
+  ): Either[BuildException, os.Path] = either {
+    val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
 
     val cliOptions =
       build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
@@ -985,5 +989,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           throw new ScalaNativeBuildError
       }
     }
+
+    dest
   }
 }

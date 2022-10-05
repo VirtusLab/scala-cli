@@ -17,16 +17,13 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   val simpleInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.test.scala" ->
-      """//> using lib "com.lihaoyi::utest::0.7.10"
-        |import utest._
+    os.rel / "MyTests.scala" ->
+      """//> using lib "com.lihaoyi::os-lib::0.8.1"
         |
-        |object MyTests extends TestSuite {
-        |  val tests = Tests {
-        |    test("foo") {
-        |      assert(2 + 2 == 4)
-        |      println("Hello from " + "tests")
-        |    }
+        |object MyTests {
+        |  def main(args: Array[String]): Unit = {
+        |    for (l <- os.list(os.pwd))
+        |      println(l.last)
         |  }
         |}
         |""".stripMargin
@@ -63,7 +60,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", "--test", extraOptions, ".").call(cwd = root).out.text()
+      os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      val projDirs = os.list(root / Constants.workspaceDirName)
+        .filter(_.last.startsWith("project_"))
+        .filter(os.isDir(_))
+      expect(projDirs.length == 1)
+      val projDir     = projDirs.head
+      val projDirName = projDir.last
+      val elems       = projDirName.stripPrefix("project_").split("[-_]").toSeq
+      expect(elems.length == 1)
     }
   }
 
@@ -125,6 +130,16 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         )
       expect(isDefinedTestPathInClassPath)
       checkIfCompileOutputIsCopied("Tests", tempOutput)
+
+      val projDirs = os.list(root / Constants.workspaceDirName)
+        .filter(_.last.startsWith("project_"))
+        .filter(os.isDir(_))
+      expect(projDirs.length == 1)
+      val projDir     = projDirs.head
+      val projDirName = projDir.last
+      val elems       = projDirName.stripPrefix("project_").split("[-_]").toSeq
+      expect(elems.length == 2)
+      expect(elems.toSet.size == 2)
     }
   }
 
