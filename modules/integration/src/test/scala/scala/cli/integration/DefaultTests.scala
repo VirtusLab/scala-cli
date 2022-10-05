@@ -147,6 +147,20 @@ class DefaultTests extends ScalaCliSuite {
     }
   }
 
+  test("ensure --help-native works with the default command") {
+    TestInputs.empty.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--help-native").call(cwd = root)
+      expect(res.out.trim.contains("Scala Native options:"))
+    }
+  }
+
+  test("ensure --help-js works with the default command") {
+    TestInputs.empty.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--help-js").call(cwd = root)
+      expect(res.out.trim.contains("Scala.js options:"))
+    }
+  }
+
   private def unrecognizedArgMessage(argName: String) =
     s"""
        |Unrecognized argument: $argName
