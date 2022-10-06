@@ -35,7 +35,7 @@ object ScalacOptions {
   private val scalacOptionsPrefixes =
     Set("-g", "-language", "-opt", "-P", "-target") ++ scalacOptionsPurePrefixes
   private val scalacAliasedOptions = // these options don't require being passed after -O
-    Set("-encoding")
+    Set("-encoding", "-release")
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
     * message instead.

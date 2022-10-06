@@ -19,6 +19,9 @@ object ScalacOptionsUtil {
     def toScalacOptShadowingSeq: ShadowingSeq[ScalacOpt] =
       ShadowingSeq.from(opts.filter(_.nonEmpty).map(ScalacOpt(_)))
 
+    def getScalacPrefixOption(prefixKey: String): Option[String] =
+      opts.find(_.startsWith(s"$prefixKey:")).map(_.stripPrefix(s"$prefixKey:"))
+
   }
 
   extension (opts: ShadowingSeq[ScalacOpt]) {

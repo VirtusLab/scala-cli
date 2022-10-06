@@ -158,6 +158,16 @@ object SharedOptionsUtil extends CommandHelpers {
       jmhVersion: Option[String] = None,
       ignoreErrors: Boolean = false
     ): Either[BuildException, bo.BuildOptions] = either {
+      val releaseOpt = scalac.scalacOption.toScalacOptShadowingSeq.getScalacOption("-release")
+      val targetOpt  = scalac.scalacOption.getScalacPrefixOption("-target")
+      jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
+        case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
+          val compilerTargetsString = compilerTargets.distinct.mkString(", ")
+          logger.error(
+            s"Warning: different target JVM ($j) and scala compiler target JVM ($compilerTargetsString) were passed."
+          )
+        case _ =>
+      }
       val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
       val platformOpt = value {
         (parsedPlatform, js.js, native.native) match {
