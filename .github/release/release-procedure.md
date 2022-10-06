@@ -19,7 +19,17 @@
       in [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) repository. Pull request should be opened
       automatically after release.
     - [ ] Make a release with the updated Scala CLI version.
-    - [ ] Update v0.1 tag to the newest tag.
+    - [ ] Update the `v0.1` tag to the newest tag.
+      ```bash
+      git fetch --all
+      git checkout origin v0.1.x
+      git tag -d v0.1
+      git tag v0.1
+      git push origin v0.1 -f  
+      ```
 - [ ] Unmark release as `pre-release`.
-- [ ] Announce new release on twitter and reddit if release contains noteworthy changes.
+- [ ] Announce the new release
+    - [ ] announce on Twitter
+    - [ ] announce on Discord
+    - [ ] announce on Reddit if the release contains any noteworthy changes
 - [ ] Create a ticket for the next release using the `Plan a release` template and assign it to the person responsible.
