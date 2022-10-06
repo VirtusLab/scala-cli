@@ -21,6 +21,9 @@
       },
       {
         "pattern": ".*scala3RuntimeFixes.jar$"
+      },
+      {
+        "pattern": ".*JGitText.properties$"
       }
     ]
   },
