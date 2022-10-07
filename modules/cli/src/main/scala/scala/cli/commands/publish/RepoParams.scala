@@ -19,7 +19,8 @@ final case class RepoParams(
   isIvy2LocalLike: Boolean,
   defaultParallelUpload: Boolean,
   supportsSig: Boolean,
-  acceptsChecksums: Boolean
+  acceptsChecksums: Boolean,
+  shouldAuthenticate: Boolean
 ) {
   def withAuth(auth: Authentication): RepoParams =
     copy(
@@ -85,7 +86,8 @@ object RepoParams {
           isIvy2LocalLike,
           true,
           true,
-          true
+          true,
+          false
         )
     }
   }
@@ -102,7 +104,16 @@ object RepoParams {
       batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
       es
     )
-    RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false, true, true, true)
+    RepoParams(
+      repo0,
+      Some("https://repo1.maven.org/maven2"),
+      hooks0,
+      false,
+      true,
+      true,
+      true,
+      true
+    )
   }
 
   def gitHubRepoFor(org: String, name: String) =
@@ -113,7 +124,8 @@ object RepoParams {
       false,
       false,
       false,
-      false
+      false,
+      true
     )
 
   def gitHubRepo(vcsUrlOpt: Option[String], workspace: os.Path, logger: Logger) = either {
@@ -138,7 +150,8 @@ object RepoParams {
       true,
       true,
       true,
-      true
+      true,
+      false
     )
   }
 
