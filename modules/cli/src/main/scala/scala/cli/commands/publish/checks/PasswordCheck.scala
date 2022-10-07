@@ -22,7 +22,7 @@ final case class PasswordCheck(
     !options.publishParams.setupCi ||
     pubOpt.retained(options.publishParams.setupCi).repoPassword.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
       if (options.publishParams.setupCi) {
         val password = options.publishRepo.password match {

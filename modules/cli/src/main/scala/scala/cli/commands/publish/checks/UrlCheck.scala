@@ -18,7 +18,7 @@ final case class UrlCheck(
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.url.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     def ghUrlOpt = GitRepo.ghRepoOrgName(workspace, logger) match {
       case Left(err) =>
         logger.debug(

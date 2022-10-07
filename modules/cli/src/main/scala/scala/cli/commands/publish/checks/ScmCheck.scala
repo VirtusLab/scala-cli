@@ -18,7 +18,7 @@ final case class ScmCheck(
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.versionControl.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     def ghVcsOpt = GitRepo.ghRepoOrgName(workspace, logger) match {
       case Left(err) =>
         logger.debug(

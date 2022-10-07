@@ -20,7 +20,7 @@ final case class UserCheck(
   def check(pubOpt: BPublishOptions): Boolean =
     !options.publishParams.setupCi ||
     pubOpt.retained(options.publishParams.setupCi).repoUser.nonEmpty
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
       if (options.publishParams.setupCi) {
         val user0 = options.publishRepo.user match {

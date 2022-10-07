@@ -22,7 +22,7 @@ trait OptionCheck {
   /** Provides a way to compute a default value for this option, along with extra directives and
     * GitHub secrets to be set
     */
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue]
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue]
 }
 
 object OptionCheck {

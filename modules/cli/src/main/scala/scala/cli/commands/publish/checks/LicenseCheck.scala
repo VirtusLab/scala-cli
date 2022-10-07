@@ -17,7 +17,7 @@ final case class LicenseCheck(
     pubOpt.license.nonEmpty
 
   private def defaultLicense = "Apache-2.0"
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     val license = options.publishParams.license.getOrElse {
       logger.message("license:")
       logger.message(s"  using $defaultLicense (default)")

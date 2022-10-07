@@ -60,7 +60,7 @@ final case class PgpSecretKeyCheck(
       ).value.javaCommand
   }
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
       if (options.publishParams.setupCi) {
         val (pubKeyOpt, secretKey, passwordOpt) = options.publishParams.secretKey match {
