@@ -65,11 +65,12 @@ generate_rpm() {
 }
 
 generate_pkg() {
+  arch=$1
   packager \
     --pkg \
     --version "$(version)" \
     --source-app-path "$(launcher)" \
-    --output "$ARTIFACTS_DIR/scala-cli-x86_64-apple-darwin.pkg" \
+    --output "$ARTIFACTS_DIR/scala-cli-$arch-apple-darwin.pkg" \
     --identifier "scala-cli" \
     --launcher-app "scala-cli"
 }
@@ -129,13 +130,18 @@ generate_sdk() {
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   generate_deb
   generate_rpm
+  generate_sdk
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  generate_pkg
+  if [ "$(uname -m)" == "aarch64" ]; then
+    generate_pkg "aarch64"
+  else
+    generate_pkg "x86_64"
+    generate_sdk
+  fi
 elif [[ "$OSTYPE" == "msys" ]]; then
   generate_msi
+  generate_sdk
 else
   echo "Unrecognized operating system: $OSTYPE" 1>&2
   exit 1
 fi
-
-generate_sdk

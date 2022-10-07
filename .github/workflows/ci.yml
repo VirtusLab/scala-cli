@@ -300,10 +300,10 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Generate native launcher
         run: .github/scripts/generate-native-image.sh
-      #      - run: ./mill -i ci.setShouldPublish
-      #      - name: Build OS packages TODO generate os packages for M1
-      #        if: env.SHOULD_PUBLISH == 'true'
-      #        run: .github/scripts/generate-os-packages.sh
+      - run: ./mill -i ci.setShouldPublish
+      - name: Build OS packages TODO generate os packages for M1
+        if: env.SHOULD_PUBLISH == 'true'
+        run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
         run: ./mill -i copyDefaultLauncher artifacts/
       - uses: actions/upload-artifact@v3
