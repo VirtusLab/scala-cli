@@ -177,4 +177,29 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       expect(output == "Hello from Python")
     }
   }
+
+  test("missing org and version") {
+    // Missing org and missing version should be reported at the same time,
+    // rather than one at a time.
+    val inputs = TestInputs(
+      os.rel / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello = "Hello"
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val tmpDir = os.temp.dir(prefix = "scala-cli-publish-test")
+      for (f <- os.list(root))
+        os.copy.into(f, tmpDir)
+      val publishRepo = root / "the-repo"
+      val res = os.proc(TestUtil.cli, "publish", "--publish-repo", publishRepo, tmpDir)
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.text()
+      expect(output.contains("Missing organization"))
+      expect(output.contains("Missing version"))
+    }
+  }
 }

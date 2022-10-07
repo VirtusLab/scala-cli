@@ -413,13 +413,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     logger: Logger,
     scalaArtifactsOpt: Option[ScalaArtifacts],
     isCi: Boolean
-  ): Either[BuildException, (String, String, String)] = either {
+  ): Either[BuildException, (String, String, String)] = {
 
     lazy val orgNameOpt = GitRepo.maybeGhRepoOrgName(workspace, logger)
 
-    val org = publishOptions.organization match {
-      case Some(org0) => org0.value
-      case None       => value(defaultOrganization(orgNameOpt.map(_._1), logger))
+    val maybeOrg = publishOptions.organization match {
+      case Some(org0) => Right(org0.value)
+      case None       => defaultOrganization(orgNameOpt.map(_._1), logger)
     }
 
     val moduleName = publishOptions.moduleName match {
@@ -444,8 +444,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val ver = publishOptions.version match {
-      case Some(ver0) => ver0.value
+    val maybeVer = publishOptions.version match {
+      case Some(ver0) => Right(ver0.value)
       case None =>
         val computeVer = publishOptions.contextual(isCi).computeVersion.orElse {
           def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
@@ -456,15 +456,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             )
           default
         }
-        value {
-          computeVer match {
-            case Some(cv) => cv.get(workspace)
-            case None     => defaultVersion
-          }
+        computeVer match {
+          case Some(cv) => cv.get(workspace)
+          case None     => defaultVersion
         }
     }
 
-    (org, name, ver)
+    (maybeOrg, maybeVer)
+      .traverseN
+      .left.map(CompositeBuildException(_))
+      .map {
+        case (org, ver) =>
+          (org, moduleName, ver)
+      }
   }
 
   private def buildFileSet(
