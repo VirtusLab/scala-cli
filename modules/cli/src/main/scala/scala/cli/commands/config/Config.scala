@@ -5,11 +5,13 @@ import coursier.cache.ArchiveCache
 
 import java.util.Base64
 
+import scala.build.Ops.*
+import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
-import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
+import scala.cli.config.{ConfigDb, Keys, PasswordOption, RepositoryCredentials, Secret}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
@@ -117,23 +119,96 @@ object Config extends ScalaCommand[ConfigOptions] {
                   }
                 }
               else {
-                val finalValues =
-                  if (options.passwordValue && entry.isPasswordOption)
-                    values.map { input =>
-                      PasswordOption.parse(input) match {
-                        case Left(err) =>
-                          System.err.println(err)
-                          sys.exit(1)
-                        case Right(passwordOption) =>
-                          PasswordOption.Value(passwordOption.get()).asString.value
-                      }
-                    }
+                def parseSecret(input: String): Either[BuildException, Option[PasswordOption]] =
+                  if (input.trim.isEmpty) Right(None)
                   else
-                    values
+                    PasswordOption.parse(input)
+                      .left.map(err =>
+                        new MalformedCliInputError(s"Malformed secret value '$input': $err")
+                      )
+                      .map(Some(_))
+                entry match {
+                  case Keys.repositoryCredentials =>
+                    if (options.unset)
+                      values match {
+                        case Seq(host) =>
+                          val valueOpt = db.get(Keys.repositoryCredentials)
+                            .wrapConfigException
+                            .orExit(logger)
+                          def notFound(): Unit =
+                            logger.message(
+                              s"No ${Keys.repositoryCredentials.fullName} found for host $host"
+                            )
+                          valueOpt match {
+                            case None => notFound()
+                            case Some(credList) =>
+                              val idx = credList.indexWhere(_.host == host)
+                              if (idx < 0) notFound()
+                              else {
+                                val updatedCredList = credList.take(idx) ::: credList.drop(idx + 1)
+                                db.set(Keys.repositoryCredentials, updatedCredList)
+                                db.save(directories.dbPath.toNIO).wrapConfigException.orExit(logger)
+                              }
+                          }
+                        case _ =>
+                          System.err.println(
+                            s"Usage: $progName config --remove ${Keys.repositoryCredentials.fullName} host"
+                          )
+                          sys.exit(1)
+                      }
+                    else {
+                      val (host, rawUser, rawPassword, realmOpt) = values match {
+                        case Seq(host, rawUser, rawPassword) => (host, rawUser, rawPassword, None)
+                        case Seq(host, rawUser, rawPassword, realm) =>
+                          (host, rawUser, rawPassword, Some(realm))
+                        case _ =>
+                          System.err.println(
+                            s"Usage: $progName config ${Keys.repositoryCredentials.fullName} host user password [realm]"
+                          )
+                          System.err.println(
+                            "Note that user and password are assumed to be secrets, specified like value:... or env:ENV_VAR_NAME, see https://scala-cli.virtuslab.org/docs/reference/password-options for more details"
+                          )
+                          sys.exit(1)
+                      }
+                      val (userOpt, passwordOpt) = (parseSecret(rawUser), parseSecret(rawPassword))
+                        .traverseN
+                        .left.map(CompositeBuildException(_))
+                        .orExit(logger)
+                      val credentials = RepositoryCredentials(
+                        host,
+                        userOpt,
+                        passwordOpt,
+                        realm = realmOpt,
+                        optional = options.optional,
+                        matchHost = options.matchHost.orElse(Some(true)),
+                        httpsOnly = options.httpsOnly,
+                        passOnRedirect = options.passOnRedirect
+                      )
+                      val previousValueOpt =
+                        db.get(Keys.repositoryCredentials).wrapConfigException.orExit(logger)
+                      val newValue = credentials :: previousValueOpt.getOrElse(Nil)
+                      db.set(Keys.repositoryCredentials, newValue)
+                    }
+                  case _ =>
+                    val finalValues =
+                      if (options.passwordValue && entry.isPasswordOption)
+                        values.map { input =>
+                          PasswordOption.parse(input) match {
+                            case Left(err) =>
+                              System.err.println(err)
+                              sys.exit(1)
+                            case Right(passwordOption) =>
+                              PasswordOption.Value(passwordOption.get()).asString.value
+                          }
+                        }
+                      else
+                        values
 
-                db.setFromString(entry, finalValues)
-                  .wrapConfigException
-                  .orExit(logger)
+                    db.setFromString(entry, finalValues)
+                      .wrapConfigException
+                      .orExit(logger)
+                }
+
                 db.save(directories.dbPath.toNIO)
                   .wrapConfigException
                   .orExit(logger)
