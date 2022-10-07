@@ -109,9 +109,9 @@ final class ConfigDb private (
           RawJson(serializeMap(m, level))
       }
 
-    // Maybe we should just use '\n' here, not sure what jsoniter-scala does
     serializeMap(rawEntries, level = 0) ++
-      System.lineSeparator().getBytes(StandardCharsets.US_ASCII)
+      // using just '\n' rather then "\r\n" on Windows, as that's what jsoniter-scala uses
+      Array('\n': Byte)
   }
 
   def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {
@@ -153,7 +153,7 @@ final class ConfigDb private (
         Right(())
       }
       else
-        Left(new ConfigDb.ConfigDbPermissionsError(path, dirPerms))
+        Left(new ConfigDb.ConfigDbPermissionsError(dir, dirPerms))
     }
   }
 
@@ -170,8 +170,23 @@ object ConfigDb {
     causeOpt: Option[Throwable] = None
   ) extends Exception(message, causeOpt.orNull)
 
+  private def permsString(perms: Set[PosixFilePermission]): String = {
+    val res = new StringBuilder
+    res += (if (perms.contains(PosixFilePermission.OWNER_READ)) 'r' else '-')
+    res += (if (perms.contains(PosixFilePermission.OWNER_WRITE)) 'w' else '-')
+    res += (if (perms.contains(PosixFilePermission.OWNER_EXECUTE)) 'x' else '-')
+    res += (if (perms.contains(PosixFilePermission.GROUP_READ)) 'r' else '-')
+    res += (if (perms.contains(PosixFilePermission.GROUP_WRITE)) 'w' else '-')
+    res += (if (perms.contains(PosixFilePermission.GROUP_EXECUTE)) 'x' else '-')
+    res += (if (perms.contains(PosixFilePermission.OTHERS_READ)) 'r' else '-')
+    res += (if (perms.contains(PosixFilePermission.OTHERS_WRITE)) 'w' else '-')
+    res += (if (perms.contains(PosixFilePermission.OTHERS_EXECUTE)) 'x' else '-')
+    res.result()
+  }
   final class ConfigDbPermissionsError(path: Path, perms: Set[PosixFilePermission])
-      extends Exception(s"$path has wrong permissions $perms (expected rwx------)")
+      extends Exception(
+        s"$path has wrong permissions ${permsString(perms)} (expected at most rwx------)"
+      )
 
   private val codec: JsonValueCodec[Map[String, RawJson]] = JsonCodecMaker.make
 
