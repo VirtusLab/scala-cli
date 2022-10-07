@@ -61,8 +61,8 @@ final case class PgpSecretKeyCheck(
 
   def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
-      if (options.publishParams.setupCi) {
-        val (pubKeyOpt, secretKey, passwordOpt) = options.publishParams.secretKey match {
+      val (pubKeyOpt, secretKey, passwordOpt, isConfigDefault) =
+        options.publishParams.secretKey match {
           case Some(secretKey) =>
             val pubKeyOpt = options.publicKey.map(_.get().toConfig)
             val passwordOpt = value {
@@ -71,61 +71,63 @@ final case class PgpSecretKeyCheck(
                 .map(_.get(configDb()))
                 .sequence
             }
-            (pubKeyOpt, Left(secretKey), passwordOpt)
+            (pubKeyOpt, Left(secretKey), passwordOpt, false)
           case None =>
-            value(configDb().get(Keys.pgpSecretKey).wrapConfigException) match {
-              case Some(secretKey) =>
-                val pubKeyOpt = value(configDb().get(Keys.pgpPublicKey).wrapConfigException)
-                val passwordOpt =
-                  value(configDb().get(Keys.pgpSecretKeyPassword).wrapConfigException)
-                (
-                  pubKeyOpt.map(_.get()),
-                  Right(secretKey),
-                  passwordOpt
-                )
-              case None =>
-                val randomSecretKey = options.randomSecretKey.getOrElse(false)
-                if (randomSecretKey) {
-                  val password = {
-                    val res = value {
-                      options.publishParams
-                        .secretKeyPassword
-                        .map(_.configPasswordOptions())
-                        .map(_.get(configDb()))
-                        .sequence
-                    }
-                    res
-                      .map(_.get().toCliSigning)
-                      .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
-                  }
-                  val mail = value {
-                    options.randomSecretKeyMail
-                      .toRight(
-                        new MissingPublishOptionError(
-                          "random secret key mail",
-                          "--random-secret-key-mail",
-                          ""
-                        )
-                      )
-                  }
-                  val (pgpPublic, pgpSecret0) = value {
-                    ThrowawayPgpSecret.pgpSecret(
-                      mail,
-                      password,
-                      logger,
-                      coursierCache,
-                      value(javaCommand),
-                      options.scalaSigning.cliOptions()
-                    )
-                  }
-                  val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
-                  (
-                    Some(pgpPublic.toConfig),
-                    Right(scala.cli.config.PasswordOption.Value(pgpSecretBase64.toConfig)),
-                    Some(scala.cli.config.PasswordOption.Value(password.toConfig))
-                  )
+            val randomSecretKey = options.randomSecretKey.getOrElse(false)
+            if (randomSecretKey && options.publishParams.setupCi) {
+              val password = {
+                val res = value {
+                  options.publishParams
+                    .secretKeyPassword
+                    .map(_.configPasswordOptions())
+                    .map(_.get(configDb()))
+                    .sequence
                 }
-                else
+                res
+                  .map(_.get().toCliSigning)
+                  .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
+              }
+              val mail = value {
+                options.randomSecretKeyMail
+                  .toRight(
+                    new MissingPublishOptionError(
+                      "random secret key mail",
+                      "--random-secret-key-mail",
+                      ""
+                    )
+                  )
+              }
+              val (pgpPublic, pgpSecret0) = value {
+                ThrowawayPgpSecret.pgpSecret(
+                  mail,
+                  password,
+                  logger,
+                  coursierCache,
+                  value(javaCommand),
+                  options.scalaSigning.cliOptions()
+                )
+              }
+              val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
+              (
+                Some(pgpPublic.toConfig),
+                Right(scala.cli.config.PasswordOption.Value(pgpSecretBase64.toConfig)),
+                Some(scala.cli.config.PasswordOption.Value(password.toConfig)),
+                false
+              )
+            }
+            else
+              value(configDb().get(Keys.pgpSecretKey).wrapConfigException) match {
+                case Some(secretKey) =>
+                  val pubKeyOpt = value(configDb().get(Keys.pgpPublicKey).wrapConfigException)
+                  val passwordOpt =
+                    value(configDb().get(Keys.pgpSecretKeyPassword).wrapConfigException)
+                  (
+                    pubKeyOpt.map(_.get()),
+                    Right(secretKey),
+                    passwordOpt,
+                    true
+                  )
+                case None =>
                   value {
                     Left(
                       new MissingPublishOptionError(
@@ -141,78 +143,79 @@ final case class PgpSecretKeyCheck(
                       )
                     )
                   }
-            }
+              }
         }
-        val pushKey: () => Either[BuildException, Unit] = pubKeyOpt match {
-          case Some(pubKey) =>
-            val keyId = value {
-              (new PgpProxyMaker).get().keyId(
-                pubKey.value,
-                "[generated key]",
-                coursierCache,
-                logger,
-                value(javaCommand),
-                options.scalaSigning.cliOptions()
-              )
-            }
-            val keyServers = value {
-              val rawKeyServers = options.sharedPgp.keyServer.filter(_.trim.nonEmpty)
-              if (rawKeyServers.filter(_.trim.nonEmpty).isEmpty)
-                Right(KeyServer.allDefaults)
-              else
-                rawKeyServers
-                  .map { keyServerUriStr =>
-                    Uri.parse(keyServerUriStr).left.map { err =>
-                      new MalformedCliInputError(
-                        s"Malformed key server URI '$keyServerUriStr': $err"
-                      )
-                    }
-                  }
-                  .sequence
-                  .left.map(CompositeBuildException(_))
-            }
-            () =>
-              keyServers
-                .map { keyServer =>
-                  if (options.dummy) Right(())
-                  else {
-                    val e: Either[BuildException, Unit] = either {
-                      val checkResp = value {
-                        KeyServer.check(keyId, keyServer, backend)
-                          .left.map(msg =>
-                            new PgpSecretKeyCheck.KeyServerError(
-                              s"Error getting key $keyId from $keyServer: $msg"
-                            )
-                          )
-                      }
-                      logger.debug(s"Key server check response: $checkResp")
-                      val check = checkResp.isRight
-                      if (!check) {
-                        val resp = value {
-                          KeyServer.add(pubKey.value, keyServer, backend)
-                            .left.map(msg =>
-                              new PgpSecretKeyCheck.KeyServerError(
-                                s"Error uploading key $keyId to $keyServer: $msg"
-                              )
-                            )
-                        }
-                        logger.debug(s"Key server upload response: $resp")
-                        logger.message("") // printing an empty line, for readability
-                        logger.message(s"Uploaded key 0x${keyId.stripPrefix("0x")} to $keyServer")
-                      }
-                    }
-                    e
+      val pushKey: () => Either[BuildException, Unit] = pubKeyOpt match {
+        case Some(pubKey) =>
+          val keyId = value {
+            (new PgpProxyMaker).get().keyId(
+              pubKey.value,
+              "[generated key]",
+              coursierCache,
+              logger,
+              value(javaCommand),
+              options.scalaSigning.cliOptions()
+            )
+          }
+          val keyServers = value {
+            val rawKeyServers = options.sharedPgp.keyServer.filter(_.trim.nonEmpty)
+            if (rawKeyServers.filter(_.trim.nonEmpty).isEmpty)
+              Right(KeyServer.allDefaults)
+            else
+              rawKeyServers
+                .map { keyServerUriStr =>
+                  Uri.parse(keyServerUriStr).left.map { err =>
+                    new MalformedCliInputError(
+                      s"Malformed key server URI '$keyServerUriStr': $err"
+                    )
                   }
                 }
                 .sequence
                 .left.map(CompositeBuildException(_))
-                .map(_ => ())
-          case None =>
-            logger.message(
-              "Warning: no public key passed, not checking if the key needs to be uploaded to a key server."
-            )
-            () => Right(())
-        }
+          }
+          () =>
+            keyServers
+              .map { keyServer =>
+                if (options.dummy) Right(())
+                else {
+                  val e: Either[BuildException, Unit] = either {
+                    val checkResp = value {
+                      KeyServer.check(keyId, keyServer, backend)
+                        .left.map(msg =>
+                          new PgpSecretKeyCheck.KeyServerError(
+                            s"Error getting key $keyId from $keyServer: $msg"
+                          )
+                        )
+                    }
+                    logger.debug(s"Key server check response: $checkResp")
+                    val check = checkResp.isRight
+                    if (!check) {
+                      val resp = value {
+                        KeyServer.add(pubKey.value, keyServer, backend)
+                          .left.map(msg =>
+                            new PgpSecretKeyCheck.KeyServerError(
+                              s"Error uploading key $keyId to $keyServer: $msg"
+                            )
+                          )
+                      }
+                      logger.debug(s"Key server upload response: $resp")
+                      logger.message("") // printing an empty line, for readability
+                      logger.message(s"Uploaded key 0x${keyId.stripPrefix("0x")} to $keyServer")
+                    }
+                  }
+                  e
+                }
+              }
+              .sequence
+              .left.map(CompositeBuildException(_))
+              .map(_ => ())
+        case None =>
+          logger.message(
+            "Warning: no public key passed, not checking if the key needs to be uploaded to a key server."
+          )
+          () => Right(())
+      }
+      if (options.publishParams.setupCi) {
         val (passwordSetSecret, extraDirectives) = passwordOpt
           .map { p =>
             if (options.publishParams.setupCi) {
@@ -220,6 +223,8 @@ final case class PgpSecretKeyCheck(
               val setSec = SetSecret("PUBLISH_SECRET_KEY_PASSWORD", p.get(), force = true)
               (Seq(setSec), Seq(dir))
             }
+            else if (isConfigDefault)
+              (Nil, Nil)
             else {
               val dir = "publish.secretKeyPassword" -> p.asString.value
               (Nil, Seq(dir))
@@ -227,18 +232,25 @@ final case class PgpSecretKeyCheck(
           }
           .getOrElse((Nil, Nil))
 
-        val setSecrets =
-          Seq(SetSecret(
-            "PUBLISH_SECRET_KEY",
-            secretKey match {
-              case Left(p) =>
-                value(p.configPasswordOptions().get(configDb())).getBytes().map(maybeEncodeBase64)
-              case Right(p) => p.getBytes().map(maybeEncodeBase64)
-            },
-            force = true
-          )) ++ passwordSetSecret
+        val keySetSecrets =
+          if (options.publishParams.setupCi)
+            Seq(SetSecret(
+              "PUBLISH_SECRET_KEY",
+              secretKey match {
+                case Left(p) =>
+                  value(p.configPasswordOptions().get(configDb())).getBytes().map(maybeEncodeBase64)
+                case Right(p) => p.getBytes().map(maybeEncodeBase64)
+              },
+              force = true
+            ))
+          else
+            Nil
+        val setSecrets = keySetSecrets ++ passwordSetSecret
         OptionCheck.DefaultValue(
-          () => pushKey().map(_ => Some("env:PUBLISH_SECRET_KEY")),
+          () =>
+            pushKey().map(_ =>
+              if (options.publishParams.setupCi) Some("env:PUBLISH_SECRET_KEY") else None
+            ),
           extraDirectives,
           setSecrets
         )
