@@ -311,6 +311,30 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         }
       }
 
+      if (options.checkGitignore.getOrElse(true)) {
+        val dest         = inputs.workspace / ".gitignore"
+        val hasGitignore = os.exists(dest)
+        if (hasGitignore)
+          logger.message(
+            s"Found .gitignore under ${CommandUtils.printablePath(inputs.workspace)}, not writing one"
+          )
+        else {
+          val content = {
+            val resourcePath = Constants.defaultFilesResourcePath + "/gitignore"
+            val cl           = Thread.currentThread().getContextClassLoader
+            val resUrl       = cl.getResource(resourcePath)
+            if (resUrl == null)
+              sys.error(s"Should not happen - resource $resourcePath not found")
+            val is = resUrl.openStream()
+            try is.readAllBytes()
+            finally is.close()
+          }
+          os.write(dest, content, createFolders = true)
+          logger.message(s"Wrote gitignore in ${CommandUtils.printablePath(dest)}")
+          written = written :+ dest
+        }
+      }
+
       if (written.nonEmpty)
         logger.message("") // printing an empty line, for readability
 
