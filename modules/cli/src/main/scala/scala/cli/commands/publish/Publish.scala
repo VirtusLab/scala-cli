@@ -26,7 +26,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
-import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
+import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
@@ -478,6 +478,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     now: Instant,
     isIvy2LocalLike: Boolean,
     isCi: Boolean,
+    isSonatype: Boolean,
     logger: Logger
   ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
 
@@ -572,6 +573,25 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       scm = scm,
       developers = developers
     )
+
+    if (isSonatype) {
+      if (url.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
+        )
+      if (license.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but license is empty (set it with the '//> using publish.license' directive)."
+        )
+      if (scm.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but SCM details are empty (set them with the '//> using publish.scm' directive)."
+        )
+      if (developers.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but developer details are empty (set them with the '//> using publish.developer' directive)."
+        )
+    }
 
     def ivyContent = Ivy.create(
       organization = coursier.Organization(org),
@@ -770,6 +790,17 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         .filter(_._1.scope != Scope.Test)
         .map {
           case (build, docBuildOpt) =>
+            val isSonatype = {
+              val hostOpt = {
+                val repo = repoParams.repo.snapshotRepo.root
+                val uri  = new URI(repo)
+                if (uri.getScheme == "https") Some(uri.getHost)
+                else None
+              }
+              hostOpt.exists(host =>
+                host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org")
+              )
+            }
             buildFileSet(
               build,
               docBuildOpt,
@@ -777,6 +808,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
+              isSonatype = isSonatype,
               logger
             )
         }
@@ -907,7 +939,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val repoParams0 = repoParams.withAuth(value(authOpt(repoParams.repo.repo(isSnapshot0).root)))
+    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root))
+    if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
+      logger.diagnostic(
+        "Publishing to a repository that needs authentication, but no credentials are available.",
+        Severity.Warning
+      )
+    val repoParams0 = repoParams.withAuth(authOpt0)
     val hooksData   = repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
 
     val retainedRepo = repoParams0.hooks.repository(hooksData, repoParams0.repo, isSnapshot0)
