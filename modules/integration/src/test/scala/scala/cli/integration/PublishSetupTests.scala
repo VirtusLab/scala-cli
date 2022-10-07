@@ -20,11 +20,11 @@ class PublishSetupTests extends ScalaCliSuite {
 
   private def configSetup(homeDir: os.Path, root: os.Path): Unit = {
     val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
-    os.proc(TestUtil.cli, "config", dirOptions, "user.name", devName)
+    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", devName)
       .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "user.email", devMail)
+    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.email", devMail)
       .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "user.url", devUrl)
+    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.url", devUrl)
       .call(cwd = root, stdout = os.Inherit)
     os.proc(TestUtil.cli, "config", dirOptions, "sonatype.user", "value:uSeR")
       .call(cwd = root, stdout = os.Inherit)

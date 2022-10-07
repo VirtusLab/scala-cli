@@ -7,9 +7,9 @@ import scala.collection.mutable.ListBuffer
 
 object Keys {
 
-  val userName  = new Key.StringEntry(Seq("user"), "name")
-  val userEmail = new Key.StringEntry(Seq("user"), "email")
-  val userUrl   = new Key.StringEntry(Seq("user"), "url")
+  val userName  = new Key.StringEntry(Seq("publish", "user"), "name")
+  val userEmail = new Key.StringEntry(Seq("publish", "user"), "email")
+  val userUrl   = new Key.StringEntry(Seq("publish", "user"), "url")
 
   val ghToken = new Key.PasswordEntry(Seq("github"), "token")
 

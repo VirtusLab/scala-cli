@@ -16,15 +16,15 @@ class ConfigTests extends ScalaCliSuite {
     val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
     val name       = "Alex"
     TestInputs.empty.fromRoot { root =>
-      val before = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
+      val before = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
       expect(before.out.trim().isEmpty)
 
-      os.proc(TestUtil.cli, "config", dirOptions, "user.name", name).call(cwd = root)
-      val res = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
+      os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", name).call(cwd = root)
+      val res = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
       expect(res.out.trim() == name)
 
-      os.proc(TestUtil.cli, "config", dirOptions, "user.name", "--unset").call(cwd = root)
-      val after = os.proc(TestUtil.cli, "config", dirOptions, "user.name").call(cwd = root)
+      os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", "--unset").call(cwd = root)
+      val after = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
       expect(after.out.trim().isEmpty)
     }
   }
