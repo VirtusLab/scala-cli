@@ -124,4 +124,24 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  if (!Properties.isWin)
+    test("Exit with non-zero error code if saving failed") {
+      nonZeroErrorCodeOnFailedSaveTest()
+    }
+  def nonZeroErrorCodeOnFailedSaveTest(): Unit = {
+    val proxyAddr = "https://foo.bar.com"
+    TestInputs().fromRoot { root =>
+      val confDir = root / "config"
+      os.makeDir.all(confDir) // not adjusting perms - should make things fail below
+
+      val confFile = confDir / "test-config.json"
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      val res = os.proc(TestUtil.cli, "config", "httpProxy.address", proxyAddr)
+        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(output.contains(" has wrong permissions"))
+    }
+  }
+
 }
