@@ -999,3 +999,25 @@ jobs:
           SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
           SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
       - run: ./mill -i ci.updateScalaCliSetup
+
+  update-windows-packages:
+    name: Update Windows packages
+    needs: launchers
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: VirtusLab/scala-cli-setup@4ee345865ae875b65ecbf9b97a481700d3cf5429
+      with:
+        jvm: "temurin:17"
+    - uses: actions/download-artifact@v3
+      with:
+        name: windows-launchers
+        path: artifacts/
+    - name: Publish to chocolatey
+      run: ./mill -i ci.updateChocolateyPackage
+      env:
+        CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
