@@ -6,7 +6,7 @@ import os.Path
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
 import scala.build.internal.CustomCodeWrapper
-import scala.build.options.Scope
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.SharedOptionsUtil._
@@ -15,13 +15,13 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group                                           = "Main"
   override def sharedOptions(options: DependencyUpdateOptions) = Some(options.shared)
 
-  def run(options: DependencyUpdateOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DependencyUpdateOptions, args: RemainingArgs): Unit = {
     val verbosity = options.shared.logging.verbosity
     CurrentParams.verbosity = verbosity
+    val buildOptions = buildOptionsOrExit(options)
 
-    val logger       = options.shared.logger
-    val inputs       = options.shared.inputs(args.all).orExit(logger)
-    val buildOptions = options.shared.buildOptions().orExit(logger)
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.all).orExit(logger)
 
     val (crossSources, _) =
       CrossSources.forInputs(
@@ -60,7 +60,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       actionableUpdateDiagnostics.foreach(update =>
         println(s"   * ${update.oldDependency.render} -> ${update.newVersion}")
       )
-      println("""|To update all dependencies run: 
+      println("""|To update all dependencies run:
                  |    scala-cli dependency-update --all""".stripMargin)
     }
   }

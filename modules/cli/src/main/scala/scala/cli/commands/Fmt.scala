@@ -4,6 +4,7 @@ import caseapp._
 import dependency._
 
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
+import scala.build.options.BuildOptions
 import scala.build.{Inputs, Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.FmtOptionsUtil._
@@ -14,16 +15,18 @@ import scala.cli.commands.util.VerbosityOptionsUtil._
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String                                             = "Main"
   override def sharedOptions(options: FmtOptions): Option[SharedOptions] = Some(options.shared)
+
   override def names: List[List[String]] = List(
     List("fmt"),
     List("format"),
     List("scalafmt")
   )
 
-  def run(options: FmtOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: FmtOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val interactive = options.shared.logging.verbosityOptions.interactiveInstance()
-    val logger      = options.shared.logger
+    val buildOptions = buildOptionsOrExit(options)
+    val interactive  = options.shared.logging.verbosityOptions.interactiveInstance()
+    val logger       = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, inputsOpt) =
@@ -39,8 +42,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
     CurrentParams.workspaceOpt = Some(workspace)
     val (versionMaybe, dialectMaybe, pathMaybe) = readVersionAndDialect(workspace, options, logger)
-    val cache        = options.shared.buildOptions().orExit(logger).archiveCache
-    val buildOptions = options.buildOptions
+    val cache                                   = buildOptions.archiveCache
 
     if (sourceFiles.isEmpty)
       logger.debug("No source files, not formatting anything")
@@ -87,7 +89,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
             params,
             cache,
             logger,
-            () => buildOptions.orExit(logger).javaHome().value.javaCommand
+            () => buildOptions.javaHome().value.javaCommand
           )
             .orExit(logger)
             .command

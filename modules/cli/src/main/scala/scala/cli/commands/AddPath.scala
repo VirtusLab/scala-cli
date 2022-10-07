@@ -11,7 +11,7 @@ import scala.util.Properties
 object AddPath extends ScalaCommand[AddPathOptions] {
   override def hidden       = true
   override def isRestricted = true
-  def run(options: AddPathOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: AddPathOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity
 
     if (args.all.isEmpty) {

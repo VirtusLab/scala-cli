@@ -11,6 +11,6 @@ object PgpKeyId extends ScalaCommand[PgpKeyIdOptions] {
   override def hidden       = true
   override def names        = PgpCommandNames.pgpKeyId
 
-  def run(options: PgpKeyIdOptions, args: RemainingArgs): Unit =
+  override def runCommand(options: PgpKeyIdOptions, args: RemainingArgs): Unit =
     OriginalPgpKeyId.run(options, args)
 }

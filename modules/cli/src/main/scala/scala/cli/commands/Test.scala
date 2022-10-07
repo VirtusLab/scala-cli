@@ -24,7 +24,7 @@ object Test extends ScalaCommand[TestOptions] {
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  def buildOptions(opts: TestOptions): BuildOptions = {
+  override def buildOptions(opts: TestOptions): Option[BuildOptions] = Option {
     import opts._
     val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(
@@ -42,20 +42,17 @@ object Test extends ScalaCommand[TestOptions] {
     )
   }
 
-  def run(options: TestOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
+  override def runCommand(options: TestOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-
-    val initialBuildOptions = buildOptions(options)
-    maybePrintSimpleScalacOutput(options, initialBuildOptions)
-
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,
       inputs,
       logger,
+      initialBuildOptions,
       Some(name),
       args.remaining
     )

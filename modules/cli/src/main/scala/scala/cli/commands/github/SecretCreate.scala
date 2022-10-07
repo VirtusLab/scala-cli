@@ -132,7 +132,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     }
   }
 
-  def run(options: SecretCreateOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: SecretCreateOptions, args: RemainingArgs): Unit = {
 
     val logger = options.shared.logging.logger
 

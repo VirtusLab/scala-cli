@@ -150,7 +150,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       update(options, getCurrentVersion(scalaCliBinPath))
   }
 
-  def run(options: UpdateOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: UpdateOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity
     checkUpdate(options)
   }

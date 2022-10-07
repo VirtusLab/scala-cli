@@ -4,6 +4,7 @@ import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.internal.Constants
+import scala.build.options.BuildOptions
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.{CurrentParams, ScalaCliHelp}
 
@@ -27,7 +28,7 @@ class Default(
     sys.exit(0)
   }
 
-  def run(options: DefaultOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DefaultOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     if options.version then println(Version.versionInfo(isSipScala))
     else
@@ -39,7 +40,7 @@ class Default(
         if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser
       }.parse(rawArgs) match
         case Left(e)                              => error(e)
-        case Right((replOptions: ReplOptions, _)) => Repl.run(replOptions, args)
-        case Right((runOptions: RunOptions, _))   => Run.run(runOptions, args)
+        case Right((replOptions: ReplOptions, _)) => Repl.runCommand(replOptions, args)
+        case Right((runOptions: RunOptions, _))   => Run.runCommand(runOptions, args)
   }
 }

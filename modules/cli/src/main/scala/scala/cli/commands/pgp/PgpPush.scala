@@ -17,7 +17,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
     List("pgp", "push")
   )
 
-  def run(options: PgpPushOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PgpPushOptions, args: RemainingArgs): Unit = {
 
     val logger  = options.logging.logger
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)

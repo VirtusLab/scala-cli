@@ -45,17 +45,15 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
 
-  def run(options: RunOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-    run(
+  override def runCommand(options: RunOptions, args: RemainingArgs): Unit =
+    scalaCliRun(
       options,
       args.remaining,
       args.unparsed,
       () => Inputs.default()
     )
-  }
 
-  def buildOptions(options: RunOptions): BuildOptions = {
+  override def buildOptions(options: RunOptions): Option[BuildOptions] = Option {
     import options.*
     import options.sharedRun.*
     val logger = options.shared.logger
@@ -101,15 +99,14 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     )
   }
 
-  def run(
+  def scalaCliRun(
     options: RunOptions,
     inputArgs: Seq[String],
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs]
   ): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val initialBuildOptions = buildOptions(options)
-    maybePrintSimpleScalacOutput(options, initialBuildOptions)
+    val initialBuildOptions = buildOptionsOrExit(options)
 
     val logger = options.shared.logger
     val inputs = options.shared.inputs(inputArgs, defaultInputs = defaultInputs).orExit(logger)
@@ -180,6 +177,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       options.shared,
       inputs,
       logger,
+      initialBuildOptions,
       Some(name),
       inputArgs
     )

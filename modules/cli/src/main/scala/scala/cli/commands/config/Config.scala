@@ -15,7 +15,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
   override def isRestricted = true
 
-  def run(options: ConfigOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: ConfigOptions, args: RemainingArgs): Unit = {
 
     val logger      = options.logging.logger
     val directories = options.directories.directories

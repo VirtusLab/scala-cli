@@ -6,6 +6,7 @@ import dependency._
 import java.io.File
 
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
+import scala.build.options.BuildOptions
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil._
@@ -41,21 +42,25 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     (url, !metabrowseTag0.startsWith("v"))
   }
 
-  def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
-    CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val baseOptions = options.shared.buildOptions().orExit(logger)
-    val initialBuildOptions = baseOptions.copy(
-      classPathOptions = baseOptions.classPathOptions.copy(
-        fetchSources = Some(true)
-      ),
-      javaOptions = baseOptions.javaOptions.copy(
-        jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+  override def buildOptions(options: MetabrowseOptions): Option[BuildOptions] =
+    Option {
+      val baseOptions = options.shared.buildOptions().orExit(options.shared.logger)
+      baseOptions.copy(
+        classPathOptions = baseOptions.classPathOptions.copy(
+          fetchSources = Some(true)
+        ),
+        javaOptions = baseOptions.javaOptions.copy(
+          jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+        )
       )
-    )
+    }
+
+  override def runCommand(options: MetabrowseOptions, args: RemainingArgs): Unit = {
+    CurrentParams.verbosity = options.shared.logging.verbosity
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.all).orExit(logger)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)

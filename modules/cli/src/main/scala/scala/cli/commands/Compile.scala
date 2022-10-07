@@ -4,7 +4,7 @@ import caseapp._
 
 import java.io.File
 
-import scala.build.options.Scope
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil._
@@ -16,18 +16,17 @@ import scala.cli.config.{ConfigDb, Keys}
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
-
-  def run(options: CompileOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
+  override def runCommand(options: CompileOptions, args: RemainingArgs): Unit = {
     val logger = options.shared.logger
-    maybePrintSimpleScalacOutput(options, options.shared.buildOptions().orExit(logger))
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+    val buildOptions = buildOptionsOrExit(options)
+    val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,
       inputs,
       logger,
+      buildOptions,
       Some(name),
       args.all
     )
@@ -74,8 +73,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
       }
     }
 
-    val buildOptions = options.shared.buildOptions().orExit(logger)
-    val threads      = BuildThreads.create()
+    val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
     val configDb      = options.shared.configDb

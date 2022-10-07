@@ -66,14 +66,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     Some(options.shared)
 
   def mkBuildOptions(
-    shared: SharedOptions,
+    baseOptions: BuildOptions,
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
-    val baseOptions = shared.buildOptions().orExit(shared.logger)
     val contextualOptions = PublishContextualOptions(
       repository = publishRepo.publishRepository.filter(_.trim.nonEmpty),
       repositoryIsIvy2LocalLike = ivy2LocalLike,
@@ -169,19 +168,18 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       sys.exit(0)
     }
 
-  def run(options: PublishOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-
+  override def runCommand(options: PublishOptions, args: RemainingArgs): Unit = {
     maybePrintLicensesAndExit(options.publishParams)
     maybePrintChecksumsAndExit(options.sharedPublish)
 
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+    val baseOptions = buildOptionsOrExit(options)
+    val logger      = options.shared.logger
+    val inputs      = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = mkBuildOptions(
-      options.shared,
+      baseOptions,
       options.publishParams,
       options.sharedPublish,
       options.publishRepo,

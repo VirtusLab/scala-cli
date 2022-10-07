@@ -13,7 +13,7 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
     List("uninstall", "completions"),
     List("uninstall-completions")
   )
-  def run(options: UninstallCompletionsOptions, args: RemainingArgs) = {
+  override def runCommand(options: UninstallCompletionsOptions, args: RemainingArgs) = {
     CurrentParams.verbosity = options.logging.verbosity
     val logger = options.logging.logger
     val name   = InstallCompletions.getName(options.shared.name)

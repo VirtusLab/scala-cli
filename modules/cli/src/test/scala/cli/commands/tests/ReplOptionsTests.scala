@@ -15,7 +15,7 @@ class ReplOptionsTests extends munit.FunSuite {
         )
       )
     )
-    val buildOptions = Repl.buildOptions(replOptions)
+    val Some(buildOptions) = Repl.buildOptions(replOptions)
     expect(buildOptions.notForBloopOptions.scalaPyVersion.contains(ver))
   }
 

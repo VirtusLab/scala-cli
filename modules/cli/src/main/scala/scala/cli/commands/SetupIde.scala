@@ -52,15 +52,17 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
-  def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: SetupIdeOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logging.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+    val buildOptions = buildOptionsOrExit(options)
+    val logger       = options.shared.logging.logger
+    val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
       options,
       inputs,
+      buildOptions,
       previousCommandName = None,
       args = args.all
     ).orExit(logger)
@@ -72,12 +74,14 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     options: SharedOptions,
     inputs: Inputs,
     logger: Logger,
+    buildOptions: BuildOptions,
     previousCommandName: Option[String],
     args: Seq[String]
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),
       inputs,
+      buildOptions,
       previousCommandName,
       args
     ) match {
@@ -86,12 +90,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       case Right(_) =>
     }
 
-  private def buildOptions(opts: SetupIdeOptions): BuildOptions =
-    opts.shared.buildOptions().orExit(opts.shared.logger)
+  override def sharedOptions(options: SetupIdeOptions): Option[SharedOptions] = Some(options.shared)
 
   private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
+    buildOptions: BuildOptions,
     previousCommandName: Option[String],
     args: Seq[String]
   ): Either[BuildException, Option[os.Path]] = either {
@@ -108,8 +112,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (buildOptions(options).classPathOptions.extraDependencies.toSeq.nonEmpty)
-      value(downloadDeps(inputs, buildOptions(options), logger))
+    if (buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
+      value(downloadDeps(inputs, buildOptions, logger))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =

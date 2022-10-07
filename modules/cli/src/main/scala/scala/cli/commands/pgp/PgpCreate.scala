@@ -11,6 +11,6 @@ object PgpCreate extends ScalaCommand[PgpCreateOptions] {
   override def hidden       = true
   override def names        = PgpCommandNames.pgpCreate
 
-  def run(options: PgpCreateOptions, args: RemainingArgs): Unit =
+  override def runCommand(options: PgpCreateOptions, args: RemainingArgs): Unit =
     OriginalPgpCreate.run(options, args)
 }

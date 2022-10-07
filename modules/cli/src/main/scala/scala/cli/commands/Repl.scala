@@ -27,7 +27,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
-  def buildOptions(ops: ReplOptions): BuildOptions = {
+  override def buildOptions(ops: ReplOptions): Option[BuildOptions] = Option {
     import ops._
     import ops.sharedRepl._
     val baseOptions = shared.buildOptions().orExit(ops.shared.logger)
@@ -52,9 +52,9 @@ object Repl extends ScalaCommand[ReplOptions] {
     )
   }
 
-  def run(options: ReplOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
+  override def runCommand(options: ReplOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
+    val initialBuildOptions = buildOptionsOrExit(options)
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
@@ -63,9 +63,6 @@ object Repl extends ScalaCommand[ReplOptions] {
       options.shared.inputs(args.remaining, defaultInputs = () => Some(default)).orExit(logger)
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions = buildOptions(options)
-    maybePrintSimpleScalacOutput(options, initialBuildOptions)
 
     val threads = BuildThreads.create()
 

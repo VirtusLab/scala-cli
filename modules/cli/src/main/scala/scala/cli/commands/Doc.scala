@@ -11,6 +11,7 @@ import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
+import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
@@ -22,14 +23,12 @@ import scala.util.Properties
 object Doc extends ScalaCommand[DocOptions] {
   override def group                              = "Main"
   override def sharedOptions(options: DocOptions) = Some(options.shared)
-  def run(options: DocOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DocOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions =
-      options.shared.buildOptions(enableJmh = false, jmhVersion = None).orExit(logger)
     val threads = BuildThreads.create()
 
     val maker               = options.shared.compilerMaker(threads).orExit(logger)

@@ -56,7 +56,7 @@ object DefaultFile extends ScalaCommand[DefaultFileOptions] {
     sys.exit(1)
   }
 
-  def run(options: DefaultFileOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DefaultFileOptions, args: RemainingArgs): Unit = {
 
     val logger = options.logging.logger
 

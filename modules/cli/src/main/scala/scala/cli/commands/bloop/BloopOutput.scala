@@ -15,7 +15,7 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
     List("bloop", "output")
   )
 
-  def run(options: BloopOutputOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: BloopOutputOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
     val logger = options.logging.logger
     val bloopRifleConfig = options.compilationServer.bloopRifleConfig(

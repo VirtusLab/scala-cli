@@ -24,7 +24,7 @@ import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
-import scala.build.options.{JavaOpt, PackageType, Platform}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.Run.orPythonDetectionError
@@ -46,18 +46,17 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def isRestricted                                                  = true
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
-  def run(options: PackageOptions, args: RemainingArgs): Unit = {
+  override def buildOptions(options: PackageOptions): Option[BuildOptions] =
+    Option(options.baseBuildOptions.orExit(options.shared.logger))
+  override def runCommand(options: PackageOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger           = options.shared.logger
-    val baseBuildOptions = options.baseBuildOptions.orExit(logger)
-    val inputs           = options.shared.inputs(args.remaining).orExit(logger)
-    maybePrintGroupHelp(options)
-    maybePrintSimpleScalacOutput(options, baseBuildOptions)
+    val logger = options.shared.logger
+    val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'
 
-    val initialBuildOptions = buildOptions(options)
+    val initialBuildOptions = finalBuildOptions(options)
     val threads             = BuildThreads.create()
     val compilerMaker       = options.compilerMaker(threads).orExit(logger)
     val docCompilerMakerOpt = options.docCompilerMakerOpt
@@ -148,7 +147,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     }
   }
 
-  def buildOptions(options: PackageOptions) = {
+  def finalBuildOptions(options: PackageOptions): BuildOptions = {
     val finalBuildOptions = options.finalBuildOptions.orExit(options.shared.logger)
     val buildOptions = finalBuildOptions.copy(
       javaOptions = finalBuildOptions.javaOptions.copy(

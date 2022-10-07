@@ -73,9 +73,12 @@ object Export extends ScalaCommand[ExportOptions] {
     Mill(Constants.millVersion, launchers, logger)
   }
 
-  def run(options: ExportOptions, args: RemainingArgs): Unit = {
+  override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
+
+  override def runCommand(options: ExportOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
 
     val output = options.output.getOrElse("dest")
     val dest   = os.Path(output, os.pwd)
@@ -102,8 +105,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      options.shared.buildOptions().orExit(logger)
-        .copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
+      initialBuildOptions.copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)

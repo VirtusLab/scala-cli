@@ -19,16 +19,21 @@ import scala.concurrent.duration.Duration
 
 object Bsp extends ScalaCommand[BspOptions] {
   override def hidden = true
-  def run(options: BspOptions, args: RemainingArgs): Unit = {
+  private def latestSharedOptions(options: BspOptions): SharedOptions =
+    options.jsonOptions.map { optionsPath =>
+      val content = os.read.bytes(os.Path(optionsPath, os.pwd))
+      readFromArray(content)(SharedOptions.jsonCodec)
+    }.getOrElse(options.shared)
+  override def sharedOptions(options: BspOptions): Option[SharedOptions] =
+    Option(latestSharedOptions(options))
+
+  // not reusing buildOptions here, since they should be reloaded live instead
+  override def runCommand(options: BspOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
-    val getSharedOptions: () => SharedOptions = () =>
-      options.jsonOptions.map { optionsPath =>
-        val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(SharedOptions.jsonCodec)
-      }.getOrElse(options.shared)
+    val getSharedOptions: () => SharedOptions = () => latestSharedOptions(options)
 
     val argsToInputs: Seq[String] => Either[BuildException, Inputs] =
       argsSeq =>

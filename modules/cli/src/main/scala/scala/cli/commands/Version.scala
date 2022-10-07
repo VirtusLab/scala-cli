@@ -7,7 +7,7 @@ import scala.cli.CurrentParams
 
 class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
-  def run(options: VersionOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: VersionOptions, args: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.verbosity.verbosity
     if (options.cliVersion)
       println(Constants.version)

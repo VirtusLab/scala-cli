@@ -55,7 +55,7 @@ object SecretList extends ScalaCommand[ListSecretsOptions] {
     readFromString(body)(GitHubApi.secretListCodec)
   }
 
-  def run(options: ListSecretsOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: ListSecretsOptions, args: RemainingArgs): Unit = {
 
     val logger = options.shared.logging.logger
 

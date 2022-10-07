@@ -28,7 +28,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     List("publish", "setup")
   )
 
-  def run(options: PublishSetupOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PublishSetupOptions, args: RemainingArgs): Unit = {
 
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
