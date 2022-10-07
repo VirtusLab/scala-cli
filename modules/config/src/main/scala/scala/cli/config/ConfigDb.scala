@@ -3,6 +3,7 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.{PosixFilePermission, PosixFilePermissions}
 import java.nio.file.{Files, Path}
 
@@ -74,7 +75,7 @@ final class ConfigDb private (
   /** Dumps this DB content as JSON */
   def dump: Array[Byte] = {
 
-    def serializeMap(m: Map[String, Array[Byte]]): Array[Byte] = {
+    def serializeMap(m: Map[String, Array[Byte]], level: Int): Array[Byte] = {
       val keyValues = m
         .groupBy(_._1.split("\\.", 2).apply(0))
         .toVector
@@ -85,13 +86,19 @@ final class ConfigDb private (
               case (k1, v1) =>
                 (k1.stripPrefix(k).stripPrefix("."), v1)
             }
-            (k, serialize(v0))
+            (k, serialize(v0, level + 1))
         }
       val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
-      writeToArray(sortedMap)(ConfigDb.codec)
+      val b =
+        writeToArray(sortedMap, WriterConfig.withIndentionStep((level + 1) * 2))(ConfigDb.codec)
+      if (b.nonEmpty && b.last == '}'.toByte)
+        // FIXME We're copying / moving arrays around quite a bit here
+        b.init ++ ("  " * level).getBytes(StandardCharsets.US_ASCII) ++ Array('}'.toByte)
+      else
+        b
     }
 
-    def serialize(m: Map[String, Array[Byte]]): RawJson =
+    def serialize(m: Map[String, Array[Byte]], level: Int): RawJson =
       m.get("") match {
         case Some(value) =>
           if (m.size == 1)
@@ -99,10 +106,12 @@ final class ConfigDb private (
           else
             sys.error(s"Inconsistent keys: ${m.keySet.toVector.sorted}")
         case None =>
-          RawJson(serializeMap(m))
+          RawJson(serializeMap(m, level))
       }
 
-    serializeMap(rawEntries)
+    // Maybe we should just use '\n' here, not sure what jsoniter-scala does
+    serializeMap(rawEntries, level = 0) ++
+      System.lineSeparator().getBytes(StandardCharsets.US_ASCII)
   }
 
   def saveUnsafe(path: Path): Either[ConfigDb.ConfigDbPermissionsError, Unit] = {

@@ -85,17 +85,15 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
-  test("Respect SCALA_CLI_CONFIG") {
+  test("Respect SCALA_CLI_CONFIG and format on write") {
     val proxyAddr = "https://foo.bar.com"
     TestInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
       val content =
+        // non-formatted on purpose
         s"""{
-           |  "httpProxy": {
-           |    "address": "$proxyAddr"
-           |  }
-           |}
+           |  "httpProxy": {  "address" :      "$proxyAddr"     } }
            |""".stripMargin
       os.write(confFile, content, createFolders = true)
 
@@ -108,6 +106,21 @@ class ConfigTests extends ScalaCliSuite {
         .call(cwd = root, env = extraEnv)
       val value = res.out.trim()
       expect(value == proxyAddr)
+
+      os.proc(TestUtil.cli, "config", "interactive", "false")
+        .call(cwd = root, env = extraEnv)
+
+      val expectedUpdatedContent =
+        // too many spaces after some ':' (jsoniter-scala bug?)
+        s"""{
+           |  "httpProxy": {
+           |    "address":       "https://foo.bar.com"
+           |  },
+           |  "interactive": false
+           |}
+           |""".stripMargin.replace("\r\n", "\n")
+      val updatedContent = os.read(confFile)
+      expect(updatedContent == expectedUpdatedContent)
     }
   }
 
