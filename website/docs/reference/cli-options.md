@@ -1642,6 +1642,11 @@ Dump config DB as JSON
 [Internal]
 Create PGP key in config
 
+### `--email`
+
+[Internal]
+Email to use to create PGP key in config
+
 ### `--password`
 
 [Internal]

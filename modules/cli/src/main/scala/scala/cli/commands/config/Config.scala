@@ -42,11 +42,17 @@ object Config extends ScalaCommand[ConfigOptions] {
             val secKeyPasswordEntry = Keys.pgpSecretKeyPassword
             val pubKeyEntry         = Keys.pgpPublicKey
 
-            val mail = db.get(Keys.userEmail)
-              .wrapConfigException
-              .orExit(logger)
+            val mail = options.email
+              .filter(_.trim.nonEmpty)
+              .orElse {
+                db.get(Keys.userEmail)
+                  .wrapConfigException
+                  .orExit(logger)
+              }
               .getOrElse {
-                System.err.println("Error: user.email not set (required to generate PGP key)")
+                System.err.println(
+                  s"Error: --email ... not specified, and ${Keys.userEmail.fullName} not set (either is required to generate a PGP key)"
+                )
                 sys.exit(1)
               }
 
