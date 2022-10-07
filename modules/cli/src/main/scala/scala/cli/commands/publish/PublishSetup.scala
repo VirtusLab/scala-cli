@@ -283,7 +283,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         written = written :+ dest
       }
 
-      if (options.checkWorkflow.getOrElse(options.publishParams.isCi)) {
+      if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {
         val workflowDir = inputs.workspace / ".github" / "workflows"
         val hasWorkflows = os.isDir(workflowDir) &&
           os.list(workflowDir)
@@ -338,14 +338,14 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       if (written.nonEmpty)
         logger.message("") // printing an empty line, for readability
 
-      if (options.publishParams.isCi && written.nonEmpty)
+      if (options.publishParams.setupCi && written.nonEmpty)
         logger.message(
           s"Commit and push ${written.map(CommandUtils.printablePath).mkString(", ")}, to enable publishing from CI"
         )
       else
         logger.message("Project is ready for publishing!")
 
-      if (!options.publishParams.isCi) {
+      if (!options.publishParams.setupCi) {
         logger.message("To publish your project, run")
         logger.message {
           val inputs = inputArgs
