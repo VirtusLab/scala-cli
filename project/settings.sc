@@ -1,6 +1,5 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
-import $ivy.`io.github.alexarchambault.mill::mill-scala-cli::0.1.0`
 
 import $file.deps,
 deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
@@ -529,7 +528,15 @@ trait CliLaunchers extends SbtModule { self =>
 }
 
 trait HasTests extends SbtModule {
-  trait Tests extends super.Tests with ScalaCliCompile {
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
+  trait Tests extends super.Tests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
@@ -791,64 +798,7 @@ trait FormatNativeImageConf extends JavaModule {
   }
 }
 
-trait ScalaCliCompile extends scala.cli.mill.ScalaCliCompile {
-  def scalaCliVersion = BuildDeps.scalaCliVersion
-  def enableScalaCli  = false
-
-  def scalacOptions = T {
-    val sv         = scalaVersion()
-    val isScala213 = sv.startsWith("2.13.")
-    val extraOptions =
-      if (isScala213) Seq("-Xsource:3", "-Ytasty-reader")
-      else Nil
-    super.scalacOptions() ++ extraOptions
-  }
-
-  def mandatoryIvyDeps = T {
-    super.mandatoryIvyDeps().map { dep =>
-      val isScala3Lib =
-        dep.dep.module.organization.value == "org.scala-lang" &&
-        dep.dep.module.name.value == "scala3-library" &&
-        (dep.cross match {
-          case _: CrossVersion.Binary => true
-          case _                      => false
-        })
-      if (isScala3Lib)
-        dep.copy(
-          dep = dep.dep.withModule(
-            dep.dep.module.withName(
-              coursier.ModuleName(dep.dep.module.name.value + "_3")
-            )
-          ),
-          cross = CrossVersion.empty(dep.cross.platformed)
-        )
-      else dep
-    }
-  }
-  def transitiveIvyDeps = T {
-    super.transitiveIvyDeps().map { dep =>
-      val isScala3Lib =
-        dep.dep.module.organization.value == "org.scala-lang" &&
-        dep.dep.module.name.value == "scala3-library" &&
-        (dep.cross match {
-          case _: CrossVersion.Binary => true
-          case _                      => false
-        })
-      if (isScala3Lib)
-        dep.copy(
-          dep = dep.dep.withModule(
-            dep.dep.module.withName(
-              coursier.ModuleName(dep.dep.module.name.value + "_3")
-            )
-          ),
-          cross = CrossVersion.empty(dep.cross.platformed)
-        )
-      else dep
-    }
-  }
-}
-
-trait ScalaCliScalafixModule extends ScalafixModule with ScalaCliCompile {
+trait ScalaCliScalafixModule extends ScalafixModule {
   def scalafixConfig = T {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(os.pwd / ".scalafix3.conf")

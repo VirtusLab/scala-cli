@@ -13,7 +13,6 @@ import $file.project.settings, settings.{
   ScalaCliCrossSbtModule,
   ScalaCliSbtModule,
   ScalaCliScalafixModule,
-  ScalaCliCompile,
   ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
@@ -193,10 +192,9 @@ trait BuildMacros extends ScalaCliSbtModule
       val cpsSource = base / "main" / "scala-3.1" / "scala" / "build" / "EitherCps.scala"
       assert(os.exists(cpsSource))
 
-      val cli = compileScalaCli.get.path // we need scala-cli
-      val sv  = scalaVersion()
+      val sv = scalaVersion()
       def compile(extraSources: os.Path*) =
-        os.proc(cli, "compile", "-S", sv, cpsSource, extraSources).call(
+        os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
           check =
             false,
           mergeErrIntoOut = true
@@ -492,12 +490,12 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-trait ScalaParse extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
+trait ScalaParse extends SbtModule with ScalaCliPublishModule {
   def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
   def scalaVersion = Scala.scala213
 }
 
-trait Scala3Runtime extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
+trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
 }
@@ -598,7 +596,15 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-trait CliOptions extends SbtModule with ScalaCliPublishModule with ScalaCliCompile {
+trait CliOptions extends SbtModule with ScalaCliPublishModule {
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.jsoniterCore213,
