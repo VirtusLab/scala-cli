@@ -90,8 +90,8 @@ Add Java options
 
 Add Java properties
 
-`//> using javaProp_ `_key=value_
-`//> using javaProp_ `_key_
+`//> using javaProp `_key=value_
+`//> using javaProp `_key_
 
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
