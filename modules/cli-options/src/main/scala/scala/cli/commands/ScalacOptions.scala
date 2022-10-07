@@ -34,6 +34,10 @@ object ScalacOptions {
     Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
     Set("-g", "-language", "-opt", "-P", "-target") ++ scalacOptionsPurePrefixes
+  private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
+    Set("-encoding", "-release", "-color")
+  private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
+    Set("-nowarn", "-feature", "-deprecation")
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
     * message instead.
@@ -65,6 +69,15 @@ object ScalacOptions {
         args match {
           case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
+          case h :: t if scalacNoArgAliasedOptions.contains(h) =>
+            Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
+          case h :: t if scalacAliasedOptions.contains(h) =>
+            // check if the next scalac arg is a different option or a param to the current option
+            val maybeOptionArg = t.headOption.filter(!_.startsWith("-"))
+            // if it's a param, it'll be treated as such and considered already parsed
+            val newTail = maybeOptionArg.map(_ => t.drop(1)).getOrElse(t)
+            val newHead = List(h) ++ maybeOptionArg
+            Right(Some((Some(newHead ++ acc.getOrElse(Nil)), newTail)))
           case _ => underlying.step(args, index, acc, formatter)
         }
       def get(acc: Option[List[String]], formatter: Formatter[Name]): Either[Error, List[String]] =

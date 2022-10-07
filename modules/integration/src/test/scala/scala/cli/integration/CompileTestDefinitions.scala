@@ -257,7 +257,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     )
   }
 
-  test("Scala CLI should not infer scalac's--release if 'O --release' is passed".tag(jvmT)) {
+  test("Scala CLI should not infer scalac --release if --release is passed".tag(jvmT)) {
     scalaJvm11Project.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
@@ -265,16 +265,40 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions,
         "--jvm",
         "11",
-        "-O",
         "-release",
-        "-O",
         "8",
         "."
       ).call(cwd = root, check = false, stderr = os.Pipe)
       expect(res.exitCode != 0)
-      expect(res.err.text().contains("isEmpty is not a member"))
+      val errOutput = res.err.trim()
+      expect(errOutput.contains("isEmpty is not a member"))
+      expect(errOutput.contains(
+        "Warning: different target JVM (11) and scala compiler target JVM (8) were passed."
+      ))
     }
   }
+
+  if (actualScalaVersion.startsWith("2.1"))
+    test("warn for different target JVMs in --jvm, -target:x and -release".tag(jvmT)) {
+      scalaJvm8Project.fromRoot { root =>
+        val res = os.proc(
+          TestUtil.cli,
+          "compile",
+          extraOptions,
+          "--jvm",
+          "11",
+          "-release",
+          "8",
+          "-target:8",
+          "."
+        ).call(cwd = root, check = false, stderr = os.Pipe)
+        expect(res.exitCode == 0)
+        val errOutput = res.err.trim()
+        expect(errOutput.contains(
+          "Warning: different target JVM (11) and scala compiler target JVM (8) were passed."
+        ))
+      }
+    }
 
   def compileToADifferentJvmThanBloops(
     bloopJvm: String,

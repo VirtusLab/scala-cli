@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import java.io.{FileOutputStream, IOException}
-import java.nio.charset.StandardCharsets
+import java.nio.charset.{Charset, StandardCharsets}
 import java.security.SecureRandom
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -9,13 +9,14 @@ import java.util.zip.{ZipEntry, ZipOutputStream}
 import scala.cli.integration.TestInputs.compress
 import scala.util.control.NonFatal
 
-final case class TestInputs(files: (os.RelPath, String)*) {
+final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, String)*) {
+  private lazy val charset = maybeCharset.getOrElse(StandardCharsets.UTF_8)
   def add(extraFiles: (os.RelPath, String)*): TestInputs = TestInputs((files ++ extraFiles)*)
 
   private def writeIn(dir: os.Path): Unit =
     for ((relPath, content) <- files) {
       val path = dir / relPath
-      os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
+      os.write(path, content.getBytes(charset), createFolders = true)
     }
   def root(): os.Path = {
     val tmpDir = TestInputs.tmpDir
@@ -36,6 +37,13 @@ final case class TestInputs(files: (os.RelPath, String)*) {
 }
 
 object TestInputs {
+  def apply(files: (os.RelPath, String)*): TestInputs = new TestInputs(None, files*)
+
+  def apply(charsetName: String, files: (os.RelPath, String)*): TestInputs = {
+    val charset: Charset = Charset.forName(charsetName)
+    new TestInputs(Some(charset), files*)
+  }
+
   def empty: TestInputs = TestInputs()
 
   def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String)]) = {

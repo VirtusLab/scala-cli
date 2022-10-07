@@ -14,6 +14,7 @@ import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.ScalaCli
 import scala.cli.commands.util.CommandHelpers
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.util.{Properties, Try}
 
@@ -133,11 +134,8 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
   def maybePrintSimpleScalacOutput(options: T, buildOptions: BuildOptions): Unit =
     for {
       shared <- sharedOptions(options)
-      scalacOptions = shared.scalac.scalacOption.toSeq
-      updatedScalacOptions =
-        if (shared.scalacHelp && !scalacOptions.contains("-help"))
-          scalacOptions.appended("-help")
-        else scalacOptions
+      scalacOptions        = shared.scalac.scalacOption
+      updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
       if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
       logger = shared.logger
       artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption

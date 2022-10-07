@@ -2520,4 +2520,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     test("scalapy native") {
       scalapyNativeTest()
     }
+
+  test("scalac verbose") {
+    val expectedOutput = "Hello"
+    val mainClass      = "Main"
+    val inputRelPath   = os.rel / s"$mainClass.scala"
+    TestInputs(inputRelPath -> s"""object $mainClass extends App { println("$expectedOutput") }""")
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, ".", "--scalac-verbose", extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        val errLines = res.err.trim.lines.toList.asScala
+        // there should be a lot of logs, but different stuff is logged depending on the Scala version
+        expect(errLines.length > 100)
+        expect(errLines.exists(_.startsWith("[loaded package loader scala")))
+        expect(errLines.exists(_.contains(s"$mainClass.scala")))
+        expect(res.out.trim == expectedOutput)
+      }
+  }
+
+  if (!Properties.isWin)
+    test("-encoding CP1252 should be handled correctly in .scala files") {
+      TestInputs(
+        charsetName = "Windows-1252",
+        os.rel / "s.scala" -> """object Main extends App { println("€") }"""
+      )
+        .fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            "s.scala",
+            "-encoding",
+            "cp1252",
+            extraOptions
+          ).call(cwd = root)
+          expect(res.out.trim == "€")
+        }
+    }
 }
