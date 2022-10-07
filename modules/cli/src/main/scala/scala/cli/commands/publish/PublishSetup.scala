@@ -125,9 +125,9 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
     if (missingFields.nonEmpty) {
       val count = missingFields.length
-      logger.message(s"$count ${if (count > 1) "options" else "option"} need to be set")
+      logger.message(s"$count ${if (count > 1) "options need" else "option needs"} to be set")
       for (check <- missingFields)
-        logger.debug(s"  ${check.fieldName}")
+        logger.message(s"  ${check.fieldName}")
       logger.message("") // printing an empty line, for readability
     }
 
