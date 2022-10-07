@@ -263,7 +263,12 @@ final case class PgpSecretKeyCheck(
           logger.message("Warning: no PGP public key found in config")
         if (!hasPassword)
           logger.message("Warning: no PGP secret key password found in config")
-        OptionCheck.DefaultValue.empty
+        OptionCheck.DefaultValue(
+          () =>
+            pushKey().map(_ => None),
+          Nil,
+          Nil
+        )
       }
       else
         value {
