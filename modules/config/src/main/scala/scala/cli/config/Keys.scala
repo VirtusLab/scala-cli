@@ -17,9 +17,6 @@ object Keys {
   val pgpSecretKeyPassword = new Key.PasswordEntry(Seq("pgp"), "secret-key-password")
   val pgpPublicKey         = new Key.PasswordEntry(Seq("pgp"), "public-key")
 
-  val sonatypeUser     = new Key.PasswordEntry(Seq("sonatype"), "user")
-  val sonatypePassword = new Key.PasswordEntry(Seq("sonatype"), "password")
-
   val actions = new Key.BooleanEntry(Seq.empty, "actions")
 
   val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
@@ -49,10 +46,9 @@ object Keys {
     proxyAddress,
     proxyPassword,
     proxyUser,
+    publishCredentials,
     repositoryCredentials,
     repositoryMirrors,
-    sonatypePassword,
-    sonatypeUser,
     userEmail,
     userName,
     userUrl
@@ -184,4 +180,119 @@ object Keys {
           Right("Inline credentials not accepted, please manually edit the config file")
         ))
     }
+
+  private final case class PublishCredentialsAsJson(
+    host: String,
+    user: Option[String] = None,
+    password: Option[String] = None,
+    realm: Option[String] = None,
+    httpsOnly: Option[Boolean] = None
+  ) {
+    def credentials: Either[::[String], PublishCredentials] = {
+      val maybeUser = user
+        .map { u =>
+          PasswordOption.parse(u) match {
+            case Left(error) =>
+              Left(
+                s"Malformed publish credentials user value (expected 'value:…', or 'file:/path', or 'env:ENV_VAR_NAME'): $error"
+              )
+            case Right(value) => Right(Some(value))
+          }
+        }
+        .getOrElse(Right(None))
+      val maybePassword = password
+        .filter(_.nonEmpty)
+        .map { p =>
+          PasswordOption.parse(p) match {
+            case Left(error) =>
+              Left(
+                s"Malformed publish credentials password value (expected 'value:…', or 'file:/path', or 'env:ENV_VAR_NAME'): $error"
+              )
+            case Right(value) => Right(Some(value))
+          }
+        }
+        .getOrElse(Right(None))
+      (maybeUser, maybePassword) match {
+        case (Right(userOpt), Right(passwordOpt)) =>
+          Right(
+            PublishCredentials(
+              host = host,
+              user = userOpt,
+              password = passwordOpt,
+              realm = realm,
+              httpsOnly = httpsOnly
+            )
+          )
+        case _ =>
+          val errors =
+            (maybeUser.left.toOption.toList ::: maybePassword.left.toOption.toList) match {
+              case Nil    => sys.error("Cannot happen")
+              case h :: t => ::(h, t)
+            }
+          Left(errors)
+      }
+    }
+  }
+
+  val publishCredentials: Key[List[PublishCredentials]] = new Key[List[PublishCredentials]] {
+
+    private def asJson(credentials: PublishCredentials): PublishCredentialsAsJson =
+      PublishCredentialsAsJson(
+        credentials.host,
+        credentials.user.map(_.asString.value),
+        credentials.password.map(_.asString.value),
+        credentials.realm,
+        credentials.httpsOnly
+      )
+    private val codec: JsonValueCodec[List[PublishCredentialsAsJson]] =
+      JsonCodecMaker.make
+
+    def prefix = Seq("publish")
+    def name   = "credentials"
+
+    def parse(json: Array[Byte]): Either[Key.EntryError, List[PublishCredentials]] =
+      try {
+        val list   = readFromArray(json)(codec).map(_.credentials)
+        val errors = list.collect { case Left(errors) => errors }.flatten
+        errors match {
+          case Nil =>
+            Right(list.collect { case Right(v) => v })
+          case h :: t =>
+            Left(new Key.MalformedEntry(this, ::(h, t)))
+        }
+      }
+      catch {
+        case e: JsonReaderException =>
+          Left(new Key.JsonReaderError(e))
+      }
+    def write(value: List[PublishCredentials]): Array[Byte] =
+      writeToArray(value.map(asJson))(codec)
+
+    def asString(value: List[PublishCredentials]): Seq[String] =
+      value.map { cred =>
+        val prefix = cred.httpsOnly match {
+          case Some(true)  => "https://"
+          case Some(false) => "http://"
+          case None        => "//"
+        }
+        // FIXME We're getting secrets and putting them in a non-Secret guarded string here
+        val credentialsPart = {
+          val realmPart    = cred.realm.map("(" + _ + ")").getOrElse("")
+          val userPart     = cred.user.map(_.get().value).getOrElse("")
+          val passwordPart = cred.password.map(":" + _.get().value).getOrElse("")
+          if (realmPart.nonEmpty || userPart.nonEmpty || passwordPart.nonEmpty)
+            realmPart + userPart + passwordPart + "@"
+          else
+            ""
+        }
+        prefix + credentialsPart + cred.host
+      }
+    def fromString(values: Seq[String]): Either[Key.MalformedValue, List[PublishCredentials]] =
+      Left(new Key.MalformedValue(
+        this,
+        values,
+        Right("Inline credentials not accepted, please manually edit the config file")
+      ))
+  }
+
 }

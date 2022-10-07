@@ -76,17 +76,13 @@ setting those settings via using directives. When publishing from your local mac
 we recommend setting the repository via a `publish.repository` directive, and keeping your
 Sonatype credentials in the Scala CLI settings, via commands such as
 ```bash
-SONATYPE_USER=… scala-cli config sonatype.user env:SONATYPE_USER --password-value
-SONATYPE_PASSWORD=… scala-cli config sonatype.password env:SONATYPE_PASSWORD
+SONATYPE_USER=… SONATYPE_PASSWORD=… scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
 <!-- TODO Automatically generate that? -->
 |          | `using` directive | Command-line option | Example values | Notes |
 |----------|-------------------|---------------------|----------------|-------|
 | Repository | `publish.repository` | `--publish-repository` | `central`, `central-s01`, `github`, `https://artifacts.company.com/maven` | |
-| Repository User | `publish.user` | `--user` | `env:SONATYPE_USER` | Password value format |
-| Repository Password | `publish.password` | `--password` | `env:SONATYPE_PASSWORD` |
-| Repository Realm | `publish.realm` | `--realm` | | |
 
 ## Other settings
 

@@ -12,7 +12,14 @@ import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
-import scala.cli.config.{ConfigDb, Keys, PasswordOption, RepositoryCredentials, Secret}
+import scala.cli.config.{
+  ConfigDb,
+  Keys,
+  PasswordOption,
+  PublishCredentials,
+  RepositoryCredentials,
+  Secret
+}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
@@ -188,6 +195,32 @@ object Config extends ScalaCommand[ConfigOptions] {
                       val newValue = credentials :: previousValueOpt.getOrElse(Nil)
                       db.set(Keys.repositoryCredentials, newValue)
                     }
+
+                  case Keys.publishCredentials =>
+                    val (host, rawUser, rawPassword, realmOpt) = values match {
+                      case Seq(host, rawUser, rawPassword) => (host, rawUser, rawPassword, None)
+                      case Seq(host, rawUser, rawPassword, realm) =>
+                        (host, rawUser, rawPassword, Some(realm))
+                      case _ =>
+                        System.err.println(
+                          s"Usage: $progName config ${Keys.publishCredentials.fullName} host user password [realm]"
+                        )
+                        System.err.println(
+                          "Note that user and password are assumed to be secrets, specified like value:... or env:ENV_VAR_NAME, see https://scala-cli.virtuslab.org/docs/reference/password-options for more details"
+                        )
+                        sys.exit(1)
+                    }
+                    val (userOpt, passwordOpt) = (parseSecret(rawUser), parseSecret(rawPassword))
+                      .traverseN
+                      .left.map(CompositeBuildException(_))
+                      .orExit(logger)
+                    val credentials =
+                      PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
+                    val previousValueOpt =
+                      db.get(Keys.publishCredentials).wrapConfigException.orExit(logger)
+                    val newValue = credentials :: previousValueOpt.getOrElse(Nil)
+                    db.set(Keys.publishCredentials, newValue)
+
                   case _ =>
                     val finalValues =
                       if (options.passwordValue && entry.isPasswordOption)

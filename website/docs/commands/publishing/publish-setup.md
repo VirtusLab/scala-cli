@@ -67,15 +67,14 @@ under specific organizations.
 You can follow the
 [sbt-ci-release Sonatype instructions](https://github.com/sbt/sbt-ci-release#sonatype)
 to create an account there. Either your real Sonatype username and password, or Sonatype tokens, can be used
-in Scala CLI (using the `sonatype.user` and `sonatype.password` keys in both cases).
+in Scala CLI (via the `publish.credentials` config key in both cases).
 
 These can be written in the Scala CLI configuration the following way:
 ```sh
-SONATYPE_USER=me scala-cli config sonatype.user env:SONATYPE_USER --password-value
-SONATYPE_PASSWORD=1234 scala-cli config sonatype.password env:SONATYPE_PASSWORD --password-value
+SONATYPE_USER=me SONATYPE_PASSWORD=1234 scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD --password-value
 ```
 
-Note that both `sonatype.user` and `sonatype.password` are assumed to be secrets, and
+Note that both user and password arguments are assumed to be secrets, and
 accept the format documented [here](../../reference/password-options.md). Beyond environment
 variables, commands or paths to files can provide those values. They can also be passed
 as is on the command line, although this is not recommended for security reasons.
@@ -87,8 +86,7 @@ ask the `config` sub-command to read environment variables and persist the passw
 If you'd rather persist the environment variable names in the Scala CLI configuration, rather than
 their values, you can do
 ```sh
-scala-cli config sonatype.user env:SONATYPE_USER
-scala-cli config sonatype.password env:SONATYPE_PASSWORD
+scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
 Note that in this case, both `SONATYPE_USER` and `SONATYPE_PASSWORD` will need to be available
@@ -207,9 +205,9 @@ computeVersion:
 repository:
   using Maven Central via its s01 server
 publish.user:
-  using sonatype.user from Scala CLI configuration
+  using publish.credentials from Scala CLI configuration
 publish.password:
-  using sonatype.password from Scala CLI configuration
+  using publish.credentials from Scala CLI configuration
 license:
   using Apache-2.0 (default)
 url:

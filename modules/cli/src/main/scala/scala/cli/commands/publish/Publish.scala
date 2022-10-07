@@ -48,7 +48,7 @@ import scala.cli.commands.{
   SharedPythonOptions,
   WatchUtil
 }
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.{ConfigDb, Keys, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
   MalformedChecksumsError,
@@ -688,29 +688,44 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val ec = builds.head.options.finalCache.ec
 
     def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
-      val hostOpt = {
+      val isHttps = {
         val uri = new URI(repo)
-        if (uri.getScheme == "https") Some(uri.getHost)
-        else None
+        uri.getScheme == "https"
+      }
+      val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
+      val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
+        case None => Right(None)
+        case Some(host) =>
+          configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
+            credListOpt.flatMap { credList =>
+              credList.find { cred =>
+                cred.host == host &&
+                (isHttps || cred.httpsOnly.contains(false))
+              }
+            }
+          }
       }
       val isSonatype =
         hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
       val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
-        case None if isSonatype =>
-          value(configDb().get(Keys.sonatypePassword).wrapConfigException)
+        case None  => value(maybeCredentials).flatMap(_.password)
         case other => other.map(_.toConfig)
       }
       passwordOpt.map(_.get()) match {
         case None => None
         case Some(password) =>
           val userOpt = publishOptions.contextual(isCi).repoUser match {
-            case None if isSonatype =>
-              value(configDb().get(Keys.sonatypeUser).wrapConfigException)
+            case None  => value(maybeCredentials).flatMap(_.user)
             case other => other.map(_.toConfig)
           }
           val realmOpt = publishOptions.contextual(isCi).repoRealm match {
-            case None if isSonatype =>
-              Some("Sonatype Nexus Repository Manager")
+            case None =>
+              value(maybeCredentials)
+                .flatMap(_.realm)
+                .orElse {
+                  if (isSonatype) Some("Sonatype Nexus Repository Manager")
+                  else None
+                }
             case other => other
           }
           val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
