@@ -20,6 +20,7 @@ final case class RepoParams(
   defaultParallelUpload: Boolean,
   supportsSig: Boolean,
   acceptsChecksums: Boolean,
+  shouldSign: Boolean,
   shouldAuthenticate: Boolean
 ) {
   def withAuth(auth: Authentication): RepoParams =
@@ -87,6 +88,7 @@ object RepoParams {
           true,
           true,
           true,
+          false,
           false
         )
     }
@@ -112,6 +114,7 @@ object RepoParams {
       true,
       true,
       true,
+      true,
       true
     )
   }
@@ -121,6 +124,7 @@ object RepoParams {
       PublishRepository.Simple(MavenRepository(s"https://maven.pkg.github.com/$org/$name")),
       None,
       Hooks.dummy,
+      false,
       false,
       false,
       false,
@@ -151,6 +155,7 @@ object RepoParams {
       true,
       true,
       true,
+      false,
       false
     )
   }
