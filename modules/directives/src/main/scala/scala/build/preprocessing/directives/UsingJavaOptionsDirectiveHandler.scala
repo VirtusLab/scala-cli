@@ -5,7 +5,7 @@ import scala.build.options.{BuildOptions, JavaOpt, JavaOptions, ShadowingSeq}
 
 case object UsingJavaOptionsDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Java options"
-  def description = "Add Java options"
+  def description = "Add Java options which will be passed when running an application."
   def usage       = "//> using java-opt _options_ | //> using javaOpt _options_"
   override def usageMd =
     """`//> using java-opt `_options_

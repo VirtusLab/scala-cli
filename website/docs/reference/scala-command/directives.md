@@ -77,7 +77,7 @@ Sets Java home used to run your application or tests
 
 ### Java options
 
-Add Java options
+Add Java options which will be passed when running an application.
 
 `//> using java-opt `_options_
 
@@ -95,6 +95,19 @@ Add Java properties
 
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
+
+### Javac options
+
+Add Javac options which will be passed when compiling sources.
+
+`//> using javac-opt `_options_
+
+`//> using javacOpt `_options_
+
+#### Examples
+`//> using javacOpt "source", "1.8"`
+
+`"target", "1.8"`
 
 ### Main class
 

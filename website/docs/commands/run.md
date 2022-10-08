@@ -64,6 +64,20 @@ JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvm
 (New JVM versions are automatically checked daily, and updates for those are - manually - merged
 swiftly.)
 
+### JVM options
+
+`--java-opt` lets you add `java` options which will be passed when running an application:
+
+```bash
+scala-cli Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
+```
+
+You can also add java options with the using directive `//> using javaOpt`:
+```
+//> using javaOpt "-Xmx1g", "-Dfoo=bar"
+```
+
+
 ## Define source files in using directives
 
 You can also add source files with the using directive `//> using file`:

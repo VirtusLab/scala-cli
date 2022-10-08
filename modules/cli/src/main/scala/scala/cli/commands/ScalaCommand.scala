@@ -144,7 +144,7 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
       scalaVersion        = scalaArtifacts.params.scalaVersion
       compileClassPath    = artifacts.compileClassPath
       simpleScalaCompiler = SimpleScalaCompiler("java", Nil, scaladoc = false)
-      javacOptions        = buildOptions.javaOptions.javacOptions
+      javacOptions        = buildOptions.javaOptions.javacOptions.map(_.value)
       javaHome            = buildOptions.javaHomeLocation().value
     } {
       val exitCode = simpleScalaCompiler.runSimpleScalacLike(
