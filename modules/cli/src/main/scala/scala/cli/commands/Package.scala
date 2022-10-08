@@ -24,7 +24,7 @@ import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
-import scala.build.options.{PackageType, Platform}
+import scala.build.options.{JavaOpt, PackageType, Platform}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.Run.orPythonDetectionError
@@ -150,9 +150,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
   def buildOptions(options: PackageOptions) = {
     val finalBuildOptions = options.finalBuildOptions.orExit(options.shared.logger)
-    val buildOptions = finalBuildOptions.copy(javaOptions =
-      finalBuildOptions.javaOptions.copy(javacOptions =
-        finalBuildOptions.javaOptions.javacOptions ++ options.java.allJavaOpts
+    val buildOptions = finalBuildOptions.copy(
+      javaOptions = finalBuildOptions.javaOptions.copy(
+        javaOpts =
+          finalBuildOptions.javaOptions.javaOpts ++
+            options.java.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       )
     )
     buildOptions
@@ -704,7 +706,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val preamble = Preamble()
       .withOsKind(Properties.isWin)
       .callsItself(Properties.isWin)
-      .withJavaOpts(build.options.javaOptions.javacOptions)
+      .withJavaOpts(build.options.javaOptions.javaOpts.toSeq.map(_.value.value))
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass)
       .withDeterministic(true)
       .withPreamble(preamble)

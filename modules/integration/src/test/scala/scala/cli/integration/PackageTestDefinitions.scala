@@ -787,7 +787,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("pass java options") {
+  test("pass java and javac options") {
     val fileName           = "Hello.scala"
     val destFile           = if (Properties.isWin) "hello.bat" else "hello"
     val (fooProp, barProp) = ("abc", "xyz")
@@ -810,6 +810,14 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         s"foo=$fooProp",
         "--java-opt",
         s"-Dbar=$barProp",
+        "--javac-option",
+        "-source",
+        "--javac-option",
+        "1.8",
+        "--javac-option",
+        "-target",
+        "--javac-option",
+        "1.8",
         "-f"
       ).call(cwd = root)
       val output = os.proc(root / destFile).call(cwd = root).out.trim()
