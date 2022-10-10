@@ -703,8 +703,6 @@ jobs:
       run: .github/scripts/build-website.sh
     - name: Test documentation
       run: ./mill -i docs-tests.test
-    - name: Test gifs
-      run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
 
   checks:
     timeout-minutes: 15
