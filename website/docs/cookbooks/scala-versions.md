@@ -111,13 +111,13 @@ The output at the time of this writing is "`2.12.17`".
 The `scala-cli` philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 
 ```bash
-scala-cli -S 2.13.5 ScalaVersion.scala version.scala
+scala-cli -S 2.13.10 ScalaVersion.scala version.scala
 ```
 
-the result is "`2.13.5`" (as opposed to "`2.12.5`" in the previous example).
+the result is "`2.13.10`" (as opposed to "`2.12.17`" in the previous example).
 
 <!-- Expected-regex:
-Scala: 2\.13\.5
+Scala: 2\.13\.10
 -->
 
 :::note
