@@ -2,6 +2,7 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
+import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.build.{GeneratedSource, Inputs}
 import scala.collection.mutable
@@ -43,6 +44,11 @@ trait HasGeneratedSourcesImpl extends HasGeneratedSources {
     generatedSources(scope) = GeneratedSources(sources)
   }
 
+  protected def targetWorkspaceDirOpt(id: b.BuildTargetIdentifier): Option[String] =
+    projectNames.collectFirst {
+      case (_, projName) if projName.targetUriOpt.contains(id.getUri) =>
+        (projName.bloopWorkspace / Constants.workspaceDirName).toIO.toURI.toASCIIString
+    }
   protected def targetScopeOpt(id: b.BuildTargetIdentifier): Option[Scope] =
     projectNames.collectFirst {
       case (scope, projName) if projName.targetUriOpt.contains(id.getUri) =>
