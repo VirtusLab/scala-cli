@@ -12,10 +12,12 @@ import {currentOs} from "../src/components/osUtils";
         values={[
         {label: 'Windows', value: 'windows'},
         {label: 'MacOs', value: 'mac'},
+        {label: 'MacOs/M1', value: 'm1'},
         {label: 'Linux', value: 'linux'},
         ]}>
      <TabItem value="windows"></TabItem>
      <TabItem value="mac"></TabItem>
+     <TabItem value="m1"></TabItem>
      <TabItem value="linux"></TabItem>
     </Tabs>
 </SectionAbout>
@@ -30,6 +32,7 @@ defaultValue={currentOs()}
 values={[
 {label: 'Windows', value: 'windows'},
 {label: 'MacOs', value: 'mac'},
+{label: 'MacOs/M1', value: 'm1'},
 {label: 'Linux', value: 'linux'},
 ]}
 >
@@ -271,12 +274,12 @@ scala-cli about
 </TabItem>
 <TabItem value="installer">
 
-Download PKG installer with Scala CLI for MacOS
+Download the PKG installer with Scala CLI for MacOS
 <DownloadButton desc= 'Scala CLI for MacOS' href='https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-apple-darwin.pkg'></DownloadButton>
 <br/>
 <br/>
 
-Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder, and choose "Open".
+Once downloaded, right-click on `scala-cli-x86_64-apple-darwin.pkg` from Finder and then choose "Open".
 </TabItem>
 <TabItem value="brew">
 
@@ -307,6 +310,42 @@ Scala CLI can be installed via [SDKMAN](https://sdkman.io) with
 ```bash
 sdk install scalacli
 ```
+</TabItem>
+</Tabs>
+
+</TabItem>
+<TabItem value="m1">
+
+<Tabs
+groupId="m1"
+defaultValue="installer"
+values={[
+{label: 'Manual', value: 'manual'},
+{label: 'Installer', value: 'installer'},
+]}
+>
+<TabItem value="manual">
+
+Download the launcher from GitHub release assets with
+```bash
+curl -fL https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-apple-darwin.gz | gzip -d > scala-cli
+chmod +x scala-cli
+mv scala-cli /usr/local/bin/scala-cli
+```
+
+Check that it runs fine by running its `about` command:
+```bash
+scala-cli about
+```
+</TabItem>
+<TabItem value="installer">
+
+Download the PKG installer with Scala CLI for MacOS/M1
+<DownloadButton desc= 'Scala CLI for MacOS/M1' href='https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-aarch64-apple-darwin.pkg'></DownloadButton>
+<br/>
+<br/>
+
+Once downloaded, right-click on `scala-cli-aarch64-apple-darwin.pkg` from Finder and then choose "Open".
 </TabItem>
 </Tabs>
 
