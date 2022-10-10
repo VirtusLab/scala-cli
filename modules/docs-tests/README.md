@@ -20,6 +20,13 @@ Sclicheck accepts following arguments: `[--dest <dest>] [--step] [--stopAtFailur
  - `--step` - stops after each command. Useful for debugging.
  - `--stopAtFailure` - stops after each failed command. Useful for debugging.
 
+## Running from the Scala CLI sources
+
+Sclicheck can be run from the Scala CLI sources root with
+```text
+$ ./mill -i docs-tests.run …args…
+```
+
 ## Example
 
 Let consider this simple document we want to check:

@@ -1,9 +1,8 @@
-//> using scala "3.0.2"
-//> using lib "com.lihaoyi::os-lib:0.7.8"
-//> using lib "com.lihaoyi::fansi:0.2.14"
+package sclicheck
 
 import fansi.Color.{Blue, Green, Red}
 
+import java.io.File
 import java.security.SecureRandom
 
 import scala.io.StdIn.readLine
@@ -19,6 +18,7 @@ val CheckBlockEnd = """ *\--> *""".r
 val Clear         = """ *<!--+ *clear *-+-> *""".r
 
 case class Options(
+  scalaCliCommand: Seq[String],
   files: Seq[String] = Nil,
   dest: Option[os.Path] = None,
   stopAtFailure: Boolean = false,
@@ -168,6 +168,27 @@ def checkFile(file: os.Path, options: Options): Unit =
         os.remove.all(dest)
         dest
 
+  // putting a custom scala-cli binary in the PATH, that in turn calls the Scala CLI launcher
+  // build from Mill, so that doc scripts run it rather than any user-installed scala-cli.
+  val binDir = {
+    val binDir0 = out / ".scala-build" / "bin"
+    os.makeDir.all(binDir0)
+    val escapedCommand = options.scalaCliCommand
+      .map(arg => "\"" + arg.replace("\"", "\\\"") + "\"")
+      .mkString(" ")
+    val helperScript =
+      s"""#!/usr/bin/env bash
+         |exec $escapedCommand "$$@"
+         |""".stripMargin
+    os.write(binDir0 / "scala-cli", helperScript)
+    os.perms.set(binDir0 / "scala-cli", "rwxr-xr-x")
+    binDir0
+  }
+  val extraEnv = {
+    val currentPath = Option(System.getenv("PATH")).getOrElse("")
+    Map("PATH" -> s"$binDir${File.pathSeparator}$currentPath")
+  }
+
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]
 
@@ -191,7 +212,12 @@ def checkFile(file: os.Path, options: Options): Unit =
       os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
 
     def run(cmd: os.proc): Int =
-      val res = cmd.call(cwd = out, mergeErrIntoOut = true, check = false)
+      val res = cmd.call(
+        cwd = out,
+        mergeErrIntoOut = true,
+        check = false,
+        env = extraEnv
+      )
 
       log(res.out.text())
 
@@ -217,7 +243,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         val dest = out / ".snippets" / name
         writeFile(dest, code, c)
 
-        val exitCode = run(os.proc("scala-cli", "compile", dest))
+        val exitCode = run(os.proc(options.scalaCliCommand, "compile", dest))
         if shouldFail then
           check(exitCode != 0, s"Compilation should fail.")
         else
@@ -363,4 +389,8 @@ def checkFile(file: os.Path, options: Options): Unit =
       parseArgs(rest, options.copy(statusFile = Some(file)))
     case path :: rest => parseArgs(rest, options.copy(files = options.files :+ path))
 
-  processFiles(parseArgs(args, Options()))
+  val options = Options(
+    scalaCliCommand =
+      Seq(Option(System.getenv("SCLICHECK_SCALA_CLI")).getOrElse("scala-cli"))
+  )
+  processFiles(parseArgs(args, options))

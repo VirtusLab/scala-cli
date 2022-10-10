@@ -695,14 +695,14 @@ jobs:
         submodules: true
     - uses: VirtusLab/scala-cli-setup@d4550f67c608b2312eb392edf79424a04a81100a
       with:
-        jvm: "temurin:17"
+        jvm: "zulu:17"
     - uses: actions/setup-node@v3
       with:
         node-version: '16.x'
     - name: Build documentation
       run: .github/scripts/build-website.sh
     - name: Test documentation
-      run: .github/scripts/check_docs.sh
+      run: ./mill -i docs-tests.test
     - name: Test gifs
       run: gifs/generate_gifs.sh $(ls gifs/scenarios/)
     - name: Build binary
