@@ -343,6 +343,41 @@
     "allDeclaredFields": true
   },
   {
+    "name": "ch.epfl.scala.bsp4j.OutputPathItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.OutputPathItemKind",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.OutputPathsItem",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.OutputPathsParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.OutputPathsResult",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "ch.epfl.scala.bsp4j.Position",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

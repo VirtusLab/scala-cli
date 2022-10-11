@@ -112,6 +112,12 @@ class BspServer(
       logger.debug(s"invalid target in Test request: $target")
     params
   }
+  private def check(params: b.OutputPathsParams): params.type = {
+    val invalidTargets = params.getTargets.asScala.filter(!validTarget(_))
+    for (target <- invalidTargets)
+      logger.debug(s"invalid target in buildTargetOutputPaths request: $target")
+    params
+  }
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
     val gen = generatedSources.values.toVector
     for {
@@ -220,6 +226,25 @@ class BspServer(
   override def debugSessionStart(params: b.DebugSessionParams)
     : CompletableFuture[b.DebugSessionAddress] =
     super.debugSessionStart(check(params))
+
+  override def buildTargetOutputPaths(params: b.OutputPathsParams)
+    : CompletableFuture[b.OutputPathsResult] = {
+    check(params)
+    val targets = params.getTargets.asScala.filter(validTarget)
+    val outputPathsItem =
+      targets
+        .map(buildTargetId => (buildTargetId, targetWorkspaceDirOpt(buildTargetId)))
+        .collect { case (buildTargetId, Some(targetUri)) => (buildTargetId, targetUri) }
+        .map {
+          case (buildTargetId, targetUri) =>
+            new b.OutputPathsItem(
+              buildTargetId,
+              List(b.OutputPathItem(targetUri, b.OutputPathItemKind.DIRECTORY)).asJava
+            )
+        }
+
+    CompletableFuture.completedFuture(new b.OutputPathsResult(outputPathsItem.asJava))
+  }
 
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     super.workspaceBuildTargets().thenApply { res =>

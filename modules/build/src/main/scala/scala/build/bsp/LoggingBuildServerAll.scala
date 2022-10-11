@@ -14,4 +14,8 @@ class LoggingBuildServerAll(
     : CompletableFuture[WrappedSourcesResult] =
     underlying.buildTargetWrappedSources(pprint.err.log(params)).logF
 
+  override def buildTargetOutputPaths(params: b.OutputPathsParams)
+    : CompletableFuture[b.OutputPathsResult] =
+    underlying.buildTargetOutputPaths(pprint.err.log(params)).logF
+
 }

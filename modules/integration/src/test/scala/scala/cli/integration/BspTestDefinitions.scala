@@ -863,6 +863,41 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("return .scala-build directory as a output paths") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello extends App {
+          |  println("Hello World")
+          |}
+          |""".stripMargin
+    )
+    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
+      async {
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val target = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          extractTestTargets(targets)
+        }
+
+        val resp = await(
+          remoteServer.buildTargetOutputPaths(new b.OutputPathsParams(List(target).asJava)).asScala
+        )
+        val outputPathsItems = resp.getItems.asScala
+        assert(outputPathsItems.nonEmpty)
+
+        val outputPathItem        = outputPathsItems.head
+        val expectedOutputPathUri = (root / Constants.workspaceDirName).toIO.toURI.toASCIIString
+        val expectedOutputPathItem =
+          new b.OutputPathsItem(
+            target,
+            List(new b.OutputPathItem(expectedOutputPathUri, b.OutputPathItemKind.DIRECTORY)).asJava
+          )
+        expect(outputPathItem == expectedOutputPathItem)
+
+      }
+    }
+  }
+
   test("using directive") {
     val inputs = TestInputs(
       os.rel / "test.sc" ->
