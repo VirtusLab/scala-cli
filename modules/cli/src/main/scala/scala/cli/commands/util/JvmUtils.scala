@@ -58,7 +58,7 @@ object JvmUtils {
         ignoreErrors = false
       ),
       javacPlugins = javacFilePlugins.map(s => Positioned.none(os.Path(s, Os.pwd))),
-      javacOptions = javacOption
+      javacOptions = javacOption.map(Positioned.commandLine)
     )
   }
 }

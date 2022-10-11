@@ -269,3 +269,16 @@ java -cp "$(scala-cli compile --print-class-path Hello.scala)" Hello
 
 Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
 The class path obtained this way is only meant for scenarios where `scala-cli` doesn't offer a more convenient option.
+
+### JVM options
+
+`--javac-opt` lets you add `javac` options which will be passed when compiling sources.
+
+```bash
+scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --javac-opt 1.8 
+```
+
+You can also add javac options with the using directive `//> using javacOpt`:
+```
+//> using javacOpt "source", "1.8", "target", "1.8"
+```

@@ -12,6 +12,11 @@ import scala.build.{Os, Position, Positioned}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NonFatal
 
+/** @javaOpts
+  *   java options which will be passed when compiling sources.
+  * @javacOptions
+  *   java options which will be passed when running an application.
+  */
 final case class JavaOptions(
   javaHomeOpt: Option[Positioned[os.Path]] = None,
   jvmIdOpt: Option[String] = None,
@@ -21,7 +26,7 @@ final case class JavaOptions(
   javaOpts: ShadowingSeq[Positioned[JavaOpt]] = ShadowingSeq.empty,
   javacPluginDependencies: Seq[Positioned[AnyDependency]] = Nil,
   javacPlugins: Seq[Positioned[os.Path]] = Nil,
-  javacOptions: Seq[String] = Nil
+  javacOptions: Seq[Positioned[String]] = Nil
 ) {
 
   private def finalJvmIndexOs = jvmIndexOs.getOrElse(OsLibc.jvmIndexOs)

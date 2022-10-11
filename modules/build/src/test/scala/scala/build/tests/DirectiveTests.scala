@@ -55,4 +55,20 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
+  test("should parse javac options") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using javacOpt "source", "1.8", "target", "1.8"
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build    = maybeBuild.orThrow
+        val javacOpt = build.options.javaOptions.javacOptions
+
+        val expectedJavacOpt = Seq("source", "1.8", "target", "1.8")
+        expect(javacOpt.map(_.value) == expectedJavacOpt)
+    }
+  }
+
 }

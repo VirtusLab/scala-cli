@@ -890,7 +890,7 @@ object Build {
 
       val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
 
-      javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions
+      javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions.map(_.value)
     }
 
     // `test` scope should contains class path to main scope
