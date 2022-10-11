@@ -436,11 +436,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         build.artifacts.scalaOpt.map(_.params) match {
           case Some(scalaParams) =>
             val pf = publishOptions.scalaPlatformSuffix.getOrElse {
-              // FIXME Allow full cross version too
-              "_" + scalaParams.scalaBinaryVersion
+              scalaParams.platform.fold("")("_" + _)
             }
             val sv = publishOptions.scalaVersionSuffix.getOrElse {
-              scalaParams.platform.fold("")("_" + _)
+              // FIXME Allow full cross version too
+              "_" + scalaParams.scalaBinaryVersion
             }
             name + pf + sv
           case None =>
