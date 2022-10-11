@@ -1,17 +1,17 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import coursier.cache.FileCache
 import coursier.util.{Artifact, Task}
 
 import scala.build.EitherCps.{either, value}
+import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.exportCmd._
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.exportCmd.*
 
 object Export extends ScalaCommand[ExportOptions] {
   override def isRestricted = true

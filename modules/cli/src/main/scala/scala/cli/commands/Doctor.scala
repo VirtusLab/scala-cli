@@ -67,7 +67,7 @@ object Doctor extends ScalaCommand[DoctorOptions] {
       println(
         s"scala-cli would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}."
       )
-    else if (Update.isScalaCLIInstalledByInstallationScript())
+    else if (Update.isScalaCLIInstalledByInstallationScript)
       println(
         s"scala-cli could update itself since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
       )

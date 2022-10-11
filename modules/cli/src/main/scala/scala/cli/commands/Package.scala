@@ -924,7 +924,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
 
     val cliOptions =
-      build.options.scalaNativeOptions.configCliOptions(!build.sources.resourceDirs.isEmpty)
+      build.options.scalaNativeOptions.configCliOptions(build.sources.resourceDirs.nonEmpty)
 
     val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
     val pythonLdFlags =

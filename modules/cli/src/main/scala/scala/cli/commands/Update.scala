@@ -1,13 +1,14 @@
 package scala.cli.commands
 
-import caseapp._
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import coursier.core
 
 import scala.build.Logger
-import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
+import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 import scala.util.Properties
@@ -20,7 +21,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     prerelease: Boolean,
     tag_name: String
   ) {
-    lazy val version =
+    lazy val version: core.Version =
       coursier.core.Version(tag_name.stripPrefix("v"))
     def actualRelease: Boolean =
       !draft && !prerelease
@@ -28,7 +29,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   private lazy val releaseListCodec: JsonValueCodec[List[Release]] = JsonCodecMaker.make
 
-  def newestScalaCliVersion(tokenOpt: Option[Secret[String]]) = {
+  def newestScalaCliVersion(tokenOpt: Option[Secret[String]]): String = {
 
     // FIXME Do we need paging here?
     val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
@@ -58,7 +59,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       scala.build.Directories.default().binRepoDir / options.binaryName
     )
 
-  private def updateScalaCli(options: UpdateOptions, newVersion: String) = {
+  private def updateScalaCli(options: UpdateOptions, newVersion: String): Unit = {
     val interactive = options.verbosity.interactiveInstance(forceEnable = true)
     if (!options.force) {
       val fallbackAction = () => {
@@ -118,7 +119,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       )
   }
 
-  def checkUpdate(options: UpdateOptions) = {
+  def checkUpdate(options: UpdateOptions): Unit = {
 
     val scalaCliBinPath = installDirPath(options) / options.binaryName
 
@@ -156,14 +157,14 @@ object Update extends ScalaCommand[UpdateOptions] {
   def checkUpdateSafe(logger: Logger): Unit =
     try
       // log about update only if scala-cli was installed from installation script
-      if (isScalaCLIInstalledByInstallationScript())
+      if (isScalaCLIInstalledByInstallationScript)
         checkUpdate(UpdateOptions(isInternalRun = true))
     catch {
       case NonFatal(ex) =>
         logger.debug(s"Ignoring error during checking update: $ex")
     }
 
-  def isScalaCLIInstalledByInstallationScript(): Boolean = {
+  def isScalaCLIInstalledByInstallationScript: Boolean = {
     val classesDir =
       getClass.getProtectionDomain.getCodeSource.getLocation.toURI.toString
     val binRepoDir = build.Directories.default().binRepoDir.toString()

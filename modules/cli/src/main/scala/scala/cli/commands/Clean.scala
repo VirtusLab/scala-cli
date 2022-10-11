@@ -1,10 +1,10 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {

@@ -1,18 +1,18 @@
 package scala.cli.commands
 
-import caseapp._
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 import scala.build.EitherCps.{either, value}
+import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
-import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration

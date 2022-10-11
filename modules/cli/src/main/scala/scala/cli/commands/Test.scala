@@ -1,20 +1,20 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.nio.file.Path
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
+import scala.build.Ops.*
+import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 
 object Test extends ScalaCommand[TestOptions] {
@@ -25,7 +25,7 @@ object Test extends ScalaCommand[TestOptions] {
   private def reset = Console.RESET
 
   override def buildOptions(opts: TestOptions): Option[BuildOptions] = Option {
-    import opts._
+    import opts.*
     val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(

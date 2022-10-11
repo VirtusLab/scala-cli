@@ -1,16 +1,16 @@
 package scala.cli.commands
 
-import caseapp._
-import dependency._
+import caseapp.*
+import dependency.*
 
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
 import scala.build.{Inputs, Logger, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.FmtOptionsUtil._
-import scala.cli.commands.util.FmtUtil._
-import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.FmtOptionsUtil.*
+import scala.cli.commands.util.FmtUtil.*
+import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.commands.util.VerbosityOptionsUtil.*
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String                                             = "Main"
@@ -24,11 +24,10 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   override def runCommand(options: FmtOptions, args: RemainingArgs): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val interactive  = options.shared.logging.verbosityOptions.interactiveInstance()
     val logger       = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
-    val (sourceFiles, workspace, inputsOpt) =
+    val (sourceFiles, workspace, _) =
       if (args.all.isEmpty)
         (Seq(os.pwd), os.pwd, None)
       else {

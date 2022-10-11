@@ -33,7 +33,7 @@ import scala.build.options.publish.{ComputeVersion, Developer, License, Signer =
 import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.pgp.PgpExternalCommand
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*

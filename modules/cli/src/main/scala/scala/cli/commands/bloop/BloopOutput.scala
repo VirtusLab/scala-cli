@@ -4,8 +4,8 @@ import caseapp.core.RemainingArgs
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.commands.{CoursierOptions, LoggingOptions, ScalaCommand}
 
 object BloopOutput extends ScalaCommand[BloopOutputOptions] {

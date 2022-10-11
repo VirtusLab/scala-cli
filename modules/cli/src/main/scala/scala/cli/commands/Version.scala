@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
@@ -20,7 +20,7 @@ class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
 }
 
 object Version {
-  def versionInfo(isSipScala: Boolean) =
+  def versionInfo(isSipScala: Boolean): String =
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
     val appName =

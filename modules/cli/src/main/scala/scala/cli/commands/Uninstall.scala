@@ -1,10 +1,10 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.VerbosityOptionsUtil.*
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
   override def loggingOptions(options: UninstallOptions): Option[LoggingOptions] =
@@ -20,7 +20,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     val cacheDir    = scala.build.Directories.default().cacheDir
 
     if (
-      !Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)
+      !Update.isScalaCLIInstalledByInstallationScript && (options.binDir.isEmpty || !options.force)
     ) {
       logger.error(
         "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."

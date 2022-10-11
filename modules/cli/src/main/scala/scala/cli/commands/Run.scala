@@ -12,7 +12,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*

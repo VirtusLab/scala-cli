@@ -13,7 +13,7 @@ object Shebang extends ScalaCommand[ShebangOptions] {
     Run.scalaCliRun(
       options.runOptions,
       args.remaining.headOption.toSeq,
-      args.remaining.drop(1).toSeq,
+      args.remaining.drop(1),
       () => None
     )
 }

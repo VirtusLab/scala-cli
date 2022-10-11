@@ -6,8 +6,8 @@ import coursier.cache.ArchiveCache
 import java.util.Base64
 
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
 

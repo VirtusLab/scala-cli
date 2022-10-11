@@ -5,7 +5,7 @@ import coursier.cache.ArchiveCache
 
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.{JvmUtils, ScalaCliSttpBackend}
 import scala.cli.internal.PgpProxyMakerSubst
 

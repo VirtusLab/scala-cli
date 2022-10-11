@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import os.Path
 
 import scala.build.actionable.ActionableDependencyHandler
@@ -9,11 +9,12 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
-  override def group                                           = "Main"
-  override def sharedOptions(options: DependencyUpdateOptions) = Some(options.shared)
+  override def group = "Main"
+  override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
+    Some(options.shared)
   override def runCommand(options: DependencyUpdateOptions, args: RemainingArgs): Unit = {
     val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)

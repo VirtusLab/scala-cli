@@ -1,24 +1,24 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import ch.epfl.scala.bsp4j.BspConnectionDetails
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.Charset
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
+import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.errors.FoundVirtualInputsError
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
@@ -185,7 +185,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   def bspDetails(workspace: os.Path, ops: SharedBspFileOptions): (String, os.Path) = {
-    import ops._
+    import ops.*
     val dir = bspDirectory
       .filter(_.nonEmpty)
       .map(os.Path(_, Os.pwd))

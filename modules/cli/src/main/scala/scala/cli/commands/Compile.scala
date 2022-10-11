@@ -1,16 +1,16 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.io.File
 
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Build, BuildThreads, Builds, Os}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {

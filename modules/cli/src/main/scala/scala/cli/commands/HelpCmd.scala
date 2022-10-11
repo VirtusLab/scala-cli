@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.RuntimeCommandsHelp
 
 import scala.cli.ScalaCliHelp
