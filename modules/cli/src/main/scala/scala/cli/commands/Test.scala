@@ -43,7 +43,6 @@ object Test extends ScalaCommand[TestOptions] {
   }
 
   override def runCommand(options: TestOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
     val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.remaining).orExit(logger)

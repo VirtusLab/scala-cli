@@ -9,8 +9,9 @@ import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
+  override def loggingOptions(options: CleanOptions): Option[LoggingOptions] =
+    Some(options.logging)
   override def runCommand(options: CleanOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
     val inputs = Inputs(
       args.all,
       Os.pwd,

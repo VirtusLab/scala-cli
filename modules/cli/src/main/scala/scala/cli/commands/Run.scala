@@ -105,7 +105,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs]
   ): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
 
     val logger = options.shared.logger

@@ -8,9 +8,9 @@ import scala.cli.commands.util.CommonOps._
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
   override def isRestricted    = true
-
+  override def verbosity(options: DirectoriesOptions): Option[Int] =
+    Some(options.verbosity.verbosity)
   override def runCommand(options: DirectoriesOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity.verbosity
     if (args.all.nonEmpty) {
       System.err.println("The directories command doesn't accept arguments.")
       sys.exit(1)

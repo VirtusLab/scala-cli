@@ -26,8 +26,10 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     )
   }
 
+  override def loggingOptions(options: BloopExitOptions): Option[LoggingOptions] =
+    Some(options.logging)
+
   override def runCommand(options: BloopExitOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
     val bloopRifleConfig = mkBloopRifleConfig(options)
     val logger           = options.logging.logger
 

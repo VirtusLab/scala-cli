@@ -29,7 +29,6 @@ class Default(
   }
 
   override def runCommand(options: DefaultOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     if options.version then println(Version.versionInfo(isSipScala))
     else
       {

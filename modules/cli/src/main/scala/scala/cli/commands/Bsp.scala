@@ -29,7 +29,6 @@ object Bsp extends ScalaCommand[BspOptions] {
 
   // not reusing buildOptions here, since they should be reloaded live instead
   override def runCommand(options: BspOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 

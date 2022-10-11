@@ -76,7 +76,6 @@ object Export extends ScalaCommand[ExportOptions] {
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
   override def runCommand(options: ExportOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
     val logger              = options.shared.logger
 

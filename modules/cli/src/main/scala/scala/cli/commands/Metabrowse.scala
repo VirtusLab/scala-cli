@@ -56,7 +56,6 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     }
 
   override def runCommand(options: MetabrowseOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
     val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.all).orExit(logger)

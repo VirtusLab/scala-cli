@@ -23,7 +23,6 @@ object Fmt extends ScalaCommand[FmtOptions] {
   )
 
   override def runCommand(options: FmtOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
     val interactive  = options.shared.logging.verbosityOptions.interactiveInstance()
     val logger       = options.shared.logger

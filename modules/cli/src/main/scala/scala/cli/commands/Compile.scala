@@ -17,8 +17,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
   override def runCommand(options: CompileOptions, args: RemainingArgs): Unit = {
-    val logger = options.shared.logger
-    CurrentParams.verbosity = options.shared.logging.verbosity
+    val logger       = options.shared.logger
     val buildOptions = buildOptionsOrExit(options)
     val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

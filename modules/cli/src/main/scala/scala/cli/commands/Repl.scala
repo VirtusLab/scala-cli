@@ -53,7 +53,6 @@ object Repl extends ScalaCommand[ReplOptions] {
   }
 
   override def runCommand(options: ReplOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)

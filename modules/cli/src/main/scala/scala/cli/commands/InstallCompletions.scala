@@ -17,8 +17,9 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     List("install", "completions"),
     List("install-completions")
   )
+  override def loggingOptions(options: InstallCompletionsOptions): Option[LoggingOptions] =
+    Some(options.logging)
   override def runCommand(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
     val interactive = options.logging.verbosityOptions.interactiveInstance()
     lazy val completionsDir =
       options.output

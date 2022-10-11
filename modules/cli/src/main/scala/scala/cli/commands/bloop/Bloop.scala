@@ -11,13 +11,13 @@ import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
 import scala.cli.commands.util.SharedOptionsUtil._
-import scala.cli.commands.{ScalaCommand, SharedOptions}
+import scala.cli.commands.{LoggingOptions, ScalaCommand, SharedOptions}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object Bloop extends ScalaCommand[BloopOptions] {
-  override def hidden     = true
-  override def isRestricted = true
+  override def hidden                  = true
+  override def isRestricted            = true
   override def stopAtFirstUnrecognized = true
 
   private def bloopRifleConfig0(opts: BloopOptions): BloopRifleConfig = {
@@ -58,9 +58,9 @@ object Bloop extends ScalaCommand[BloopOptions] {
     )
   }
 
+  override def loggingOptions(options: BloopOptions): Option[LoggingOptions] =
+    Some(options.logging)
   override def runCommand(options: BloopOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
-
     val threads          = BloopThreads.create()
     val logger           = options.logging.logger
     val bloopRifleConfig = bloopRifleConfig0(options)
@@ -89,7 +89,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
         // FIXME Give more details?
         logger.message("Bloop server is running.")
       case Seq(cmd, args @ _*) =>
-        val assumeTty = System.console() != null
+        val assumeTty  = System.console() != null
         val workingDir = options.workDirOpt.getOrElse(os.pwd).toNIO
         Operations.run(
           command = cmd,

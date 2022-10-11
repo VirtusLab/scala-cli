@@ -172,7 +172,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     maybePrintLicensesAndExit(options.publishParams)
     maybePrintChecksumsAndExit(options.sharedPublish)
 
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val baseOptions = buildOptionsOrExit(options)
     val logger      = options.shared.logger
     val inputs      = options.shared.inputs(args.all).orExit(logger)

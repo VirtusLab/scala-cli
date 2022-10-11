@@ -14,10 +14,8 @@ import scala.cli.commands.util.SharedOptionsUtil._
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group                                           = "Main"
   override def sharedOptions(options: DependencyUpdateOptions) = Some(options.shared)
-
   override def runCommand(options: DependencyUpdateOptions, args: RemainingArgs): Unit = {
-    val verbosity = options.shared.logging.verbosity
-    CurrentParams.verbosity = verbosity
+    val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
 
     val logger = options.shared.logger

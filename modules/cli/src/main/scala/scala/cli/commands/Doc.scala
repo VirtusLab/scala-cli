@@ -24,7 +24,6 @@ object Doc extends ScalaCommand[DocOptions] {
   override def group                              = "Main"
   override def sharedOptions(options: DocOptions) = Some(options.shared)
   override def runCommand(options: DocOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val initialBuildOptions = buildOptionsOrExit(options)
     val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.remaining).orExit(logger)

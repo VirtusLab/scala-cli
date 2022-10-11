@@ -53,7 +53,6 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   override def runCommand(options: SetupIdeOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
     val logger       = options.shared.logging.logger
     val inputs       = options.shared.inputs(args.all).orExit(logger)
