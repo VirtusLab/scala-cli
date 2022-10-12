@@ -17,10 +17,12 @@ final case class CompileOptions(
 
   @Name("p")
   @Name("printClasspath")
+  @Tag(tags.restricted)
   @HelpMessage("Print the resulting class path")
     printClassPath: Boolean = false,
 
   @HelpMessage("Compile test scope")
+  @Tag(tags.should)
     test: Boolean = false
 ) extends HasSharedOptions
   // format: on

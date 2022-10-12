@@ -13,6 +13,7 @@ final case class DoctorOptions(
     logging: LoggingOptions = LoggingOptions(),
   @Hidden
   @HelpMessage(HelpMessages.passwordOption)
+  @Tag(tags.implementation)
     ghToken: Option[PasswordOption] = None
 ) extends HasLoggingOptions
 // format: on

@@ -415,7 +415,8 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def moduleDeps = Seq(
     options,
     core,
-    `build-macros`
+    `build-macros`,
+    `cli-options`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -434,6 +435,9 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     Deps.scalaparse,
     Deps.usingDirectives
   )
+
+  def repositoriesTask =
+    T.task(super.repositoriesTask() ++ deps.customRepositories)
 
   object test extends Tests with ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -515,6 +519,9 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.jsoniterMacros
   )
 
+  def repositoriesTask =
+    T.task(super.repositoriesTask() ++ deps.customRepositories)
+
   object test extends Tests with ScalaCliTests {
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
@@ -594,6 +601,9 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.swoval,
     Deps.zipInputStream
   ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
+
+  def repositoriesTask =
+    T.task(super.repositoriesTask() ++ deps.customRepositories)
 
   object test extends Tests with ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
@@ -741,7 +751,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def moduleDeps = Seq(
     `build-module`,
-    `cli-options`,
     config(Scala.scala3),
     `scala3-graal`(Scala.scala3)
   )

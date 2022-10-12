@@ -5,10 +5,12 @@ import caseapp.*
 // format: off
 final case class BenchmarkingOptions(
   @Group("Benchmarking")
-  @HelpMessage("[experimental] Run JMH benchmarks")
+  @Tag(tags.experimental)
+  @HelpMessage("Run JMH benchmarks")
     jmh: Option[Boolean] = None,
   @Group("Benchmarking")
-  @HelpMessage("[experimental] Set JMH version")
+  @Tag(tags.experimental)
+  @HelpMessage("Set JMH version")
   @ValueDescription("version")
     jmhVersion: Option[String] = None
 )

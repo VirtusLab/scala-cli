@@ -8,12 +8,15 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 final case class VerbosityOptions(
   @Group("Logging")
   @HelpMessage("Increase verbosity (can be specified multiple times)")
+  @Tag(tags.implementation)
   @Name("v")
     verbose: Int @@ Counter = Tag.of(0),
   @HelpMessage("Interactive mode")
   @Name("i")
+  @Tag(tags.implementation)
     interactive: Option[Boolean] = None,
   @HelpMessage("Enable actionable diagnostics")
+  @Tag(tags.implementation)
     actions: Option[Boolean] = None
 ) {
   // format: on

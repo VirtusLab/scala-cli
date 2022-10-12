@@ -20,9 +20,11 @@ final case class TestOptions(
   @Group("Test")
   @HelpMessage("Name of the test framework's runner class to use while running tests")
   @ValueDescription("class-name")
+  @Tag(tags.should)
     testFramework: Option[String] = None,
 
   @Group("Test")
+  @Tag(tags.should)
   @HelpMessage("Fail if no test suites were run")
     requireTests: Boolean = false
 ) extends HasSharedOptions

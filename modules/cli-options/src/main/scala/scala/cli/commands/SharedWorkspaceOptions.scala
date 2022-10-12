@@ -9,6 +9,7 @@ final case class SharedWorkspaceOptions(
   @Hidden
   @HelpMessage("Directory where .scala-build is written")
   @ValueDescription("path")
+  @Tag(tags.implementation)
     workspace: Option[String] = None
 )
 // format: on

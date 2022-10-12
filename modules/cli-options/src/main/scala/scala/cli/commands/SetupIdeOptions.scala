@@ -12,6 +12,7 @@ final case class SetupIdeOptions(
   @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Hidden
+  @Tag(tags.implementation)
   charset: Option[String] = None
 ) extends HasSharedOptions
 // format: on
