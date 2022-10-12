@@ -9,7 +9,9 @@ import scala.cli.commands.{DirectoriesOptions, ScalaCommand}
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
-  override def isRestricted    = true
+  
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+
   override def runCommand(
     options: DirectoriesOptions,
     args: RemainingArgs,

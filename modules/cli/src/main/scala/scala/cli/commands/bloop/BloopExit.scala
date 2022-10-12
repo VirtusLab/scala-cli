@@ -10,8 +10,8 @@ import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.commands.{BloopExitOptions, ScalaCommand}
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
-  override def hidden       = true
-  override def isRestricted = true
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def names: List[List[String]] = List(
     List("bloop", "exit")
   )

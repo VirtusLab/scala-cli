@@ -12,6 +12,9 @@ import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, UninstallCompletionsOptions, UninstallOptions}
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
+
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   override def runCommand(options: UninstallOptions, args: RemainingArgs, logger: Logger): Unit = {
     val interactive =
       options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)

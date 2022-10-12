@@ -24,6 +24,7 @@ import scala.cli.config.{ConfigDb, Keys}
 object Test extends ScalaCommand[TestOptions] {
   override def group                                                      = "Main"
   override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET

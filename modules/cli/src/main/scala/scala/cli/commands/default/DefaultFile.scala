@@ -12,8 +12,8 @@ import scala.util.Using
 
 object DefaultFile extends ScalaCommand[DefaultFileOptions] {
 
-  override def hidden       = true
-  override def isRestricted = true
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   private def readDefaultFile(path: String): Array[Byte] = {
     val resourcePath = Constants.defaultFilesResourcePath + "/" + path

@@ -32,6 +32,8 @@ import scala.cli.{CurrentParams, ScalaCli}
 object Doctor extends ScalaCommand[DoctorOptions] {
   override def group = "Doctor"
 
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   override def runCommand(options: DoctorOptions, args: RemainingArgs, logger: Logger): Unit = {
     checkIsVersionOutdated(options.ghToken.map(_.get()))
     checkBloopStatus()

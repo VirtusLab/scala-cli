@@ -16,11 +16,12 @@ import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
+import scala.cli.commands.SpecificationLevel
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def hidden       = false
-  override def isRestricted = true
+  override def hidden                  = false
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def names = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")

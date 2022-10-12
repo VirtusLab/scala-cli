@@ -12,6 +12,9 @@ import scala.cli.commands.{ScalaCommand, UninstallCompletionsOptions}
 import scala.cli.internal.ProfileFileUpdater
 
 object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
+
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   override def names = List(
     List("uninstall", "completions"),
     List("uninstall-completions")

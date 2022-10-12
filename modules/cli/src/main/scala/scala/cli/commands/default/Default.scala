@@ -30,16 +30,23 @@ class Default(
        |  - otherwise, if no inputs were passed, it defaults to the 'repl' subcommand""".stripMargin
 
   private def defaultHelp: String = actualHelp.help(ScalaCliHelp.helpFormat) + defaultCommandHelp
+  
   private def defaultFullHelp: String =
     actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true) + defaultCommandHelp
+  
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   override def group                                                         = "Main"
+  
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
+  
   private[cli] var rawArgs                                                   = Array.empty[String]
+  
   override def helpAsked(progName: String, maybeOptions: Either[Error, DefaultOptions]): Nothing = {
     println(defaultHelp)
     sys.exit(0)
   }
+  
   override def fullHelpAsked(progName: String): Nothing = {
     println(defaultFullHelp)
     sys.exit(0)

@@ -17,11 +17,11 @@ Available in commands:
 
 ### `--jmh`
 
-[experimental] Run JMH benchmarks
+Run JMH benchmarks
 
 ### `--jmh-version`
 
-[experimental] Set JMH version
+Set JMH version
 
 ## Compilation server options
 
@@ -133,7 +133,7 @@ Available in commands:
 
 ### `--cross`
 
-[experimental] Run given command against all provided Scala versions and/or platforms
+Run given command against all provided Scala versions and/or platforms
 
 ## Debug options
 
@@ -204,6 +204,8 @@ Available in commands:
 ### `--home-directory`
 
 Aliases: `--home`
+
+Override the path to user's home directory
 
 ## Doc options
 
@@ -538,7 +540,7 @@ Available in commands:
 
 Aliases: `--markdown`, `--md`
 
-[experimental] Enable markdown support.
+Enable markdown support.
 
 ## Package options
 
@@ -982,13 +984,13 @@ Available in commands:
 
 ### `--python-setup`
 
-[experimental] Set Java options so that Python can be loaded
+Set Java options so that Python can be loaded
 
 ### `--python`
 
 Aliases: `--py`
 
-[experimental] Enable Python support via ScalaPy
+Enable Python support via ScalaPy
 
 ### `--scala-py-version`
 
@@ -1008,20 +1010,20 @@ Available in commands:
 
 Aliases: `-A`, `--amm`
 
-[restricted] Use Ammonite (instead of the default Scala REPL)
+Use Ammonite (instead of the default Scala REPL)
 
 ### `--ammonite-version`
 
 Aliases: `--ammonite-ver`
 
-[restricted] Set the Ammonite version (2.5.5-17-df243e14 by default)
+Set the Ammonite version (2.5.5-17-df243e14 by default)
 
 ### `--ammonite-arg`
 
 Aliases: `-a`
 
 [Internal]
-[restricted] Provide arguments for ammonite repl
+Provide arguments for ammonite repl
 
 ### `--repl-dry-run`
 
@@ -1041,26 +1043,26 @@ Available in commands:
 Aliases: `--spark`
 
 [Internal]
-[experimental] Run as a Spark job, using the spark-submit command
+Run as a Spark job, using the spark-submit command
 
 ### `--submit-argument`
 
 Aliases: `--submit-arg`
 
 [Internal]
-[experimental] spark-submit arguments
+Spark-submit arguments
 
 ### `--standalone-spark`
 
 Aliases: `--spark-standalone`
 
-[experimental] Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI
+Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI
 
 ### `--hadoop-jar`
 
 Aliases: `--hadoop`
 
-[experimental] Run as a Hadoop job, using the "hadoop jar" command
+Run as a Hadoop job, using the "hadoop jar" command
 
 ### `--command`
 

@@ -12,8 +12,8 @@ import scala.cli.internal.PgpProxyMakerSubst
 
 object PgpPush extends ScalaCommand[PgpPushOptions] {
 
-  override def hidden       = true
-  override def isRestricted = true
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def names = List(
     List("pgp", "push")
   )

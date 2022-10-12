@@ -16,8 +16,8 @@ import scala.io.StdIn.readLine
 import scala.util.Properties
 
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
-  override def hidden: Boolean = true
-  override def isRestricted    = true
+  override def hidden: Boolean         = true
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
   private def logEqual(version: String, logger: Logger) = {
     logger.message(s"$fullRunnerName $version is already installed and up-to-date.")
