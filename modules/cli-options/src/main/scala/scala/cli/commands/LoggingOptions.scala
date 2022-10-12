@@ -10,9 +10,11 @@ final case class LoggingOptions(
     verbosityOptions: VerbosityOptions = VerbosityOptions(),
   @Group("Logging")
   @HelpMessage("Decrease verbosity")
+  @Tag(tags.implementation)
   @Name("q")
     quiet: Boolean = false,
   @Group("Logging")
+  @Tag(tags.implementation)
   @HelpMessage("Use progress bars")
     progress: Option[Boolean] = None
 ) {

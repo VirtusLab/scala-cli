@@ -7,6 +7,7 @@ final case class MainClassOptions(
   @Group("Entrypoint")
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
+  @Tag(tags.must)
   @Name("M")
     mainClass: Option[String] = None,
   
@@ -15,6 +16,7 @@ final case class MainClassOptions(
   @Name("mainClassList")
   @Name("listMainClass")
   @Name("listMainClasses")
+  @Tag(tags.should)
     mainClassLs: Option[Boolean] = None
 )
 // format: on

@@ -17,24 +17,28 @@ final case class SharedReplOptions(
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
   
   @Group("Repl")
-  @HelpMessage("[restricted] Use Ammonite (instead of the default Scala REPL)")
+  @Tag(tags.restricted)
+  @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
   @Name("amm")
     ammonite: Option[Boolean] = None,
 
   @Group("Repl")
-  @HelpMessage(s"[restricted] Set the Ammonite version (${Constants.ammoniteVersion} by default)")
+  @Tag(tags.restricted)
+  @HelpMessage(s"Set the Ammonite version (${Constants.ammoniteVersion} by default)")
   @Name("ammoniteVer")
     ammoniteVersion: Option[String] = None,
 
   @Group("Repl")
   @Name("a")
-  @HelpMessage("[restricted] Provide arguments for ammonite repl")
+  @Tag(tags.restricted)
+  @HelpMessage("Provide arguments for ammonite repl")
   @Hidden
     ammoniteArg: List[String] = Nil,
 
   @Group("Repl")
   @Hidden
+  @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")
     replDryRun: Boolean = false
 )

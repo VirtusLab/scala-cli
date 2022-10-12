@@ -15,6 +15,7 @@ final case class ScalacOptions(
   @Name("scala-opt")
   @Name("scala-option")
   @Name("O")
+  @Tag(tags.must)
     scalacOption: List[String] = Nil
 )
 // format: on

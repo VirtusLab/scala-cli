@@ -6,9 +6,11 @@ import caseapp.*
 final case class SharedWatchOptions(
 
   @HelpMessage("Watch source files for changes")
+  @Tag(tags.should)
   @Name("w")
     watch: Boolean = false,
   @HelpMessage("Run your application in background and automatically restart if sources have been changed")
+  @Tag(tags.should)
   @Name("revolver")
     restart: Boolean = false
 ) { // format: on

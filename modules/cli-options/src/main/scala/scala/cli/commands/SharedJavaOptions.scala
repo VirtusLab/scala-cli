@@ -7,11 +7,13 @@ final case class SharedJavaOptions(
   @Group("Java")
   @HelpMessage("Set Java options, such as `-Xmx1g`")
   @ValueDescription("java-options")
+  @Tag(tags.must)
   @Name("J")
     javaOpt: List[String] = Nil,
   @Group("Java")
   @HelpMessage("Set Java properties")
   @ValueDescription("key=value|key")
+  @Tag(tags.must)
     javaProp: List[String] = Nil
 ) {
   // format: on

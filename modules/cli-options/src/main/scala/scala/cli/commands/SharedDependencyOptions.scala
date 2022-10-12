@@ -8,10 +8,12 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 final case class SharedDependencyOptions(
   @Group("Dependency")
   @HelpMessage("Add dependencies")
+  @Tag(tags.must)
   @Name("dep")
     dependency: List[String] = Nil,
 
   @Group("Dependency")
+  @Tag(tags.should)
   @HelpMessage("Add repositories")
   @Name("repo")
   @Name("r")
@@ -19,6 +21,7 @@ final case class SharedDependencyOptions(
   @Group("Scala")
   @Name("P")
   @Name("plugin")
+  @Tag(tags.must)
   @HelpMessage("Add compiler plugin dependencies")
   compilerPlugin: List[String] = Nil
 )

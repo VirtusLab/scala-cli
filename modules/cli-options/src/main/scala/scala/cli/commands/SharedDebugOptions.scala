@@ -9,11 +9,14 @@ import scala.cli.commands.BloopExitOptions.parser
 final case class SharedDebugOptions(
   @Group("Debug")
   @HelpMessage("Turn debugging on")
+  @Tag(tags.should)
     debug: Boolean = false,
   @Group("Debug")
   @HelpMessage("Debug port (5005 by default)")
+  @Tag(tags.should)
     debugPort: Option[String] = None,
   @Group("Debug")
+  @Tag(tags.should)
   @HelpMessage("Debug mode (attach by default)")
   @ValueDescription("attach|a|listen|l")
     debugMode: Option[String] = None

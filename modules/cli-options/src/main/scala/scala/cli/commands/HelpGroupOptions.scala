@@ -8,21 +8,26 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
   @HelpMessage("Show options for ScalaJS")
+  @Tag(tags.implementation)
   helpJs: Boolean = false,
   @HelpMessage("Show options for ScalaNative")
+  @Tag(tags.implementation)
   helpNative: Boolean = false,
   @HelpMessage("Show options for Scaladoc")
   @Name("scaladocHelp")
   @Name("docHelp")
   @Name("helpDoc")
+  @Tag(tags.implementation)
   helpScaladoc: Boolean = false,
   @HelpMessage("Show options for Scala REPL")
   @Name("replHelp")
+  @Tag(tags.implementation)
   helpRepl: Boolean = false,
   @HelpMessage("Show options for Scalafmt")
   @Name("scalafmtHelp")
   @Name("fmtHelp")
   @Name("helpFmt")
+  @Tag(tags.implementation)
   helpScalafmt: Boolean = false
 ) {
 

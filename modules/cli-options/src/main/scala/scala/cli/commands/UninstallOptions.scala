@@ -15,15 +15,19 @@ final case class UninstallOptions(
   @Group("Uninstall")
   @Name("f")
   @HelpMessage("Force scala-cli uninstall")
+  @Tag(tags.implementation)
     force: Boolean = false,
   @Hidden
   @HelpMessage("Don't clear scala-cli cache")
+  @Tag(tags.implementation)
     skipCache: Boolean = false,
   @Hidden
   @HelpMessage("Binary name")
+  @Tag(tags.implementation)
     binaryName: String = "scala-cli",
   @Hidden
   @HelpMessage("Binary directory")
+  @Tag(tags.implementation)
     binDir: Option[String] = None
 ) extends HasLoggingOptions {
   override def logging: LoggingOptions = bloopExit.logging
