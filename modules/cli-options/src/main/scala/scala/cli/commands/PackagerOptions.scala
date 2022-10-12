@@ -82,6 +82,9 @@ final case class PackagerOptions(
   @Group("Windows")
   @HelpMessage("WIX installer version")
     installerVersion: Option[String] = None,
+  @Group("Windows")
+  @HelpMessage("The GUID to identify that the windows package can be upgraded.")
+    wixUpgradeCodeGuid: Option[String] = None,
   @Group("Docker")
   @HelpMessage(
     "Building the container from base image"

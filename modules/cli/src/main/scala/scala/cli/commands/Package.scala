@@ -450,7 +450,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
               packageOptions.windowsOptions.suppressValidation.getOrElse(false),
             extraConfigs = packageOptions.windowsOptions.extraConfig,
             is64Bits = packageOptions.windowsOptions.is64Bits.getOrElse(true),
-            installerVersion = packageOptions.windowsOptions.installerVersion
+            installerVersion = packageOptions.windowsOptions.installerVersion,
+            wixUpgradeCodeGuid = packageOptions.windowsOptions.wixUpgradeCodeGuid
           )
 
           nativePackagerType match {

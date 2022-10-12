@@ -66,7 +66,7 @@ object Deps {
     def jsoniterScalaJava8 = "2.13.5"
     def scalaMeta          = "4.5.13"
     def scalaNative        = "0.4.7"
-    def scalaPackager      = "0.1.28"
+    def scalaPackager      = "0.1.29"
     def signingCli         = "0.1.10"
   }
   // DO NOT hardcode a Scala version in this dependency string
