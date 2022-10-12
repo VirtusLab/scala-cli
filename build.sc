@@ -166,8 +166,7 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  // Temporarily filtering out 3.2.0, until com-lihaoyi/Ammonite#1286 is merged.
-  object amm extends Cross[Amm](Scala.listAll.filter(_ != "3.2.0"): _*)
+  object amm extends Cross[Amm](Scala.listAllAmmonite: _*)
   class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps = Agg(
@@ -663,6 +662,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def launcherTypeResourcePath = "${launcherTypeResourcePath.toString}"
          |  def defaultFilesResourcePath = "$defaultFilesResourcePath"
+         |  def maxAmmoniteScala3Version = "${Scala.maxAmmoniteScala3Version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

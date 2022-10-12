@@ -19,4 +19,15 @@ class ReplOptionsTests extends munit.FunSuite {
     expect(buildOptions.notForBloopOptions.scalaPyVersion.contains(ver))
   }
 
+  test("Downgrade Scala version if needed") {
+    val replOptions = ReplOptions(
+      sharedRepl = SharedReplOptions(
+        ammonite = Some(true)
+      )
+    )
+    val maxVersion   = "3.1.3"
+    val buildOptions = Repl.buildOptions0(replOptions, maxVersion)
+    expect(buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt).contains(maxVersion))
+  }
+
 }
