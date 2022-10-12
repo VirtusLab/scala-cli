@@ -5,7 +5,11 @@ sidebar_position: 2
 
 **This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**
 
-## using directives
+This document is a specification of `scala` runner.
+For now it uses documentation specific to Scala CLI but at some point it may be refactor to provide more abstract documentation.
+Documentation is splitted into sections in the spirit of RFC keywords (`MUST`, `SHOULD`).
+
+## MUST have directives:
 
 ### Compiler options
 
@@ -29,6 +33,68 @@ Adds compiler plugins
 #### Examples
 `//> using plugin "org.typelevel:::kind-projector:0.13.2"`
 
+### Dependency
+
+Add dependencies
+
+`//> using lib "`_org_`:`name`:`ver"
+
+#### Examples
+`//> using lib "org.scalatest::scalatest:3.2.10"`
+
+`//> using lib "org.scalameta::munit:0.7.29"`
+
+`//> using lib "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
+
+### Java options
+
+Add Java options which will be passed when running an application.
+
+`//> using java-opt `_options_
+
+`//> using javaOpt `_options_
+
+#### Examples
+`//> using javaOpt "-Xmx2g", "-Dsomething=a"`
+
+### Java properties
+
+Add Java properties
+
+`//> using javaProp `_key=value_
+`//> using javaProp `_key_
+
+#### Examples
+`//> using javaProp "foo1=bar", "foo2"`
+
+### Main class
+
+Specify default main class
+
+`//> using main-class `_main class_
+
+`//> using mainClass `_main class_
+
+#### Examples
+`//> using main-class "helloWorld"`
+
+### Scala version
+
+Set the default Scala version
+
+`//> using scala `_version_+
+
+#### Examples
+`//> using scala "3.0.2"`
+
+`//> using scala "2.13"`
+
+`//> using scala "2"`
+
+`//> using scala "2.13.6", "2.12.16"`
+
+## SHOULD have directives:
+
 ### Custom JAR
 
 Manually add JAR(s) to the class path
@@ -50,19 +116,6 @@ Manually add sources to the project
 
 #### Examples
 `//> using file "utils.scala"`
-
-### Dependency
-
-Add dependencies
-
-`//> using lib "`_org_`:`name`:`ver"
-
-#### Examples
-`//> using lib "org.scalatest::scalatest:3.2.10"`
-
-`//> using lib "org.scalameta::munit:0.7.29"`
-
-`//> using lib "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
 ### JVM version
 
@@ -88,27 +141,6 @@ Sets Java home used to run your application or tests
 #### Examples
 `//> using java-home "/Users/Me/jdks/11"`
 
-### Java options
-
-Add Java options which will be passed when running an application.
-
-`//> using java-opt `_options_
-
-`//> using javaOpt `_options_
-
-#### Examples
-`//> using javaOpt "-Xmx2g", "-Dsomething=a"`
-
-### Java properties
-
-Add Java properties
-
-`//> using javaProp `_key=value_
-`//> using javaProp `_key_
-
-#### Examples
-`//> using javaProp "foo1=bar", "foo2"`
-
 ### Javac options
 
 Add Javac options which will be passed when compiling sources.
@@ -121,17 +153,6 @@ Add Javac options which will be passed when compiling sources.
 `//> using javacOpt "source", "1.8"`
 
 `"target", "1.8"`
-
-### Main class
-
-Specify default main class
-
-`//> using main-class `_main class_
-
-`//> using mainClass `_main class_
-
-#### Examples
-`//> using main-class "helloWorld"`
 
 ### Platform
 
@@ -191,21 +212,6 @@ Add Scala Native options
 #### Examples
 `//> using nativeVersion "0.4.0"`
 
-### Scala version
-
-Set the default Scala version
-
-`//> using scala `_version_+
-
-#### Examples
-`//> using scala "3.0.2"`
-
-`//> using scala "2.13"`
-
-`//> using scala "2"`
-
-`//> using scala "2.13.6", "2.12.16"`
-
 ### Scala.js options
 
 Add Scala.js options
@@ -241,6 +247,12 @@ Add Scala.js options
 #### Examples
 `//> using jsModuleKind "common"`
 
+### Test framework
 
-## target directives
+Set the test framework
+
+`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_
+
+#### Examples
+`//> using testFramework "utest.runner.Framework"`
 

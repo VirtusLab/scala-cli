@@ -22,7 +22,7 @@ case object UsingJvmDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("jvm")
 
-  override def isRestricted = false
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
 
   def handleValues(
     scopedDirective: ScopedDirective,

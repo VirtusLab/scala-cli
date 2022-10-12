@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
+import scala.cli.commands.SpecificationLevel
 
 import scala.build.Logger
 import scala.build.errors.{
@@ -27,7 +28,10 @@ trait DirectiveHandler[T] {
   /** Is this directive an advanved feature, that will not be accessible when running scala-cli as
     * `scala`
     */
-  def isRestricted: Boolean
+  def scalaSpecificationLevel: SpecificationLevel
+  protected def SpecificationLevel = scala.cli.commands.SpecificationLevel
+
+  final def isRestricted: Boolean = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
 
   def keys: Seq[String]
 

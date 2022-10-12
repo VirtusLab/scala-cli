@@ -7,6 +7,26 @@ sidebar_position: 1
 
 This is a summary of options that are available for each subcommand of the `scala-cli` command.
 
+## Scalac options forwarding
+
+ All options that start with:
+
+
+- `-g`
+- `-language`
+- `-opt`
+- `-P`
+- `-target`
+- `-V`
+- `-W`
+- `-X`
+- `-Y`
+
+are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
+
+
+
+
 ## Compilation server options
 
 Available in commands:
@@ -17,75 +37,91 @@ Available in commands:
 
 ### `--bloop-bsp-protocol`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Protocol to use to open a BSP connection with Bloop
 
 ### `--bloop-bsp-socket`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Socket file to use to open a BSP connection with Bloop
 
 ### `--bloop-host`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Host the compilation server should bind to
 
 ### `--bloop-port`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Port the compilation server should bind to (pass `-1` to pick a random port)
 
 ### `--bloop-daemon-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
 
 ### `--bloop-version`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 If Bloop isn't already running, the version we should start
 
 ### `--bloop-bsp-timeout`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Maximum duration to wait for the BSP connection to be opened
 
 ### `--bloop-bsp-check-period`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Duration between checks of the BSP connection state
 
 ### `--bloop-startup-timeout`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Maximum duration to wait for the compilation server to start up
 
 ### `--bloop-default-java-opts`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Include default JVM options for Bloop
 
 ### `--bloop-java-opt`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Pass java options to use by Bloop server
 
 ### `--bloop-global-options-file`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Bloop global options file
 
 ### `--bloop-jvm`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
 
 ### `--bloop-working-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Working directory for Bloop, if it needs to be started
 
 ### `--server`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
@@ -99,6 +135,8 @@ Available in commands:
 
 ### `--test`
 
+`SHOULD have` per Scala Runner specification
+
 Compile test scope
 
 ## Debug options
@@ -111,13 +149,19 @@ Available in commands:
 
 ### `--debug`
 
+`SHOULD have` per Scala Runner specification
+
 Turn debugging on
 
 ### `--debug-port`
 
+`SHOULD have` per Scala Runner specification
+
 Debug port (5005 by default)
 
 ### `--debug-mode`
+
+`SHOULD have` per Scala Runner specification
 
 Debug mode (attach by default)
 
@@ -133,17 +177,23 @@ Available in commands:
 
 Aliases: `--dep`
 
+`MUST have` per Scala Runner specification
+
 Add dependencies
 
 ### `--repository`
 
 Aliases: `--repo`, `-r`
 
+`SHOULD have` per Scala Runner specification
+
 Add repositories
 
 ### `--compiler-plugin`
 
 Aliases: `-P`, `--plugin`
+
+`MUST have` per Scala Runner specification
 
 Add compiler plugin dependencies
 
@@ -159,6 +209,8 @@ Available in commands:
 
 Aliases: `--home`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Override the path to user's home directory
 
 ## Doc options
@@ -173,17 +225,23 @@ Available in commands:
 
 Aliases: `-o`
 
+`MUST have` per Scala Runner specification
+
 Set the destination path
 
 ### `--force`
 
 Aliases: `-f`
 
+`MUST have` per Scala Runner specification
+
 Overwrite the destination directory, if it exists
 
 ### `--default-scaladoc-options`
 
 Aliases: `--default-scaladoc-opts`
+
+`SHOULD have` per Scala Runner specification
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
 
@@ -197,34 +255,47 @@ Available in commands:
 
 ### `--check`
 
+`SHOULD have` per Scala Runner specification
+
 Check if sources are well formatted
 
 ### `--respect-project-filters`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Use project filters defined in the configuration. Turned on by default, use `--respect-project-filters:false` to disable it.
 
 ### `--save-scalafmt-conf`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Saves .scalafmt.conf file if it was created or overwritten
 
 ### `--os-arch-suffix`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--scalafmt-tag`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--scalafmt-github-org-name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--scalafmt-extension`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--scalafmt-launcher`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--scalafmt-arg`
 
 Aliases: `-F`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Pass argument to scalafmt.
 
@@ -232,11 +303,15 @@ Pass argument to scalafmt.
 
 Aliases: `--scalafmt-config`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom path to the scalafmt configuration file.
 
 ### `--scalafmt-conf-str`
 
 Aliases: `--scalafmt-config-str`, `--scalafmt-conf-snippet`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Pass configuration as a string.
 
@@ -244,11 +319,15 @@ Pass configuration as a string.
 
 Aliases: `--dialect`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file or inferred based on Scala version used.
 
 ### `--scalafmt-version`
 
 Aliases: `--fmt-version`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Pass scalafmt version before running it (3.5.9 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
@@ -262,17 +341,23 @@ Available in commands:
 
 ### `--usage`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Print usage and exit
 
 ### `--help`
 
 Aliases: `-h`, `-help`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Print help message and exit
 
 ### `--help-full`
 
 Aliases: `--full-help`, `-help-full`, `-full-help`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Print help message, including hidden options, and exit
 
@@ -286,9 +371,13 @@ Available in commands:
 
 ### `--help-js`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Show options for ScalaJS
 
 ### `--help-native`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Show options for ScalaNative
 
@@ -296,17 +385,23 @@ Show options for ScalaNative
 
 Aliases: `--scaladoc-help`, `--doc-help`, `--help-doc`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Show options for Scaladoc
 
 ### `--help-repl`
 
 Aliases: `--repl-help`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Show options for Scala REPL
 
 ### `--help-scalafmt`
 
 Aliases: `--scalafmt-help`, `--fmt-help`, `--help-fmt`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Show options for Scalafmt
 
@@ -322,9 +417,13 @@ Available in commands:
 
 Aliases: `--shell`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Name of the shell, either zsh or bash
 
 ### `--rc-file`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
@@ -332,19 +431,25 @@ Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
 Aliases: `-o`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Completions output directory
 
 ### `--banner`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom banner in comment placed in rc file
 
 ### `--name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom completions name
 
 ### `--env`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Print completions to stdout
 
@@ -360,9 +465,13 @@ Available in commands:
 
 Aliases: `-J`
 
+`MUST have` per Scala Runner specification
+
 Set Java options, such as `-Xmx1g`
 
 ### `--java-prop`
+
+`MUST have` per Scala Runner specification
 
 Set Java properties
 
@@ -376,44 +485,54 @@ Available in commands:
 
 ### `--java-home`
 
+`SHOULD have` per Scala Runner specification
+
 Set the Java home directory
 
 ### `--jvm`
 
 Aliases: `-j`
 
+`SHOULD have` per Scala Runner specification
+
 Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
 
 ### `--jvm-index`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 JVM index URL
 
 ### `--jvm-index-os`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Operating system to use when looking up in the JVM index
 
 ### `--jvm-index-arch`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 CPU architecture to use when looking up in the JVM index
 
 ### `--javac-plugin`
 
-[Internal]
+`SHOULD have` per Scala Runner specification
+
 Javac plugin dependencies or files
 
 ### `--javac-option`
 
 Aliases: `--javac-opt`
 
-[Internal]
+`SHOULD have` per Scala Runner specification
+
 Javac options
 
 ### `--bsp-debug-port`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Port for BSP debugging
 
 ## Logging options
@@ -428,9 +547,13 @@ Available in commands:
 
 Aliases: `-q`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Decrease verbosity
 
 ### `--progress`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Use progress bars
 
@@ -446,11 +569,15 @@ Available in commands:
 
 Aliases: `-M`
 
+`MUST have` per Scala Runner specification
+
 Specify which main class to run
 
 ### `--main-class-ls`
 
 Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
+
+`SHOULD have` per Scala Runner specification
 
 List main classes available in the current context
 
@@ -464,15 +591,20 @@ Available in commands:
 
 ### `--command`
 
+`SHOULD have` per Scala Runner specification
+
 Print the command that would have been run (one argument per line), rather than running it
 
 ### `--scratch-dir`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Temporary / working directory where to write generated launchers
 
 ### `--use-manifest`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Run Java commands using a manifest-based class path (shortens command length)
 
 ## Scala.js options
@@ -485,80 +617,114 @@ Available in commands:
 
 ### `--js`
 
+`SHOULD have` per Scala Runner specification
+
 Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
+
+`SHOULD have` per Scala Runner specification
 
 The Scala.js version (1.10.1 by default).
 
 ### `--js-mode`
 
+`SHOULD have` per Scala Runner specification
+
 The Scala.js mode, either `dev` or `release`
 
 ### `--js-module-kind`
+
+`SHOULD have` per Scala Runner specification
 
 The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
 
 ### `--js-check-ir`
 
+`SHOULD have` per Scala Runner specification
+
 ### `--js-emit-source-maps`
+
+`SHOULD have` per Scala Runner specification
 
 Emit source maps
 
 ### `--js-source-maps-path`
 
+`SHOULD have` per Scala Runner specification
+
 Set the destination path of source maps
 
 ### `--js-dom`
+
+`SHOULD have` per Scala Runner specification
 
 Enable jsdom
 
 ### `--js-header`
 
+`SHOULD have` per Scala Runner specification
+
 A header that will be added at the top of generated .js files
 
 ### `--js-allow-big-ints-for-longs`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
 
 ### `--js-avoid-classes`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Avoid class'es when using functions and prototypes has the same observable semantics.
 
 ### `--js-avoid-lets-and-consts`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Avoid lets and consts when using vars has the same observable semantics.
 
 ### `--js-module-split-style`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 ### `--js-small-module-for-package`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
 ### `--js-es-version`
 
+`SHOULD have` per Scala Runner specification
+
 The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021
 
 ### `--js-linker-path`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Path to the Scala.js linker
 
 ### `--js-cli-version`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Scala.js CLI version to use for linking (1.1.1-sc6 by default).
 
 ### `--js-cli-java-arg`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Scala.js CLI Java options
 
 ### `--js-cli-on-jvm`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Whether to run the Scala.js CLI on the JVM or using a native executable
 
 ## Scala Native options
@@ -571,47 +737,67 @@ Available in commands:
 
 ### `--native`
 
+`SHOULD have` per Scala Runner specification
+
 Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
+
+`SHOULD have` per Scala Runner specification
 
 Set the Scala Native version (0.4.8 by default).
 
 ### `--native-mode`
 
+`SHOULD have` per Scala Runner specification
+
 Set Scala Native compilation mode
 
 ### `--native-gc`
+
+`SHOULD have` per Scala Runner specification
 
 Set the Scala Native garbage collector
 
 ### `--native-clang`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Path to the Clang command
 
 ### `--native-clangpp`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Path to the Clang++ command
 
 ### `--native-linking`
 
+`SHOULD have` per Scala Runner specification
+
 Extra options passed to `clang` verbatim during linking
 
 ### `--native-linking-defaults`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Use default linking settings
 
 ### `--native-compile`
+
+`SHOULD have` per Scala Runner specification
 
 List of compile options
 
 ### `--native-compile-defaults`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Use default compile options
 
 ### `--embed-resources`
+
+`SHOULD have` per Scala Runner specification
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
@@ -627,6 +813,8 @@ Available in commands:
 
 Aliases: `--scala-opt`, `-O`, `--scala-option`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
 ## Scalac extra options
@@ -641,11 +829,15 @@ Available in commands:
 
 Aliases: `--help-scalac`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Show help for scalac. This is an alias for --scalac-option -help
 
 ### `--scalac-verbose`
 
 Aliases: `--verbose-scalac`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
@@ -661,18 +853,23 @@ Available in commands:
 
 Aliases: `--scala`, `-S`
 
+`MUST have` per Scala Runner specification
+
 Set the Scala version (3.2.1 by default)
 
 ### `--scala-binary-version`
 
 Aliases: `--scala-binary`, `--scala-bin`, `-B`
 
-[Internal]
+`MUST have` per Scala Runner specification
+
 Set the Scala binary version
 
 ### `--extra-jars`
 
 Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `-cp`, `--classpath`, `--class-path`, `--extra-class-path`
+
+`MUST have` per Scala Runner specification
 
 Add extra JARs and compiled classes to the class path
 
@@ -680,11 +877,15 @@ Add extra JARs and compiled classes to the class path
 
 Aliases: `--compile-only-jar`, `--compile-only-jars`, `--extra-compile-only-jar`
 
+`SHOULD have` per Scala Runner specification
+
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
 ### `--extra-source-jars`
 
 Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
+
+`SHOULD have` per Scala Runner specification
 
 Add extra source JARs
 
@@ -692,41 +893,53 @@ Add extra source JARs
 
 Aliases: `--resource-dir`
 
+`MUST have` per Scala Runner specification
+
 Add a resource directory
 
 ### `--platform`
+
+`SHOULD have` per Scala Runner specification
 
 Specify platform
 
 ### `--scala-library`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--java`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
 
 ### `--runner`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
 ### `--semantic-db`
 
-[Internal]
+`SHOULD have` per Scala Runner specification
+
 Generate SemanticDBs
 
 ### `--add-stubs`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 ### `--strict-bloop-json-check`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--compilation-output`
 
 Aliases: `--output-directory`, `-d`, `--destination`, `--compile-output`, `--compile-out`
+
+`MUST have` per Scala Runner specification
 
 Copy compilation results to output directory using either relative or absolute path
 
@@ -740,29 +953,39 @@ Available in commands:
 
 ### `--script-snippet`
 
+`SHOULD have` per Scala Runner specification
+
 Allows to execute a passed string as a Scala script
 
 ### `--execute-script`
 
 Aliases: `--execute-scala-script`, `--execute-sc`, `-e`
 
-[Internal]
+`SHOULD have` per Scala Runner specification
+
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ### `--scala-snippet`
+
+`SHOULD have` per Scala Runner specification
 
 Allows to execute a passed string as Scala code
 
 ### `--execute-scala`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ### `--java-snippet`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Allows to execute a passed string as Java code
 
 ### `--execute-java`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
@@ -770,13 +993,16 @@ A synonym to --scala-snippet, which defaults the sub-command to `run` when no su
 
 Aliases: `--md-snippet`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 [experimental] Allows to execute a passed string as Markdown code
 
 ### `--execute-markdown`
 
 Aliases: `--execute-md`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 [experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ## Test options
@@ -789,9 +1015,13 @@ Available in commands:
 
 ### `--test-framework`
 
+`SHOULD have` per Scala Runner specification
+
 Name of the test framework's runner class to use while running tests
 
 ### `--require-tests`
+
+`SHOULD have` per Scala Runner specification
 
 Fail if no test suites were run
 
@@ -807,21 +1037,26 @@ Available in commands:
 
 Aliases: `-f`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Force scala-cli uninstall
 
 ### `--skip-cache`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Don't clear scala-cli cache
 
 ### `--binary-name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary name
 
 ### `--bin-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary directory
 
 ## Uninstall completions options
@@ -834,16 +1069,20 @@ Available in commands:
 
 ### `--rc-file`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
 
 ### `--banner`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom banner in comment placed in rc file
 
 ### `--name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom completions name
 
 ## Update options
@@ -856,26 +1095,32 @@ Available in commands:
 
 ### `--binary-name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary name
 
 ### `--bin-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary directory
 
 ### `--force`
 
 Aliases: `-f`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Force update scala-cli if is outdated
 
 ### `--is-internal-run`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--gh-token`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 A github token used to access GitHub. Not needed in most cases.
 
 ## Verbosity options
@@ -890,15 +1135,21 @@ Available in commands:
 
 Aliases: `-v`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Increase verbosity (can be specified multiple times)
 
 ### `--interactive`
 
 Aliases: `-i`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Interactive mode
 
 ### `--actions`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Enable actionable diagnostics
 
@@ -914,11 +1165,15 @@ Available in commands:
 
 Aliases: `--cli`
 
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Show only plain version
 
 ### `--scala-version`
 
 Aliases: `--scala`
+
+`IMPLEMENTATION specific` per Scala Runner specification
 
 Show only plain scala version
 
@@ -934,11 +1189,15 @@ Available in commands:
 
 Aliases: `-w`
 
+`SHOULD have` per Scala Runner specification
+
 Watch source files for changes
 
 ### `--restart`
 
 Aliases: `--revolver`
+
+`SHOULD have` per Scala Runner specification
 
 Run your application in background and automatically restart if sources have been changed
 
@@ -953,7 +1212,8 @@ Available in commands:
 
 ### `--gh-token`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 A github token used to access GitHub. Not needed in most cases.
 
 ### Bsp options
@@ -966,7 +1226,8 @@ Available in commands:
 
 ### `--json-options`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Command-line options JSON file
 
 ### Bsp file options
@@ -981,14 +1242,16 @@ Available in commands:
 
 Aliases: `--bsp-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Custom BSP configuration location
 
 ### `--bsp-name`
 
 Aliases: `--name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Name of BSP
 
 ### Coursier options
@@ -1001,17 +1264,20 @@ Available in commands:
 
 ### `--ttl`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Specify a TTL for changing dependencies, such as snapshots
 
 ### `--cache`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Set the coursier cache location
 
 ### `--coursier-validate-checksums`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Enable checksum validation of artifacts downloaded by coursier
 
 ### Doctor options
@@ -1024,7 +1290,8 @@ Available in commands:
 
 ### `--gh-token`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 A github token used to access GitHub. Not needed in most cases.
 
 ### Input options
@@ -1037,10 +1304,12 @@ Available in commands:
 
 ### `--default-forbidden-directories`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--forbid`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### Install home options
 
 Available in commands:
@@ -1051,27 +1320,32 @@ Available in commands:
 
 ### `--scala-cli-binary-path`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### `--force`
 
 Aliases: `-f`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Overwrite if it exists
 
 ### `--binary-name`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary name
 
 ### `--env`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Print the update to `env` variable
 
 ### `--bin-dir`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Binary directory
 
 ### Repl options
@@ -1084,7 +1358,8 @@ Available in commands:
 
 ### `--repl-dry-run`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Don't actually run the REPL, just fetch it
 
 ### Setup IDE options
@@ -1097,7 +1372,8 @@ Available in commands:
 
 ### `--charset`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 ### Workspace options
 
 Available in commands:
@@ -1108,6 +1384,7 @@ Available in commands:
 
 ### `--workspace`
 
-[Internal]
+`IMPLEMENTATION specific` per Scala Runner specification
+
 Directory where .scala-build is written
 

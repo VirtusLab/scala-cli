@@ -16,8 +16,8 @@ case object UsingJavacOptionsDirectiveHandler extends UsingDirectiveHandler {
     "//> using javacOpt \"source\", \"1.8\"",
     "\"target\", \"1.8\""
   )
-  override def isRestricted = false
-  def keys                  = Seq("javacOpt", "javacOptions", "javac-opt", "javac-options")
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
+  def keys = Seq("javacOpt", "javacOptions", "javac-opt", "javac-options")
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

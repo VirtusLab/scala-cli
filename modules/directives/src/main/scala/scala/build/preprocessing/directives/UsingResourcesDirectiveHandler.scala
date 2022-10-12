@@ -17,7 +17,7 @@ case object UsingResourcesDirectiveHandler extends UsingDirectiveHandler {
     "//> using resourceDir \"./resources\""
   )
 
-  override def isRestricted = false
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
 
   def keys = Seq("resourceDir", "resourceDirs")
   def handleValues(

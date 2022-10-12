@@ -7,6 +7,26 @@ sidebar_position: 1
 
 This is a summary of options that are available for each subcommand of the `scala-cli` command.
 
+## Scalac options forwarding
+
+ All options that start with:
+
+
+- `-g`
+- `-language`
+- `-opt`
+- `-P`
+- `-target`
+- `-V`
+- `-W`
+- `-X`
+- `-Y`
+
+are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
+
+
+
+
 ## Benchmarking options
 
 Available in commands:
