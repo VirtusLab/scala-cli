@@ -20,6 +20,8 @@ import scala.cli.config.{
   RepositoryCredentials,
   Secret
 }
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
+import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden                  = true

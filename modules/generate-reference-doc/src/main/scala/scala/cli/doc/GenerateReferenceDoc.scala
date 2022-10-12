@@ -3,7 +3,9 @@ package scala.cli.doc
 import caseapp.*
 import caseapp.core.Arg
 import caseapp.core.util.Formatter
+import dotty.tools.dotc.ScalacCommand
 import munit.internal.difflib.Diff
+import shapeless.tag
 
 import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
@@ -21,6 +23,7 @@ import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, Specification
 import shapeless.tag
 import dotty.tools.dotc.ScalacCommand
 import scala.cli.commands.tags
+import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, SpecificationLevel, tags}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
@@ -373,15 +376,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     }
     else {
-      for (c <- mainCommands.iterator)
-        addCommand(c)
-      b.append(
-        """## Hidden commands
-          |
-          |""".stripMargin
-      )
-      for (c <- hiddenCommands.iterator)
-        addCommand(c, additionalIndentation = 1)
+      mainCommands.foreach(addCommand(_))
+      b.section("## Hidden commands")
+      hiddenCommands.foreach(c => addCommand(c, additionalIndentation = 1))
     }
     b.toString
   }

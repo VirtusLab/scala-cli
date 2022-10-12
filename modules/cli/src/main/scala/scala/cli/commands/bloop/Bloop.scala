@@ -14,13 +14,12 @@ import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.{LoggingOptions, ScalaCommand, SharedOptions}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import scala.cli.commands.SpecificationLevel
 
 object Bloop extends ScalaCommand[BloopOptions] {
   override def hidden                  = true
 
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-  
+
   override def stopAtFirstUnrecognized = true
 
   private def bloopRifleConfig0(opts: BloopOptions): BloopRifleConfig = {

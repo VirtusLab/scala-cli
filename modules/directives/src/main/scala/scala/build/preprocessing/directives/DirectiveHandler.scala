@@ -1,6 +1,5 @@
 package scala.build.preprocessing.directives
 import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
-import scala.cli.commands.SpecificationLevel
 
 import scala.build.Logger
 import scala.build.errors.{
@@ -16,6 +15,7 @@ import scala.build.preprocessing.directives.UsingDirectiveValueKind.{
   STRING,
   UsingDirectiveValueKind
 }
+import scala.cli.commands.SpecificationLevel
 
 trait DirectiveHandler[T] {
   def name: String
