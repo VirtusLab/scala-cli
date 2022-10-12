@@ -18,7 +18,7 @@ case object UsingPythonDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("python")
 
-  override def isRestricted = true
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   def handleValues(
     scopedDirective: ScopedDirective,

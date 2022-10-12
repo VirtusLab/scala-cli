@@ -13,7 +13,8 @@ case object UsingJavaPropsDirectiveHandler extends UsingDirectiveHandler {
   override def examples = Seq(
     "//> using javaProp \"foo1=bar\", \"foo2\""
   )
-  override def isRestricted = false
+
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   def keys = Seq("javaProp")
   def handleValues(

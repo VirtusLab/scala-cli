@@ -20,8 +20,8 @@ case object UsingSourceDirectiveHandler extends UsingDirectiveHandler {
     "//> using file \"utils.scala\""
   )
 
-  def keys                  = Seq("file", "files")
-  override def isRestricted = false
+  def keys                             = Seq("file", "files")
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

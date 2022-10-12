@@ -14,8 +14,10 @@ case object UsingRepositoryDirectiveHandler extends UsingDirectiveHandler {
     "//> using repository \"https://maven-central.storage-download.googleapis.com/maven2\""
   )
 
-  def keys                  = Seq("repository", "repositories")
-  override def isRestricted = false
+  def keys = Seq("repository", "repositories")
+
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
+
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

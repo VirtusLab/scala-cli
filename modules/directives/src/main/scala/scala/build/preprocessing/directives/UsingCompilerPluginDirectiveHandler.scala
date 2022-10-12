@@ -10,13 +10,14 @@ import scala.build.{Logger, Positioned}
 case object UsingCompilerPluginDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Compiler plugins"
   def description = "Adds compiler plugins"
+
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
   def usage =
     "//> using plugin \"org:name:ver\" | //> using plugins \"org:name:ver\", \"org2:name2:ver2\""
   override def usageMd = "`using plugin `_org_`:`name`:`ver"
   override def examples = Seq(
     "//> using plugin \"org.typelevel:::kind-projector:0.13.2\""
   )
-  override def isRestricted = false
 
   private def parseDependency(depStr: String): Either[BuildException, AnyDependency] =
     DependencyParser.parse(depStr)

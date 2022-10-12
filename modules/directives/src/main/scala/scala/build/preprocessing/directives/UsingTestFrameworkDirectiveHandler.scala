@@ -16,8 +16,8 @@ case object UsingTestFrameworkDirectiveHandler extends UsingDirectiveHandler {
   override def getValueNumberBounds(key: String): UsingDirectiveValueNumberBounds =
     UsingDirectiveValueNumberBounds(1, 1)
 
-  def keys                  = Seq("test-framework", "testFramework")
-  override def isRestricted = true
+  def keys                             = Seq("test-framework", "testFramework")
+  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
   def handleValues(
     scopedDirective: ScopedDirective,
     logger: Logger

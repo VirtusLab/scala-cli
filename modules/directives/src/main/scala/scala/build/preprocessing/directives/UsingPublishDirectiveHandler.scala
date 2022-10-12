@@ -27,7 +27,7 @@ case object UsingPublishDirectiveHandler extends UsingDirectiveHandler {
     s"//> using ${prefix}name ${q}my-library$q",
     s"//> using ${prefix}version ${q}0.1.1$q"
   )
-  override def isRestricted = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   def keys = Seq(
     "organization",

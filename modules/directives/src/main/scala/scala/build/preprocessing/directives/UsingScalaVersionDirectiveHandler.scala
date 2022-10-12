@@ -21,7 +21,7 @@ case object UsingScalaVersionDirectiveHandler extends UsingDirectiveHandler {
 
   def keys = Seq("scala")
 
-  override def isRestricted = false
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   def handleValues(
     scopedDirective: ScopedDirective,
