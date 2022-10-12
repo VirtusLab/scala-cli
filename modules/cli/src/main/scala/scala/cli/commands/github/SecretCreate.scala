@@ -14,9 +14,9 @@ import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
-import scala.cli.commands.SpecificationLevel
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 

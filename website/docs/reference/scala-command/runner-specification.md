@@ -1046,63 +1046,6 @@ Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
 ---
 
-## `help` command
-**MUST have for Scala Runner specification.**
-
-Print help message
-
-<details><summary>
-
-### Implementantation specific options
-
-</summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
-**--verbose**
-
-Increase verbosity (can be specified multiple times)
-
-Aliases: `-v`
-
-**--interactive**
-
-Interactive mode
-
-Aliases: `-i`
-
-**--actions**
-
-Enable actionable diagnostics
-
-**--quiet**
-
-Decrease verbosity
-
-Aliases: `-q`
-
-**--progress**
-
-Use progress bars
-
-</details>
-
----
-
 ## `repl` command
 **MUST have for Scala Runner specification.**
 
@@ -4554,6 +4497,63 @@ Use progress bars
 **--gh-token**
 
 A github token used to access GitHub. Not needed in most cases.
+
+</details>
+
+---
+
+## `help` command
+**IMPLEMENTATION specific for Scala Runner specification.**
+
+Print help message
+
+<details><summary>
+
+### Implementantation specific options
+
+</summary>
+
+**--usage**
+
+Print usage and exit
+
+**--help**
+
+Print help message and exit
+
+Aliases: `-h` ,`-help`
+
+**--help-full**
+
+Print help message, including hidden options, and exit
+
+Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--verbose**
+
+Increase verbosity (can be specified multiple times)
+
+Aliases: `-v`
+
+**--interactive**
+
+Interactive mode
+
+Aliases: `-i`
+
+**--actions**
+
+Enable actionable diagnostics
+
+**--quiet**
+
+Decrease verbosity
+
+Aliases: `-q`
+
+**--progress**
+
+Use progress bars
 
 </details>
 

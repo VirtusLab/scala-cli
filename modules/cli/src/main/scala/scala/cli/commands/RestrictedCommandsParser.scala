@@ -52,7 +52,6 @@ object RestrictedCommandsParser {
     a.tags.exists(_.name == tags.restricted) || a.tags.exists(_.name == tags.experimental)
 
   def level(a: Arg) = a.tags.flatMap(t => tags.levelFor(t.name)).headOption.getOrElse {
-    // println("No specification level for " + a)
     SpecificationLevel.IMPLEMENTATION
   }
 

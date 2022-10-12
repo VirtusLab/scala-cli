@@ -4,7 +4,6 @@ import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
 
 import scala.cli.signing.commands.{PgpSign => OriginalPgpSign, PgpSignOptions}
-import scala.cli.commands.SpecificationLevel
 
 object PgpSign extends PgpCommand[PgpSignOptions] {
   override def names = PgpCommandNames.pgpSign
