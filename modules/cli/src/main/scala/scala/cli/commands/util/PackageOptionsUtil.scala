@@ -81,7 +81,8 @@ object PackageOptionsUtil {
               suppressValidation = packager.suppressValidation,
               extraConfig = packager.extraConfig,
               is64Bits = Some(packager.is64Bits),
-              installerVersion = packager.installerVersion
+              installerVersion = packager.installerVersion,
+              wixUpgradeCodeGuid = packager.wixUpgradeCodeGuid
             ),
             dockerOptions = DockerOptions(
               from = packager.dockerFrom,

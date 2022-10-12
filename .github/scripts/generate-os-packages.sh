@@ -93,7 +93,8 @@ generate_msi() {
     --exit-dialog "To run Scala CLI, open a Command window, and type scala-cli + Enter. If scala-cli cannot be found, ensure that the Command window was opened after Scala CLI was installed." \
     --logo-path "./logo.png" \
     --suppress-validation \
-    --extra-configs wix-visual-cpp-redist.xml
+    --extra-configs wix-visual-cpp-redist.xml \
+    --wix-upgrade-code-guid "C74FC9A1-9381-40A6-882F-9044C603ABD9"
   rm -f "$ARTIFACTS_DIR/"*.wixpdb || true
 }
 

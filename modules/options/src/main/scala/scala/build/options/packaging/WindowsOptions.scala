@@ -9,7 +9,8 @@ final case class WindowsOptions(
   suppressValidation: Option[Boolean] = None,
   extraConfig: List[String] = Nil,
   is64Bits: Option[Boolean] = None,
-  installerVersion: Option[String] = None
+  installerVersion: Option[String] = None,
+  wixUpgradeCodeGuid: Option[String] = None
 )
 
 object WindowsOptions {

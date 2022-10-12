@@ -713,6 +713,10 @@ Whether a 64-bit executable is being packaged
 
 WIX installer version
 
+### `--wix-upgrade-code-guid`
+
+The GUID to identify that the windows package can be upgraded.
+
 ### `--docker-from`
 
 Building the container from base image
