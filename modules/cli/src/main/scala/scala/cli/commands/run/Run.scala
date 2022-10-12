@@ -28,8 +28,8 @@ import scala.cli.internal.ProcUtil
 import scala.util.{Properties, Try}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
-  override def group = "Main"
-
+  override def group                                                     = "Main"
+  override def scalaSpecificationLevel                                   = SpecificationLevel.MUST
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   private def runMode(options: RunOptions): RunMode =

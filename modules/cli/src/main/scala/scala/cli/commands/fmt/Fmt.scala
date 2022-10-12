@@ -17,7 +17,7 @@ import scala.cli.commands.{FmtOptions, ScalaCommand, SharedOptions}
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String                                             = "Main"
   override def sharedOptions(options: FmtOptions): Option[SharedOptions] = Some(options.shared)
-
+  override def scalaSpecificationLevel                                   = SpecificationLevel.SHOULD
   override def names: List[List[String]] = List(
     List("fmt"),
     List("format"),

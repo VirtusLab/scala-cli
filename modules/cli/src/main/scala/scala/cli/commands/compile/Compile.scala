@@ -18,7 +18,11 @@ import scala.cli.config.{ConfigDb, Keys}
 
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
+  
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
+
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
+
   override def runCommand(options: CompileOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
     val inputs       = options.shared.inputs(args.all).orExit(logger)

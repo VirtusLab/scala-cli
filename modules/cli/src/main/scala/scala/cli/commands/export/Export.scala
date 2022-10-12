@@ -16,7 +16,7 @@ import scala.cli.commands.{ExportOptions, ScalaCommand, SharedOptions}
 import scala.cli.exportCmd.*
 
 object Export extends ScalaCommand[ExportOptions] {
-  override def isRestricted = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   private def prepareBuild(
     inputs: Inputs,

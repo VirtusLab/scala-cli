@@ -19,9 +19,9 @@ import scala.cli.packaging.Library
 import scala.util.Properties
 
 object Metabrowse extends ScalaCommand[MetabrowseOptions] {
-  override def hidden       = true
-  override def isRestricted = true
-  override def group        = "Miscellaneous"
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def group                   = "Miscellaneous"
   override def names = List(
     List("browse"),
     List("metabrowse")

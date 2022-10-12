@@ -18,8 +18,9 @@ class Default(
   isSipScala: Boolean
 ) extends ScalaCommand[DefaultOptions] {
 
-  private def defaultHelp: String     = actualHelp.help(ScalaCliHelp.helpFormat)
-  private def defaultFullHelp: String = actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true)
+  private def defaultHelp: String      = actualHelp.help(ScalaCliHelp.helpFormat)
+  private def defaultFullHelp: String  = actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true)
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   override def group                                                         = "Main"
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)

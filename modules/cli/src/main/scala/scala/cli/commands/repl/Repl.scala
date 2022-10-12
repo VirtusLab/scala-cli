@@ -23,7 +23,8 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
-  override def group = "Main"
+  override def group                   = "Main"
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
   override def names: List[List[String]] = List(
     List("repl"),
     List("console")

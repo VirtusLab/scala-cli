@@ -12,6 +12,9 @@ import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
+
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   override def runCommand(options: CleanOptions, args: RemainingArgs, logger: Logger): Unit = {
     val inputs = Inputs(
       args.all,

@@ -8,9 +8,12 @@ import caseapp.core.{Arg, Error}
 
 object RestrictedCommandsParser {
   def isExperimentalOrRestricted(a: Arg) =
-    a.helpMessage.exists(m =>
-      m.message.contains("[experimental]") || m.message.contains("[restricted]")
-    )
+    a.tags.exists(_.name == tags.restricted) || a.tags.exists(_.name == tags.experimental)
+
+  def level(a: Arg) = a.tags.flatMap(t => tags.levelFor(t.name)).headOption.getOrElse {
+    // println("No specification level for " + a)
+    SpecificationLevel.IMPLEMENTATION
+  }
 
   def apply[T, TD](parser: Parser.Aux[T, TD]): Parser.Aux[T, TD] = new Parser[T] {
 
