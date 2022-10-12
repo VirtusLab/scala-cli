@@ -43,6 +43,8 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
     val expectedArtifactsDir: RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
+    val expectedJsArtifactsDir: RelPath =
+      os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 
   test("simple") {
@@ -142,6 +144,48 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
       )
         .call(cwd = root)
+    }
+  }
+
+  test("artifacts name for scalajs") {
+    val baseExpectedArtifacts = Seq(
+      s"simple_sjs1${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+      s"simple_sjs1${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
+      s"simple_sjs1${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
+      s"simple_sjs1${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-sources.jar"
+    )
+    val expectedArtifacts = baseExpectedArtifacts
+      .flatMap { n =>
+        Seq("", ".md5", ".sha1").map(n + _)
+      }
+      .map(os.rel / _)
+      .toSet
+
+    TestCase.testInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "publish",
+        extraOptions,
+        "project",
+        "--js",
+        "-R",
+        "test-repo"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo"))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedJsArtifactsDir))
+      expect(notInDir.isEmpty)
+
+      val files0 = files.map(_.relativeTo(TestCase.expectedJsArtifactsDir)).toSet
+
+      expect((files0 -- expectedArtifacts).isEmpty)
+      expect((expectedArtifacts -- files0).isEmpty)
     }
   }
 
