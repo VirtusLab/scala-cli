@@ -230,7 +230,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             System.err.println("Compilation failed")
         }
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {

@@ -97,7 +97,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         for (builds <- res.orReport(logger))
           postBuild(builds, allowExit = false)
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {

@@ -17,7 +17,14 @@ object WatchUtil {
   def printWatchMessage(): Unit =
     System.err.println(waitMessage("Watching sources"))
 
-  def waitForCtrlC(): Unit =
-    while (System.in.read() != -1) {}
+  def waitForCtrlC(onPressEnter: () => Unit = () => ()): Unit = {
+    var readKey = -1
+    while ({
+      readKey = System.in.read()
+      readKey != -1
+    })
+      if (readKey == '\n')
+        onPressEnter()
+  }
 
 }

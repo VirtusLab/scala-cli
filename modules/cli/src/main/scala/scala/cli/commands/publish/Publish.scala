@@ -276,7 +276,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )
         }
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {

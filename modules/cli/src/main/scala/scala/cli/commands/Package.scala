@@ -104,7 +104,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             System.err.println("Build cancelled")
         }
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {
