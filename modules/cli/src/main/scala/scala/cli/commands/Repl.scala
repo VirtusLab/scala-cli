@@ -126,17 +126,23 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     if (inputs.isEmpty) {
       val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
-      doRunRepl(
-        initialBuildOptions,
-        artifacts,
-        None,
-        allowExit = !options.sharedRepl.watch.watchMode,
-        buildOpt = None
-      )
+      // synchronizing, so that multiple presses to enter (handled by WatchUtil.waitForCtrlC)
+      // don't try to run repls in parallel
+      val lock = new Object
+      def runThing() = lock.synchronized {
+        doRunRepl(
+          initialBuildOptions,
+          artifacts,
+          None,
+          allowExit = !options.sharedRepl.watch.watchMode,
+          buildOpt = None
+        )
+      }
+      runThing()
       if (options.sharedRepl.watch.watchMode) {
         // nothing to watch, just wait for Ctrl+C
         WatchUtil.printWatchMessage()
-        WatchUtil.waitForCtrlC()
+        WatchUtil.waitForCtrlC(() => runThing())
       }
     }
     else if (options.sharedRepl.watch.watchMode) {
@@ -159,7 +165,7 @@ object Repl extends ScalaCommand[ReplOptions] {
             case _: Build.Cancelled  => buildCancelled(allowExit = false)
           }
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {

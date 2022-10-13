@@ -137,7 +137,7 @@ object Test extends ScalaCommand[TestOptions] {
         for (builds <- res.orReport(logger))
           maybeTest(builds, allowExit = false)
       }
-      try WatchUtil.waitForCtrlC()
+      try WatchUtil.waitForCtrlC(() => watcher.schedule())
       finally watcher.dispose()
     }
     else {
