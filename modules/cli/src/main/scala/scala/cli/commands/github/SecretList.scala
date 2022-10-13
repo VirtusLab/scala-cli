@@ -1,14 +1,14 @@
 package scala.cli.commands.github
 
 import caseapp.core.RemainingArgs
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import sttp.client3._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import sttp.client3.*
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.config.Secret
 import scala.cli.errors.GitHubApiError
@@ -55,7 +55,7 @@ object SecretList extends ScalaCommand[ListSecretsOptions] {
     readFromString(body)(GitHubApi.secretListCodec)
   }
 
-  def run(options: ListSecretsOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: ListSecretsOptions, args: RemainingArgs): Unit = {
 
     val logger = options.shared.logging.logger
 

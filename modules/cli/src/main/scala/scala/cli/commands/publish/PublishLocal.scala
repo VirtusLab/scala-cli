@@ -3,8 +3,9 @@ package scala.cli.commands.publish
 import caseapp.core.RemainingArgs
 
 import scala.build.BuildThreads
+import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, SharedOptions}
 import scala.cli.config.ConfigDb
 
@@ -19,19 +20,17 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     List("publish", "local")
   )
 
-  def run(options: PublishLocalOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-
+  override def runCommand(options: PublishLocalOptions, args: RemainingArgs): Unit = {
     Publish.maybePrintLicensesAndExit(options.publishParams)
     Publish.maybePrintChecksumsAndExit(options.sharedPublish)
 
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+    val baseOptions = buildOptionsOrExit(options)
+    val logger      = options.shared.logger
+    val inputs      = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = Publish.mkBuildOptions(
-      options.shared,
+      baseOptions,
       options.publishParams,
       options.sharedPublish,
       PublishRepositoryOptions(),

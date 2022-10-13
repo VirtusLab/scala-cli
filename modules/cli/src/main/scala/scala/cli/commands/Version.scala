@@ -1,14 +1,15 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 
 class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
-  def run(options: VersionOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity.verbosity
+  override def verbosity(options: VersionOptions): Option[Int] =
+    Some(options.verbosity.verbosity)
+  override def runCommand(options: VersionOptions, args: RemainingArgs): Unit = {
     if (options.cliVersion)
       println(Constants.version)
     else if (options.scalaVersion)
@@ -19,7 +20,7 @@ class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
 }
 
 object Version {
-  def versionInfo(isSipScala: Boolean) =
+  def versionInfo(isSipScala: Boolean): String =
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
     val appName =

@@ -6,16 +6,16 @@ import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
-import caseapp.core.{Arg, Error}
+import caseapp.core.{Arg, Error, RemainingArgs}
 
 import scala.annotation.tailrec
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
-import scala.cli.ScalaCli
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
@@ -202,4 +202,56 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
           // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
           None
       }
+
+  /** @param options
+    *   command-specific [[T]] options
+    * @return
+    *   Tries to create BuildOptions based on [[sharedOptions]] and exits on error. Override to
+    *   change this behaviour.
+    */
+  def buildOptions(options: T): Option[BuildOptions] =
+    sharedOptions(options).map(shared => shared.buildOptions().orExit(shared.logger))
+
+  protected def buildOptionsOrExit(options: T): BuildOptions =
+    buildOptions(options) match {
+      case Some(bo) => bo
+      case _ =>
+        sharedOptions(options).foreach(_.logger.debug("build options could not be initialized"))
+        sys.exit(1)
+    }
+
+  /** @param options
+    *   command-specific [[T]] options
+    * @return
+    *   by default [[sharedOptions]].logging, override to adjust.
+    */
+  def loggingOptions(options: T): Option[LoggingOptions] =
+    sharedOptions(options).map(_.logging)
+
+  /** @param options
+    *   command-specific [[T]] options
+    * @return
+    *   by default [[loggingOptions]].verbosity, override to adjust.
+    */
+  def verbosity(options: T): Option[Int] =
+    loggingOptions(options).map(_.verbosity)
+
+  /** This should be overridden instead of [[run]] when extending [[ScalaCommand]].
+    *
+    * @param options
+    *   the command's specific set of options
+    * @param remainingArgs
+    *   arguments remaining after parsing options
+    */
+  def runCommand(options: T, remainingArgs: RemainingArgs): Unit
+
+  /** This implementation is final. Override [[runCommand]] instead. This logic is invoked at the
+    * start of running every [[ScalaCommand]].
+    */
+  final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
+    verbosity(options).foreach(v => CurrentParams.verbosity = v)
+    maybePrintGroupHelp(options)
+    buildOptions(options).foreach(bo => maybePrintSimpleScalacOutput(options, bo))
+    runCommand(options, remainingArgs)
+  }
 }

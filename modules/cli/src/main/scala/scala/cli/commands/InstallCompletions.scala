@@ -1,15 +1,15 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.complete.{Bash, Zsh}
 
 import java.io.File
 import java.nio.charset.Charset
-import java.util.Arrays
+import java.util
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
@@ -17,8 +17,9 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     List("install", "completions"),
     List("install-completions")
   )
-  def run(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: InstallCompletionsOptions): Option[LoggingOptions] =
+    Some(options.logging)
+  override def runCommand(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
     val interactive = options.logging.verbosityOptions.interactiveInstance()
     lazy val completionsDir =
       options.output
@@ -54,7 +55,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         val completionScriptDest = dir / s"_$name"
         val content              = completionScript.getBytes(Charset.defaultCharset())
         val needsWrite = !os.exists(completionScriptDest) ||
-          !Arrays.equals(os.read.bytes(completionScriptDest), content)
+          !util.Arrays.equals(os.read.bytes(completionScriptDest), content)
         if (needsWrite) {
           logger.log(s"Writing $completionScriptDest")
           os.write.over(completionScriptDest, content, createFolders = true)
@@ -94,7 +95,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     }
   }
 
-  def getName(name: Option[String]) =
+  def getName(name: Option[String]): String =
     name.getOrElse {
       val baseName = (new Argv0).get("scala-cli")
       val idx      = baseName.lastIndexOf(File.separator)
@@ -102,7 +103,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
       else baseName.drop(idx + 1)
     }
 
-  def getFormat(format: Option[String]) =
+  def getFormat(format: Option[String]): Option[String] =
     format.map(_.trim).filter(_.nonEmpty)
       .orElse {
         Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {

@@ -1,12 +1,12 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.Os
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {
   override def hidden       = true
@@ -16,7 +16,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
   )
 
   private def mkBloopRifleConfig(opts: BloopExitOptions): BloopRifleConfig = {
-    import opts._
+    import opts.*
     compilationServer.bloopRifleConfig(
       logging.logger,
       coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
@@ -26,8 +26,10 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     )
   }
 
-  def run(options: BloopExitOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: BloopExitOptions): Option[LoggingOptions] =
+    Some(options.logging)
+
+  override def runCommand(options: BloopExitOptions, args: RemainingArgs): Unit = {
     val bloopRifleConfig = mkBloopRifleConfig(options)
     val logger           = options.logging.logger
 

@@ -1,16 +1,17 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.internal.Constants
 import scala.build.{Inputs, Os}
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
-  def run(options: CleanOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: CleanOptions): Option[LoggingOptions] =
+    Some(options.logging)
+  override def runCommand(options: CleanOptions, args: RemainingArgs): Unit = {
     val inputs = Inputs(
       args.all,
       Os.pwd,

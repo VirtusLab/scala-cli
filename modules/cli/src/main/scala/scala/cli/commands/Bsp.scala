@@ -1,34 +1,38 @@
 package scala.cli.commands
 
-import caseapp._
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 import scala.build.EitherCps.{either, value}
+import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
-import scala.build.{Build, CrossSources, Inputs, PersistentDiagnosticLogger, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object Bsp extends ScalaCommand[BspOptions] {
   override def hidden = true
-  def run(options: BspOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
+  private def latestSharedOptions(options: BspOptions): SharedOptions =
+    options.jsonOptions.map { optionsPath =>
+      val content = os.read.bytes(os.Path(optionsPath, os.pwd))
+      readFromArray(content)(SharedOptions.jsonCodec)
+    }.getOrElse(options.shared)
+  override def sharedOptions(options: BspOptions): Option[SharedOptions] =
+    Option(latestSharedOptions(options))
+
+  // not reusing buildOptions here, since they should be reloaded live instead
+  override def runCommand(options: BspOptions, args: RemainingArgs): Unit = {
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
-    val getSharedOptions: () => SharedOptions = () =>
-      options.jsonOptions.map { optionsPath =>
-        val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(SharedOptions.jsonCodec)
-      }.getOrElse(options.shared)
+    val getSharedOptions: () => SharedOptions = () => latestSharedOptions(options)
 
     val argsToInputs: Seq[String] => Either[BuildException, Inputs] =
       argsSeq =>

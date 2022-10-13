@@ -6,7 +6,7 @@ import java.io.File
 
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.internal.Constants
 import scala.util.Using
 
@@ -28,7 +28,7 @@ object DefaultFile extends ScalaCommand[DefaultFileOptions] {
     path: os.SubPath,
     content: () => Array[Byte]
   ) {
-    def printablePath = path.segments.mkString(File.separator)
+    def printablePath: String = path.segments.mkString(File.separator)
   }
 
   def defaultWorkflow: Array[Byte] =
@@ -40,7 +40,7 @@ object DefaultFile extends ScalaCommand[DefaultFileOptions] {
     "workflow"  -> DefaultFile(os.sub / ".github" / "workflows" / "ci.yml", () => defaultWorkflow),
     "gitignore" -> DefaultFile(os.sub / ".gitignore", () => defaultGitignore)
   )
-  val defaultFilesByRelPath = defaultFiles.flatMap {
+  val defaultFilesByRelPath: Map[String, DefaultFile] = defaultFiles.flatMap {
     case (_, d) =>
       // d.path.toString and d.printablePath differ on Windows (one uses '/', the other '\')
       Seq(
@@ -56,7 +56,7 @@ object DefaultFile extends ScalaCommand[DefaultFileOptions] {
     sys.exit(1)
   }
 
-  def run(options: DefaultFileOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DefaultFileOptions, args: RemainingArgs): Unit = {
 
     val logger = options.logging.logger
 

@@ -1,24 +1,24 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import ch.epfl.scala.bsp4j.BspConnectionDetails
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.Charset
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Inputs.WorkspaceOrigin
+import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Artifacts, CrossSources, Inputs, Logger, Os, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.errors.FoundVirtualInputsError
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
@@ -52,15 +52,16 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
-  def run(options: SetupIdeOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logging.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+  override def runCommand(options: SetupIdeOptions, args: RemainingArgs): Unit = {
+    val buildOptions = buildOptionsOrExit(options)
+    val logger       = options.shared.logging.logger
+    val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
       options,
       inputs,
+      buildOptions,
       previousCommandName = None,
       args = args.all
     ).orExit(logger)
@@ -72,12 +73,14 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     options: SharedOptions,
     inputs: Inputs,
     logger: Logger,
+    buildOptions: BuildOptions,
     previousCommandName: Option[String],
     args: Seq[String]
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),
       inputs,
+      buildOptions,
       previousCommandName,
       args
     ) match {
@@ -86,12 +89,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       case Right(_) =>
     }
 
-  private def buildOptions(opts: SetupIdeOptions): BuildOptions =
-    opts.shared.buildOptions().orExit(opts.shared.logger)
+  override def sharedOptions(options: SetupIdeOptions): Option[SharedOptions] = Some(options.shared)
 
   private def writeBspConfiguration(
     options: SetupIdeOptions,
     inputs: Inputs,
+    buildOptions: BuildOptions,
     previousCommandName: Option[String],
     args: Seq[String]
   ): Either[BuildException, Option[os.Path]] = either {
@@ -108,8 +111,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (buildOptions(options).classPathOptions.extraDependencies.toSeq.nonEmpty)
-      value(downloadDeps(inputs, buildOptions(options), logger))
+    if (buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
+      value(downloadDeps(inputs, buildOptions, logger))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
@@ -182,7 +185,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   def bspDetails(workspace: os.Path, ops: SharedBspFileOptions): (String, os.Path) = {
-    import ops._
+    import ops.*
     val dir = bspDirectory
       .filter(_.nonEmpty)
       .map(os.Path(_, Os.pwd))

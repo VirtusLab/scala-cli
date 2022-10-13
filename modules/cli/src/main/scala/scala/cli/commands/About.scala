@@ -1,16 +1,15 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 
 class About(isSipScala: Boolean) extends ScalaCommand[AboutOptions] {
 
-  override def group = "Miscellaneous"
-
-  def run(options: AboutOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity.verbosity
+  override def group                                         = "Miscellaneous"
+  override def verbosity(options: AboutOptions): Option[Int] = Some(options.verbosity.verbosity)
+  override def runCommand(options: AboutOptions, args: RemainingArgs): Unit = {
     println(Version.versionInfo(isSipScala))
     val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))
     val isOutdated = CommandUtils.isOutOfDateVersion(

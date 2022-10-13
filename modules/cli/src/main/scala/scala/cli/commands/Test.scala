@@ -1,20 +1,20 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.nio.file.Path
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
+import scala.build.Ops.*
+import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Build, BuildThreads, Builds, CrossKey, Logger, Positioned}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 
 object Test extends ScalaCommand[TestOptions] {
@@ -24,8 +24,8 @@ object Test extends ScalaCommand[TestOptions] {
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  def buildOptions(opts: TestOptions): BuildOptions = {
-    import opts._
+  override def buildOptions(opts: TestOptions): Option[BuildOptions] = Option {
+    import opts.*
     val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
@@ -42,20 +42,16 @@ object Test extends ScalaCommand[TestOptions] {
     )
   }
 
-  def run(options: TestOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-    CurrentParams.verbosity = options.shared.logging.verbosity
-
-    val initialBuildOptions = buildOptions(options)
-    maybePrintSimpleScalacOutput(options, initialBuildOptions)
-
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+  override def runCommand(options: TestOptions, args: RemainingArgs): Unit = {
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,
       inputs,
       logger,
+      initialBuildOptions,
       Some(name),
       args.remaining
     )

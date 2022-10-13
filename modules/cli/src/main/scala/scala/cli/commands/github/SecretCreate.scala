@@ -1,9 +1,9 @@
 package scala.cli.commands.github
 
 import caseapp.core.RemainingArgs
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.ArchiveCache
-import sttp.client3._
+import sttp.client3.*
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
@@ -11,8 +11,8 @@ import java.util.Base64
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
@@ -132,7 +132,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     }
   }
 
-  def run(options: SecretCreateOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: SecretCreateOptions, args: RemainingArgs): Unit = {
 
     val logger = options.shared.logging.logger
 

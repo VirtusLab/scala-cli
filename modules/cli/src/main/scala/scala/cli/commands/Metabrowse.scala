@@ -1,16 +1,17 @@
 package scala.cli.commands
 
-import caseapp._
-import dependency._
+import caseapp.*
+import dependency.*
 
 import java.io.File
 
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
+import scala.build.options.BuildOptions
 import scala.build.{Build, BuildThreads, Logger}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.util.Properties
@@ -24,7 +25,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     List("metabrowse")
   )
 
-  override def sharedOptions(options: MetabrowseOptions) = Some(options.shared)
+  override def sharedOptions(options: MetabrowseOptions): Option[SharedOptions] =
+    Some(options.shared)
 
   private def metabrowseBinaryUrl(
     scalaVersion: String,
@@ -41,21 +43,24 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
     (url, !metabrowseTag0.startsWith("v"))
   }
 
-  def run(options: MetabrowseOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.all).orExit(logger)
-    CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val baseOptions = options.shared.buildOptions().orExit(logger)
-    val initialBuildOptions = baseOptions.copy(
-      classPathOptions = baseOptions.classPathOptions.copy(
-        fetchSources = Some(true)
-      ),
-      javaOptions = baseOptions.javaOptions.copy(
-        jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+  override def buildOptions(options: MetabrowseOptions): Option[BuildOptions] =
+    Option {
+      val baseOptions = options.shared.buildOptions().orExit(options.shared.logger)
+      baseOptions.copy(
+        classPathOptions = baseOptions.classPathOptions.copy(
+          fetchSources = Some(true)
+        ),
+        javaOptions = baseOptions.javaOptions.copy(
+          jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+        )
       )
-    )
+    }
+
+  override def runCommand(options: MetabrowseOptions, args: RemainingArgs): Unit = {
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.all).orExit(logger)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
@@ -136,9 +141,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
         val rtJarLocation =
           successfulBuild.options.javaHomeLocation().value / "jre" / "lib" / "rt.jar"
 
-        val rtJarOpt =
-          if (os.isFile(rtJarLocation)) Some(rtJarLocation)
-          else None
+        val rtJarOpt = Some(rtJarLocation).filter(os.isFile)
 
         if (rtJarOpt.isEmpty && options.shared.logging.verbosity >= 0)
           System.err.println(s"Warning: could not find $rtJarLocation")

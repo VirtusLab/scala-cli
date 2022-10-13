@@ -28,7 +28,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     List("publish", "setup")
   )
 
-  def run(options: PublishSetupOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PublishSetupOptions, args: RemainingArgs): Unit = {
 
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
@@ -276,8 +276,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         val hasWorkflows = os.isDir(workflowDir) &&
           os.list(workflowDir)
             .filter(_.last.endsWith(".yml")) // FIXME Accept more extensions?
-            .filter(os.isFile(_))
-            .nonEmpty
+            .exists(os.isFile)
         if (hasWorkflows)
           logger.message(
             s"Found some workflow files under ${CommandUtils.printablePath(workflowDir)}, not writing Scala CLI workflow"

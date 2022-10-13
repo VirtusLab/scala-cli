@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import scala.cli.CurrentParams
@@ -18,14 +18,14 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     sys.exit(0)
   }
 
-  private def logUpdate(env: Boolean, newVersion: String, oldVersion: String) =
+  private def logUpdate(env: Boolean, newVersion: String, oldVersion: String): Unit =
     if (!env) println(
       s"""scala-cli $oldVersion is already installed and out-of-date.
          |scala-cli will be updated to version $newVersion
          |""".stripMargin
     )
 
-  private def logDowngrade(env: Boolean, newVersion: String, oldVersion: String) =
+  private def logDowngrade(env: Boolean, newVersion: String, oldVersion: String): Unit =
     if (!env && coursier.paths.Util.useAnsiOutput()) {
       println(s"scala-cli $oldVersion is already installed and up-to-date.")
       println(s"Do you want to downgrade scala-cli to version $newVersion [Y/n]")
@@ -42,8 +42,10 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       sys.exit(1)
     }
 
-  def run(options: InstallHomeOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity.verbosity
+  override def verbosity(options: InstallHomeOptions): Option[Int] =
+    Some(options.verbosity.verbosity)
+
+  override def runCommand(options: InstallHomeOptions, args: RemainingArgs): Unit = {
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName

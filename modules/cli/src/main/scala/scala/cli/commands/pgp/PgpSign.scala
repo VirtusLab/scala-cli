@@ -11,6 +11,6 @@ object PgpSign extends ScalaCommand[PgpSignOptions] {
   override def hidden       = true
   override def names        = PgpCommandNames.pgpSign
 
-  def run(options: PgpSignOptions, args: RemainingArgs): Unit =
+  override def runCommand(options: PgpSignOptions, args: RemainingArgs): Unit =
     OriginalPgpSign.run(options, args)
 }

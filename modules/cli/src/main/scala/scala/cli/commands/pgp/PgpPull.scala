@@ -4,7 +4,7 @@ import caseapp.core.RemainingArgs
 
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.pgp.KeyServer
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 
 object PgpPull extends ScalaCommand[PgpPullOptions] {
@@ -15,7 +15,7 @@ object PgpPull extends ScalaCommand[PgpPullOptions] {
     List("pgp", "pull")
   )
 
-  def run(options: PgpPullOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PgpPullOptions, args: RemainingArgs): Unit = {
 
     val logger  = options.logging.logger
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)

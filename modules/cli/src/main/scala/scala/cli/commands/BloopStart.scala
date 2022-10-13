@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.build.Os
 import scala.build.bloop.BloopThreads
@@ -8,9 +8,9 @@ import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -22,7 +22,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
   )
 
   private def mkBloopRifleConfig(opts: BloopStartOptions): BloopRifleConfig = {
-    import opts._
+    import opts.*
     val buildOptions = BuildOptions(
       javaOptions = JvmUtils.javaOptions(jvm).orExit(logging.logger),
       internal = InternalOptions(
@@ -39,8 +39,10 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
     )
   }
 
-  def run(options: BloopStartOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: BloopStartOptions): Option[LoggingOptions] =
+    Some(options.logging)
+
+  override def runCommand(options: BloopStartOptions, args: RemainingArgs): Unit = {
     val threads          = BloopThreads.create()
     val bloopRifleConfig = mkBloopRifleConfig(options)
     val logger           = options.logging.logger

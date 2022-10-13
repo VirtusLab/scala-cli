@@ -1,16 +1,16 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
   override def isRestricted    = true
-
-  def run(options: DirectoriesOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity.verbosity
+  override def verbosity(options: DirectoriesOptions): Option[Int] =
+    Some(options.verbosity.verbosity)
+  override def runCommand(options: DirectoriesOptions, args: RemainingArgs): Unit = {
     if (args.all.nonEmpty) {
       System.err.println("The directories command doesn't accept arguments.")
       sys.exit(1)

@@ -1,35 +1,33 @@
 package scala.cli.commands
 
-import caseapp._
-import dependency._
+import caseapp.*
+import dependency.*
 
 import java.io.File
 
 import scala.build.EitherCps.{either, value}
-import scala.build._
+import scala.build.*
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
+import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.util.Properties
 
 object Doc extends ScalaCommand[DocOptions] {
-  override def group                              = "Main"
-  override def sharedOptions(options: DocOptions) = Some(options.shared)
-  def run(options: DocOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.shared.logging.verbosity
-    val logger = options.shared.logger
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+  override def group                                                     = "Main"
+  override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
+  override def runCommand(options: DocOptions, args: RemainingArgs): Unit = {
+    val initialBuildOptions = buildOptionsOrExit(options)
+    val logger              = options.shared.logger
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions =
-      options.shared.buildOptions(enableJmh = false, jmhVersion = None).orExit(logger)
     val threads = BuildThreads.create()
 
     val maker               = options.shared.compilerMaker(threads).orExit(logger)

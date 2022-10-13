@@ -1,21 +1,21 @@
 package scala.cli.commands
 
 import ai.kien.python.Python
-import caseapp._
+import caseapp.*
 import coursier.cache.FileCache
 import coursier.error.{FetchError, ResolutionError}
-import dependency._
+import dependency.*
 
 import scala.build.EitherCps.{either, value}
-import scala.build._
+import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.Run.{maybePrintSimpleScalacOutput, orPythonDetectionError}
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedOptionsUtil._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.util.Properties
 
@@ -27,9 +27,9 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
-  def buildOptions(ops: ReplOptions): BuildOptions = {
-    import ops._
-    import ops.sharedRepl._
+  override def buildOptions(ops: ReplOptions): Option[BuildOptions] = Option {
+    import ops.*
+    import ops.sharedRepl.*
     val baseOptions = shared.buildOptions().orExit(ops.shared.logger)
     baseOptions.copy(
       javaOptions = baseOptions.javaOptions.copy(
@@ -52,9 +52,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     )
   }
 
-  def run(options: ReplOptions, args: RemainingArgs): Unit = {
-    maybePrintGroupHelp(options)
-    CurrentParams.verbosity = options.shared.logging.verbosity
+  override def runCommand(options: ReplOptions, args: RemainingArgs): Unit = {
+    val initialBuildOptions = buildOptionsOrExit(options)
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
@@ -63,9 +62,6 @@ object Repl extends ScalaCommand[ReplOptions] {
       options.shared.inputs(args.remaining, defaultInputs = () => Some(default)).orExit(logger)
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-
-    val initialBuildOptions = buildOptions(options)
-    maybePrintSimpleScalacOutput(options, initialBuildOptions)
 
     val threads = BuildThreads.create()
 

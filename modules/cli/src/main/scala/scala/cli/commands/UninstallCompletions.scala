@@ -1,11 +1,11 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.nio.charset.Charset
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.internal.ProfileFileUpdater
 
 object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
@@ -13,8 +13,9 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
     List("uninstall", "completions"),
     List("uninstall-completions")
   )
-  def run(options: UninstallCompletionsOptions, args: RemainingArgs) = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: UninstallCompletionsOptions): Option[LoggingOptions] =
+    Some(options.logging)
+  override def runCommand(options: UninstallCompletionsOptions, args: RemainingArgs): Unit = {
     val logger = options.logging.logger
     val name   = InstallCompletions.getName(options.shared.name)
 

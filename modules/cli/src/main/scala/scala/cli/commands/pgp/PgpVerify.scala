@@ -11,6 +11,6 @@ object PgpVerify extends ScalaCommand[PgpVerifyOptions] {
   override def hidden       = true
   override def names        = PgpCommandNames.pgpVerify
 
-  def run(options: PgpVerifyOptions, args: RemainingArgs): Unit =
+  override def runCommand(options: PgpVerifyOptions, args: RemainingArgs): Unit =
     OriginalPgpVerify.run(options, args)
 }

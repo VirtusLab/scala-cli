@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File
@@ -9,11 +9,10 @@ import scala.cli.CurrentParams
 import scala.util.Properties
 
 object AddPath extends ScalaCommand[AddPathOptions] {
-  override def hidden       = true
-  override def isRestricted = true
-  def run(options: AddPathOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.verbosity
-
+  override def hidden                                          = true
+  override def isRestricted                                    = true
+  override def verbosity(options: AddPathOptions): Option[Int] = Some(options.verbosity)
+  override def runCommand(options: AddPathOptions, args: RemainingArgs): Unit = {
     if (args.all.isEmpty) {
       if (!options.quiet)
         System.err.println("Nothing to do")

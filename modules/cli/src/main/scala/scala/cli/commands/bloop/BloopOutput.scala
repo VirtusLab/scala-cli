@@ -4,19 +4,19 @@ import caseapp.core.RemainingArgs
 
 import scala.build.blooprifle.BloopRifleConfig
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil._
-import scala.cli.commands.{CoursierOptions, ScalaCommand}
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
+import scala.cli.commands.{CoursierOptions, LoggingOptions, ScalaCommand}
 
 object BloopOutput extends ScalaCommand[BloopOutputOptions] {
-  override def hidden     = true
+  override def hidden       = true
   override def isRestricted = true
   override def names: List[List[String]] = List(
     List("bloop", "output")
   )
-
-  def run(options: BloopOutputOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
+  override def loggingOptions(options: BloopOutputOptions): Option[LoggingOptions] =
+    Some(options.logging)
+  override def runCommand(options: BloopOutputOptions, args: RemainingArgs): Unit = {
     val logger = options.logging.logger
     val bloopRifleConfig = options.compilationServer.bloopRifleConfig(
       logger,

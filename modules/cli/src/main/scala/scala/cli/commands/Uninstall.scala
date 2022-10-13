@@ -1,14 +1,15 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps._
-import scala.cli.commands.util.VerbosityOptionsUtil._
+import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.VerbosityOptionsUtil.*
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
-  def run(options: UninstallOptions, args: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.bloopExit.logging.verbosityOptions.verbosity
+  override def loggingOptions(options: UninstallOptions): Option[LoggingOptions] =
+    Some(options.bloopExit.logging)
+  override def runCommand(options: UninstallOptions, args: RemainingArgs): Unit = {
     val interactive =
       options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)
     val logger = options.bloopExit.logging.logger
@@ -19,7 +20,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
     val cacheDir    = scala.build.Directories.default().cacheDir
 
     if (
-      !Update.isScalaCLIInstalledByInstallationScript() && (options.binDir.isEmpty || !options.force)
+      !Update.isScalaCLIInstalledByInstallationScript && (options.binDir.isEmpty || !options.force)
     ) {
       logger.error(
         "Scala CLI was not installed by the installation script, please use your package manager to uninstall scala-cli."
