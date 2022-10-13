@@ -129,7 +129,7 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
       val extraEnv =
         if (needsWinUtils) maybeHadoopHomeForWinutils(root / "hadoop-home")
         else Map.empty[String, String]
-      val res = os.proc(TestUtil.cli, "run", extraOptions, "--spark-standalone", "--jvm", "8", ".")
+      val res = os.proc(TestUtil.cli, "run", extraOptions, "--spark-standalone", ".")
         .call(cwd = root, env = extraEnv)
 
       val expectedOutput = "Result: 55"
