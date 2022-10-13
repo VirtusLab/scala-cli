@@ -37,9 +37,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       options.sharedRun.standaloneSpark.getOrElse(false) &&
       !options.sharedRun.sparkSubmit.contains(false)
     )
-      RunMode.StandaloneSparkSubmit(options.sharedRun.submitArgument)
+      RunMode.StandaloneSparkSubmit(options.sharedRun.submitArgument, Nil)
     else if (options.sharedRun.sparkSubmit.getOrElse(false))
-      RunMode.SparkSubmit(options.sharedRun.submitArgument)
+      RunMode.SparkSubmit(options.sharedRun.submitArgument, Nil)
     else if (options.sharedRun.hadoopJar)
       RunMode.HadoopJar
     else

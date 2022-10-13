@@ -1568,6 +1568,22 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 Don't actually run the REPL, just fetch it
 
+**--spark**
+
+Run Spark REPL, using a vanilla Spark distribution downloaded by Scala CLI
+
+**--standalone-spark**
+
+Run Spark REPL
+
+Aliases: `--spark-standalone`
+
+**--predef**
+
+Preload file
+
+Aliases: `-I` ,`--preload`
+
 </details>
 
 ---
