@@ -143,21 +143,21 @@ class DefaultTests extends ScalaCliSuite {
         "-classpath",
         (os.rel / compilationOutputDir).toString
       ).call(cwd = root, mergeErrIntoOut = true)
-      expect(runRes.out.trim == replDryRunOutput)
+      expect(runRes.out.trim() == replDryRunOutput)
     }
   }
 
   test("ensure --help-native works with the default command") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--help-native").call(cwd = root)
-      expect(res.out.trim.contains("Scala Native options:"))
+      expect(res.out.trim().contains("Scala Native options:"))
     }
   }
 
   test("ensure --help-js works with the default command") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--help-js").call(cwd = root)
-      expect(res.out.trim.contains("Scala.js options:"))
+      expect(res.out.trim().contains("Scala.js options:"))
     }
   }
 

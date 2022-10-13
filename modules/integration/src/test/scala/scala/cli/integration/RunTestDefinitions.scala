@@ -2329,7 +2329,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         preCompileOutputDir.toString,
         extraOptions
       ).call(cwd = root / preCompileDir, stderr = os.Pipe)
-      expect(!compileRes.err.trim.contains("Warning: Flag -d set repeatedly"))
+      expect(!compileRes.err.trim().contains("Warning: Flag -d set repeatedly"))
 
       // next, run while relying on the pre-compiled class, specifying the path with -O -classpath
       val runRes = os.proc(
@@ -2342,7 +2342,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         (os.rel / os.up / preCompileDir / preCompileOutputDir).toString,
         extraOptions
       ).call(cwd = root / runDir, stderr = os.Pipe)
-      expect(!runRes.err.trim.contains("Warning: Flag -classpath set repeatedly"))
+      expect(!runRes.err.trim().contains("Warning: Flag -classpath set repeatedly"))
       expect(runRes.out.trim() == expectedOutput)
     }
   }
@@ -2400,7 +2400,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         jarPath,
         extraOptions
       ).call(cwd = root)
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 
@@ -2430,7 +2430,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         jarParentDirectory,
         extraOptions
       ).call(cwd = root)
-      expect(runRes.out.trim == expectedOutput)
+      expect(runRes.out.trim() == expectedOutput)
     }
   }
 
@@ -2482,7 +2482,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             val res =
               os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
                 .call(cwd = root)
-            expect(res.out.trim == scala212VersionString)
+            expect(res.out.trim() == scala212VersionString)
           }
       }
     }
@@ -2529,12 +2529,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       .fromRoot { root =>
         val res = os.proc(TestUtil.cli, ".", "--scalac-verbose", extraOptions)
           .call(cwd = root, stderr = os.Pipe)
-        val errLines = res.err.trim.lines.toList.asScala
+        val errLines = res.err.trim().lines.toList.asScala
         // there should be a lot of logs, but different stuff is logged depending on the Scala version
         expect(errLines.length > 100)
         expect(errLines.exists(_.startsWith("[loaded package loader scala")))
         expect(errLines.exists(_.contains(s"$mainClass.scala")))
-        expect(res.out.trim == expectedOutput)
+        expect(res.out.trim() == expectedOutput)
       }
   }
 
@@ -2552,7 +2552,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             "cp1252",
             extraOptions
           ).call(cwd = root)
-          expect(res.out.trim == "€")
+          expect(res.out.trim() == "€")
         }
     }
 }
