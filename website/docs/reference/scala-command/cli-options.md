@@ -614,6 +614,42 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
 
 List main classes available in the current context
 
+## Repl options
+
+Available in commands:
+
+[`repl` , `console`](./commands.md#repl)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--repl-dry-run`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Don't actually run the REPL, just fetch it
+
+### `--spark`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Run Spark REPL, using a vanilla Spark distribution downloaded by Scala CLI
+
+### `--standalone-spark`
+
+Aliases: `--spark-standalone`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Run Spark REPL
+
+### `--predef`
+
+Aliases: `--preload`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Preload file
+
 ## Run options
 
 Available in commands:
@@ -1392,20 +1428,6 @@ Print the update to `env` variable
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Binary directory
-
-### Repl options
-
-Available in commands:
-
-[`repl` , `console`](./commands.md#repl)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--repl-dry-run`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Don't actually run the REPL, just fetch it
 
 ### Setup IDE options
 

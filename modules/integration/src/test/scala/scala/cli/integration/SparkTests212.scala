@@ -96,6 +96,43 @@ class SparkTests212 extends SparkTestDefinitions(scalaVersionOpt = Some(Constant
       expect(output.contains(expectedOutput))
     }
 
+  def standaloneReplTest(spark: Spark): Unit = {
+    val inputs = TestInputs(
+      os.rel / "Values.scala" ->
+        """package repltest
+          |
+          |object Values {
+          |  def expected = (1 to 10).sum
+          |}
+          |""".stripMargin,
+      os.rel / "test-repl.sc" ->
+        """val accum = sc.longAccumulator
+          |sc.parallelize(1 to 10).foreach(x => accum.add(x))
+          |assert(accum.value == repltest.Values.expected)
+          |sys.exit(0)
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "repl",
+        TestUtil.extraOptions, // rather than extraOptions (the former misses the "--scala …" args)
+        "--dependency",
+        s"org.apache.spark::spark-repl:${spark.sparkVersion}",
+        "--scala",
+        spark.scalaVersion,
+        "--spark-standalone",
+        "Values.scala",
+        "--predef",
+        "test-repl.sc",
+        "--",
+        "--master",
+        "local[*]"
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+    }
+  }
+
   test("package spark 2.4") {
     simplePackageSparkJobTest(spark24)
   }
@@ -122,6 +159,13 @@ class SparkTests212 extends SparkTestDefinitions(scalaVersionOpt = Some(Constant
 
   test("run spark 3.0 standalone") {
     simpleRunStandaloneSparkJobTest(spark30.scalaVersion, spark30.sparkVersion)
+  }
+
+  test("repl spark 2.4 standalone") {
+    standaloneReplTest(spark24)
+  }
+  test("repl spark 3.0 standalone") {
+    standaloneReplTest(spark30)
   }
 
 }

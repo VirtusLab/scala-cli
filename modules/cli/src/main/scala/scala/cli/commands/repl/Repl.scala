@@ -22,6 +22,7 @@ import scala.cli.commands.run.Run.{
 }
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.util.RunSpark
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
@@ -48,13 +49,20 @@ object Repl extends ScalaCommand[ReplOptions] {
     import ops.*
     import ops.sharedRepl.*
 
+    val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
+
     val logger = ops.shared.logger
 
-    val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
-    val baseOptions        = shared.buildOptions().orExit(logger)
+    val spark = runMode(ops) match {
+      case _: RunMode.Spark => true
+      case RunMode.Default  => false
+    }
+
+    val baseOptions = shared.buildOptions().orExit(logger)
     baseOptions.copy(
       scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = baseOptions.scalaOptions.scalaVersion
+          .orElse(if (spark) Some(MaybeScalaVersion("2.12")) else None)
           .orElse {
             val defaultScalaVer = scala.build.internal.Constants.defaultScalaVersion
             val shouldDowngrade = {
@@ -79,7 +87,10 @@ object Repl extends ScalaCommand[ReplOptions] {
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
-            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
+            sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine) ++
+            (if (spark) Seq(Positioned.none(JavaOpt("-Dscala.usejavacp=true"))) else Nil),
+        jvmIdOpt = baseOptions.javaOptions.jvmIdOpt
+          .orElse(if (spark) Some(Positioned.none("8")) else None)
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         replOptions = baseOptions.notForBloopOptions.replOptions.copy(
@@ -89,12 +100,22 @@ object Repl extends ScalaCommand[ReplOptions] {
         ),
         addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt
           .orElse(Some(false))
+      ),
+      internal = baseOptions.internal.copy(
+        keepResolution = baseOptions.internal.keepResolution || spark
       )
     )
   }
 
-  private def runMode(options: ReplOptions): RunMode.HasRepl =
-    RunMode.Default
+  private def runMode(options: ReplOptions): RunMode.HasRepl = {
+    def sparkReplOptions =
+      options.sharedRepl.predef.filter(_.trim.nonEmpty)
+        .map(p => Seq("-I", p))
+        .getOrElse(Nil)
+    if (options.sharedRepl.standaloneSpark) RunMode.StandaloneSparkSubmit(Nil, sparkReplOptions)
+    else if (options.sharedRepl.spark) RunMode.SparkSubmit(Nil, sparkReplOptions)
+    else RunMode.Default
+  }
 
   override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
@@ -302,7 +323,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       pythonArgs ++ options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
     }
 
-    def ammoniteAdditionalArgs() = {
+    def ammoniteAdditionalArgs(addAmmoniteSpark: Boolean = false) = {
       val pythonPredef =
         if (setupPython)
           """import me.shadaj.scalapy.py
@@ -310,10 +331,31 @@ object Repl extends ScalaCommand[ReplOptions] {
             |""".stripMargin
         else
           ""
+      val (sparkArgs, sparkPredef) =
+        if (addAmmoniteSpark) {
+          val predef =
+            s"""import $$ivy.`sh.almond::ammonite-spark:${scala.cli.internal.Constants.ammoniteSparkVersion}`
+               |import org.apache.spark._
+               |import org.apache.spark.sql._
+               |
+               |val spark = AmmoniteSparkSession.builder()(implicitly, ammonite.repl.ReplBridge.value0)
+               |  .progressBars()
+               |  .config(new SparkConf)
+               |  .config("spark.master", Option(System.getenv("SPARK_MASTER")).orElse(sys.props.get("spark.master")).getOrElse("local[*]"))
+               |  .getOrCreate()
+               |def sc = spark.sparkContext
+               |""".stripMargin
+          (Seq("--class-based"), predef)
+        }
+        else
+          (Nil, "")
+      val predef = Seq(pythonPredef, sparkPredef).map(_.trim).filter(_.nonEmpty).mkString(
+        System.lineSeparator()
+      )
       val predefArgs =
-        if (pythonPredef.isEmpty) Nil
-        else Seq("--predef-code", pythonPredef)
-      predefArgs ++ options.notForBloopOptions.replOptions.ammoniteArgs
+        if (predef.trim.isEmpty) Nil
+        else Seq("--predef-code", predef)
+      sparkArgs ++ predefArgs ++ options.notForBloopOptions.replOptions.ammoniteArgs
     }
 
     // TODO Warn if some entries of artifacts.classPath were evicted in replArtifacts.replClassPath
@@ -429,6 +471,19 @@ object Repl extends ScalaCommand[ReplOptions] {
           val replArtifacts = value(ammoniteArtifacts())
           val replArgs      = ammoniteAdditionalArgs() ++ programArgs
           maybeRunRepl(replArtifacts, replArgs)
+
+        case mode: RunMode.Spark =>
+          mode match {
+            case _: RunMode.SparkSubmit =>
+              ???
+            case _: RunMode.StandaloneSparkSubmit =>
+              val replArtifacts = value(ammoniteArtifacts())
+              val replArgs      = ammoniteAdditionalArgs(addAmmoniteSpark = true) ++ programArgs
+              maybeRunRepl(
+                replArtifacts,
+                replArgs
+              )
+          }
       }
     else
       runMode match {
@@ -436,6 +491,51 @@ object Repl extends ScalaCommand[ReplOptions] {
           val replArtifacts = value(defaultArtifacts())
           val replArgs      = additionalArgs ++ programArgs
           maybeRunRepl(replArtifacts, replArgs)
+
+        case mode: RunMode.Spark =>
+          val build = actualBuild
+          // FIXME scalac options are ignored here
+          val res = value {
+            mode match {
+              case _: RunMode.SparkSubmit =>
+                RunSpark.run(
+                  build,
+                  "org.apache.spark.repl.Main",
+                  additionalArgs ++ mode.replArgs,
+                  programArgs,
+                  logger,
+                  allowExit,
+                  dryRun,
+                  None
+                )
+              case _: RunMode.StandaloneSparkSubmit =>
+                RunSpark.runStandalone(
+                  build,
+                  "org.apache.spark.repl.Main",
+                  additionalArgs ++ mode.replArgs,
+                  programArgs,
+                  logger,
+                  allowExit,
+                  dryRun,
+                  None
+                )
+            }
+          }
+          if (dryRun)
+            logger.message("Dry run, not running REPL.")
+          else {
+            val (proc, hookOpt) = res match {
+              case Left(_) =>
+                // can only be left if showCommand == true, that is dryRun == true
+                sys.error("Cannot happen")
+              case Right(r) => r
+            }
+            val retCode =
+              try proc.waitFor()
+              finally hookOpt.foreach(_())
+            if (retCode != 0)
+              value(Left(new ReplError(retCode)))
+          }
       }
   }
 

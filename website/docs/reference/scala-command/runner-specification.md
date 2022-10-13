@@ -1762,6 +1762,22 @@ Aliases: `--java-prop`
 
 Don't actually run the REPL, just fetch it
 
+**--spark**
+
+Run Spark REPL, using a vanilla Spark distribution downloaded by Scala CLI
+
+**--standalone-spark**
+
+Run Spark REPL
+
+Aliases: `--spark-standalone`
+
+**--predef**
+
+Preload file
+
+Aliases: `--preload`
+
 </details>
 
 ---

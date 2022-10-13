@@ -688,6 +688,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
          |  def launcherTypeResourcePath = "${launcherTypeResourcePath.toString}"
          |  def defaultFilesResourcePath = "$defaultFilesResourcePath"
          |  def maxAmmoniteScala3Version = "${Scala.maxAmmoniteScala3Version}"
+         |  def ammoniteSparkVersion     = "${Deps.ammoniteSpark.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

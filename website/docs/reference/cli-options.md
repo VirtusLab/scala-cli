@@ -1124,6 +1124,24 @@ Provide arguments for ammonite repl
 [Internal]
 Don't actually run the REPL, just fetch it
 
+### `--spark`
+
+[Internal]
+Run Spark REPL, using a vanilla Spark distribution downloaded by Scala CLI
+
+### `--standalone-spark`
+
+Aliases: `--spark-standalone`
+
+[Internal]
+Run Spark REPL
+
+### `--predef`
+
+Aliases: `--preload`
+
+Preload file
+
 ## Run options
 
 Available in commands:

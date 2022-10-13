@@ -118,7 +118,7 @@ object RunSpark {
       val command = Runner.jvmCommand(
         javaHomeInfo.javaCommand,
         javaOpts,
-        sparkClassPath,
+        library +: build.dependencyClassPath,
         finalMainClass,
         finalArgs,
         extraEnv = envUpdates,
@@ -131,7 +131,7 @@ object RunSpark {
       val proc = Runner.runJvm(
         javaHomeInfo.javaCommand,
         javaOpts,
-        sparkClassPath,
+        library +: build.dependencyClassPath,
         finalMainClass,
         finalArgs,
         logger,
