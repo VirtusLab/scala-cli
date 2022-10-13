@@ -1096,6 +1096,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "scala.build.bsp.protocol.TextEdit",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.cli.commands.BloopJson",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,

@@ -111,6 +111,7 @@ package object bsp {
       )
       diag0.setSeverity(diag.getSeverity)
       diag0.setSource(diag.getSource)
+      diag0.setData(diag.getData)
       diag0
     }
   }

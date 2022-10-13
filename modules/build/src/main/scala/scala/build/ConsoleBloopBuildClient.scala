@@ -62,6 +62,7 @@ class ConsoleBloopBuildClient(
         updatedDiag.setRelatedInformation(diag.getRelatedInformation)
         updatedDiag.setSeverity(diag.getSeverity)
         updatedDiag.setSource(diag.getSource)
+        updatedDiag.setData(diag.getData)
 
         (originalPath, updatedDiag)
     }
