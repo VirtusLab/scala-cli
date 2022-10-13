@@ -63,6 +63,8 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
   protected def simpleJobInputs(spark: Spark) = TestInputs(
     os.rel / "SparkJob.scala" ->
       s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
+         |//> using lib "com.chuusai::shapeless:2.3.10"
+         |//> using lib "com.lihaoyi::pprint:0.7.3"
          |
          |import org.apache.spark._
          |import org.apache.spark.sql._
@@ -75,7 +77,12 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
          |    import spark.implicits._
          |    def sc    = spark.sparkContext
          |    val accum = sc.longAccumulator
-         |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+         |    sc.parallelize(1 to 10).foreach { x =>
+         |      import shapeless._
+         |      val l = x :: HNil
+         |      accum.add(l.head)
+         |    }
+         |    pprint.err.log(accum.value)
          |    println("Result: " + accum.value)
          |  }
          |}
