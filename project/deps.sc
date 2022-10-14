@@ -59,9 +59,9 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier           = "2.1.0-M6-53-gb4f448130"
-    def coursierCli        = "2.1.0-M5-18-gfebf9838c"
-    def coursierM1Cli      = "2.1.0-M6-53-gb4f448130"
+    def coursier           = "2.1.0-M7"
+    def coursierCli        = "2.1.0-M7"
+    def coursierM1Cli      = "2.1.0-M7"
     def jsoniterScala      = "2.17.3"
     def jsoniterScalaJava8 = "2.13.5"
     def scalaMeta          = "4.5.13"
