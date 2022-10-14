@@ -1,6 +1,6 @@
 # Sclicheck - simple tool to verify scala-cli cookbooks
 
-Sclicheck `[sklicheck]` is a simple command line tool to verify documentation. 
+Sclicheck `[sklicheck]` is a simple command line tool to verify documentation.
 
 It uses regexes under the hood so in some cases we may not parse the file properly.
 
@@ -12,13 +12,20 @@ Currently following commands are supported:
  - [Check output](#check-output) - check if lates optput contains provided patterns
  - [Clear](#clear) - clears all file in workspace
 
-Usually, within a doc one want to first define a code, then run some commands (e.g. compilation) to test it and then check the output from last command (e.g. compilation). 
+Usually, within a doc one want to first define a code, then run some commands (e.g. compilation) to test it and then check the output from last command (e.g. compilation).
 
 Sclicheck accepts following arguments: `[--dest <dest>] [--step] [--stopAtFailure] <files>` where:
- - `<files>` - list of `.md` files or directories to check. In case of directories Sclicheck will recusievly check all `.md` files 
+ - `<files>` - list of `.md` files or directories to check. In case of directories Sclicheck will recusievly check all `.md` files
  - `--dest <dest>`- Sclicheck after checking given file (`<name.md>`) store all of the generated sources as well as `<name.md>` (as `Readme.md`) file in `<dest>/<name>`. This is usefull to generate examples directly from documents
  - `--step` - stops after each command. Useful for debugging.
  - `--stopAtFailure` - stops after each failed command. Useful for debugging.
+
+## Running from the Scala CLI sources
+
+Sclicheck can be run from the Scala CLI sources root with
+```text
+$ ./mill -i docs-tests.run …args…
+```
 
 ## Example
 
@@ -39,7 +46,7 @@ Let's read it using `cat`:
 cat a.txt
 ```
 
-<!-- Expected: 
+<!-- Expected:
 A text
 -->
 
@@ -48,7 +55,7 @@ A text
 ```bash fail
 cat no_a_file
 ```
-<!-- Expected: 
+<!-- Expected:
 no_a_file
 -->
 ````
@@ -60,11 +67,11 @@ For the example above Sclicheck will:
  - runs `cat no_a_file` (expecting that command will fail)
  - check if a patten `no_a_file` exisits in output from last command (`ls: cannot access 'no_a_file': No such file or directory`)
 
-## Actions 
+## Actions
 
 ### Write code
 
-It extracts code to file in workspace for all code snippets marked with ` ```<language> title=<file-name> ` 
+It extracts code to file in workspace for all code snippets marked with ` ```<language> title=<file-name> `
 
 for example:
 
@@ -76,9 +83,9 @@ def a = 123
 
 Will create (or override if exists) file `A.scala` with provided context. We support writing into subdirectories as well using `title=dir/file.ext`.
 
-Sclicheck generates the sources for `.scala` and `.java` files in such a way that the lines with actual code matches the lines in provided .md files to make debugging easier. 
+Sclicheck generates the sources for `.scala` and `.java` files in such a way that the lines with actual code matches the lines in provided .md files to make debugging easier.
 
-**Important!** 
+**Important!**
 
 Code block is ignored if any additional properties are passed to first line of a snippet.
 
@@ -103,7 +110,7 @@ The output from last command is stored for following [check output](#check-outpu
 
 We turn such snippet into a bash script so example below becomes:
 
-```bash 
+```bash
 #!/usr/bin/env bash
 
 set -e
@@ -134,7 +141,7 @@ ls non_exisiting_dir
 
 Sclicheck can check the output latest run command
 
-For that we use html comments starting with: 
+For that we use html comments starting with:
     - `<!-- Expected-regex:` for regex pattern to match at least single line from last output
     - `<!-- Expected` for pattern that needs to exists in at least one line from last output
 

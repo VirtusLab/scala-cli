@@ -1,12 +1,13 @@
-//> using scala "3.0.2"
-//> using lib "com.lihaoyi::os-lib:0.7.8"
-//> using lib "com.lihaoyi::fansi:0.2.14"
+package sclicheck
 
-import scala.util.matching.Regex
-import scala.io.StdIn.readLine
-import fansi.Color.{Red, Blue, Green}
+import fansi.Color.{Blue, Green, Red}
+
+import java.io.File
 import java.security.SecureRandom
+
+import scala.io.StdIn.readLine
 import scala.util.Random
+import scala.util.matching.Regex
 
 val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
 val CompileBlock  = """ *``` *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
@@ -17,6 +18,7 @@ val CheckBlockEnd = """ *\--> *""".r
 val Clear         = """ *<!--+ *clear *-+-> *""".r
 
 case class Options(
+  scalaCliCommand: Seq[String],
   files: Seq[String] = Nil,
   dest: Option[os.Path] = None,
   stopAtFailure: Boolean = false,
@@ -115,7 +117,7 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
       toCheck.toList.flatMap(checkPath(options))
   catch
     case e @ FailedCheck(line, file, text) =>
-      println(Console.RED + e.getMessage + Console.RESET)
+      println(Red(e.getMessage))
       Seq(TestCase(path.relativeTo(os.pwd), Some(e.getMessage)))
     case e: Throwable =>
       val short = s"Unexpected exception ${e.getClass.getName}"
@@ -166,6 +168,27 @@ def checkFile(file: os.Path, options: Options): Unit =
         os.remove.all(dest)
         dest
 
+  // putting a custom scala-cli binary in the PATH, that in turn calls the Scala CLI launcher
+  // build from Mill, so that doc scripts run it rather than any user-installed scala-cli.
+  val binDir = {
+    val binDir0 = out / ".scala-build" / "bin"
+    os.makeDir.all(binDir0)
+    val escapedCommand = options.scalaCliCommand
+      .map(arg => "\"" + arg.replace("\"", "\\\"") + "\"")
+      .mkString(" ")
+    val helperScript =
+      s"""#!/usr/bin/env bash
+         |exec $escapedCommand "$$@"
+         |""".stripMargin
+    os.write(binDir0 / "scala-cli", helperScript)
+    os.perms.set(binDir0 / "scala-cli", "rwxr-xr-x")
+    binDir0
+  }
+  val extraEnv = {
+    val currentPath = Option(System.getenv("PATH")).getOrElse("")
+    Map("PATH" -> s"$binDir${File.pathSeparator}$currentPath")
+  }
+
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]
 
@@ -189,7 +212,12 @@ def checkFile(file: os.Path, options: Options): Unit =
       os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
 
     def run(cmd: os.proc): Int =
-      val res = cmd.call(cwd = out, mergeErrIntoOut = true, check = false)
+      val res = cmd.call(
+        cwd = out,
+        mergeErrIntoOut = true,
+        check = false,
+        env = extraEnv
+      )
 
       log(res.out.text())
 
@@ -215,7 +243,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         val dest = out / ".snippets" / name
         writeFile(dest, code, c)
 
-        val exitCode = run(os.proc("scala-cli", "compile", dest))
+        val exitCode = run(os.proc(options.scalaCliCommand, "compile", dest))
         if shouldFail then
           check(exitCode != 0, s"Compilation should fail.")
         else
@@ -280,8 +308,8 @@ def checkFile(file: os.Path, options: Options): Unit =
         case ex: Throwable => ex.printStackTrace()
 
   // remove empty space at beginning of all files
-  if options.dest.nonEmpty then
-    val exampleDir = options.dest.get / destName
+  for (dest <- options.dest)
+    val exampleDir = dest / destName
     os.remove.all(exampleDir)
     os.makeDir(exampleDir)
 
@@ -306,18 +334,12 @@ def checkFile(file: os.Path, options: Options): Unit =
     val readmeLines = List("<!--", "  " + header, "-->", "") ++ withoutFrontMatter
     os.write(exampleDir / "README.md", readmeLines.mkString("\n"))
 
-    os.list(out).filter(_.toString.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
-
-def asPath(pathStr: String): os.Path =
-  os.FilePath(pathStr) match
-    case p: os.Path    => p
-    case s: os.SubPath => os.pwd / s
-    case r: os.RelPath => os.pwd / r
+    os.list(out).filter(_.last.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
 
 @main def check(args: String*) =
   def processFiles(options: Options) =
     val paths = options.files.map { str =>
-      val path = asPath(str)
+      val path = os.Path(str, os.pwd)
       assert(os.exists(path), s"Provided path $str does not exists in ${os.pwd}")
       path
     }
@@ -346,7 +368,7 @@ def asPath(pathStr: String): os.Path =
         if param.startsWith("--") then
           println(s"Please provide file name not an option: $param")
           sys.exit(1)
-        Some((asPath(param), tail))
+        Some((os.Path(param, os.pwd), tail))
       case `name` :: Nil =>
         println(Red(s"Expected an argument after `--$name` parameter"))
         sys.exit(1)
@@ -367,4 +389,8 @@ def asPath(pathStr: String): os.Path =
       parseArgs(rest, options.copy(statusFile = Some(file)))
     case path :: rest => parseArgs(rest, options.copy(files = options.files :+ path))
 
-  processFiles(parseArgs(args, Options()))
+  val options = Options(
+    scalaCliCommand =
+      Seq(Option(System.getenv("SCLICHECK_SCALA_CLI")).getOrElse("scala-cli"))
+  )
+  processFiles(parseArgs(args, options))

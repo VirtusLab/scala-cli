@@ -109,6 +109,37 @@ object integration extends CliIntegration {
   }
 }
 
+object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests { main =>
+  def scalaVersion = Scala.defaultInternal
+  def ivyDeps = Agg(
+    Deps.fansi,
+    Deps.osLib,
+    Deps.pprint
+  )
+
+  def extraEnv = T {
+    Seq("SCLICHECK_SCALA_CLI" -> cli.standaloneLauncher().path.toString)
+  }
+  def forkEnv = super.forkEnv() ++ extraEnv()
+
+  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+    def forkEnv = super.forkEnv() ++ extraEnv() ++ Seq(
+      "SCALA_CLI_EXAMPLES"                -> (os.pwd / "examples").toString,
+      "SCALA_CLI_GIF_SCENARIOS"           -> (os.pwd / "gifs" / "scenarios").toString,
+      "SCALA_CLI_WEBSITE_IMG"             -> (os.pwd / "website" / "static" / "img").toString,
+      "SCALA_CLI_GIF_RENDERER_DOCKER_DIR" -> (os.pwd / "gifs").toString,
+      "SCALA_CLI_SVG_RENDERER_DOCKER_DIR" -> (os.pwd / "gifs" / "svg_render").toString
+    )
+    def resources = T.sources {
+      // Adding markdown directories here, so that they're watched for changes in watch mode
+      Seq(
+        PathRef(os.pwd / "website" / "docs" / "commands"),
+        PathRef(os.pwd / "website" / "docs" / "cookbooks")
+      ) ++ super.resources()
+    }
+  }
+}
+
 object packager extends ScalaModule with Bloop.Module {
   def skipBloop    = true
   def scalaVersion = Scala.scala213

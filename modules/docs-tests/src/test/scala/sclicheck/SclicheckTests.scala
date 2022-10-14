@@ -1,6 +1,6 @@
-//> using lib "org.scalameta::munit::0.7.29"
+package sclicheck
 
-class SclicheckTest extends munit.FunSuite:
+class SclicheckTests extends munit.FunSuite:
   test("Run regex") {
     assert(
       Some(Seq("scala", "compile", null)) == clue(CompileBlock.unapplySeq("```scala compile"))

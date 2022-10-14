@@ -47,7 +47,7 @@ gh gist create file.scala
 Then you (and others) can run it quickly, using the `scala-cli` approach shown above.
 
 
-## Resources from gists 
+## Resources from gists
 
 You can also use resources from gists archive. This is done by passing `resourceDir` in using directives.
 
