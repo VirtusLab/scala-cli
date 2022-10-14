@@ -8,10 +8,11 @@ import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.build.Position.File
+import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.postprocessing.LineConversion
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class BspClient(
   readFilesEs: ExecutorService,
@@ -194,10 +195,9 @@ class BspClient(
         val bDiag =
           new b.Diagnostic(range, diag.message)
 
-        diag.relatedInformation.foreach { relatedInformation =>
-          val location = new b.Location(path.toNIO.toUri.toASCIIString, range)
-          val related  = new b.DiagnosticRelatedInformation(location, relatedInformation.message)
-          bDiag.setRelatedInformation(List(related).asJava)
+        diag.textEdit.foreach { textEdit =>
+          val bTextEdit = TextEdit(range, textEdit.newText)
+          bDiag.setData(bTextEdit.toJsonTree())
         }
         bDiag.setSeverity(diag.severity.toBsp4j)
         bDiag.setSource("scala-cli")

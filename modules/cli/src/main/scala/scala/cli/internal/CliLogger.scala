@@ -9,7 +9,7 @@ import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, Scal
 import java.io.PrintStream
 
 import scala.build.blooprifle.BloopRifleLogger
-import scala.build.errors.Diagnostic.RelatedInformation
+import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
@@ -32,7 +32,7 @@ class CliLogger(
         d.severity,
         d.message,
         hashMap,
-        d.relatedInformation
+        d.textEdit
       )
     }
   }
@@ -59,7 +59,7 @@ class CliLogger(
     severity: Severity,
     message: String,
     contentCache: mutable.Map[os.Path, Seq[String]],
-    relatedInformation: Option[RelatedInformation]
+    textEditOpt: Option[Diagnostic.TextEdit]
   ) =
     if (positions.isEmpty)
       out.println(
@@ -83,13 +83,9 @@ class CliLogger(
         diag.setSeverity(severity.toBsp4j)
         diag.setSource("scala-cli")
 
-        for {
-          filePath <- f.path
-          info     <- relatedInformation
-        } {
-          val location = new Location(filePath.toNIO.toUri.toASCIIString, range)
-          val related  = new b.DiagnosticRelatedInformation(location, info.message)
-          diag.setRelatedInformation(List(related).asJava)
+        for (textEdit <- textEditOpt) {
+          val bTextEdit = TextEdit(range, textEdit.newText)
+          diag.setData(bTextEdit.toJsonTree())
         }
 
         for (file <- f.path) {

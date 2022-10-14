@@ -5,8 +5,8 @@ import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
+import com.google.gson.{Gson, JsonElement}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.net.URI
@@ -1187,7 +1187,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     withBsp(inputs, Seq(".", "--actions")) {
-      (root, localClient, remoteServer) =>
+      (_, localClient, remoteServer) =>
         async {
           // prepare build
           val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
@@ -1215,11 +1215,16 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             strictlyCheckMessage = false
           )
 
-          val relatedInformation = updateActionableDiagnostic.getRelatedInformation().asScala.head
-          expect(relatedInformation.getMessage.contains("com.lihaoyi::os-lib:"))
-          expect(
-            relatedInformation.getLocation().getUri() == (root / fileName).toNIO.toUri.toASCIIString
+          val textEdit = new Gson().fromJson[TextEdit](
+            updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
+            classOf[TextEdit]
           )
+
+          expect(textEdit.newText.contains("com.lihaoyi::os-lib:"))
+          expect(textEdit.range.getStart.getLine == 0)
+          expect(textEdit.range.getStart.getCharacter == 15)
+          expect(textEdit.range.getEnd.getLine == 0)
+          expect(textEdit.range.getEnd.getCharacter == 40)
         }
     }
   }
@@ -1303,5 +1308,7 @@ object BspTestDefinitions {
     languages: List[String]
   )
   private val detailsCodec: JsonValueCodec[Details] = JsonCodecMaker.make
+
+  private final case class TextEdit(range: b.Range, newText: String)
 
 }
