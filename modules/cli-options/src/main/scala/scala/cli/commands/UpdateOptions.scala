@@ -9,7 +9,7 @@ import scala.cli.signing.util.ArgParsers._
 @HelpMessage("Update scala-cli - only works when installed by the installation script")
 final case class UpdateOptions(
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions(),
+    logging: LoggingOptions = LoggingOptions(),
   @Hidden
   @Group("Update")
   @HelpMessage("Binary name")

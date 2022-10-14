@@ -178,7 +178,7 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [uninstall c
 
 Update scala-cli - only works when installed by the installation script
 
-Accepts option groups: [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## version
 
