@@ -5,15 +5,10 @@ import caseapp._
 // format: off
 final case class AddPathOptions(
   @Recurse
-    verbosityOptions: VerbosityOptions = VerbosityOptions(),
-  @Group("Logging")
-  @Name("q")
-    quiet: Boolean = false,
+    logging: LoggingOptions = LoggingOptions(),
   title: String = ""
-) {
-  // format: on
-  lazy val verbosity = verbosityOptions.verbosity - (if (quiet) 1 else 0)
-}
+)
+// format: on
 
 object AddPathOptions {
   implicit lazy val parser: Parser[AddPathOptions] = Parser.derive

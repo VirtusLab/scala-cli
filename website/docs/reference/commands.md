@@ -190,7 +190,7 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 ### add-path
 
-Accepts option groups: [add path](./cli-options.md#add-path-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [add path](./cli-options.md#add-path-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop
 
