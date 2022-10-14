@@ -200,7 +200,8 @@ object Project {
       test = None,
       platform = None,
       resolution = None,
-      tags = Some(List("library"))
+      tags = Some(List("library")),
+      sourceGenerators = None
     )
     if (scope == Scope.Test)
       setProjectTestConfig(project)
