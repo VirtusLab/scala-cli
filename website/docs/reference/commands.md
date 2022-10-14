@@ -232,7 +232,7 @@ Accepts option groups: [directories](./cli-options.md#directories-options), [log
 
 Install `scala-cli` in a sub-directory of the home directory
 
-Accepts option groups: [install home](./cli-options.md#install-home-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### browse
 
