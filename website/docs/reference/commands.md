@@ -10,7 +10,7 @@ sidebar_position: 3
 
 Print details about this application
 
-Accepts option groups: [about](./cli-options.md#about-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## clean
 

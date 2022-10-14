@@ -9,7 +9,7 @@ import scala.cli.signing.util.ArgParsers._
 @HelpMessage("Print details about this application")
 final case class AboutOptions(
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions(),
+    logging: LoggingOptions = LoggingOptions(),
   @Hidden
   @HelpMessage(HelpMessages.passwordOption)
     ghToken: Option[PasswordOption] = None
