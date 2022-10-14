@@ -148,7 +148,7 @@ Accepts option groups: [update](./cli-options.md#update-options), [verbosity](./
 
 Print `scala-cli` version
 
-Accepts option groups: [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
 ## Hidden commands
 
