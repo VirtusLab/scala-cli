@@ -8,7 +8,7 @@ final case class DirectoriesOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions()
+    logging: LoggingOptions = LoggingOptions()
 )
 // format: on
 

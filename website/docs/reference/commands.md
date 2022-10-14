@@ -226,7 +226,7 @@ Accepts option groups: [default file](./cli-options.md#default-file-options), [l
 
 Prints directories used by `scala-cli`
 
-Accepts option groups: [directories](./cli-options.md#directories-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### install-home
 
