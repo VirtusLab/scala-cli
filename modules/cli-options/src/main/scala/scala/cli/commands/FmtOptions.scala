@@ -21,11 +21,6 @@ final case class FmtOptions(
     saveScalafmtConf: Boolean = false,
 
   @Group("Format")
-  @HelpMessage("Show help for scalafmt. This is an alias for --scalafmt-arg -help")
-  @Name("fmtHelp")
-    scalafmtHelp: Boolean = false,
-
-  @Group("Format")
   @Hidden
     osArchSuffix: Option[String] = None,
   @Group("Format")

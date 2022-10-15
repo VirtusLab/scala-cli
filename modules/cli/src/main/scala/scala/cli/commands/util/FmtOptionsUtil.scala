@@ -33,8 +33,6 @@ object FmtOptionsUtil {
     def scalafmtCliOptions: List[String] =
       scalafmtArg :::
         (if (check && !scalafmtArg.contains("--check")) List("--check") else Nil) :::
-        (if (scalafmtHelp && !scalafmtArg.exists(Set("-h", "-help", "--help"))) List("--help")
-         else Nil) :::
         (if (respectProjectFilters && !scalafmtArg.contains("--respect-project-filters"))
            List("--respect-project-filters")
          else Nil)

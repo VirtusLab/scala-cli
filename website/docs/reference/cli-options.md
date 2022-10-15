@@ -273,12 +273,6 @@ Use project filters defined in the configuration. Turned on by default, use `--r
 
 Saves .scalafmt.conf file if it was created or overwritten
 
-### `--scalafmt-help`
-
-Aliases: `--fmt-help`
-
-Show help for scalafmt. This is an alias for --scalafmt-arg -help
-
 ### `--os-arch-suffix`
 
 [Internal]
@@ -363,6 +357,24 @@ Show options for ScalaJS
 ### `--help-native`
 
 Show options for ScalaNative
+
+### `--help-scaladoc`
+
+Aliases: `--scaladoc-help`, `--doc-help`, `--help-doc`
+
+Show options for Scaladoc
+
+### `--help-repl`
+
+Aliases: `--repl-help`
+
+Show options for Scala REPL
+
+### `--help-scalafmt`
+
+Aliases: `--scalafmt-help`, `--fmt-help`, `--help-fmt`
+
+Show options for Scalafmt
 
 ## Install completions options
 

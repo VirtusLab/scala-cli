@@ -7,14 +7,18 @@ import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error, RemainingArgs}
+import dependency.*
 
 import scala.annotation.tailrec
+import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
-import scala.build.internal.Constants
+import scala.build.errors.BuildException
+import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, Scope}
-import scala.cli.commands.util.CommandHelpers
+import scala.build.{Artifacts, Positioned, ReplArtifacts}
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.commands.util.{CommandHelpers, FmtOptionsUtil}
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
@@ -159,6 +163,74 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
       sys.exit(exitCode)
     }
 
+  def maybePrintToolsHelp(options: T, buildOptions: BuildOptions): Unit =
+    for {
+      shared <- sharedOptions(options)
+      logger = shared.logger
+      artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
+      scalaArtifacts <- artifacts.scalaOpt
+      scalaParams = scalaArtifacts.params
+      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl || shared.helpGroups.helpScalafmt
+    } {
+      val exitCode: Either[BuildException, Int] = either {
+        val (classPath: Seq[os.Path], mainClass: String) =
+          if (shared.helpGroups.helpScaladoc) {
+            val docArtifacts = value {
+              Artifacts.fetch(
+                Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
+                buildOptions.finalRepositories,
+                Some(scalaParams),
+                logger,
+                buildOptions.finalCache,
+                None
+              )
+            }
+            docArtifacts.files.map(os.Path(_, os.pwd)) -> "dotty.tools.scaladoc.Main"
+          }
+          else if (shared.helpGroups.helpRepl) {
+            val initialBuildOptions = buildOptionsOrExit(options)
+            val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
+            val replArtifacts = value {
+              ReplArtifacts.default(
+                scalaParams,
+                artifacts.userDependencies,
+                Nil,
+                logger,
+                buildOptions.finalCache,
+                Nil,
+                None
+              )
+            }
+            replArtifacts.replClassPath -> replArtifacts.replMainClass
+          }
+          else {
+            val fmtArtifacts = value {
+              Artifacts.fetch(
+                Positioned.none(Seq(
+                  dep"${Constants.scalafmtOrganization}:${Constants.scalafmtName}:${Constants.defaultScalafmtVersion}"
+                )),
+                buildOptions.finalRepositories,
+                Some(scalaParams),
+                logger,
+                buildOptions.finalCache,
+                None
+              )
+            }
+            fmtArtifacts.files.map(os.Path(_, os.pwd)) -> "org.scalafmt.cli.Cli"
+          }
+        val retCode = Runner.runJvm(
+          buildOptions.javaHome().value.javaCommand,
+          Nil,
+          classPath,
+          mainClass,
+          Seq("-help"),
+          logger
+        ).waitFor()
+        retCode
+      }
+      sys.exit(exitCode.orExit(logger))
+    }
+
   override def helpFormat: HelpFormat =
     HelpFormat.default()
       .withSortedGroups(Some(Seq(
@@ -250,8 +322,10 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
     for (v <- verbosity(options))
       CurrentParams.verbosity = v
     maybePrintGroupHelp(options)
-    for (bo <- buildOptions(options))
+    buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)
+      maybePrintToolsHelp(options, bo)
+    }
     runCommand(options, remainingArgs)
   }
 }

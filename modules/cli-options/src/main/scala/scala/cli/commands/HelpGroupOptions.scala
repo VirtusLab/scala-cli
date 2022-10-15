@@ -10,7 +10,20 @@ case class HelpGroupOptions(
   @HelpMessage("Show options for ScalaJS")
   helpJs: Boolean = false,
   @HelpMessage("Show options for ScalaNative")
-  helpNative: Boolean = false
+  helpNative: Boolean = false,
+  @HelpMessage("Show options for Scaladoc")
+  @Name("scaladocHelp")
+  @Name("docHelp")
+  @Name("helpDoc")
+  helpScaladoc: Boolean = false,
+  @HelpMessage("Show options for Scala REPL")
+  @Name("replHelp")
+  helpRepl: Boolean = false,
+  @HelpMessage("Show options for Scalafmt")
+  @Name("scalafmtHelp")
+  @Name("fmtHelp")
+  @Name("helpFmt")
+  helpScalafmt: Boolean = false
 ) {
 
   private def printHelpWithGroup(help: Help[_], helpFormat: HelpFormat, group: String): Nothing = {
