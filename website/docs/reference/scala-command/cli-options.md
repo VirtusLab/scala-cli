@@ -25,6 +25,15 @@ This is a summary of options that are available for each subcommand of the `scal
 are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
 
 
+ ## Scalac options that are directly supported in scala CLI (so can be provided as is, without any prefixes etc.):
+
+ - `-encoding`
+ - `-release`
+ - `-color`
+ - `-nowarn`
+ - `-feature`
+ - `-deprecation`
+
 
 
 ## Compilation server options

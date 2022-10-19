@@ -112,6 +112,15 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       |are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
       |
       |
+      | ## Scalac options that are directly supported in scala CLI (so can be provided as is, without any prefixes etc.):
+      |
+      | - `-encoding`
+      | - `-release`
+      | - `-color`
+      | - `-nowarn`
+      | - `-feature`
+      | - `-deprecation`
+      |
       |""".stripMargin
 
   private def cliOptionsContent(
@@ -243,7 +252,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     b.section(
       "Commands and options are marked with MUST and SHOULD (in the RFC style) for ones applicable for Scala Runner.",
       "Options and commands mark as **Implementation** that are needed for smooth running of Scala CLI.",
-      "We recommend for this options and commands to be supported by `scala` command (when based on Scala CLI) but not the part of the Scala Runner specification.``"
+      "We recommend for those options and commands to be supported by the `scala` command (when based on Scala CLI) but not to be a part of the Scala Runner specification."
     )
 
     b.section(
