@@ -1,5 +1,5 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M2`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.0-M7-34-gf519b50a3`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.19`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule}
@@ -276,7 +276,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   private def scalaVer = Scala.defaultInternal
   def scalaVersion     = scalaVer
   def moduleDeps = Seq(
-    `bloop-rifle`(scalaVer)
+    `bloop-rifle`(scalaVer),
+    config(scalaVer)
   )
   def compileModuleDeps = Seq(
     `build-macros`
@@ -291,7 +292,9 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
       .exclude(("com.google.collections", "google-collections"))
       // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
-      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros"))
+      // Let's favor our config module rather than the one coursier pulls
+      .exclude(("org.virtuslab.scala-cli", "config_2.13")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.jgit,
@@ -724,7 +727,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.coursierLauncher,
     Deps.coursierProxySetup,
-    Deps.coursierPublish,
+    Deps.coursierPublish.exclude(("org.virtuslab.scala-cli", "config_2.13")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore213,
@@ -732,7 +735,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
     Deps.scalaPackager,
-    Deps.signingCli,
+    Deps.signingCli.exclude(("org.virtuslab.scala-cli", "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp
   )

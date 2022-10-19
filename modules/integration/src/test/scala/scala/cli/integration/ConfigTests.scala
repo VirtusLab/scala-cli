@@ -2,6 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+import java.util.Locale
+
 import scala.util.Properties
 
 class ConfigTests extends ScalaCliSuite {
@@ -100,7 +103,30 @@ class ConfigTests extends ScalaCliSuite {
       if (!Properties.isWin)
         os.perms.set(confDir, "rwx------")
 
-      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+      val extraEnv = {
+        val (pathVarName, currentPath) = sys.env
+          .find(_._1.toLowerCase(Locale.ROOT) == "path")
+          .getOrElse(("PATH", ""))
+        val binDir = root / "bin"
+        if (Properties.isWin) {
+          val script =
+            s"""@echo off
+               |"${TestUtil.cs}" %*
+               |""".stripMargin
+          os.write(binDir / "cs.bat", script, createFolders = true)
+        }
+        else {
+          val script =
+            s"""#!/usr/bin/env bash
+               |exec "${TestUtil.cs}" "$$@"
+               |""".stripMargin
+          os.write(binDir / "cs", script, "rwxr-xr-x", createFolders = true)
+        }
+        Map(
+          "SCALA_CLI_CONFIG" -> confFile.toString,
+          pathVarName        -> s"$binDir${File.pathSeparator}$currentPath"
+        )
+      }
 
       val res = os.proc(TestUtil.cli, "config", "httpProxy.address")
         .call(cwd = root, env = extraEnv)
