@@ -244,12 +244,12 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     b.section(
       "Commands and options are marked with MUST and SHOULD (in the RFC style) for ones applicable for Scala Runner.",
-      "Options and commands mark as **Implementation** that are needed for smooth running of Scala CLI.",
+      "Options and commands marked as **Implementation** are needed for smooth running of Scala CLI.",
       "We recommend for those options and commands to be supported by the `scala` command (when based on Scala CLI) but not to be a part of the Scala Runner specification."
     )
 
     b.section(
-      "The proposed Scala runner specification should contains also supported `Using directives` defined in the dedicated [document](./directives.md)]"
+      "The proposed Scala runner specification should also contain supported `Using directives` defined in the dedicated [document](./directives.md)]"
     )
 
     b.section(scalacOptionForwarding)
@@ -360,10 +360,10 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       b.section("# `scala` commands")
       // TODO add links to RFC
       b.section(
-        "This document is a specification of `scala` runner.",
-        "For now it uses documentation specific to Scala CLI but at some point it may be refactor to provide more abstract documentation.",
-        "Documentation is splitted into sections in the spirit of RFC keywords (`MUST`, `SHOULD`, `NICE TO HAVE`) including `IMPLEMENTATION` category,",
-        "that is reserved for commands that needs to be present for Scala CLI to work properly but should not be a part of an official API."
+        "This document is a specification of the `scala` runner.",
+        "For now it uses documentation specific to Scala CLI but at some point it may be refactored to provide more abstract documentation.",
+        "Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHOULD`, `NICE TO HAVE`) including the `IMPLEMENTATION` category,",
+        "that is reserved for commands that need to be present for Scala CLI to work properly but should not be a part of the official API."
       )
 
       SpecificationLevel.inSpecification.foreach { level =>
@@ -376,7 +376,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
       b.section("## Implementation-specific commands")
       b.section(
-        "Commands that are used within Scala CLI that should be a part of the `scala` command but shouldn't be a part of specification."
+        "Commands which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification."
       )
 
       scalaCommands
@@ -440,9 +440,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     if (onlyRestricted) {
       // TODO add links to RFC
       b.section(
-        "This document is a specification of `scala` runner.",
-        "For now it uses documentation specific to Scala CLI but at some point it may be refactor to provide more abstract documentation.",
-        "Documentation is splitted into sections in the spirit of RFC keywords (`MUST`, `SHOULD`)."
+        "This document is a specification of the `scala` runner.",
+        "For now it uses documentation specific to Scala CLI but at some point it may be refactored to provide more abstract documentation.",
+        "Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHOULD`)."
       )
 
       SpecificationLevel.inSpecification.foreach { level =>
@@ -459,7 +459,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       if (implHandlers.nonEmpty) {
         b.section("## Implementation-specific directices")
         b.section(
-          "Directives that are used within Scala CLI that should be a part of the `scala` command but shouldn't be a part of specification."
+          "Directives which are used within Scala CLI and should be a part of the the `scala` command but aren't a part of the specification."
         )
 
         addHandlers(implHandlers)
