@@ -8,10 +8,10 @@ import java.util.Base64
 import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{
   ConfigDb,
   Keys,
@@ -20,8 +20,6 @@ import scala.cli.config.{
   RepositoryCredentials,
   Secret
 }
-import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.config.{ConfigDb, Keys, PasswordOption, Secret}
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden                  = true
