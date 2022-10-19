@@ -133,7 +133,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   generate_rpm
   generate_sdk
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ "$(uname -m)" == "aarch64" ]; then
+  if [ "$(uname -m)" == "arm" ]; then
     generate_pkg "aarch64"
   else
     generate_pkg "x86_64"
