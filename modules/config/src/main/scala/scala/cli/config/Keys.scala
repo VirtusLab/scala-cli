@@ -23,14 +23,18 @@ object Keys {
   val proxyUser     = new Key.PasswordEntry(Seq("httpProxy"), "user")
   val proxyPassword = new Key.PasswordEntry(Seq("httpProxy"), "password")
 
-  val repositoriesMirrors = new Key.StringListEntry(Seq("repositories"), "mirrors")
+  val repositoryMirrors   = new Key.StringListEntry(Seq("repositories"), "mirrors")
   val defaultRepositories = new Key.StringListEntry(Seq("repositories"), "default")
+
+  // Kept for binary compatibility
+  val repositoriesMirrors = repositoryMirrors
 
   // setting indicating if the global interactive mode was suggested
   val globalInteractiveWasSuggested = new Key.BooleanEntry(Seq.empty, "interactive-was-suggested")
 
   def all: Seq[Key[_]] = Seq[Key[_]](
     actions,
+    defaultRepositories,
     ghToken,
     globalInteractiveWasSuggested,
     interactive,
@@ -40,6 +44,7 @@ object Keys {
     proxyAddress,
     proxyPassword,
     proxyUser,
+    repositoryMirrors,
     sonatypePassword,
     sonatypeUser,
     userEmail,
