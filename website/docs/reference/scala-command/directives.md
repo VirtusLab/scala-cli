@@ -5,9 +5,9 @@ sidebar_position: 2
 
 **This document describes as scala-cli behaves if run as `scala` command. See more information in [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**
 
-This document is a specification of `scala` runner.
-For now it uses documentation specific to Scala CLI but at some point it may be refactor to provide more abstract documentation.
-Documentation is splitted into sections in the spirit of RFC keywords (`MUST`, `SHOULD`).
+This document is a specification of the `scala` runner.
+For now it uses documentation specific to Scala CLI but at some point it may be refactored to provide more abstract documentation.
+Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHOULD`).
 
 ## MUST have directives:
 

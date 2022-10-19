@@ -17,14 +17,8 @@ import scala.build.preprocessing.directives.{
   RequireDirectiveHandler,
   UsingDirectiveHandler
 }
-import scala.cli.ScalaCliCommands
-import scala.cli.ScalaCli
-
-import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, SpecificationLevel}
-import shapeless.tag
-import dotty.tools.dotc.ScalacCommand
-import scala.cli.commands.tags
 import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, SpecificationLevel, tags}
+import scala.cli.{ScalaCli, ScalaCliCommands}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 

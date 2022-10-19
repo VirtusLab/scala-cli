@@ -8,10 +8,10 @@ sidebar_position: 3
 
 # `scala` commands
 
-This document is a specification of `scala` runner.
-For now it uses documentation specific to Scala CLI but at some point it may be refactor to provide more abstract documentation.
-Documentation is splitted into sections in the spirit of RFC keywords (`MUST`, `SHOULD`, `NICE TO HAVE`) including `IMPLEMENTATION` category,
-that is reserved for commands that needs to be present for Scala CLI to work properly but should not be a part of an official API.
+This document is a specification of the `scala` runner.
+For now it uses documentation specific to Scala CLI but at some point it may be refactored to provide more abstract documentation.
+Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHOULD`, `NICE TO HAVE`) including the `IMPLEMENTATION` category,
+that is reserved for commands that need to be present for Scala CLI to work properly but should not be a part of the official API.
 
 ## MUST have commands:
 
@@ -101,7 +101,7 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 ## Implementation-specific commands
 
-Commands that are used within Scala CLI that should be a part of the `scala` command but shouldn't be a part of specification.
+Commands which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification.
 
 ### about
 

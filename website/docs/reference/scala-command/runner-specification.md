@@ -7,10 +7,10 @@ sidebar_position: 1
 **This document describes proposed specification for Scala runner based on Scala CLI documentation as requested per [SIP-46](https://github.com/scala/improvement-proposals/pull/46)**
 
 Commands and options are marked with MUST and SHOULD (in the RFC style) for ones applicable for Scala Runner.
-Options and commands mark as **Implementation** that are needed for smooth running of Scala CLI.
+Options and commands marked as **Implementation** are needed for smooth running of Scala CLI.
 We recommend for those options and commands to be supported by the `scala` command (when based on Scala CLI) but not to be a part of the Scala Runner specification.
 
-The proposed Scala runner specification should contains also supported `Using directives` defined in the dedicated [document](./directives.md)]
+The proposed Scala runner specification should also contain supported `Using directives` defined in the dedicated [document](./directives.md)]
 
 ## Scalac options forwarding
 
