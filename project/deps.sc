@@ -89,7 +89,7 @@ object Deps {
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.15.4+22-9c7fb771-SNAPSHOT"
-  def fansi         = ivy"com.lihaoyi::fansi:0.2.14"
+  def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def guava         = ivy"com.google.guava:guava:31.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r"
