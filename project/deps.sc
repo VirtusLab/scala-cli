@@ -116,7 +116,7 @@ object Deps {
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.6.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.7.3"
+  def pprint                     = ivy"com.lihaoyi::pprint:0.8.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
