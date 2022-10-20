@@ -62,7 +62,7 @@ object Deps {
     def coursier           = "2.1.0-M7"
     def coursierCli        = "2.1.0-M7"
     def coursierM1Cli      = "2.1.0-M7"
-    def jsoniterScala      = "2.17.3"
+    def jsoniterScala      = "2.17.5"
     def jsoniterScalaJava8 = "2.13.5"
     def scalaMeta          = "4.5.13"
     def scalaNative        = "0.4.7"
