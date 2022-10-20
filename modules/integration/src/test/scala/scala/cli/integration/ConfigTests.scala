@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.util.Properties
+
 class ConfigTests extends ScalaCliSuite {
 
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
@@ -80,6 +82,65 @@ class ConfigTests extends ScalaCliSuite {
       expect(readDecoded() == password)
       unset()
       emptyCheck()
+    }
+  }
+
+  test("Respect SCALA_CLI_CONFIG and format on write") {
+    val proxyAddr = "https://foo.bar.com"
+    TestInputs().fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+      val content =
+        // non-formatted on purpose
+        s"""{
+           |  "httpProxy": {  "address" :      "$proxyAddr"     } }
+           |""".stripMargin
+      os.write(confFile, content, createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      val res = os.proc(TestUtil.cli, "config", "httpProxy.address")
+        .call(cwd = root, env = extraEnv)
+      val value = res.out.trim()
+      expect(value == proxyAddr)
+
+      os.proc(TestUtil.cli, "config", "interactive", "false")
+        .call(cwd = root, env = extraEnv)
+
+      val expectedUpdatedContent =
+        // too many spaces after some ':' (jsoniter-scala bug?)
+        s"""{
+           |  "httpProxy": {
+           |    "address":       "https://foo.bar.com"
+           |  },
+           |  "interactive": false
+           |}
+           |""".stripMargin.replace("\r\n", "\n")
+      val updatedContent = os.read(confFile)
+      expect(updatedContent == expectedUpdatedContent)
+    }
+  }
+
+  if (!Properties.isWin)
+    test("Exit with non-zero error code if saving failed") {
+      nonZeroErrorCodeOnFailedSaveTest()
+    }
+  def nonZeroErrorCodeOnFailedSaveTest(): Unit = {
+    val proxyAddr = "https://foo.bar.com"
+    TestInputs().fromRoot { root =>
+      val confDir = root / "config"
+      os.makeDir.all(confDir) // not adjusting perms - should make things fail below
+
+      val confFile = confDir / "test-config.json"
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      val res = os.proc(TestUtil.cli, "config", "httpProxy.address", proxyAddr)
+        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      val output = res.out.trim()
+      expect(output.contains(" has wrong permissions"))
     }
   }
 

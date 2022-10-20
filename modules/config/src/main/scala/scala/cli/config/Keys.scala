@@ -30,21 +30,21 @@ object Keys {
   val globalInteractiveWasSuggested = new Key.BooleanEntry(Seq.empty, "interactive-was-suggested")
 
   def all: Seq[Key[_]] = Seq[Key[_]](
-    interactive,
-    globalInteractiveWasSuggested,
     actions,
-    userName,
-    userEmail,
-    userUrl,
     ghToken,
+    globalInteractiveWasSuggested,
+    interactive,
+    pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,
-    pgpPublicKey,
-    sonatypeUser,
-    sonatypePassword,
     proxyAddress,
+    proxyPassword,
     proxyUser,
-    proxyPassword
+    sonatypePassword,
+    sonatypeUser,
+    userEmail,
+    userName,
+    userUrl
   )
 
   lazy val map: Map[String, Key[_]] = all.map(e => e.fullName -> e).toMap

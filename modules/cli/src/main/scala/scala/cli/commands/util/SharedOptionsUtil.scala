@@ -302,6 +302,8 @@ object SharedOptionsUtil extends CommandHelpers {
                 .set(Keys.interactive, true)
                 .set(Keys.globalInteractiveWasSuggested, true)
                 .save(v.directories.directories.dbPath.toNIO)
+                .wrapConfigException
+                .orExit(logger)
               logger.message(
                 "--interactive is now set permanently. All future scala-cli commands will run with the flag set to true."
               )
@@ -312,6 +314,8 @@ object SharedOptionsUtil extends CommandHelpers {
               configDb
                 .set(Keys.globalInteractiveWasSuggested, true)
                 .save(v.directories.directories.dbPath.toNIO)
+                .wrapConfigException
+                .orExit(logger)
               logger.message(
                 "If you want to turn this setting permanently on at any point, just run `scala-cli config interactive true`."
               )

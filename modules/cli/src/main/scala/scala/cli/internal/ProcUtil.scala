@@ -58,6 +58,10 @@ object ProcUtil {
         conn.setRequestProperty(k, v)
       conn.getInputStream.readAllBytes()
     }
+    catch {
+      case NonFatal(ex) =>
+        throw new RuntimeException(s"Error downloading $url: $ex", ex)
+    }
     finally
       if (conn != null)
         closeConn(conn)

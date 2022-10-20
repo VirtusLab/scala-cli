@@ -17,7 +17,10 @@ trait Directories {
   def cacheDir: os.Path
 
   final def dbPath: os.Path =
-    secretsDir / Directories.defaultDbFileName
+    Option(System.getenv("SCALA_CLI_CONFIG"))
+      .filter(_.trim.nonEmpty)
+      .map(os.Path(_, os.pwd))
+      .getOrElse(secretsDir / Directories.defaultDbFileName)
 }
 
 object Directories {
