@@ -175,14 +175,18 @@ class ConfigTests extends ScalaCliSuite {
       val tmpFileAsc = root / "test-file.asc"
       os.write(tmpFile, "Hello")
 
+      val q = "\""
+      def maybeEscape(arg: String): String =
+        if (Properties.isWin) q + arg + q
+        else arg
       os.proc(
         TestUtil.cli,
         "pgp",
         "sign",
         "--password",
-        password,
+        maybeEscape(password),
         "--secret-key",
-        secretKey,
+        maybeEscape(secretKey),
         tmpFile
       )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
