@@ -829,7 +829,7 @@ jobs:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-    - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
+    - uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2
       with:
         ssh-private-key: |
           ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
@@ -960,7 +960,7 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
         working-directory: artifacts/
-      - uses: webfactory/ssh-agent@fc49353b67b2b7c1e0e6a600572d01a69f2672dd
+      - uses: webfactory/ssh-agent@836c84ec59a0e7bc0eabc79988384eb567561ee2
         with:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
