@@ -247,9 +247,11 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    verbosity(options).foreach(v => CurrentParams.verbosity = v)
+    for (v <- verbosity(options))
+      CurrentParams.verbosity = v
     maybePrintGroupHelp(options)
-    buildOptions(options).foreach(bo => maybePrintSimpleScalacOutput(options, bo))
+    for (bo <- buildOptions(options))
+      maybePrintSimpleScalacOutput(options, bo)
     runCommand(options, remainingArgs)
   }
 }
