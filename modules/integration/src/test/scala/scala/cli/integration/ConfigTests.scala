@@ -144,4 +144,58 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  test("Create a default PGP key") {
+    TestInputs().fromRoot { root =>
+      val configFile = {
+        val dir = root / "config"
+        os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map(
+        "SCALA_CLI_CONFIG" -> configFile.toString
+      )
+      val checkRes = os.proc(TestUtil.cli, "config", "--create-pgp-key")
+        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      expect(checkRes.exitCode != 0)
+      expect(checkRes.out.text().contains("--email"))
+      os.proc(TestUtil.cli, "config", "--create-pgp-key", "--email", "alex@alex.me")
+        .call(cwd = root, env = extraEnv, stdin = os.Inherit, stdout = os.Inherit)
+
+      val password = os.proc(TestUtil.cli, "config", "pgp.secret-key-password")
+        .call(cwd = root, env = extraEnv)
+        .out.trim()
+      val secretKey = os.proc(TestUtil.cli, "config", "pgp.secret-key")
+        .call(cwd = root, env = extraEnv)
+        .out.trim()
+      val rawPublicKey = os.proc(TestUtil.cli, "config", "pgp.public-key", "--password")
+        .call(cwd = root, env = extraEnv)
+        .out.trim()
+
+      val tmpFile    = root / "test-file"
+      val tmpFileAsc = root / "test-file.asc"
+      os.write(tmpFile, "Hello")
+
+      val q = "\""
+      def maybeEscape(arg: String): String =
+        if (Properties.isWin) q + arg + q
+        else arg
+      os.proc(
+        TestUtil.cli,
+        "pgp",
+        "sign",
+        "--password",
+        maybeEscape(password),
+        "--secret-key",
+        maybeEscape(secretKey),
+        tmpFile
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      val pubKeyFile = root / "key.pub"
+      os.write(pubKeyFile, rawPublicKey)
+      os.proc(TestUtil.cli, "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+    }
+  }
+
 }

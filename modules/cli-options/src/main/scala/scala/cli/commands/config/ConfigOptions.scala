@@ -28,6 +28,9 @@ final case class ConfigOptions(
   @HelpMessage("Create PGP key in config")
     createPgpKey: Boolean = false,
   @Group("Config")
+  @HelpMessage("Email to use to create PGP key in config")
+    email: Option[String] = None,
+  @Group("Config")
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
     password: Boolean = false,
   @Group("Config")
