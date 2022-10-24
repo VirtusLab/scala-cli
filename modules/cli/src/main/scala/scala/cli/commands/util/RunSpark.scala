@@ -16,6 +16,7 @@ object RunSpark {
     build: Build.Successful,
     mainClass: String,
     args: Seq[String],
+    submitArgs: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
     showCommand: Boolean,
@@ -54,6 +55,7 @@ object RunSpark {
       Seq(submitCommand, "--class", mainClass) ++
         jarsArgs ++
         javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++
+        submitArgs ++
         Seq(library.toString) ++
         args
     val envUpdates = javaHomeInfo.envUpdates(sys.env)
@@ -77,6 +79,7 @@ object RunSpark {
     build: Build.Successful,
     mainClass: String,
     args: Seq[String],
+    submitArgs: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
     showCommand: Boolean,
@@ -107,6 +110,7 @@ object RunSpark {
       Seq("--class", mainClass) ++
         jarsArgs ++
         javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++
+        submitArgs ++
         Seq(library.toString) ++
         args
     val envUpdates = javaHomeInfo.envUpdates(sys.env)
