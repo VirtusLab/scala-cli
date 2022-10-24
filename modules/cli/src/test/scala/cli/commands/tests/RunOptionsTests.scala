@@ -15,7 +15,7 @@ class RunOptionsTests extends munit.FunSuite {
         )
       )
     )
-    val Some(buildOptions) = Run.buildOptions(runOptions)
+    val buildOptions = Run.buildOptions(runOptions).value
     expect(buildOptions.notForBloopOptions.scalaPyVersion.contains(ver))
   }
 

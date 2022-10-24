@@ -24,7 +24,7 @@ object Test extends ScalaCommand[TestOptions] {
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET
 
-  override def buildOptions(opts: TestOptions): Option[BuildOptions] = Option {
+  override def buildOptions(opts: TestOptions): Option[BuildOptions] = Some {
     import opts.*
     val baseOptions = shared.buildOptions().orExit(opts.shared.logger)
     baseOptions.copy(

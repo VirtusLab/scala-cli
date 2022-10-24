@@ -44,7 +44,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
   }
 
   override def buildOptions(options: MetabrowseOptions): Option[BuildOptions] =
-    Option {
+    Some {
       val baseOptions = options.shared.buildOptions().orExit(options.shared.logger)
       baseOptions.copy(
         classPathOptions = baseOptions.classPathOptions.copy(

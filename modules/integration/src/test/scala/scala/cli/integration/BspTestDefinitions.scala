@@ -1047,8 +1047,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
 
-          val Some(responseError) =
-            extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+          val reloadResp = await(remoteServer.workspaceReload().asScala)
+          val responseError = extractWorkspaceReloadResponse(reloadResp).getOrElse {
+            sys.error(s"Unexpected workspace reload response shape $reloadResp")
+          }
           expect(responseError.getCode == -32603)
           expect(responseError.getMessage.nonEmpty)
         }
