@@ -27,7 +27,7 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
-  override def buildOptions(ops: ReplOptions): Option[BuildOptions] = Option {
+  override def buildOptions(ops: ReplOptions): Option[BuildOptions] = Some {
     import ops.*
     import ops.sharedRepl.*
     val baseOptions = shared.buildOptions().orExit(ops.shared.logger)

@@ -53,7 +53,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       () => Inputs.default()
     )
 
-  override def buildOptions(options: RunOptions): Option[BuildOptions] = Option {
+  override def buildOptions(options: RunOptions): Option[BuildOptions] = Some {
     import options.*
     import options.sharedRun.*
     val logger = options.shared.logger
