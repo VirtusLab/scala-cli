@@ -15,5 +15,3 @@ That is why we built in a mechanism to limit the commands, options, directives b
 ## Testing Scala CLI as `scala`
 
 The recommended way to test and use Scala CLI, as it will be `scala` command is to create a link to the existing Scala CLI binary named `scala-cli-sip` and add it to PATH.
-
-In future it will be also possible to use coursier as well, for now there is a [bug](https://github.com/VirtusLab/scala-cli/issues/1307) and Scala CLI does not recognize it is installed as `scala-cli-sip` or `scala` when installed using coursier.
