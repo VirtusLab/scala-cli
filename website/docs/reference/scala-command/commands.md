@@ -54,6 +54,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Print help message
 
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+
 ## install completions
 
 Aliases: `install-completions`
