@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.pgp.SharedPgpPushPullOptions
 import scala.cli.commands.{
   CoursierOptions,
@@ -60,7 +61,7 @@ final case class PublishSetupOptions(
   @Group("Publishing")
   @HelpMessage("Dummy mode - don't upload any secret to GitHub")
     dummy: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object PublishSetupOptions {

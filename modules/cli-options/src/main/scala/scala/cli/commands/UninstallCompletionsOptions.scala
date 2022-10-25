@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
+
 // format: off
 @HelpMessage("Uninstalls completions from your shell")
 final case class UninstallCompletionsOptions(
@@ -9,7 +11,7 @@ final case class UninstallCompletionsOptions(
     shared: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),
   @Recurse
     logging: LoggingOptions = LoggingOptions()
-)
+) extends HasLoggingOptions
 // format: on
 
 object UninstallCompletionsOptions {

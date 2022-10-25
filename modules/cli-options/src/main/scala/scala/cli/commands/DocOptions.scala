@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.cli.commands.common.HasSharedOptions
+
 // format: off
 @HelpMessage("Generate Scaladoc documentation", "By default, Scala CLI sets common scaladoc options and this mechanism can be disabled by using `--default-scaladoc-opts:false`.")
 final case class DocOptions(
@@ -20,7 +22,7 @@ final case class DocOptions(
   @HelpMessage("Control if scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,
-)
+) extends HasSharedOptions
 // format: on
 
 object DocOptions {

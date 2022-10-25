@@ -2,6 +2,7 @@ package scala.cli.commands.config
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.{
   CoursierOptions,
   LoggingOptions,
@@ -52,7 +53,7 @@ final case class ConfigOptions(
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
     passOnRedirect: Option[Boolean] = None
-)
+) extends HasLoggingOptions
 // format: on
 
 object ConfigOptions {

@@ -3,15 +3,13 @@ package scala.cli.commands
 import caseapp.*
 
 import scala.build.internal.Constants
-import scala.build.{Inputs, Os}
+import scala.build.{Inputs, Logger, Os}
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group = "Main"
-  override def loggingOptions(options: CleanOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: CleanOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: CleanOptions, args: RemainingArgs, logger: Logger): Unit = {
     val inputs = Inputs(
       args.all,
       Os.pwd,
@@ -30,7 +28,6 @@ object Clean extends ScalaCommand[CleanOptions] {
     val workDir       = inputs.workspace / Constants.workspaceDirName
     val (_, bspEntry) = SetupIde.bspDetails(inputs.workspace, options.bspFile)
 
-    val logger = options.logging.logger
     if (os.exists(workDir)) {
       logger.debug(s"Working directory: $workDir")
       if (os.isDir(workDir)) {

@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
+
 
 // format: off
 final case class BloopExitOptions(
@@ -13,7 +15,7 @@ final case class BloopExitOptions(
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions()
-)
+) extends HasLoggingOptions
 // format: on
 
 object BloopExitOptions {

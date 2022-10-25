@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
+
 // format: off
 final case class BloopStartOptions(
   @Recurse
@@ -16,7 +18,7 @@ final case class BloopStartOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Name("f")
     force: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object BloopStartOptions {

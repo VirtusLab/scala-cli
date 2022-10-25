@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp._
 import caseapp.core.help.Help
 
+import scala.cli.commands.common.HasSharedOptions
+
 // format: off
 @HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
@@ -90,7 +92,7 @@ final case class PackageOptions(
   @HelpMessage("Build GraalVM native image")
   @ExtraName("graal")
     nativeImage: Boolean = false
-)
+) extends HasSharedOptions
 // format: on
 
 object PackageOptions {

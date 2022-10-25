@@ -132,10 +132,11 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     }
   }
 
-  override def runCommand(options: SecretCreateOptions, args: RemainingArgs): Unit = {
-
-    val logger = options.shared.logging.logger
-
+  override def runCommand(
+    options: SecretCreateOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     val secrets = args.all.map(parseSecretKv)
 
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)

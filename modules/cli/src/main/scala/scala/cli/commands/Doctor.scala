@@ -30,7 +30,7 @@ import scala.cli.signing.shared.Secret
 object Doctor extends ScalaCommand[DoctorOptions] {
   override def group = "Doctor"
 
-  override def runCommand(options: DoctorOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DoctorOptions, args: RemainingArgs, logger: Logger): Unit = {
     checkIsVersionOutdated(options.ghToken.map(_.get()))
     checkBloopStatus()
     checkDuplicatesOnPath()

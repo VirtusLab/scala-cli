@@ -5,7 +5,7 @@ import caseapp.*
 import java.io.File
 
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, BuildThreads, Builds, Os}
+import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.BuildCommandHelpers
@@ -16,8 +16,7 @@ import scala.cli.config.{ConfigDb, Keys}
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group                                                         = "Main"
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
-  override def runCommand(options: CompileOptions, args: RemainingArgs): Unit = {
-    val logger       = options.shared.logger
+  override def runCommand(options: CompileOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
     val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)

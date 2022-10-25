@@ -2,12 +2,14 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
+
 // format: off
 @HelpMessage("Print help message")
 case class HelpOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions()
-)
+) extends HasLoggingOptions
 // format: on
 
 object HelpOptions {

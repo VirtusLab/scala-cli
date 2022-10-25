@@ -42,9 +42,8 @@ object Test extends ScalaCommand[TestOptions] {
     )
   }
 
-  override def runCommand(options: TestOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: TestOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(

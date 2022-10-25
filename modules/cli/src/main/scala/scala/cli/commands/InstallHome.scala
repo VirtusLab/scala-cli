@@ -52,11 +52,11 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
       sys.exit(1)
     }
 
-  override def loggingOptions(options: InstallHomeOptions): Option[LoggingOptions] =
-    Some(options.logging)
-
-  override def runCommand(options: InstallHomeOptions, args: RemainingArgs): Unit = {
-    val logger = options.logging.logger
+  override def runCommand(
+    options: InstallHomeOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
     val destBinPath = binDirPath / options.binaryName

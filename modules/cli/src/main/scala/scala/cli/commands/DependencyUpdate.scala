@@ -15,11 +15,14 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group = "Main"
   override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
     Some(options.shared)
-  override def runCommand(options: DependencyUpdateOptions, args: RemainingArgs): Unit = {
+  override def runCommand(
+    options: DependencyUpdateOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
 
-    val logger = options.shared.logger
     val inputs = options.shared.inputs(args.all).orExit(logger)
 
     val (crossSources, _) =

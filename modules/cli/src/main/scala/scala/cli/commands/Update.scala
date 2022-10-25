@@ -120,11 +120,12 @@ object Update extends ScalaCommand[UpdateOptions] {
       )
   }
 
-  override def loggingOptions(options: UpdateOptions): Option[LoggingOptions] =
-    Some(options.logging)
-
-  override def runCommand(options: UpdateOptions, remainingArgs: RemainingArgs): Unit =
-    checkUpdate(options, options.logging.logger)
+  override def runCommand(
+    options: UpdateOptions,
+    remainingArgs: RemainingArgs,
+    logger: Logger
+  ): Unit =
+    checkUpdate(options, logger)
 
   def checkUpdate(options: UpdateOptions, logger: Logger): Unit = {
     val scalaCliBinPath = installDirPath(options) / options.binaryName

@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers._
 
@@ -13,7 +14,7 @@ final case class AboutOptions(
   @Hidden
   @HelpMessage(HelpMessages.passwordOption)
     ghToken: Option[PasswordOption] = None
-)
+) extends HasLoggingOptions
 // format: on
 
 

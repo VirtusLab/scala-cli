@@ -23,9 +23,8 @@ import scala.util.Properties
 object Doc extends ScalaCommand[DocOptions] {
   override def group                                                     = "Main"
   override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
-  override def runCommand(options: DocOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: DocOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()

@@ -48,8 +48,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   override def buildOptions(options: PackageOptions): Option[BuildOptions] =
     Some(options.baseBuildOptions.orExit(options.shared.logger))
-  override def runCommand(options: PackageOptions, args: RemainingArgs): Unit = {
-    val logger = options.shared.logger
+  override def runCommand(options: PackageOptions, args: RemainingArgs, logger: Logger): Unit = {
     val inputs = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 

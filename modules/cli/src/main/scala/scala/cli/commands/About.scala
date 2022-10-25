@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
@@ -9,9 +10,7 @@ import scala.cli.commands.util.CommonOps.*
 class About(isSipScala: Boolean) extends ScalaCommand[AboutOptions] {
 
   override def group                                                         = "Miscellaneous"
-  override def loggingOptions(options: AboutOptions): Option[LoggingOptions] = Some(options.logging)
-  override def runCommand(options: AboutOptions, args: RemainingArgs): Unit = {
-    val logger = options.logging.logger
+  override def runCommand(options: AboutOptions, args: RemainingArgs, logger: Logger): Unit = {
     println(Version.versionInfo(isSipScala))
     val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))
     val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, Constants.version)

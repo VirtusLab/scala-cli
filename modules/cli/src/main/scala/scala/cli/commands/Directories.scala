@@ -2,16 +2,18 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true
   override def isRestricted    = true
-  override def loggingOptions(options: DirectoriesOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: DirectoriesOptions, args: RemainingArgs): Unit = {
-    val logger = options.logging.logger
+  override def runCommand(
+    options: DirectoriesOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     if (args.all.nonEmpty) {
       logger.error("The directories command doesn't accept arguments.")
       sys.exit(1)

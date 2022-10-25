@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasSharedOptions
+
 // format: off
 case class DefaultOptions(
   @Recurse
@@ -12,7 +14,7 @@ case class DefaultOptions(
     sharedRepl: SharedReplOptions = SharedReplOptions(),
   @Name("-version")
     version: Boolean = false
-)
+) extends HasSharedOptions
 // format: on
 
 object DefaultOptions {

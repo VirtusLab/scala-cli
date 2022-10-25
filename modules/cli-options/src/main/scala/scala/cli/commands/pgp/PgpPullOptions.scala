@@ -3,6 +3,7 @@ package scala.cli.commands.pgp
 import caseapp._
 
 import scala.cli.commands.LoggingOptions
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 final case class PgpPullOptions(
@@ -13,7 +14,7 @@ final case class PgpPullOptions(
   @Group("PGP")
   @HelpMessage("Whether to exit with code 0 if no key is passed")
     allowEmpty: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object PgpPullOptions {

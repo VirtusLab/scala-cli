@@ -6,7 +6,7 @@ import caseapp._
 final case class ListSecretsOptions(
   @Recurse
     shared: SharedSecretOptions
-)
+) extends HasSharedSecretOptions
 // format: on
 
 object ListSecretsOptions {

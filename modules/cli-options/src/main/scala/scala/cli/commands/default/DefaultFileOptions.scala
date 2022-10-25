@@ -3,6 +3,7 @@ package scala.cli.commands.default
 import caseapp._
 
 import scala.cli.commands.LoggingOptions
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 final case class DefaultFileOptions(
@@ -21,7 +22,7 @@ final case class DefaultFileOptions(
   @HelpMessage("Force overwriting destination files")
   @ExtraName("f")
     force: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object DefaultFileOptions {

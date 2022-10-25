@@ -2,6 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.core.RemainingArgs
 
+import scala.build.Logger
 import scala.build.blooprifle.BloopRifleConfig
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
@@ -14,10 +15,7 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
   override def names: List[List[String]] = List(
     List("bloop", "output")
   )
-  override def loggingOptions(options: BloopOutputOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: BloopOutputOptions, args: RemainingArgs): Unit = {
-    val logger = options.logging.logger
+  override def runCommand(options: BloopOutputOptions, args: RemainingArgs, logger: Logger): Unit = {
     val bloopRifleConfig = options.compilationServer.bloopRifleConfig(
       logger,
       CoursierOptions().coursierCache(logger.coursierLogger("Downloading Bloop")), // unused here

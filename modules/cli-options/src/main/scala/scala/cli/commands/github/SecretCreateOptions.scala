@@ -16,7 +16,7 @@ final case class SecretCreateOptions(
     dummy: Boolean = false,
   @Hidden
     printRequest: Boolean = false
-)
+) extends HasSharedSecretOptions
 // format: on
 
 object SecretCreateOptions {

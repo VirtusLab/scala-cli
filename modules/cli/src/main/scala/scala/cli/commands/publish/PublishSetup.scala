@@ -5,15 +5,15 @@ import coursier.cache.ArchiveCache
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, InternalOptions, Scope}
-import scala.build.{CrossSources, Sources}
+import scala.build.{CrossSources, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
-import scala.cli.commands.publish.ConfigUtil._
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.{ScalaCliSttpBackend, SharedOptionsUtil}
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
@@ -28,11 +28,13 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     List("publish", "setup")
   )
 
-  override def runCommand(options: PublishSetupOptions, args: RemainingArgs): Unit = {
-
+  override def runCommand(
+    options: PublishSetupOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
-    val logger        = options.logging.logger
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
 
     lazy val configDb = ConfigDb.open(options.directories.directories.dbPath.toNIO)

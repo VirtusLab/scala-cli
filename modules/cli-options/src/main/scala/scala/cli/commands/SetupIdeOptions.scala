@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasSharedOptions
+
 // format: off
 @HelpMessage("Generate a BSP file that you can import into your IDE")
 final case class SetupIdeOptions(
@@ -11,7 +13,7 @@ final case class SetupIdeOptions(
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Hidden
   charset: Option[String] = None
-)
+) extends HasSharedOptions
 // format: on
 
 object SetupIdeOptions {

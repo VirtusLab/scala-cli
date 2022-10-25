@@ -2,6 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.{CoursierOptions, LoggingOptions, SharedCompilationServerOptions, SharedDirectoriesOptions, SharedJvmOptions}
 
 // format: off
@@ -20,7 +21,7 @@ final case class BloopOptions(
   @ExtraName("workingDir")
   @ExtraName("dir")
     workingDirectory: Option[String] = None
-) {
+) extends HasLoggingOptions {
   // format: on
 
   def workDirOpt: Option[os.Path] =

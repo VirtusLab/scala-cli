@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasLoggingOptions
+
 // format: off
 @HelpMessage("Clean the workspace")
 final case class CleanOptions(
@@ -13,7 +15,7 @@ final case class CleanOptions(
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions()
-)
+) extends HasLoggingOptions
 // format: on
 
 object CleanOptions {

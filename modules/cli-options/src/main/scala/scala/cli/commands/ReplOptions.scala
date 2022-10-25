@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp._
 
+import scala.cli.commands.common.HasSharedOptions
+
 // format: off
 @HelpMessage("Fire-up a Scala REPL")
 final case class ReplOptions(
@@ -9,7 +11,7 @@ final case class ReplOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     sharedRepl: SharedReplOptions = SharedReplOptions()
-)
+) extends HasSharedOptions
 // format: on
 
 object ReplOptions {

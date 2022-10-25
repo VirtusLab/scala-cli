@@ -52,9 +52,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
-  override def runCommand(options: SetupIdeOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: SetupIdeOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val logger       = options.shared.logging.logger
     val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 

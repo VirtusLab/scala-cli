@@ -2,8 +2,8 @@ package scala.cli.commands
 
 import caseapp.*
 
-import scala.build.Os
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
+import scala.build.{Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
@@ -26,12 +26,8 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     )
   }
 
-  override def loggingOptions(options: BloopExitOptions): Option[LoggingOptions] =
-    Some(options.logging)
-
-  override def runCommand(options: BloopExitOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: BloopExitOptions, args: RemainingArgs, logger: Logger): Unit = {
     val bloopRifleConfig = mkBloopRifleConfig(options)
-    val logger           = options.logging.logger
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
 

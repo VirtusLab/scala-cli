@@ -75,9 +75,8 @@ object Export extends ScalaCommand[ExportOptions] {
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
-  override def runCommand(options: ExportOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: ExportOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val logger              = options.shared.logger
 
     val output = options.output.getOrElse("dest")
     val dest   = os.Path(output, os.pwd)

@@ -88,12 +88,11 @@ object Repl extends ScalaCommand[ReplOptions] {
   private def runMode(options: ReplOptions): RunMode.HasRepl =
     RunMode.Default
 
-  override def runCommand(options: ReplOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
     def default = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
-    val logger = options.shared.logger
     val inputs =
       options.shared.inputs(args.remaining, defaultInputs = () => Some(default)).orExit(logger)
     val programArgs = args.unparsed

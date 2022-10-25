@@ -5,6 +5,7 @@ import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File
 
+import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
 import scala.util.Properties
@@ -12,10 +13,7 @@ import scala.util.Properties
 object AddPath extends ScalaCommand[AddPathOptions] {
   override def hidden       = true
   override def isRestricted = true
-  override def loggingOptions(options: AddPathOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: AddPathOptions, args: RemainingArgs): Unit = {
-    val logger = options.logging.logger
+  override def runCommand(options: AddPathOptions, args: RemainingArgs, logger: Logger): Unit = {
     if args.all.isEmpty then logger.error("Nothing to do")
     else {
       val update = EnvironmentUpdate(Nil, Seq("PATH" -> args.all.mkString(File.pathSeparator)))
