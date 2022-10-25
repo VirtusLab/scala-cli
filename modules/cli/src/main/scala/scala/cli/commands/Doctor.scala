@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.core.RemainingArgs
 
+import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.ScalaCli
 import scala.cli.internal.ProcUtil

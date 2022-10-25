@@ -40,7 +40,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Print details about this application
 
-Accepts option groups: [doctor](./cli-options.md#doctor-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [doctor](./cli-options.md#doctor-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## export
 
