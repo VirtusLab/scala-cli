@@ -23,16 +23,12 @@ import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
 abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
-    extends Command()(myParser, help) with NeedsArgvCommand with CommandHelpers {
+    extends Command()(myParser, help)
+    with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
   override def hasFullHelp = true
-
-  override def parser: Parser[T] =
-    RestrictedCommandsParser(myParser)
-
-  def isRestricted: Boolean = false
 
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {
