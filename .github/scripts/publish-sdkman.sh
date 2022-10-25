@@ -15,12 +15,13 @@ version() {
 }
 
 SCALA_CLI_VERSION="$(version)"
-UNAMES=("pc-linux-static-sdk" "apple-darwin-sdk" "pc-win32-sdk")
-PLATFORMS=("LINUX_64" "MAC_OSX" "WINDOWS_64")
+ARCHS=("x86_64" "x86_64" "aarch64" "x86_64")
+UNAMES=("pc-linux-static-sdk" "apple-darwin-sdk" "apple-darwin-sdk" "pc-win32-sdk")
+PLATFORMS=("LINUX_64" "MAC_OSX" "MAC_ARM64" "WINDOWS_64")
 
 for i in "${!PLATFORMS[@]}"; do
 
-    SCALA_CLI_URL="https://github.com/VirtuslabRnD/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-x86_64-${UNAMES[i]}.zip"
+    SCALA_CLI_URL="https://github.com/VirtuslabRnD/scala-cli/releases/download/v$SCALA_CLI_VERSION/scala-cli-${ARCHS[i]}-${UNAMES[i]}.zip"
 
     # Release a new Candidate Version
     curl --silent --show-error --fail \

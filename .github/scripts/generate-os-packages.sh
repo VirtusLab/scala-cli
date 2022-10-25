@@ -106,7 +106,11 @@ generate_sdk() {
     sdkDirectory="scala-cli-x86_64-pc-linux-static-sdk"
     binName="scala-cli"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
+    if [[ "$(uname -m)" == "arm64" ]]; then
+      sdkDirectory="scala-cli-aarch64-apple-darwin-sdk"
+    else
+      sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
+    fi
     binName="scala-cli"
   elif [[ "$OSTYPE" == "msys" ]]; then
     sdkDirectory="scala-cli-x86_64-pc-win32-sdk"
@@ -133,12 +137,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
   generate_rpm
   generate_sdk
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ "$(uname -m)" == "arm" ]; then
+  if [ "$(uname -m)" == "arm64" ]; then
     generate_pkg "aarch64"
   else
     generate_pkg "x86_64"
-    generate_sdk
   fi
+  generate_sdk
 elif [[ "$OSTYPE" == "msys" ]]; then
   generate_msi
   generate_sdk
