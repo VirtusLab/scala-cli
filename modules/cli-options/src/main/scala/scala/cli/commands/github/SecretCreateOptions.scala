@@ -1,6 +1,6 @@
 package scala.cli.commands.github
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.CoursierOptions
 

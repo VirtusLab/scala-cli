@@ -1,6 +1,6 @@
 package scala.cli.commands.config
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.{

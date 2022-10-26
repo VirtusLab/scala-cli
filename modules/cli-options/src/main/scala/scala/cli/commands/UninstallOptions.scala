@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.nio.file.Path
 import scala.cli.commands.common.HasLoggingOptions

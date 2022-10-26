@@ -1,10 +1,10 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers._
+import scala.cli.signing.util.ArgParsers.*
 
 // format: off
 @HelpMessage("Print details about this application")
@@ -17,8 +17,7 @@ final case class AboutOptions(
 ) extends HasLoggingOptions
 // format: on
 
-
 object AboutOptions {
   implicit lazy val parser: Parser[AboutOptions] = Parser.derive
-  implicit lazy val help: Help[AboutOptions]   = Help.derive
+  implicit lazy val help: Help[AboutOptions]     = Help.derive
 }

@@ -1,6 +1,6 @@
 package scala.cli.launcher
 
-import caseapp._
+import caseapp.*
 
 @HelpMessage("Run another Scala CLI version")
 final case class LauncherOptions(

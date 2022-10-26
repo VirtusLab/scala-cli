@@ -1,6 +1,6 @@
 package scala.cli.commands.pgp
 
-import caseapp._
+import caseapp.*
 
 final case class DummyOptions()
 

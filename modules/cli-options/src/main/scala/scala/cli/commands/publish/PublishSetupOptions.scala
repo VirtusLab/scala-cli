@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.pgp.SharedPgpPushPullOptions
@@ -13,7 +13,7 @@ import scala.cli.commands.{
   SharedWorkspaceOptions
 }
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers._
+import scala.cli.signing.util.ArgParsers.*
 
 // format: off
 final case class PublishSetupOptions(

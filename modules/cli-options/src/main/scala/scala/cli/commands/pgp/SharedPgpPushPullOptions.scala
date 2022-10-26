@@ -1,6 +1,6 @@
 package scala.cli.commands.pgp
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.LoggingOptions
 

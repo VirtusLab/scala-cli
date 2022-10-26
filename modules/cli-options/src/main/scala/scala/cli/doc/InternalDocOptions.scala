@@ -1,6 +1,6 @@
 package scala.cli.doc
 
-import caseapp._
+import caseapp.*
 
 final case class InternalDocOptions(
   outputDir: String = "website/docs/reference",

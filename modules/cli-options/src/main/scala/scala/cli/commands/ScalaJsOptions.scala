@@ -1,8 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 // format: off
 final case class ScalaJsOptions(

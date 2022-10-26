@@ -1,11 +1,11 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.{Arg, Error}
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 // format: off
 final case class ScalacOptions(

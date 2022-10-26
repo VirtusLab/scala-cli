@@ -1,9 +1,9 @@
 package scala.cli.commands.github
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers._
+import scala.cli.signing.util.ArgParsers.*
 import scala.cli.commands.LoggingOptions
 import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.signing.shared.Secret
