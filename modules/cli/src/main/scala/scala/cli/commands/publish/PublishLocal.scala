@@ -34,6 +34,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       options.publishParams,
       options.sharedPublish,
       PublishRepositoryOptions(),
+      options.sharedPython,
       options.mainClass,
       None
     ).orExit(logger)

@@ -7,6 +7,7 @@ import scala.cli.commands.{
   MainClassOptions,
   SharedDirectoriesOptions,
   SharedOptions,
+  SharedPythonOptions,
   SharedWatchOptions
 }
 
@@ -26,6 +27,8 @@ final case class PublishOptions(
     publishRepo: PublishRepositoryOptions = PublishRepositoryOptions(),
   @Recurse
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
 
   @Group("Publishing")
   @Hidden

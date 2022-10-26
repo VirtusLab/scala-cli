@@ -9,6 +9,7 @@ final case class ScalaArtifacts(
   scalaJsCli: Seq[os.Path],
   scalaNativeCli: Seq[os.Path],
   internalDependencies: Seq[AnyDependency],
+  extraDependencies: Seq[AnyDependency],
   params: ScalaParameters
 ) {
 
