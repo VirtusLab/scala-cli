@@ -33,11 +33,20 @@ object ScalacOptions {
   private val scalacOptionsPurePrefixes =
     Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
-    Set("-g", "-language", "-opt", "-P", "-target") ++ scalacOptionsPurePrefixes
+    Set("-g", "-language", "-opt", "-P", "-target", "-source") ++ scalacOptionsPurePrefixes
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set("-encoding", "-release", "-color")
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
-    Set("-nowarn", "-feature", "-deprecation")
+    Set(
+      "-nowarn",
+      "-feature",
+      "-deprecation",
+      "-rewrite",
+      "-old-syntax",
+      "-new-syntax",
+      "-indent",
+      "-no-indent"
+    )
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
     * message instead.
