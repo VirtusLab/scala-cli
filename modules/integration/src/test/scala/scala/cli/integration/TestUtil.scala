@@ -3,11 +3,12 @@ package scala.cli.integration
 import os.{CommandResult, Path}
 
 import java.io.File
+import java.net.ServerSocket
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
 import scala.annotation.tailrec
-import scala.concurrent.duration.{DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.util.Properties
 
 object TestUtil {
@@ -142,4 +143,81 @@ object TestUtil {
     *   escape the quotation marks passed in args for the Windows command line.
     */
   def argQuotationMark: String = if (Properties.isWin) "\"\"" else "\""
+
+  def serveFilesInHttpServer[T](
+    path: os.Path,
+    user: String,
+    password: String,
+    realm: String
+  )(f: (String, Int) => T): T = {
+    val host = "127.0.0.1"
+    val port = {
+      val s = new ServerSocket(0)
+      try s.getLocalPort()
+      finally s.close()
+    }
+    val proc = os.proc(
+      cs,
+      "launch",
+      "io.get-coursier:http-server_2.12:1.0.1",
+      "--",
+      "--user",
+      user,
+      "--password",
+      password,
+      "--realm",
+      realm,
+      "--directory",
+      ".",
+      "--host",
+      host,
+      "--port",
+      port,
+      "-v"
+    )
+      .spawn(cwd = path, mergeErrIntoOut = true)
+    try {
+
+      // a timeout around this would be great…
+      System.err.println(s"Waiting for local HTTP server to get started on $host:$port…")
+      var lineOpt = Option.empty[String]
+      while (
+        proc.isAlive() && {
+          lineOpt = Some(proc.stdout.readLine())
+          !lineOpt.exists(_.startsWith("Listening on "))
+        }
+      )
+        for (l <- lineOpt)
+          System.err.println(l)
+
+      // Seems required, especially when using native launchers
+      val waitFor = Duration(2L, "s")
+      System.err.println(s"Waiting $waitFor")
+      Thread.sleep(waitFor.toMillis)
+
+      val t = new Thread("test-http-server-output") {
+        setDaemon(true)
+        override def run(): Unit = {
+          var line = ""
+          while (
+            proc.isAlive() && {
+              line = proc.stdout.readLine()
+              line != null
+            }
+          )
+            System.err.println(line)
+        }
+      }
+      t.start()
+      f(host, port)
+    }
+    finally {
+      proc.destroy()
+      Thread.sleep(100L)
+      if (proc.isAlive()) {
+        Thread.sleep(1000L)
+        proc.destroyForcibly()
+      }
+    }
+  }
 }

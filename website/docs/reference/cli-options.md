@@ -1678,8 +1678,30 @@ If the entry is a password, save the password value rather than how to get the p
 
 ### `--unset`
 
+Aliases: `--remove`
+
 [Internal]
 Remove an entry from config
+
+### `--https-only`
+
+[Internal]
+For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)
+
+### `--match-host`
+
+[Internal]
+For repository.credentials, whether to use these credentials automatically based on the host
+
+### `--optional`
+
+[Internal]
+For repository.credentials, whether to use these credentials are optional
+
+### `--pass-on-redirect`
+
+[Internal]
+For repository.credentials, whether to use these credentials should be passed upon redirection
 
 ### Coursier options
 

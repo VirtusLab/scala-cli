@@ -63,6 +63,14 @@ object Key {
         cause
       )
 
+  final class MalformedEntry(
+    entry: Key[_],
+    messages: ::[String]
+  ) extends EntryError(
+        s"Malformed entry ${entry.fullName}, " +
+          messages.mkString(", ")
+      )
+
   private val stringCodec: JsonValueCodec[String]   = JsonCodecMaker.make
   private val booleanCodec: JsonValueCodec[Boolean] = JsonCodecMaker.make
 

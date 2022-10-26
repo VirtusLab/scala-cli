@@ -38,7 +38,20 @@ final case class ConfigOptions(
     passwordValue: Boolean = false,
   @Group("Config")
   @HelpMessage("Remove an entry from config")
-    unset: Boolean = false
+  @ExtraName("remove")
+    unset: Boolean = false,
+  @Group("Config")
+  @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")
+    httpsOnly: Option[Boolean] = None,
+  @Group("Config")
+  @HelpMessage("For repository.credentials, whether to use these credentials automatically based on the host")
+    matchHost: Option[Boolean] = None,
+  @Group("Config")
+  @HelpMessage("For repository.credentials, whether to use these credentials are optional")
+    optional: Option[Boolean] = None,
+  @Group("Config")
+  @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
+    passOnRedirect: Option[Boolean] = None
 )
 // format: on
 
