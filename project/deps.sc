@@ -29,6 +29,26 @@ object Scala {
       (0 until max31).map(i => s"3.1.$i") ++ Seq(scala3)
   }
 
+  def maxAmmoniteScala212Version = scala212
+  def maxAmmoniteScala213Version = scala213
+  def maxAmmoniteScala3Version   = scala3
+  lazy val listAllAmmonite = {
+    import coursier.core.Version
+    val max212 = Version(maxAmmoniteScala212Version)
+    val max213 = Version(maxAmmoniteScala213Version)
+    val max3   = Version(maxAmmoniteScala3Version)
+    listAll.filter { v =>
+      if (v.startsWith("3."))
+        Version(v).compareTo(max3) <= 0
+      else if (v.startsWith("2.13."))
+        Version(v).compareTo(max213) <= 0
+      else if (v.startsWith("2.12."))
+        Version(v).compareTo(max212) <= 0
+      else
+        true
+    }
+  }
+
   // The Scala version used to build the CLI itself.
   // We should be able to switch to 3.x when it'll have CPS support
   // (for the either { value(…) } stuff)

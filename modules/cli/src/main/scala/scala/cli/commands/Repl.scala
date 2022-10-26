@@ -10,7 +10,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{BuildOptions, JavaOpt, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.Run.{maybePrintSimpleScalacOutput, orPythonDetectionError}
 import scala.cli.commands.publish.ConfigUtil.*
@@ -28,11 +28,43 @@ object Repl extends ScalaCommand[ReplOptions] {
   )
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
-  override def buildOptions(ops: ReplOptions): Some[BuildOptions] = Some {
+  override def buildOptions(ops: ReplOptions): Some[BuildOptions] =
+    Some(buildOptions0(ops, scala.cli.internal.Constants.maxAmmoniteScala3Version))
+  private[commands] def buildOptions0(
+    ops: ReplOptions,
+    maxAmmoniteScalaVer: String
+  ): BuildOptions = {
     import ops.*
     import ops.sharedRepl.*
-    val baseOptions = shared.buildOptions().orExit(ops.shared.logger)
+
+    val logger = ops.shared.logger
+
+    val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
+    val baseOptions        = shared.buildOptions().orExit(logger)
     baseOptions.copy(
+      scalaOptions = baseOptions.scalaOptions.copy(
+        scalaVersion = baseOptions.scalaOptions.scalaVersion
+          .orElse {
+            val defaultScalaVer = scala.build.internal.Constants.defaultScalaVersion
+            val shouldDowngrade = {
+              def needsDowngradeForAmmonite = {
+                import coursier.core.Version
+                Version(maxAmmoniteScalaVer) < Version(defaultScalaVer)
+              }
+              ammonite.contains(true) &&
+              ammoniteVersionOpt.isEmpty &&
+              needsDowngradeForAmmonite
+            }
+            if (shouldDowngrade) {
+              logger.message(
+                s"Scala $defaultScalaVer is not yet supported with this version of Ammonite"
+              )
+              logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
+              Some(MaybeScalaVersion(maxAmmoniteScalaVer))
+            }
+            else None
+          }
+      ),
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++
