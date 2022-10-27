@@ -27,6 +27,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 ## Test scope
 
 `--test` makes `scala-cli` compile main and test scopes:
+
 ```bash ignore
 scala-cli compile --test Hello.scala
 ```
@@ -47,7 +48,9 @@ scala-cli compile --watch Hello.scala
 
 ## Scala version
 
-Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use with `--scala`:
+Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list
+of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use
+with `--scala`:
 
 ```bash ignore
 scala-cli compile --scala 2.13.6 Hello.scala
@@ -66,23 +69,30 @@ scala-cli compile --scala 3 Hello.scala
 
 ## Scala Nightlies
 
-The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
+The nightly builds of Scala compiler are the unstable ones which are published on a nightly basis.
 
 To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively.
 You can also request the last `2.12.nightly` and `2.13.nightly` versions. `2.13.nightly` is the same as `2.nightly`.
-Moreover, passing the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted, too.
+Moreover, passing in the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted,
+too.
 
-Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you having to pass their addresses as input after the `--repo` flag.
+Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you
+having to pass their addresses as input after the `--repo` flag.
 
 For compiling with the latest Scala 2 nightly build:
+
 ```bash
 scala-cli Hello.scala -S 2.nightly
 ```
+
 For compiling with the latest Scala 3 nightly build:
+
 ```bash
 scala-cli Hello.scala -S 3.nightly
 ```
-For compiling with an specific nightly build, you have the full version for:
+
+For compiling with a specific nightly build you have the full version:
+
 ```bash
 scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
@@ -92,9 +102,11 @@ For setting this inside scala files, use [`using` directives](../guides/using-di
 ```scala
 //> using scala "2.nightly"
 ```
+
 ```scala
 //> using scala "3.nightly"
 ```
+
 ```scala
 //> using scala "2.13.9-bin-4505094"
 ```
@@ -123,7 +135,8 @@ See the [Dependency management](../guides/dependencies.md) guide for more detail
 
 ### Passing compiler options with `-O`
 
-All [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed to `scala-cli` with `-O`:
+All [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed to `scala-cli`
+with `-O`:
 
 ```bash
 scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
@@ -145,26 +158,36 @@ The Scala CLI team is actively trying to minimize such cases, but for the time b
 :::
 
 ### Passing compiler options with `using` directives
+
 It is also possible to pass compiler options with the appropriate `using` directives.
 
 A single option can be passed like this:
+
 ```scala
 //> using option "-new-syntax"
 @main def hello = if true then println("Hello")
 ```
+
 It's also possible to pass a value to the option with the same directive:
+
 ```scala
 //> using option "-release", "11"
+
 import java.net.http.HttpRequest
 ```
+
 There's a separate directive for passing multiple options at one time:
+
 ```scala
 //> using options "-new-syntax", "-rewrite", "-source:3.2-migration"
+
 @main def hello = if (true) println("Hello")
 ```
+
 ### Compiler options recognised even when passed without `-O`
 
 For ease of use many compiler options can be passed as-is to `scala-cli`, without the need of passing after `-O`:
+
 ```bash
 scala-cli compile Hello.scala -Xlint:infer-any
 # Compiling project (1 Scala source)
@@ -175,7 +198,8 @@ scala-cli compile Hello.scala -Xlint:infer-any
 ```
 
 Those include:
-  - all options which start with:
+
+- all options which start with:
     - `-g`
     - `-language`
     - `-opt`
@@ -186,7 +210,7 @@ Those include:
     - `-W`
     - `-X`
     - `-Y`
-  - the following flags:
+- the following flags:
     - `-nowarn`
     - `-feature`
     - `-deprecation`
@@ -195,41 +219,44 @@ Those include:
     - `-new-syntax`
     - `-indent`
     - `-no-indent`
-  - the following options which accept values (which can be passed similarly to any regular `scala-cli` option values)
+- the following options which accept values (which can be passed similarly to any regular `scala-cli` option values)
     - `-encoding`
     - `-release`
     - `-color`
     - `-classpath`
     - `-d`
 
-All options mentioned above are assumed to be Scala compiler options and are being passed as such to the compiler even 
+All options mentioned above are assumed to be Scala compiler options and are being passed as such to the compiler even
 without `-O`. (However, they can still be passed with `-O`, regardless.)
 
 :::note
 Some compiler options (e.g. `-new-syntax`) may be Scala-version-specific.
-Thus, it may happen that Scala CLI will pass those to the compiler, 
+Thus, it may happen that Scala CLI will pass those to the compiler,
 but they will not be recognised if they're not supported in a given Scala version.
 In such a case, refer to the `--scalac-help` output while passing the appropriate version with `-S`.
 :::
 
 ### Compiler options redirected to Scala CLI alternatives
+
 In a few cases, certain compiler options are being auto-redirected to a corresponding `scala-cli`-specific option for
-better integration with other functionalities of the tool. 
-The redirection happens even when the options are passed with `-O`, making them effectively aliases for their 
+better integration with other functionalities of the tool.
+The redirection happens even when the options are passed with `-O`, making them effectively aliases for their
 `scala-cli` counterparts.
 
 Those include:
-  - `-classpath` being redirected to `--classpath`
-  - `-d` being redirected to `--compilation-output`
+
+- `-classpath` being redirected to `--classpath`
+- `-d` being redirected to `--compilation-output`
 
 ### Scala compiler help
 
-Certain compiler options allow to view relevant help. Inputs aren't required when those are passed. 
+Certain compiler options allow to view relevant help. Inputs aren't required when those are passed.
 (since they would be disregarded anyway)
 
 Those include:
-  - `-help`
-  - all options prefixed with:
+
+- `-help`
+- all options prefixed with:
     - `-V`
     - `-W`
     - `-X`
@@ -266,7 +293,7 @@ scala-cli -S 2.12.17 -Xshow-phases
 #       terminal  24  the last phase during a compilation run
 ```
 
-You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is just an alias 
+You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is just an alias
 for `-O -help`.
 Please note that `-help` passed without `-O` will show the `scala-cli` help instead.
 
@@ -323,16 +350,17 @@ scala-cli -S 2.13.8 --scalac-help
 ```
 
 ## Scala compiler plugins
+
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
 ```bash
 scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
 ```
 
-
 ## Printing a class path
 
 `--print-class-path` makes `scala-cli compile` print a class path:
+
 ```bash
 scala-cli compile --print-class-path Hello.scala
 # /work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar
@@ -340,6 +368,7 @@ scala-cli compile --print-class-path Hello.scala
 
 This is handy when working with other tools.
 For example, you can pass this class path to `java -cp`:
+
 ```bash
 java -cp "$(scala-cli compile --print-class-path Hello.scala)" Hello
 # Hello
@@ -357,6 +386,7 @@ scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --ja
 ```
 
 You can also add javac options with the using directive `//> using javacOpt`:
+
 ```
 //> using javacOpt "source", "1.8", "target", "1.8"
 ```
