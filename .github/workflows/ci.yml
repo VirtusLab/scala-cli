@@ -943,6 +943,10 @@ jobs:
           path: artifacts/
       - uses: actions/download-artifact@v3
         with:
+          name: macos-m1-launchers
+          path: artifacts/
+      - uses: actions/download-artifact@v3
+        with:
           name: windows-launchers
           path: artifacts/
       - uses: actions/download-artifact@v3
