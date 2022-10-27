@@ -2573,4 +2573,53 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(res.out.trim() == "€")
         }
     }
+
+  if (actualScalaVersion.startsWith("3") || actualScalaVersion.startsWith("2.13")) {
+    val fileName       = "Main.scala"
+    val expectedOutput = "Hello"
+    val oldSyntaxCode =
+      s"""object Main extends App {
+         |  if (true) println("$expectedOutput") else println("Error")
+         |}
+         |""".stripMargin
+    val newSyntaxCode =
+      s"""object Main extends App {
+         |  if true then println("$expectedOutput") else println("Error")
+         |}
+         |""".stripMargin
+
+    test("rewrite code to new syntax and then run it correctly (no -O required)") {
+      TestInputs(os.rel / fileName -> oldSyntaxCode)
+        .fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            fileName,
+            "-new-syntax",
+            "-rewrite",
+            "-source:3.2-migration"
+          ).call(cwd = root, stderr = os.Pipe)
+          val filePath = root / fileName
+          expect(res.err.trim().contains(s"[patched file $filePath]"))
+          expect(os.read(filePath) == newSyntaxCode)
+          expect(res.out.trim() == expectedOutput)
+        }
+    }
+
+    test("rewrite code to old syntax and then run it correctly (no -O required)") {
+      TestInputs(os.rel / fileName -> newSyntaxCode)
+        .fromRoot { root =>
+          val res = os.proc(
+            TestUtil.cli,
+            fileName,
+            "-old-syntax",
+            "-rewrite",
+            "-source:3.2-migration"
+          ).call(cwd = root, stderr = os.Pipe)
+          val filePath = root / fileName
+          expect(res.err.trim().contains(s"[patched file $filePath]"))
+          expect(os.read(filePath) == oldSyntaxCode)
+          expect(res.out.trim() == expectedOutput)
+        }
+    }
+  }
 }
