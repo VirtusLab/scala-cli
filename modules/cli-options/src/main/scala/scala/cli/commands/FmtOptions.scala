@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Format Scala code")
@@ -58,7 +60,7 @@ final case class FmtOptions(
   @HelpMessage("Pass scalafmt version before running it. This overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
     scalafmtVersion: Option[String] = None
-)
+) extends HasSharedOptions
 // format: on
 object FmtOptions {
   implicit lazy val parser: Parser[FmtOptions] = Parser.derive

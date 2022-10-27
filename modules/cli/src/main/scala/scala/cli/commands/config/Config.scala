@@ -5,6 +5,7 @@ import coursier.cache.ArchiveCache
 
 import java.util.Base64
 
+import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.cli.commands.ScalaCommand
@@ -17,9 +18,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   override def hidden       = true
   override def isRestricted = true
 
-  override def runCommand(options: ConfigOptions, args: RemainingArgs): Unit = {
-
-    val logger      = options.logging.logger
+  override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
     val directories = options.directories.directories
 
     if (options.dump) {

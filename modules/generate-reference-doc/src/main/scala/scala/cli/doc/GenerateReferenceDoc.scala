@@ -1,6 +1,6 @@
 package scala.cli.doc
 
-import caseapp._
+import caseapp.*
 import caseapp.core.Arg
 import caseapp.core.util.Formatter
 import munit.internal.difflib.Diff

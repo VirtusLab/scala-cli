@@ -173,12 +173,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       sys.exit(0)
     }
 
-  override def runCommand(options: PublishOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: PublishOptions, args: RemainingArgs, logger: Logger): Unit = {
     maybePrintLicensesAndExit(options.publishParams)
     maybePrintChecksumsAndExit(options.sharedPublish)
 
     val baseOptions = buildOptionsOrExit(options)
-    val logger      = options.shared.logger
     val inputs      = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 

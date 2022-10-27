@@ -56,9 +56,8 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
       )
     }
 
-  override def runCommand(options: MetabrowseOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: MetabrowseOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val logger              = options.shared.logger
     val inputs              = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()

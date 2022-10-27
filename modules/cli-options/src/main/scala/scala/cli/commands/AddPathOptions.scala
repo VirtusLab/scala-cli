@@ -1,19 +1,16 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 final case class AddPathOptions(
   @Recurse
-    verbosityOptions: VerbosityOptions = VerbosityOptions(),
-  @Group("Logging")
-  @Name("q")
-    quiet: Boolean = false,
+    logging: LoggingOptions = LoggingOptions(),
   title: String = ""
-) {
-  // format: on
-  lazy val verbosity = verbosityOptions.verbosity - (if (quiet) 1 else 0)
-}
+) extends HasLoggingOptions
+// format: on
 
 object AddPathOptions {
   implicit lazy val parser: Parser[AddPathOptions] = Parser.derive

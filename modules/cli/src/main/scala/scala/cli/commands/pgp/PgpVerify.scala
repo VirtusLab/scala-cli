@@ -1,16 +1,13 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
+import caseapp.core.app.Command
 
-import scala.cli.commands.ScalaCommand
 import scala.cli.signing.commands.{PgpVerify => OriginalPgpVerify, PgpVerifyOptions}
 
-object PgpVerify extends ScalaCommand[PgpVerifyOptions] {
+object PgpVerify extends PgpCommand[PgpVerifyOptions] {
+  override def names = PgpCommandNames.pgpVerify
 
-  override def isRestricted = true
-  override def hidden       = true
-  override def names        = PgpCommandNames.pgpVerify
-
-  override def runCommand(options: PgpVerifyOptions, args: RemainingArgs): Unit =
+  override def run(options: PgpVerifyOptions, args: RemainingArgs): Unit =
     OriginalPgpVerify.run(options, args)
 }

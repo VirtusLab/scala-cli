@@ -1,19 +1,21 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 @HelpMessage("Print `scala-cli` version")
 final case class VersionOptions(
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions(),
+    logging: LoggingOptions = LoggingOptions(),
   @HelpMessage("Show only plain scala-cli version")
   @Name("cli")
     cliVersion: Boolean = false,
   @HelpMessage("Show only plain scala version") 
   @Name("scala")
     scalaVersion: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object VersionOptions {

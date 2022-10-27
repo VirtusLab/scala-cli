@@ -1,7 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.Help
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("""|Compile and run Scala code.
@@ -16,7 +18,7 @@ final case class RunOptions(
     shared: SharedOptions = SharedOptions(),
   @Recurse
     sharedRun: SharedRunOptions = SharedRunOptions()
-)
+) extends HasSharedOptions
 // format: on
 
 object RunOptions {

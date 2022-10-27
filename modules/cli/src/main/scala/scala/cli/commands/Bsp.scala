@@ -28,7 +28,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     Option(latestSharedOptions(options))
 
   // not reusing buildOptions here, since they should be reloaded live instead
-  override def runCommand(options: BspOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: BspOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
@@ -44,8 +44,8 @@ object Bsp extends ScalaCommand[BspOptions] {
             pprint.err.log(initialInputs)
 
           val buildOptions0    = buildOptions(sharedOptions)
-          val logger           = sharedOptions.logging.logger
-          val persistentLogger = new PersistentDiagnosticLogger(logger)
+          val latestLogger     = sharedOptions.logging.logger
+          val persistentLogger = new PersistentDiagnosticLogger(latestLogger)
 
           val allInputs =
             CrossSources.forInputs(
@@ -72,7 +72,6 @@ object Bsp extends ScalaCommand[BspOptions] {
       )
     }
 
-    val logger = getSharedOptions().logging.logger
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val configDb = options.shared.configDb

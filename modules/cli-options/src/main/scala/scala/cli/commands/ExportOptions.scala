@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Export current project to sbt or Mill")
@@ -24,7 +26,7 @@ final case class ExportOptions(
   @Name("o")
   @Group("Build Tool export options")
     output: Option[String] = None
-)
+) extends HasSharedOptions
 // format: on
 object ExportOptions {
   implicit lazy val parser: Parser[ExportOptions] = Parser.derive

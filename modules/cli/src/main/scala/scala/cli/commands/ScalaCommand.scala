@@ -15,24 +15,22 @@ import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Artifacts, Positioned, ReplArtifacts}
+import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
+import scala.cli.commands.common.HasLoggingOptions
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.{CommandHelpers, FmtOptionsUtil}
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
-    extends Command()(myParser, help) with NeedsArgvCommand with CommandHelpers {
+abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T], help: Help[T])
+    extends Command()(myParser, help)
+    with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
   override def hasFullHelp = true
-
-  override def parser: Parser[T] =
-    RestrictedCommandsParser(myParser)
-
-  def isRestricted: Boolean = false
 
   protected var argvOpt = Option.empty[Array[String]]
   override def setArgv(argv: Array[String]): Unit = {
@@ -290,22 +288,6 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
       sys.exit(1)
     }
 
-  /** @param options
-    *   command-specific [[T]] options
-    * @return
-    *   by default [[sharedOptions]].logging, override to adjust.
-    */
-  def loggingOptions(options: T): Option[LoggingOptions] =
-    sharedOptions(options).map(_.logging)
-
-  /** @param options
-    *   command-specific [[T]] options
-    * @return
-    *   by default [[loggingOptions]].verbosity, override to adjust.
-    */
-  def verbosity(options: T): Option[Int] =
-    loggingOptions(options).map(_.verbosity)
-
   /** This should be overridden instead of [[run]] when extending [[ScalaCommand]].
     *
     * @param options
@@ -313,19 +295,18 @@ abstract class ScalaCommand[T](implicit myParser: Parser[T], help: Help[T])
     * @param remainingArgs
     *   arguments remaining after parsing options
     */
-  def runCommand(options: T, remainingArgs: RemainingArgs): Unit
+  def runCommand(options: T, remainingArgs: RemainingArgs, logger: Logger): Unit
 
   /** This implementation is final. Override [[runCommand]] instead. This logic is invoked at the
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    for (v <- verbosity(options))
-      CurrentParams.verbosity = v
+    CurrentParams.verbosity = options.logging.verbosity
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
-    runCommand(options, remainingArgs)
+    runCommand(options, remainingArgs, options.logging.logger)
   }
 }

@@ -1,8 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 import java.nio.file.Path
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 @HelpMessage("Uninstall scala-cli - only works when installed by the installation script")
@@ -24,7 +25,8 @@ final case class UninstallOptions(
   @Hidden
   @HelpMessage("Binary directory")
     binDir: Option[String] = None
-) {
+) extends HasLoggingOptions {
+  override def logging: LoggingOptions = bloopExit.logging
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
 }

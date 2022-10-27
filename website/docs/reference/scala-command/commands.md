@@ -10,7 +10,7 @@ sidebar_position: 3
 
 Print details about this application
 
-Accepts option groups: [about](./cli-options.md#about-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## clean
 
@@ -40,7 +40,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Print details about this application
 
-Accepts option groups: [doctor](./cli-options.md#doctor-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [doctor](./cli-options.md#doctor-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## fmt
 
@@ -53,6 +53,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 ## help
 
 Print help message
+
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## install completions
 
@@ -142,13 +144,13 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [uninstall c
 
 Update scala-cli - only works when installed by the installation script
 
-Accepts option groups: [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## version
 
 Print `scala-cli` version
 
-Accepts option groups: [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
 ## Hidden commands
 

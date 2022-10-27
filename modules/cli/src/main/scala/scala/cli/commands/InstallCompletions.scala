@@ -7,6 +7,7 @@ import java.io.File
 import java.nio.charset.Charset
 import java.util
 
+import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.VerbosityOptionsUtil.*
@@ -17,17 +18,18 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     List("install", "completions"),
     List("install-completions")
   )
-  override def loggingOptions(options: InstallCompletionsOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: InstallCompletionsOptions, args: RemainingArgs): Unit = {
+  override def runCommand(
+    options: InstallCompletionsOptions,
+    args: RemainingArgs,
+    logger: Logger
+  ): Unit = {
     val interactive = options.logging.verbosityOptions.interactiveInstance()
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
         .getOrElse(options.directories.directories.completionsDir)
 
-    val logger = options.logging.logger
-    val name   = getName(options.name)
+    val name = getName(options.name)
     val format = getFormat(options.format).getOrElse {
       val msg = "Cannot determine current shell. Which would you like to use?"
       interactive.chooseOne(msg, List("zsh", "bash")).getOrElse {

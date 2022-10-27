@@ -1,7 +1,8 @@
 package scala.cli.commands.pgp
 
-import caseapp._
+import caseapp.*
 
+import scala.cli.commands.common.HasLoggingOptions
 import scala.cli.commands.{CoursierOptions, LoggingOptions, SharedJvmOptions}
 
 // format: off
@@ -25,7 +26,7 @@ final case class PgpPushOptions(
   @Group("PGP")
   @Hidden
     forceSigningBinary: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object PgpPushOptions {

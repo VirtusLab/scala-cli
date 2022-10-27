@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import caseapp._
+import caseapp.*
 
 // format: off
 final case class SharedPublishOptions(

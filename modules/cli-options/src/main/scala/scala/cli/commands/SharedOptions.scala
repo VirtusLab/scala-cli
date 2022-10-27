@@ -1,9 +1,11 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.Help
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 final case class SharedOptions(
@@ -129,7 +131,7 @@ final case class SharedOptions(
   @HelpMessage("Copy compilation results to output directory using either relative or absolute path")
   @ValueDescription("/example/path")
     compilationOutput: Option[String] = None,
-)
+) extends HasLoggingOptions
   // format: on
 
 object SharedOptions {

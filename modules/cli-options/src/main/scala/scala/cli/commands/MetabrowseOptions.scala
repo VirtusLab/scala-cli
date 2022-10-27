@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Browse Scala code and its dependencies in the browser")
@@ -32,7 +34,7 @@ final case class MetabrowseOptions(
     metabrowseLauncher: Option[String] = None,
   @Hidden
     metabrowseDialect: Option[String] = None
-) {
+) extends HasSharedOptions {
   // format: on
 }
 

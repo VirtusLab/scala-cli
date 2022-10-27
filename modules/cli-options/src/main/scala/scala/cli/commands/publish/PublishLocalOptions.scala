@@ -1,7 +1,8 @@
 package scala.cli.commands.publish
 
-import caseapp._
+import caseapp.*
 
+import scala.cli.commands.common.HasSharedOptions
 import scala.cli.commands.{
   CrossOptions,
   MainClassOptions,
@@ -26,7 +27,7 @@ final case class PublishLocalOptions(
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions()
-)
+) extends HasSharedOptions
 // format: on
 
 object PublishLocalOptions {

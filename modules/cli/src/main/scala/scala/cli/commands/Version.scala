@@ -2,14 +2,13 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 
 class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
-  override def verbosity(options: VersionOptions): Option[Int] =
-    Some(options.verbosity.verbosity)
-  override def runCommand(options: VersionOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.cliVersion)
       println(Constants.version)
     else if (options.scalaVersion)

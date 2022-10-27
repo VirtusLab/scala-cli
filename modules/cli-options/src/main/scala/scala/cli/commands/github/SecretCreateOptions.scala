@@ -1,6 +1,6 @@
 package scala.cli.commands.github
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.commands.CoursierOptions
 
@@ -16,7 +16,7 @@ final case class SecretCreateOptions(
     dummy: Boolean = false,
   @Hidden
     printRequest: Boolean = false
-)
+) extends HasSharedSecretOptions
 // format: on
 
 object SecretCreateOptions {

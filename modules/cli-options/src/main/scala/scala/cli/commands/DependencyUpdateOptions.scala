@@ -1,7 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.Help
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Update dependencies in project")
@@ -11,7 +13,7 @@ final case class DependencyUpdateOptions(
   @Group("DependencyUpdate")
   @HelpMessage("Update all dependencies if newer version was released")
     all: Boolean = false,
-)
+) extends HasSharedOptions
   // format: on
 
 object DependencyUpdateOptions {

@@ -1,7 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.Help
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Compile Scala code")
@@ -20,7 +22,7 @@ final case class CompileOptions(
 
   @HelpMessage("Compile test scope")
     test: Boolean = false
-)
+) extends HasSharedOptions
   // format: on
 
 object CompileOptions {

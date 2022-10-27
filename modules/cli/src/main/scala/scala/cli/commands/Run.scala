@@ -45,12 +45,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
 
-  override def runCommand(options: RunOptions, args: RemainingArgs): Unit =
-    scalaCliRun(
+  override def runCommand(options: RunOptions, args: RemainingArgs, logger: Logger): Unit =
+    runCommand(
       options,
       args.remaining,
       args.unparsed,
-      () => Inputs.default()
+      () => Inputs.default(),
+      logger
     )
 
   override def buildOptions(options: RunOptions): Some[BuildOptions] = Some {
@@ -99,15 +100,15 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     )
   }
 
-  def scalaCliRun(
+  def runCommand(
     options: RunOptions,
     inputArgs: Seq[String],
     programArgs: Seq[String],
-    defaultInputs: () => Option[Inputs]
+    defaultInputs: () => Option[Inputs],
+    logger: Logger
   ): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
 
-    val logger = options.shared.logger
     val inputs = options.shared.inputs(inputArgs, defaultInputs = defaultInputs).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()

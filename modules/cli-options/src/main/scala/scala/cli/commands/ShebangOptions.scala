@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasSharedOptions
 
 @HelpMessage(
   """|Like `run`, but more handy from shebang scripts
@@ -32,7 +34,9 @@ import caseapp._
 final case class ShebangOptions(
   @Recurse
   runOptions: RunOptions = RunOptions()
-)
+) extends HasSharedOptions {
+  override def shared: SharedOptions = runOptions.shared
+}
 
 object ShebangOptions {
   implicit lazy val parser: Parser[ShebangOptions] = Parser.derive

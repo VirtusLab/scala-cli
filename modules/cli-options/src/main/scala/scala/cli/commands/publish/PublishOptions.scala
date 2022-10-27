@@ -1,7 +1,8 @@
 package scala.cli.commands.publish
 
-import caseapp._
+import caseapp.*
 
+import scala.cli.commands.common.HasSharedOptions
 import scala.cli.commands.{
   CrossOptions,
   MainClassOptions,
@@ -37,7 +38,7 @@ final case class PublishOptions(
   @Group("Publishing")
   @Hidden
     parallelUpload: Option[Boolean] = None
-)
+) extends HasSharedOptions
 // format: on
 
 object PublishOptions {

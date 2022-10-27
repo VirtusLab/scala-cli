@@ -22,9 +22,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
     List("scalafmt")
   )
 
-  override def runCommand(options: FmtOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: FmtOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val logger       = options.shared.logger
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, _) =

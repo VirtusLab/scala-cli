@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 @HelpMessage("Installs completions into your shell")
@@ -31,7 +33,7 @@ final case class InstallCompletionsOptions(
 
   @HelpMessage("Print completions to stdout")
     env: Boolean = false,
-)
+) extends HasLoggingOptions
 // format: on
 
 object InstallCompletionsOptions {

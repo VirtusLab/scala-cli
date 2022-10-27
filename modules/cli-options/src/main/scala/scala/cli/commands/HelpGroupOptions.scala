@@ -1,9 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.{Help, HelpFormat}
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(

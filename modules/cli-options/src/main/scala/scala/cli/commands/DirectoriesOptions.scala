@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 @HelpMessage("Prints directories used by `scala-cli`")
@@ -8,8 +10,8 @@ final case class DirectoriesOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
-    verbosity: VerbosityOptions = VerbosityOptions()
-)
+    logging: LoggingOptions = LoggingOptions()
+) extends HasLoggingOptions
 // format: on
 
 object DirectoriesOptions {

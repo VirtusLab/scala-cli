@@ -10,7 +10,7 @@ sidebar_position: 3
 
 Print details about this application
 
-Accepts option groups: [about](./cli-options.md#about-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## clean
 
@@ -40,7 +40,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Print details about this application
 
-Accepts option groups: [doctor](./cli-options.md#doctor-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [doctor](./cli-options.md#doctor-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## export
 
@@ -59,6 +59,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 ## help
 
 Print help message
+
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## install completions
 
@@ -178,19 +180,19 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [uninstall c
 
 Update scala-cli - only works when installed by the installation script
 
-Accepts option groups: [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## version
 
 Print `scala-cli` version
 
-Accepts option groups: [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
+Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
 ## Hidden commands
 
 ### add-path
 
-Accepts option groups: [add path](./cli-options.md#add-path-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [add path](./cli-options.md#add-path-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop
 
@@ -226,13 +228,13 @@ Accepts option groups: [default file](./cli-options.md#default-file-options), [l
 
 Prints directories used by `scala-cli`
 
-Accepts option groups: [directories](./cli-options.md#directories-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### install-home
 
 Install `scala-cli` in a sub-directory of the home directory
 
-Accepts option groups: [install home](./cli-options.md#install-home-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### browse
 

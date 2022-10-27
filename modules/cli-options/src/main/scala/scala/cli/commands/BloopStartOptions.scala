@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
 final case class BloopStartOptions(
@@ -16,11 +18,10 @@ final case class BloopStartOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Name("f")
     force: Boolean = false
-)
+) extends HasLoggingOptions
 // format: on
 
 object BloopStartOptions {
-
   implicit lazy val parser: Parser[BloopStartOptions] = Parser.derive
   implicit lazy val help: Help[BloopStartOptions]     = Help.derive
 }

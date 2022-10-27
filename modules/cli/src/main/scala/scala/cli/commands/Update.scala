@@ -8,6 +8,7 @@ import coursier.core
 import scala.build.Logger
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
@@ -59,11 +60,11 @@ object Update extends ScalaCommand[UpdateOptions] {
       scala.build.Directories.default().binRepoDir / options.binaryName
     )
 
-  private def updateScalaCli(options: UpdateOptions, newVersion: String): Unit = {
-    val interactive = options.verbosity.interactiveInstance(forceEnable = true)
+  private def updateScalaCli(options: UpdateOptions, newVersion: String, logger: Logger): Unit = {
+    val interactive = options.logging.verbosityOptions.interactiveInstance(forceEnable = true)
     if (!options.force) {
       val fallbackAction = () => {
-        System.err.println(s"To update scala-cli to $newVersion pass -f or --force")
+        logger.error(s"To update scala-cli to $newVersion pass -f or --force")
         sys.exit(1)
       }
       val msg = s"Do you want to update scala-cli to version $newVersion?"
@@ -90,7 +91,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     // format: on
     val output = res.out.trim()
     if (res.exitCode != 0) {
-      System.err.println(s"Error during updating scala-cli: $output")
+      logger.error(s"Error during updating scala-cli: $output")
       sys.exit(1)
     }
   }
@@ -103,14 +104,14 @@ object Update extends ScalaCommand[UpdateOptions] {
       "0.0.0"
   }
 
-  private def update(options: UpdateOptions, currentVersion: String): Unit = {
+  private def update(options: UpdateOptions, currentVersion: String, logger: Logger): Unit = {
 
     val newestScalaCliVersion0 = newestScalaCliVersion(options.ghToken.map(_.get()))
     val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion0, currentVersion)
 
     if (!options.isInternalRun)
       if (isOutdated)
-        updateScalaCli(options, newestScalaCliVersion0)
+        updateScalaCli(options, newestScalaCliVersion0, logger)
       else println("Scala CLI is up-to-date")
     else if (isOutdated)
       println(
@@ -119,8 +120,14 @@ object Update extends ScalaCommand[UpdateOptions] {
       )
   }
 
-  def checkUpdate(options: UpdateOptions): Unit = {
+  override def runCommand(
+    options: UpdateOptions,
+    remainingArgs: RemainingArgs,
+    logger: Logger
+  ): Unit =
+    checkUpdate(options, logger)
 
+  def checkUpdate(options: UpdateOptions, logger: Logger): Unit = {
     val scalaCliBinPath = installDirPath(options) / options.binaryName
 
     val programName = argvOpt.flatMap(_.headOption).getOrElse {
@@ -134,7 +141,7 @@ object Update extends ScalaCommand[UpdateOptions] {
 
     if (!os.exists(scalaCliBinPath) || !isScalaCliInPath) {
       if (!options.isInternalRun) {
-        System.err.println(
+        logger.error(
           "Scala CLI was not installed by the installation script, please use your package manager to update scala-cli."
         )
         sys.exit(1)
@@ -142,23 +149,20 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
     else if (Properties.isWin) {
       if (!options.isInternalRun) {
-        System.err.println("Scala CLI update is not supported on Windows.")
+        logger.error("Scala CLI update is not supported on Windows.")
         sys.exit(1)
       }
     }
-    else if (options.binaryName == "scala-cli") update(options, scalaCliVersion)
+    else if (options.binaryName == "scala-cli") update(options, scalaCliVersion, logger)
     else
-      update(options, getCurrentVersion(scalaCliBinPath))
+      update(options, getCurrentVersion(scalaCliBinPath), logger)
   }
-
-  override def verbosity(options: UpdateOptions): Option[Int] = Some(options.verbosity.verbosity)
-  override def runCommand(options: UpdateOptions, args: RemainingArgs): Unit = checkUpdate(options)
 
   def checkUpdateSafe(logger: Logger): Unit =
     try
       // log about update only if scala-cli was installed from installation script
       if (isScalaCLIInstalledByInstallationScript)
-        checkUpdate(UpdateOptions(isInternalRun = true))
+        checkUpdate(UpdateOptions(isInternalRun = true), logger)
     catch {
       case NonFatal(ex) =>
         logger.debug(s"Ignoring error during checking update: $ex")

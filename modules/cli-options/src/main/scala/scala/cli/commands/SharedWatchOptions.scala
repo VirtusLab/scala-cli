@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 
 // format: off
 final case class SharedWatchOptions(
@@ -9,7 +9,7 @@ final case class SharedWatchOptions(
   @Name("w")
     watch: Boolean = false,
   @HelpMessage("Run your application in background and automatically restart if sources have been changed")
-  @Name("revolver") 
+  @Name("revolver")
     restart: Boolean = false
 ) { // format: on
 

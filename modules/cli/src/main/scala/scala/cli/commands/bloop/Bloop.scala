@@ -58,11 +58,8 @@ object Bloop extends ScalaCommand[BloopOptions] {
     )
   }
 
-  override def loggingOptions(options: BloopOptions): Option[LoggingOptions] =
-    Some(options.logging)
-  override def runCommand(options: BloopOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: BloopOptions, args: RemainingArgs, logger: Logger): Unit = {
     val threads          = BloopThreads.create()
-    val logger           = options.logging.logger
     val bloopRifleConfig = bloopRifleConfig0(options)
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)

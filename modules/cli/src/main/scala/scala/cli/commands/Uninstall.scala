@@ -2,17 +2,15 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.VerbosityOptionsUtil.*
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
-  override def loggingOptions(options: UninstallOptions): Option[LoggingOptions] =
-    Some(options.bloopExit.logging)
-  override def runCommand(options: UninstallOptions, args: RemainingArgs): Unit = {
+  override def runCommand(options: UninstallOptions, args: RemainingArgs, logger: Logger): Unit = {
     val interactive =
       options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)
-    val logger = options.bloopExit.logging.logger
 
     val binDirPath =
       options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")

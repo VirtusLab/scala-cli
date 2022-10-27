@@ -1,6 +1,8 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 case class DefaultOptions(
@@ -12,7 +14,7 @@ case class DefaultOptions(
     sharedRepl: SharedReplOptions = SharedReplOptions(),
   @Name("-version")
     version: Boolean = false
-)
+) extends HasSharedOptions
 // format: on
 
 object DefaultOptions {

@@ -1,7 +1,9 @@
 package scala.cli.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.help.Help
+
+import scala.cli.commands.common.HasSharedOptions
 
 // format: off
 @HelpMessage("Compile and test Scala code")
@@ -23,7 +25,7 @@ final case class TestOptions(
   @Group("Test")
   @HelpMessage("Fail if no test suites were run")
     requireTests: Boolean = false
-)
+) extends HasSharedOptions
 // format: on
 
 object TestOptions {
