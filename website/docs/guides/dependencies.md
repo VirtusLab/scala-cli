@@ -38,14 +38,14 @@ org.postgresql:postgresql:42.2.8
 
 You can add dependencies on the command line, with the `--dependency` option:
 
-```bash
+```bash ignore
 scala-cli compile Hello.scala \
   --dependency org.scala-lang.modules::scala-parallel-collections:1.0.4
 ```
 
 You can also add a URL fallback for a JAR dependency, if it can't be fetched otherwise:
 
-```bash
+```bash ignore
 scala-cli compile Hello.scala \
   -- dependency "org::name::version,url=https://url-to-the-jar"
 ```
@@ -57,14 +57,14 @@ with a different dependency version.
 
 You can also add repositories on the command-line, via `--repository`:
 
-```bash
+```bash ignore
 scala-cli compile Hello.scala \
   --dependency com.pany::util:33.1.0 --repo https://artifacts.pany.com/maven
 ```
 
 Lastly, you can also add simple JAR files as dependencies with `--jar`:
 
-```bash
+```bash ignore
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
 
@@ -83,7 +83,7 @@ object Hello extends App {
 }
 ```
 
-```bash
+```bash ignore
 scala-cli dependency-update Hello.scala
 # Updates
 #    * com.lihaoyi::os-lib:0.7.8 -> 0.8.1
@@ -96,7 +96,7 @@ scala-cli dependency-update Hello.scala
 
 Passing `--all` to the `dependency-update` sub-command updates all dependencies in your sources.
 
-```bash
+```bash ignore
 scala-cli dependency-update Hello.scala --all
 # Updated dependency to: com.lihaoyi::os-lib:0.8.1
 # Updated dependency to: com.lihaoyi::utest:0.8.0

@@ -1,17 +1,14 @@
 package sclicheck
 
 class DocTests extends munit.FunSuite {
-
-  val dirs = Seq(
-    "cookbook" -> os.pwd / "website" / "docs" / "cookbooks",
-    "command"  -> os.pwd / "website" / "docs" / "commands"
+  val docsRootPath: os.Path = os.pwd / "website" / "docs"
+  val dirs: Seq[(String, os.Path)] = Seq(
+    "cookbook" -> docsRootPath / "cookbooks",
+    "command"  -> docsRootPath / "commands",
+    "guide"    -> docsRootPath / "guides"
   )
 
-  val options = Options(
-    scalaCliCommand = Seq(TestUtil.scalaCliPath),
-    stopAtFailure = false,
-    step = false
-  )
+  val options: Options = Options(scalaCliCommand = Seq(TestUtil.scalaCliPath))
 
   private def containsCheck(f: os.Path): Boolean =
     os.read.lines(f)

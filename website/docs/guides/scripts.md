@@ -78,7 +78,7 @@ To specify a main class when running a script, use this command:
 
 <ChainedSnippets>
 
-```bash
+```bash ignore
 scala-cli my-app --main-class main_sc
 ````
 
