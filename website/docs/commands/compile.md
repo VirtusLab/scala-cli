@@ -27,6 +27,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 ## Test scope
 
 `--test` makes `scala-cli` compile main and test scopes:
+
 ```bash ignore
 scala-cli compile --test Hello.scala
 ```
@@ -47,7 +48,9 @@ scala-cli compile --watch Hello.scala
 
 ## Scala version
 
-Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use with `--scala`:
+Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list
+of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use
+with `--scala`:
 
 ```bash ignore
 scala-cli compile --scala 2.13.6 Hello.scala
@@ -66,23 +69,30 @@ scala-cli compile --scala 3 Hello.scala
 
 ## Scala Nightlies
 
-The nightly builds of Scala compiler are unstable ones which are published on a nightly basis.
+The nightly builds of Scala compiler are the unstable ones which are published on a nightly basis.
 
 To use the latest Scala 2 and Scala 3 nightly builds, pass `2.nightly` and `3.nightly`, respectively.
 You can also request the last `2.12.nightly` and `2.13.nightly` versions. `2.13.nightly` is the same as `2.nightly`.
-Moreover, passing the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted, too.
+Moreover, passing in the `3.{sub binary number}.nightly` format, such as `3.0.nightly` or `3.1.nightly` is accepted,
+too.
 
-Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you having to pass their addresses as input after the `--repo` flag.
+Scala CLI takes care of fetching the nightly builds of Scala 2 and Scala 3 from different repositories, without you
+having to pass their addresses as input after the `--repo` flag.
 
 For compiling with the latest Scala 2 nightly build:
+
 ```bash
 scala-cli Hello.scala -S 2.nightly
 ```
+
 For compiling with the latest Scala 3 nightly build:
+
 ```bash
 scala-cli Hello.scala -S 3.nightly
 ```
-For compiling with an specific nightly build, you have the full version for:
+
+For compiling with a specific nightly build you have the full version:
+
 ```bash
 scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
@@ -92,9 +102,11 @@ For setting this inside scala files, use [`using` directives](../guides/using-di
 ```scala
 //> using scala "2.nightly"
 ```
+
 ```scala
 //> using scala "3.nightly"
 ```
+
 ```scala
 //> using scala "2.13.9-bin-4505094"
 ```
@@ -121,7 +133,60 @@ See the [Dependency management](../guides/dependencies.md) guide for more detail
 
 ## Scala compiler options
 
-Most [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed as-is to `scala-cli`:
+### Passing compiler options with `-O`
+
+All [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed to `scala-cli`
+with `-O`:
+
+```bash
+scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
+# [warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
+# [warn]   opt.x
+# [warn]       ^
+```
+
+Passing a value to a compiler option requires another `-O`:
+
+```bash
+scala-cli -O -Xshow-phases -O -color -O never
+```
+
+:::note
+Scala CLI uses `bloop` by default, which at times gets in the way of getting the full compiler output.
+In the case of some compiler options it may be necessary to turn `bloop` off with `--server=false`.
+The Scala CLI team is actively trying to minimize such cases, but for the time being it's a useful workaround.
+:::
+
+### Passing compiler options with `using` directives
+
+It is also possible to pass compiler options with the appropriate `using` directives.
+
+A single option can be passed like this:
+
+```scala
+//> using option "-new-syntax"
+@main def hello = if true then println("Hello")
+```
+
+It's also possible to pass a value to the option with the same directive:
+
+```scala
+//> using option "-release", "11"
+
+import java.net.http.HttpRequest
+```
+
+There's a separate directive for passing multiple options at one time:
+
+```scala
+//> using options "-new-syntax", "-rewrite", "-source:3.2-migration"
+
+@main def hello = if (true) println("Hello")
+```
+
+### Compiler options recognised even when passed without `-O`
+
+For ease of use many compiler options can be passed as-is to `scala-cli`, without the need of passing after `-O`:
 
 ```bash
 scala-cli compile Hello.scala -Xlint:infer-any
@@ -132,35 +197,107 @@ scala-cli compile Hello.scala -Xlint:infer-any
 # Compiled project
 ```
 
-All `scala-cli` options that start with:
+Those include:
 
-- `-g`
-- `-language`
-- `-opt`
-- `-P`
-- `-target`
-- `-V`
-- `-W`
-- `-X`
-- `-Y`
+- all options which start with:
+    - `-g`
+    - `-language`
+    - `-opt`
+    - `-P`
+    - `-target`
+    - `-source`
+    - `-V`
+    - `-W`
+    - `-X`
+    - `-Y`
+- the following flags:
+    - `-nowarn`
+    - `-feature`
+    - `-deprecation`
+    - `-rewrite`
+    - `-old-syntax`
+    - `-new-syntax`
+    - `-indent`
+    - `-no-indent`
+- the following options which accept values (which can be passed similarly to any regular `scala-cli` option values)
+    - `-encoding`
+    - `-release`
+    - `-color`
+    - `-classpath`
+    - `-d`
 
-are assumed to be Scala compiler options.
+All options mentioned above are assumed to be Scala compiler options and are being passed as such to the compiler even
+without `-O`. (However, they can still be passed with `-O`, regardless.)
 
-Scala compiler options can also be passed with `-O`:
+:::note
+Some compiler options (e.g. `-new-syntax`) may be Scala-version-specific.
+Thus, it may happen that Scala CLI will pass those to the compiler,
+but they will not be recognised if they're not supported in a given Scala version.
+In such a case, refer to the `--scalac-help` output while passing the appropriate version with `-S`.
+:::
+
+### Compiler options redirected to Scala CLI alternatives
+
+In a few cases, certain compiler options are being auto-redirected to a corresponding `scala-cli`-specific option for
+better integration with other functionalities of the tool.
+The redirection happens even when the options are passed with `-O`, making them effectively aliases for their
+`scala-cli` counterparts.
+
+Those include:
+
+- `-classpath` being redirected to `--classpath`
+- `-d` being redirected to `--compilation-output`
+
+### Scala compiler help
+
+Certain compiler options allow to view relevant help. Inputs aren't required when those are passed.
+(since they would be disregarded anyway)
+
+Those include:
+
+- `-help`
+- all options prefixed with:
+    - `-V`
+    - `-W`
+    - `-X`
+    - `-Y`
 
 ```bash
-scala-cli compile Hello.scala -O -deprecation -O -Xlint:infer-any
-# [warn] ./Hello.scala:3:7: method x in class Some is deprecated (since 2.12.0): Use .value instead.
-# [warn]   opt.x
-# [warn]       ^
+scala-cli -S 2.12.17 -Xshow-phases
+#
+#     phase name  id  description
+#     ----------  --  -----------
+#         parser   1  parse source into ASTs, perform simple desugaring
+#          namer   2  resolve names, attach symbols to named trees
+# packageobjects   3  load package objects
+#          typer   4  the meat and potatoes: type the trees
+#         patmat   5  translate match expressions
+# superaccessors   6  add super accessors in traits and nested classes
+#     extmethods   7  add extension methods for inline classes
+#        pickler   8  serialize symbol tables
+#      refchecks   9  reference/override checking, translate nested objects
+#        uncurry  10  uncurry, translate function values to anonymous classes
+#         fields  11  synthesize accessors and fields, add bitmaps for lazy vals
+#      tailcalls  12  replace tail calls by jumps
+#     specialize  13  @specialized-driven class and method specialization
+#  explicitouter  14  this refs to outer pointers
+#        erasure  15  erase types, add interfaces for traits
+#    posterasure  16  clean up erased inline classes
+#     lambdalift  17  move nested functions to top level
+#   constructors  18  move field definitions into constructors
+#        flatten  19  eliminate inner classes
+#          mixin  20  mixin composition
+#        cleanup  21  platform-specific cleanups, generate reflective calls
+#     delambdafy  22  remove lambdas
+#            jvm  23  generate JVM bytecode
+#       terminal  24  the last phase during a compilation run
 ```
 
-`-O` accepts both options with the prefixes shown above, and those without such a prefix.
+You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is just an alias
+for `-O -help`.
+Please note that `-help` passed without `-O` will show the `scala-cli` help instead.
 
-## Scala compiler help
-
-You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is an alias for `-O -help`.
-```bash ignore
+```bash
 scala-cli -S 2.13.8 --scalac-help
 # Usage: scalac <options> <source files>
 #
@@ -212,49 +349,18 @@ scala-cli -S 2.13.8 --scalac-help
 #                                deprecated: Since 2.12, enables -opt:l:inline -opt-inline-from:**. See -opt:help.
 ```
 
-Other scalac print help options (like `-X`, `-Xshow-phases`, `-Vphases`, etc.) are supported as well.
-```bash
-scala-cli -S 2.12.16 -Xshow-phases
-#
-#    phase name  id  description
-#    ----------  --  -----------
-#        parser   1  parse source into ASTs, perform simple desugaring
-#         namer   2  resolve names, attach symbols to named trees
-#packageobjects   3  load package objects
-#         typer   4  the meat and potatoes: type the trees
-#        patmat   5  translate match expressions
-#superaccessors   6  add super accessors in traits and nested classes
-#    extmethods   7  add extension methods for inline classes
-#       pickler   8  serialize symbol tables
-#     refchecks   9  reference/override checking, translate nested objects
-#       uncurry  10  uncurry, translate function values to anonymous classes
-#        fields  11  synthesize accessors and fields, add bitmaps for lazy vals
-#     tailcalls  12  replace tail calls by jumps
-#    specialize  13  @specialized-driven class and method specialization
-# explicitouter  14  this refs to outer pointers
-#       erasure  15  erase types, add interfaces for traits
-#   posterasure  16  clean up erased inline classes
-#    lambdalift  17  move nested functions to top level
-#  constructors  18  move field definitions into constructors
-#       flatten  19  eliminate inner classes
-#         mixin  20  mixin composition
-#       cleanup  21  platform-specific cleanups, generate reflective calls
-#    delambdafy  22  remove lambdas
-#           jvm  23  generate JVM bytecode
-#      terminal  24  the last phase during a compilation run
-```
-
 ## Scala compiler plugins
+
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
 ```bash
 scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
 ```
 
-
 ## Printing a class path
 
 `--print-class-path` makes `scala-cli compile` print a class path:
+
 ```bash
 scala-cli compile --print-class-path Hello.scala
 # /work/.scala/project-cef76d561e/classes:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.14/scala-library-2.12.14.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/runner_2.12/0.0.1-SNAPSHOT/jars/runner_2.12.jar:~/Library/Caches/ScalaCli/local-repo/0.1.0/org.virtuslab.scala-cli/stubs/0.0.1-SNAPSHOT/jars/stubs.jar
@@ -262,6 +368,7 @@ scala-cli compile --print-class-path Hello.scala
 
 This is handy when working with other tools.
 For example, you can pass this class path to `java -cp`:
+
 ```bash
 java -cp "$(scala-cli compile --print-class-path Hello.scala)" Hello
 # Hello
@@ -279,6 +386,7 @@ scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --ja
 ```
 
 You can also add javac options with the using directive `//> using javacOpt`:
+
 ```
 //> using javacOpt "source", "1.8", "target", "1.8"
 ```
