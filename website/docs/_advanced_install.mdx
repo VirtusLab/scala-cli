@@ -322,6 +322,7 @@ defaultValue="installer"
 values={[
 {label: 'Manual', value: 'manual'},
 {label: 'Installer', value: 'installer'},
+{label: 'Brew', value: 'brew'}
 ]}
 >
 <TabItem value="manual">
@@ -346,6 +347,14 @@ Download the PKG installer with Scala CLI for MacOS/M1
 <br/>
 
 Once downloaded, right-click on `scala-cli-aarch64-apple-darwin.pkg` from Finder and then choose "Open".
+</TabItem>
+<TabItem value="brew">
+
+Scala CLI can be installed via [homebrew](https://brew.sh) with
+
+```bash
+brew install Virtuslab/scala-cli/scala-cli
+```
 </TabItem>
 </Tabs>
 

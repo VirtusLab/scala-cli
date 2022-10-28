@@ -5,13 +5,21 @@
 class ScalaCli < Formula
   desc "Launcher for ScalaCli"
   homepage "https://virtuslab.github.io/scala-cli/"
-  url "@LAUNCHER_URL@"
+  url (RUBY_PLATFORM.include? "arm64") ?
+    "@ARM64_LAUNCHER_URL@" :
+    "@X86_LAUNCHER_URL@"
   version "@LAUNCHER_VERSION@"
-  sha256 "@LAUNCHER_SHA256@"
+  sha256 (RUBY_PLATFORM.include? "arm64") ?
+    "@ARM64_LAUNCHER_SHA256@" :
+    "@X86_LAUNCHER_SHA256@"
   license "Apache-2.0"
 
   def install
-    bin.install "scala-cli-x86_64-apple-darwin" => "scala-cli"
+    if (RUBY_PLATFORM.include? "arm64")
+      bin.install "scala-cli-aarch64-apple-darwin" => "scala-cli"
+    else
+      bin.install "scala-cli-x86_64-apple-darwin" => "scala-cli"
+    end
   end
 
   test do

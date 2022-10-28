@@ -1391,29 +1391,43 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(homebrewFormulaDir)
 
-    val launcherPath = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
-    val launcherURL =
+    val x86LauncherPath   = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherPath = os.Path("artifacts", os.pwd) / "scala-cli-aarch64-apple-darwin.gz"
+    val x86LauncherURL =
       s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherURL =
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
 
-    val binarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
+    val x86BinarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
       .call(
         cwd = targetDir,
-        stdin = os.read.stream(launcherPath)
+        stdin = os.read.stream(x86LauncherPath)
       ).out.bytes
-
-    val sha256 = os.proc("xxd", "-p", "-c", "256")
+    val arm64BinarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
       .call(
         cwd = targetDir,
-        stdin = binarySha256
+        stdin = os.read.stream(arm64LauncherPath)
+      ).out.bytes
+    val x86Sha256 = os.proc("xxd", "-p", "-c", "256")
+      .call(
+        cwd = targetDir,
+        stdin = x86BinarySha256
+      ).out.trim()
+    val arm64Sha256 = os.proc("xxd", "-p", "-c", "256")
+      .call(
+        cwd = targetDir,
+        stdin = arm64BinarySha256
       ).out.trim()
 
     val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
     val template            = os.read(templateFormulaPath)
 
     val updatedFormula = template
-      .replace("\"@LAUNCHER_URL@\"", s""""$launcherURL"""")
-      .replace("\"@LAUNCHER_VERSION@\"", s""""$version"""")
-      .replace("\"@LAUNCHER_SHA256@\"", s""""$sha256"""")
+      .replace("@X86_LAUNCHER_URL@", x86LauncherURL)
+      .replace("@ARM64_LAUNCHER_URL@", arm64LauncherURL)
+      .replace("@X86_LAUNCHER_SHA256@", x86Sha256)
+      .replace("@ARM64_LAUNCHER_SHA256@", arm64Sha256)
+      .replace("@LAUNCHER_VERSION@", version)
 
     val formulaPath = homebrewFormulaDir / "scala-cli.rb"
     os.write.over(formulaPath, updatedFormula)
