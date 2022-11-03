@@ -1054,6 +1054,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "scala.build.bsp.LoggingJvmBuildServer",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.build.bsp.LoggingScalaBuildServer",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
