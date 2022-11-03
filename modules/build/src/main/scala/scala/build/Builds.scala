@@ -14,6 +14,7 @@ final case class Builds(
     }
   def get(scope: Scope): Option[Build] =
     builds.find(_.scope == scope)
+  def anyFailed: Boolean = !all.forall(_.success)
 
   def all: Seq[Build] =
     builds ++ crossBuilds.flatten

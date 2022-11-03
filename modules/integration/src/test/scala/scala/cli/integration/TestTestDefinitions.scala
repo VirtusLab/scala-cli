@@ -314,6 +314,25 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("failing test return code when compiling error") {
+    val inputs = TestInputs(
+      os.rel / "MyTests.scala" ->
+        """//> using lib "org.scalameta::munit::0.7.29"
+          |
+          |class SomeTest extends munit.FunSuite {
+          |  test("failig") {
+          |   val s: String = 1
+          |   assert(true == true)
+          | }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root, check = false)
+      expect(res.exitCode == 1)
+    }
+  }
+
   test("utest") {
     successfulUtestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
