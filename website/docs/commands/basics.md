@@ -3,9 +3,9 @@ title: Basics
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tool that executes a given command on the inputs it’s provided with, using a given [configuration](../guides/configuration.md) to produce a result.
+Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a given [configuration](../guides/configuration.md) to produce a result.
 
-The most important commands are:
+The most important sub-commands are:
 
   - [compile](./compile.md) compiles your code (excluding tests)
   - [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
@@ -14,7 +14,15 @@ The most important commands are:
   - [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
   - [fmt](./fmt.md) formats your code
 
-When Scala CLI is run without any commands, it defaults to the `run` command, so <br/>`scala-cli a.scala` runs your `a.scala` file.
+Scala CLI can also be run without passing any explicit sub-command,
+in which case it defaults to one of the sub-commands based on context:
+  - if the `--version` option is passed, it prints the `version` command output (unmodified by any other options)
+  - if any inputs were passed, it defaults to the `run` sub-command
+    - and so, `scala-cli a.scala` runs your `a.scala` file
+  - additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
+    - if a snippet was passed with `--execute-script`, `--execute-scala` or `--execute-java`
+    - if a main class was passed with the `--main-class` option alongside an extra `--classpath`
+  - otherwise if no inputs were passed, it defaults to the `repl` sub-command
 
 ## Input formats
 
