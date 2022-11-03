@@ -1019,6 +1019,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "scala.build.bsp.JvmBuildServerForwardStubs",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "scala.build.bsp.LoggingBuildClient",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
