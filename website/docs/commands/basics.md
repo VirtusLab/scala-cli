@@ -3,26 +3,28 @@ title: Basics
 sidebar_position: 3
 ---
 
-Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a given [configuration](../guides/configuration.md) to produce a result.
+Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
+given [configuration](../guides/configuration.md) to produce a result.
 
 The most important sub-commands are:
 
-  - [compile](./compile.md) compiles your code (excluding tests)
-  - [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
-  - [test](./test.md) compiles and runs the tests defined in your code
-  - [package](./package.md) packages your code into a jar or other format
-  - [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
-  - [fmt](./fmt.md) formats your code
+- [compile](./compile.md) compiles your code (excluding tests)
+- [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
+- [test](./test.md) compiles and runs the tests defined in your code
+- [package](./package.md) packages your code into a jar or other format
+- [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
+- [fmt](./fmt.md) formats your code
 
 Scala CLI can also be run without passing any explicit sub-command,
 in which case it defaults to one of the sub-commands based on context:
-  - if the `--version` option is passed, it prints the `version` command output (unmodified by any other options)
-  - if any inputs were passed, it defaults to the `run` sub-command
+
+- if the `--version` option is passed, it prints the `version` command output (unmodified by any other options)
+- if any inputs were passed, it defaults to the `run` sub-command
     - and so, `scala-cli a.scala` runs your `a.scala` file
-  - additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
+- additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
     - if a snippet was passed with `--execute-script`, `--execute-scala` or `--execute-java`
     - if a main class was passed with the `--main-class` option alongside an extra `--classpath`
-  - otherwise if no inputs were passed, it defaults to the `repl` sub-command
+- otherwise if no inputs were passed, it defaults to the `repl` sub-command
 
 ## Input formats
 
@@ -43,7 +45,8 @@ Scala CLI accepts the following types of source code:
 - `.sc` files, containing Scala scripts (see more in the [Scripts guide](../guides/scripts.md))
 - `.java` files, containing Java code
 - `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/scripts.md))
-- `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in the [Scala Native guide](../guides/scala-native.md))
+- `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in
+  the [Scala Native guide](../guides/scala-native.md))
 
 The following example shows the simplest input format.
 First, create a source file:
@@ -95,15 +98,16 @@ scala-cli Hello.scala
 compilation will fail. `scala-cli` compiles only the files it’s given.
 :::
 
-While this is *very* convenient for projects with just a few files, passing many files this way can be cumbersome and error-prone.
+While this is *very* convenient for projects with just a few files, passing many files this way can be cumbersome and
+error-prone.
 In the case of larger projects, passing whole directories can help.
-
 
 ## Directories
 
 `scala-cli` accepts whole directories as input.
 
-This is convenient when you have many `.scala` files, and passing them all one-by-one on the command line isn't practical:
+This is convenient when you have many `.scala` files, and passing them all one-by-one on the command line isn't
+practical:
 
 ```scala title=my-app/Messages.scala
 object Messages {
@@ -137,7 +141,8 @@ Such directories needs to be explicitly provided as inputs.
 ## URLs
 
 :::warning
-Running unverified code from the internet can be very handy for *trusted* sources, but it can also be really dangerous, since Scala CLI does not provide any sandboxing at this moment.
+Running unverified code from the internet can be very handy for *trusted* sources, but it can also be really dangerous,
+since Scala CLI does not provide any sandboxing at this moment.
 
 Make sure that you trust the code that you are about to run.
 :::
@@ -170,6 +175,7 @@ object Hello extends App {
   println("Hello")
 }
 ```
+
 ```bash ignore
 unzip -l hello.zip
 # Archive:  hello.zip
@@ -185,6 +191,7 @@ scala-cli hello.zip
 ## Piping
 
 You can also pipe code to `scala-cli` for execution:
+
 - scripts
   ```bash
   echo 'println("Hello")' | scala-cli _.sc
@@ -200,6 +207,7 @@ You can also pipe code to `scala-cli` for execution:
   echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
   # Hello
   ```
+
 More details in the [Piping guide](../guides/piping.md).
 
 ## Scala CLI version
@@ -227,8 +235,6 @@ scala-cli --cli-version nightly about
 # Scala CLI version 0.1.3-8-g431cc15f-SNAPSHOT
 ```
 
-
-
 ## Process substitution
 
 Lastly, `scala-cli` also accepts input via shell process substitution:
@@ -237,6 +243,7 @@ Lastly, `scala-cli` also accepts input via shell process substitution:
 scala-cli <(echo 'println("Hello")')
 # Hello
 ```
+
 <!-- Expected:
 Hello
 -->
