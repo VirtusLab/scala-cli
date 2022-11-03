@@ -40,8 +40,10 @@ Note that all of these input formats can be used alongside each other.
 Scala CLI accepts the following types of source code:
 
 - `.scala` files, containing Scala code
-- `.sc` files, containing Scala scripts (see more in [Scripts guide](../guides/scripts.md))
+- `.sc` files, containing Scala scripts (see more in the [Scripts guide](../guides/scripts.md))
 - `.java` files, containing Java code
+- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/scripts.md))
+- `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in the [Scala Native guide](../guides/scala-native.md))
 
 The following example shows the simplest input format.
 First, create a source file:
@@ -53,7 +55,7 @@ object Hello {
 }
 ```
 
-The run it by passing it to `scala-cli`:
+Then run it by passing it to `scala-cli`:
 
 ```bash
 scala-cli Hello.scala
