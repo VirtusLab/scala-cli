@@ -25,8 +25,6 @@ final case class SharedRunOptions(
     compileCross: CrossOptions = CrossOptions(),
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
-  @Recurse
-    sharedPython: SharedPythonOptions = SharedPythonOptions(),
   @Group("Run")
   @Hidden
   @Tag(tags.experimental)

@@ -19,8 +19,6 @@ final case class SharedReplOptions(
     watch: SharedWatchOptions = SharedWatchOptions(),
   @Recurse
     compileCross: CrossOptions = CrossOptions(),
-  @Recurse
-    sharedPython: SharedPythonOptions = SharedPythonOptions(),
 
   @Group("Repl")
   @Tag(tags.restricted)

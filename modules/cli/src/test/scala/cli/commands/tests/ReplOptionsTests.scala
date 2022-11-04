@@ -3,14 +3,14 @@ package scala.cli.commands.tests
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
 import scala.cli.commands.repl.{Repl, ReplOptions, SharedReplOptions}
-import scala.cli.commands.shared.SharedPythonOptions
+import scala.cli.commands.shared.{SharedOptions, SharedPythonOptions}
 
 class ReplOptionsTests extends munit.FunSuite {
 
   test("ScalaPy version") {
     val ver = "X.Y.Z"
     val replOptions = ReplOptions(
-      sharedRepl = SharedReplOptions(
+      shared = SharedOptions(
         sharedPython = SharedPythonOptions(
           scalaPyVersion = Some(ver)
         )
