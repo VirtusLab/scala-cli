@@ -331,6 +331,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         if (setupPython)
           """import me.shadaj.scalapy.py
             |import me.shadaj.scalapy.py.PyQuote
+            |import me.shadaj.scalapy.py.SeqConverters
             |""".stripMargin
         else
           ""
