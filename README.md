@@ -185,21 +185,32 @@ yarn run start
 
 ### Verifying the documentation
 
-We have a built-in tool to validate `.md` files called [Sclicheck](/sclicheck/Readme.md). To check all douments (and this is what we run on CI) run:
-
-```.github/scripts/check_docs.sh```
-
-You can also check single documents or directories using
-
-
-```
-.github/scripts/check_docs.sh <file> <dir>
+We have a built-in tool to validate `.md` files called [Sclicheck](/sclicheck/Readme.md). 
+All `Sclicheck` tests can be run with `Mill` + `munit`: (and this is what we run on the CI, too)
+```bash
+./mill -i docs-tests.test
 ```
 
-To debug failing document, Sclicheck has build-in following options: `--step` (stop after each command) or `--stopAtFailure` (to stop after a failure). To debug  getting started guide run following command:
-
+The former also includes testing gifs and `Sclicheck` itself.
+To just check the documents, run:
+```bash
+./mill -i docs-tests.test 'sclicheck.DocTests.*'
 ```
-.github/scripts/check_docs.sh --stopAtFailure docs/getting_started.md
+
+You can also check all commands, guides or cookbooks:
+```bash
+./mill -i docs-tests.test 'sclicheck.DocTests.guide*'
+./mill -i docs-tests.test 'sclicheck.DocTests.command*'
+./mill -i docs-tests.test 'sclicheck.DocTests.cookbook*'
+```
+
+Similarly, you can check single files:
+```bash
+./mill -i docs-tests.test 'sclicheck.DocTests.<category> <doc-name>'
+```
+For example, to run the check on `compile.md`
+```bash
+./mill -i docs-tests.test 'sclicheck.DocTests.command compile'
 ```
 
 ## Scala CLI logos

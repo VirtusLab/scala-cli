@@ -23,12 +23,12 @@ scala-cli package --help
 ```
 
 As an example of command line configuration, one thing you can do with `scala-cli` command line options is to specify the Scala version:
-```bash
+```bash ignore
 scala-cli --scala 3.0.0 Test.scala
 ```
 
 Another thing you can do is to specify dependencies:
-```bash
+```bash ignore
 scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
 ```
 
