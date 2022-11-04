@@ -509,4 +509,35 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
     }
   }
+
+  test("scalapy") {
+
+    def maybeScalapyPrefix =
+      if (actualScalaVersion.startsWith("2.13.")) ""
+      else "import me.shadaj.scalapy.py" + System.lineSeparator()
+
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""$maybeScalapyPrefix
+           |object Hello {
+           |  def main(args: Array[String]): Unit = {
+           |    py.Dynamic.global.print("Hello from Python", flush = true)
+           |  }
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "compile", "--python", "--print-class-path", ".", extraOptions)
+          .call(cwd = root)
+      val classPath = res.out.trim().split(File.pathSeparator)
+      val outputDir = os.Path(classPath.head, root)
+      val classFiles = os.walk(outputDir)
+        .filter(_.last.endsWith(".class"))
+        .filter(os.isFile(_))
+        .map(_.relativeTo(outputDir))
+      expect(classFiles.contains(os.rel / "Hello.class"))
+    }
+  }
 }
