@@ -16,13 +16,15 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Random
 
 class BspServer(
-  bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer,
+  bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   presetIntelliJ: Boolean = false
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
     with ScalaScriptBuildServer
-    with ScalaBuildServerForwardStubs with JavaBuildServerForwardStubs
+    with ScalaBuildServerForwardStubs
+    with JavaBuildServerForwardStubs
+    with JvmBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
 
   private var client: Option[BuildClient] = None
@@ -132,7 +134,8 @@ class BspServer(
     }
   }
 
-  protected def forwardTo: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = bloopServer
+  protected def forwardTo
+    : b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer = bloopServer
 
   private val supportedLanguages: ju.List[String] = List(
     "scala",

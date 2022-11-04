@@ -10,7 +10,7 @@ import scala.build.{GeneratedSource, Inputs}
 class BuildServerProxy(
   bspServer: () => BspServer,
   onReload: () => CompletableFuture[Object]
-) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
+) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with b.JvmBuildServer
     with ScalaScriptBuildServer with HasGeneratedSources {
   override def buildInitialize(params: b.InitializeBuildParams)
     : CompletableFuture[b.InitializeBuildResult] = bspServer().buildInitialize(params)
@@ -81,6 +81,14 @@ class BuildServerProxy(
 
   override def onConnectWithClient(server: b.BuildClient): Unit =
     bspServer().onConnectWithClient(server)
+
+  override def jvmRunEnvironment(params: b.JvmRunEnvironmentParams)
+    : CompletableFuture[b.JvmRunEnvironmentResult] =
+    bspServer().jvmRunEnvironment(params)
+
+  override def jvmTestEnvironment(params: b.JvmTestEnvironmentParams)
+    : CompletableFuture[b.JvmTestEnvironmentResult] =
+    bspServer().jvmTestEnvironment(params)
 
   def targetIds: List[b.BuildTargetIdentifier] = bspServer().targetIds
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
