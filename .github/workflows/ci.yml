@@ -969,9 +969,10 @@ jobs:
           ssh-private-key: |
             ${{ secrets.SCALA_CLI_PACKAGES_KEY }}
             ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
+            ${{ secrets.HOMEBREW_SCALA_EXPERIMENTAL_KEY }}
             ${{ secrets.SCALA_CLI_SETUP_KEY }}
       - run: ./mill -i ci.updateInstallationScript
-      - run: ./mill -i ci.updateBrewFormula
+      - run: ./mill -i ci.updateScalaCliBrewFormula
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
         env:
@@ -996,6 +997,7 @@ jobs:
           SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
           SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
       - run: ./mill -i ci.updateScalaCliSetup
+      - run: ./mill -i ci.updateScalaExperimentalBrewFormula
 
   update-windows-packages:
     name: Update Windows packages
