@@ -63,6 +63,7 @@ case object UsingScalaNativeOptionsDirectiveHandler extends UsingDirectiveHandle
     case "native-version" | "nativeVersion" => UsingDirectiveValueNumberBounds(1, 1)
     case "native-linking" | "nativeLinking" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
     case "native-compile" | "nativeCompile" => UsingDirectiveValueNumberBounds(1, Int.MaxValue)
+    case "nativeEmbedResources"             => UsingDirectiveValueNumberBounds(0, 1)
   }
 
   def getBooleanOption(groupedValues: GroupedScopedValuesContainer): Option[Boolean] =
