@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
@@ -24,6 +24,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     with RunZipTestDefinitions {
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
   protected val ciOpt: Seq[String] =
     Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
@@ -140,8 +141,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       def debugString(server: String, port: String) =
         s"-agentlib:jdwp=transport=dt_socket,server=$server,suspend=y,address=$port"
 
-      assert(out1.exists(_ == debugString("y", "5005")))
-      assert(out2.exists(_ == debugString("n", "5006")))
+      assert(out1.contains(debugString("y", "5005")))
+      assert(out2.contains(debugString("n", "5006")))
     }
   }
 
@@ -257,8 +258,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       assert(exceptionLines == expectedLines, clues(output))
     }
   }
-
-  val emptyInputs: TestInputs = TestInputs(os.rel / ".placeholder" -> "")
 
   def fd(): Unit = {
     emptyInputs.fromRoot { root =>
