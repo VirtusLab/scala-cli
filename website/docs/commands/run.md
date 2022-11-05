@@ -60,6 +60,11 @@ scala-cli Hello.scala hi.sc --main-class hi_sc
 scala-cli Hello.scala --jvm adopt:14
 ```
 
+You can also specify custom JVM with the using directive `//> using jvm`:
+```scala
+//> using jvm "adopt:14"
+```
+
 JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from the [coursier JVM index](https://github.com/coursier/jvm-index).
 (New JVM versions are automatically checked daily, and updates for those are - manually - merged
 swiftly.)

@@ -1671,10 +1671,23 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("Runs with JVM 8") {
     val inputs =
-      TestInputs(os.rel / "run.scala" -> """object Main extends App { println("hello")}""")
+      TestInputs(
+        os.rel / "run.scala" -> """object Main extends App { println(System.getProperty("java.version"))}"""
+      )
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "run.scala", "--jvm", "8").call(cwd = root)
-      expect(p.out.trim() == "hello")
+      expect(p.out.trim().startsWith("1.8"))
+    }
+  }
+
+  test("Runs with JVM 8 with using directive") {
+    val inputs =
+      TestInputs(os.rel / "run.scala" ->
+        """//> using jvm "8"
+          |object Main extends App { println(System.getProperty("java.version"))}""".stripMargin)
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "run.scala").call(cwd = root)
+      expect(p.out.trim().startsWith("1.8"))
     }
   }
 

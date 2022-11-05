@@ -7,7 +7,7 @@ import java.io.File
 
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
-import scala.build.{Build, BuildThreads, Logger}
+import scala.build.{Build, BuildThreads, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
@@ -51,7 +51,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
           fetchSources = Some(true)
         ),
         javaOptions = baseOptions.javaOptions.copy(
-          jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some("8"))
+          jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse(Some(Positioned.none("8")))
         )
       )
     }

@@ -4,7 +4,7 @@ import java.io.File
 
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
-import scala.build.{Build, Logger}
+import scala.build.{Build, Logger, Positioned}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
 import scala.cli.internal.CachedBinary
@@ -171,7 +171,7 @@ object NativeImage {
     val jvmId = build.options.notForBloopOptions.packageOptions.nativeImageOptions.jvmId
     val options = build.options.copy(
       javaOptions = build.options.javaOptions.copy(
-        jvmIdOpt = Some(jvmId)
+        jvmIdOpt = Some(Positioned.none(jvmId))
       )
     )
 
