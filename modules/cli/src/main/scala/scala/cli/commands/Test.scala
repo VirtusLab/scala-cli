@@ -153,6 +153,10 @@ object Test extends ScalaCommand[TestOptions] {
           actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
+      if (builds.anyFailed) {
+        System.err.println("Compilation failed")
+        sys.exit(1)
+      }
       maybeTest(builds, allowExit = true)
     }
   }
