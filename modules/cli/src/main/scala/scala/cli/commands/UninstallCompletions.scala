@@ -41,10 +41,12 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
       if (options.logging.verbosity >= 0)
         if (updated) {
           logger.message(s"Updated $rcFile")
-          logger.message("scala-cli completions uninstalled successfully")
+          logger.message(s"$baseRunnerName completions uninstalled successfully")
         }
         else
-          logger.error("Problem occurred while uninstalling scala-cli completions")
+          logger.error(
+            s"Problem occurred while uninstalling $baseRunnerName completions"
+          )
     }
   }
 }

@@ -15,6 +15,8 @@ import scala.cli.commands.publish.{Publish, PublishLocal, PublishSetup}
 
 class ScalaCliCommands(
   val progName: String,
+  baseRunnerName: String,
+  fullRunnerName: String,
   isSipScala: Boolean
 ) extends CommandsEntryPoint {
 
@@ -27,7 +29,7 @@ class ScalaCliCommands(
   private def pgpBinaryCommands = new PgpCommandsSubst
 
   private def allCommands = Seq[ScalaCommand[_]](
-    new About(isSipScala = isSipScala),
+    About,
     AddPath,
     Bloop,
     BloopExit,
@@ -64,7 +66,7 @@ class ScalaCliCommands(
     Uninstall,
     UninstallCompletions,
     Update,
-    new Version(isSipScala = isSipScala)
+    Version
   ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++
     (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
 
@@ -74,10 +76,10 @@ class ScalaCliCommands(
       (if (pgpUseBinaryCommands) pgpBinaryCommands.allExternalCommands.toSeq else Nil)
 
   override def description =
-    "Scala CLI is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
+    s"$fullRunnerName is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
   override def summaryDesc =
-    """|See 'scala-cli <command> --help' to read about a specific subcommand. To see full help run 'scala-cli <command> --help-full'.
-       |To run another Scala CLI version, specify it with '--cli-version' before any other argument, like 'scala-cli --cli-version <version> args'.""".stripMargin
+    s"""|See '$baseRunnerName <command> --help' to read about a specific subcommand. To see full help run '$baseRunnerName <command> --help-full'.
+        |To run another $fullRunnerName version, specify it with '--cli-version' before any other argument, like '$baseRunnerName --cli-version <version> args'.""".stripMargin
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter

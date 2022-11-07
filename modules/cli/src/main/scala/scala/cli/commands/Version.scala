@@ -6,7 +6,7 @@ import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 
-class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
+object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.cliVersion)
@@ -14,17 +14,12 @@ class Version(isSipScala: Boolean) extends ScalaCommand[VersionOptions] {
     else if (options.scalaVersion)
       println(Constants.defaultScalaVersion)
     else
-      println(Version.versionInfo(isSipScala))
+      println(versionInfo)
   }
-}
 
-object Version {
-  def versionInfo(isSipScala: Boolean): String =
+  def versionInfo: String =
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
-    val appName =
-      if (isSipScala) "Scala code runner"
-      else "Scala CLI"
-    s"""$appName version: $version$detailedVersionOpt
+    s"""$fullRunnerName version: $version$detailedVersionOpt
        |Scala version (default): ${Constants.defaultScalaVersion}""".stripMargin
 }

@@ -159,9 +159,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
-        """scala-cli can not determine where to write its BSP configuration.
-          |Set an explicit BSP directory path via `--bsp-directory`.
-          |""".stripMargin
+        s"""$baseRunnerName can not determine where to write its BSP configuration.
+           |Set an explicit BSP directory path via `--bsp-directory`.
+           |""".stripMargin
       )))
 
     if (previousCommandName.isEmpty || !bspJsonDestination.toIO.exists()) {
@@ -189,7 +189,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       .filter(_.nonEmpty)
       .map(os.Path(_, Os.pwd))
       .getOrElse(workspace / ".bsp")
-    val bspName0 = bspName.map(_.trim).filter(_.nonEmpty).getOrElse("scala-cli")
+    val bspName0 = bspName.map(_.trim).filter(_.nonEmpty).getOrElse(baseRunnerName)
 
     (bspName0, dir / s"$bspName0.json")
   }

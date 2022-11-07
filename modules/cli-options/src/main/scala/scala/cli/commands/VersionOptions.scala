@@ -5,11 +5,11 @@ import caseapp.*
 import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
-@HelpMessage("Print `scala-cli` version")
+@HelpMessage("Print version")
 final case class VersionOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @HelpMessage("Show only plain scala-cli version")
+  @HelpMessage("Show only plain version")
   @Name("cli")
     cliVersion: Boolean = false,
   @HelpMessage("Show only plain scala version") 

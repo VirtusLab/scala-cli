@@ -14,7 +14,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def isRestricted    = true
 
   private def logEqual(version: String, logger: Logger) = {
-    logger.message(s"Scala CLI $version is already installed and up-to-date.")
+    logger.message(s"$fullRunnerName $version is already installed and up-to-date.")
     sys.exit(0)
   }
 
@@ -25,8 +25,8 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     logger: Logger
   ): Unit =
     if (!env) logger.message(
-      s"""scala-cli $oldVersion is already installed and out-of-date.
-         |scala-cli will be updated to version $newVersion
+      s"""$baseRunnerName $oldVersion is already installed and out-of-date.
+         |$baseRunnerName will be updated to version $newVersion
          |""".stripMargin
     )
 
@@ -37,8 +37,12 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     logger: Logger
   ): Unit =
     if (!env && coursier.paths.Util.useAnsiOutput()) {
-      logger.message(s"scala-cli $oldVersion is already installed and up-to-date.")
-      logger.error(s"Do you want to downgrade scala-cli to version $newVersion [Y/n]")
+      logger.message(
+        s"$baseRunnerName $oldVersion is already installed and up-to-date."
+      )
+      logger.error(
+        s"Do you want to downgrade $baseRunnerName to version $newVersion [Y/n]"
+      )
       val response = readLine()
       if (response != "Y") {
         logger.message("Abort")
@@ -47,7 +51,7 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     }
     else {
       logger.error(
-        s"Error: scala-cli is already installed $oldVersion and up-to-date. Downgrade to $newVersion pass -f or --force."
+        s"Error: $baseRunnerName is already installed $oldVersion and up-to-date. Downgrade to $newVersion pass -f or --force."
       )
       sys.exit(1)
     }
@@ -58,7 +62,9 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
     logger: Logger
   ): Unit = {
     val binDirPath =
-      options.binDirPath.getOrElse(scala.build.Directories.default().binRepoDir / "scala-cli")
+      options.binDirPath.getOrElse(
+        scala.build.Directories.default().binRepoDir / baseRunnerName
+      )
     val destBinPath = binDirPath / options.binaryName
 
     val newScalaCliBinPath = os.Path(options.scalaCliBinaryPath, os.pwd)
@@ -111,16 +117,18 @@ object InstallHome extends ScalaCommand[InstallHomeOptions] {
           updater.applyUpdate(update)
         }
 
-      println(s"Successfully installed scala-cli $newVersion")
+      println(s"Successfully installed $baseRunnerName $newVersion")
 
       if (didUpdate) {
         if (Properties.isLinux)
           println(
             s"""|Profile file(s) updated.
-                |To run scala-cli, log out and log back in, or run 'source ~/.profile'""".stripMargin
+                |To run $baseRunnerName, log out and log back in, or run 'source ~/.profile'""".stripMargin
           )
         if (Properties.isMac)
-          println("To run scala-cli, open new terminal or run 'source ~/.profile'")
+          println(
+            s"To run $baseRunnerName, open new terminal or run 'source ~/.profile'"
+          )
       }
 
     }

@@ -62,8 +62,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       actionableUpdateDiagnostics.foreach(update =>
         println(s"   * ${update.oldDependency.render} -> ${update.newVersion}")
       )
-      println("""|To update all dependencies run:
-                 |    scala-cli dependency-update --all""".stripMargin)
+      println(s"""|To update all dependencies run:
+                  |    $baseRunnerName dependency-update --all""".stripMargin)
     }
   }
 
@@ -91,7 +91,9 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       case (Left(file), diagnostics) =>
         diagnostics.foreach {
           diagnostic =>
-            logger.message(s"Warning: Scala CLI can't update ${diagnostic._2.suggestion} in $file")
+            logger.message(
+              s"Warning: $fullRunnerName can't update ${diagnostic._2.suggestion} in $file"
+            )
         }
     }
   }

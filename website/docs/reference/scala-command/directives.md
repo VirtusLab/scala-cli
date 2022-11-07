@@ -42,7 +42,7 @@ Manually add JAR(s) to the class path
 
 ### Custom sources
 
-Manually add sources to the Scala CLI project
+Manually add sources to the project
 
 //> using file hello.sc
 

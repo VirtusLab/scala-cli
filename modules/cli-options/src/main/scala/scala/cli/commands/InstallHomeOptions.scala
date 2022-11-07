@@ -5,7 +5,7 @@ import caseapp.*
 import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
-@HelpMessage("Install `scala-cli` in a sub-directory of the home directory")
+@HelpMessage("Install Scala CLI in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -13,7 +13,7 @@ final case class InstallHomeOptions(
     scalaCliBinaryPath: String,
   @Group("InstallHome")
   @Name("f")
-  @HelpMessage("Overwrite `scala-cli`, if it exists")
+  @HelpMessage("Overwrite if it exists")
     force: Boolean = false,
   @Hidden
   @HelpMessage("Binary name")

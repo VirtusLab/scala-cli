@@ -4,9 +4,9 @@ import caseapp.core.RemainingArgs
 
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.cli.ScalaCli
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
+import scala.cli.{CurrentParams, ScalaCli}
 
 // current version / latest version + potentially information that
 // scala-cli should be updated (and that should take SNAPSHOT version
@@ -49,10 +49,10 @@ object Doctor extends ScalaCommand[DoctorOptions] {
     val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion, currentVersion)
     if (isOutdated)
       println(
-        s"Your scala-cli version is out of date. your version: $currentVersion. please update to: $newestScalaCliVersion"
+        s"Your $baseRunnerName version is out of date. your version: $currentVersion. please update to: $newestScalaCliVersion"
       )
     else
-      println(s"Your scala-cli version ($currentVersion) is current.")
+      println(s"Your $baseRunnerName version ($currentVersion) is current.")
   }
 
   private def checkBloopStatus(): Unit = {
@@ -66,15 +66,15 @@ object Doctor extends ScalaCommand[DoctorOptions] {
 
     if (scalaCliPaths.size > 1)
       println(
-        s"scala-cli would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}."
+        s"$baseRunnerName would not be able to update itself since it is installed in multiple directories: ${scalaCliPaths.mkString(", ")}."
       )
     else if (Update.isScalaCLIInstalledByInstallationScript)
       println(
-        s"scala-cli could update itself since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
+        s"$baseRunnerName could update itself since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
       )
     else
       println(
-        s"scala-cli can be updated by your package manager since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
+        s"$baseRunnerName can be updated by your package manager since it is correctly installed in only one location: ${scalaCliPaths.mkString}."
       )
 
   }
@@ -95,12 +95,12 @@ object Doctor extends ScalaCommand[DoctorOptions] {
 
   private def checkIsNativeOrJvm(): Unit = {
     if (System.getProperty("org.graalvm.nativeimage.kind") == "executable")
-      println("Your scala-cli is a native application.")
+      println(s"Your $baseRunnerName is a native application.")
     else {
       val jvmVersion        = System.getProperty("java.vm.name")
       val javaVendorVersion = System.getProperty("java.vendor.version")
       println(
-        s"Your scala-cli is using the java launcher with JVM: $jvmVersion ($javaVendorVersion)."
+        s"Your $baseRunnerName is using the java launcher with JVM: $jvmVersion ($javaVendorVersion)."
       )
     }
   }

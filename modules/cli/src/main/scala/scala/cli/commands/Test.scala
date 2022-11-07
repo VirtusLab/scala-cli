@@ -253,7 +253,7 @@ object Test extends ScalaCommand[TestOptions] {
         case Right(f) => Some(f)
         case Left(_) =>
           logger.message(
-            "zio-test found in the class path, zio-test-sbt should be added to run zio tests with Scala CLI."
+            s"zio-test found in the class path, zio-test-sbt should be added to run zio tests with $fullRunnerName."
           )
           None
       }

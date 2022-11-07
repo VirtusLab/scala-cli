@@ -4,16 +4,17 @@ import coursier.Repositories
 import coursier.cache.FileCache
 import coursier.core.Version
 import coursier.util.{Artifact, Task}
-import dependency._
+import dependency.*
 
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
 import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
-import scala.cli.commands.util.CommonOps._
+import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.{CoursierOptions, LoggingOptions}
-import scala.concurrent.duration._
+import scala.cli.{CurrentParams, ScalaCli}
+import scala.concurrent.duration.*
 import scala.util.control.NonFatal
 
 object LauncherCli {
@@ -36,7 +37,7 @@ object LauncherCli {
         snapshotsRepo,
         Some(scalaParameters),
         logger,
-        cache.withMessage(s"Fetching Scala CLI $cliVersion"),
+        cache.withMessage(s"Fetching ${ScalaCli.fullRunnerName} $cliVersion"),
         None
       ) match {
         case Right(value) => value
@@ -86,7 +87,7 @@ object LauncherCli {
     val artifact = Artifact(snapshotRepoUrl).withChanging(true)
     cache.fileWithTtl0(artifact) match {
       case Left(_) =>
-        System.err.println("Unable to find nightly Scala CLI version")
+        System.err.println(s"Unable to find nightly ${ScalaCli.fullRunnerName} version")
         sys.exit(1)
       case Right(f) =>
         val snapshotRepoPage = os.read(os.Path(f, Os.pwd))

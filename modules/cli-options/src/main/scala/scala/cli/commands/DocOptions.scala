@@ -19,7 +19,7 @@ final case class DocOptions(
   @Name("f")
     force: Boolean = false,
   @Group("Doc")
-  @HelpMessage("Control if scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
+  @HelpMessage("Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,
 ) extends HasSharedOptions
