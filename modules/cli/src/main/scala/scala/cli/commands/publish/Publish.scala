@@ -48,7 +48,7 @@ import scala.cli.commands.{
   SharedPythonOptions,
   WatchUtil
 }
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.{ConfigDb, Keys, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
   MalformedChecksumsError,
@@ -661,16 +661,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     (fileSet, (mod, ver))
   }
 
-  private final case class RepoParams(
-    repo: PublishRepository,
-    targetRepoOpt: Option[String],
-    hooks: Hooks,
-    isIvy2LocalLike: Boolean,
-    defaultParallelUpload: Boolean,
-    supportsSig: Boolean,
-    acceptsChecksums: Boolean
-  )
-
   private def doPublish(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
@@ -697,150 +687,79 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val ec = builds.head.options.finalCache.ec
 
+    def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
+      val isHttps = {
+        val uri = new URI(repo)
+        uri.getScheme == "https"
+      }
+      val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
+      val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
+        case None => Right(None)
+        case Some(host) =>
+          configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
+            credListOpt.flatMap { credList =>
+              credList.find { cred =>
+                cred.host == host &&
+                (isHttps || cred.httpsOnly.contains(false))
+              }
+            }
+          }
+      }
+      val isSonatype =
+        hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
+      val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
+        case None  => value(maybeCredentials).flatMap(_.password)
+        case other => other.map(_.toConfig)
+      }
+      passwordOpt.map(_.get()) match {
+        case None => None
+        case Some(password) =>
+          val userOpt = publishOptions.contextual(isCi).repoUser match {
+            case None  => value(maybeCredentials).flatMap(_.user)
+            case other => other.map(_.toConfig)
+          }
+          val realmOpt = publishOptions.contextual(isCi).repoRealm match {
+            case None =>
+              value(maybeCredentials)
+                .flatMap(_.realm)
+                .orElse {
+                  if (isSonatype) Some("Sonatype Nexus Repository Manager")
+                  else None
+                }
+            case other => other
+          }
+          val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
+          Some(realmOpt.fold(auth)(auth.withRealm))
+      }
+    }
+
     val repoParams = {
 
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
-      def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
-        val hostOpt = {
-          val uri = new URI(repo)
-          if (uri.getScheme == "https") Some(uri.getHost)
-          else None
-        }
-        val isSonatype =
-          hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
-        val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
-          case None if isSonatype =>
-            value(configDb().get(Keys.sonatypePassword).wrapConfigException)
-          case other => other.map(_.toConfig)
-        }
-        passwordOpt.map(_.get()) match {
-          case None => None
-          case Some(password) =>
-            val userOpt = publishOptions.contextual(isCi).repoUser match {
-              case None if isSonatype =>
-                value(configDb().get(Keys.sonatypeUser).wrapConfigException)
-              case other => other.map(_.toConfig)
-            }
-            val realmOpt = publishOptions.contextual(isCi).repoRealm match {
-              case None if isSonatype =>
-                Some("Sonatype Nexus Repository Manager")
-              case other => other
-            }
-            val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
-            Some(realmOpt.fold(auth)(auth.withRealm))
-        }
-      }
-
-      def centralRepo(base: String) = either {
-        val authOpt0 = value(authOpt(base))
-        val repo0 = {
-          val r = PublishRepository.Sonatype(MavenRepository(base))
-          authOpt0.fold(r)(r.withAuthentication)
-        }
-        val backend = ScalaCliSttpBackend.httpURLConnection(logger)
-        val api     = SonatypeApi(backend, base + "/service/local", authOpt0, logger.verbosity)
-        val hooks0 = Hooks.sonatype(
-          repo0,
-          api,
-          logger.compilerOutputStream, // meh
-          logger.verbosity,
-          batch = coursier.paths.Util.useAnsiOutput(), // FIXME Get via logger
-          es
-        )
-        RepoParams(repo0, Some("https://repo1.maven.org/maven2"), hooks0, false, true, true, true)
-      }
-
-      def gitHubRepoFor(org: String, name: String) =
-        RepoParams(
-          PublishRepository.Simple(MavenRepository(s"https://maven.pkg.github.com/$org/$name")),
-          None,
-          Hooks.dummy,
-          false,
-          false,
-          false,
-          false
-        )
-
-      def gitHubRepo = either {
-        val orgNameFromVcsOpt = publishOptions.versionControl
-          .map(_.url)
-          .flatMap(url => GitRepo.maybeGhOrgName(url))
-
-        val (org, name) = orgNameFromVcsOpt match {
-          case Some(orgName) => orgName
-          case None =>
-            value(GitRepo.ghRepoOrgName(builds.head.inputs.workspace, logger))
-        }
-
-        gitHubRepoFor(org, name)
-      }
-
-      def ivy2Local = {
-        val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
-        val base = home / "local"
-        // not really a Maven repo…
-        RepoParams(
-          PublishRepository.Simple(MavenRepository(base.toNIO.toUri.toASCIIString)),
-          None,
-          Hooks.dummy,
-          true,
-          true,
-          true,
-          true
-        )
-      }
-
       if (publishLocal)
-        ivy2Local
+        RepoParams.ivy2Local(ivy2HomeOpt)
       else
-        publishOptions.contextual(isCi).repository match {
-          case None =>
-            value(Left(new MissingPublishOptionError(
-              "repository",
-              "--publish-repository",
-              "publish.repository"
-            )))
-          case Some("ivy2-local") =>
-            ivy2Local
-          case Some("central" | "maven-central" | "mvn-central") =>
-            value(centralRepo("https://oss.sonatype.org"))
-          case Some("central-s01" | "maven-central-s01" | "mvn-central-s01") =>
-            value(centralRepo("https://s01.oss.sonatype.org"))
-          case Some("github") =>
-            value(gitHubRepo)
-          case Some(repoStr) if repoStr.startsWith("github:") && repoStr.count(_ == '/') == 1 =>
-            val (org, name) = repoStr.stripPrefix("github:").split('/') match {
-              case Array(org0, name0) => (org0, name0)
-              case other              => sys.error(s"Cannot happen ('$repoStr' -> ${other.toSeq})")
-            }
-            gitHubRepoFor(org, name)
-          case Some(repoStr) =>
-            val repo0 = {
-              val r = RepositoryParser.repositoryOpt(repoStr)
-                .collect {
-                  case m: MavenRepository =>
-                    m
-                }
-                .getOrElse {
-                  val url =
-                    if (repoStr.contains("://")) repoStr
-                    else os.Path(repoStr, Os.pwd).toNIO.toUri.toASCIIString
-                  MavenRepository(url)
-                }
-              r.withAuthentication(value(authOpt(r.root)))
-            }
-
-            RepoParams(
-              PublishRepository.Simple(repo0),
-              None,
-              Hooks.dummy,
-              publishOptions.contextual(isCi).repositoryIsIvy2LocalLike.getOrElse(false),
-              true,
-              true,
-              true
-            )
+        value {
+          publishOptions.contextual(isCi).repository match {
+            case None =>
+              Left(new MissingPublishOptionError(
+                "repository",
+                "--publish-repository",
+                "publish.repository"
+              ))
+            case Some(repo) =>
+              RepoParams(
+                repo,
+                publishOptions.versionControl.map(_.url),
+                builds.head.inputs.workspace,
+                ivy2HomeOpt,
+                publishOptions.contextual(isCi).repositoryIsIvy2LocalLike.getOrElse(false),
+                es,
+                logger
+              )
+          }
         }
     }
 
@@ -988,10 +907,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val hooksData   = repoParams.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+    val repoParams0 = repoParams.withAuth(value(authOpt(repoParams.repo.repo(isSnapshot0).root)))
+    val hooksData   = repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
 
-    val retainedRepo = repoParams.hooks.repository(hooksData, repoParams.repo, isSnapshot0)
-      .getOrElse(repoParams.repo.repo(isSnapshot0))
+    val retainedRepo = repoParams0.hooks.repository(hooksData, repoParams0.repo, isSnapshot0)
+      .getOrElse(repoParams0.repo.repo(isSnapshot0))
 
     val upload =
       if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
@@ -1015,9 +935,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
-        repoParams.hooks.afterUpload(hooksData).unsafeRun()(ec)
+        repoParams0.hooks.afterUpload(hooksData).unsafeRun()(ec)
         for ((mod, version) <- modVersionOpt) {
-          val checkRepo = repoParams.repo.checkResultsRepo(isSnapshot0)
+          val checkRepo = repoParams0.repo.checkResultsRepo(isSnapshot0)
           val relPath = {
             val elems =
               if (repoParams.isIvy2LocalLike)

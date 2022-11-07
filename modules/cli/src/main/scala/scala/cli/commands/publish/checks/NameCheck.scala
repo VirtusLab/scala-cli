@@ -17,7 +17,7 @@ final case class NameCheck(
   def check(options: BPublishOptions): Boolean =
     options.name.nonEmpty || options.moduleName.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     def fromWorkspaceDirName = {
       val n = workspace.last
       logger.message("name:")

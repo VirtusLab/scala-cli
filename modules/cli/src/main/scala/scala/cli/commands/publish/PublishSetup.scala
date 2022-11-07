@@ -161,7 +161,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
       val missingFieldsWithDefaults = missingFields
         .map { check =>
-          check.defaultValue().map((check, _))
+          check.defaultValue(publishOptions).map((check, _))
         }
         .sequence
         .left.map(CompositeBuildException(_))

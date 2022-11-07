@@ -20,7 +20,7 @@ final case class ComputeVersionCheck(
     pubOpt.version.nonEmpty ||
     pubOpt.retained(options.publishParams.setupCi).computeVersion.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     def fromGitOpt =
       if (GitRepo.gitRepoOpt(workspace).isDefined) {
         logger.message("computeVersion:")

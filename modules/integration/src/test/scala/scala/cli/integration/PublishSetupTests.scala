@@ -26,9 +26,15 @@ class PublishSetupTests extends ScalaCliSuite {
       .call(cwd = root, stdout = os.Inherit)
     os.proc(TestUtil.cli, "config", dirOptions, "publish.user.url", devUrl)
       .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "sonatype.user", "value:uSeR")
-      .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "sonatype.password", "value:1234")
+    os.proc(
+      TestUtil.cli,
+      "config",
+      dirOptions,
+      "publish.credentials",
+      "s01.oss.sonatype.org",
+      "value:uSeR",
+      "value:1234"
+    )
       .call(cwd = root, stdout = os.Inherit)
     os.proc(TestUtil.cli, "config", dirOptions, "--create-pgp-key")
       .call(cwd = root, stdout = os.Inherit)

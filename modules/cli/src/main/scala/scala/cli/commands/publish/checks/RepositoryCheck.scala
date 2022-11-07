@@ -14,12 +14,17 @@ final case class RepositoryCheck(
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".repository"
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.retained(options.publishParams.setupCi).repository.nonEmpty
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
     val repo = options.publishRepo.publishRepository.getOrElse {
       logger.message("repository:")
-      logger.message("  using Maven Central via its s01 server")
-      "central-s01"
+      logger.message(s"  using ${RepositoryCheck.defaultRepositoryDescription}")
+      RepositoryCheck.defaultRepository
     }
     Right(OptionCheck.DefaultValue.simple(repo, Nil, Nil))
   }
+}
+
+object RepositoryCheck {
+  def defaultRepository            = "central-s01"
+  def defaultRepositoryDescription = "Maven Central via its s01 server"
 }

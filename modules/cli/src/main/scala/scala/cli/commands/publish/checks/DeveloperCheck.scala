@@ -21,7 +21,7 @@ final case class DeveloperCheck(
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.developers.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] =
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
       // FIXME No headOption, add all of options.publishParams.developer values…
       val strValue = options.publishParams.developer.headOption match {

@@ -18,7 +18,7 @@ final case class OrganizationCheck(
   def check(options: BPublishOptions): Boolean =
     options.organization.nonEmpty
 
-  def defaultValue(): Either[BuildException, OptionCheck.DefaultValue] = {
+  def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
 
     def viaGitHubRemoteOpt = GitRepo.ghRepoOrgName(workspace, logger) match {
       case Left(err) =>
