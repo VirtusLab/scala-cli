@@ -28,7 +28,7 @@ final case class UrlCheck(
       case Right((org, name)) =>
         val url = s"https://github.com/$org/$name"
         logger.message("url:")
-        logger.message(s"  using GitHub repository $url")
+        logger.message(s"  using GitHub repository URL $url")
         Some(url)
     }
     options.publishParams.url

@@ -11,10 +11,9 @@ final class MissingPublishOptionError(
 ) extends BuildException(
       {
         val directivePart =
-          if (directiveName.isEmpty)
-            s" or with a 'using $directiveName' directive"
+          if (directiveName.isEmpty) ""
           else
-            ""
+            s" or with a '//> using $directiveName' directive"
         val configPart =
           if (configKeys.isEmpty) ""
           else

@@ -334,7 +334,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   private def defaultName(workspace: os.Path, logger: Logger): String = {
     val name = workspace.last
     logger.message(
-      s"Using directive publish.name not set, using workspace file name $name as default name"
+      s"Using directive publish.name not specified, using workspace directory name $name as default name"
     )
     name
   }
@@ -1024,7 +1024,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                 Seq(mod.organization.value, mod.name.value, version)
               else
                 mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
-            elems.map("/" + _).mkString
+            elems.map("/" + _).mkString + "/"
           }
           val path = {
             val url = checkRepo.root.stripSuffix("/") + relPath
