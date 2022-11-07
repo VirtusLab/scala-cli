@@ -1373,31 +1373,7 @@ object ci extends Module {
     os.proc("gh", "pr", "create", "--fill", "--base", "main", "--head", targetBranch)
       .call(cwd = scalaCliDir)
   }
-  def updateBrewFormula() = T.command {
-    val version = cli.publishVersion()
-
-    val targetDir          = os.pwd / "target"
-    val homebrewFormulaDir = targetDir / "homebrew-scala-cli"
-
-    // clean target directory
-    if (os.exists(targetDir)) os.remove.all(targetDir)
-
-    os.makeDir.all(targetDir)
-
-    val branch = "main"
-    val repo   = s"git@github.com:Virtuslab/homebrew-scala-cli.git"
-
-    // Cloning
-    gitClone(repo, branch, targetDir)
-    setupGithubRepo(homebrewFormulaDir)
-
-    val x86LauncherPath   = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
-    val arm64LauncherPath = os.Path("artifacts", os.pwd) / "scala-cli-aarch64-apple-darwin.gz"
-    val x86LauncherURL =
-      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
-    val arm64LauncherURL =
-      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
-
+  def brewLaunchersSha(x86LauncherPath: os.Path, arm64LauncherPath: os.Path, targetDir: os.Path) = {
     val x86BinarySha256 = os.proc("openssl", "dgst", "-sha256", "-binary")
       .call(
         cwd = targetDir,
@@ -1419,6 +1395,35 @@ object ci extends Module {
         stdin = arm64BinarySha256
       ).out.trim()
 
+    (x86Sha256, arm64Sha256)
+  }
+  def updateScalaCliBrewFormula() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir          = os.pwd / "target"
+    val homebrewFormulaDir = targetDir / "homebrew-scala-cli"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "main"
+    val repo   = s"git@github.com:Virtuslab/homebrew-scala-cli.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(homebrewFormulaDir)
+
+    val x86LauncherURL =
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherURL =
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
+
+    val x86LauncherPath   = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherPath = os.Path("artifacts", os.pwd) / "scala-cli-aarch64-apple-darwin.gz"
+    val (x86Sha256, arm64Sha256) = brewLaunchersSha(x86LauncherPath, arm64LauncherPath, targetDir)
+
     val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala-cli.rb.template"
     val template            = os.read(templateFormulaPath)
 
@@ -1430,6 +1435,48 @@ object ci extends Module {
       .replace("@LAUNCHER_VERSION@", version)
 
     val formulaPath = homebrewFormulaDir / "scala-cli.rb"
+    os.write.over(formulaPath, updatedFormula)
+
+    commitChanges(s"Update for $version", branch, homebrewFormulaDir)
+  }
+  def updateScalaExperimentalBrewFormula() = T.command {
+    val version = cli.publishVersion()
+
+    val targetDir          = os.pwd / "target"
+    val homebrewFormulaDir = targetDir / "homebrew-scala-experimental"
+
+    // clean target directory
+    if (os.exists(targetDir)) os.remove.all(targetDir)
+
+    os.makeDir.all(targetDir)
+
+    val branch = "main"
+    val repo   = s"git@github.com:VirtusLab/homebrew-scala-experimental.git"
+
+    // Cloning
+    gitClone(repo, branch, targetDir)
+    setupGithubRepo(homebrewFormulaDir)
+
+    val x86LauncherURL =
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherURL =
+      s"https://github.com/Virtuslab/scala-cli/releases/download/v$version/scala-cli-aarch64-apple-darwin.gz"
+
+    val x86LauncherPath   = os.Path("artifacts", os.pwd) / "scala-cli-x86_64-apple-darwin.gz"
+    val arm64LauncherPath = os.Path("artifacts", os.pwd) / "scala-cli-aarch64-apple-darwin.gz"
+    val (x86Sha256, arm64Sha256) = brewLaunchersSha(x86LauncherPath, arm64LauncherPath, targetDir)
+
+    val templateFormulaPath = os.pwd / ".github" / "scripts" / "scala.rb.template"
+    val template            = os.read(templateFormulaPath)
+
+    val updatedFormula = template
+      .replace("@X86_LAUNCHER_URL@", x86LauncherURL)
+      .replace("@ARM64_LAUNCHER_URL@", arm64LauncherURL)
+      .replace("@X86_LAUNCHER_SHA256@", x86Sha256)
+      .replace("@ARM64_LAUNCHER_SHA256@", arm64Sha256)
+      .replace("@LAUNCHER_VERSION@", version)
+
+    val formulaPath = homebrewFormulaDir / "scala.rb"
     os.write.over(formulaPath, updatedFormula)
 
     commitChanges(s"Update for $version", branch, homebrewFormulaDir)
