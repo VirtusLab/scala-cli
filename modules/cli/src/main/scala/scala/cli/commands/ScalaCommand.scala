@@ -236,8 +236,8 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     }
 
   override def helpFormat: HelpFormat =
-    HelpFormat.default()
-      .withSortedGroups(Some(Seq(
+    HelpFormat.default().copy(
+      sortedGroups = Some(Seq(
         "Help",
         "Scala",
         "Java",
@@ -246,17 +246,17 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
         "Metabrowse server",
         "Logging",
         "Runner"
-      )))
-      .withSortedCommandGroups(Some(Seq(
+      )),
+      sortedCommandGroups = Some(Seq(
         "Main",
         "Miscellaneous",
         ""
-      )))
-      .withHiddenGroups(Some(Seq(
+      )),
+      hiddenGroups = Some(Seq(
         "Scala.js",
         "Scala Native"
-      )))
-      .withTerminalWidthOpt {
+      )),
+      terminalWidthOpt =
         if (Properties.isWin)
           if (coursier.paths.Util.useJni())
             Try(coursier.jniutils.WindowsAnsiTerminal.terminalSize()).toOption.map(
@@ -277,7 +277,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
           //   https://github.com/fusesource/jansi/blob/09722b7cccc8a99f14ac1656db3072dbeef34478/src/main/java/org/fusesource/jansi/AnsiConsole.java#L344
           // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
           None
-      }
+    )
 
   /** @param options
     *   command-specific [[T]] options

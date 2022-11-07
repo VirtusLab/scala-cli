@@ -12,9 +12,9 @@ object RestrictedCommandsParser {
       m.message.contains("[experimental]") || m.message.contains("[restricted]")
     )
 
-  def apply[T, TD](parser: Parser.Aux[T, TD]): Parser.Aux[T, TD] = new Parser[T] {
+  def apply[T](parser: Parser[T]): Parser[T] = new Parser[T] {
 
-    type D = TD
+    type D = parser.D
 
     private def isArgSupported(a: Arg): Boolean =
       scala.cli.ScalaCli.allowRestrictedFeatures || !isExperimentalOrRestricted(a)
@@ -29,7 +29,7 @@ object RestrictedCommandsParser {
 
     def init: D = parser.init
 
-    def withDefaultOrigin(origin: String): caseapp.core.parser.Parser.Aux[T, D] =
+    def withDefaultOrigin(origin: String): caseapp.core.parser.Parser[T] =
       RestrictedCommandsParser(parser.withDefaultOrigin(origin))
 
     override def step(

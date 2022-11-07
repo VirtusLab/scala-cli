@@ -79,7 +79,7 @@ class ScalaCliCommands(
   // FIXME Report this in case-app default NameFormatter
   override lazy val help: RuntimeCommandsHelp = {
     val parent = super.help
-    parent.withDefaultHelp(Help[Unit]())
+    parent.copy(defaultHelp = Help[Unit]())
   }
 
   override def enableCompleteCommand    = true
