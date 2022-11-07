@@ -6,12 +6,6 @@ import caseapp.core.help.{Help, RuntimeCommandsHelp}
 import java.nio.file.InvalidPathException
 
 import scala.cli.commands._
-import scala.cli.commands.bloop.{Bloop, BloopOutput}
-import scala.cli.commands.config.Config
-import scala.cli.commands.default.DefaultFile
-import scala.cli.commands.github.{SecretCreate, SecretList}
-import scala.cli.commands.pgp.{PgpCommands, PgpCommandsSubst, PgpPull, PgpPush}
-import scala.cli.commands.publish.{Publish, PublishLocal, PublishSetup}
 
 class ScalaCliCommands(
   val progName: String,
@@ -20,53 +14,53 @@ class ScalaCliCommands(
   isSipScala: Boolean
 ) extends CommandsEntryPoint {
 
-  lazy val actualDefaultCommand = new Default(help, isSipScala)
+  lazy val actualDefaultCommand = new default.Default(help, isSipScala)
 
   // for debugging purposes - allows to run the scala-cli-signing binary from the Scala CLI JVM launcher
   private lazy val pgpUseBinaryCommands =
     java.lang.Boolean.getBoolean("scala-cli.pgp.binary-commands")
-  private def pgpCommands       = new PgpCommands
-  private def pgpBinaryCommands = new PgpCommandsSubst
+  private def pgpCommands       = new pgp.PgpCommands
+  private def pgpBinaryCommands = new pgp.PgpCommandsSubst
 
   private def allCommands = Seq[ScalaCommand[_]](
-    About,
-    AddPath,
-    Bloop,
-    BloopExit,
-    BloopOutput,
-    BloopStart,
-    Bsp,
-    Clean,
-    Compile,
-    Config,
-    DefaultFile,
-    DependencyUpdate,
-    Directories,
-    Doc,
-    Doctor,
-    Export,
-    Fmt,
+    about.About,
+    addpath.AddPath,
+    bloop.Bloop,
+    bloop.BloopExit,
+    bloop.BloopOutput,
+    bloop.BloopStart,
+    bsp.Bsp,
+    clean.Clean,
+    compile.Compile,
+    config.Config,
+    default.DefaultFile,
+    dependencyupdate.DependencyUpdate,
+    directories.Directories,
+    doc.Doc,
+    doctor.Doctor,
+    export0.Export,
+    fmt.Fmt,
     new HelpCmd(help),
-    InstallCompletions,
-    InstallHome,
-    Metabrowse,
-    Repl,
-    Package,
-    PgpPull,
-    PgpPush,
-    Publish,
-    PublishLocal,
-    PublishSetup,
-    Run,
-    SecretCreate,
-    SecretList,
-    SetupIde,
-    Shebang,
-    Test,
-    Uninstall,
-    UninstallCompletions,
-    Update,
-    Version
+    installcompletions.InstallCompletions,
+    installhome.InstallHome,
+    metabrowse.Metabrowse,
+    repl.Repl,
+    package0.Package,
+    pgp.PgpPull,
+    pgp.PgpPush,
+    publish.Publish,
+    publish.PublishLocal,
+    publish.PublishSetup,
+    run.Run,
+    github.SecretCreate,
+    github.SecretList,
+    setupide.SetupIde,
+    shebang.Shebang,
+    test.Test,
+    uninstall.Uninstall,
+    uninstallcompletions.UninstallCompletions,
+    update.Update,
+    version.Version
   ) ++ (if (pgpUseBinaryCommands) Nil else pgpCommands.allScalaCommands.toSeq) ++
     (if (pgpUseBinaryCommands) pgpBinaryCommands.allScalaCommands.toSeq else Nil)
 

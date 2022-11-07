@@ -32,6 +32,7 @@ import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
 import scala.cli.CurrentParams
+import scala.cli.commands.package0.{Package => PackageCmd}
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
@@ -42,7 +43,6 @@ import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{
   MainClassOptions,
-  Package => PackageCmd,
   ScalaCommand,
   SharedOptions,
   SharedPythonOptions,
