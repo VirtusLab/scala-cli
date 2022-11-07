@@ -25,8 +25,7 @@ final case class SharedDependencyOptions(
 // format: on
 
 object SharedDependencyOptions {
-  lazy val parser: Parser[SharedDependencyOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedDependencyOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedDependencyOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[SharedDependencyOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[SharedDependencyOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedDependencyOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedDependencyOptions] = JsonCodecMaker.make
 }

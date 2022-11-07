@@ -21,6 +21,4 @@ final case class BloopExitOptions(
 object BloopExitOptions {
   implicit lazy val parser: Parser[BloopExitOptions] = Parser.derive
   implicit lazy val help: Help[BloopExitOptions]     = Help.derive
-  // Parser.Aux for using BloopExitOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[BloopExitOptions, parser.D] = parser
 }

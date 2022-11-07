@@ -18,7 +18,6 @@ final case class LauncherOptions(
 )
 
 object LauncherOptions {
-  lazy val parser: Parser[LauncherOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[LauncherOptions, parser.D] = parser
-  implicit lazy val help: Help[LauncherOptions]                      = Help.derive
+  implicit lazy val parser: Parser[LauncherOptions] = Parser.derive
+  implicit lazy val help: Help[LauncherOptions]     = Help.derive
 }

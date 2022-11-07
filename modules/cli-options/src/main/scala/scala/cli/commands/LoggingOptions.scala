@@ -22,8 +22,7 @@ final case class LoggingOptions(
 }
 
 object LoggingOptions {
-  lazy val parser: Parser[LoggingOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[LoggingOptions, parser.D] = parser
-  implicit lazy val help: Help[LoggingOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[LoggingOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[LoggingOptions]            = Parser.derive
+  implicit lazy val help: Help[LoggingOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[LoggingOptions] = JsonCodecMaker.make
 }

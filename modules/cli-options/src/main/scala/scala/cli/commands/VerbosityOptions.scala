@@ -23,9 +23,8 @@ final case class VerbosityOptions(
 }
 
 object VerbosityOptions {
-  lazy val parser: Parser[VerbosityOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[VerbosityOptions, parser.D] = parser
-  implicit lazy val help: Help[VerbosityOptions]                      = Help.derive
+  implicit lazy val parser: Parser[VerbosityOptions] = Parser.derive
+  implicit lazy val help: Help[VerbosityOptions]     = Help.derive
   implicit val rwCounter: JsonValueCodec[Int @@ Counter] =
     new JsonValueCodec[Int @@ Counter] {
       private val intCodec: JsonValueCodec[Int] = JsonCodecMaker.make

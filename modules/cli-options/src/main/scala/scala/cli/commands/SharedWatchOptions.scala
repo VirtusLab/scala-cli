@@ -17,7 +17,6 @@ final case class SharedWatchOptions(
 }
 
 object SharedWatchOptions {
-  lazy val parser: Parser[SharedWatchOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedWatchOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedWatchOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedWatchOptions] = Parser.derive
+  implicit lazy val help: Help[SharedWatchOptions]     = Help.derive
 }

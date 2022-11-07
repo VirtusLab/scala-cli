@@ -55,8 +55,7 @@ final case class ScalaNativeOptions(
 // format: on
 
 object ScalaNativeOptions {
-  lazy val parser: Parser[ScalaNativeOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[ScalaNativeOptions, parser.D] = parser
-  implicit lazy val help: Help[ScalaNativeOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[ScalaNativeOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[ScalaNativeOptions]            = Parser.derive
+  implicit lazy val help: Help[ScalaNativeOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[ScalaNativeOptions] = JsonCodecMaker.make
 }

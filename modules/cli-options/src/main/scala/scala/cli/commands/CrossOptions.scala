@@ -10,7 +10,6 @@ final case class CrossOptions(
 // format: on
 
 object CrossOptions {
-  lazy val parser: Parser[CrossOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[CrossOptions, parser.D] = parser
-  implicit lazy val help: Help[CrossOptions]                      = Help.derive
+  implicit lazy val parser: Parser[CrossOptions] = Parser.derive
+  implicit lazy val help: Help[CrossOptions]     = Help.derive
 }

@@ -9,7 +9,7 @@ final case class MainClassOptions(
   @ValueDescription("main-class")
   @Name("M")
     mainClass: Option[String] = None,
-  
+
   @Group("Entrypoint")
   @HelpMessage("List main classes available in the current context")
   @Name("mainClassList")
@@ -20,7 +20,6 @@ final case class MainClassOptions(
 // format: on
 
 object MainClassOptions {
-  lazy val parser: Parser[MainClassOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[MainClassOptions, parser.D] = parser
-  implicit lazy val help: Help[MainClassOptions]                      = Help.derive
+  implicit lazy val parser: Parser[MainClassOptions] = Parser.derive
+  implicit lazy val help: Help[MainClassOptions]     = Help.derive
 }

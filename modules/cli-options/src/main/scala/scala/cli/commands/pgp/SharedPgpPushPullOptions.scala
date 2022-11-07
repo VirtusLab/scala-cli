@@ -14,7 +14,6 @@ final case class SharedPgpPushPullOptions(
 // format: on
 
 object SharedPgpPushPullOptions {
-  lazy val parser: Parser[SharedPgpPushPullOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedPgpPushPullOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedPgpPushPullOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedPgpPushPullOptions] = Parser.derive
+  implicit lazy val help: Help[SharedPgpPushPullOptions]     = Help.derive
 }

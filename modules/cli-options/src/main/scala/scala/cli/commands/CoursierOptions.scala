@@ -24,8 +24,7 @@ final case class CoursierOptions(
 // format: on
 
 object CoursierOptions {
-  lazy val parser: Parser[CoursierOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[CoursierOptions, parser.D] = parser
-  implicit lazy val help: Help[CoursierOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[CoursierOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[CoursierOptions]            = Parser.derive
+  implicit lazy val help: Help[CoursierOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[CoursierOptions] = JsonCodecMaker.make
 }

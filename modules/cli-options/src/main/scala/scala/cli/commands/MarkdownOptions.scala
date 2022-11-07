@@ -13,7 +13,6 @@ final case class MarkdownOptions(
 // format: on
 
 object MarkdownOptions {
-  lazy val parser: Parser[MarkdownOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[MarkdownOptions, parser.D] = parser
-  implicit lazy val help: Help[MarkdownOptions]                      = Help.derive
+  implicit lazy val parser: Parser[MarkdownOptions] = Parser.derive
+  implicit lazy val help: Help[MarkdownOptions]     = Help.derive
 }

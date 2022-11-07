@@ -18,7 +18,6 @@ final case class SharedPythonOptions(
 // format: on
 
 object SharedPythonOptions {
-  lazy val parser: Parser[SharedPythonOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedPythonOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedPythonOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedPythonOptions] = Parser.derive
+  implicit lazy val help: Help[SharedPythonOptions]     = Help.derive
 }

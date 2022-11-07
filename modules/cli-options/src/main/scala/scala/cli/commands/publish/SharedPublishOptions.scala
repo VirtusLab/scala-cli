@@ -69,7 +69,6 @@ final case class SharedPublishOptions(
 // format: on
 
 object SharedPublishOptions {
-  lazy val parser: Parser[SharedPublishOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedPublishOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedPublishOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedPublishOptions] = Parser.derive
+  implicit lazy val help: Help[SharedPublishOptions]     = Help.derive
 }

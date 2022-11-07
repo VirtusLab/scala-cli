@@ -12,7 +12,6 @@ final case class SharedInputOptions(
 // format: on
 
 object SharedInputOptions {
-  lazy val parser: Parser[SharedInputOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedInputOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedInputOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedInputOptions] = Parser.derive
+  implicit lazy val help: Help[SharedInputOptions]     = Help.derive
 }
