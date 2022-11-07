@@ -64,6 +64,19 @@ Add dependencies
 
 `//> using lib "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
+### JVM version
+
+Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
+
+`//> using jvm` _value_
+
+#### Examples
+`//> using jvm "11"`
+
+`//> using jvm "adopt:11"`
+
+`//> using jvm "graalvm:21"`
+
 ### Java home
 
 Sets Java home used to run your application or tests

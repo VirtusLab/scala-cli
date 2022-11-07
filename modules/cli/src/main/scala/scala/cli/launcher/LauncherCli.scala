@@ -52,7 +52,7 @@ object LauncherCli {
 
     val buildOptions = BuildOptions(
       javaOptions = JavaOptions(
-        jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"))
+        jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")).map(Positioned.none)
       )
     )
 

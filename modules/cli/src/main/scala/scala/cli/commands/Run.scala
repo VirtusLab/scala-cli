@@ -71,7 +71,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         jvmIdOpt = baseOptions.javaOptions.jvmIdOpt.orElse {
           runMode(options) match {
             case _: RunMode.Spark | RunMode.HadoopJar =>
-              Some("8")
+              Some(Positioned.none("8"))
             case RunMode.Default => None
           }
         }

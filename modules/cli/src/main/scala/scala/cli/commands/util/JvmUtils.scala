@@ -48,7 +48,7 @@ object JvmUtils {
       javaHomeOpt = javaHome.filter(_.nonEmpty).map(v =>
         Positioned(Seq(Position.CommandLine("--java-home")), os.Path(v, Os.pwd))
       ),
-      jvmIdOpt = jvm.filter(_.nonEmpty),
+      jvmIdOpt = jvm.filter(_.nonEmpty).map(Positioned.commandLine),
       jvmIndexOpt = jvmIndex.filter(_.nonEmpty),
       jvmIndexOs = jvmIndexOs.map(_.trim).filter(_.nonEmpty),
       jvmIndexArch = jvmIndexArch.map(_.trim).filter(_.nonEmpty),

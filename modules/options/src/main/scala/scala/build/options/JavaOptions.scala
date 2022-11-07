@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
   */
 final case class JavaOptions(
   javaHomeOpt: Option[Positioned[os.Path]] = None,
-  jvmIdOpt: Option[String] = None,
+  jvmIdOpt: Option[Positioned[String]] = None,
   jvmIndexOpt: Option[String] = None,
   jvmIndexOs: Option[String] = None,
   jvmIndexArch: Option[String] = None,
@@ -74,7 +74,7 @@ final case class JavaOptions(
         else None
       }
       .orElse {
-        jvmIdOpt.map { jvmId =>
+        jvmIdOpt.map(_.value).map { jvmId =>
           implicit val ec: ExecutionContextExecutorService = cache.ec
           cache.logger.use {
             val enforceLiberica =
