@@ -36,14 +36,14 @@ the sections below show how to use it to configure things for `publish setup`.
 
 Set details with
 ```sh
-scala-cli config user.name "Alex Me"
-scala-cli config user.email "alex@alex.me"
-scala-cli config user.url "https://alex.me"
+scala-cli config publish.user.name "Alex Me"
+scala-cli config publish.user.email "alex@alex.me"
+scala-cli config publish.user.url "https://alex.me"
 ```
 
 The email can be left empty if you'd rather not put your email in POM files:
 ```sh
-scala-cli config user.email ""
+scala-cli config publish.user.email ""
 ```
 
 ### PGP key pair

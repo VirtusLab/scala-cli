@@ -12,8 +12,8 @@ Examples of use:
 <ChainedSnippets>
 
 ```bash
-scala-cli config user.name "Alex Me"
-scala-cli config user.name
+scala-cli config publish.user.name "Alex Me"
+scala-cli config publish.user.name
 ```
 
 ```text
