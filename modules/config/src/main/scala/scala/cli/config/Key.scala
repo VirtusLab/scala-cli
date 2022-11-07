@@ -3,7 +3,7 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.cli.config.Util._
+import scala.cli.config.Util._ // only used in 2.12, unused import in 2.13
 
 /** A configuration key
   */
