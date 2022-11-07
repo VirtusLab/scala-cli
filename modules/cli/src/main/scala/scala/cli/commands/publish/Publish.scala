@@ -407,25 +407,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
   }
 
-  private def buildFileSet(
-    build: Build.Successful,
-    docBuildOpt: Option[Build.Successful],
-    workingDir: os.Path,
-    now: Instant,
-    isIvy2LocalLike: Boolean,
-    isCi: Boolean,
-    logger: Logger
-  ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
+  private def orgNameVersion(
+    publishOptions: scala.build.options.PublishOptions,
+    workspace: os.Path,
+    logger: Logger,
+    scalaArtifactsOpt: Option[ScalaArtifacts],
+    isCi: Boolean
+  ): Either[BuildException, (String, String, String)] = {
 
-    logger.debug(s"Preparing project ${build.project.projectName}")
+    lazy val orgNameOpt = GitRepo.maybeGhRepoOrgName(workspace, logger)
 
-    val publishOptions = build.options.notForBloopOptions.publishOptions
-
-    lazy val orgNameOpt = GitRepo.maybeGhRepoOrgName(build.inputs.workspace, logger)
-
-    val org = publishOptions.organization match {
-      case Some(org0) => org0.value
-      case None       => value(defaultOrganization(orgNameOpt.map(_._1), logger))
+    val maybeOrg = publishOptions.organization match {
+      case Some(org0) => Right(org0.value)
+      case None       => defaultOrganization(orgNameOpt.map(_._1), logger)
     }
 
     val moduleName = publishOptions.moduleName match {
@@ -433,9 +427,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case None =>
         val name = publishOptions.name match {
           case Some(name0) => name0.value
-          case None        => defaultName(build.inputs.workspace, logger)
+          case None        => defaultName(workspace, logger)
         }
-        build.artifacts.scalaOpt.map(_.params) match {
+        scalaArtifactsOpt.map(_.params) match {
           case Some(scalaParams) =>
             val pf = publishOptions.scalaPlatformSuffix.getOrElse {
               scalaParams.platform.fold("")("_" + _)
@@ -450,11 +444,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val ver = publishOptions.version match {
-      case Some(ver0) => ver0.value
+    val maybeVer = publishOptions.version match {
+      case Some(ver0) => Right(ver0.value)
       case None =>
         val computeVer = publishOptions.contextual(isCi).computeVersion.orElse {
-          def isGitRepo = GitRepo.gitRepoOpt(build.inputs.workspace).isDefined
+          def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
           val default   = defaultComputeVersion(!isCi && isGitRepo)
           if (default.isDefined)
             logger.message(
@@ -462,12 +456,43 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             )
           default
         }
-        value {
-          computeVer match {
-            case Some(cv) => cv.get(build.inputs.workspace)
-            case None     => defaultVersion
-          }
+        computeVer match {
+          case Some(cv) => cv.get(workspace)
+          case None     => defaultVersion
         }
+    }
+
+    (maybeOrg, maybeVer)
+      .traverseN
+      .left.map(CompositeBuildException(_))
+      .map {
+        case (org, ver) =>
+          (org, moduleName, ver)
+      }
+  }
+
+  private def buildFileSet(
+    build: Build.Successful,
+    docBuildOpt: Option[Build.Successful],
+    workingDir: os.Path,
+    now: Instant,
+    isIvy2LocalLike: Boolean,
+    isCi: Boolean,
+    logger: Logger
+  ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
+
+    logger.debug(s"Preparing project ${build.project.projectName}")
+
+    val publishOptions = build.options.notForBloopOptions.publishOptions
+
+    val (org, moduleName, ver) = value {
+      orgNameVersion(
+        publishOptions,
+        build.inputs.workspace,
+        logger,
+        build.artifacts.scalaOpt,
+        isCi
+      )
     }
 
     logger.message(s"Publishing $org:$moduleName:$ver")
