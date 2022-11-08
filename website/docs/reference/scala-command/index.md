@@ -18,11 +18,13 @@ There are two recommended ways to test and use Scala CLI:
 
 - with brew:
 
-`brew install virtuslab/scala-experimental/scala`
+```bash
+brew install virtuslab/scala-experimental/scala
+```
 
 - with coursier:
 
-```
+```bash
 cs setup
 cs install scala-experimental ← this command will replace the default scala runner
 ```
