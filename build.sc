@@ -509,7 +509,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bloopConfig,
-    Deps.signingCliShared.exclude(("com.github.alexarchambault", "*"))
+    Deps.signingCliShared
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Seq(
     Deps.jsoniterMacros
@@ -639,14 +639,12 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule {
     super.scalacOptions() ++ extraOptions
   }
   def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.caseApp,
     Deps.jsoniterCore213,
     Deps.osLib,
-    Deps.signingCli
-      .exclude((organization, "config_2.13"))
-      .exclude(("com.github.alexarchambault", "*"))
+    Deps.signingCli.exclude((organization, "config_2.13"))
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Seq(
-    Deps.caseApp,
     Deps.jsoniterMacros
   )
   def scalaVersion = Scala.defaultInternal
@@ -762,9 +760,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
     Deps.scalaPackager,
-    Deps.signingCli
-      .exclude((organization, "config_2.13"))
-      .exclude(("com.github.alexarchambault", "*")),
+    Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp
   )

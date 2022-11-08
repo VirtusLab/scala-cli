@@ -164,8 +164,8 @@ object Deps {
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
   def signingCliShared =
-    ivy"io.github.alexarchambault.scala-cli.signing:shared_2.13:${Versions.signingCli}"
-  def signingCli = ivy"io.github.alexarchambault.scala-cli.signing:cli_2.13:${Versions.signingCli}"
+    ivy"io.github.alexarchambault.scala-cli.signing::shared:${Versions.signingCli}"
+  def signingCli = ivy"io.github.alexarchambault.scala-cli.signing::cli:${Versions.signingCli}"
   def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.3"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =

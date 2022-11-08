@@ -143,7 +143,7 @@ Add dependencies
 
 ### `--repository`
 
-Aliases: `--repo`, `-r`
+Aliases: `-r`, `--repo`
 
 Add repositories
 
@@ -252,7 +252,7 @@ Custom path to the scalafmt configuration file.
 
 ### `--scalafmt-conf-str`
 
-Aliases: `--scalafmt-config-str`, `--scalafmt-conf-snippet`
+Aliases: `--scalafmt-conf-snippet`, `--scalafmt-config-str`
 
 Pass configuration as a string.
 
@@ -288,7 +288,7 @@ Print help message and exit
 
 ### `--help-full`
 
-Aliases: `--full-help`, `-help-full`, `-full-help`
+Aliases: `--full-help`, `-full-help`, `-help-full`
 
 Print help message, including hidden options, and exit
 
@@ -310,7 +310,7 @@ Show options for ScalaNative
 
 ### `--help-scaladoc`
 
-Aliases: `--scaladoc-help`, `--doc-help`, `--help-doc`
+Aliases: `--doc-help`, `--help-doc`, `--scaladoc-help`
 
 Show options for Scaladoc
 
@@ -322,7 +322,7 @@ Show options for Scala REPL
 
 ### `--help-scalafmt`
 
-Aliases: `--scalafmt-help`, `--fmt-help`, `--help-fmt`
+Aliases: `--fmt-help`, `--help-fmt`, `--scalafmt-help`
 
 Show options for Scalafmt
 
@@ -466,7 +466,7 @@ Specify which main class to run
 
 ### `--main-class-ls`
 
-Aliases: `--main-class-list`, `--list-main-class`, `--list-main-classes`
+Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
 
 List main classes available in the current context
 
@@ -641,7 +641,7 @@ Available in commands:
 
 ### `--scalac-option`
 
-Aliases: `--scala-opt`, `-O`, `--scala-option`
+Aliases: `-O`, `--scala-opt`, `--scala-option`
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
 
@@ -675,20 +675,20 @@ Available in commands:
 
 ### `--scala-version`
 
-Aliases: `--scala`, `-S`
+Aliases: `-S`, `--scala`
 
 Set the Scala version (3.2.1 by default)
 
 ### `--scala-binary-version`
 
-Aliases: `--scala-binary`, `--scala-bin`, `-B`
+Aliases: `-B`, `--scala-bin`, `--scala-binary`
 
 [Internal]
 Set the Scala binary version
 
 ### `--extra-jars`
 
-Aliases: `--jar`, `--jars`, `--extra-jar`, `--class`, `--extra-class`, `--classes`, `--extra-classes`, `-classpath`, `-cp`, `--classpath`, `--class-path`, `--extra-class-path`
+Aliases: `--class`, `--class-path`, `--classes`, `--classpath`, `-classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
 
 Add extra JARs and compiled classes to the class path
 
@@ -700,7 +700,7 @@ Add extra JARs in the compilaion class path. Mainly using to run code in managed
 
 ### `--extra-source-jars`
 
-Aliases: `--source-jar`, `--source-jars`, `--extra-source-jar`
+Aliases: `--extra-source-jar`, `--source-jar`, `--source-jars`
 
 Add extra source JARs
 
@@ -742,7 +742,7 @@ Add dependency for stubs needed to make $ivy and $dep imports to work.
 [Internal]
 ### `--compilation-output`
 
-Aliases: `--output-directory`, `-d`, `--destination`, `--compile-output`, `--compile-out`
+Aliases: `--compile-out`, `--compile-output`, `-d`, `--destination`, `--output-directory`
 
 Copy compilation results to output directory using either relative or absolute path
 
@@ -760,7 +760,7 @@ Allows to execute a passed string as a Scala script
 
 ### `--execute-script`
 
-Aliases: `--execute-scala-script`, `--execute-sc`, `-e`
+Aliases: `-e`, `--execute-sc`, `--execute-scala-script`
 
 [Internal]
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
