@@ -82,7 +82,8 @@ case object MarkdownPreprocessor extends Preprocessor {
           }
       }
 
-    val (mainScalaCode, rawScalaCode, testScalaCode) = MarkdownCodeWrapper(subPath, content)
+    val (mainScalaCode, rawScalaCode, testScalaCode) =
+      value(MarkdownCodeWrapper(subPath, content, maybeRecoverOnError))
 
     val maybeMainFile = value(preprocessSnippets(mainScalaCode, ".scala"))
     val maybeRawFile  = value(preprocessSnippets(rawScalaCode, ".raw.scala"))

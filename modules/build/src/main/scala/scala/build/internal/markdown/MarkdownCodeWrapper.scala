@@ -1,6 +1,8 @@
 package scala.build.internal.markdown
 
 import scala.annotation.tailrec
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.internal.{AmmUtil, Name}
 
@@ -21,12 +23,13 @@ object MarkdownCodeWrapper {
     */
   def apply(
     subPath: os.SubPath,
-    content: String
-  ): (Option[String], Option[String], Option[String]) = {
+    content: String,
+    maybeRecoverOnError: BuildException => Option[BuildException] = b => Some(b)
+  ): Either[BuildException, (Option[String], Option[String], Option[String])] = either {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
     val maybePkgString =
       if pkg.isEmpty then None else Some(s"package ${AmmUtil.encodeScalaSourcePath(pkg)}")
-    val allSnippets                      = MarkdownCodeBlock.findCodeBlocks(content)
+    val allSnippets = value(MarkdownCodeBlock.findCodeBlocks(subPath, content, maybeRecoverOnError))
     val (rawSnippets, processedSnippets) = allSnippets.partition(_.isRaw)
     val (testSnippets, mainSnippets)     = processedSnippets.partition(_.isTest)
     val wrapperName                      = s"${wrapper.raw}_md"
