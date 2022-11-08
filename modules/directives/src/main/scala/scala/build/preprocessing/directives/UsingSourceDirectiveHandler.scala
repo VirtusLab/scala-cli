@@ -9,7 +9,7 @@ import scala.util.Try
 
 case object UsingSourceDirectiveHandler extends UsingDirectiveHandler {
   def name        = "Custom sources"
-  def description = "Manually add sources to the Scala CLI project"
+  def description = "Manually add sources to the project"
   def usage       = "`//> using file `_path_ | `//> using files `_path1_, _path2_ …"
   override def usageMd =
     """//> using file hello.sc

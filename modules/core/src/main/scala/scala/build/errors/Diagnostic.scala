@@ -14,7 +14,7 @@ object Diagnostic {
   case class TextEdit(newText: String)
   object Messages {
     val bloopTooOld =
-      "JVM that is hosting bloop is older than the requested runtime. Please run `scala-cli bloop exit`, and then use `--jvm` flag to restart Bloop"
+      "JVM that is hosting bloop is older than the requested runtime. Please run command `bloop exit`, and then use `--jvm` flag to restart Bloop"
   }
 
   private case class ADiagnostic(

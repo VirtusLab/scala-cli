@@ -22,13 +22,13 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
-import scala.cli.ScalaCli
 import scala.cli.commands.ScalaJsOptions
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.config.{ConfigDb, ConfigDbException, Keys}
+import scala.cli.{CurrentParams, ScalaCli}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
@@ -293,8 +293,8 @@ object SharedOptionsUtil extends CommandHelpers {
         case (Some(true), _, _) =>
           val answers @ List(yesAnswer, _) = List("Yes", "No")
           InteractiveAsk.chooseOne(
-            """You have run the current scala-cli command with the --interactive mode turned on.
-              |Would you like to leave it on permanently?""".stripMargin,
+            s"""You have run the current ${ScalaCli.baseRunnerName} command with the --interactive mode turned on.
+               |Would you like to leave it on permanently?""".stripMargin,
             answers
           ) match {
             case Some(answer) if answer == yesAnswer =>
@@ -305,10 +305,10 @@ object SharedOptionsUtil extends CommandHelpers {
                 .wrapConfigException
                 .orExit(logger)
               logger.message(
-                "--interactive is now set permanently. All future scala-cli commands will run with the flag set to true."
+                s"--interactive is now set permanently. All future ${ScalaCli.baseRunnerName} commands will run with the flag set to true."
               )
               logger.message(
-                "If you want to turn this setting off at any point, just run `scala-cli config interactive false`."
+                s"If you want to turn this setting off at any point, just run `${ScalaCli.baseRunnerName} config interactive false`."
               )
             case _ =>
               configDb
@@ -317,7 +317,7 @@ object SharedOptionsUtil extends CommandHelpers {
                 .wrapConfigException
                 .orExit(logger)
               logger.message(
-                "If you want to turn this setting permanently on at any point, just run `scala-cli config interactive true`."
+                s"If you want to turn this setting permanently on at any point, just run `${ScalaCli.baseRunnerName} config interactive true`."
               )
           }
           InteractiveAsk

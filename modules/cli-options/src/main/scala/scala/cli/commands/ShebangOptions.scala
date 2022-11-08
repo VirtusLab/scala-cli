@@ -8,7 +8,7 @@ import scala.cli.commands.common.HasSharedOptions
   """|Like `run`, but more handy from shebang scripts
      |
      |This command is equivalent to `run`, but it changes the way
-     |`scala-cli` parses its command-line arguments in order to be compatible
+     |Scala CLI parses its command-line arguments in order to be compatible
      |with shebang scripts.
      |
      |Normally, inputs and scala-cli options can be mixed. Program have to be specified after `--`

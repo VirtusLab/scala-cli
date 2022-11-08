@@ -201,7 +201,7 @@ Overwrite the destination directory, if it exists
 
 Aliases: `--default-scaladoc-opts`
 
-Control if scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
+Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
 
 ## Fmt options
 
@@ -917,7 +917,7 @@ Available in commands:
 
 Aliases: `--cli`
 
-Show only plain scala-cli version
+Show only plain version
 
 ### `--scala-version`
 

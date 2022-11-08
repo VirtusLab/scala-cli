@@ -192,7 +192,7 @@ final case class BuildOptions(
 
     val msg =
       if (internal.verbosityOrDefault > 0)
-        "Getting list of Scala CLI-supported Scala versions"
+        "Getting list of Scala CLI supported Scala versions"
       else ""
     val cache                     = finalCache.withMessage(msg)
     val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl

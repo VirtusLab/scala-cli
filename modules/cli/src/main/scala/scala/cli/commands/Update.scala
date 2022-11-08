@@ -51,7 +51,7 @@ object Update extends ScalaCommand[UpdateOptions] {
       .maxByOption(_.version)
       .map(_.version.repr)
       .getOrElse {
-        sys.error(s"No Scala CLI versions found in $url")
+        sys.error(s"No $fullRunnerName versions found in $url")
       }
   }
 
@@ -64,10 +64,10 @@ object Update extends ScalaCommand[UpdateOptions] {
     val interactive = options.logging.verbosityOptions.interactiveInstance(forceEnable = true)
     if (!options.force) {
       val fallbackAction = () => {
-        logger.error(s"To update scala-cli to $newVersion pass -f or --force")
+        logger.error(s"To update $baseRunnerName to $newVersion pass -f or --force")
         sys.exit(1)
       }
-      val msg = s"Do you want to update scala-cli to version $newVersion?"
+      val msg = s"Do you want to update $baseRunnerName to version $newVersion?"
       interactive.confirmOperation(msg).getOrElse(fallbackAction())
     }
 
@@ -91,7 +91,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     // format: on
     val output = res.out.trim()
     if (res.exitCode != 0) {
-      logger.error(s"Error during updating scala-cli: $output")
+      logger.error(s"Error during updating $baseRunnerName: $output")
       sys.exit(1)
     }
   }
@@ -112,11 +112,11 @@ object Update extends ScalaCommand[UpdateOptions] {
     if (!options.isInternalRun)
       if (isOutdated)
         updateScalaCli(options, newestScalaCliVersion0, logger)
-      else println("Scala CLI is up-to-date")
+      else println(s"$fullRunnerName is up-to-date")
     else if (isOutdated)
       println(
-        s"""Your Scala CLI $currentVersion is outdated, please update Scala CLI to $newestScalaCliVersion0
-           |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update Scala CLI.""".stripMargin
+        s"""Your $fullRunnerName $currentVersion is outdated, please update $fullRunnerName to $newestScalaCliVersion0
+           |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update $fullRunnerName.""".stripMargin
       )
   }
 
@@ -142,18 +142,19 @@ object Update extends ScalaCommand[UpdateOptions] {
     if (!os.exists(scalaCliBinPath) || !isScalaCliInPath) {
       if (!options.isInternalRun) {
         logger.error(
-          "Scala CLI was not installed by the installation script, please use your package manager to update scala-cli."
+          s"$fullRunnerName was not installed by the installation script, please use your package manager to update $baseRunnerName."
         )
         sys.exit(1)
       }
     }
     else if (Properties.isWin) {
       if (!options.isInternalRun) {
-        logger.error("Scala CLI update is not supported on Windows.")
+        logger.error(s"$fullRunnerName update is not supported on Windows.")
         sys.exit(1)
       }
     }
-    else if (options.binaryName == "scala-cli") update(options, scalaCliVersion, logger)
+    else if (options.binaryName == baseRunnerName)
+      update(options, scalaCliVersion, logger)
     else
       update(options, getCurrentVersion(scalaCliBinPath), logger)
   }

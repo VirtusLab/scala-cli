@@ -40,6 +40,12 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   /** @return the actual Scala CLI program name which was run */
   protected def progName: String = ScalaCli.progName
 
+  /** @return the actual Scala CLI runner name which was run */
+  protected def fullRunnerName = ScalaCli.fullRunnerName
+
+  /** @return the actual Scala CLI base runner name, for SIP it is scala otherwise scala-cli */
+  protected def baseRunnerName = ScalaCli.baseRunnerName
+
   // TODO Manage to have case-app give use the exact command name that was used instead
   /** The actual sub-command name that was used. If the sub-command name is a list of strings, space
     * is used as the separator. If [[argvOpt]] hasn't been defined, it defaults to [[name]].

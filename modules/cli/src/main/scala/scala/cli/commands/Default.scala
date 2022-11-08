@@ -30,7 +30,7 @@ class Default(
   }
 
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit = {
-    if options.version then println(Version.versionInfo(isSipScala))
+    if options.version then println(Version.versionInfo)
     else
       {
         val shouldDefaultToRun =

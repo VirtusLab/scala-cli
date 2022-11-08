@@ -5,7 +5,7 @@ import caseapp.*
 import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
-@HelpMessage("Prints directories used by `scala-cli`")
+@HelpMessage("Prints directories used by Scala CLI")
 final case class DirectoriesOptions(
   @Recurse
     directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),

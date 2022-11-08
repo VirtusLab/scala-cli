@@ -34,7 +34,8 @@ object ScalaCli {
 
   private var isSipScala      = checkName("scala") || checkName("scala-cli-sip")
   def allowRestrictedFeatures = !isSipScala
-
+  def fullRunnerName          = if (isSipScala) "Scala code runner" else "Scala CLI"
+  def baseRunnerName          = if (isSipScala) "scala" else "scala-cli"
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
@@ -131,10 +132,10 @@ object ScalaCli {
             // Suggest workaround of https://github.com/VirtusLab/scala-cli/pull/865
             // for https://github.com/VirtusLab/scala-cli/issues/828
             System.err.println(
-              """Running
-                |  export SCALA_CLI_VENDORED_ZIS=true
-                |before running Scala CLI might fix the issue.
-                |""".stripMargin
+              s"""Running
+                 |  export SCALA_CLI_VENDORED_ZIS=true
+                 |before running $fullRunnerName might fix the issue.
+                 |""".stripMargin
             )
           case _ =>
         }
@@ -145,7 +146,7 @@ object ScalaCli {
 
   private def warnRequiresJava17(): Unit =
     System.err.println(
-      s"Java >= 17 is required to run Scala CLI (found Java $javaMajorVersion)"
+      s"Java >= 17 is required to run $fullRunnerName (found Java $javaMajorVersion)"
     )
 
   private def main0(args: Array[String]): Unit = {
@@ -185,7 +186,7 @@ object ScalaCli {
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
-    new ScalaCliCommands(progName, isSipScala)
+    new ScalaCliCommands(progName, baseRunnerName, fullRunnerName, isSipScala)
       .main(scalaCliArgs)
   }
 }

@@ -14,8 +14,8 @@ import scala.build.preprocessing.directives.{
   RequireDirectiveHandler,
   UsingDirectiveHandler
 }
-import scala.cli.ScalaCliCommands
 import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand}
+import scala.cli.{CurrentParams, ScalaCli, ScalaCliCommands}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
@@ -117,7 +117,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           else ""
         }
          |
-         |This is a summary of options that are available for each subcommand of the `scala-cli` command.
+         |This is a summary of options that are available for each subcommand of the `${ScalaCli.baseRunnerName}` command.
          |
          |""".stripMargin
     )
@@ -309,7 +309,12 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   def run(options: InternalDocOptions, args: RemainingArgs): Unit = {
 
-    val scalaCli = new ScalaCliCommands("scala-cli", isSipScala = false)
+    val scalaCli = new ScalaCliCommands(
+      "scala-cli",
+      ScalaCli.baseRunnerName,
+      ScalaCli.fullRunnerName,
+      isSipScala = false
+    )
     val commands = scalaCli.commands
     val restrictedCommands =
       commands.iterator.collect { case s: ScalaCommand[_] if !s.isRestricted => s }.toSeq

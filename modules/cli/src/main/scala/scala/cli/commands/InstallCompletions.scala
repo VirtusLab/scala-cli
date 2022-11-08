@@ -99,7 +99,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
   def getName(name: Option[String]): String =
     name.getOrElse {
-      val baseName = (new Argv0).get("scala-cli")
+      val baseName = (new Argv0).get(baseRunnerName)
       val idx      = baseName.lastIndexOf(File.separator)
       if (idx < 0) baseName
       else baseName.drop(idx + 1)
