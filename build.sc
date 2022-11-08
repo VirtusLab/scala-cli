@@ -642,7 +642,7 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule {
     Deps.caseApp,
     Deps.jsoniterCore213,
     Deps.osLib,
-    Deps.signingCliOptions
+    Deps.signingCli.exclude((organization, "config_2.13"))
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Seq(
     Deps.jsoniterMacros
