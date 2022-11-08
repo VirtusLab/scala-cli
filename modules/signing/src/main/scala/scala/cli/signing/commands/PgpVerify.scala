@@ -52,7 +52,8 @@ object PgpVerify extends Command[PgpVerifyOptions] {
             is = os.read.inputStream(filePath)
             BouncycastleSigner.verifySignature(sig, key, is)
           }
-          finally if (is != null)
+          finally
+            if (is != null)
               is.close()
 
         path0 -> verified
