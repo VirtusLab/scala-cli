@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.removeAnsiColors
+
 trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   def simpleNativeTests(): Unit = {
     val fileName = "simple.sc"
@@ -224,9 +226,12 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     }
 
   test("help native") {
-    val helpNativeOption = "--help-native"
-    val helpNative       = os.proc(TestUtil.cli, "run", helpNativeOption).call(check = false)
-    expect(helpNative.out.text().contains("Scala Native options"))
-    expect(!helpNative.out.text().contains("Scala.js options"))
+    val helpNativeOption  = "--help-native"
+    val helpNative        = os.proc(TestUtil.cli, "run", helpNativeOption).call(check = false)
+    val lines             = removeAnsiColors(helpNative.out.trim()).linesIterator.toVector
+    val nativeVersionHelp = lines.find(_.contains("--native-version")).getOrElse("")
+    expect(nativeVersionHelp.contains(s"(${Constants.scalaNativeVersion} by default)"))
+    expect(lines.exists(_.contains("Scala Native options")))
+    expect(!lines.exists(_.contains("Scala.js options")))
   }
 }

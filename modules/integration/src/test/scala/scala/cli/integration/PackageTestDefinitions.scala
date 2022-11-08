@@ -9,6 +9,7 @@ import java.util
 import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
+import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
@@ -878,4 +879,19 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     test("pass java options to docker") {
       javaOptionsDockerTest()
     }
+
+  test("default values in help") {
+    TestInputs.empty.fromRoot { root =>
+      val res   = os.proc(TestUtil.cli, "package", extraOptions, "--help").call(cwd = root)
+      val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
+
+      val graalVmVersionHelp     = lines.find(_.contains("--graalvm-version")).getOrElse("")
+      val graalVmJavaVersionHelp = lines.find(_.contains("--graalvm-java-version")).getOrElse("")
+
+      expect(graalVmVersionHelp.contains(s"(${Constants.defaultGraalVMVersion} by default)"))
+      expect(
+        graalVmJavaVersionHelp.contains(s"(${Constants.defaultGraalVMJavaVersion} by default)")
+      )
+    }
+  }
 }

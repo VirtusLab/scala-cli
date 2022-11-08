@@ -266,7 +266,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it. This overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.5.9 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Help options
 
@@ -505,7 +505,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version
+The Scala.js version (1.10.1 by default).
 
 ### `--js-mode`
 
@@ -565,7 +565,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking
+Scala.js CLI version to use for linking (1.1.1-sc6 by default).
 
 ### `--js-cli-java-arg`
 
@@ -591,7 +591,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version
+Set the Scala Native version (0.4.7 by default).
 
 ### `--native-mode`
 
@@ -677,7 +677,7 @@ Available in commands:
 
 Aliases: `--scala`, `-S`
 
-Set the Scala version
+Set the Scala version (3.2.0 by default)
 
 ### `--scala-binary-version`
 

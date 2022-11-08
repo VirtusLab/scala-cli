@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.cli.commands.Constants
 import scala.cli.commands.common.HasSharedOptions
 
 // format: off
@@ -57,7 +58,7 @@ final case class FmtOptions(
   @Name("dialect")
     scalafmtDialect: Option[String] = None,
   @Group("Format")
-  @HelpMessage("Pass scalafmt version before running it. This overrides whatever value is configured in the .scalafmt.conf file.")
+  @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
     scalafmtVersion: Option[String] = None
 ) extends HasSharedOptions

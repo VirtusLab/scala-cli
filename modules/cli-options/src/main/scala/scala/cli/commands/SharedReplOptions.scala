@@ -3,6 +3,8 @@ package scala.cli.commands
 import caseapp.*
 import caseapp.core.help.Help
 
+import scala.cli.commands.Constants
+
 // format: off
 final case class SharedReplOptions(
   @Recurse
@@ -21,7 +23,7 @@ final case class SharedReplOptions(
     ammonite: Option[Boolean] = None,
 
   @Group("Repl")
-  @HelpMessage("[restricted] Set the Ammonite version")
+  @HelpMessage(s"[restricted] Set the Ammonite version (${Constants.ammoniteVersion} by default)")
   @Name("ammoniteVer")
     ammoniteVersion: Option[String] = None,
 

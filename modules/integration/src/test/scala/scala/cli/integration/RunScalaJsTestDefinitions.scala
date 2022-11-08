@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.removeAnsiColors
+
 trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   def simpleJsTest(extraArgs: String*): Unit = {
     val fileName = "simple.sc"
@@ -170,10 +172,13 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
 
   test("help js") {
-    val helpJsOption = "--help-js"
-    val helpJs       = os.proc(TestUtil.cli, "run", helpJsOption).call(check = false)
-    expect(helpJs.out.text().contains("Scala.js options"))
-    expect(!helpJs.out.text().contains("Scala Native options"))
+    val helpJsOption  = "--help-js"
+    val helpJs        = os.proc(TestUtil.cli, "run", helpJsOption).call(check = false)
+    val lines         = removeAnsiColors(helpJs.out.trim()).linesIterator.toVector
+    val jsVersionHelp = lines.find(_.contains("--js-version")).getOrElse("")
+    expect(jsVersionHelp.contains(s"(${Constants.scalaJsVersion} by default)"))
+    expect(lines.exists(_.contains("Scala.js options")))
+    expect(!lines.exists(_.contains("Scala Native options")))
   }
 
   test("Directory JS") {

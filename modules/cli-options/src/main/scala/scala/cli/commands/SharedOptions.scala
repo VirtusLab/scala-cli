@@ -5,6 +5,7 @@ import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.cli.commands.Constants
 import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
@@ -31,7 +32,7 @@ final case class SharedOptions(
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
 
   @Group("Scala")
-  @HelpMessage("Set the Scala version")
+  @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
   @ValueDescription("version")
   @Name("scala")
   @Name("S")
