@@ -14,4 +14,17 @@ That is why we built in a mechanism to limit the commands, options, directives b
 
 ## Testing Scala CLI as `scala`
 
-The recommended way to test and use Scala CLI, as it will be `scala` command is to create a link to the existing Scala CLI binary named `scala-cli-sip` and add it to PATH.
+There are two recommended ways to test and use Scala CLI:
+
+- with brew:
+
+`brew install virtuslab/scala-experimental/scala`
+
+- with coursier:
+
+```
+cs setup
+cs install scala-experimental ← this command will replace the default scala runner
+```
+
+Alternatively, you can rename your `scala-cli` executable or alias it as `scala`
