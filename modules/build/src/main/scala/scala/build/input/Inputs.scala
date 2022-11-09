@@ -8,7 +8,6 @@ import java.security.MessageDigest
 import scala.annotation.tailrec
 import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException}
-import scala.build.input.Inputs.Element
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
@@ -17,8 +16,8 @@ import scala.util.Properties
 import scala.util.matching.Regex
 
 final case class Inputs(
-  elements: Seq[Inputs.Element],
-  defaultMainClassElement: Option[Inputs.Script],
+  elements: Seq[Element],
+  defaultMainClassElement: Option[Script],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
@@ -30,41 +29,41 @@ final case class Inputs(
   def isEmpty: Boolean =
     elements.isEmpty
 
-  def singleFiles(): Seq[Inputs.SingleFile] =
+  def singleFiles(): Seq[SingleFile] =
     elements.flatMap {
-      case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
-      case _: Inputs.ResourceDirectory => Nil
-      case _: Inputs.Virtual           => Nil
+      case f: SingleFile        => Seq(f)
+      case d: Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
+      case _: ResourceDirectory => Nil
+      case _: Virtual           => Nil
     }
 
-  def sourceFiles(): Seq[Inputs.SourceFile] =
+  def sourceFiles(): Seq[SourceFile] =
     singleFiles().collect {
-      case f: Inputs.SourceFile => f
+      case f: SourceFile => f
     }
 
-  def virtualSourceFiles(): Seq[Inputs.Virtual] =
+  def virtualSourceFiles(): Seq[Virtual] =
     elements.flatMap {
-      case v: Inputs.Virtual =>
+      case v: Virtual =>
         Seq(v)
       case _ =>
         Nil
     }
 
-  def flattened(): Seq[Inputs.SingleElement] =
+  def flattened(): Seq[SingleElement] =
     elements.flatMap {
-      case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
-      case _: Inputs.ResourceDirectory => Nil
-      case v: Inputs.Virtual           => Seq(v)
+      case f: SingleFile        => Seq(f)
+      case d: Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
+      case _: ResourceDirectory => Nil
+      case v: Virtual           => Seq(v)
     }
 
   private lazy val inputsHash: String =
     Inputs.inputsHash(elements)
   lazy val projectName: String = {
     val needsSuffix = mayAppendHash && (elements match {
-      case Seq(d: Inputs.Directory) => d.path != workspace
-      case _                        => true
+      case Seq(d: Directory) => d.path != workspace
+      case _                 => true
     })
     if (needsSuffix) baseProjectName + "-" + inputsHash
     else baseProjectName
@@ -74,7 +73,7 @@ final case class Inputs(
     if (scope == Scope.Main) projectName
     else projectName + "-" + scope.name
 
-  def add(extraElements: Seq[Inputs.Element]): Inputs =
+  def add(extraElements: Seq[Element]): Inputs =
     if (elements.isEmpty) this
     else copy(elements = (elements ++ extraElements).distinct)
 
@@ -109,15 +108,15 @@ final case class Inputs(
   def sourceHash(): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
+      case elem: OnDisk =>
         val content = elem match {
-          case dirInput: Inputs.Directory =>
+          case dirInput: Directory =>
             Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case _ => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
-      case v: Inputs.Virtual =>
+      case v: Virtual =>
         Iterator(v.content, bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")
@@ -136,141 +135,59 @@ final case class Inputs(
 }
 
 object Inputs {
-  sealed abstract class Element extends Product with Serializable
-
-  sealed trait SingleElement extends Element
-
-  sealed trait AnyScript extends Element
-
-  sealed abstract class OnDisk extends Element {
-    def path: os.Path
-  }
-  sealed abstract class Virtual extends SingleElement {
-    def content: Array[Byte]
-    def source: String
-
-    def subPath: os.SubPath = {
-      val idx = source.lastIndexOf('/')
-      os.sub / source.drop(idx + 1)
-    }
-
-    def scopePath: ScopePath =
-      ScopePath(Left(source), subPath)
-  }
-
-  sealed abstract class VirtualSourceFile extends Virtual {
-    def isStdin: Boolean   = source.startsWith("<stdin>")
-    def isSnippet: Boolean = source.startsWith("<snippet>")
-    protected def generatedSourceFileName(fileSuffix: String): String =
-      if (isStdin) s"stdin$fileSuffix"
-      else if (isSnippet) s"${source.stripPrefix("<snippet>-")}$fileSuffix"
-      else s"virtual$fileSuffix"
-  }
-
-  sealed trait SingleFile extends OnDisk with SingleElement
-  sealed trait SourceFile extends SingleFile {
-    def subPath: os.SubPath
-  }
-  sealed trait Compiled     extends Element
-  sealed trait AnyScalaFile extends Compiled
-  sealed trait ScalaFile extends AnyScalaFile {
-    def base: os.Path
-    def subPath: os.SubPath
-    def path: os.Path = base / subPath
-  }
-
-  final case class Script(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class SourceScalaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with ScalaFile
-  final case class ProjectScalaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with ScalaFile
-  final case class JavaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with Compiled {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class CFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with Compiled {
-    lazy val path = base / subPath
-  }
-  final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class Directory(path: os.Path)         extends OnDisk with Compiled
-  final case class ResourceDirectory(path: os.Path) extends OnDisk
-
-  final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
-      extends Virtual with AnyScalaFile with AnyScript
-  object VirtualScript {
-    val VirtualScriptNameRegex: Regex = "(^stdin$|^snippet\\d*$)".r
-  }
-  final case class VirtualScalaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with AnyScalaFile {
-    def generatedSourceFileName: String = generatedSourceFileName(".scala")
-  }
-  final case class VirtualJavaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with Compiled {
-    def generatedSourceFileName: String = generatedSourceFileName(".java")
-  }
-  final case class VirtualData(content: Array[Byte], source: String)
-      extends Virtual
-
   def singleFilesFromDirectory(
-    d: Inputs.Directory,
+    d: Directory,
     enableMarkdown: Boolean
-  ): Seq[Inputs.SingleFile] = {
+  ): Seq[SingleFile] = {
     import Ordering.Implicits.seqOrdering
     os.walk.stream(d.path, skip = _.last.startsWith("."))
       .filter(os.isFile(_))
       .collect {
         case p if p.last.endsWith(".java") =>
-          Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
+          JavaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last == "project.scala" =>
-          Inputs.ProjectScalaFile(d.path, p.subRelativeTo(d.path))
+          ProjectScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".scala") =>
-          Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
+          SourceScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
-          Inputs.Script(d.path, p.subRelativeTo(d.path))
+          Script(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
-          Inputs.CFile(d.path, p.subRelativeTo(d.path))
+          CFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".md") && enableMarkdown =>
-          Inputs.MarkdownFile(d.path, p.subRelativeTo(d.path))
+          MarkdownFile(d.path, p.subRelativeTo(d.path))
       }
       .toVector
       .sortBy(_.subPath.segments)
   }
 
-  def projectSettingsFiles(elements: Seq[Inputs.Element]): Seq[Inputs.ProjectScalaFile] =
+  def projectSettingsFiles(elements: Seq[Element]): Seq[ProjectScalaFile] =
     elements.flatMap {
       case f: ProjectScalaFile => Seq(f)
       case d: Directory        => Inputs.configFileFromDirectory(d)
       case _                   => Nil
     }.distinct
 
-  def configFileFromDirectory(d: Inputs.Directory): Seq[Inputs.ProjectScalaFile] =
+  def configFileFromDirectory(d: Directory): Seq[ProjectScalaFile] =
     if (os.exists(d.path / "project.scala"))
-      Seq(Inputs.ProjectScalaFile(d.path, os.sub / "project.scala"))
+      Seq(ProjectScalaFile(d.path, os.sub / "project.scala"))
     else Nil
 
   private def inputsHash(elements: Seq[Element]): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
+      case elem: OnDisk =>
         val prefix = elem match {
-          case _: Inputs.Directory         => "dir:"
-          case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _: Inputs.JavaFile          => "java:"
-          case _: Inputs.ProjectScalaFile  => "config:"
-          case _: Inputs.SourceScalaFile   => "scala:"
-          case _: Inputs.CFile             => "c:"
-          case _: Inputs.Script            => "sc:"
-          case _: Inputs.MarkdownFile      => "md:"
+          case _: Directory         => "dir:"
+          case _: ResourceDirectory => "resource-dir:"
+          case _: JavaFile          => "java:"
+          case _: ProjectScalaFile  => "config:"
+          case _: SourceScalaFile   => "scala:"
+          case _: CFile             => "c:"
+          case _: Script            => "sc:"
+          case _: MarkdownFile      => "md:"
         }
         Iterator(prefix, elem.path.toString, "\n").map(bytes)
-      case v: Inputs.Virtual =>
+      case v: Virtual =>
         Iterator(bytes("virtual:"), v.content, bytes(v.source), bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")

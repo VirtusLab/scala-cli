@@ -15,8 +15,8 @@ import scala.build.Ops.*
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
-import scala.build.input.Inputs
-import scala.build.input.Inputs.VirtualScript.VirtualScriptNameRegex
+import scala.build.input.VirtualScript.VirtualScriptNameRegex
+import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
 import scala.build.options.ScalaVersionUtil.asVersion
@@ -514,8 +514,8 @@ object Build {
               else if (scalaVersion.startsWith("2.12"))
                 if (
                   inputs.sourceFiles().forall {
-                    case _: Inputs.AnyScript => snNumeralVer >= SNNumeralVersion(0, 4, 3)
-                    case _                   => true
+                    case _: AnyScript => snNumeralVer >= SNNumeralVersion(0, 4, 3)
+                    case _            => true
                   }
                 ) Right(snNumeralVer)
                 else snCompatError
@@ -667,7 +667,7 @@ object Build {
     val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), compiler.shutdown())
 
     def doWatch(): Unit = {
-      val elements: Seq[Inputs.Element] =
+      val elements: Seq[Element] =
         if (res == null) inputs.elements
         else
           res.map { builds =>
@@ -677,11 +677,11 @@ object Build {
           }.getOrElse(inputs.elements)
       for (elem <- elements) {
         val depth = elem match {
-          case _: Inputs.SingleFile => -1
-          case _                    => Int.MaxValue
+          case _: SingleFile => -1
+          case _             => Int.MaxValue
         }
         val eventFilter: PathWatchers.Event => Boolean = elem match {
-          case d: Inputs.Directory =>
+          case d: Directory =>
             // Filtering event for directories, to ignore those related to the .bloop directory in particular
             event =>
               val p           = os.Path(event.getTypedPath.getPath.toAbsolutePath)
@@ -695,9 +695,9 @@ object Build {
 
         val watcher0 = watcher.newWatcher()
         elem match {
-          case d: Inputs.OnDisk =>
+          case d: OnDisk =>
             watcher0.register(d.path.toNIO, depth)
-          case _: Inputs.Virtual =>
+          case _: Virtual =>
         }
         watcher0.addObserver {
           onChangeBufferedObserver { event =>
@@ -1214,8 +1214,8 @@ object Build {
         // hash of the underlying project if needed is already in jmhProjectName
         mayAppendHash = false,
         elements = inputs.elements ++ Seq(
-          Inputs.Directory(jmhSourceDir),
-          Inputs.ResourceDirectory(jmhResourceDir)
+          Directory(jmhSourceDir),
+          ResourceDirectory(jmhResourceDir)
         )
       )
       val updatedOptions = build.options.copy(

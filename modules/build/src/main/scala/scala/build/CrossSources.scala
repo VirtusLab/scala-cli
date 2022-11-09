@@ -4,7 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
-import scala.build.input.Inputs
+import scala.build.input.*
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -109,7 +109,7 @@ object CrossSources {
     p.root.exists { path =>
       val fullPath = path / p.path
       inputs.elements.exists {
-        case Inputs.Directory(path) =>
+        case Directory(path) =>
           // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way
           fullPath.startsWith(path) &&
           fullPath.relativeTo(path).segments.contains("test")
@@ -127,7 +127,7 @@ object CrossSources {
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (CrossSources, Inputs)] = either {
 
-    def preprocessSources(elems: Seq[Inputs.SingleElement])
+    def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =
       elems
         .map { elem =>
@@ -221,7 +221,7 @@ object CrossSources {
     }
 
     val resourceDirs = allInputs.elements.collect {
-      case r: Inputs.ResourceDirectory =>
+      case r: ResourceDirectory =>
         HasBuildRequirements(BuildRequirements(), r.path)
     } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
       HasBuildRequirements(BuildRequirements(), _)
@@ -236,13 +236,13 @@ object CrossSources {
       lazy val dir     = sourcePath / os.up
       lazy val subPath = sourcePath.subRelativeTo(dir)
       if (os.isDir(sourcePath))
-        Right(Inputs.singleFilesFromDirectory(Inputs.Directory(sourcePath), enableMarkdown))
+        Right(Inputs.singleFilesFromDirectory(Directory(sourcePath), enableMarkdown))
       else if (sourcePath == os.sub / "project.scala")
-        Right(Seq(Inputs.ProjectScalaFile(dir, subPath)))
-      else if (sourcePath.ext == "scala") Right(Seq(Inputs.SourceScalaFile(dir, subPath)))
-      else if (sourcePath.ext == "sc") Right(Seq(Inputs.Script(dir, subPath)))
-      else if (sourcePath.ext == "java") Right(Seq(Inputs.JavaFile(dir, subPath)))
-      else if (sourcePath.ext == "md") Right(Seq(Inputs.MarkdownFile(dir, subPath)))
+        Right(Seq(ProjectScalaFile(dir, subPath)))
+      else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
+      else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath)))
+      else if (sourcePath.ext == "java") Right(Seq(JavaFile(dir, subPath)))
+      else if (sourcePath.ext == "md") Right(Seq(MarkdownFile(dir, subPath)))
       else {
         val msg =
           if (os.exists(sourcePath))

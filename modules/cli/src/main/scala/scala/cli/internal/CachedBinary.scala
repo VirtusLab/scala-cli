@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.Build
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, OnDisk, ResourceDirectory}
 import scala.build.internal.Constants
 
 object CachedBinary {
@@ -43,9 +43,9 @@ object CachedBinary {
         Iterator("\n")
 
     val projectResourceDirsIt = build.inputs.elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
+      case elem: OnDisk =>
         val content = elem match {
-          case resDirInput: Inputs.ResourceDirectory =>
+          case resDirInput: ResourceDirectory =>
             hashResourceDir(resDirInput.path)
           case _ => List.empty
         }

@@ -15,7 +15,7 @@ import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{AmbiguousPlatformError, BuildException}
-import scala.build.input.Inputs
+import scala.build.input.{Element, Inputs, ResourceDirectory}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
@@ -70,7 +70,7 @@ object SharedOptionsUtil extends CommandHelpers {
           logger.message(s"WARNING: provided resource directory path doesn't exist: $path")
         path
       }
-      .map(Inputs.ResourceDirectory.apply)
+      .map(ResourceDirectory.apply)
     val maybeInputs = Inputs(
       args,
       Os.pwd,
@@ -416,7 +416,7 @@ object SharedOptionsUtil extends CommandHelpers {
     def allScalaSnippets: List[String]  = v.snippet.scalaSnippet ++ v.snippet.executeScala
     def allJavaSnippets: List[String]   = v.snippet.javaSnippet ++ v.snippet.executeJava
 
-    def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Inputs.Element]]] =
+    def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Element]]] =
       Inputs.validateArgs(
         args,
         Os.pwd,

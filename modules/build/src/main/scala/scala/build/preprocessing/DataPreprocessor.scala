@@ -4,17 +4,17 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, SingleElement, VirtualData}
 
 case object DataPreprocessor extends Preprocessor {
   def preprocess(
-    input: Inputs.SingleElement,
+    input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
-      case file: Inputs.VirtualData =>
+      case file: VirtualData =>
         val content = new String(file.content, StandardCharsets.UTF_8)
 
         val inMemory = Seq(

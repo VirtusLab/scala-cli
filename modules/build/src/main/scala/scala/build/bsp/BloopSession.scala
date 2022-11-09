@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, OnDisk, SingleFile, Virtual}
 
 final class BloopSession(
   val inputs: Inputs,
@@ -17,9 +17,9 @@ final class BloopSession(
   def resetDiagnostics(localClient: BspClient): Unit =
     for (targetId <- bspServer.targetIds)
       inputs.flattened().foreach {
-        case f: Inputs.SingleFile =>
+        case f: SingleFile =>
           localClient.resetDiagnostics(f.path, targetId)
-        case _: Inputs.Virtual =>
+        case _: Virtual =>
       }
   def dispose(): Unit = {
     watcher.dispose()
@@ -28,7 +28,7 @@ final class BloopSession(
 
   def registerWatchInputs(): Unit =
     inputs.elements.foreach {
-      case elem: Inputs.OnDisk =>
+      case elem: OnDisk =>
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
             event.getKind == PathWatchers.Event.Kind.Create ||
