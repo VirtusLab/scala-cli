@@ -32,7 +32,7 @@ final case class Inputs(
   def singleFiles(): Seq[SingleFile] =
     elements.flatMap {
       case f: SingleFile        => Seq(f)
-      case d: Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
+      case d: Directory         => InputsUtil.singleFilesFromDirectory(d, enableMarkdown)
       case _: ResourceDirectory => Nil
       case _: Virtual           => Nil
     }
@@ -53,13 +53,13 @@ final case class Inputs(
   def flattened(): Seq[SingleElement] =
     elements.flatMap {
       case f: SingleFile        => Seq(f)
-      case d: Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
+      case d: Directory         => InputsUtil.singleFilesFromDirectory(d, enableMarkdown)
       case _: ResourceDirectory => Nil
       case v: Virtual           => Seq(v)
     }
 
   private lazy val inputsHash: String =
-    Inputs.inputsHash(elements)
+    InputsUtil.inputsHash(elements)
   lazy val projectName: String = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Directory) => d.path != workspace
@@ -82,7 +82,7 @@ final case class Inputs(
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(
-      workspace = Inputs.homeWorkspace(elements, directories),
+      workspace = InputsUtil.homeWorkspace(elements, directories),
       mayAppendHash = false,
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
@@ -111,7 +111,7 @@ final case class Inputs(
       case elem: OnDisk =>
         val content = elem match {
           case dirInput: Directory =>
-            Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
+            Seq("dir:") ++ InputsUtil.singleFilesFromDirectory(dirInput, enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case _ => Seq(os.read(elem.path))
         }
@@ -135,75 +135,6 @@ final case class Inputs(
 }
 
 object Inputs {
-  def singleFilesFromDirectory(
-    d: Directory,
-    enableMarkdown: Boolean
-  ): Seq[SingleFile] = {
-    import Ordering.Implicits.seqOrdering
-    os.walk.stream(d.path, skip = _.last.startsWith("."))
-      .filter(os.isFile(_))
-      .collect {
-        case p if p.last.endsWith(".java") =>
-          JavaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last == "project.scala" =>
-          ProjectScalaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".scala") =>
-          SourceScalaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".sc") =>
-          Script(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
-          CFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".md") && enableMarkdown =>
-          MarkdownFile(d.path, p.subRelativeTo(d.path))
-      }
-      .toVector
-      .sortBy(_.subPath.segments)
-  }
-
-  def projectSettingsFiles(elements: Seq[Element]): Seq[ProjectScalaFile] =
-    elements.flatMap {
-      case f: ProjectScalaFile => Seq(f)
-      case d: Directory        => Inputs.configFileFromDirectory(d)
-      case _                   => Nil
-    }.distinct
-
-  def configFileFromDirectory(d: Directory): Seq[ProjectScalaFile] =
-    if (os.exists(d.path / "project.scala"))
-      Seq(ProjectScalaFile(d.path, os.sub / "project.scala"))
-    else Nil
-
-  private def inputsHash(elements: Seq[Element]): String = {
-    def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
-    val it = elements.iterator.flatMap {
-      case elem: OnDisk =>
-        val prefix = elem match {
-          case _: Directory         => "dir:"
-          case _: ResourceDirectory => "resource-dir:"
-          case _: JavaFile          => "java:"
-          case _: ProjectScalaFile  => "config:"
-          case _: SourceScalaFile   => "scala:"
-          case _: CFile             => "c:"
-          case _: Script            => "sc:"
-          case _: MarkdownFile      => "md:"
-        }
-        Iterator(prefix, elem.path.toString, "\n").map(bytes)
-      case v: Virtual =>
-        Iterator(bytes("virtual:"), v.content, bytes(v.source), bytes("\n"))
-    }
-    val md = MessageDigest.getInstance("SHA-1")
-    it.foreach(md.update)
-    val digest        = md.digest()
-    val calculatedSum = new BigInteger(1, digest)
-    String.format(s"%040x", calculatedSum).take(10)
-  }
-
-  def homeWorkspace(elements: Seq[Element], directories: Directories): os.Path = {
-    val hash0 = inputsHash(elements)
-    val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
-    os.makeDir.all(dir)
-    dir
-  }
-
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
@@ -217,7 +148,7 @@ object Inputs {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
 
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
-      val settingsFiles = projectSettingsFiles(validElems)
+      val settingsFiles = InputsUtil.projectSettingsFiles(validElems)
       val dirsAndFiles = validElems.collect {
         case d: Directory  => d
         case f: SourceFile => f

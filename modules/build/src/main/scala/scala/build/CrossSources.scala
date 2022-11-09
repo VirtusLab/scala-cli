@@ -236,7 +236,7 @@ object CrossSources {
       lazy val dir     = sourcePath / os.up
       lazy val subPath = sourcePath.subRelativeTo(dir)
       if (os.isDir(sourcePath))
-        Right(Inputs.singleFilesFromDirectory(Directory(sourcePath), enableMarkdown))
+        Right(InputsUtil.singleFilesFromDirectory(Directory(sourcePath), enableMarkdown))
       else if (sourcePath == os.sub / "project.scala")
         Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
