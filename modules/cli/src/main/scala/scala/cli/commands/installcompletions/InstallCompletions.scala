@@ -102,8 +102,11 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     name.getOrElse {
       val baseName = (new Argv0).get(baseRunnerName)
       val idx      = baseName.lastIndexOf(File.separator)
-      if (idx < 0) baseName
-      else baseName.drop(idx + 1)
+      val last     = if (idx < 0) baseName else baseName.drop(idx + 1)
+      last match {
+        case s".${name}.aux" => name // // cs install binaries under .app-name.aux
+        case name            => name
+      }
     }
 
   def getFormat(format: Option[String]): Option[String] =
