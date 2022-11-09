@@ -11,6 +11,7 @@ final case class MillProject(
   mainDeps: Seq[String] = Nil,
   testDeps: Seq[String] = Nil,
   scalaVersion: Option[String] = None,
+  scalacOptions: Seq[String] = Nil,
   scalaJsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
   nameOpt: Option[String] = None,
@@ -63,6 +64,12 @@ final case class MillProject(
     val maybeScalaVer = scalaVersion.fold("") { sv =>
       s"""def scalaVersion = "$sv"""" + nl
     }
+    val maybeScalacOptions =
+      if (scalacOptions.isEmpty) ""
+      else {
+        val optsString = scalacOptions.map(opt => s"\"$opt\"").mkString(", ")
+        s"""def scalacOptions = super.scalacOptions() ++ Seq($optsString)"""
+      }
     def maybeDeps(deps: Seq[String]) =
       if (deps.isEmpty) ""
       else {
@@ -91,6 +98,7 @@ final case class MillProject(
          |
          |object $escapedName extends $parentModule {
          |  $maybeScalaVer
+         |  $maybeScalacOptions
          |  $extraDecs
          |  ${maybeDeps(mainDeps)}
          |  $maybeMain

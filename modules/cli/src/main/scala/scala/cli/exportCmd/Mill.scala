@@ -45,6 +45,9 @@ final case class Mill(
       MillProject(scalaVersion = Some(sv))
   }
 
+  private def scalacOptionsSettings(buildOptions: BuildOptions): MillProject =
+    MillProject(scalacOptions = buildOptions.scalaOptions.scalacOptions.toSeq.map(_.value.value))
+
   private def scalaJsSettings(options: ScalaJsOptions): MillProject = {
 
     val scalaJsVersion = Some(options.version.getOrElse(Constants.scalaJsVersion))
@@ -181,6 +184,7 @@ final case class Mill(
       baseSettings,
       sourcesSettings(sourcesMain, sourcesTest),
       scalaVersionSettings(optionsMain, sourcesMain),
+      scalacOptionsSettings(optionsMain),
       dependencySettings(optionsMain, optionsTest),
       repositorySettings(optionsMain),
       if (optionsMain.platform.value == Platform.JS) scalaJsSettings(optionsMain.scalaJsOptions)
