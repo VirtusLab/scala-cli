@@ -2,8 +2,9 @@ package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
 
+import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.{Inputs, Logger}
+import scala.build.input.Inputs
 
 case object DataPreprocessor extends Preprocessor {
   def preprocess(

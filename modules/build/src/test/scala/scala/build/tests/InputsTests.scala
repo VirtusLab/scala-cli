@@ -2,7 +2,7 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 import scala.build.Build
-import scala.build.Inputs
+import scala.build.input.Inputs
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}

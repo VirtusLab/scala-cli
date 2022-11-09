@@ -2,9 +2,10 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
+import scala.build.GeneratedSource
+import scala.build.input.Inputs
 import scala.build.internal.Constants
 import scala.build.options.Scope
-import scala.build.{GeneratedSource, Inputs}
 
 trait HasGeneratedSources {
   def targetIds: List[b.BuildTargetIdentifier]

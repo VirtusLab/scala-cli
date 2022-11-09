@@ -9,6 +9,7 @@ import java.io.PrintStream
 import scala.build.Ops._
 import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.input.Inputs
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
@@ -18,7 +19,7 @@ import scala.build.options.{
   Scope,
   ShadowingSeq
 }
-import scala.build.{Build, Inputs, LocalRepo, Logger, Position, Positioned, Sources}
+import scala.build.{Build, LocalRepo, Logger, Position, Positioned, Sources}
 
 class BuildProjectTests extends munit.FunSuite {
 

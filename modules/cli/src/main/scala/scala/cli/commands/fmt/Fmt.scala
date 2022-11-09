@@ -3,9 +3,10 @@ package scala.cli.commands.fmt
 import caseapp.*
 import dependency.*
 
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
-import scala.build.{Inputs, Logger, Sources}
+import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.FmtOptionsUtil.*
 import scala.cli.commands.util.FmtUtil.*

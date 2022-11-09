@@ -7,12 +7,13 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
-import scala.build.{Inputs, Logger}
 
 /** Java source preprocessor.
   *

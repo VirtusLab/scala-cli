@@ -15,6 +15,7 @@ import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{AmbiguousPlatformError, BuildException}
+import scala.build.input.Inputs
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
@@ -23,7 +24,7 @@ import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
 import scala.cli.commands.ScalaJsOptions
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*

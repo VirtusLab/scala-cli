@@ -4,8 +4,9 @@ import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
+import scala.build.Build
+import scala.build.input.Inputs
 import scala.build.internal.Constants
-import scala.build.{Build, Inputs}
 
 object CachedBinary {
 

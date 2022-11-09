@@ -1,4 +1,4 @@
-package scala.build
+package scala.build.input
 
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
@@ -6,8 +6,9 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.annotation.tailrec
-import scala.build.Inputs.{Element, WorkspaceOrigin}
+import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException}
+import scala.build.input.Inputs.{Element, WorkspaceOrigin}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope

@@ -9,10 +9,11 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.*
+import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives.*
-import scala.build.{Inputs, Logger, Position, Positioned}
+import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
 

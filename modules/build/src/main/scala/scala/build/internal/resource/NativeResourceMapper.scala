@@ -1,6 +1,7 @@
 package scala.build.internal.resource
 
-import scala.build.{Build, Inputs}
+import scala.build.Build
+import scala.build.input.Inputs
 
 object NativeResourceMapper {
 

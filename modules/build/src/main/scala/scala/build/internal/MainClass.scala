@@ -6,7 +6,7 @@ import org.objectweb.asm.ClassReader
 import java.io.{ByteArrayInputStream, InputStream}
 import java.util.zip.ZipEntry
 
-import scala.build.Inputs.{Element, resolve}
+import scala.build.input.Inputs.{Element, resolve}
 import scala.build.internal.zip.WrappedZipInputStream
 
 object MainClass {

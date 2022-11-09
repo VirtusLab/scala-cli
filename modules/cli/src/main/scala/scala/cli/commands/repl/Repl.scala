@@ -9,6 +9,7 @@ import dependency.*
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.CurrentParams

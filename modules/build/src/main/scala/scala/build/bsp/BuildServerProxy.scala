@@ -4,8 +4,9 @@ import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 
+import scala.build.GeneratedSource
+import scala.build.input.Inputs
 import scala.build.options.Scope
-import scala.build.{GeneratedSource, Inputs}
 
 class BuildServerProxy(
   bspServer: () => BspServer,

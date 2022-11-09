@@ -2,8 +2,8 @@ package scala.build.bsp
 
 import java.io.{InputStream, OutputStream}
 
-import scala.build.Inputs
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.concurrent.Future
 
 trait Bsp {

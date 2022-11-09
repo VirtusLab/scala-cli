@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.cli.CurrentParams

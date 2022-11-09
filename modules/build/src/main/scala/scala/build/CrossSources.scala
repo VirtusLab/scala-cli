@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
+import scala.build.input.Inputs
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,

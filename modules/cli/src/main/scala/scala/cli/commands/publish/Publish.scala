@@ -27,6 +27,7 @@ import scala.build.Ops.*
 import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
+import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}

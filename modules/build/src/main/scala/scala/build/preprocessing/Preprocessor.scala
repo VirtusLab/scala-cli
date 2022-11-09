@@ -1,7 +1,8 @@
 package scala.build.preprocessing
 
+import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.{Inputs, Logger}
+import scala.build.input.Inputs
 
 trait Preprocessor {
   def preprocess(

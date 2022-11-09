@@ -4,8 +4,9 @@ import com.swoval.files.PathWatchers
 
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.{Build, Inputs}
+import scala.build.input.Inputs
 
 final class BloopSession(
   val inputs: Inputs,
