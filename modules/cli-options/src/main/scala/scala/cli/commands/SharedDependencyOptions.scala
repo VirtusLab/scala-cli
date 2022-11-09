@@ -13,7 +13,6 @@ final case class SharedDependencyOptions(
 
   @Group("Dependency")
   @HelpMessage("Add repositories")
-  @HelpMessage("")
   @Name("repo")
   @Name("r")
     repository: List[String] = Nil,
