@@ -194,7 +194,7 @@ object Inputs {
   }
   final case class SourceScalaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with ScalaFile
-  final case class SettingsScalaFile(base: os.Path, subPath: os.SubPath)
+  final case class ProjectScalaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with ScalaFile
   final case class JavaFile(base: os.Path, subPath: os.SubPath)
       extends OnDisk with SourceFile with Compiled {
@@ -237,8 +237,8 @@ object Inputs {
       .collect {
         case p if p.last.endsWith(".java") =>
           Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last == "project.settings.scala" =>
-          Inputs.SettingsScalaFile(d.path, p.subRelativeTo(d.path))
+        case p if p.last == "project.scala" =>
+          Inputs.ProjectScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".scala") =>
           Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
         case p if p.last.endsWith(".sc") =>
@@ -252,16 +252,16 @@ object Inputs {
       .sortBy(_.subPath.segments)
   }
 
-  def projectSettingsFiles(elements: Seq[Inputs.Element]): Seq[Inputs.SettingsScalaFile] =
+  def projectSettingsFiles(elements: Seq[Inputs.Element]): Seq[Inputs.ProjectScalaFile] =
     elements.flatMap {
-      case f: SettingsScalaFile => Seq(f)
-      case d: Directory         => Inputs.configFileFromDirectory(d)
-      case _                    => Nil
+      case f: ProjectScalaFile => Seq(f)
+      case d: Directory        => Inputs.configFileFromDirectory(d)
+      case _                   => Nil
     }.distinct
 
-  def configFileFromDirectory(d: Inputs.Directory): Seq[Inputs.SettingsScalaFile] =
-    if (os.exists(d.path / "project.settings.scala"))
-      Seq(Inputs.SettingsScalaFile(d.path, os.sub / "project.settings.scala"))
+  def configFileFromDirectory(d: Inputs.Directory): Seq[Inputs.ProjectScalaFile] =
+    if (os.exists(d.path / "project.scala"))
+      Seq(Inputs.ProjectScalaFile(d.path, os.sub / "project.scala"))
     else Nil
 
   private def inputsHash(elements: Seq[Element]): String = {
@@ -272,7 +272,7 @@ object Inputs {
           case _: Inputs.Directory         => "dir:"
           case _: Inputs.ResourceDirectory => "resource-dir:"
           case _: Inputs.JavaFile          => "java:"
-          case _: Inputs.SettingsScalaFile => "config:"
+          case _: Inputs.ProjectScalaFile  => "config:"
           case _: Inputs.SourceScalaFile   => "scala:"
           case _: Inputs.CFile             => "c:"
           case _: Inputs.Script            => "sc:"
@@ -318,7 +318,7 @@ object Inputs {
       settingsFiles.headOption.map { s =>
         if (settingsFiles.length > 1)
           System.err.println(
-            s"Warning: more than one project.settings.scala file has been found. Setting ${s.base} as the project root directory for this run."
+            s"Warning: more than one project.scala file has been found. Setting ${s.base} as the project root directory for this run."
           )
         (s.base, true, WorkspaceOrigin.SourcePaths)
       }.orElse {
@@ -458,7 +458,7 @@ object Inputs {
             List(resolve(url, content))
         }
       }
-      else if (path.last == "project.settings.scala") Right(Seq(SettingsScalaFile(dir, subPath)))
+      else if (path.last == "project.scala") Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
       else if (arg.endsWith(".scala")) Right(Seq(SourceScalaFile(dir, subPath)))
       else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
