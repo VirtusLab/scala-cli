@@ -21,6 +21,10 @@ final case class ExportOptions(
   @Name("setting")
   @Group("Build Tool export options")
     sbtSetting: List[String] = Nil,
+  @Name("p")
+  @Group("Build Tool export options")
+  @HelpMessage("Project name to be used on Mill build file")
+  project: Option[String] = None,
   @Group("Build Tool export options")
   sbtVersion: Option[String] = None,
   @Name("o")
