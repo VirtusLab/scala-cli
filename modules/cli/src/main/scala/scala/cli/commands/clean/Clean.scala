@@ -5,9 +5,9 @@ import caseapp.*
 import scala.build.input.Inputs
 import scala.build.internal.Constants
 import scala.build.{Logger, Os}
+import scala.cli.commands.ScalaCommand
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.{CleanOptions, ScalaCommand}
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {

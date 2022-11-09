@@ -2,7 +2,7 @@ package cli.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.tests.{TestInputs, TestLogger}
-import scala.cli.commands.FmtOptions
+import scala.cli.commands.fmt.FmtOptions
 import scala.cli.commands.util.FmtUtil
 
 class ScalafmtTests extends munit.FunSuite {

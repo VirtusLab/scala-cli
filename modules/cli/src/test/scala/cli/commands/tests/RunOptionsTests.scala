@@ -2,8 +2,8 @@ package scala.cli.commands.tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
-import scala.cli.commands.run.Run
-import scala.cli.commands.{RunOptions, SharedPythonOptions, SharedRunOptions}
+import scala.cli.commands.run.{Run, RunOptions, SharedRunOptions}
+import scala.cli.commands.shared.SharedPythonOptions
 
 class RunOptionsTests extends munit.FunSuite {
 

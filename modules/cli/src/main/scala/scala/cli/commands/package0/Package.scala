@@ -31,19 +31,13 @@ import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.Run.orPythonDetectionError
+import scala.cli.commands.shared.{MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.MainClassOptionsUtil.*
 import scala.cli.commands.util.PackageOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{
-  CommandUtils,
-  MainClassOptions,
-  PackageOptions,
-  ScalaCommand,
-  SharedOptions,
-  WatchUtil
-}
+import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}

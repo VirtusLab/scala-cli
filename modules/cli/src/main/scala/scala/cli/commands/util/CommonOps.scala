@@ -6,6 +6,7 @@ import sttp.model.Uri
 
 import scala.build.{Logger, Os}
 import scala.cli.commands.pgp.SharedPgpPushPullOptions
+import scala.cli.commands.shared.*
 import scala.cli.internal.CliLogger
 import scala.concurrent.duration.Duration
 

@@ -15,6 +15,7 @@ import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddr
 import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.commands.bloop.BloopJson
+import scala.cli.commands.shared.*
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties

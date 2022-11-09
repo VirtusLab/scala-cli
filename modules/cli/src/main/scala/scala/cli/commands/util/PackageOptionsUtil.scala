@@ -8,7 +8,7 @@ import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormatError}
 import scala.build.options._
 import scala.build.options.packaging._
-import scala.cli.commands.PackageOptions
+import scala.cli.commands.package0.PackageOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 
 object PackageOptionsUtil {

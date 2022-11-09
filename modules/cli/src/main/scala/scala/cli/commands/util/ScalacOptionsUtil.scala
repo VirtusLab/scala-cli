@@ -1,7 +1,7 @@
 package scala.cli.commands.util
 
 import scala.build.options.{ScalacOpt, ShadowingSeq}
-import scala.cli.commands.{ScalacExtraOptions, ScalacOptions}
+import scala.cli.commands.shared.{ScalacExtraOptions, ScalacOptions}
 
 object ScalacOptionsUtil {
   extension (opts: List[String]) {

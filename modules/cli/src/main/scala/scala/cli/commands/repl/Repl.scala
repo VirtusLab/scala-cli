@@ -16,9 +16,10 @@ import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.{maybePrintSimpleScalacOutput, orPythonDetectionError}
 import scala.cli.commands.run.RunMode
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{ReplOptions, ScalaCommand, SharedOptions, WatchUtil}
+import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.util.Properties
 

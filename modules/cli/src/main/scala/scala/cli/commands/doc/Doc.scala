@@ -14,9 +14,10 @@ import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{CommandUtils, DocOptions, ScalaCommand, SharedOptions}
+import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.util.Properties

@@ -5,7 +5,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
-import scala.cli.commands.FmtOptions
+import scala.cli.commands.fmt.FmtOptions
 import scala.cli.commands.util.SharedOptionsUtil._
 import scala.util.Properties
 

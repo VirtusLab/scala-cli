@@ -1,7 +1,7 @@
 package scala.cli.commands.util
 
 import scala.build.errors.{MainClassError, NoMainClassFoundError}
-import scala.cli.commands.MainClassOptions
+import scala.cli.commands.shared.MainClassOptions
 
 object MainClassOptionsUtil {
   implicit class MainClassOptionsOps(v: MainClassOptions) {

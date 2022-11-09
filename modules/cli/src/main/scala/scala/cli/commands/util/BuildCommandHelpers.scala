@@ -2,8 +2,9 @@ package scala.cli.commands.util
 
 import scala.build.errors.MainClassError
 import scala.build.{Build, Logger, Os}
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
-import scala.cli.commands.{ScalaCommand, SharedOptions}
 
 trait BuildCommandHelpers { self: ScalaCommand[_] =>
   extension (successfulBuild: Build.Successful) {

@@ -1,7 +1,7 @@
 package scala.cli.commands.util
 
 import scala.build.options.publish.ConfigPasswordOption
-import scala.cli.commands.publish.MaybeConfigPasswordOption
+import scala.cli.util.MaybeConfigPasswordOption
 
 object PublishUtils {
 

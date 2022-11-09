@@ -5,7 +5,7 @@ import com.typesafe.config.{ConfigParseOptions, ConfigSyntax}
 
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.cli.commands.FmtOptions
+import scala.cli.commands.fmt.FmtOptions
 import scala.util.control.NonFatal
 
 object FmtUtil {

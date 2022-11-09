@@ -11,9 +11,10 @@ import scala.build.{Build, BuildThreads, Logger, Positioned}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{MetabrowseOptions, ScalaCommand, SharedOptions, WatchUtil}
+import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.util.Properties

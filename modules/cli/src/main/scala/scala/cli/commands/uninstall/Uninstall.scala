@@ -4,12 +4,12 @@ import caseapp.*
 
 import scala.build.Logger
 import scala.cli.CurrentParams
+import scala.cli.commands.ScalaCommand
 import scala.cli.commands.bloop.BloopExit
-import scala.cli.commands.uninstallcompletions.UninstallCompletions
+import scala.cli.commands.uninstallcompletions.{UninstallCompletions, UninstallCompletionsOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.VerbosityOptionsUtil.*
-import scala.cli.commands.{ScalaCommand, UninstallCompletionsOptions, UninstallOptions}
 
 object Uninstall extends ScalaCommand[UninstallOptions] {
 

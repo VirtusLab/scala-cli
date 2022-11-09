@@ -23,8 +23,8 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.options as bo
-import scala.cli.commands.ScalaJsOptions
 import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.shared.{ScalaJsOptions, ScalaNativeOptions, SharedOptions}
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*

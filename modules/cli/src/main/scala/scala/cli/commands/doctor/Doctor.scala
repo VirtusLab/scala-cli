@@ -5,7 +5,7 @@ import caseapp.core.RemainingArgs
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.commands.update.Update
-import scala.cli.commands.{CommandUtils, DoctorOptions, ScalaCommand}
+import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 import scala.cli.{CurrentParams, ScalaCli}

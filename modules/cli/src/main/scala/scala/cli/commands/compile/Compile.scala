@@ -9,11 +9,12 @@ import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.setupide.SetupIde
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{CommandUtils, CompileOptions, ScalaCommand, SharedOptions, WatchUtil}
+import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {

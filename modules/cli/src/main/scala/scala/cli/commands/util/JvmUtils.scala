@@ -7,6 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, UnrecognizedDebugModeError}
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.{Os, Position, Positioned}
+import scala.cli.commands.shared.SharedJvmOptions
 import scala.util.Properties
 
 object JvmUtils {

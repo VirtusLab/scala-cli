@@ -8,10 +8,11 @@ import scala.build.blooprifle.internal.{Constants, Operations}
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.internal.OsLibc
 import scala.cli.CurrentParams
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.{LoggingOptions, SharedOptions}
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{LoggingOptions, ScalaCommand, SharedOptions}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
