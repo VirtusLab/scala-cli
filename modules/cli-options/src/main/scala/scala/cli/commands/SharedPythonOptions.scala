@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp.*
 
+import scala.cli.commands.Constants
+
 // format: off
 final case class SharedPythonOptions(
   @HelpMessage("[experimental] Set Java options so that Python can be loaded")
@@ -9,7 +11,7 @@ final case class SharedPythonOptions(
   @HelpMessage("[experimental] Enable Python support via ScalaPy")
   @ExtraName("py")
     python: Option[Boolean] = None,
-  @HelpMessage("[experimental] Set ScalaPy version")
+  @HelpMessage(s"[experimental] Set ScalaPy version (${Constants.scalaPyVersion} by default)")
   @ExtraName("scalapyVersion")
     scalaPyVersion: Option[String] = None
 )

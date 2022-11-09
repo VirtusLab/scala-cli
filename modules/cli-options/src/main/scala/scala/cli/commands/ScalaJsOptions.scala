@@ -4,6 +4,8 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.cli.commands.Constants
+
 // format: off
 final case class ScalaJsOptions(
 
@@ -12,7 +14,7 @@ final case class ScalaJsOptions(
     js: Boolean = false,
 
   @Group("Scala.js")
-  @HelpMessage("The Scala.js version")
+  @HelpMessage(s"The Scala.js version (${Constants.scalaJsVersion} by default).")
     jsVersion: Option[String] = None,
   @Group("Scala.js")
   @HelpMessage("The Scala.js mode, either `dev` or `release`")
@@ -61,7 +63,7 @@ final case class ScalaJsOptions(
   @Hidden
     jsLinkerPath: Option[String] = None,
   @Group("Scala.js")
-  @HelpMessage("Scala.js CLI version to use for linking")
+  @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsCliVersion} by default).")
   @ValueDescription("version")
   @Hidden
     jsCliVersion: Option[String] = None,

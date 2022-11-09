@@ -4,6 +4,8 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.cli.commands.Constants
+
 // format: off
 final case class ScalaNativeOptions(
 
@@ -12,7 +14,7 @@ final case class ScalaNativeOptions(
     native: Boolean = false,
 
   @Group("Scala Native")
-  @HelpMessage("Set the Scala Native version")
+  @HelpMessage(s"Set the Scala Native version (${Constants.scalaNativeVersion} by default).")
     nativeVersion: Option[String] = None,
   @Group("Scala Native")
   @HelpMessage("Set Scala Native compilation mode")

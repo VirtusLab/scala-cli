@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
 abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
@@ -75,4 +76,18 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("default values in help") {
+    TestInputs.empty.fromRoot { root =>
+      val res   = os.proc(TestUtil.cli, "repl", extraOptions, "--help").call(cwd = root)
+      val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
+
+      val scalaVersionHelp   = lines.find(_.contains("--scala-version")).getOrElse("")
+      val scalaPyVersionHelp = lines.find(_.contains("--scalapy-version")).getOrElse("")
+      val ammVersionHelp     = lines.find(_.contains("--ammonite-ver")).getOrElse("")
+
+      expect(scalaVersionHelp.contains(s"(${Constants.defaultScala} by default)"))
+      expect(scalaPyVersionHelp.contains(s"(${Constants.scalaPyVersion} by default)"))
+      expect(ammVersionHelp.contains(s"(${Constants.ammoniteVersion} by default)"))
+    }
+  }
 }

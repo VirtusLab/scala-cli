@@ -2,6 +2,8 @@ package scala.cli.commands
 
 import caseapp.{Group, Help, HelpMessage, Name, Parser, ValueDescription}
 
+import scala.cli.commands.Constants
+
 // format: off
 final case class PackagerOptions(
   @HelpMessage("Set the version of the generated package")
@@ -107,11 +109,11 @@ final case class PackagerOptions(
   dockerImageTag: Option[String] = None,
 
   @Group("Native image")
-  @HelpMessage("GraalVM Java major version to use to build GraalVM native images (like 17)")
+  @HelpMessage(s"GraalVM Java major version to use to build GraalVM native images (${Constants.defaultGraalVMJavaVersion} by default)")
   @ValueDescription("java-major-version")
     graalvmJavaVersion: Option[Int] = None,
   @Group("Native image")
-  @HelpMessage("GraalVM version to use to build GraalVM native images (like 22.0.0)")
+  @HelpMessage(s"GraalVM version to use to build GraalVM native images (${Constants.defaultGraalVMVersion} by default)")
   @ValueDescription("version")
     graalvmVersion: Option[String] = None,
   @Group("Native image")

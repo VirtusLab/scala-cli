@@ -96,6 +96,8 @@ object TestUtil {
     if (uri.startsWith("file:///")) "file:/" + uri.stripPrefix("file:///")
     else uri
 
+  def removeAnsiColors(str: String) = str.replaceAll("\\e\\[[0-9]+m", "")
+
   def retry[T](
     maxAttempts: Int = 3,
     waitDuration: FiniteDuration = 5.seconds

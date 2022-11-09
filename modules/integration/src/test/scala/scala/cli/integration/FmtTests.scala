@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.removeAnsiColors
+
 class FmtTests extends ScalaCliSuite {
 
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
@@ -205,6 +207,15 @@ class FmtTests extends ScalaCliSuite {
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(dialectInConf == "scala3")
       expect(updatedContent == expectedSimpleInputsFormattedContent)
+    }
+  }
+
+  test("default values in help") {
+    TestInputs.empty.fromRoot { root =>
+      val res            = os.proc(TestUtil.cli, "fmt", "--help").call(cwd = root)
+      val lines          = removeAnsiColors(res.out.trim()).linesIterator.toVector
+      val fmtVersionHelp = lines.find(_.contains("--fmt-version")).getOrElse("")
+      expect(fmtVersionHelp.contains(s"(${Constants.defaultScalafmtVersion} by default)"))
     }
   }
 }
