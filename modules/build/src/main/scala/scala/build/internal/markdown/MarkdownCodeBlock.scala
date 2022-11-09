@@ -1,6 +1,8 @@
 package scala.build.internal.markdown
 
 import scala.annotation.tailrec
+import scala.build.Position
+import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
@@ -47,12 +49,20 @@ object MarkdownCodeBlock {
 
   /** Finds all code snippets in given input
     *
+    * @param subPath
+    *   the project [[os.SubPath]] to the Markdown file
     * @param md
     *   Markdown file in a `String` format
+    * @param maybeRecoverOnError
+    *   function potentially recovering on errors
     * @return
     *   list of all found snippets
     */
-  def findCodeBlocks(md: String): Seq[MarkdownCodeBlock] = {
+  def findCodeBlocks(
+    subPath: os.SubPath,
+    md: String,
+    maybeRecoverOnError: BuildException => Option[BuildException]
+  ): Either[BuildException, Seq[MarkdownCodeBlock]] = {
     val allLines = md
       .lines()
       .toList
@@ -63,20 +73,24 @@ object MarkdownCodeBlock {
       closedFences: Seq[MarkdownCodeBlock] = Seq.empty,
       maybeOpenFence: Option[MarkdownOpenFence] = None,
       currentIndex: Int = 0
-    ): Seq[MarkdownCodeBlock] = if lines.isEmpty then closedFences
-    else {
-      val currentLine = lines.head
-      val (newClosedFences, newOpenFence) = maybeOpenFence match {
-        case None => closedFences -> MarkdownOpenFence.maybeFence(currentLine, currentIndex)
-        case mof @ Some(openFence) =>
-          val backticksStart = currentLine.indexOf(openFence.backticks)
-          if backticksStart == openFence.indent &&
-            currentLine.forall(c => c == '`' || c.isWhitespace)
-          then (closedFences :+ openFence.closeFence(currentIndex, allLines.toArray)) -> None
-          else closedFences                                                           -> mof
-      }
-      findCodeBlocksRec(lines.tail, newClosedFences, newOpenFence, currentIndex + 1)
+    ): Either[BuildException, Seq[MarkdownCodeBlock]] = lines -> maybeOpenFence match {
+      case (Seq(currentLine, tail*), mof) =>
+        val (newClosedFences, newOpenFence) = mof match {
+          case None => closedFences -> MarkdownOpenFence.maybeFence(currentLine, currentIndex)
+          case Some(openFence) =>
+            val backticksStart = currentLine.indexOf(openFence.backticks)
+            if backticksStart == openFence.indent &&
+              currentLine.forall(c => c == '`' || c.isWhitespace)
+            then (closedFences :+ openFence.closeFence(currentIndex, allLines.toArray)) -> None
+            else closedFences -> Some(openFence)
+        }
+        findCodeBlocksRec(tail, newClosedFences, newOpenFence, currentIndex + 1)
+      case (Nil, Some(openFence)) =>
+        maybeRecoverOnError(openFence.toUnclosedBackticksError(os.pwd / subPath))
+          .map(e => Left(e))
+          .getOrElse(Right(closedFences))
+      case _ => Right(closedFences)
     }
-    findCodeBlocksRec(allLines.toSeq).filter(!_.shouldIgnore)
+    findCodeBlocksRec(allLines.toSeq).map(_.filter(!_.shouldIgnore))
   }
 }

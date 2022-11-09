@@ -1,5 +1,8 @@
 package scala.build.internal.markdown
 
+import scala.build.Position
+import scala.build.errors.MarkdownUnclosedBackticksError
+
 /** Representation for an open code block in Markdown. (open meaning the closing backticks haven't
   * yet been parsed or they aren't at all present)
   *
@@ -40,6 +43,21 @@ case class MarkdownOpenFence(
       start,          // snippet has to begin in the new line
       tickEndLine - 1 // ending backticks have to be placed below the snippet
     )
+  }
+
+  /** Converts the [[MarkdownOpenFence]] into a [[MarkdownUnclosedBackticksError]]
+    *
+    * @param mdPath
+    *   path to the Markdown file
+    * @return
+    *   a [[MarkdownUnclosedBackticksError]]
+    */
+  def toUnclosedBackticksError(mdPath: os.Path): MarkdownUnclosedBackticksError = {
+    val startCoordinates = tickStartLine -> indent
+    val endCoordinates =
+      tickStartLine -> (indent + backticks.length)
+    val position = Position.File(Right(mdPath), startCoordinates, endCoordinates)
+    MarkdownUnclosedBackticksError(backticks, Seq(position))
   }
 }
 
