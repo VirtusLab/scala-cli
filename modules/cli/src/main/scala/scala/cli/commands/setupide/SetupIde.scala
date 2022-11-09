@@ -11,8 +11,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.Inputs
-import scala.build.input.Inputs.WorkspaceOrigin
+import scala.build.input.{Inputs, WorkspaceOrigin}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams

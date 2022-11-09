@@ -8,7 +8,7 @@ import java.security.MessageDigest
 import scala.annotation.tailrec
 import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException}
-import scala.build.input.Inputs.{Element, WorkspaceOrigin}
+import scala.build.input.Inputs.Element
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
@@ -136,16 +136,6 @@ final case class Inputs(
 }
 
 object Inputs {
-
-  sealed abstract class WorkspaceOrigin extends Product with Serializable
-
-  object WorkspaceOrigin {
-    case object Forced        extends WorkspaceOrigin
-    case object SourcePaths   extends WorkspaceOrigin
-    case object ResourcePaths extends WorkspaceOrigin
-    case object HomeDir       extends WorkspaceOrigin
-  }
-
   sealed abstract class Element extends Product with Serializable
 
   sealed trait SingleElement extends Element
