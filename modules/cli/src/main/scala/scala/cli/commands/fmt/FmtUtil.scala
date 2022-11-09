@@ -1,4 +1,4 @@
-package scala.cli.commands.util
+package scala.cli.commands.fmt
 
 import com.typesafe.config.parser.{ConfigDocument, ConfigDocumentFactory}
 import com.typesafe.config.{ConfigParseOptions, ConfigSyntax}

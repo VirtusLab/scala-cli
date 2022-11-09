@@ -9,9 +9,9 @@ import scala.build.options.BuildOptions
 import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
+import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.FmtOptionsUtil.*
-import scala.cli.commands.util.FmtUtil.*
 import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.VerbosityOptionsUtil.*
 
