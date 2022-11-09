@@ -6,7 +6,6 @@ import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, SharedOptions}
 
 trait BuildCommandHelpers { self: ScalaCommand[_] =>
-  import scala.cli.commands.util.ScalacOptionsUtil.*
   extension (successfulBuild: Build.Successful) {
     def retainedMainClass(
       logger: Logger,
