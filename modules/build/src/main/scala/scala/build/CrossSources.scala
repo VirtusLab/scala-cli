@@ -4,6 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
+import scala.build.input.ElementsUtils.*
 import scala.build.input.*
 import scala.build.options.{
   BuildOptions,
@@ -236,7 +237,7 @@ object CrossSources {
       lazy val dir     = sourcePath / os.up
       lazy val subPath = sourcePath.subRelativeTo(dir)
       if (os.isDir(sourcePath))
-        Right(InputsUtil.singleFilesFromDirectory(Directory(sourcePath), enableMarkdown))
+        Right(Directory(sourcePath).singleFilesFromDirectory(enableMarkdown))
       else if (sourcePath == os.sub / "project.scala")
         Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))

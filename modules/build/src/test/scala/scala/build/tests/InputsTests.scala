@@ -3,7 +3,8 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.Build
-import scala.build.input.{Inputs, InputsUtil}
+import scala.build.input.Inputs
+import scala.build.input.ElementsUtils.*
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
@@ -101,7 +102,7 @@ class InputsTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) {
       (root, inputs, _) =>
         assert(os.exists(root / Constants.workspaceDirName))
-        assert(InputsUtil.projectSettingsFiles(inputs.elements).length == 1)
+        assert(inputs.elements.projectSettingsFiles.length == 1)
     }
   }
 }

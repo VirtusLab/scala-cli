@@ -8,6 +8,7 @@ import java.security.MessageDigest
 import scala.annotation.tailrec
 import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException}
+import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
@@ -32,7 +33,7 @@ final case class Inputs(
   def singleFiles(): Seq[SingleFile] =
     elements.flatMap {
       case f: SingleFile        => Seq(f)
-      case d: Directory         => InputsUtil.singleFilesFromDirectory(d, enableMarkdown)
+      case d: Directory         => d.singleFilesFromDirectory(enableMarkdown)
       case _: ResourceDirectory => Nil
       case _: Virtual           => Nil
     }
@@ -44,22 +45,19 @@ final case class Inputs(
 
   def virtualSourceFiles(): Seq[Virtual] =
     elements.flatMap {
-      case v: Virtual =>
-        Seq(v)
-      case _ =>
-        Nil
+      case v: Virtual => Seq(v)
+      case _          => Nil
     }
 
   def flattened(): Seq[SingleElement] =
     elements.flatMap {
       case f: SingleFile        => Seq(f)
-      case d: Directory         => InputsUtil.singleFilesFromDirectory(d, enableMarkdown)
+      case d: Directory         => d.singleFilesFromDirectory(enableMarkdown)
       case _: ResourceDirectory => Nil
       case v: Virtual           => Seq(v)
     }
 
-  private lazy val inputsHash: String =
-    InputsUtil.inputsHash(elements)
+  private lazy val inputsHash: String = elements.inputsHash
   lazy val projectName: String = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Directory) => d.path != workspace
@@ -82,7 +80,7 @@ final case class Inputs(
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(
-      workspace = InputsUtil.homeWorkspace(elements, directories),
+      workspace = elements.homeWorkspace(directories),
       mayAppendHash = false,
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
@@ -111,7 +109,7 @@ final case class Inputs(
       case elem: OnDisk =>
         val content = elem match {
           case dirInput: Directory =>
-            Seq("dir:") ++ InputsUtil.singleFilesFromDirectory(dirInput, enableMarkdown)
+            Seq("dir:") ++ dirInput.singleFilesFromDirectory(enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case _ => Seq(os.read(elem.path))
         }
@@ -148,7 +146,7 @@ object Inputs {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
 
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
-      val settingsFiles = InputsUtil.projectSettingsFiles(validElems)
+      val settingsFiles = validElems.projectSettingsFiles
       val dirsAndFiles = validElems.collect {
         case d: Directory  => d
         case f: SourceFile => f
