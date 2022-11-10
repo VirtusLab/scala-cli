@@ -74,7 +74,6 @@ object SharedOptionsUtil extends CommandHelpers {
     val maybeInputs = Inputs(
       args,
       Os.pwd,
-      directories,
       defaultInputs = defaultInputs,
       download = downloadInputs(cache),
       stdinOpt = readStdin(logger = logger),

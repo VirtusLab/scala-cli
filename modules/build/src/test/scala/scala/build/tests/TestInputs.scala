@@ -42,7 +42,6 @@ final case class TestInputs(
       val res = Inputs(
         inputArgs0,
         tmpDir,
-        Directories.under(tmpDir / ".data"),
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
         extraClasspathWasPassed = false

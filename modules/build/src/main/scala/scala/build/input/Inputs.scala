@@ -27,8 +27,7 @@ final case class Inputs(
   allowRestrictedFeatures: Boolean
 ) {
 
-  def isEmpty: Boolean =
-    elements.isEmpty
+  def isEmpty: Boolean = elements.isEmpty
 
   def singleFiles(): Seq[SingleFile] =
     elements.flatMap {
@@ -41,12 +40,6 @@ final case class Inputs(
   def sourceFiles(): Seq[SourceFile] =
     singleFiles().collect {
       case f: SourceFile => f
-    }
-
-  def virtualSourceFiles(): Seq[Virtual] =
-    elements.flatMap {
-      case v: Virtual => Seq(v)
-      case _          => Nil
     }
 
   def flattened(): Seq[SingleElement] =
@@ -63,17 +56,14 @@ final case class Inputs(
       case Seq(d: Directory) => d.path != workspace
       case _                 => true
     })
-    if (needsSuffix) baseProjectName + "-" + inputsHash
-    else baseProjectName
+    if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
   }
 
   def scopeProjectName(scope: Scope): String =
-    if (scope == Scope.Main) projectName
-    else projectName + "-" + scope.name
+    if scope == Scope.Main then projectName else s"$projectName-${scope.name}"
 
   def add(extraElements: Seq[Element]): Inputs =
-    if (elements.isEmpty) this
-    else copy(elements = (elements ++ extraElements).distinct)
+    if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
 
   def generatedSrcRoot(scope: Scope): os.Path =
     workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
@@ -85,8 +75,7 @@ final case class Inputs(
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
   def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
-    if (forbidden.exists(workspace.startsWith)) inHomeDir(directories)
-    else this
+    if forbidden.exists(workspace.startsWith) then inHomeDir(directories) else this
   def checkAttributes(directories: Directories): Inputs = {
     @tailrec
     def existingParent(p: os.Path): Option[os.Path] =
@@ -100,8 +89,7 @@ final case class Inputs(
         os.owner(p) == os.owner(os.home) &&
         p.toIO.canWrite
     val canWrite = existingParent(workspace).exists(reallyOwnedByUser)
-    if (canWrite) this
-    else inHomeDir(directories)
+    if canWrite then this else inHomeDir(directories)
   }
   def sourceHash(): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
@@ -136,22 +124,18 @@ object Inputs {
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    directories: Directories,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean
   ): Inputs = {
-
     assert(extraClasspathWasPassed || validElems.nonEmpty)
-
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
       val settingsFiles = validElems.projectSettingsFiles
       val dirsAndFiles = validElems.collect {
         case d: Directory  => d
         case f: SourceFile => f
       }
-
       settingsFiles.headOption.map { s =>
         if (settingsFiles.length > 1)
           System.err.println(
@@ -287,7 +271,7 @@ object Inputs {
       }
       else if (arg.contains("://")) {
         val url =
-          if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
+          if githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty then s"$arg/download" else arg
         download(url).map { content =>
           if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
             resolveZipArchive(content)
@@ -318,7 +302,6 @@ object Inputs {
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
-    directories: Directories,
     baseProjectName: String,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
@@ -348,7 +331,6 @@ object Inputs {
       Right(forValidatedElems(
         validElems,
         baseProjectName,
-        directories,
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
@@ -362,7 +344,6 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
-    directories: Directories,
     baseProjectName: String = "project",
     defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
@@ -386,7 +367,6 @@ object Inputs {
       forNonEmptyArgs(
         args,
         cwd,
-        directories,
         baseProjectName,
         download,
         stdinOpt,
@@ -400,8 +380,7 @@ object Inputs {
         extraClasspathWasPassed
       )
 
-  def default(): Option[Inputs] =
-    None
+  def default(): Option[Inputs] = None
 
   def empty(workspace: os.Path, enableMarkdown: Boolean): Inputs =
     Inputs(

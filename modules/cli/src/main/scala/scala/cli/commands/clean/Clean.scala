@@ -16,7 +16,6 @@ object Clean extends ScalaCommand[CleanOptions] {
     val inputs = Inputs(
       args.all,
       Os.pwd,
-      options.directories.directories,
       defaultInputs = () => Inputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
