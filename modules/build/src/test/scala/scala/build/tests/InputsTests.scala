@@ -37,11 +37,11 @@ class InputsTests extends munit.FunSuite {
     }
   }
 
-  test("project settings file") {
+  test("project.scala file") {
     val testInputs = TestInputs(
       files = Seq(
-        os.rel / "custom-dir" / "project.settings.scala" -> "",
-        os.rel / "project.settings.scala" -> s"//> using javaProp \"foo=bar\"".stripMargin,
+        os.rel / "custom-dir" / "project.scala" -> "",
+        os.rel / "project.scala"                -> s"//> using javaProp \"foo=bar\"".stripMargin,
         os.rel / "foo.scala" ->
           s"""object Foo {
              |  def main(args: Array[String]): Unit =
@@ -49,7 +49,7 @@ class InputsTests extends munit.FunSuite {
              |}
              |""".stripMargin
       ),
-      inputArgs = Seq("custom-dir", "foo.scala", "project.settings.scala")
+      inputArgs = Seq("foo.scala", "custom-dir", "project.scala")
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) {
       (root, _, buildMaybe) =>
@@ -84,7 +84,7 @@ class InputsTests extends munit.FunSuite {
     }
   }
 
-  test("passing project settings file and its parent directory") {
+  test("passing project.scala and its parent directory") {
     val testInputs = TestInputs(
       files = Seq(
         os.rel / "foo.scala" ->
@@ -93,9 +93,9 @@ class InputsTests extends munit.FunSuite {
              |    println("Foo")
              |}
              |""".stripMargin,
-        os.rel / "project.settings.scala" -> ""
+        os.rel / "project.scala" -> ""
       ),
-      inputArgs = Seq(".", "project.settings.scala")
+      inputArgs = Seq(".", "project.scala")
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) {
       (root, inputs, _) =>
