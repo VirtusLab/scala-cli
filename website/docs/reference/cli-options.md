@@ -828,6 +828,10 @@ Set Ivy 2 home directory
 ### `--checksum`
 
 [Internal]
+### `--dummy`
+
+Proceed as if publishing, but do not upload / write artifacts to the remote repository
+
 ### `--ivy2-local-like`
 
 [Internal]
