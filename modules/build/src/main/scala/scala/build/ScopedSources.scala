@@ -17,6 +17,6 @@ final case class ScopedSources(
       resourceDirs.flatMap(_.valueFor(scope).toSeq),
       buildOptions
         .flatMap(_.valueFor(scope).toSeq)
-        .foldLeft(baseOptions)(_ orElse _)
+        .foldRight(baseOptions)(_ orElse _)
     )
 }
