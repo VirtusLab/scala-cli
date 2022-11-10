@@ -19,7 +19,7 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + dotty.tools.dotc.config.Properties.simpleVersionString
            |    println(message)
-           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
@@ -35,7 +35,7 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + scala.util.Properties.versionNumberString
            |    println(message)
-           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
