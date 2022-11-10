@@ -58,6 +58,7 @@ import scala.cli.errors.{
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
@@ -916,7 +917,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
     val repoParams0 = repoParams.withAuth(value(authOpt(repoParams.repo.repo(isSnapshot0).root)))
     val hooksDataOpt = Option.when(!dummy) {
-      repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+      try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+      catch {
+        case NonFatal(e) =>
+          throw new Exception(e)
+      }
     }
 
     val retainedRepo = hooksDataOpt match {
@@ -941,19 +946,30 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
-      upload.uploadFileSet(
-        retainedRepo,
-        finalFileSet,
-        uploadLogger,
-        if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
-      ).unsafeRun()(ec)
+      try
+        upload.uploadFileSet(
+          retainedRepo,
+          finalFileSet,
+          uploadLogger,
+          if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
+        ).unsafeRun()(ec)
+      catch {
+        case NonFatal(e) =>
+          // Wrap exception from coursier, as it sometimes throws exceptions from other threads,
+          // which lack the current stacktrace.
+          throw new Exception(e)
+      }
 
     errors.toList match {
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
         for (hooksData <- hooksDataOpt)
-          repoParams0.hooks.afterUpload(hooksData).unsafeRun()(ec)
+          try repoParams0.hooks.afterUpload(hooksData).unsafeRun()(ec)
+          catch {
+            case NonFatal(e) =>
+              throw new Exception(e)
+          }
         for ((mod, version) <- modVersionOpt) {
           val checkRepo = repoParams0.repo.checkResultsRepo(isSnapshot0)
           val relPath = {
