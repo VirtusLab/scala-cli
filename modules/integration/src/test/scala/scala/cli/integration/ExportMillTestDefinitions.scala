@@ -49,11 +49,11 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from exported Scala CLI project"))
     }
 
-  def jvmTest(): Unit = {
+  def jvmTest(projectName: String = "project"): Unit = {
     val inputs = addMillJvmOpts(ExportTestProjects.jvmTest(actualScalaVersion))
     inputs.fromRoot { root =>
-      val projectName = "project"
-      os.proc(TestUtil.cli, "export", extraOptions, "--mill", "-o", "mill-proj", ".")
+      val setProject = if (projectName != "project") Seq("-p", projectName) else Seq.empty
+      os.proc(TestUtil.cli, "export", extraOptions, "--mill", setProject, "-o", "mill-proj", ".")
         .call(cwd = root, stdout = os.Inherit)
       // main
       val res =
@@ -72,6 +72,11 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
   if (runExportTests)
     test("JVM") {
       jvmTest()
+    }
+
+  if (runExportTests)
+    test("JVM custom project name") {
+      jvmTest("newproject")
     }
 
   if (runExportTests)
