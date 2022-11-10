@@ -11,6 +11,7 @@ object ExportTestProjects {
         s"""//> using scala "$scalaVersion"
            |//> using resourceDir "./input"
            |//> using lib "org.scala-lang::scala3-compiler:$scalaVersion"
+           |//> using option "-deprecation"
            |
            |import scala.io.Source
            |
@@ -26,6 +27,7 @@ object ExportTestProjects {
       else
         s"""//> using scala "$scalaVersion"
            |//> using resourceDir "./input"
+           |//> using option "-deprecation"
            |
            |import scala.io.Source
            |
