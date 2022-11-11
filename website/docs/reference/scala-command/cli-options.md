@@ -288,7 +288,7 @@ Print help message and exit
 
 ### `--help-full`
 
-Aliases: `--full-help`
+Aliases: `--full-help`, `-help-full`, `-full-help`
 
 Print help message, including hidden options, and exit
 
