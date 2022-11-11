@@ -79,9 +79,9 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier           = "2.1.0-M7-39-gb8f3d7532"
-    def coursierCli        = "2.1.0-M7-39-gb8f3d7532"
-    def coursierM1Cli      = "2.1.0-M7-39-gb8f3d7532"
+    def coursier           = "2.1.0-RC1"
+    def coursierCli        = "2.1.0-RC1"
+    def coursierM1Cli      = "2.1.0-RC1"
     def jsoniterScala      = "2.17.9"
     def jsoniterScalaJava8 = "2.13.5"
     def scalaMeta          = "4.6.0"
@@ -180,7 +180,7 @@ object Deps {
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.0"
+  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.1"
 }
 
 object BuildDeps {
