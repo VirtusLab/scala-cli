@@ -180,7 +180,7 @@ object Deps {
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.0"
+  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.1"
 }
 
 object BuildDeps {
