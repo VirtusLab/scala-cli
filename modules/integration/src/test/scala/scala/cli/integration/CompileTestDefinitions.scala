@@ -471,4 +471,42 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       expect(duplicates.isEmpty)
     }
   }
+
+  test("override settings from tests") {
+    val inputs = TestInputs(
+      os.rel / "MainStuff.scala" ->
+        """//> using jvm "8"
+          |object MainStuff {
+          |  def javaVer = sys.props("java.version")
+          |  def main(args: Array[String]): Unit = {
+          |    println(s"Found Java $javaVer in main scope")
+          |    assert(javaVer.startsWith("1.8."))
+          |  }
+          |}
+          |""".stripMargin,
+      os.rel / "TestStuff.test.scala" ->
+        """//> using jvm "17"
+          |//> using lib "org.scalameta::munit:0.7.29"
+          |class TestStuff extends munit.FunSuite {
+          |  test("the test") {
+          |    val javaVer = MainStuff.javaVer
+          |    println(s"Found Java $javaVer in test scope")
+          |    val javaVer0 = {
+          |      val bais = new java.io.ByteArrayInputStream(javaVer.getBytes("UTF-8"))
+          |      new String(bais.readAllBytes(), "UTF-8") // readAllBytes available only on Java 17 (not on Java 8)
+          |    }
+          |    assert(javaVer0 == "17" || javaVer0.startsWith("17."))
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", "--test", ".")
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+      os.proc(TestUtil.cli, "run", ".")
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+      os.proc(TestUtil.cli, "test", ".")
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+    }
+  }
 }
