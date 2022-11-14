@@ -86,7 +86,7 @@ object ScalaCli {
 
   private lazy val javaMajorVersion =
     sys.props.getOrElse("java.version", "0")
-      .stripSuffix("1.")
+      .stripPrefix("1.")
       .takeWhile(_.isDigit)
       .toInt
 
