@@ -114,11 +114,13 @@ def finalPublishVersion = {
     }
 }
 
+def organization = "org.virtuslab.scala-cli"
+
 trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   import mill.scalalib.publish._
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = "org.virtuslab.scala-cli",
+    organization = organization,
     url = s"https://github.com/$ghOrg/$ghName",
     licenses = Seq(License.`Apache-2.0`),
     versionControl = VersionControl.github(ghOrg, ghName),
