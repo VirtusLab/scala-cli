@@ -72,57 +72,63 @@ object Test extends ScalaCommand[TestOptions] {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    def maybeTest(builds: Builds, allowExit: Boolean): Unit = {
-      val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
-      val builds0 = optionsKeys.flatMap { optionsKey =>
-        builds.map.get(CrossKey(optionsKey, Scope.Test))
+    def maybeTest(builds: Builds, allowExit: Boolean): Unit =
+      if (builds.anyFailed) {
+        System.err.println("Compilation failed")
+        if (allowExit)
+          sys.exit(1)
       }
-      val buildsLen = builds0.length
-      val printBeforeAfterMessages =
-        buildsLen > 1 && options.shared.logging.verbosity >= 0
-      val results =
-        for ((s, idx) <- builds0.zipWithIndex) yield {
-          if (printBeforeAfterMessages) {
-            val scalaStr    = s.crossKey.scalaVersion.versionOpt.fold("")(v => s" for Scala $v")
-            val platformStr = s.crossKey.platform.fold("")(p => s", ${p.repr}")
-            System.err.println(
-              s"${gray}Running tests$scalaStr$platformStr$reset"
+      else {
+        val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
+        val builds0 = optionsKeys.flatMap { optionsKey =>
+          builds.map.get(CrossKey(optionsKey, Scope.Test))
+        }
+        val buildsLen = builds0.length
+        val printBeforeAfterMessages =
+          buildsLen > 1 && options.shared.logging.verbosity >= 0
+        val results =
+          for ((s, idx) <- builds0.zipWithIndex) yield {
+            if (printBeforeAfterMessages) {
+              val scalaStr    = s.crossKey.scalaVersion.versionOpt.fold("")(v => s" for Scala $v")
+              val platformStr = s.crossKey.platform.fold("")(p => s", ${p.repr}")
+              System.err.println(
+                s"${gray}Running tests$scalaStr$platformStr$reset"
+              )
+              System.err.println()
+            }
+            val retCodeOrError = testOnce(
+              s,
+              options.requireTests,
+              args.unparsed,
+              logger,
+              allowExecve = allowExit && buildsLen <= 1
             )
-            System.err.println()
+            if (printBeforeAfterMessages && idx < buildsLen - 1)
+              System.err.println()
+            retCodeOrError
           }
-          val retCodeOrError = testOnce(
-            s,
-            options.requireTests,
-            args.unparsed,
-            logger,
-            allowExecve = allowExit && buildsLen <= 1
-          )
-          if (printBeforeAfterMessages && idx < buildsLen - 1)
-            System.err.println()
-          retCodeOrError
-        }
 
-      val maybeRetCodes = results.sequence
-        .left.map(CompositeBuildException(_))
+        val maybeRetCodes = results.sequence
+          .left.map(CompositeBuildException(_))
 
-      val retCodesOpt =
-        if (allowExit)
-          Some(maybeRetCodes.orExit(logger))
-        else
-          maybeRetCodes.orReport(logger)
+        val retCodesOpt =
+          if (allowExit)
+            Some(maybeRetCodes.orExit(logger))
+          else
+            maybeRetCodes.orReport(logger)
 
-      for (retCodes <- retCodesOpt if !retCodes.forall(_ == 0))
-        if (allowExit)
-          sys.exit(retCodes.find(_ != 0).getOrElse(1))
-        else {
-          val red      = Console.RED
-          val lightRed = "\u001b[91m"
-          val reset    = Console.RESET
-          System.err.println(
-            s"${red}Tests exited with return code $lightRed${retCodes.mkString(", ")}$red.$reset"
-          )
-        }
-    }
+        for (retCodes <- retCodesOpt if !retCodes.forall(_ == 0))
+          if (allowExit)
+            sys.exit(retCodes.find(_ != 0).getOrElse(1))
+          else {
+            val red      = Console.RED
+            val lightRed = "\u001b[91m"
+            val reset    = Console.RESET
+            System.err.println(
+              s"${red}Tests exited with return code $lightRed${retCodes.mkString(", ")}$red.$reset"
+            )
+          }
+      }
 
     if (options.watch.watchMode) {
       val watcher = Build.watch(
@@ -157,10 +163,6 @@ object Test extends ScalaCommand[TestOptions] {
           actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
-      if (builds.anyFailed) {
-        System.err.println("Compilation failed")
-        sys.exit(1)
-      }
       maybeTest(builds, allowExit = true)
     }
   }
