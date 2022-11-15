@@ -9,6 +9,7 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
 
   def scopedRequirements: Seq[Scoped[BuildRequirements]]
   def scopePath: ScopePath
+  def directivesPositions: Option[DirectivesPositions]
 }
 
 object PreprocessedSource {
@@ -18,7 +19,8 @@ object PreprocessedSource {
     options: Option[BuildOptions],
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
-    mainClassOpt: Option[String]
+    mainClassOpt: Option[String],
+    directivesPositions: Option[DirectivesPositions]
   ) extends PreprocessedSource {
     def scopePath: ScopePath =
       ScopePath.fromPath(path)
@@ -32,7 +34,8 @@ object PreprocessedSource {
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
-    scopePath: ScopePath
+    scopePath: ScopePath,
+    directivesPositions: Option[DirectivesPositions]
   ) extends PreprocessedSource {
     def reportingPath: Either[String, os.Path] =
       originalPath.map(_._2)
@@ -46,6 +49,7 @@ object PreprocessedSource {
     def mainClassOpt: None.type = None
     def scopePath: ScopePath =
       ScopePath.fromPath(path)
+    def directivesPositions: None.type = None
   }
 
   private def index(s: PreprocessedSource): Int =

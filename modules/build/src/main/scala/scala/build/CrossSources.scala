@@ -6,6 +6,7 @@ import scala.build.Positioned
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
 import scala.build.input.ElementsUtils.*
 import scala.build.input.*
+import scala.build.internal.Constants
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -166,6 +167,29 @@ object CrossSources {
     val preprocessedSources =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
 
+    val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
+    if (preprocessedWithUsingDirs.length > 1) {
+      val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
+        case Some(s) => s.path
+        case _       => inputs.workspace / Constants.projectFileName
+      preprocessedWithUsingDirs
+        .filter(_.scopePath != ScopePath.fromPath(projectFilePath))
+        .foreach { source =>
+          source.directivesPositions match
+            case Some(positions) =>
+              val pos = Seq(
+                positions.codeDirectives,
+                positions.specialCommentDirectives,
+                positions.plainCommentDirectives
+              ).maxBy(p => p.endPos._1)
+              logger.diagnostic(
+                s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
+                positions = Seq(pos)
+              )
+            case _ => ()
+        }
+    }
+
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
     def baseReqs(path: ScopePath): BuildRequirements = {
@@ -238,7 +262,7 @@ object CrossSources {
       lazy val subPath = sourcePath.subRelativeTo(dir)
       if (os.isDir(sourcePath))
         Right(Directory(sourcePath).singleFilesFromDirectory(enableMarkdown))
-      else if (sourcePath == os.sub / "project.scala")
+      else if (sourcePath == os.sub / Constants.projectFileName)
         Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
       else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath)))

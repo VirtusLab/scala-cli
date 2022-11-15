@@ -16,7 +16,8 @@ import $file.project.settings, settings.{
   ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
-  workspaceDirName
+  workspaceDirName,
+  projectFileName
 }
 import $file.project.deps, deps.customRepositories
 import $file.project.website
@@ -385,6 +386,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def defaultScala213Version = "${Scala.scala213}"
          |
          |  def workspaceDirName = "$workspaceDirName"
+         |  def projectFileName = "$projectFileName"
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"

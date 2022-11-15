@@ -671,6 +671,30 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("multiple using directives warning message") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using scala "3.2.0"
+           |
+           |object Foo extends App {
+           |  println("Foo")
+           |}
+           |""".stripMargin,
+      os.rel / "Bar.scala"  -> "",
+      os.rel / "Hello.java" -> "//> using packaging.output \"out\""
+    )
+    inputs.fromRoot { root =>
+      val warningMessage = "Using directives detected in"
+      val output1        = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
+      val output2 = os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
+        cwd = root,
+        stderr = os.Pipe
+      ).err.trim()
+      expect(output1.contains(warningMessage))
+      expect(!output2.contains(warningMessage))
+    }
+  }
+
   def sudoTest(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"

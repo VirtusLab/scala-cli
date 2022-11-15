@@ -139,7 +139,7 @@ object Inputs {
       settingsFiles.headOption.map { s =>
         if (settingsFiles.length > 1)
           System.err.println(
-            s"Warning: more than one project.scala file has been found. Setting ${s.base} as the project root directory for this run."
+            s"Warning: more than one ${Constants.projectFileName} file has been found. Setting ${s.base} as the project root directory for this run."
           )
         (s.base, true, WorkspaceOrigin.SourcePaths)
       }.orElse {
@@ -282,7 +282,7 @@ object Inputs {
           else List(Virtual(url, urlContent))
         }
       }
-      else if path.last == "project.scala" then Right(Seq(ProjectScalaFile(dir, subPath)))
+      else if path.last == Constants.projectFileName then Right(Seq(ProjectScalaFile(dir, subPath)))
       else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
       else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
       else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))

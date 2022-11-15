@@ -21,7 +21,8 @@ case object ScalaPreprocessor extends Preprocessor {
     globalReqs: BuildRequirements,
     globalUsings: BuildOptions,
     scopedReqs: Seq[Scoped[BuildRequirements]],
-    strippedContent: Option[String]
+    strippedContent: Option[String],
+    directivesPositions: Option[DirectivesPositions]
   ) {
     def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
       globalUsings == BuildOptions.monoid.zero &&
@@ -39,7 +40,8 @@ case object ScalaPreprocessor extends Preprocessor {
     globalReqs: BuildRequirements,
     scopedReqs: Seq[Scoped[BuildRequirements]],
     opts: BuildOptions,
-    updatedContent: Option[String]
+    updatedContent: Option[String],
+    directivesPositions: Option[DirectivesPositions]
   )
 
   val usingDirectiveHandlers: Seq[UsingDirectiveHandler] = Seq(
@@ -96,12 +98,13 @@ case object ScalaPreprocessor extends Preprocessor {
               )
             ) match {
               case None =>
-                PreprocessedSource.OnDisk(f.path, None, None, Nil, None)
+                PreprocessedSource.OnDisk(f.path, None, None, Nil, None, None)
               case Some(ProcessingOutput(
                     requirements,
                     scopedRequirements,
                     options,
-                    Some(updatedCode)
+                    Some(updatedCode),
+                    directivesPositions
                   )) =>
                 PreprocessedSource.InMemory(
                   Right((f.subPath, f.path)),
@@ -112,15 +115,23 @@ case object ScalaPreprocessor extends Preprocessor {
                   Some(requirements),
                   scopedRequirements,
                   None,
-                  scopePath
+                  scopePath,
+                  directivesPositions
                 )
-              case Some(ProcessingOutput(requirements, scopedRequirements, options, None)) =>
+              case Some(ProcessingOutput(
+                    requirements,
+                    scopedRequirements,
+                    options,
+                    None,
+                    directivesPositions
+                  )) =>
                 PreprocessedSource.OnDisk(
                   f.path,
                   Some(options),
                   Some(requirements),
                   scopedRequirements,
-                  None
+                  None,
+                  directivesPositions
                 )
             }
           Seq(source)
@@ -134,7 +145,7 @@ case object ScalaPreprocessor extends Preprocessor {
             case v                               => os.sub / v.generatedSourceFileName
           }
           val content = new String(v.content, StandardCharsets.UTF_8)
-          val (requirements, scopedRequirements, options, updatedContentOpt) =
+          val (requirements, scopedRequirements, options, updatedContentOpt, directivesPositions) =
             value(
               process(
                 content,
@@ -145,9 +156,9 @@ case object ScalaPreprocessor extends Preprocessor {
                 allowRestrictedFeatures
               )
             ).map {
-              case ProcessingOutput(reqs, scopedReqs, opts, updatedContent) =>
-                (reqs, scopedReqs, opts, updatedContent)
-            }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None))
+              case ProcessingOutput(reqs, scopedReqs, opts, updatedContent, dirsPositions) =>
+                (reqs, scopedReqs, opts, updatedContent, dirsPositions)
+            }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None, None))
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
@@ -157,7 +168,8 @@ case object ScalaPreprocessor extends Preprocessor {
             requirements = Some(requirements),
             scopedRequirements,
             mainClassOpt = None,
-            scopePath = v.scopePath
+            scopePath = v.scopePath,
+            directivesPositions = directivesPositions
           )
           Seq(s)
         }
@@ -232,9 +244,16 @@ case object ScalaPreprocessor extends Preprocessor {
         .map(_.content)
         .orElse(afterStrictUsing.strippedContent)
         .orElse(if (isSheBang) Some(content0) else None)
+      val directivesPositions = afterStrictUsing.directivesPositions
 
       val scopedRequirements = afterStrictUsing.scopedReqs
-      Some(ProcessingOutput(summedRequirements, scopedRequirements, summedOptions, lastContentOpt))
+      Some(ProcessingOutput(
+        summedRequirements,
+        scopedRequirements,
+        summedOptions,
+        lastContentOpt,
+        directivesPositions
+      ))
     }
   }
 
@@ -332,8 +351,9 @@ case object ScalaPreprocessor extends Preprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
-    val contentChars                                 = content.toCharArray
-    val ExtractedDirectives(codeOffset, directives0) = extractedDirectives
+    val contentChars = content.toCharArray
+
+    val ExtractedDirectives(codeOffset, directives0, directivesPositions) = extractedDirectives
 
     val updatedOptions = value {
       DirectivesProcessor.process(
@@ -382,7 +402,8 @@ case object ScalaPreprocessor extends Preprocessor {
             updatedRequirements.global,
             updatedOptions.global,
             updatedRequirements.scoped,
-            updatedContentOpt
+            updatedContentOpt,
+            directivesPositions
           ))
         case Seq(h, t*) =>
           val errors = ::(
