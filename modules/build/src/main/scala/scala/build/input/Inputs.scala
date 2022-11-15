@@ -192,19 +192,6 @@ object Inputs {
   private val githubGistsArchiveRegex: Regex =
     s"""://gist\\.github\\.com/[^/]*?/[^/]*$$""".r
 
-  private def resolve(path: String, content: Array[Byte]): Element =
-    if (path.endsWith(".scala")) VirtualScalaFile(content, path)
-    else if (path.endsWith(".java")) VirtualJavaFile(content, path)
-    else if (path.endsWith(".sc")) {
-      val wrapperPath = os.sub / path.split("/").last
-      VirtualScript(content, path, wrapperPath)
-    }
-    else if (path.endsWith(".md")) {
-      val wrapperPath = os.sub / path.split("/").last
-      VirtualMarkdownFile(content, path, wrapperPath)
-    }
-    else VirtualData(content, path)
-
   private def resolveZipArchive(content: Array[Byte], enableMarkdown: Boolean): Seq[Element] = {
     val zipInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
     zipInputStream.entries().foldLeft(List.empty[Element]) {
@@ -212,9 +199,9 @@ object Inputs {
         if (ent.isDirectory) acc
         else {
           val content = zipInputStream.readAllBytes()
-          (resolve(ent.getName, content) match {
-            case _: VirtualMarkdownFile if !enableMarkdown => None
-            case e: Element                                => Some(e)
+          (Virtual(ent.getName, content) match {
+            case _: AnyMarkdownFile if !enableMarkdown => None
+            case e: Element                            => Some(e)
           }) map { element => element :: acc } getOrElse acc
         }
     }
@@ -278,13 +265,11 @@ object Inputs {
         Right(resolveZipArchive(content, enableMarkdown))
       }
       else if (arg.contains("://")) {
-        val url =
-          if githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty then s"$arg/download" else arg
+        val isGithubGist = githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty
+        val url          = if isGithubGist then s"$arg/download" else arg
         download(url).map { content =>
-          if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
-            resolveZipArchive(content, enableMarkdown)
-          else
-            List(resolve(url, content))
+          if isGithubGist then resolveZipArchive(content, enableMarkdown)
+          else List(Virtual(url, content))
         }
       }
       else if (path.last == "project.scala") Right(Seq(ProjectScalaFile(dir, subPath)))
