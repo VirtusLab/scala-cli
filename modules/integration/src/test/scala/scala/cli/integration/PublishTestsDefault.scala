@@ -202,4 +202,55 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       expect(output.contains("Missing version"))
     }
   }
+
+  test("missing sonatype requirements") {
+    val inputs = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """//> using publish.repository "central"
+          |//> using publish.organization "test-org"
+          |//> using publish.name "test-name"
+          |//> using publish.version "0.1.0"
+          |package messages
+          |object Messages {
+          |  def hello = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / "publish-conf.scala" ->
+        """//> using publish.url "https://github.com/me/my-project"
+          |//> using publish.license "Apache-2.0"
+          |//> using publish.scm "github:test-org/test-name"
+          |//> using publish.developer "me|Me|https://me.me"
+          |""".stripMargin
+    )
+    def checkWarnings(output: String, hasWarnings: Boolean): Unit = {
+      val lines = Seq(
+        "project URL is empty",
+        "license is empty",
+        "SCM details are empty",
+        "developer details are empty"
+      )
+      for (line <- lines)
+        if (hasWarnings)
+          expect(output.contains(line))
+        else
+          expect(!output.contains(line))
+    }
+    def checkCredentialsWarning(output: String): Unit =
+      expect(
+        output.contains(
+          "Publishing to a repository that needs authentication, but no credentials are available."
+        )
+      )
+    inputs.fromRoot { root =>
+      val failRes = os.proc(TestUtil.cli, "publish", "--dummy", "messages")
+        .call(cwd = root, mergeErrIntoOut = true)
+      checkWarnings(failRes.out.text(), hasWarnings = true)
+      checkCredentialsWarning(failRes.out.text())
+
+      val okRes = os.proc(TestUtil.cli, "publish", "--dummy", ".")
+        .call(cwd = root, mergeErrIntoOut = true)
+      checkWarnings(okRes.out.text(), hasWarnings = false)
+      checkCredentialsWarning(okRes.out.text())
+    }
+  }
 }

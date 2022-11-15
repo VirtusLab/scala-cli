@@ -11,7 +11,7 @@ import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
 import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.upload.logger.InteractiveUploadLogger
-import coursier.publish.upload.{FileUpload, HttpURLConnectionUpload}
+import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload}
 import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 
 import java.io.{File, OutputStreamWriter}
@@ -26,7 +26,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
-import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError}
+import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
@@ -58,6 +58,7 @@ import scala.cli.errors.{
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
@@ -228,7 +229,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       options.watch.watch,
       isCi = options.publishParams.isCi,
       () => configDb,
-      options.mainClass
+      options.mainClass,
+      dummy = options.sharedPublish.dummy
     )
   }
 
@@ -247,7 +249,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     watch: Boolean,
     isCi: Boolean,
     configDb: () => ConfigDb,
-    mainClassOptions: MainClassOptions
+    mainClassOptions: MainClassOptions,
+    dummy: Boolean
   ): Unit = {
 
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
@@ -277,7 +280,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             parallelUpload = parallelUpload,
             isCi = isCi,
             configDb,
-            mainClassOptions
+            mainClassOptions,
+            dummy
           )
         }
       }
@@ -308,7 +312,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         parallelUpload = parallelUpload,
         isCi = isCi,
         configDb,
-        mainClassOptions
+        mainClassOptions,
+        dummy
       )
     }
   }
@@ -357,7 +362,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
-    mainClassOptions: MainClassOptions
+    mainClassOptions: MainClassOptions,
+    dummy: Boolean
   ): Unit = {
 
     val allOk = builds.all.forall {
@@ -391,7 +397,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               forceSigningBinary,
               parallelUpload,
               isCi,
-              configDb
+              configDb,
+              dummy
             )
         }
       if (allowExit)
@@ -478,6 +485,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     now: Instant,
     isIvy2LocalLike: Boolean,
     isCi: Boolean,
+    isSonatype: Boolean,
     logger: Logger
   ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
 
@@ -572,6 +580,25 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       scm = scm,
       developers = developers
     )
+
+    if (isSonatype) {
+      if (url.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
+        )
+      if (license.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but license is empty (set it with the '//> using publish.license' directive)."
+        )
+      if (scm.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but SCM details are empty (set them with the '//> using publish.scm' directive)."
+        )
+      if (developers.isEmpty)
+        logger.diagnostic(
+          "Publishing to Sonatype, but developer details are empty (set them with the '//> using publish.developer' directive)."
+        )
+    }
 
     def ivyContent = Ivy.create(
       organization = coursier.Organization(org),
@@ -671,7 +698,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     forceSigningBinary: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
-    configDb: () => ConfigDb
+    configDb: () => ConfigDb,
+    dummy: Boolean
   ): Either[BuildException, Unit] = either {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
@@ -770,6 +798,17 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         .filter(_._1.scope != Scope.Test)
         .map {
           case (build, docBuildOpt) =>
+            val isSonatype = {
+              val hostOpt = {
+                val repo = repoParams.repo.snapshotRepo.root
+                val uri  = new URI(repo)
+                if (uri.getScheme == "https") Some(uri.getHost)
+                else None
+              }
+              hostOpt.exists(host =>
+                host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org")
+              )
+            }
             buildFileSet(
               build,
               docBuildOpt,
@@ -777,6 +816,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
+              isSonatype = isSonatype,
               logger
             )
         }
@@ -907,35 +947,67 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val repoParams0 = repoParams.withAuth(value(authOpt(repoParams.repo.repo(isSnapshot0).root)))
-    val hooksData   = repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root))
+    if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
+      logger.diagnostic(
+        "Publishing to a repository that needs authentication, but no credentials are available.",
+        Severity.Warning
+      )
+    val repoParams0 = repoParams.withAuth(authOpt0)
+    val hooksDataOpt = Option.when(!dummy) {
+      try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
+      catch {
+        case NonFatal(e) =>
+          throw new Exception(e)
+      }
+    }
 
-    val retainedRepo = repoParams0.hooks.repository(hooksData, repoParams0.repo, isSnapshot0)
-      .getOrElse(repoParams0.repo.repo(isSnapshot0))
+    val retainedRepo = hooksDataOpt match {
+      case None => // dummy mode
+        repoParams0.repo.repo(isSnapshot0)
+      case Some(hooksData) =>
+        repoParams0.hooks.repository(hooksData, repoParams0.repo, isSnapshot0)
+          .getOrElse(repoParams0.repo.repo(isSnapshot0))
+    }
 
-    val upload =
+    val baseUpload =
       if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
         HttpURLConnectionUpload.create()
       else
         FileUpload(Paths.get(new URI(retainedRepo.root)))
 
-    val dummy        = false
+    val upload =
+      if (dummy) DummyUpload(baseUpload)
+      else baseUpload
+
     val isLocal      = true
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
 
     val errors =
-      upload.uploadFileSet(
-        retainedRepo,
-        finalFileSet,
-        uploadLogger,
-        if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
-      ).unsafeRun()(ec)
+      try
+        upload.uploadFileSet(
+          retainedRepo,
+          finalFileSet,
+          uploadLogger,
+          if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
+        ).unsafeRun()(ec)
+      catch {
+        case NonFatal(e) =>
+          // Wrap exception from coursier, as it sometimes throws exceptions from other threads,
+          // which lack the current stacktrace.
+          throw new Exception(e)
+      }
 
     errors.toList match {
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
-        repoParams0.hooks.afterUpload(hooksData).unsafeRun()(ec)
+        for (hooksData <- hooksDataOpt)
+          try repoParams0.hooks.afterUpload(hooksData).unsafeRun()(ec)
+          catch {
+            case NonFatal(e) =>
+              throw new Exception(e)
+          }
         for ((mod, version) <- modVersionOpt) {
           val checkRepo = repoParams0.repo.checkResultsRepo(isSnapshot0)
           val relPath = {
@@ -959,11 +1031,17 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             }
             else url
           }
-          println("\n \ud83d\udc40 Check results at")
+          if (dummy)
+            println("\n \ud83d\udc40 You could have checked results at")
+          else
+            println("\n \ud83d\udc40 Check results at")
           println(s"  $path")
           for (targetRepo <- repoParams.targetRepoOpt if !isSnapshot0) {
             val url = targetRepo.stripSuffix("/") + relPath
-            println("before they land at")
+            if (dummy)
+              println("before they would have landed at")
+            else
+              println("before they land at")
             println(s"  $url")
           }
         }

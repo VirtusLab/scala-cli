@@ -60,7 +60,11 @@ final case class SharedPublishOptions(
 
   @Group("Publishing")
   @Hidden
-    checksum: List[String] = Nil
+    checksum: List[String] = Nil,
+
+  @Group("Publishing")
+  @HelpMessage("Proceed as if publishing, but do not upload / write artifacts to the remote repository")
+    dummy: Boolean = false
 )
 // format: on
 
