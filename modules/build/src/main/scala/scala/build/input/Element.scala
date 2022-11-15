@@ -27,6 +27,17 @@ sealed abstract class Virtual extends SingleElement {
     ScopePath(Left(source), subPath)
 }
 
+object Virtual {
+  def apply(path: String, content: Array[Byte]): Virtual = {
+    val wrapperPath = os.sub / path.split("/").last
+    if path.endsWith(".scala") then VirtualScalaFile(content, path)
+    else if path.endsWith(".java") then VirtualJavaFile(content, path)
+    else if path.endsWith(".sc") then VirtualScript(content, path, wrapperPath)
+    else if path.endsWith(".md") then VirtualMarkdownFile(content, path, wrapperPath)
+    else VirtualData(content, path)
+  }
+}
+
 sealed abstract class VirtualSourceFile extends Virtual {
   def isStdin: Boolean = source.startsWith("<stdin>")
 
@@ -46,7 +57,9 @@ sealed trait SourceFile extends SingleFile {
 
 sealed trait Compiled extends Element
 
-sealed trait AnyScalaFile extends Compiled
+sealed trait AnyScalaFile    extends Compiled
+sealed trait AnyJavaFile     extends Compiled
+sealed trait AnyMarkdownFile extends Compiled
 
 sealed trait ScalaFile extends AnyScalaFile {
   def base: os.Path
@@ -68,17 +81,17 @@ final case class ProjectScalaFile(base: os.Path, subPath: os.SubPath)
     extends OnDisk with SourceFile with ScalaFile
 
 final case class JavaFile(base: os.Path, subPath: os.SubPath)
-    extends OnDisk with SourceFile with Compiled {
+    extends OnDisk with SourceFile with AnyJavaFile {
   lazy val path: os.Path = base / subPath
 }
 
 final case class CFile(base: os.Path, subPath: os.SubPath)
     extends OnDisk with SourceFile with Compiled {
-  lazy val path = base / subPath
+  lazy val path: os.Path = base / subPath
 }
 
 final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
-    extends OnDisk with SourceFile {
+    extends OnDisk with SourceFile with AnyMarkdownFile {
   lazy val path: os.Path = base / subPath
 }
 
@@ -87,7 +100,7 @@ final case class Directory(path: os.Path) extends OnDisk with Compiled
 final case class ResourceDirectory(path: os.Path) extends OnDisk
 
 final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
-    extends Virtual with AnyScalaFile with AnyScript
+    extends VirtualSourceFile with AnyScalaFile with AnyScript
 
 object VirtualScript {
   val VirtualScriptNameRegex: Regex = "(^stdin$|^snippet\\d*$)".r
@@ -99,9 +112,15 @@ final case class VirtualScalaFile(content: Array[Byte], source: String)
 }
 
 final case class VirtualJavaFile(content: Array[Byte], source: String)
-    extends VirtualSourceFile with Compiled {
+    extends VirtualSourceFile with AnyJavaFile {
   def generatedSourceFileName: String = generatedSourceFileName(".java")
 }
+
+final case class VirtualMarkdownFile(
+  content: Array[Byte],
+  override val source: String,
+  wrapperPath: os.SubPath
+) extends VirtualSourceFile with AnyMarkdownFile
 
 final case class VirtualData(content: Array[Byte], source: String)
     extends Virtual

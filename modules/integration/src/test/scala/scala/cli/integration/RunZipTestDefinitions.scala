@@ -74,4 +74,31 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
       expect(output == message)
     }
   }
+
+  test("Zip with Markdown containing resource directive") {
+    val (inputA, inputB) = "1" -> "2"
+    val expectedMessage  = s"$inputA,$inputB"
+    val inputs = TestInputs(
+      os.rel / "Hello.md" ->
+        s"""# Example Markdown file
+           |A snippet for printing inputs from resources
+           |```scala raw
+           |//> using resourceDir "./"
+           |import scala.io.Source
+           |object Hello extends App {
+           |  val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |  println(inputs.mkString(","))
+           |}
+           |```
+           |""".stripMargin,
+      os.rel / "input" ->
+        s"""$inputA
+           |$inputB
+           |""".stripMargin
+    )
+    inputs.asZip { (root, zipPath) =>
+      val result = os.proc(TestUtil.cli, extraOptions, zipPath, "--md").call(cwd = root)
+      expect(result.out.trim() == expectedMessage)
+    }
+  }
 }
