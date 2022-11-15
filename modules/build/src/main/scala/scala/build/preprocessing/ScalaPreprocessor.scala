@@ -9,10 +9,11 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.*
+import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives.*
-import scala.build.{Inputs, Logger, Position, Positioned}
+import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
 
@@ -73,13 +74,13 @@ case object ScalaPreprocessor extends Preprocessor {
   )
 
   def preprocess(
-    input: Inputs.SingleElement,
+    input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
-      case f: Inputs.ScalaFile =>
+      case f: ScalaFile =>
         val res = either {
           val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
@@ -126,7 +127,7 @@ case object ScalaPreprocessor extends Preprocessor {
         }
         Some(res)
 
-      case v: Inputs.VirtualScalaFile =>
+      case v: VirtualScalaFile =>
         val res = either {
           val relPath = v match {
             case v if !v.isStdin && !v.isSnippet => v.subPath

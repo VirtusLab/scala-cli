@@ -8,10 +8,10 @@ import com.google.gson.GsonBuilder
 import java.nio.charset.Charset
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Inputs.WorkspaceOrigin
 import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
+import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
@@ -106,7 +106,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   ): Either[BuildException, Option[os.Path]] = either {
 
     val virtualInputs = inputs.elements.collect {
-      case v: Inputs.Virtual => v
+      case v: Virtual => v
     }
     if (virtualInputs.nonEmpty)
       value(Left(new FoundVirtualInputsError(virtualInputs)))
@@ -126,13 +126,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val scalaCliBspInputsJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
 
-    val inputArgs = inputs.elements.collect { case d: Inputs.OnDisk => d.path.toString }
+    val inputArgs = inputs.elements.collect { case d: OnDisk => d.path.toString }
 
     val ideInputs = IdeInputs(
       options.shared.validateInputArgs(args)
         .flatMap(_.toOption)
         .flatten
-        .collect { case d: Inputs.OnDisk => d.path.toString }
+        .collect { case d: OnDisk => d.path.toString }
     )
 
     val debugOpt = options.shared.jvm.bspDebugPort.toSeq.map(port =>

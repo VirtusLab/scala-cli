@@ -7,6 +7,7 @@ import coursier.util.{Artifact, Task}
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams

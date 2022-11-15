@@ -3,9 +3,10 @@ package scala.cli.commands.fmt
 import caseapp.*
 import dependency.*
 
+import scala.build.input.{Inputs, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
-import scala.build.{Inputs, Logger, Sources}
+import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.util.FmtOptionsUtil.*
 import scala.cli.commands.util.FmtUtil.*
@@ -33,8 +34,8 @@ object Fmt extends ScalaCommand[FmtOptions] {
       else {
         val i = options.shared.inputs(args.all).orExit(logger)
         val s = i.sourceFiles().collect {
-          case sc: Inputs.Script          => sc.path
-          case sc: Inputs.SourceScalaFile => sc.path
+          case sc: Script          => sc.path
+          case sc: SourceScalaFile => sc.path
         }
         (s, i.workspace, Some(i))
       }

@@ -3,22 +3,23 @@ package scala.build.preprocessing
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.input.{Inputs, MarkdownFile, SingleElement}
 import scala.build.internal.markdown.MarkdownCodeWrapper
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
-import scala.build.{Inputs, Logger}
 
 case object MarkdownPreprocessor extends Preprocessor {
   def preprocess(
-    input: Inputs.SingleElement,
+    input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
-      case markdown: Inputs.MarkdownFile =>
+      case markdown: MarkdownFile =>
         val res = either {
           val content = value(PreprocessingUtil.maybeRead(markdown.path))
           val preprocessed = value {

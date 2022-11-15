@@ -15,6 +15,7 @@ import scala.build.actionable.ActionablePreprocessor
 import scala.build.bloop.BloopServer
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer

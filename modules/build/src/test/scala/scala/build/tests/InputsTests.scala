@@ -1,19 +1,22 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+
 import scala.build.Build
-import scala.build.Inputs
+import scala.build.blooprifle.BloopRifleConfig
+import scala.build.input.Inputs
+import scala.build.input.ElementsUtils.*
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.internal.Constants
 
 class InputsTests extends munit.FunSuite {
-  val buildThreads    = BuildThreads.create()
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  def bloopConfigOpt  = Some(BloopServer.bloopConfig)
-  val buildOptions = BuildOptions(
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories                 = Directories.under(extraRepoTmpDir)
+  def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
+  val buildOptions: BuildOptions = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir),
       keepDiagnostics = true
@@ -55,7 +58,7 @@ class InputsTests extends munit.FunSuite {
       (root, _, buildMaybe) =>
         val javaOptsCheck = buildMaybe match {
           case Right(build: Build.Successful) =>
-            build.options.javaOptions.javaOpts.toSeq(0).value.value == "-Dfoo=bar"
+            build.options.javaOptions.javaOpts.toSeq.head.value.value == "-Dfoo=bar"
           case _ => false
         }
         assert(javaOptsCheck)
@@ -100,7 +103,7 @@ class InputsTests extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) {
       (root, inputs, _) =>
         assert(os.exists(root / Constants.workspaceDirName))
-        assert(Inputs.projectSettingsFiles(inputs.elements).length == 1)
+        assert(inputs.elements.projectSettingsFiles.length == 1)
     }
   }
 }

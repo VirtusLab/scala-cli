@@ -2,9 +2,10 @@ package scala.build.tests
 
 import java.nio.charset.StandardCharsets
 import scala.build.blooprifle.BloopRifleConfig
-import scala.build.{Build, BuildThreads, Directories, Inputs}
+import scala.build.{Build, BuildThreads, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
@@ -41,7 +42,6 @@ final case class TestInputs(
       val res = Inputs(
         inputArgs0,
         tmpDir,
-        Directories.under(tmpDir / ".data"),
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
         extraClasspathWasPassed = false

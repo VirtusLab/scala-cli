@@ -1,4 +1,4 @@
-package scala.build
+package scala.build.input
 
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
@@ -6,8 +6,9 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.annotation.tailrec
-import scala.build.Inputs.{Element, WorkspaceOrigin}
+import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException}
+import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
@@ -16,8 +17,8 @@ import scala.util.Properties
 import scala.util.matching.Regex
 
 final case class Inputs(
-  elements: Seq[Inputs.Element],
-  defaultMainClassElement: Option[Inputs.Script],
+  elements: Seq[Element],
+  defaultMainClassElement: Option[Script],
   workspace: os.Path,
   baseProjectName: String,
   mayAppendHash: Boolean,
@@ -26,69 +27,55 @@ final case class Inputs(
   allowRestrictedFeatures: Boolean
 ) {
 
-  def isEmpty: Boolean =
-    elements.isEmpty
+  def isEmpty: Boolean = elements.isEmpty
 
-  def singleFiles(): Seq[Inputs.SingleFile] =
+  def singleFiles(): Seq[SingleFile] =
     elements.flatMap {
-      case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
-      case _: Inputs.ResourceDirectory => Nil
-      case _: Inputs.Virtual           => Nil
+      case f: SingleFile        => Seq(f)
+      case d: Directory         => d.singleFilesFromDirectory(enableMarkdown)
+      case _: ResourceDirectory => Nil
+      case _: Virtual           => Nil
     }
 
-  def sourceFiles(): Seq[Inputs.SourceFile] =
+  def sourceFiles(): Seq[SourceFile] =
     singleFiles().collect {
-      case f: Inputs.SourceFile => f
+      case f: SourceFile => f
     }
 
-  def virtualSourceFiles(): Seq[Inputs.Virtual] =
+  def flattened(): Seq[SingleElement] =
     elements.flatMap {
-      case v: Inputs.Virtual =>
-        Seq(v)
-      case _ =>
-        Nil
+      case f: SingleFile        => Seq(f)
+      case d: Directory         => d.singleFilesFromDirectory(enableMarkdown)
+      case _: ResourceDirectory => Nil
+      case v: Virtual           => Seq(v)
     }
 
-  def flattened(): Seq[Inputs.SingleElement] =
-    elements.flatMap {
-      case f: Inputs.SingleFile        => Seq(f)
-      case d: Inputs.Directory         => Inputs.singleFilesFromDirectory(d, enableMarkdown)
-      case _: Inputs.ResourceDirectory => Nil
-      case v: Inputs.Virtual           => Seq(v)
-    }
-
-  private lazy val inputsHash: String =
-    Inputs.inputsHash(elements)
+  private lazy val inputsHash: String = elements.inputsHash
   lazy val projectName: String = {
     val needsSuffix = mayAppendHash && (elements match {
-      case Seq(d: Inputs.Directory) => d.path != workspace
-      case _                        => true
+      case Seq(d: Directory) => d.path != workspace
+      case _                 => true
     })
-    if (needsSuffix) baseProjectName + "-" + inputsHash
-    else baseProjectName
+    if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
   }
 
   def scopeProjectName(scope: Scope): String =
-    if (scope == Scope.Main) projectName
-    else projectName + "-" + scope.name
+    if scope == Scope.Main then projectName else s"$projectName-${scope.name}"
 
-  def add(extraElements: Seq[Inputs.Element]): Inputs =
-    if (elements.isEmpty) this
-    else copy(elements = (elements ++ extraElements).distinct)
+  def add(extraElements: Seq[Element]): Inputs =
+    if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
 
   def generatedSrcRoot(scope: Scope): os.Path =
     workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(
-      workspace = Inputs.homeWorkspace(elements, directories),
+      workspace = elements.homeWorkspace(directories),
       mayAppendHash = false,
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
   def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
-    if (forbidden.exists(workspace.startsWith)) inHomeDir(directories)
-    else this
+    if forbidden.exists(workspace.startsWith) then inHomeDir(directories) else this
   def checkAttributes(directories: Directories): Inputs = {
     @tailrec
     def existingParent(p: os.Path): Option[os.Path] =
@@ -102,21 +89,20 @@ final case class Inputs(
         os.owner(p) == os.owner(os.home) &&
         p.toIO.canWrite
     val canWrite = existingParent(workspace).exists(reallyOwnedByUser)
-    if (canWrite) this
-    else inHomeDir(directories)
+    if canWrite then this else inHomeDir(directories)
   }
   def sourceHash(): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
     val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
+      case elem: OnDisk =>
         val content = elem match {
-          case dirInput: Inputs.Directory =>
-            Seq("dir:") ++ Inputs.singleFilesFromDirectory(dirInput, enableMarkdown)
+          case dirInput: Directory =>
+            Seq("dir:") ++ dirInput.singleFilesFromDirectory(enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
           case _ => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
-      case v: Inputs.Virtual =>
+      case v: Virtual =>
         Iterator(v.content, bytes("\n"))
     }
     val md = MessageDigest.getInstance("SHA-1")
@@ -135,186 +121,21 @@ final case class Inputs(
 }
 
 object Inputs {
-
-  sealed abstract class WorkspaceOrigin extends Product with Serializable
-
-  object WorkspaceOrigin {
-    case object Forced        extends WorkspaceOrigin
-    case object SourcePaths   extends WorkspaceOrigin
-    case object ResourcePaths extends WorkspaceOrigin
-    case object HomeDir       extends WorkspaceOrigin
-  }
-
-  sealed abstract class Element extends Product with Serializable
-
-  sealed trait SingleElement extends Element
-
-  sealed trait AnyScript extends Element
-
-  sealed abstract class OnDisk extends Element {
-    def path: os.Path
-  }
-  sealed abstract class Virtual extends SingleElement {
-    def content: Array[Byte]
-    def source: String
-
-    def subPath: os.SubPath = {
-      val idx = source.lastIndexOf('/')
-      os.sub / source.drop(idx + 1)
-    }
-
-    def scopePath: ScopePath =
-      ScopePath(Left(source), subPath)
-  }
-
-  sealed abstract class VirtualSourceFile extends Virtual {
-    def isStdin: Boolean   = source.startsWith("<stdin>")
-    def isSnippet: Boolean = source.startsWith("<snippet>")
-    protected def generatedSourceFileName(fileSuffix: String): String =
-      if (isStdin) s"stdin$fileSuffix"
-      else if (isSnippet) s"${source.stripPrefix("<snippet>-")}$fileSuffix"
-      else s"virtual$fileSuffix"
-  }
-
-  sealed trait SingleFile extends OnDisk with SingleElement
-  sealed trait SourceFile extends SingleFile {
-    def subPath: os.SubPath
-  }
-  sealed trait Compiled     extends Element
-  sealed trait AnyScalaFile extends Compiled
-  sealed trait ScalaFile extends AnyScalaFile {
-    def base: os.Path
-    def subPath: os.SubPath
-    def path: os.Path = base / subPath
-  }
-
-  final case class Script(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class SourceScalaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with ScalaFile
-  final case class ProjectScalaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with ScalaFile
-  final case class JavaFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with Compiled {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class CFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile with Compiled {
-    lazy val path = base / subPath
-  }
-  final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
-      extends OnDisk with SourceFile {
-    lazy val path: os.Path = base / subPath
-  }
-  final case class Directory(path: os.Path)         extends OnDisk with Compiled
-  final case class ResourceDirectory(path: os.Path) extends OnDisk
-
-  final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
-      extends Virtual with AnyScalaFile with AnyScript
-  object VirtualScript {
-    val VirtualScriptNameRegex: Regex = "(^stdin$|^snippet\\d*$)".r
-  }
-  final case class VirtualScalaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with AnyScalaFile {
-    def generatedSourceFileName: String = generatedSourceFileName(".scala")
-  }
-  final case class VirtualJavaFile(content: Array[Byte], source: String)
-      extends VirtualSourceFile with Compiled {
-    def generatedSourceFileName: String = generatedSourceFileName(".java")
-  }
-  final case class VirtualData(content: Array[Byte], source: String)
-      extends Virtual
-
-  def singleFilesFromDirectory(
-    d: Inputs.Directory,
-    enableMarkdown: Boolean
-  ): Seq[Inputs.SingleFile] = {
-    import Ordering.Implicits.seqOrdering
-    os.walk.stream(d.path, skip = _.last.startsWith("."))
-      .filter(os.isFile(_))
-      .collect {
-        case p if p.last.endsWith(".java") =>
-          Inputs.JavaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last == "project.scala" =>
-          Inputs.ProjectScalaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".scala") =>
-          Inputs.SourceScalaFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".sc") =>
-          Inputs.Script(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
-          Inputs.CFile(d.path, p.subRelativeTo(d.path))
-        case p if p.last.endsWith(".md") && enableMarkdown =>
-          Inputs.MarkdownFile(d.path, p.subRelativeTo(d.path))
-      }
-      .toVector
-      .sortBy(_.subPath.segments)
-  }
-
-  def projectSettingsFiles(elements: Seq[Inputs.Element]): Seq[Inputs.ProjectScalaFile] =
-    elements.flatMap {
-      case f: ProjectScalaFile => Seq(f)
-      case d: Directory        => Inputs.configFileFromDirectory(d)
-      case _                   => Nil
-    }.distinct
-
-  def configFileFromDirectory(d: Inputs.Directory): Seq[Inputs.ProjectScalaFile] =
-    if (os.exists(d.path / "project.scala"))
-      Seq(Inputs.ProjectScalaFile(d.path, os.sub / "project.scala"))
-    else Nil
-
-  private def inputsHash(elements: Seq[Element]): String = {
-    def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
-    val it = elements.iterator.flatMap {
-      case elem: Inputs.OnDisk =>
-        val prefix = elem match {
-          case _: Inputs.Directory         => "dir:"
-          case _: Inputs.ResourceDirectory => "resource-dir:"
-          case _: Inputs.JavaFile          => "java:"
-          case _: Inputs.ProjectScalaFile  => "config:"
-          case _: Inputs.SourceScalaFile   => "scala:"
-          case _: Inputs.CFile             => "c:"
-          case _: Inputs.Script            => "sc:"
-          case _: Inputs.MarkdownFile      => "md:"
-        }
-        Iterator(prefix, elem.path.toString, "\n").map(bytes)
-      case v: Inputs.Virtual =>
-        Iterator(bytes("virtual:"), v.content, bytes(v.source), bytes("\n"))
-    }
-    val md = MessageDigest.getInstance("SHA-1")
-    it.foreach(md.update)
-    val digest        = md.digest()
-    val calculatedSum = new BigInteger(1, digest)
-    String.format(s"%040x", calculatedSum).take(10)
-  }
-
-  def homeWorkspace(elements: Seq[Element], directories: Directories): os.Path = {
-    val hash0 = inputsHash(elements)
-    val dir   = directories.virtualProjectsDir / hash0.take(2) / s"project-${hash0.drop(2)}"
-    os.makeDir.all(dir)
-    dir
-  }
-
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    directories: Directories,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean
   ): Inputs = {
-
     assert(extraClasspathWasPassed || validElems.nonEmpty)
-
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
-      val settingsFiles = projectSettingsFiles(validElems)
+      val settingsFiles = validElems.projectSettingsFiles
       val dirsAndFiles = validElems.collect {
         case d: Directory  => d
         case f: SourceFile => f
       }
-
       settingsFiles.headOption.map { s =>
         if (settingsFiles.length > 1)
           System.err.println(
@@ -450,7 +271,7 @@ object Inputs {
       }
       else if (arg.contains("://")) {
         val url =
-          if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty) s"$arg/download" else arg
+          if githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty then s"$arg/download" else arg
         download(url).map { content =>
           if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
             resolveZipArchive(content)
@@ -481,7 +302,6 @@ object Inputs {
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
-    directories: Directories,
     baseProjectName: String,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
@@ -511,7 +331,6 @@ object Inputs {
       Right(forValidatedElems(
         validElems,
         baseProjectName,
-        directories,
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
@@ -525,7 +344,6 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
-    directories: Directories,
     baseProjectName: String = "project",
     defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
@@ -549,7 +367,6 @@ object Inputs {
       forNonEmptyArgs(
         args,
         cwd,
-        directories,
         baseProjectName,
         download,
         stdinOpt,
@@ -563,8 +380,7 @@ object Inputs {
         extraClasspathWasPassed
       )
 
-  def default(): Option[Inputs] =
-    None
+  def default(): Option[Inputs] = None
 
   def empty(workspace: os.Path, enableMarkdown: Boolean): Inputs =
     Inputs(

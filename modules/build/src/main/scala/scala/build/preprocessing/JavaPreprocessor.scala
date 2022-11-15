@@ -7,12 +7,13 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.input.{Inputs, JavaFile, SingleElement, VirtualJavaFile}
 import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor._
-import scala.build.{Inputs, Logger}
 
 /** Java source preprocessor.
   *
@@ -32,13 +33,13 @@ final case class JavaPreprocessor(
   javaCommand: () => String
 ) extends Preprocessor {
   def preprocess(
-    input: Inputs.SingleElement,
+    input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
-      case j: Inputs.JavaFile => Some(either {
+      case j: JavaFile => Some(either {
           val content   = value(PreprocessingUtil.maybeRead(j.path))
           val scopePath = ScopePath.fromPath(j.path)
           val ExtractedDirectives(_, directives0) =
@@ -66,7 +67,7 @@ final case class JavaPreprocessor(
             None
           ))
         })
-      case v: Inputs.VirtualJavaFile =>
+      case v: VirtualJavaFile =>
         val res = either {
           val relPath =
             if (v.isStdin || v.isSnippet) {

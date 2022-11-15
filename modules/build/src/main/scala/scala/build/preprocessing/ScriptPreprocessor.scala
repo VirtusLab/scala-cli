@@ -3,21 +3,22 @@ package scala.build.preprocessing
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.input.{Inputs, Script, SingleElement, VirtualScript}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
-import scala.build.{Inputs, Logger}
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
   def preprocess(
-    input: Inputs.SingleElement,
+    input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
-      case script: Inputs.Script =>
+      case script: Script =>
         val res = either {
           val content = value(PreprocessingUtil.maybeRead(script.path))
           val preprocessed = value {
@@ -36,7 +37,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
         }
         Some(res)
 
-      case script: Inputs.VirtualScript =>
+      case script: VirtualScript =>
         val content = new String(script.content, StandardCharsets.UTF_8)
 
         val res = either {

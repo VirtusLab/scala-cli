@@ -1,6 +1,7 @@
 package scala.build.internal.resource
 
-import scala.build.{Build, Inputs}
+import scala.build.Build
+import scala.build.input.{CFile, Inputs}
 
 object NativeResourceMapper {
 
@@ -9,7 +10,7 @@ object NativeResourceMapper {
       .inputs
       .flattened()
       .collect {
-        case cfile: Inputs.CFile =>
+        case cfile: CFile =>
           val inputPath = cfile.path
           val destPath  = os.rel / "scala-native" / cfile.subPath
           (inputPath, destPath)

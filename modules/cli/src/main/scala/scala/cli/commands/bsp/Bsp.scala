@@ -7,6 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
+import scala.build.input.Inputs
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
