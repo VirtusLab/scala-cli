@@ -260,6 +260,8 @@ object Inputs {
         Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>-java-file")))
       else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
         Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
+      else if ((arg == "-.md" || arg == "_.md") && stdinOpt0.nonEmpty)
+        Right(Seq(VirtualMarkdownFile(stdinOpt0.get, "<stdin>-markdown-file", os.sub / "stdin.md")))
       else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
         val content = os.read.bytes(os.Path(arg, cwd))
         Right(resolveZipArchive(content, enableMarkdown))
