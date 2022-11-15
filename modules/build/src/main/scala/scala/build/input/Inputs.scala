@@ -199,16 +199,23 @@ object Inputs {
       val wrapperPath = os.sub / path.split("/").last
       VirtualScript(content, path, wrapperPath)
     }
+    else if (path.endsWith(".md")) {
+      val wrapperPath = os.sub / path.split("/").last
+      VirtualMarkdownFile(content, path, wrapperPath)
+    }
     else VirtualData(content, path)
 
-  private def resolveZipArchive(content: Array[Byte]): Seq[Element] = {
+  private def resolveZipArchive(content: Array[Byte], enableMarkdown: Boolean): Seq[Element] = {
     val zipInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
     zipInputStream.entries().foldLeft(List.empty[Element]) {
       (acc, ent) =>
         if (ent.isDirectory) acc
         else {
           val content = zipInputStream.readAllBytes()
-          resolve(ent.getName, content) :: acc
+          (resolve(ent.getName, content) match {
+            case _: VirtualMarkdownFile if !enableMarkdown => None
+            case e: Element                                => Some(e)
+          }) map { element => element :: acc } getOrElse acc
         }
     }
   }
@@ -251,7 +258,8 @@ object Inputs {
     cwd: os.Path,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
-    acceptFds: Boolean
+    acceptFds: Boolean,
+    enableMarkdown: Boolean
   ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
     case (arg, idx) =>
       lazy val path      = os.Path(arg, cwd)
@@ -267,14 +275,14 @@ object Inputs {
         Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
       else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
         val content = os.read.bytes(os.Path(arg, cwd))
-        Right(resolveZipArchive(content))
+        Right(resolveZipArchive(content, enableMarkdown))
       }
       else if (arg.contains("://")) {
         val url =
           if githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty then s"$arg/download" else arg
         download(url).map { content =>
           if (githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty)
-            resolveZipArchive(content)
+            resolveZipArchive(content, enableMarkdown)
           else
             List(resolve(url, content))
         }
@@ -315,7 +323,7 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
-      validateArgs(args, cwd, download, stdinOpt, acceptFds)
+      validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown)
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets

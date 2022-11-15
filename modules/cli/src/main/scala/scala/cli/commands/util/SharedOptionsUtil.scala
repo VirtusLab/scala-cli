@@ -421,7 +421,8 @@ object SharedOptionsUtil extends CommandHelpers {
         Os.pwd,
         downloadInputs(coursierCache),
         readStdin(logger = logger),
-        !Properties.isWin
+        !Properties.isWin,
+        enableMarkdown = true
       )
 
     def strictBloopJsonCheckOrDefault: Boolean =

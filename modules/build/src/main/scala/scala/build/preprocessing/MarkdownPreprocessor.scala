@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, MarkdownFile, SingleElement}
+import scala.build.input.{Inputs, MarkdownFile, SingleElement, VirtualMarkdownFile}
 import scala.build.internal.markdown.MarkdownCodeWrapper
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
@@ -36,7 +36,23 @@ case object MarkdownPreprocessor extends Preprocessor {
           preprocessed
         }
         Some(res)
-
+      case markdown: VirtualMarkdownFile =>
+        val content = new String(markdown.content, StandardCharsets.UTF_8)
+        val res = either {
+          val preprocessed = value {
+            MarkdownPreprocessor.preprocess(
+              Left(markdown.source),
+              content,
+              markdown.wrapperPath,
+              markdown.scopePath,
+              logger,
+              maybeRecoverOnError,
+              allowRestrictedFeatures
+            )
+          }
+          preprocessed
+        }
+        Some(res)
       case _ =>
         None
     }

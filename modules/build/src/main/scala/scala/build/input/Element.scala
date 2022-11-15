@@ -78,7 +78,7 @@ final case class CFile(base: os.Path, subPath: os.SubPath)
 }
 
 final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
-    extends OnDisk with SourceFile {
+    extends OnDisk with SourceFile with Compiled {
   lazy val path: os.Path = base / subPath
 }
 
@@ -102,6 +102,12 @@ final case class VirtualJavaFile(content: Array[Byte], source: String)
     extends VirtualSourceFile with Compiled {
   def generatedSourceFileName: String = generatedSourceFileName(".java")
 }
+
+final case class VirtualMarkdownFile(
+  content: Array[Byte],
+  override val source: String,
+  wrapperPath: os.SubPath
+) extends Virtual with Compiled
 
 final case class VirtualData(content: Array[Byte], source: String)
     extends Virtual
