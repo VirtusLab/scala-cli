@@ -11,6 +11,7 @@ object ExportTestProjects {
         s"""//> using scala "$scalaVersion"
            |//> using resourceDir "./input"
            |//> using lib "org.scala-lang::scala3-compiler:$scalaVersion"
+           |//> using option "-deprecation"
            |
            |import scala.io.Source
            |
@@ -18,7 +19,7 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + dotty.tools.dotc.config.Properties.simpleVersionString
            |    println(message)
-           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
@@ -26,6 +27,7 @@ object ExportTestProjects {
       else
         s"""//> using scala "$scalaVersion"
            |//> using resourceDir "./input"
+           |//> using option "-deprecation"
            |
            |import scala.io.Source
            |
@@ -33,7 +35,7 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + scala.util.Properties.versionNumberString
            |    println(message)
-           |    val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
+           |    val inputs = Source.fromResource("input").getLines().map(_.toInt).toSeq
            |    println(s"resource:$${inputs.mkString(",")}")
            |  }
            |}
