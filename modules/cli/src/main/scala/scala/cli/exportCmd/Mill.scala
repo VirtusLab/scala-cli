@@ -15,6 +15,7 @@ import scala.build.{Logger, Sources}
 
 final case class Mill(
   millVersion: String,
+  projectName: Option[String] = None,
   launchers: Seq[(os.RelPath, Array[Byte])],
   logger: Logger
 ) extends BuildTool {
@@ -173,6 +174,7 @@ final case class Mill(
 
     val baseSettings = MillProject(
       millVersion = Some(millVersion),
+      nameOpt = projectName,
       launchers = launchers,
       mainClass = optionsMain.mainClass
     )

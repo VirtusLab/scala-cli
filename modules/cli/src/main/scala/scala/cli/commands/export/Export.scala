@@ -53,7 +53,7 @@ object Export extends ScalaCommand[ExportOptions] {
   // FIXME Auto-update those
   def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger): Sbt =
     Sbt(sbtVersion, extraSettings, logger)
-  def millBuildTool(cache: FileCache[Task], logger: Logger): Mill = {
+  def millBuildTool(cache: FileCache[Task], projectName: Option[String], logger: Logger): Mill = {
     val launcherArtifacts = Seq(
       os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
       os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
@@ -71,7 +71,7 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
     val launchers     = launchersTask.unsafeRun()(cache.ec)
-    Mill(Constants.millVersion, launchers, logger)
+    Mill(Constants.millVersion, projectName, launchers, logger)
   }
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
@@ -140,7 +140,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val buildTool =
       if (shouldExportToMill)
-        millBuildTool(options.shared.coursierCache, logger)
+        millBuildTool(options.shared.coursierCache, options.project, logger)
       else // shouldExportToSbt isn't checked, as it's treated as default
         sbtBuildTool0
 

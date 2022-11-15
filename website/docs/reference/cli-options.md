@@ -247,6 +247,12 @@ Available in commands:
 
 Aliases: `--setting`
 
+### `--project`
+
+Aliases: `-p`
+
+Project name to be used on Mill build file
+
 ### `--sbt-version`
 
 ### `--output`
