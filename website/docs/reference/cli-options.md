@@ -1014,7 +1014,7 @@ Aliases: `-A`, `--amm`
 
 Aliases: `--ammonite-ver`
 
-[restricted] Set the Ammonite version (2.5.5 by default)
+[restricted] Set the Ammonite version (2.5.5-17-df243e14 by default)
 
 ### `--ammonite-arg`
 
@@ -1294,7 +1294,7 @@ Available in commands:
 
 Aliases: `--scala`, `-S`
 
-Set the Scala version (3.2.0 by default)
+Set the Scala version (3.2.1 by default)
 
 ### `--scala-binary-version`
 
