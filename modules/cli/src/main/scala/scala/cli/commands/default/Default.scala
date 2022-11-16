@@ -18,8 +18,20 @@ class Default(
   isSipScala: Boolean
 ) extends ScalaCommand[DefaultOptions] {
 
-  private def defaultHelp: String     = actualHelp.help(ScalaCliHelp.helpFormat)
-  private def defaultFullHelp: String = actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true)
+  private lazy val defaultCommandHelp: String =
+    s"""
+       |
+       |When no subcommand is passed explicitly, an implicit subcommand is used based on context:
+       |  - if the '--version' option is passed, it prints the 'version' subcommand output, unmodified by any other options
+       |  - if any inputs were passed, it defaults to the 'run' subcommand
+       |  - additionally, when no inputs were passed, it defaults to the 'run' subcommand in the following scenarios:
+       |    - if a snippet was passed with any of the '--execute*' options
+       |    - if a main class was passed with the '--main-class' option alongside an extra '--classpath'
+       |  - otherwise, if no inputs were passed, it defaults to the 'repl' subcommand""".stripMargin
+
+  private def defaultHelp: String = actualHelp.help(ScalaCliHelp.helpFormat) + defaultCommandHelp
+  private def defaultFullHelp: String =
+    actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true) + defaultCommandHelp
 
   override def group                                                         = "Main"
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
