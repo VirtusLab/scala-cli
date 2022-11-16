@@ -12,8 +12,8 @@ import scala.cli.commands.{AddPathOptions, CustomWindowsEnvVarUpdater, ScalaComm
 import scala.util.Properties
 
 object AddPath extends ScalaCommand[AddPathOptions] {
-  override def hidden                                          = true
-  override def scalaSpecificationLevel                         = SpecificationLevel.RESTRICTED
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def runCommand(options: AddPathOptions, args: RemainingArgs, logger: Logger): Unit = {
     if args.all.isEmpty then logger.error("Nothing to do")
     else {

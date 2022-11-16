@@ -11,7 +11,7 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
 
   override def scalaSpecificationLevel = SpecificationLevel.SHOULD
-  
+
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.cliVersion)
       println(Constants.version)
