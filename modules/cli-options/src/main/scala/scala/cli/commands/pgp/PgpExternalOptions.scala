@@ -2,8 +2,7 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.cli.commands.{CoursierOptions, LoggingOptions}
-import scala.cli.commands.SharedJvmOptions
+import scala.cli.commands.{CoursierOptions, LoggingOptions, SharedJvmOptions, tags}
 import scala.cli.commands.common.HasLoggingOptions
 
 // format: off
@@ -15,6 +14,7 @@ final case class PgpExternalOptions(
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Hidden
+  @Tag(tags.experimental)
     signingCliVersion: Option[String] = None
 ) extends HasLoggingOptions
 // format: on

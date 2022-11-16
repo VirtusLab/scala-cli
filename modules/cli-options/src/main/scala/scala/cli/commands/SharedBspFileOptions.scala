@@ -6,13 +6,11 @@ import caseapp.*
 final case class SharedBspFileOptions(
   @Name("bspDir")
   @HelpMessage("Custom BSP configuration location")
-  @Tag(tags.implementation)
   @Hidden
     bspDirectory: Option[String] = None,
   @Name("name")
   @HelpMessage("Name of BSP")
   @Hidden
-  @Tag(tags.implementation)
     bspName: Option[String] = None
 )
 // format: on

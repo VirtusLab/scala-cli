@@ -27,12 +27,10 @@ final case class InstallCompletionsOptions(
   output: Option[String] = None,
 
   @Hidden
-  @Tag(tags.implementation)
   @HelpMessage("Custom banner in comment placed in rc file")
   banner: String = "{NAME} completions",
 
   @Hidden
-  @Tag(tags.implementation)
   @HelpMessage("Custom completions name")
   name: Option[String] = None,
 

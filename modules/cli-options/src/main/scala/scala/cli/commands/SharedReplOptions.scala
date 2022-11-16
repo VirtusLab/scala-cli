@@ -38,7 +38,6 @@ final case class SharedReplOptions(
 
   @Group("Repl")
   @Hidden
-  @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")
     replDryRun: Boolean = false
 )

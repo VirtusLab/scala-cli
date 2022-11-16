@@ -9,7 +9,8 @@ import scala.cli.commands.{
   SharedDirectoriesOptions,
   SharedOptions,
   SharedPythonOptions,
-  SharedWatchOptions
+  SharedWatchOptions,
+  tags
 }
 
 // format: off
@@ -33,10 +34,12 @@ final case class PublishOptions(
 
   @Group("Publishing")
   @Hidden
+  @Tag(tags.experimental)
     ivy2LocalLike: Option[Boolean] = None,
 
   @Group("Publishing")
   @Hidden
+  @Tag(tags.experimental)
     parallelUpload: Option[Boolean] = None
 ) extends HasSharedOptions
 // format: on

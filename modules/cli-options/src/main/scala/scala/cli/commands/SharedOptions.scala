@@ -45,7 +45,6 @@ final case class SharedOptions(
   @Name("scalaBinary")
   @Name("scalaBin")
   @Name("B")
-  @Tag(tags.must)
     scalaBinaryVersion: Option[String] = None,
 
   @Recurse
@@ -106,25 +105,20 @@ final case class SharedOptions(
     platform: Option[String] = None,
 
   @Group("Scala")
-  @Tag(tags.implementation)
   @Hidden
     scalaLibrary: Option[Boolean] = None,
   @Group("Java")
   @HelpMessage("Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.")
-  @Tag(tags.implementation)
   @Hidden
     java: Option[Boolean] = None,
   @HelpMessage("Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.")
-  @Tag(tags.implementation)
   @Hidden
     runner: Option[Boolean] = None,
 
   @Hidden
-  @Tag(tags.should)
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
   @Hidden
-  @Tag(tags.implementation)
   @HelpMessage("Add dependency for stubs needed to make $ivy and $dep imports to work.")
     addStubs: Option[Boolean] = None,
 

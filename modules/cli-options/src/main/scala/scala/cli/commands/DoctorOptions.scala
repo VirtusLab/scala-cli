@@ -11,7 +11,6 @@ import scala.cli.signing.util.ArgParsers.*
 final case class DoctorOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Hidden
   @HelpMessage(HelpMessages.passwordOption)
   @Tag(tags.implementation)
     ghToken: Option[PasswordOption] = None

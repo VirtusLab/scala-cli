@@ -21,29 +21,36 @@ final case class PackageOptions(
 
   @Group("Package")
   @HelpMessage("Set the destination path")
+  @Tag(tags.implementation)
   @Name("o")
     output: Option[String] = None,
   @Group("Package")
   @HelpMessage("Overwrite the destination file, if it exists")
+  @Tag(tags.implementation)
   @Name("f")
     force: Boolean = false,
 
   @Group("Package")
   @HelpMessage("Generate a library JAR rather than an executable JAR")
+  @Tag(tags.implementation)
     library: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate a source JAR rather than an executable JAR")
+  @Tag(tags.implementation)
     source: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate a scaladoc JAR rather than an executable JAR")
   @ExtraName("scaladoc")
   @ExtraName("javadoc")
+  @Tag(tags.implementation)
     doc: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate an assembly JAR")
+  @Tag(tags.implementation)
     assembly: Boolean = false,
   @Group("Package")
   @HelpMessage("For assembly JAR, whether to add a bash / bat preamble")
+  @Tag(tags.implementation)
     preamble: Boolean = true,
   @Group("Package")
   @Hidden
@@ -54,26 +61,33 @@ final case class PackageOptions(
   @HelpMessage("Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)")
     spark: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Package standalone JARs")
     standalone: Option[Boolean] = None,
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
   @HelpMessage("Build Debian package, available only on Linux")
+  @Tag(tags.implementation)
     deb: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Build dmg package, available only on macOS")
     dmg: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Build rpm package, available only on Linux")
     rpm: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Build msi package, available only on Windows")
     msi: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Build pkg package, available only on macOS")
     pkg: Boolean = false,
   @Group("Package")
+  @Tag(tags.implementation)
   @HelpMessage("Build Docker image")
     docker: Boolean = false,
 
@@ -86,10 +100,12 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Use default scaladoc options")
   @ExtraName("defaultScaladocOpts")
+  @Tag(tags.implementation)
     defaultScaladocOptions: Option[Boolean] = None,
 
   @Group("Package")
   @HelpMessage("Build GraalVM native image")
+  @Tag(tags.implementation)
   @ExtraName("graal")
     nativeImage: Boolean = false
 ) extends HasSharedOptions

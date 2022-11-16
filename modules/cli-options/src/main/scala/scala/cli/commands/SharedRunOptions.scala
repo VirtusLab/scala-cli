@@ -47,10 +47,10 @@ final case class SharedRunOptions(
     command: Boolean = false,
   @Group("Run")
   @HelpMessage("Temporary / working directory where to write generated launchers")
+  @Tag(tags.internal)
     scratchDir: Option[String] = None,
   @Group("Run")
   @Hidden
-  @Tag(tags.implementation)
   @HelpMessage("Run Java commands using a manifest-based class path (shortens command length)")
     useManifest: Option[Boolean] = None
 )

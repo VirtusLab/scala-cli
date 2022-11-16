@@ -24,37 +24,31 @@ final case class SharedJvmOptions(
   @Group("Java")
   @HelpMessage("JVM index URL")
   @ValueDescription("url")
-  @Tag(tags.implementation)
   @Hidden
     jvmIndex: Option[String] = None,
   @Group("Java")
   @HelpMessage("Operating system to use when looking up in the JVM index")
   @ValueDescription("linux|linux-musl|darwin|windows|…")
-  @Tag(tags.implementation)
   @Hidden
     jvmIndexOs: Option[String] = None,
   @Group("Java")
   @HelpMessage("CPU architecture to use when looking up in the JVM index")
   @ValueDescription("amd64|arm64|arm|…")
-  @Tag(tags.implementation)
   @Hidden
     jvmIndexArch: Option[String] = None,
 
   @Group("Java")
   @HelpMessage("Javac plugin dependencies or files")
   @Tag(tags.should)
-  @Hidden
     javacPlugin: List[String] = Nil,
 
   @Group("Java")
   @HelpMessage("Javac options")
   @Name("javacOpt")
   @Tag(tags.should)
-  @Hidden
     javacOption: List[String] = Nil,
 
   @Group("Java")
-  @Tag(tags.implementation)
   @HelpMessage("Port for BSP debugging")
   @Hidden
     bspDebugPort: Option[String] = None

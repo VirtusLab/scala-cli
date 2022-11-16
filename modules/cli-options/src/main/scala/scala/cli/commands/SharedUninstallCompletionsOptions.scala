@@ -9,11 +9,9 @@ final case class SharedUninstallCompletionsOptions(
   rcFile: Option[String] = None,
   @Hidden
   @HelpMessage("Custom banner in comment placed in rc file")
-  @Tag(tags.implementation)
   banner: String = "{NAME} completions",
   @Hidden
   @HelpMessage("Custom completions name")
-  @Tag(tags.implementation)
   name: Option[String] = None
 )
 // format: on

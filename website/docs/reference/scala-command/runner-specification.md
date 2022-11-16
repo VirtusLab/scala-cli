@@ -62,17 +62,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -204,16 +204,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -229,10 +219,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 **--platform**
 
 Specify platform
-
-**--semantic-db**
-
-Generate SemanticDBs
 
 **--watch**
 
@@ -255,22 +241,6 @@ Compile test scope
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -318,22 +288,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -341,70 +295,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -416,55 +306,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -477,42 +327,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -540,10 +354,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
 </details>
 
 ---
@@ -567,17 +377,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -721,16 +531,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -747,10 +547,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 
 Specify platform
 
-**--semantic-db**
-
-Generate SemanticDBs
-
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -762,22 +558,6 @@ Aliases: `--default-scaladoc-opts`
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -825,22 +605,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -848,70 +612,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -923,55 +623,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -984,42 +644,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -1047,10 +671,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
 </details>
 
 ---
@@ -1076,17 +696,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -1228,16 +848,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -1253,10 +863,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 **--platform**
 
 Specify platform
-
-**--semantic-db**
-
-Generate SemanticDBs
 
 **--watch**
 
@@ -1275,22 +881,6 @@ Aliases: `--revolver`
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -1338,22 +928,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -1361,70 +935,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -1436,55 +946,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -1497,42 +967,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -1559,14 +993,6 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
-
-**--strict-bloop-json-check**
-
-
-
-**--repl-dry-run**
-
-Don't actually run the REPL, just fetch it
 
 </details>
 
@@ -1597,17 +1023,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -1755,16 +1181,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -1780,10 +1196,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 **--platform**
 
 Specify platform
-
-**--semantic-db**
-
-Generate SemanticDBs
 
 **--watch**
 
@@ -1812,22 +1224,6 @@ Print the command that would have been run (one argument per line), rather than 
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -1875,22 +1271,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -1898,70 +1278,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -1973,55 +1289,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -2034,42 +1310,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -2096,18 +1336,6 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
-
-**--strict-bloop-json-check**
-
-
-
-**--scratch-dir**
-
-Temporary / working directory where to write generated launchers
-
-**--use-manifest**
-
-Run Java commands using a manifest-based class path (shortens command length)
 
 </details>
 
@@ -2156,17 +1384,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -2314,16 +1542,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -2339,10 +1557,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 **--platform**
 
 Specify platform
-
-**--semantic-db**
-
-Generate SemanticDBs
 
 **--watch**
 
@@ -2371,22 +1585,6 @@ Print the command that would have been run (one argument per line), rather than 
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -2434,22 +1632,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -2457,70 +1639,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -2532,55 +1650,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -2593,42 +1671,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -2655,18 +1697,6 @@ Aliases: `--repl-help`
 Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
-
-**--strict-bloop-json-check**
-
-
-
-**--scratch-dir**
-
-Temporary / working directory where to write generated launchers
-
-**--use-manifest**
-
-Run Java commands using a manifest-based class path (shortens command length)
 
 </details>
 
@@ -2695,17 +1725,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -2837,16 +1867,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -2863,10 +1883,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 
 Specify platform
 
-**--semantic-db**
-
-Generate SemanticDBs
-
 **--check**
 
 Check if sources are well formatted
@@ -2876,22 +1892,6 @@ Check if sources are well formatted
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -2939,22 +1939,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -2962,70 +1946,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -3037,55 +1957,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -3098,42 +1978,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -3161,10 +2005,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
 **--respect-project-filters**
 
 Use project filters defined in the configuration. Turned on by default, use `--respect-project-filters:false` to disable it.
@@ -3173,43 +2013,11 @@ Use project filters defined in the configuration. Turned on by default, use `--r
 
 Saves .scalafmt.conf file if it was created or overwritten
 
-**--os-arch-suffix**
-
-
-
-**--scalafmt-tag**
-
-
-
-**--scalafmt-github-org-name**
-
-
-
-**--scalafmt-extension**
-
-
-
-**--scalafmt-launcher**
-
-
-
-**--scalafmt-arg**
-
-Pass argument to scalafmt.
-
-Aliases: `-F`
-
 **--scalafmt-conf**
 
 Custom path to the scalafmt configuration file.
 
 Aliases: `--scalafmt-config`
-
-**--scalafmt-conf-str**
-
-Pass configuration as a string.
-
-Aliases: `--scalafmt-config-str` ,`--scalafmt-conf-snippet`
 
 **--scalafmt-dialect**
 
@@ -3246,17 +2054,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -3398,16 +2206,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -3423,10 +2221,6 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 **--platform**
 
 Specify platform
-
-**--semantic-db**
-
-Generate SemanticDBs
 
 **--watch**
 
@@ -3453,22 +2247,6 @@ Fail if no test suites were run
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -3516,22 +2294,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -3539,70 +2301,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -3614,55 +2312,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -3675,42 +2333,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -3738,10 +2360,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
 </details>
 
 ---
@@ -3756,22 +2374,6 @@ Print version
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -3828,22 +2430,6 @@ Print details about this application
 
 </summary>
 
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3870,10 +2456,6 @@ Aliases: `-q`
 
 Use progress bars
 
-**--gh-token**
-
-A github token used to access GitHub. Not needed in most cases.
-
 </details>
 
 ---
@@ -3897,17 +2479,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -4039,16 +2621,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -4065,31 +2637,11 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 
 Specify platform
 
-**--semantic-db**
-
-Generate SemanticDBs
-
 <details><summary>
 
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4137,22 +2689,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -4160,70 +2696,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -4235,55 +2707,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -4296,42 +2728,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -4359,14 +2755,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
-**--json-options**
-
-Command-line options JSON file
-
 </details>
 
 ---
@@ -4381,22 +2769,6 @@ Clean the workspace
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4430,22 +2802,6 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--bsp-directory**
-
-Custom BSP configuration location
-
-Aliases: `--bsp-dir`
-
-**--bsp-name**
-
-Name of BSP
-
-Aliases: `--name`
-
-**--workspace**
-
-Directory where .scala-build is written
-
 </details>
 
 ---
@@ -4460,22 +2816,6 @@ Print details about this application
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4522,22 +2862,6 @@ Print help message
 
 </summary>
 
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4580,22 +2904,6 @@ Installs completions into your shell
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4645,14 +2953,6 @@ Completions output directory
 
 Aliases: `-o`
 
-**--banner**
-
-Custom banner in comment placed in rc file
-
-**--name**
-
-Custom completions name
-
 **--env**
 
 Print completions to stdout
@@ -4671,22 +2971,6 @@ Install Scala CLI in a sub-directory of the home directory
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4724,17 +3008,9 @@ Overwrite if it exists
 
 Aliases: `-f`
 
-**--binary-name**
-
-Binary name
-
 **--env**
 
 Print the update to `env` variable
-
-**--bin-dir**
-
-Binary directory
 
 </details>
 
@@ -4759,17 +3035,17 @@ Add compiler plugin dependencies
 
 Aliases: `-P` ,`--plugin`
 
+**--scalac-option**
+
+Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+
+Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
 Aliases: `--scala` ,`-S`
-
-**--scala-binary-version**
-
-Set the Scala binary version
-
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
 
 **--extra-jars**
 
@@ -4901,16 +3177,6 @@ Aliases: `--javac-opt`
 
 Allows to execute a passed string as a Scala script
 
-**--execute-script**
-
-A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
-
-**--scala-snippet**
-
-Allows to execute a passed string as Scala code
-
 **--extra-compile-only-jars**
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
@@ -4927,31 +3193,11 @@ Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
 
 Specify platform
 
-**--semantic-db**
-
-Generate SemanticDBs
-
 <details><summary>
 
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -4999,22 +3245,6 @@ The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor
 
 Create as many small modules as possible for the classes in the passed packages and their subpackages.
 
-**--js-linker-path**
-
-Path to the Scala.js linker
-
-**--js-cli-version**
-
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
-
-**--js-cli-java-arg**
-
-Scala.js CLI Java options
-
-**--js-cli-on-jvm**
-
-Whether to run the Scala.js CLI on the JVM or using a native executable
-
 **--native-clang**
 
 Path to the Clang command
@@ -5022,70 +3252,6 @@ Path to the Clang command
 **--native-clangpp**
 
 Path to the Clang++ command
-
-**--native-linking-defaults**
-
-Use default linking settings
-
-**--native-compile-defaults**
-
-Use default compile options
-
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
 
 **--server**
 
@@ -5097,55 +3263,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--scalac-option**
+**--execute-script**
 
-Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
+A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--scala-opt` ,`-O` ,`--scala-option`
+Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
 
-**--jvm-index**
+**--scala-snippet**
 
-JVM index URL
-
-**--jvm-index-os**
-
-Operating system to use when looking up in the JVM index
-
-**--jvm-index-arch**
-
-CPU architecture to use when looking up in the JVM index
-
-**--bsp-debug-port**
-
-Port for BSP debugging
-
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
-**--workspace**
-
-Directory where .scala-build is written
-
-**--scalac-help**
-
-Show help for scalac. This is an alias for --scalac-option -help
-
-Aliases: `--help-scalac`
-
-**--scalac-verbose**
-
-Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
-
-Aliases: `--verbose-scalac`
+Allows to execute a passed string as Scala code
 
 **--execute-scala**
 
@@ -5158,42 +3284,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
-**--scala-library**
-
-
-
-**--java**
-
-Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.
-
-**--runner**
-
-Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
-**--default-forbidden-directories**
-
-
-
-**--forbid**
-
-
 
 **--help-js**
 
@@ -5221,26 +3311,6 @@ Show options for Scalafmt
 
 Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
 
-**--strict-bloop-json-check**
-
-
-
-**--bsp-directory**
-
-Custom BSP configuration location
-
-Aliases: `--bsp-dir`
-
-**--bsp-name**
-
-Name of BSP
-
-Aliases: `--name`
-
-**--charset**
-
-
-
 </details>
 
 ---
@@ -5255,22 +3325,6 @@ Uninstall scala-cli - only works when installed by the installation script
 ### Implementantation specific options
 
 </summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 
@@ -5298,62 +3352,6 @@ Aliases: `-q`
 
 Use progress bars
 
-**--bloop-bsp-protocol**
-
-Protocol to use to open a BSP connection with Bloop
-
-**--bloop-bsp-socket**
-
-Socket file to use to open a BSP connection with Bloop
-
-**--bloop-host**
-
-Host the compilation server should bind to
-
-**--bloop-port**
-
-Port the compilation server should bind to (pass `-1` to pick a random port)
-
-**--bloop-daemon-dir**
-
-Daemon directory of the Bloop daemon (directory with lock, pid, and socket files)
-
-**--bloop-version**
-
-If Bloop isn't already running, the version we should start
-
-**--bloop-bsp-timeout**
-
-Maximum duration to wait for the BSP connection to be opened
-
-**--bloop-bsp-check-period**
-
-Duration between checks of the BSP connection state
-
-**--bloop-startup-timeout**
-
-Maximum duration to wait for the compilation server to start up
-
-**--bloop-default-java-opts**
-
-Include default JVM options for Bloop
-
-**--bloop-java-opt**
-
-Pass java options to use by Bloop server
-
-**--bloop-global-options-file**
-
-Bloop global options file
-
-**--bloop-jvm**
-
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
-
-**--bloop-working-dir**
-
-Working directory for Bloop, if it needs to be started
-
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
@@ -5364,47 +3362,15 @@ Override the path to user's home directory
 
 Aliases: `--home`
 
-**--ttl**
-
-Specify a TTL for changing dependencies, such as snapshots
-
-**--cache**
-
-Set the coursier cache location
-
-**--coursier-validate-checksums**
-
-Enable checksum validation of artifacts downloaded by coursier
-
 **--rc-file**
 
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
-
-**--banner**
-
-Custom banner in comment placed in rc file
-
-**--name**
-
-Custom completions name
 
 **--force**
 
 Force scala-cli uninstall
 
 Aliases: `-f`
-
-**--skip-cache**
-
-Don't clear scala-cli cache
-
-**--binary-name**
-
-Binary name
-
-**--bin-dir**
-
-Binary directory
 
 </details>
 
@@ -5423,33 +3389,9 @@ Uninstalls completions from your shell
 
 </summary>
 
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
 **--rc-file**
 
 Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell
-
-**--banner**
-
-Custom banner in comment placed in rc file
-
-**--name**
-
-Custom completions name
 
 **--verbose**
 
@@ -5492,22 +3434,6 @@ Update scala-cli - only works when installed by the installation script
 
 </summary>
 
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -5534,27 +3460,11 @@ Aliases: `-q`
 
 Use progress bars
 
-**--binary-name**
-
-Binary name
-
-**--bin-dir**
-
-Binary directory
-
 **--force**
 
 Force update scala-cli if is outdated
 
 Aliases: `-f`
-
-**--is-internal-run**
-
-
-
-**--gh-token**
-
-A github token used to access GitHub. Not needed in most cases.
 
 </details>
 

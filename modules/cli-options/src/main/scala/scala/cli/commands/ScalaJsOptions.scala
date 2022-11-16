@@ -76,24 +76,20 @@ final case class ScalaJsOptions(
   @Group("Scala.js")
   @HelpMessage("Path to the Scala.js linker")
   @ValueDescription("path")
-  @Tag(tags.implementation)
   @Hidden
     jsLinkerPath: Option[String] = None,
   @Group("Scala.js")
   @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsCliVersion} by default).")
   @ValueDescription("version")
-  @Tag(tags.implementation)
   @Hidden
     jsCliVersion: Option[String] = None,
   @Group("Scala.js")
   @HelpMessage("Scala.js CLI Java options")
-  @Tag(tags.implementation)
   @ValueDescription("option")
   @Hidden
     jsCliJavaArg: List[String] = Nil,
   @Group("Scala.js")
   @HelpMessage("Whether to run the Scala.js CLI on the JVM or using a native executable")
-  @Tag(tags.implementation)
   @Hidden
     jsCliOnJvm: Option[Boolean] = None
 )

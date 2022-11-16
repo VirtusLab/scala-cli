@@ -17,29 +17,25 @@ final case class FmtOptions(
     check: Boolean = false,
 
   @Group("Format")
-  @Tag(tags.implementation)
   @HelpMessage("Use project filters defined in the configuration. Turned on by default, use `--respect-project-filters:false` to disable it.")
+  @Tag(tags.implementation)
     respectProjectFilters: Boolean = true,
 
   @Group("Format")
-  @Tag(tags.implementation)
   @HelpMessage("Saves .scalafmt.conf file if it was created or overwritten")
+  @Tag(tags.implementation)
     saveScalafmtConf: Boolean = false,
 
   @Group("Format")
-  @Tag(tags.implementation)
   @Hidden
     osArchSuffix: Option[String] = None,
   @Group("Format")
-  @Tag(tags.implementation)
   @Hidden
     scalafmtTag: Option[String] = None,
   @Group("Format")
-  @Tag(tags.implementation)
   @Hidden
     scalafmtGithubOrgName: Option[String] = None,
   @Group("Format")
-  @Tag(tags.implementation)
   @Hidden
     scalafmtExtension: Option[String] = None,
   @Group("Format")
@@ -48,8 +44,8 @@ final case class FmtOptions(
 
   @Group("Format")
   @Name("F")
-  @Tag(tags.implementation)
   @HelpMessage("Pass argument to scalafmt.")
+  @Tag(tags.internal)
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")
@@ -61,6 +57,7 @@ final case class FmtOptions(
   @HelpMessage("Pass configuration as a string.")
   @Name("scalafmtConfigStr")
   @Name("scalafmtConfSnippet")
+  @Tag(tags.internal)
     scalafmtConfStr: Option[String] = None,
   @Tag(tags.implementation)
   @Group("Format")

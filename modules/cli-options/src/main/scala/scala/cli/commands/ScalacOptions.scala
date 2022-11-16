@@ -15,7 +15,6 @@ final case class ScalacOptions(
   @Name("scala-opt")
   @Name("scala-option")
   @Name("O")
-  @Tag(tags.must)
     scalacOption: List[String] = Nil
 )
 // format: on
@@ -29,6 +28,7 @@ object ScalacOptions {
       "Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`."
     )))
     .withGroup(Some(Group("Scala")))
+    .withTags(Seq(Tag(tags.must)))
     .withOrigin(Some("ScalacOptions"))
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
   private val scalacOptionsPurePrefixes =

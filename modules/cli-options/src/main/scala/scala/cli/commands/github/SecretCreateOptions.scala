@@ -3,6 +3,7 @@ package scala.cli.commands.github
 import caseapp.*
 
 import scala.cli.commands.CoursierOptions
+import scala.cli.commands.tags
 
 // format: off
 final case class SecretCreateOptions(
@@ -11,10 +12,14 @@ final case class SecretCreateOptions(
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @ExtraName("pubKey")
+  @Tag(tags.experimental)
     publicKey: Option[String] = None,
   @ExtraName("n")
+  @Hidden
+  @Tag(tags.experimental)
     dummy: Boolean = false,
   @Hidden
+  @Tag(tags.experimental)
     printRequest: Boolean = false
 ) extends HasSharedSecretOptions
 // format: on

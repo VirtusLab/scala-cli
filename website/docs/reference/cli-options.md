@@ -262,6 +262,18 @@ Aliases: `--default-scaladoc-opts`
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
 
+## Doctor options
+
+Available in commands:
+
+[`doctor`](./commands.md#doctor)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--gh-token`
+
+A github token used to access GitHub. Not needed in most cases.
+
 ## Export options
 
 Available in commands:
@@ -504,14 +516,12 @@ CPU architecture to use when looking up in the JVM index
 
 ### `--javac-plugin`
 
-[Internal]
 Javac plugin dependencies or files
 
 ### `--javac-option`
 
 Aliases: `--javac-opt`
 
-[Internal]
 Javac options
 
 ### `--bsp-debug-port`
@@ -857,6 +867,7 @@ gpg command-line options
 
 ### `--ivy2-home`
 
+[Internal]
 Set Ivy 2 home directory
 
 ### `--force-signing-binary`
@@ -866,6 +877,8 @@ Set Ivy 2 home directory
 
 [Internal]
 ### `--dummy`
+
+Aliases: `--dry-run`
 
 Proceed as if publishing, but do not upload / write artifacts to the remote repository
 
@@ -1310,6 +1323,7 @@ Aliases: `--pub-key`
 
 Aliases: `-n`
 
+[Internal]
 ### `--print-request`
 
 [Internal]
@@ -1410,7 +1424,6 @@ Allows to execute a passed string as a Scala script
 
 Aliases: `--execute-scala-script`, `--execute-sc`, `-e`
 
-[Internal]
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ### `--scala-snippet`
@@ -1419,7 +1432,6 @@ Allows to execute a passed string as Scala code
 
 ### `--execute-scala`
 
-[Internal]
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ### `--java-snippet`
@@ -1434,7 +1446,7 @@ A synonym to --scala-snippet, which defaults the sub-command to `run` when no su
 
 Aliases: `--md-snippet`
 
-[experimental] Allows to execute a passed string as Markdown code
+Allows to execute a passed string as Markdown code
 
 ### `--execute-markdown`
 
@@ -1804,19 +1816,6 @@ Aliases: `-f`
 
 [Internal]
 Force overwriting destination files
-
-### Doctor options
-
-Available in commands:
-
-[`doctor`](./commands.md#doctor)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--gh-token`
-
-[Internal]
-A github token used to access GitHub. Not needed in most cases.
 
 ### Input options
 

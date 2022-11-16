@@ -11,21 +11,19 @@ final case class SnippetOptions(
 
   @Group("Scala")
   @HelpMessage("A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
-  @Hidden
   @Name("executeScalaScript")
   @Name("executeSc")
   @Name("e")
-  @Tag(tags.should)
+  @Tag(tags.implementation)
     executeScript: List[String] = List.empty,
 
   @Group("Scala")
   @HelpMessage("Allows to execute a passed string as Scala code")
-  @Tag(tags.should)
+  @Tag(tags.implementation)
     scalaSnippet: List[String] = List.empty,
 
   @Group("Scala")
   @HelpMessage("A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
-  @Hidden
   @Tag(tags.implementation)
     executeScala: List[String] = List.empty,
 
@@ -40,7 +38,8 @@ final case class SnippetOptions(
     executeJava: List[String] = List.empty,
 
   @Group("Markdown")
-  @HelpMessage("[experimental] Allows to execute a passed string as Markdown code")
+  @HelpMessage("Allows to execute a passed string as Markdown code")
+  @Tag(tags.experimental)
   @Name("mdSnippet")
     markdownSnippet: List[String] = List.empty,
 

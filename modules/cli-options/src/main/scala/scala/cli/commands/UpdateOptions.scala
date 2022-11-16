@@ -14,23 +14,19 @@ final case class UpdateOptions(
   @Hidden
   @Group("Update")
   @HelpMessage("Binary name")
-  @Tag(tags.implementation)
     binaryName: String = "scala-cli",
   @Hidden
   @Group("Update")
   @HelpMessage("Binary directory")
-  @Tag(tags.implementation)
     binDir: Option[String] = None,
   @Name("f")
   @HelpMessage("Force update scala-cli if is outdated")
   @Tag(tags.implementation)
     force: Boolean = false,
   @Hidden
-  @Tag(tags.implementation)
     isInternalRun: Boolean = false,
   @Hidden
   @HelpMessage(HelpMessages.passwordOption)
-  @Tag(tags.implementation)
     ghToken: Option[PasswordOption] = None
 ) extends HasLoggingOptions
 // format: on

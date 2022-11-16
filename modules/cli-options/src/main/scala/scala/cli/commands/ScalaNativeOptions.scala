@@ -43,7 +43,6 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
   @HelpMessage("Use default linking settings")
   @Hidden
-  @Tag(tags.implementation)
     nativeLinkingDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
 
   @Group("Scala Native")
@@ -54,7 +53,6 @@ final case class ScalaNativeOptions(
   @Group("Scala Native")
   @Hidden
   @HelpMessage("Use default compile options")
-   @Tag(tags.implementation)
     nativeCompileDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
 
   @Group("Scala Native")

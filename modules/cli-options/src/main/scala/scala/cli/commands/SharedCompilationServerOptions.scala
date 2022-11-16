@@ -80,6 +80,7 @@ final case class SharedCompilationServerOptions(
     bloopWorkingDir: Option[String] = None,
 
   @Group("Compilation server")
+  @Tag(tags.implementation)
   @HelpMessage("Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.")
     server: Option[Boolean] = None
 )

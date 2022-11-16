@@ -10,9 +10,18 @@ object RestrictedCommandsParser {
   def isExperimentalOrRestricted(a: Arg) =
     a.tags.exists(_.name == tags.restricted) || a.tags.exists(_.name == tags.experimental)
 
-  def level(a: Arg) = a.tags.flatMap(t => tags.levelFor(t.name)).headOption.getOrElse {
-    SpecificationLevel.IMPLEMENTATION
-  }
+  def level(a: Arg) =
+    a.tags.flatMap(t => tags.levelFor(t.name)).headOption match
+      case Some(opt) =>
+        if (
+          a.noHelp && opt != SpecificationLevel.EXPERIMENTAL && opt != SpecificationLevel.RESTRICTED
+        )
+          println(s"$a defines level as ${a.name.name} but is hidden")
+        opt
+      case None if a.noHelp || a.group.exists(_.name == "Help") => SpecificationLevel.INTERNAL
+      case None =>
+        println(s"No level for ${a.name.name} from ${a.group}")
+        SpecificationLevel.INTERNAL
 
   def apply[T, TD](parser: Parser.Aux[T, TD]): Parser.Aux[T, TD] = new Parser[T] {
 
