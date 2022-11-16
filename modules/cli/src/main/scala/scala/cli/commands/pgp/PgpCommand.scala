@@ -11,8 +11,8 @@ import scala.cli.commands.util.CommandHelpers
 abstract class PgpCommand[T](implicit myParser: Parser[T], help: Help[T])
     extends Command()(myParser, help)
     with CommandHelpers with RestrictableCommand[T] {
-  
+
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-  
-  override def hidden       = true
+
+  override def hidden = true
 }

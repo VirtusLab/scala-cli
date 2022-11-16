@@ -17,8 +17,8 @@ import scala.cli.commands.{CommandUtils, CompileOptions, ScalaCommand, SharedOpt
 import scala.cli.config.{ConfigDb, Keys}
 
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
-  override def group                                                         = "Main"
-  
+  override def group = "Main"
+
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
   override def scalaSpecificationLevel = SpecificationLevel.MUST

@@ -22,11 +22,11 @@ import scala.cli.errors.ScaladocGenerationFailedError
 import scala.util.Properties
 
 object Doc extends ScalaCommand[DocOptions] {
-  override def group                                                     = "Main"
-  
+  override def group = "Main"
+
   override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
 
-  override def scalaSpecificationLevel                                   = SpecificationLevel.MUST
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   override def runCommand(options: DocOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
