@@ -60,6 +60,7 @@ object SharedOptionsUtil extends CommandHelpers {
     scriptSnippetList: List[String],
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
+    markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
     extraClasspathWasPassed: Boolean = false
   ): Either[BuildException, Inputs] = {
@@ -80,6 +81,7 @@ object SharedOptionsUtil extends CommandHelpers {
       scriptSnippetList = scriptSnippetList,
       scalaSnippetList = scalaSnippetList,
       javaSnippetList = javaSnippetList,
+      markdownSnippetList = markdownSnippetList,
       acceptFds = !Properties.isWin,
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
@@ -407,13 +409,15 @@ object SharedOptionsUtil extends CommandHelpers {
         scriptSnippetList = allScriptSnippets,
         scalaSnippetList = allScalaSnippets,
         javaSnippetList = allJavaSnippets,
+        markdownSnippetList = allMarkdownSnippets,
         enableMarkdown = v.markdown.enableMarkdown,
         extraClasspathWasPassed = v.extraJarsAndClassPath.nonEmpty
       )
 
-    def allScriptSnippets: List[String] = v.snippet.scriptSnippet ++ v.snippet.executeScript
-    def allScalaSnippets: List[String]  = v.snippet.scalaSnippet ++ v.snippet.executeScala
-    def allJavaSnippets: List[String]   = v.snippet.javaSnippet ++ v.snippet.executeJava
+    def allScriptSnippets: List[String]   = v.snippet.scriptSnippet ++ v.snippet.executeScript
+    def allScalaSnippets: List[String]    = v.snippet.scalaSnippet ++ v.snippet.executeScala
+    def allJavaSnippets: List[String]     = v.snippet.javaSnippet ++ v.snippet.executeJava
+    def allMarkdownSnippets: List[String] = v.snippet.markdownSnippet ++ v.snippet.executeMarkdown
 
     def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Element]]] =
       Inputs.validateArgs(

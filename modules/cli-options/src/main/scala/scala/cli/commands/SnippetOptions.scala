@@ -32,6 +32,17 @@ final case class SnippetOptions(
    @Group("Java")
   @HelpMessage("A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
     executeJava: List[String] = List.empty,
+
+  @Group("Markdown")
+  @HelpMessage("[experimental] Allows to execute a passed string as Markdown code")
+  @Name("mdSnippet")
+    markdownSnippet: List[String] = List.empty,
+
+  @Group("Markdown")
+  @HelpMessage("[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
+  @Name("executeMd")
+  @Hidden
+    executeMarkdown: List[String] = List.empty,
 )
 // format: on
 

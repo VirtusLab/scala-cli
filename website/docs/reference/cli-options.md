@@ -1399,6 +1399,19 @@ Allows to execute a passed string as Java code
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
+### `--markdown-snippet`
+
+Aliases: `--md-snippet`
+
+[experimental] Allows to execute a passed string as Markdown code
+
+### `--execute-markdown`
+
+Aliases: `--execute-md`
+
+[Internal]
+[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
+
 ## Test options
 
 Available in commands:

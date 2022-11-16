@@ -80,6 +80,24 @@ Hello
 
 </ChainedSnippets>
 
+- Markdown code (experimental)
+
+<ChainedSnippets>
+
+````bash
+scala-cli run --markdown-snippet '# Markdown snippet
+with a code block
+```scala
+println("Hello")
+```'
+````
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
 - a mix of Scala, Java and scripts
 
 <ChainedSnippets>
