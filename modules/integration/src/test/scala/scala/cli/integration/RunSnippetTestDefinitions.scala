@@ -53,6 +53,27 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("correctly run a markdown snippet") {
+    emptyInputs.fromRoot { root =>
+      val msg       = "Hello world"
+      val quotation = TestUtil.argQuotationMark
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "run",
+          "--markdown-snippet",
+          s"""# A Markdown snippet
+             |With some scala code
+             |```scala
+             |println($quotation$msg$quotation)
+             |```""".stripMargin,
+          extraOptions
+        )
+          .call(cwd = root)
+      expect(res.out.trim() == msg)
+    }
+  }
+
   test("correctly run multiple snippets") {
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark

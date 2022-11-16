@@ -210,7 +210,8 @@ object Inputs {
   def validateSnippets(
     scriptSnippetList: List[String] = List.empty,
     scalaSnippetList: List[String] = List.empty,
-    javaSnippetList: List[String] = List.empty
+    javaSnippetList: List[String] = List.empty,
+    markdownSnippetList: List[String] = List.empty
   ): Seq[Either[String, Seq[Element]]] = {
     def validateSnippet(
       snippetList: List[String],
@@ -236,6 +237,15 @@ object Inputs {
         javaSnippetList,
         (content, snippetNameSuffix) =>
           VirtualJavaFile(content, s"<snippet>-java-$snippetNameSuffix")
+      ),
+      validateSnippet(
+        markdownSnippetList,
+        (content, snippetNameSuffix) =>
+          VirtualMarkdownFile(
+            content,
+            s"<snippet>-markdown-$snippetNameSuffix",
+            os.sub / s"$snippetNameSuffix.md"
+          )
       )
     ).flatten
   }
@@ -299,6 +309,7 @@ object Inputs {
     scriptSnippetList: List[String],
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
+    markdownSnippetList: List[String],
     acceptFds: Boolean,
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
@@ -308,7 +319,7 @@ object Inputs {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown)
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
-      validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList)
+      validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
     val invalid = validatedArgsAndSnippets.collect {
       case Left(msg) => msg
@@ -342,6 +353,7 @@ object Inputs {
     scriptSnippetList: List[String] = List.empty,
     scalaSnippetList: List[String] = List.empty,
     javaSnippetList: List[String] = List.empty,
+    markdownSnippetList: List[String] = List.empty,
     acceptFds: Boolean = false,
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
@@ -349,7 +361,8 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   ): Either[BuildException, Inputs] =
     if (
-      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty && !extraClasspathWasPassed
+      args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
+      markdownSnippetList.isEmpty && !extraClasspathWasPassed
     )
       defaultInputs().toRight(new InputsException(
         "No inputs provided (expected files with .scala, .sc, .java or .md extensions, and / or directories)."
@@ -364,6 +377,7 @@ object Inputs {
         scriptSnippetList,
         scalaSnippetList,
         javaSnippetList,
+        markdownSnippetList,
         acceptFds,
         forcedWorkspace,
         enableMarkdown,

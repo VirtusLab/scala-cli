@@ -56,6 +56,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         options.input.forbid,
         Nil,
         Nil,
+        Nil,
         Nil
       )
       maybeInputs match {

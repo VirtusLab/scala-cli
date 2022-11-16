@@ -77,6 +77,26 @@ class DefaultTests extends ScalaCliSuite {
     }
   }
 
+  test("default to the run sub-command when a md snippet is passed with --execute-markdown") {
+    TestInputs.empty.fromRoot { root =>
+      val msg       = "Hello world"
+      val quotation = TestUtil.argQuotationMark
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "--execute-markdown",
+          s"""# A Markdown snippet
+             |With some scala code
+             |```scala
+             |println($quotation$msg$quotation)
+             |```""".stripMargin,
+          TestUtil.extraOptions
+        )
+          .call(cwd = root)
+      expect(res.out.trim() == msg)
+    }
+  }
+
   test("running scala-cli with a script snippet passed with -e shouldn't allow repl-only options") {
     TestInputs.empty.fromRoot { root =>
       val replSpecificOption = "--repl-dry-run"
