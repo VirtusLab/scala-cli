@@ -253,36 +253,34 @@ object Inputs {
       lazy val dir       = path / os.up
       lazy val subPath   = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
-      val isStdin = (arg == "-.scala" || arg == "_" || arg == "_.scala") &&
-        stdinOpt0.nonEmpty
-      if (isStdin) Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
-      else if ((arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty)
+      lazy val content   = os.read.bytes(path)
+      if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
+        Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
+      else if (arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty then
         Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>-java-file")))
-      else if ((arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty)
+      else if (arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty then
         Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
-      else if (arg.endsWith(".zip") && os.exists(os.Path(arg, cwd))) {
-        val content = os.read.bytes(os.Path(arg, cwd))
+      else if (arg == "-.md" || arg == "_.md") && stdinOpt0.nonEmpty then
+        Right(Seq(VirtualMarkdownFile(stdinOpt0.get, "<stdin>-markdown-file", os.sub / "stdin.md")))
+      else if arg.endsWith(".zip") && os.exists(path) then
         Right(resolveZipArchive(content, enableMarkdown))
-      }
-      else if (arg.contains("://")) {
+      else if arg.contains("://") then {
         val isGithubGist = githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty
         val url          = if isGithubGist then s"$arg/download" else arg
-        download(url).map { content =>
-          if isGithubGist then resolveZipArchive(content, enableMarkdown)
-          else List(Virtual(url, content))
+        download(url).map { urlContent =>
+          if isGithubGist then resolveZipArchive(urlContent, enableMarkdown)
+          else List(Virtual(url, urlContent))
         }
       }
-      else if (path.last == "project.scala") Right(Seq(ProjectScalaFile(dir, subPath)))
-      else if (arg.endsWith(".sc")) Right(Seq(Script(dir, subPath)))
-      else if (arg.endsWith(".scala")) Right(Seq(SourceScalaFile(dir, subPath)))
-      else if (arg.endsWith(".java")) Right(Seq(JavaFile(dir, subPath)))
-      else if (arg.endsWith(".c") || arg.endsWith(".h")) Right(Seq(CFile(dir, subPath)))
-      else if (arg.endsWith(".md")) Right(Seq(MarkdownFile(dir, subPath)))
-      else if (os.isDir(path)) Right(Seq(Directory(path)))
-      else if (acceptFds && arg.startsWith("/dev/fd/")) {
-        val content = os.read.bytes(os.Path(arg, cwd))
+      else if path.last == "project.scala" then Right(Seq(ProjectScalaFile(dir, subPath)))
+      else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
+      else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
+      else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
+      else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
+      else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
+      else if os.isDir(path) then Right(Seq(Directory(path)))
+      else if acceptFds && arg.startsWith("/dev/fd/") then
         Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
-      }
       else {
         val msg =
           if (os.exists(path))

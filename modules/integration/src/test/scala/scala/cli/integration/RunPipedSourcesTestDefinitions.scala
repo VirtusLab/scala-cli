@@ -185,4 +185,21 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
       }
     }
   }
+
+  test("Markdown code with a scala snippet accepted as piped input") {
+    val expectedOutput = "Hello"
+    val pipedInput =
+      s"""# Piped Markdown
+         |A simple `scala` snippet
+         |```scala
+         |println("$expectedOutput")
+         |```
+         |""".stripMargin
+    emptyInputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "_.md", extraOptions)
+        .call(cwd = root, stdin = pipedInput)
+        .out.trim()
+      expect(output == expectedOutput)
+    }
+  }
 }
