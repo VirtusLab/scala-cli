@@ -171,7 +171,11 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
-  test("Create a default PGP key") {
+  if (!TestUtil.isCI || !Properties.isWin)
+    test("Create a default PGP key") {
+      createDefaultPgpKeyTest()
+    }
+  def createDefaultPgpKeyTest(): Unit = {
     TestInputs().fromRoot { root =>
       val configFile = {
         val dir = root / "config"
