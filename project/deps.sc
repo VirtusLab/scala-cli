@@ -92,7 +92,7 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.5"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.5-17-df243e14"
   def asm      = ivy"org.ow2.asm:asm:9.4"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.4-sc-3"

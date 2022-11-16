@@ -1014,7 +1014,7 @@ Aliases: `-A`, `--amm`
 
 Aliases: `--ammonite-ver`
 
-[restricted] Set the Ammonite version (2.5.5 by default)
+[restricted] Set the Ammonite version (2.5.5-17-df243e14 by default)
 
 ### `--ammonite-arg`
 
