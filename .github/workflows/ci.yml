@@ -2,7 +2,7 @@ name: CI
 on:
   push:
     branches:
-    - main
+    - linux-aarch64
     tags:
     - "v*"
   pull_request:
