@@ -733,7 +733,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       sudoTest()
     }
 
-  def authProxyTest(): Unit = {
+  def authProxyTest(legacySetup: Boolean): Unit = {
     val okDir    = os.rel / "ok"
     val wrongDir = os.rel / "wrong"
     val inputs = TestInputs(
@@ -759,10 +759,44 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           s"-D$scheme.proxyProtocol=http"
         )
       }
-    val proxyArgs      = authProperties("localhost", 9083, "jack", "insecure")
-    val wrongProxyArgs = authProperties("localhost", 9084, "wrong", "nope")
-    val image          = Constants.authProxyTestImage
+    val proxyArgs =
+      if (legacySetup) authProperties("localhost", 9083, "jack", "insecure")
+      else Nil
+    val wrongProxyArgs =
+      if (legacySetup) authProperties("localhost", 9084, "wrong", "nope")
+      else Nil
+    def setupProxyConfig(
+      cwd: os.Path,
+      env: Map[String, String],
+      host: String,
+      port: Int,
+      user: String,
+      password: String
+    ): Unit = {
+      os.proc(TestUtil.cli, "config", "httpProxy.address", s"http://$host:$port")
+        .call(cwd = cwd, env = env)
+      os.proc(TestUtil.cli, "config", "httpProxy.user", s"value:$user")
+        .call(cwd = cwd, env = env)
+      os.proc(TestUtil.cli, "config", "httpProxy.password", s"value:$password")
+        .call(cwd = cwd, env = env)
+    }
+    val image = Constants.authProxyTestImage
     inputs.fromRoot { root =>
+      val configDir = root / "configs"
+      os.makeDir(configDir, "rwx------")
+      val configFile      = configDir / "config.json"
+      val wrongConfigFile = configDir / "wrong-config.json"
+      val (configEnv, wrongConfigEnv) =
+        if (legacySetup)
+          (Map.empty[String, String], Map.empty[String, String])
+        else {
+          val csEnv           = TestUtil.putCsInPathViaEnv(root / "bin")
+          val configEnv0      = Map("SCALA_CLI_CONFIG" -> configFile.toString) ++ csEnv
+          val wrongConfigEnv0 = Map("SCALA_CLI_CONFIG" -> wrongConfigFile.toString) ++ csEnv
+          setupProxyConfig(root, configEnv0, "localhost", 9083, "jack", "insecure")
+          setupProxyConfig(root, wrongConfigEnv0, "localhost", 9084, "wrong", "nope")
+          (configEnv0, wrongConfigEnv0)
+        }
       DockerServer.withServer(image, root.toString, 80 -> 9083) { _ =>
         DockerServer.withServer(image, root.toString, 80 -> 9084) { _ =>
 
@@ -775,7 +809,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             "--cache",
             os.rel / "tmp-cache-ok"
           )
-            .call(cwd = root / okDir)
+            .call(cwd = root / okDir, env = configEnv)
           val okOutput = okRes.out.trim()
           expect(okOutput == "Hello proxy")
 
@@ -788,7 +822,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             "--cache",
             os.rel / "tmp-cache-wrong"
           )
-            .call(cwd = root / wrongDir, mergeErrIntoOut = true, check = false)
+            .call(
+              cwd = root / wrongDir,
+              env = wrongConfigEnv,
+              mergeErrIntoOut = true,
+              check = false
+            )
           val wrongOutput = wrongRes.out.trim()
           expect(wrongRes.exitCode == 1)
           expect(wrongOutput.contains(
@@ -799,14 +838,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def runAuthProxyTest: Boolean =
+  def runAuthProxyTests: Boolean =
     Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
-  if (runAuthProxyTest)
-    test("auth proxy") {
+  if (runAuthProxyTests) {
+    test("auth proxy (legacy)") {
       TestUtil.retry() {
-        authProxyTest()
+        authProxyTest(legacySetup = true)
       }
     }
+
+    test("auth proxy") {
+      TestUtil.retry() {
+        authProxyTest(legacySetup = false)
+      }
+    }
+  }
 
   test("UTF-8") {
     val message  = "Hello from TestÅÄÖåäö"
