@@ -2,6 +2,7 @@ package scala.cli.internal
 
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.core.Version
 import coursier.util.Task
 import dependency._
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
@@ -37,7 +38,10 @@ object ScalaJsLinker {
         val scalaJsCliDep = {
           val mod =
             if (scalaJsCliVersion.contains("-sc"))
-              mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+              if (Version(scalaJsCliVersion) < Version("1.1.2-sc1"))
+                mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
+              else
+                mod"io.github.alexarchambault.tmp:scalajscli-${scalaJsVersion}_2.13"
             else
               mod"org.scala-js:scalajs-cli_2.13"
           dependency.Dependency(mod, scalaJsCliVersion)

@@ -14,7 +14,7 @@ object Scala {
   val mainVersions = Seq(scala3, scala213)
   val runnerScalaVersions = runnerScala3 +: allScala2
 
-  def scalaJs = "1.10.1"
+  def scalaJs = "1.11.0"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -74,7 +74,7 @@ object InternalDeps {
   object Versions {
     def mill          = os.read(os.pwd / ".mill-version").trim
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
-    def scalaJsCli    = "1.1.1-sc6"
+    def scalaJsCli    = "1.1.2-sc1"
   }
 }
 
