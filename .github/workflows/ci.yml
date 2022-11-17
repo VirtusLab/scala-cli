@@ -338,6 +338,70 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_SODIUM_JNI_ALLOW: false
 
+  generate-linux-aarch64-launcher:
+    timeout-minutes: 120
+    runs-on: "macOS-m1"
+    if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: coursier/setup-action@70323223454ac2a9eb2de46f389b4d045cbcdea5
+        with:
+          apps: ""
+          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
+      - run: ./mill -i ci.setShouldPublish
+      - uses: uraimo/run-on-arch-action@v2.1.2
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+
+          # Speeds up builds per the run-on-arch-action README
+          githubToken: ${{ github.token }}
+
+          setup: |
+            mkdir -p artifacts
+            mkdir -p utils
+            cp "$(cs get --archive https://github.com/coursier/coursier/releases/download/v2.1.0-RC2/cs-aarch64-pc-linux.gz)" utils/cs
+            chmod +x utils/cs
+
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+            --volume "${PWD}/utils:/utils"
+
+          env: |
+            JAVA_HOME: /jvm
+            SHOULD_PUBLISH: ${{ env.SHOULD_PUBLISH }}
+
+          # The shell to run commands with in the container
+          shell: /bin/bash
+
+          # build-essential and libz-dev are required to build native images.
+          # git is required to compute the Scala CLI version.
+          # python3-pip is required for some CLI tests.
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential libz-dev git python3-pip curl
+
+          run: |
+            set -e
+            export PATH="/utils:$PATH"
+            eval "$(cs java --env --jvm 17)"
+            git config --global --add safe.directory "$(pwd)"
+            .github/scripts/generate-native-image.sh
+            if [ "$SHOULD_PUBLISH" == true ]; then
+              .github/scripts/generate-os-packages.sh
+            fi
+            ./mill -i copyDefaultLauncher /artifacts
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 2
+
   generate-windows-launcher:
     timeout-minutes: 120
     runs-on: "windows-latest"
