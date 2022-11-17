@@ -2,6 +2,7 @@ package scala.cli.doc
 
 import caseapp.*
 import caseapp.core.Arg
+import caseapp.core.Scala3Helpers.*
 import caseapp.core.util.Formatter
 import munit.internal.difflib.Diff
 
@@ -155,7 +156,13 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
           b.append(s"### `${names.head}`\n\n")
           if (names.tail.nonEmpty)
-            b.append(names.tail.map(n => s"`$n`").mkString("Aliases: ", ", ", "\n\n"))
+            b.append(
+              names
+                .tail
+                .sortBy(_.dropWhile(_ == '-'))
+                .map(n => s"`$n`")
+                .mkString("Aliases: ", ", ", "\n\n")
+            )
 
           if (isInternal || arg.noHelp) b.append("[Internal]\n")
 
@@ -204,7 +211,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       val names        = c.names.map(_.mkString(" "))
 
       b.append(s"$headerPrefix## ${names.head}\n\n")
-      if (names.tail.nonEmpty) b.append(names.tail.mkString("Aliases: `", "`, `", "`\n\n"))
+      if (names.tail.nonEmpty) b.append(names.tail.sorted.mkString("Aliases: `", "`, `", "`\n\n"))
 
       for (desc <- c.messages.helpMessage.map(_.message))
         b.append(

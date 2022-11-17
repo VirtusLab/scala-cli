@@ -16,7 +16,6 @@ final case class SharedBspFileOptions(
 // format: on
 
 object SharedBspFileOptions {
-  lazy val parser: Parser[SharedBspFileOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedBspFileOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedBspFileOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedBspFileOptions] = Parser.derive
+  implicit lazy val help: Help[SharedBspFileOptions]     = Help.derive
 }

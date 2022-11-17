@@ -14,8 +14,7 @@ final case class SharedWorkspaceOptions(
 // format: on
 
 object SharedWorkspaceOptions {
-  lazy val parser: Parser[SharedWorkspaceOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedWorkspaceOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedWorkspaceOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[SharedWorkspaceOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[SharedWorkspaceOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedWorkspaceOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedWorkspaceOptions] = JsonCodecMaker.make
 }

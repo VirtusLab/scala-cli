@@ -2,6 +2,7 @@ package scala.cli.commands
 
 import caseapp.*
 import caseapp.core.help.{Help, HelpFormat}
+import caseapp.core.Scala3Helpers.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
@@ -40,8 +41,7 @@ case class HelpGroupOptions(
 }
 
 object HelpGroupOptions {
-  lazy val parser: Parser[HelpGroupOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[HelpGroupOptions, parser.D] = parser
-  implicit lazy val help: Help[HelpGroupOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[HelpGroupOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[HelpGroupOptions]            = Parser.derive
+  implicit lazy val help: Help[HelpGroupOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[HelpGroupOptions] = JsonCodecMaker.make
 }

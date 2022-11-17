@@ -65,7 +65,6 @@ final case class PublishParamsOptions(
 }
 
 object PublishParamsOptions {
-  lazy val parser: Parser[PublishParamsOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[PublishParamsOptions, parser.D] = parser
-  implicit lazy val help: Help[PublishParamsOptions]                      = Help.derive
+  implicit lazy val parser: Parser[PublishParamsOptions] = Parser.derive
+  implicit lazy val help: Help[PublishParamsOptions]     = Help.derive
 }

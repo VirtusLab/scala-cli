@@ -4,6 +4,7 @@ import caseapp.*
 import caseapp.core.{Arg, Error}
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
+import caseapp.core.Scala3Helpers.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
@@ -21,14 +22,15 @@ final case class ScalacOptions(
 
 object ScalacOptions {
 
-  private val scalacOptionsArg = Arg("scalacOption")
-    .withExtraNames(Seq(Name("scala-opt"), Name("O"), Name("scala-option")))
-    .withValueDescription(Some(ValueDescription("option")))
-    .withHelpMessage(Some(HelpMessage(
+  private val scalacOptionsArg = Arg("scalacOption").copy(
+    extraNames = Seq(Name("scala-opt"), Name("O"), Name("scala-option")),
+    valueDescription = Some(ValueDescription("option")),
+    helpMessage = Some(HelpMessage(
       "Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`."
-    )))
-    .withGroup(Some(Group("Scala")))
-    .withOrigin(Some("ScalacOptions"))
+    )),
+    group = Some(Group("Scala")),
+    origin = Some("ScalacOptions")
+  )
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
   private val scalacOptionsPurePrefixes =
     Set("-V", "-W", "-X", "-Y")
@@ -93,7 +95,7 @@ object ScalacOptions {
         Right(acc.getOrElse(Nil))
     }
 
-  implicit lazy val parser = {
+  implicit lazy val parser: Parser[ScalacOptions] = {
     val baseParser =
       scalacOptionsArgument ::
         NilParser

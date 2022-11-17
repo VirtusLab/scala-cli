@@ -27,7 +27,6 @@ final case class SharedSecretOptions(
 }
 
 object SharedSecretOptions {
-  lazy val parser: Parser[SharedSecretOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedSecretOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedSecretOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedSecretOptions] = Parser.derive
+  implicit lazy val help: Help[SharedSecretOptions]     = Help.derive
 }

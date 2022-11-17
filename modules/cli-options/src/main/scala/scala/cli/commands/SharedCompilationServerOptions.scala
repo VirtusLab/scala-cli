@@ -86,8 +86,7 @@ final case class SharedCompilationServerOptions(
 // format: on
 
 object SharedCompilationServerOptions {
-  lazy val parser: Parser[SharedCompilationServerOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedCompilationServerOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedCompilationServerOptions]                      = Help.derive
+  implicit lazy val parser: Parser[SharedCompilationServerOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedCompilationServerOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedCompilationServerOptions] = JsonCodecMaker.make
 }

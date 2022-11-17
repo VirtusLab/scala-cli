@@ -49,7 +49,5 @@ final case class SnippetOptions(
 object SnippetOptions {
   implicit lazy val parser: Parser[SnippetOptions] = Parser.derive
   implicit lazy val help: Help[SnippetOptions]     = Help.derive
-  // Parser.Aux for using SnippetOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[SnippetOptions, parser.D] = parser
 
 }

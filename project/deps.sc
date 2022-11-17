@@ -99,7 +99,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.4-sc-3"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
-  def caseApp          = ivy"com.github.alexarchambault:case-app_2.13:2.1.0-M21"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M21"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.8.1"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
@@ -164,8 +164,8 @@ object Deps {
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
   def signingCliShared =
-    ivy"io.github.alexarchambault.scala-cli.signing:shared_2.13:${Versions.signingCli}"
-  def signingCli = ivy"io.github.alexarchambault.scala-cli.signing:cli_2.13:${Versions.signingCli}"
+    ivy"io.github.alexarchambault.scala-cli.signing::shared:${Versions.signingCli}"
+  def signingCli = ivy"io.github.alexarchambault.scala-cli.signing::cli:${Versions.signingCli}"
   def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.3"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =

@@ -15,7 +15,7 @@ final case class SharedReplOptions(
     compileCross: CrossOptions = CrossOptions(),
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
-  
+
   @Group("Repl")
   @HelpMessage("[restricted] Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
@@ -43,6 +43,4 @@ final case class SharedReplOptions(
 object SharedReplOptions {
   implicit lazy val parser: Parser[SharedReplOptions] = Parser.derive
   implicit lazy val help: Help[SharedReplOptions]     = Help.derive
-  // Parser.Aux for using SharedReplOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[SharedReplOptions, parser.D] = parser
 }

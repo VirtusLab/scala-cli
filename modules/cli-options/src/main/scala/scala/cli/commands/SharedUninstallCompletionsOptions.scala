@@ -18,6 +18,4 @@ final case class SharedUninstallCompletionsOptions(
 object SharedUninstallCompletionsOptions {
   implicit lazy val parser: Parser[SharedUninstallCompletionsOptions] = Parser.derive
   implicit lazy val help: Help[SharedUninstallCompletionsOptions]     = Help.derive
-  // Parser.Aux for using SharedUninstallCompletionsOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[SharedUninstallCompletionsOptions, parser.D] = parser
 }

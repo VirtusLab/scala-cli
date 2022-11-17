@@ -23,6 +23,4 @@ final case class SharedDebugOptions(
 object SharedDebugOptions {
   implicit lazy val parser: Parser[SharedDebugOptions] = Parser.derive
   implicit lazy val help: Help[SharedDebugOptions]     = Help.derive
-  // Parser.Aux for using SharedDebugOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[SharedDebugOptions, parser.D] = parser
 }

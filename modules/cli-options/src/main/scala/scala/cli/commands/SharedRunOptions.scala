@@ -53,6 +53,4 @@ final case class SharedRunOptions(
 object SharedRunOptions {
   implicit lazy val parser: Parser[SharedRunOptions] = Parser.derive
   implicit lazy val help: Help[SharedRunOptions]     = Help.derive
-  // Parser.Aux for using SharedRunOptions with @Recurse in other options
-  implicit lazy val parserAux: Parser.Aux[SharedRunOptions, parser.D] = parser
 }

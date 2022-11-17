@@ -12,8 +12,7 @@ final case class SharedDirectoriesOptions(
 // format: on
 
 object SharedDirectoriesOptions {
-  lazy val parser: Parser[SharedDirectoriesOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedDirectoriesOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedDirectoriesOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[SharedDirectoriesOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[SharedDirectoriesOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedDirectoriesOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedDirectoriesOptions] = JsonCodecMaker.make
 }

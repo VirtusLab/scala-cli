@@ -54,8 +54,7 @@ final case class SharedJvmOptions(
 // format: on
 
 object SharedJvmOptions {
-  lazy val parser: Parser[SharedJvmOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[SharedJvmOptions, parser.D] = parser
-  implicit lazy val help: Help[SharedJvmOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[SharedJvmOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[SharedJvmOptions]            = Parser.derive
+  implicit lazy val help: Help[SharedJvmOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[SharedJvmOptions] = JsonCodecMaker.make
 }

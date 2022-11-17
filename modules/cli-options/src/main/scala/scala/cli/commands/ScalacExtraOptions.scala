@@ -22,8 +22,7 @@ final case class ScalacExtraOptions(
 // format: on
 
 object ScalacExtraOptions {
-  lazy val parser: Parser[ScalacExtraOptions]                           = Parser.derive
-  implicit lazy val parserAux: Parser.Aux[ScalacExtraOptions, parser.D] = parser
-  implicit lazy val help: Help[ScalacExtraOptions]                      = Help.derive
-  implicit lazy val jsonCodec: JsonValueCodec[ScalacExtraOptions]       = JsonCodecMaker.make
+  implicit lazy val parser: Parser[ScalacExtraOptions]            = Parser.derive
+  implicit lazy val help: Help[ScalacExtraOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[ScalacExtraOptions] = JsonCodecMaker.make
 }

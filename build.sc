@@ -647,9 +647,8 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule {
   def compileIvyDeps = super.compileIvyDeps() ++ Seq(
     Deps.jsoniterMacros
   )
-  private def scalaVer = Scala.scala213
-  def scalaVersion     = scalaVer
-  def repositories     = super.repositories ++ customRepositories
+  def scalaVersion = Scala.defaultInternal
+  def repositories = super.repositories ++ customRepositories
 
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
@@ -750,6 +749,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   def repositories = super.repositories ++ customRepositories
 
   def ivyDeps = super.ivyDeps() ++ Agg(
+    Deps.caseApp,
     Deps.coursierLauncher,
     Deps.coursierProxySetup,
     Deps.coursierPublish.exclude((organization, "config_2.13")),
