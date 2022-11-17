@@ -820,6 +820,7 @@ jobs:
     - run: scalafmt --check
 
   reference-doc:
+    if: false
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
