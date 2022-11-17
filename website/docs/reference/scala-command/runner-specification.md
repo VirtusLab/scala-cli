@@ -60,25 +60,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -90,7 +90,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 ### SHOULD have options
 
@@ -100,7 +100,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -166,7 +166,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -208,7 +208,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -218,13 +218,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -324,7 +324,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -526,7 +526,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -538,7 +538,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -565,25 +565,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -595,7 +595,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 **--output**
 
@@ -617,7 +617,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -683,7 +683,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -725,7 +725,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -735,13 +735,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -831,7 +831,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -1033,7 +1033,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -1045,7 +1045,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -1074,25 +1074,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -1104,7 +1104,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 **--java-opt**
 
@@ -1124,7 +1124,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -1190,7 +1190,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -1232,7 +1232,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -1242,13 +1242,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -1344,7 +1344,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -1546,7 +1546,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -1558,7 +1558,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -1595,25 +1595,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -1625,7 +1625,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 **--java-opt**
 
@@ -1651,7 +1651,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -1717,7 +1717,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -1759,7 +1759,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -1769,13 +1769,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -1801,7 +1801,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
 
 **--command**
 
@@ -1881,7 +1881,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -2083,7 +2083,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -2095,7 +2095,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -2154,25 +2154,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -2184,7 +2184,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 **--java-opt**
 
@@ -2210,7 +2210,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -2276,7 +2276,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -2318,7 +2318,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -2328,13 +2328,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -2360,7 +2360,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
 
 **--command**
 
@@ -2440,7 +2440,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -2642,7 +2642,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -2654,7 +2654,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -2693,25 +2693,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -2723,7 +2723,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 ### SHOULD have options
 
@@ -2733,7 +2733,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -2799,7 +2799,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -2841,7 +2841,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -2851,13 +2851,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -2945,7 +2945,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -3147,7 +3147,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -3159,7 +3159,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -3209,7 +3209,7 @@ Aliases: `--scalafmt-config`
 
 Pass configuration as a string.
 
-Aliases: `--scalafmt-config-str` ,`--scalafmt-conf-snippet`
+Aliases: `--scalafmt-conf-snippet` ,`--scalafmt-config-str`
 
 **--scalafmt-dialect**
 
@@ -3244,25 +3244,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -3274,7 +3274,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 **--java-opt**
 
@@ -3294,7 +3294,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -3360,7 +3360,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -3402,7 +3402,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -3412,13 +3412,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -3522,7 +3522,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -3724,7 +3724,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -3736,7 +3736,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -3895,25 +3895,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -3925,7 +3925,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 ### SHOULD have options
 
@@ -3935,7 +3935,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -4001,7 +4001,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -4043,7 +4043,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -4053,13 +4053,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -4143,7 +4143,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -4345,7 +4345,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -4357,7 +4357,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 
@@ -4757,25 +4757,25 @@ Aliases: `--dep`
 
 Add compiler plugin dependencies
 
-Aliases: `-P` ,`--plugin`
+Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
 Set the Scala version (3.2.1 by default)
 
-Aliases: `--scala` ,`-S`
+Aliases: `-S` ,`--scala`
 
 **--scala-binary-version**
 
 Set the Scala binary version
 
-Aliases: `--scala-binary` ,`--scala-bin` ,`-B`
+Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 **--extra-jars**
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classes` ,`--extra-classes` ,`-classpath` ,`-cp` ,`--classpath` ,`--class-path` ,`--extra-class-path`
+Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
 
 **--resource-dirs**
 
@@ -4787,7 +4787,7 @@ Aliases: `--resource-dir`
 
 Copy compilation results to output directory using either relative or absolute path
 
-Aliases: `--output-directory` ,`-d` ,`--destination` ,`--compile-output` ,`--compile-out`
+Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-directory`
 
 ### SHOULD have options
 
@@ -4797,7 +4797,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.10.1 by default).
+The Scala.js version (1.11.0 by default).
 
 **--js-mode**
 
@@ -4863,7 +4863,7 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 Add repositories
 
-Aliases: `--repo` ,`-r`
+Aliases: `-r` ,`--repo`
 
 **--debug**
 
@@ -4905,7 +4905,7 @@ Allows to execute a passed string as a Scala script
 
 A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-Aliases: `--execute-scala-script` ,`--execute-sc` ,`-e`
+Aliases: `-e` ,`--execute-sc` ,`--execute-scala-script`
 
 **--scala-snippet**
 
@@ -4915,13 +4915,13 @@ Allows to execute a passed string as Scala code
 
 Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.
 
-Aliases: `--compile-only-jar` ,`--compile-only-jars` ,`--extra-compile-only-jar`
+Aliases: `--extra-compile-only-jar` ,`--compile-only-jars` ,`--compile-only-jar`
 
 **--extra-source-jars**
 
 Add extra source JARs
 
-Aliases: `--source-jar` ,`--source-jars` ,`--extra-source-jar`
+Aliases: `--extra-source-jar` ,`--source-jars` ,`--source-jar`
 
 **--platform**
 
@@ -5005,7 +5005,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.1-sc6 by default).
+Scala.js CLI version to use for linking (1.1.2-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -5207,7 +5207,7 @@ Show options for ScalaNative
 
 Show options for Scaladoc
 
-Aliases: `--scaladoc-help` ,`--doc-help` ,`--help-doc`
+Aliases: `--help-doc` ,`--doc-help` ,`--scaladoc-help`
 
 **--help-repl**
 
@@ -5219,7 +5219,7 @@ Aliases: `--repl-help`
 
 Show options for Scalafmt
 
-Aliases: `--scalafmt-help` ,`--fmt-help` ,`--help-fmt`
+Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 **--strict-bloop-json-check**
 

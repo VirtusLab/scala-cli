@@ -51,13 +51,15 @@ object RestrictedCommandsParser {
   def isExperimentalOrRestricted(a: Arg) =
     a.tags.exists(_.name == tags.restricted) || a.tags.exists(_.name == tags.experimental)
 
-  def level(a: Arg) = a.tags.flatMap(t => tags.levelFor(t.name)).headOption.getOrElse {
+  def level(a: Arg): SpecificationLevel = a.tags.flatMap(t =>
+    tags.levelFor(t.name)
+  ).headOption.getOrElse { // TODO why do I need to add it here/
     SpecificationLevel.IMPLEMENTATION
   }
 
-  def apply[T, TD](parser: Parser.Aux[T, TD]): Parser.Aux[T, TD] = new Parser[T] {
+  def apply[T](parser: Parser[T]): Parser[T] = new Parser[T] {
 
-    type D = TD
+    type D = parser.D
 
     private def isArgSupported(a: Arg): Boolean =
       scala.cli.ScalaCli.allowRestrictedFeatures || !isExperimentalOrRestricted(a)
@@ -72,7 +74,7 @@ object RestrictedCommandsParser {
 
     def init: D = parser.init
 
-    def withDefaultOrigin(origin: String): caseapp.core.parser.Parser.Aux[T, D] =
+    def withDefaultOrigin(origin: String): caseapp.core.parser.Parser[T] =
       RestrictedCommandsParser(parser.withDefaultOrigin(origin))
 
     override def step(
