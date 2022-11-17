@@ -4,6 +4,7 @@ import os.{CommandResult, Path}
 
 import java.io.File
 import java.net.ServerSocket
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
@@ -221,5 +222,27 @@ object TestUtil {
         proc.destroyForcibly()
       }
     }
+  }
+
+  def putCsInPathViaEnv(binDir: os.Path): Map[String, String] = {
+
+    val (pathVarName, currentPath) = sys.env
+      .find(_._1.toLowerCase(Locale.ROOT) == "path")
+      .getOrElse(("PATH", ""))
+    if (Properties.isWin) {
+      val script =
+        s"""@echo off
+           |"${TestUtil.cs}" %*
+           |""".stripMargin
+      os.write(binDir / "cs.bat", script, createFolders = true)
+    }
+    else {
+      val script =
+        s"""#!/usr/bin/env bash
+           |exec "${TestUtil.cs}" "$$@"
+           |""".stripMargin
+      os.write(binDir / "cs", script, "rwxr-xr-x", createFolders = true)
+    }
+    Map(pathVarName -> s"$binDir${File.pathSeparator}$currentPath")
   }
 }
