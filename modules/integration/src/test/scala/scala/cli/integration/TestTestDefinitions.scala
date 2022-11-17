@@ -652,4 +652,27 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output.contains("Hello from tests"))
     }
   }
+
+  // regression test for #1557
+  test("successful test and finish with 0 exit code for munit") {
+    val inputs = TestInputs(
+      os.rel / "MunitTest.scala" -> // don't dump munit version
+        s"""//> using lib "org.scalameta::munit:1.0.0-M6"
+           |
+           |class MathSuite extends munit.FunSuite:
+           |  test("addition") {
+           |    assert(1 + 1 == 2)
+           |    println("Hello from tests")
+           |
+           |  }
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, "MunitTest.scala")
+        .call(cwd = root, check = false)
+      expect(output.exitCode == 0)
+      expect(output.out.text().contains("Hello from tests"))
+    }
+  }
 }

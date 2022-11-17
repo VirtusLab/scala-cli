@@ -235,6 +235,8 @@ object DynamicTestRunner {
     }
     if (failed)
       sys.exit(1)
+    else
+      sys.exit(0)
   }
 }
 
