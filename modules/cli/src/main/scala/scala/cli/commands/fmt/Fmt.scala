@@ -11,9 +11,6 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.FmtOptionsUtil.*
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.util.VerbosityOptionsUtil.*
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String                                             = "Main"

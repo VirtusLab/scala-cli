@@ -11,7 +11,6 @@ import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.SharedOptionsUtil.*
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group                   = "Main"

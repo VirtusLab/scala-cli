@@ -10,9 +10,6 @@ import scala.build.internal.OsLibc
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{LoggingOptions, SharedOptions}
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -25,7 +22,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
 
   private def bloopRifleConfig0(opts: BloopOptions): BloopRifleConfig = {
 
-    // FIXME Basically a tweaked copy of SharedOptionsUtil.bloopRifleConfig
+    // FIXME Basically a tweaked copy of SharedOptions.bloopRifleConfig
     // Some in progress BuildOptions / JavaOptions refactoring of mine should allow
     // to stop using SharedOptions and BuildOptions here, and deal with JavaOptions
     // directly.

@@ -6,7 +6,6 @@ import java.io.File
 
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.internal.Constants
 import scala.util.Using
 

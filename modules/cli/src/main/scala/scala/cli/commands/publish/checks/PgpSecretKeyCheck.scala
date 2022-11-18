@@ -17,7 +17,6 @@ import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.commands.util.JvmUtils
-import scala.cli.commands.util.PublishUtils._
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption

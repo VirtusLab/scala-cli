@@ -17,10 +17,8 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.shared.{HasLoggingOptions, ScalacOptions, SharedOptions}
-import scala.cli.commands.util.CommonOps.*
+import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.util.{CommandHelpers, FmtOptionsUtil}
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 

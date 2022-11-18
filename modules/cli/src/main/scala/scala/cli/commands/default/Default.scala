@@ -11,7 +11,6 @@ import scala.cli.commands.ScalaCommand
 import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
 import scala.cli.commands.shared.{ScalaCliHelp, SharedOptions}
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.version.Version
 
 class Default(

@@ -7,7 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, UnrecognizedDebugModeError}
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.{Os, Position, Positioned}
-import scala.cli.commands.shared.SharedJvmOptions
+import scala.cli.commands.shared.{SharedJvmOptions, SharedOptions}
 import scala.util.Properties
 
 object JvmUtils {
@@ -54,7 +54,7 @@ object JvmUtils {
       jvmIndexOs = jvmIndexOs.map(_.trim).filter(_.nonEmpty),
       jvmIndexArch = jvmIndexArch.map(_.trim).filter(_.nonEmpty),
       javaOpts = ShadowingSeq.from(javaOptsSeq),
-      javacPluginDependencies = SharedOptionsUtil.parseDependencies(
+      javacPluginDependencies = SharedOptions.parseDependencies(
         javacPluginDeps.map(Positioned.none(_)),
         ignoreErrors = false
       ),

@@ -65,28 +65,31 @@ object Build {
       mainClasses: Seq[String],
       commandString: String,
       logger: Logger
-    ): Either[MainClassError, String] = {
+    ): Either[BuildException, String] = {
       val defaultMainClassOpt = sources.defaultMainClass
         .filter(name => mainClasses.contains(name))
-      def foundMainClass =
+      def foundMainClass: Either[BuildException, String] =
         mainClasses match {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
           case _ =>
-            inferredMainClass(mainClasses, logger).left.flatMap { mainClasses =>
-              options.interactive
-                .chooseOne(
-                  "Found several main classes. Which would you like to run?",
-                  mainClasses.toList
-                )
-                .toRight {
-                  SeveralMainClassesFoundError(
-                    ::(mainClasses.head, mainClasses.tail.toList),
-                    commandString,
-                    Nil
-                  )
+            inferredMainClass(mainClasses, logger)
+              .left.flatMap { mainClasses =>
+                options.interactive.flatMap { interactive =>
+                  interactive
+                    .chooseOne(
+                      "Found several main classes. Which would you like to run?",
+                      mainClasses.toList
+                    )
+                    .toRight {
+                      SeveralMainClassesFoundError(
+                        ::(mainClasses.head, mainClasses.tail.toList),
+                        commandString,
+                        Nil
+                      )
+                    }
                 }
-            }
+              }
         }
 
       defaultMainClassOpt match {

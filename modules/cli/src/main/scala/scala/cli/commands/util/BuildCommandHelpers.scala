@@ -1,6 +1,6 @@
 package scala.cli.commands.util
 
-import scala.build.errors.MainClassError
+import scala.build.errors.BuildException
 import scala.build.{Build, Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
@@ -11,7 +11,7 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
     def retainedMainClass(
       logger: Logger,
       mainClasses: Seq[String] = successfulBuild.foundMainClasses()
-    ): Either[MainClassError, String] =
+    ): Either[BuildException, String] =
       successfulBuild.retainedMainClass(
         mainClasses,
         self.argvOpt.map(_.mkString(" ")).getOrElse(actualFullCommand),

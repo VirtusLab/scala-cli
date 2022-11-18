@@ -4,6 +4,7 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.build.interactive.Interactive.*
 import scala.cli.commands.tags
 
 // format: off
@@ -25,6 +26,8 @@ final case class VerbosityOptions(
 
   lazy val verbosity = Tag.unwrap(verbose)
 
+  def interactiveInstance(forceEnable: Boolean = false) =
+    if (interactive.getOrElse(forceEnable)) InteractiveAsk else InteractiveNop
 }
 
 object VerbosityOptions {

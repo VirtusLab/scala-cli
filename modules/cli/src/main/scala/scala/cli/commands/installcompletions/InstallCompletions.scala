@@ -10,8 +10,6 @@ import java.util
 import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {

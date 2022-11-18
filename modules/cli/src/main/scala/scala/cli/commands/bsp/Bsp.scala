@@ -14,8 +14,6 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -78,7 +76,7 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val configDb = options.shared.configDb
+    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

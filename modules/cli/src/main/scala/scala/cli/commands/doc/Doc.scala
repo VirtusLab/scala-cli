@@ -15,8 +15,6 @@ import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
@@ -39,7 +37,7 @@ object Doc extends ScalaCommand[DocOptions] {
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 
-    val configDb = options.shared.configDb
+    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -91,20 +89,24 @@ object Doc extends ScalaCommand[DocOptions] {
     val destPath      = os.Path(dest, Os.pwd)
     val printableDest = CommandUtils.printablePath(destPath)
 
-    def alreadyExistsCheck(): Unit = {
+    def alreadyExistsCheck(): Either[BuildException, Unit] = {
       val alreadyExists = !force && os.exists(destPath)
       if (alreadyExists)
-        InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
-          val msg = s"$printableDest already exists"
-          System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
-          sys.exit(1)
+        build.options.interactive.map { interactive =>
+          InteractiveFileOps.erasingPath(interactive, printableDest, destPath) { () =>
+            val msg = s"$printableDest already exists"
+            System.err.println(s"Error: $msg. Pass -f or --force to force erasing it.")
+            sys.exit(1)
+          }
         }
+      else
+        Right(())
     }
 
-    alreadyExistsCheck()
+    value(alreadyExistsCheck())
 
     val docJarPath = value(generateScaladocDirPath(build, logger, extraArgs))
-    alreadyExistsCheck()
+    value(alreadyExistsCheck())
     if (force) os.copy.over(docJarPath, destPath)
     else os.copy(docJarPath, destPath)
 

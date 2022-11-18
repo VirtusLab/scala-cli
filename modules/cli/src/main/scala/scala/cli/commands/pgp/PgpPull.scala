@@ -5,7 +5,6 @@ import caseapp.core.RemainingArgs
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.pgp.KeyServer
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 
 object PgpPull extends ScalaCommand[PgpPullOptions] {

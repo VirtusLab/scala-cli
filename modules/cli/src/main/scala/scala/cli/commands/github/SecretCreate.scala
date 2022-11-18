@@ -11,7 +11,6 @@ import java.util.Base64
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{PasswordOption, Secret}

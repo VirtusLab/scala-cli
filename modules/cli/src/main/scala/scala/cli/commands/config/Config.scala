@@ -9,7 +9,6 @@ import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{

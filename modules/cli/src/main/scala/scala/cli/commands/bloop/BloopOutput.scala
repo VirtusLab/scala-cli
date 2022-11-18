@@ -7,8 +7,6 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 
 object BloopOutput extends ScalaCommand[BloopOutputOptions] {
   

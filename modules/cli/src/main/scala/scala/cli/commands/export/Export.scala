@@ -13,7 +13,6 @@ import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.exportCmd.*
 
 object Export extends ScalaCommand[ExportOptions] {

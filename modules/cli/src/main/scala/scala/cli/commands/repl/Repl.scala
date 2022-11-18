@@ -17,8 +17,6 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.{maybePrintSimpleScalacOutput, orPythonDetectionError}
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.util.Properties
@@ -161,7 +159,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       )
 
     val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
-    val configDb = options.shared.configDb
+    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

@@ -13,7 +13,6 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
-import scala.cli.commands.util.CommonOps.*
 import scala.concurrent.duration.*
 import scala.util.control.NonFatal
 

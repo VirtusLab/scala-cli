@@ -7,7 +7,6 @@ import java.io.File
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.{CustomWindowsEnvVarUpdater, ScalaCommand}
 import scala.util.Properties
 

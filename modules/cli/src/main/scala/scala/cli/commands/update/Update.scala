@@ -8,8 +8,6 @@ import coursier.core
 import scala.build.Logger
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.VerbosityOptionsUtil.*
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret

@@ -19,9 +19,6 @@ import scala.cli.commands.run.RunMode
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.update.Update
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.MainClassOptionsUtil.*
-import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
@@ -190,7 +187,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val configDb = options.shared.configDb
+    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

@@ -4,7 +4,9 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.build.{Logger, Os}
 import scala.cli.commands.tags
+import scala.cli.internal.CliLogger
 
 // format: off
 final case class LoggingOptions(
@@ -23,6 +25,8 @@ final case class LoggingOptions(
   // format: on
 
   lazy val verbosity = verbosityOptions.verbosity - (if (quiet) 1 else 0)
+
+  lazy val logger: Logger = new CliLogger(verbosity, quiet, progress, System.err)
 }
 
 object LoggingOptions {
