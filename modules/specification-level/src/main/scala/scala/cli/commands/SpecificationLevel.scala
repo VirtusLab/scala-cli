@@ -1,8 +1,5 @@
 package scala.cli.commands
 
-import caseapp.annotation.Tag
-import os.copy
-
 sealed trait SpecificationLevel extends Product with Serializable {
   def md = toString() + " have"
 }

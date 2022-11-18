@@ -39,18 +39,19 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli extends Cli
 
-object `cli-options`  extends CliOptions
-object `build-macros` extends BuildMacros
-object config         extends Cross[Config](Scala.all: _*)
-object options        extends Options
-object scalaparse     extends ScalaParse
-object directives     extends Directives
-object core           extends Core
-object `build-module` extends Build
-object runner         extends Cross[Runner](Scala.runnerScalaVersions: _*)
-object `test-runner`  extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
-object `bloop-rifle`  extends Cross[BloopRifle](Scala.all: _*)
-object `tasty-lib`    extends Cross[TastyLib](Scala.all: _*)
+object `specification-level` extends SpecificationLevel
+object `cli-options`         extends CliOptions
+object `build-macros`        extends BuildMacros
+object config                extends Cross[Config](Scala.all: _*)
+object options               extends Options
+object scalaparse            extends ScalaParse
+object directives            extends Directives
+object core                  extends Core
+object `build-module`        extends Build
+object runner                extends Cross[Runner](Scala.runnerScalaVersions: _*)
+object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
+object `bloop-rifle`         extends Cross[BloopRifle](Scala.all: _*)
+object `tasty-lib`           extends Cross[TastyLib](Scala.all: _*)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
 // Logic to process classes that is shared between build and the scala-cli itself
@@ -416,7 +417,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     options,
     core,
     `build-macros`,
-    `cli-options`
+    `specification-level`
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -639,6 +640,18 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
+trait SpecificationLevel extends SbtModule with ScalaCliPublishModule {
+  def scalacOptions = T {
+    val sv         = scalaVersion()
+    val isScala213 = sv.startsWith("2.13.")
+    val extraOptions =
+      if (isScala213) Seq("-Xsource:3")
+      else Nil
+    super.scalacOptions() ++ extraOptions
+  }
+  def scalaVersion = Scala.defaultInternal
+}
+
 trait CliOptions extends SbtModule with ScalaCliPublishModule {
   def scalacOptions = T {
     val sv         = scalaVersion()
@@ -648,6 +661,9 @@ trait CliOptions extends SbtModule with ScalaCliPublishModule {
       else Nil
     super.scalacOptions() ++ extraOptions
   }
+  def moduleDeps = Seq(
+    `specification-level`
+  )
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
     Deps.jsoniterCore213,
@@ -751,6 +767,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def moduleDeps = Seq(
     `build-module`,
+    `cli-options`,
     config(Scala.scala3),
     `scala3-graal`(Scala.scala3)
   )
