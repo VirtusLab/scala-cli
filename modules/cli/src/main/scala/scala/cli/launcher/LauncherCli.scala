@@ -11,9 +11,8 @@ import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.{CoursierOptions, LoggingOptions}
-import scala.cli.{CurrentParams, ScalaCli}
+import scala.cli.ScalaCli
+import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
 import scala.concurrent.duration.*
 import scala.util.control.NonFatal
 

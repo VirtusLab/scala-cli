@@ -5,13 +5,7 @@ import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.{
-  CommandUtils,
-  CustomWindowsEnvVarUpdater,
-  InstallHomeOptions,
-  ScalaCommand
-}
+import scala.cli.commands.{CommandUtils, CustomWindowsEnvVarUpdater, ScalaCommand}
 import scala.io.StdIn.readLine
 import scala.util.Properties
 

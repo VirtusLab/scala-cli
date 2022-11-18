@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.RuntimeCommandsHelp
 
 import scala.build.Logger
-import scala.cli.ScalaCliHelp
+import scala.cli.commands.shared.{HelpOptions, ScalaCliHelp}
 
 class HelpCmd(actualHelp: => RuntimeCommandsHelp) extends ScalaCommand[HelpOptions] {
   override def names                   = List(List("help"))

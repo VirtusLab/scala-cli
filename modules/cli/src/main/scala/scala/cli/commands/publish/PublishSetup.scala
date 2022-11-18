@@ -13,8 +13,8 @@ import scala.build.{CrossSources, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.{ScalaCliSttpBackend, SharedOptionsUtil}
+import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Constants
@@ -44,7 +44,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val inputArgs = args.all
 
     val inputs = {
-      val maybeInputs = SharedOptionsUtil.inputs(
+      val maybeInputs = SharedOptions.inputs(
         inputArgs,
         () => None,
         Nil,

@@ -15,7 +15,6 @@ import scala.build.internal.{
   Runner
 }
 import scala.cli.ScalaCli
-import scala.cli.commands.util.CommonOps._
 import scala.cli.commands.util.JvmUtils
 import scala.util.Properties
 

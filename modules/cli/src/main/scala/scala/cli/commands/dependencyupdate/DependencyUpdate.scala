@@ -9,8 +9,8 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{DependencyUpdateOptions, ScalaCommand, SharedOptions}
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.SharedOptions
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group                   = "Main"

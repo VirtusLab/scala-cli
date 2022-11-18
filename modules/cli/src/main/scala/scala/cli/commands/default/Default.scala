@@ -6,12 +6,12 @@ import caseapp.core.{Error, RemainingArgs}
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
-import scala.cli.commands.repl.Repl
-import scala.cli.commands.run.Run
-import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.CurrentParams
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.repl.{Repl, ReplOptions}
+import scala.cli.commands.run.{Run, RunOptions}
+import scala.cli.commands.shared.{ScalaCliHelp, SharedOptions}
 import scala.cli.commands.version.Version
-import scala.cli.commands.{DefaultOptions, ReplOptions, RunOptions, ScalaCommand, SharedOptions}
-import scala.cli.{CurrentParams, ScalaCliHelp}
 
 class Default(
   actualHelp: => RuntimeCommandsHelp,

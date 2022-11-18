@@ -11,8 +11,8 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{ExportOptions, ScalaCommand, SharedOptions}
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.exportCmd.*
 
 object Export extends ScalaCommand[ExportOptions] {

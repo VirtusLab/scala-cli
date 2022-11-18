@@ -5,8 +5,8 @@ import caseapp.core.RemainingArgs
 import scala.build.options.BuildOptions
 import scala.build.{BuildThreads, Logger}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{ScalaCommand, SharedOptions}
+import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.config.ConfigDb
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {

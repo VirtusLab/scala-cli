@@ -36,7 +36,7 @@ object RunHadoop {
         None,
         providedModules,
         withPreamble = false,
-        () => (),
+        () => Right(()),
         logger
       )
     }

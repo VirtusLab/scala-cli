@@ -37,18 +37,9 @@ import scala.cli.commands.package0.{Package => PackageCmd}
 import scala.cli.commands.pgp.PgpExternalCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.MainClassOptionsUtil.*
-import scala.cli.commands.util.PublishUtils.*
-import scala.cli.commands.util.SharedOptionsUtil.*
+import scala.cli.commands.shared.{MainClassOptions, SharedOptions, SharedPythonOptions}
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
-import scala.cli.commands.{
-  MainClassOptions,
-  ScalaCommand,
-  SharedOptions,
-  SharedPythonOptions,
-  WatchUtil
-}
+import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
@@ -199,7 +190,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val cross = options.compileCross.cross.getOrElse(false)
 
-    lazy val configDb = options.shared.configDb
+    lazy val configDb = options.shared.configDb.orExit(logger)
 
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)

@@ -538,7 +538,8 @@ final case class BuildOptions(
     }
   }
 
-  lazy val interactive: Interactive = internal.interactive.getOrElse(() => InteractiveNop)()
+  lazy val interactive: Either[BuildException, Interactive] =
+    internal.interactive.map(_()).getOrElse(Right(InteractiveNop))
 }
 
 object BuildOptions {

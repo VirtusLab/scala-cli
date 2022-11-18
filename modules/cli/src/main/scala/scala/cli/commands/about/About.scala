@@ -6,9 +6,8 @@ import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
 import scala.cli.commands.update.Update
-import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.version.Version
-import scala.cli.commands.{AboutOptions, CommandUtils, ScalaCommand}
+import scala.cli.commands.{CommandUtils, ScalaCommand}
 
 object About extends ScalaCommand[AboutOptions] {
 

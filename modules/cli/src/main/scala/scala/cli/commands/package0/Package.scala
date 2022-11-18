@@ -31,19 +31,9 @@ import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.Run.orPythonDetectionError
+import scala.cli.commands.shared.{MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
-import scala.cli.commands.util.CommonOps.SharedDirectoriesOptionsOps
-import scala.cli.commands.util.MainClassOptionsUtil.*
-import scala.cli.commands.util.PackageOptionsUtil.*
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{
-  CommandUtils,
-  MainClassOptions,
-  PackageOptions,
-  ScalaCommand,
-  SharedOptions,
-  WatchUtil
-}
+import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
@@ -69,7 +59,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
     val cross    = options.compileCross.cross.getOrElse(false)
-    val configDb = options.shared.configDb
+    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -275,21 +265,25 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val destPath      = os.Path(dest, Os.pwd)
       val printableDest = CommandUtils.printablePath(destPath)
 
-      def alreadyExistsCheck(): Unit = {
+      def alreadyExistsCheck(): Either[BuildException, Unit] = {
         val alreadyExists = !force &&
           os.exists(destPath) &&
           !expectedModifyEpochSecondOpt.contains(os.mtime(destPath))
         if (alreadyExists)
-          InteractiveFileOps.erasingPath(build.options.interactive, printableDest, destPath) { () =>
-            val errorMsg =
-              if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
-              else s"$printableDest was overwritten by another process"
-            System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
-            sys.exit(1)
+          build.options.interactive.map { interactive =>
+            InteractiveFileOps.erasingPath(interactive, printableDest, destPath) { () =>
+              val errorMsg =
+                if (expectedModifyEpochSecondOpt.isEmpty) s"$printableDest already exists"
+                else s"$printableDest was overwritten by another process"
+              System.err.println(s"Error: $errorMsg. Pass -f or --force to force erasing it.")
+              sys.exit(1)
+            }
           }
+        else
+          Right(())
       }
 
-      alreadyExistsCheck()
+      value(alreadyExistsCheck())
 
       def mainClass: Either[BuildException, String] =
         build.options.mainClass match {
@@ -306,24 +300,24 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
       val outputPath = packageType match {
         case PackageType.Bootstrap =>
-          bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck())
+          value(bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck()))
           destPath
         case PackageType.LibraryJar =>
           val content = Library.libraryJar(build)
-          alreadyExistsCheck()
+          value(alreadyExistsCheck())
           if (force) os.write.over(destPath, content)
           else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.SourceJar =>
           val now     = System.currentTimeMillis()
           val content = sourceJar(build, now)
-          alreadyExistsCheck()
+          value(alreadyExistsCheck())
           if (force) os.write.over(destPath, content, createFolders = true)
           else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
           val docJarPath = value(docJar(build, logger, extraArgs))
-          alreadyExistsCheck()
+          value(alreadyExistsCheck())
           if (force) os.copy.over(docJarPath, destPath, createFolders = true)
           else os.copy(docJarPath, destPath, createFolders = true)
           destPath
@@ -397,7 +391,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
         case nativePackagerType: PackageType.NativePackagerType =>
           val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-          bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck())
+          value(bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck()))
           val sharedSettings = SharedSettings(
             sourceAppPath = bootstrapPath,
             version = packageOptions.packageVersion,
@@ -633,7 +627,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
-      case Platform.JVM => bootstrap(build, appPath, mainClass, () => ())
+      case Platform.JVM => value(bootstrap(build, appPath, mainClass, () => Right(())))
       case Platform.JS  => buildJs(build, appPath, mainClass, logger)
       case Platform.Native =>
         val dest = value(buildNative(build, mainClass, logger))
@@ -675,8 +669,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     build: Build.Successful,
     destPath: os.Path,
     mainClass: String,
-    alreadyExistsCheck: () => Unit
-  ): Unit = {
+    alreadyExistsCheck: () => Either[BuildException, Unit]
+  ): Either[BuildException, Unit] = either {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
       .map { path =>
@@ -718,7 +712,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .withDeterministic(true)
       .withPreamble(preamble)
 
-    alreadyExistsCheck()
+    value(alreadyExistsCheck())
     BootstrapGenerator.generate(params, destPath.toNIO)
     ProcUtil.maybeUpdatePreamble(destPath)
   }
@@ -781,7 +775,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     mainClassOpt: Option[String],
     extraProvided: Seq[dependency.AnyModule],
     withPreamble: Boolean,
-    alreadyExistsCheck: () => Unit,
+    alreadyExistsCheck: () => Either[BuildException, Unit],
     logger: Logger
   ): Either[BuildException, Unit] = either {
     val byteCodeZipEntries = os.walk(build.output)
@@ -819,7 +813,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .withFiles(files.map(_.toIO))
       .withMainClass(mainClassOpt)
       .withPreambleOpt(preambleOpt)
-    alreadyExistsCheck()
+    value(alreadyExistsCheck())
     AssemblyGenerator.generate(params, destPath.toNIO)
     ProcUtil.maybeUpdatePreamble(destPath)
   }

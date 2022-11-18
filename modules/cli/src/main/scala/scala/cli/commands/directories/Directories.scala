@@ -4,8 +4,7 @@ import caseapp.*
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.{DirectoriesOptions, ScalaCommand}
+import scala.cli.commands.ScalaCommand
 
 object Directories extends ScalaCommand[DirectoriesOptions] {
   override def hidden: Boolean = true

@@ -4,6 +4,7 @@ import coursier.cache.FileCache
 import coursier.util.Task
 
 import scala.build.Positioned
+import scala.build.errors.BuildException
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.InteractiveNop
 
@@ -14,7 +15,7 @@ final case class InternalOptions(
   verbosity: Option[Int] = None,
   // FIXME Should be removed, not a real option (not meant to be set from using directives)
   strictBloopJsonCheck: Option[Boolean] = None,
-  interactive: Option[() => Interactive] = None,
+  interactive: Option[() => Either[BuildException, Interactive]] = None,
   javaClassNameVersionOpt: Option[String] = None,
   /** Whether to keep the coursier.Resolution instance in [[scala.build.Artifacts]]
     *

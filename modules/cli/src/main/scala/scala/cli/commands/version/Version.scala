@@ -5,7 +5,7 @@ import caseapp.*
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
-import scala.cli.commands.{ScalaCommand, VersionOptions}
+import scala.cli.commands.ScalaCommand
 
 object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"

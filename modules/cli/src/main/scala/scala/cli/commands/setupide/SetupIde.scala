@@ -15,15 +15,8 @@ import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.util.CommonOps.*
-import scala.cli.commands.util.SharedOptionsUtil.*
-import scala.cli.commands.{
-  CommandUtils,
-  ScalaCommand,
-  SetupIdeOptions,
-  SharedBspFileOptions,
-  SharedOptions
-}
+import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
+import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.errors.FoundVirtualInputsError
 import scala.jdk.CollectionConverters.*
 
