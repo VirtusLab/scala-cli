@@ -13,7 +13,8 @@ import scala.cli.commands.util.SharedOptionsUtil.*
 import scala.cli.commands.{DependencyUpdateOptions, ScalaCommand, SharedOptions}
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
-  override def group = "Main"
+  override def group                   = "Main"
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
     Some(options.shared)
   override def runCommand(

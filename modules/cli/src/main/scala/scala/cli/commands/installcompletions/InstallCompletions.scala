@@ -19,6 +19,9 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     List("install", "completions"),
     List("install-completions")
   )
+
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   override def runCommand(
     options: InstallCompletionsOptions,
     args: RemainingArgs,

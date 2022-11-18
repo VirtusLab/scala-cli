@@ -21,23 +21,28 @@ final case class SharedRunOptions(
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
   @Group("Run")
   @Hidden
-  @HelpMessage("[experimental] Run as a Spark job, using the spark-submit command")
+  @Tag(tags.experimental)
+  @HelpMessage("Run as a Spark job, using the spark-submit command")
   @ExtraName("spark")
     sparkSubmit: Option[Boolean] = None,
   @Group("Run")
   @Hidden
-  @HelpMessage("[experimental] spark-submit arguments")
+  @Tag(tags.experimental)
+  @HelpMessage("Spark-submit arguments")
   @ExtraName("submitArg")
     submitArgument: List[String] = Nil,
   @Group("Run")
-  @HelpMessage("[experimental] Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
+  @Tag(tags.experimental)
+  @HelpMessage("Run as a Spark job, using a vanilla Spark distribution downloaded by Scala CLI")
   @ExtraName("sparkStandalone")
     standaloneSpark: Option[Boolean] = None,
   @Group("Run")
-  @HelpMessage("[experimental] Run as a Hadoop job, using the \"hadoop jar\" command")
+  @Tag(tags.experimental)
+  @HelpMessage("Run as a Hadoop job, using the \"hadoop jar\" command")
   @ExtraName("hadoop")
     hadoopJar: Boolean = false,
   @Group("Run")
+  @Tag(tags.should)
   @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
     command: Boolean = false,
   @Group("Run")
@@ -45,6 +50,7 @@ final case class SharedRunOptions(
     scratchDir: Option[String] = None,
   @Group("Run")
   @Hidden
+  @Tag(tags.implementation)
   @HelpMessage("Run Java commands using a manifest-based class path (shortens command length)")
     useManifest: Option[Boolean] = None
 )

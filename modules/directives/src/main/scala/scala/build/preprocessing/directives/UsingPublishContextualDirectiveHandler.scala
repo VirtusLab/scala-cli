@@ -20,7 +20,8 @@ case object UsingPublishContextualDirectiveHandler extends UsingDirectiveHandler
   def name        = "Publish (contextual)"
   def description = "Set contextual parameters for publishing"
   def usage       = s"//> using $prefix[$ciPrefix](computeVersion|repository|secretKey|…) [value]"
-  override def isRestricted = true
+
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   override def usageMd =
     s"""`//> using ${prefix}computeVersion `"value"

@@ -10,8 +10,11 @@ import scala.cli.commands.util.SharedCompilationServerOptionsUtil.*
 import scala.cli.commands.{CoursierOptions, LoggingOptions, ScalaCommand}
 
 object BloopOutput extends ScalaCommand[BloopOutputOptions] {
+  
   override def hidden       = true
-  override def isRestricted = true
+  
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  
   override def names: List[List[String]] = List(
     List("bloop", "output")
   )

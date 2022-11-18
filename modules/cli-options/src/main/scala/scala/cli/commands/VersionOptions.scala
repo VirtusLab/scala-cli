@@ -9,10 +9,12 @@ import scala.cli.commands.common.HasLoggingOptions
 final case class VersionOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Tag(tags.implementation)
   @HelpMessage("Show only plain version")
   @Name("cli")
     cliVersion: Boolean = false,
   @HelpMessage("Show only plain scala version") 
+  @Tag(tags.implementation)
   @Name("scala")
     scalaVersion: Boolean = false
 ) extends HasLoggingOptions

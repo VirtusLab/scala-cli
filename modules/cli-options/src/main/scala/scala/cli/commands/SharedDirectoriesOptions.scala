@@ -7,6 +7,8 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 // format: off
 final case class SharedDirectoriesOptions(
   @Name("home")
+  @HelpMessage("Override the path to user's home directory")
+  @Tag(tags.implementation)
     homeDirectory: Option[String] = None
 )
 // format: on

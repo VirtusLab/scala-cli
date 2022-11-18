@@ -5,7 +5,8 @@ import caseapp.*
 // format: off
 final case class MarkdownOptions(
   @Group("Markdown")
-  @HelpMessage("[experimental] Enable markdown support.")
+  @Tag(tags.experimental)
+  @HelpMessage("Enable markdown support.")
   @Name("md")
   @Name("markdown")
     enableMarkdown: Boolean = false // TODO: add a separate scope for Markdown and remove this option once it's stable

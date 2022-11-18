@@ -53,8 +53,8 @@ import scala.util.Properties
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name                                                          = "package"
   override def group                                                         = "Main"
-  override def isRestricted                                                  = true
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def buildOptions(options: PackageOptions): Option[BuildOptions] =
     Some(options.baseBuildOptions.orExit(options.shared.logger))
   override def runCommand(options: PackageOptions, args: RemainingArgs, logger: Logger): Unit = {

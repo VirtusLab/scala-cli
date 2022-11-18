@@ -10,17 +10,17 @@ import java.util.Base64
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.CommonOps.*
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def hidden       = false
-  override def isRestricted = true
+  override def hidden                  = false
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def names = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")

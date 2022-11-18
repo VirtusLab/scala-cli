@@ -13,6 +13,10 @@ import scala.cli.commands.{AboutOptions, CommandUtils, ScalaCommand}
 object About extends ScalaCommand[AboutOptions] {
 
   override def group                                                         = "Miscellaneous"
+
+  override def scalaSpecificationLevel                         = SpecificationLevel.IMPLEMENTATION
+  
+
   override def runCommand(options: AboutOptions, args: RemainingArgs, logger: Logger): Unit = {
     println(Version.versionInfo)
     val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))

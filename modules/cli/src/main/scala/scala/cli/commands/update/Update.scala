@@ -18,6 +18,8 @@ import scala.util.control.NonFatal
 
 object Update extends ScalaCommand[UpdateOptions] {
 
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
   private final case class Release(
     draft: Boolean,
     prerelease: Boolean,

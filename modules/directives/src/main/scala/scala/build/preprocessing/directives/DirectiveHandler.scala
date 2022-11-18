@@ -15,6 +15,7 @@ import scala.build.preprocessing.directives.UsingDirectiveValueKind.{
   STRING,
   UsingDirectiveValueKind
 }
+import scala.cli.commands.SpecificationLevel
 
 trait DirectiveHandler[T] {
   def name: String
@@ -27,7 +28,10 @@ trait DirectiveHandler[T] {
   /** Is this directive an advanved feature, that will not be accessible when running scala-cli as
     * `scala`
     */
-  def isRestricted: Boolean
+  def scalaSpecificationLevel: SpecificationLevel
+  protected def SpecificationLevel = scala.cli.commands.SpecificationLevel
+
+  final def isRestricted: Boolean = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
 
   def keys: Seq[String]
 

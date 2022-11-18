@@ -63,8 +63,8 @@ import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
-  override def group: String         = "Main"
-  override def isRestricted: Boolean = true
+  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def group: String           = "Main"
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 

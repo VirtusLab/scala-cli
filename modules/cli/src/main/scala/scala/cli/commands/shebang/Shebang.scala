@@ -10,8 +10,12 @@ import scala.cli.commands.{ScalaCommand, SharedOptions, ShebangOptions}
 
 object Shebang extends ScalaCommand[ShebangOptions] {
   override def stopAtFirstUnrecognized: Boolean = true
+
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
+
   override def sharedOptions(options: ShebangOptions): Option[SharedOptions] =
     Run.sharedOptions(options.runOptions)
+
   override def runCommand(options: ShebangOptions, args: RemainingArgs, logger: Logger): Unit =
     Run.runCommand(
       options.runOptions,

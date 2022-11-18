@@ -5,8 +5,10 @@ import caseapp.*
 // format: off
 final case class SharedInputOptions(
   @Hidden
+  @Tag(tags.implementation)
     defaultForbiddenDirectories: Boolean = true,
   @Hidden
+  @Tag(tags.implementation)
     forbid: List[String] = Nil
 )
 // format: on

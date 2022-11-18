@@ -20,7 +20,8 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 object Bsp extends ScalaCommand[BspOptions] {
-  override def hidden = true
+  override def hidden                  = true
+  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
   private def latestSharedOptions(options: BspOptions): SharedOptions =
     options.jsonOptions.map { optionsPath =>
       val content = os.read.bytes(os.Path(optionsPath, os.pwd))
