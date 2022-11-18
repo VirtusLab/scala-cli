@@ -230,18 +230,24 @@ object TestUtil {
       .find(_._1.toLowerCase(Locale.ROOT) == "path")
       .getOrElse(("PATH", ""))
     if (Properties.isWin) {
-      val script =
-        s"""@echo off
-           |"${TestUtil.cs}" %*
-           |""".stripMargin
-      os.write(binDir / "cs.bat", script, createFolders = true)
+      val dest = binDir / "cs.bat"
+      if (!os.exists(dest)) {
+        val script =
+          s"""@echo off
+             |"${TestUtil.cs}" %*
+             |""".stripMargin
+        os.write(dest, script, createFolders = true)
+      }
     }
     else {
-      val script =
-        s"""#!/usr/bin/env bash
-           |exec "${TestUtil.cs}" "$$@"
-           |""".stripMargin
-      os.write(binDir / "cs", script, "rwxr-xr-x", createFolders = true)
+      val dest = binDir / "cs"
+      if (!os.exists(dest)) {
+        val script =
+          s"""#!/usr/bin/env bash
+             |exec "${TestUtil.cs}" "$$@"
+             |""".stripMargin
+        os.write(dest, script, "rwxr-xr-x", createFolders = true)
+      }
     }
     Map(pathVarName -> s"$binDir${File.pathSeparator}$currentPath")
   }
