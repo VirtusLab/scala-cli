@@ -1991,6 +1991,25 @@ Whether to exit with code 0 if no key is passed
 ### `--force-signing-binary`
 
 [Internal]
+### Pgp scala signing options
+
+Available in commands:
+
+[`config`](./commands.md#config), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--signing-cli-version`
+
+[Internal]
+### `--signing-cli-java-arg`
+
+[Internal]
+### `--force-jvm-signing-cli`
+
+[Internal]
+Whether to run the Scala Signing CLI on the JVM or using a native executable
+
 ### Pgp sign options
 
 Available in commands:

@@ -39,14 +39,23 @@ class PgpTests extends ScalaCliSuite {
         |""".stripMargin
   )
 
-  test("pgp key-id") {
+  def pgpKeyIdTest(useSigningJvmLauncher: Boolean) =
     pubKeyInputs.fromRoot { root =>
-      val res            = os.proc(TestUtil.cli, "pgp", "key-id", "key.pub").call(cwd = root)
+      val signingCliArgs = if (useSigningJvmLauncher) Seq("--force-jvm-signing-cli") else Seq.empty
+      val res = os.proc(TestUtil.cli, "pgp", "key-id", signingCliArgs, "key.pub").call(cwd = root)
       val output         = res.out.trim()
       val expectedOutput = "914d298df8fa4d20"
       expect(output == expectedOutput)
     }
+
+  test("pgp key-id") {
+    pgpKeyIdTest(false)
   }
+
+  if (TestUtil.isNativeCli)
+    test("pgp key-id - use jvm launcher of signing cli for native Scala CLI") {
+      pgpKeyIdTest(true)
+    }
 
   test("pgp pull") {
     // random key that I pushed to the default ker server at some point

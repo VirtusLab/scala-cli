@@ -1,14 +1,14 @@
 package scala.cli.commands.config
 
-import coursier.cache.Cache
+import coursier.cache.{Cache, FileCache}
 import coursier.util.Task
 
 import java.security.SecureRandom
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.cli.commands.pgp.PgpProxyMaker
+import scala.build.{Logger, options => bo}
+import scala.cli.commands.pgp.{PgpProxyMaker, PgpScalaSigningOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.shared.Secret
 import scala.util.Properties
@@ -32,8 +32,9 @@ object ThrowawayPgpSecret {
     mail: String,
     password: Secret[String],
     logger: Logger,
-    cache: Cache[Task],
-    javaCommand: () => String
+    cache: FileCache[Task],
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, (Secret[String], Secret[Array[Byte]])] = either {
 
     val dir    = os.temp.dir(perms = if (Properties.isWin) null else "rwx------")
@@ -48,7 +49,8 @@ object ThrowawayPgpSecret {
         password.value,
         cache,
         logger,
-        javaCommand
+        javaCommand,
+        signingCliOptions
       )
     }
 

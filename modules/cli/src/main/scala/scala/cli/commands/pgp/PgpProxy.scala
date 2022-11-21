@@ -1,10 +1,10 @@
 package scala.cli.commands.pgp
 
-import coursier.cache.Cache
+import coursier.cache.{Cache, FileCache}
 import coursier.util.Task
 
-import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.{Logger, options => bo}
 import scala.cli.commands.pgp.{PgpCreateExternal, PgpKeyIdExternal}
 import scala.cli.errors.PgpError
 import scala.util.Properties
@@ -16,14 +16,14 @@ class PgpProxy {
     mail: String,
     quiet: Boolean,
     password: String,
-    cache: Cache[Task],
+    cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
     val quietOptions = Nil
     (new PgpCreateExternal).tryRun(
       cache,
-      None,
       Seq(
         "pgp",
         "create",
@@ -39,16 +39,18 @@ class PgpProxy {
       Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> password),
       logger,
       allowExecve = false,
-      javaCommand
+      javaCommand,
+      signingCliOptions
     )
   }
 
   def keyId(
     key: String,
     keyPrintablePath: String,
-    cache: Cache[Task],
+    cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = {
     val keyPath =
       if (Properties.isWin)
@@ -59,11 +61,11 @@ class PgpProxy {
       try {
         (new PgpKeyIdExternal).output(
           cache,
-          None,
           Seq(keyPath.toString),
           Map(),
           logger,
-          javaCommand
+          javaCommand,
+          signingCliOptions
         ).map(_.trim)
       }
       finally os.remove(keyPath)

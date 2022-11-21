@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
+import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
   CrossOptions,
   HasSharedOptions,
@@ -26,7 +27,9 @@ final case class PublishLocalOptions(
   @Recurse
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
-    sharedPython: SharedPythonOptions = SharedPythonOptions()
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
+  @Recurse
+    scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 ) extends HasSharedOptions
 // format: on
 

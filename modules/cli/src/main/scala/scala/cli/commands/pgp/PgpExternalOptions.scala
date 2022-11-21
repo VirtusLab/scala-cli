@@ -17,8 +17,8 @@ final case class PgpExternalOptions(
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
-  @Hidden
-    signingCliVersion: Option[String] = None
+  @Recurse
+    scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions()
 ) extends HasLoggingOptions
 // format: on
 

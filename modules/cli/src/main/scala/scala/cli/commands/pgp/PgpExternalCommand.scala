@@ -1,19 +1,26 @@
 package scala.cli.commands.pgp
 
-import coursier.cache.{ArchiveCache, Cache}
+import coursier.Repositories
+import coursier.cache.{ArchiveCache, Cache, FileCache}
+import coursier.core.Version
 import coursier.util.Task
 import dependency._
 
+import java.io.File
+
 import scala.build.EitherCps.{either, value}
-import scala.build.Logger
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, ScalaJsLinkingError}
+import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{
   Constants,
   ExternalBinary,
   ExternalBinaryParams,
   FetchExternalBinary,
-  Runner
+  Runner,
+  ScalaJsLinkerConfig
 }
+import scala.build.options.scalajs.ScalaJsLinkerOptions
+import scala.build.{Logger, Positioned, options => bo}
 import scala.cli.ScalaCli
 import scala.cli.commands.util.JvmUtils
 import scala.util.Properties
@@ -23,20 +30,26 @@ abstract class PgpExternalCommand extends ExternalCommand {
   def externalCommand: Seq[String]
 
   def tryRun(
-    cache: Cache[Task],
-    versionOpt: Option[String],
+    cache: FileCache[Task],
     args: Seq[String],
     extraEnv: Map[String, String],
     logger: Logger,
     allowExecve: Boolean,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = either {
 
     val archiveCache = ArchiveCache().withCache(cache)
 
-    val binary = value(PgpExternalCommand.launcher(archiveCache, versionOpt, logger, javaCommand))
+    val binary = value(PgpExternalCommand.launcher(
+      cache,
+      archiveCache,
+      logger,
+      javaCommand,
+      signingCliOptions
+    ))
 
-    val command = binary.command ++ externalCommand ++ args
+    val command = binary ++ externalCommand ++ args
 
     Runner.run0(
       progName,
@@ -49,19 +62,25 @@ abstract class PgpExternalCommand extends ExternalCommand {
   }
 
   def output(
-    cache: Cache[Task],
-    versionOpt: Option[String],
+    cache: FileCache[Task],
     args: Seq[String],
     extraEnv: Map[String, String],
     logger: Logger,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = either {
 
     val archiveCache = ArchiveCache().withCache(cache)
 
-    val binary = value(PgpExternalCommand.launcher(archiveCache, versionOpt, logger, javaCommand))
+    val binary = value(PgpExternalCommand.launcher(
+      cache,
+      archiveCache,
+      logger,
+      javaCommand,
+      signingCliOptions
+    ))
 
-    val command = binary.command ++ externalCommand ++ args
+    val command = binary ++ externalCommand ++ args
 
     os.proc(command).call(stdin = os.Inherit, env = extraEnv)
       .out.text()
@@ -82,7 +101,6 @@ abstract class PgpExternalCommand extends ExternalCommand {
     val cache = options.coursier.coursierCache(logger.coursierLogger(""))
     val retCode = tryRun(
       cache,
-      options.signingCliVersion.map(_.trim).filter(_.nonEmpty),
       remainingArgs,
       Map(),
       logger,
@@ -92,7 +110,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
           ArchiveCache().withCache(cache),
           cache,
           logger.verbosity
-        ).value.javaCommand
+        ).value.javaCommand,
+      options.scalaSigning.cliOptions()
     ).orExit(logger)
 
     if (retCode != 0)
@@ -102,33 +121,69 @@ abstract class PgpExternalCommand extends ExternalCommand {
 
 object PgpExternalCommand {
   def launcher(
+    cache: FileCache[Task],
     archiveCache: ArchiveCache[Task],
-    versionOpt: Option[String],
     logger: Logger,
-    javaCommand: () => String
-  ): Either[BuildException, ExternalBinary] = {
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
+  ): Either[BuildException, Seq[String]] = either {
 
-    val platformSuffix = FetchExternalBinary.platformSuffix()
-    val version = versionOpt
-      .getOrElse(Constants.scalaCliSigningVersion)
-    val (tag, changing) =
-      if (version == "latest") ("launchers", true)
-      else ("v" + version, false)
-    val ext = if (Properties.isWin) ".zip" else ".gz"
-    val url =
-      s"https://github.com/scala-cli/scala-cli-signing/releases/download/$tag/scala-cli-signing-$platformSuffix$ext"
+    val version =
+      signingCliOptions.signingCliVersion
+        .getOrElse(Constants.scalaCliSigningVersion)
+    val ver              = if (version.startsWith("latest")) "latest.release" else version
+    val signingMainClass = "scala.cli.signing.ScalaCliSigning"
+    val jvmSigningDep =
+      dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}_3:$ver"
 
-    val ver = if (version.startsWith("latest")) "latest.release" else version
-    val params = ExternalBinaryParams(
-      url,
-      changing,
-      "scala-cli-signing",
-      Seq(
-        dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}:$ver"
-      ),
-      "scala.cli.signing.ScalaCliSigning"
-    )
+    if (signingCliOptions.useJvm.getOrElse(false)) {
+      val extraRepos =
+        if (version.endsWith("SNAPSHOT"))
+          Seq(Repositories.sonatype("snapshots").root)
+        else
+          Nil
 
-    FetchExternalBinary.fetch(params, archiveCache, logger, javaCommand)
+      val signingClassPath = value {
+        scala.build.Artifacts.fetch0(
+          Positioned.none(Seq(jvmSigningDep.toCs)),
+          extraRepos,
+          None,
+          Nil,
+          logger,
+          cache,
+          None
+        )
+      }.files
+
+      val command = Seq[os.Shellable](
+        javaCommand(),
+        signingCliOptions.javaArgs,
+        "-cp",
+        signingClassPath.map(_.getAbsolutePath).mkString(File.pathSeparator),
+        signingMainClass
+      )
+
+      command.flatMap(_.value)
+    }
+    else {
+      val platformSuffix = FetchExternalBinary.platformSuffix()
+      val (tag, changing) =
+        if (version == "latest") ("launchers", true)
+        else ("v" + version, false)
+      val ext = if (Properties.isWin) ".zip" else ".gz"
+      val url =
+        s"https://github.com/scala-cli/scala-cli-signing/releases/download/$tag/scala-cli-signing-$platformSuffix$ext"
+      val params = ExternalBinaryParams(
+        url,
+        changing,
+        "scala-cli-signing",
+        Seq(jvmSigningDep),
+        signingMainClass
+      )
+      val binary = value {
+        FetchExternalBinary.fetch(params, archiveCache, logger, javaCommand)
+      }
+      binary.command
+    }
   }
 }

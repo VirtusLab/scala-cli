@@ -8,6 +8,7 @@ import java.util.Base64
 import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
+import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
@@ -75,7 +76,8 @@ object Config extends ScalaCommand[ConfigOptions] {
                     ArchiveCache().withCache(coursierCache),
                     coursierCache,
                     logger.verbosity
-                  ).value.javaCommand
+                  ).value.javaCommand,
+                options.scalaSigning.cliOptions()
               ).orExit(logger)
             val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 

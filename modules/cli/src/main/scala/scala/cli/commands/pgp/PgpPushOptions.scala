@@ -19,6 +19,8 @@ final case class PgpPushOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
+  @Recurse
+    scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
   @Group("PGP")
   @HelpMessage("Try to push the key even if Scala CLI thinks it's not a public key")

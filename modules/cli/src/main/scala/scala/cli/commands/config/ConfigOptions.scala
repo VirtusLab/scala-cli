@@ -2,6 +2,7 @@ package scala.cli.commands.config
 
 import caseapp.*
 
+import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
   CoursierOptions,
   HasLoggingOptions,
@@ -20,7 +21,8 @@ final case class ConfigOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
-
+  @Recurse
+    scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
   @Group("Config")
   @HelpMessage("Dump config DB as JSON")
   @Hidden

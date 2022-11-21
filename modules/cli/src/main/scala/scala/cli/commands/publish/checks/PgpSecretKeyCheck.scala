@@ -114,7 +114,8 @@ final case class PgpSecretKeyCheck(
                       password,
                       logger,
                       coursierCache,
-                      value(javaCommand)
+                      value(javaCommand),
+                      options.scalaSigning.cliOptions()
                     )
                   }
                   val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
@@ -150,7 +151,8 @@ final case class PgpSecretKeyCheck(
                 "[generated key]",
                 coursierCache,
                 logger,
-                value(javaCommand)
+                value(javaCommand),
+                options.scalaSigning.cliOptions()
               )
             }
             val keyServers = value {

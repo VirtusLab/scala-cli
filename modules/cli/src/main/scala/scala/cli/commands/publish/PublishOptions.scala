@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
+import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.*
 
 // format: off
@@ -22,6 +23,8 @@ final case class PublishOptions(
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
+  @Recurse
+    signingCli: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
   @Group("Publishing")
   @Hidden
