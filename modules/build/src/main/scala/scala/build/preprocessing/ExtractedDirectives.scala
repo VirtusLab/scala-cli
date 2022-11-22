@@ -9,6 +9,7 @@ import com.virtuslab.using_directives.custom.model.{
 import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
 import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
+import scala.annotation.targetName
 import scala.build.errors.*
 import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
@@ -18,7 +19,11 @@ import scala.jdk.CollectionConverters.*
 case class ExtractedDirectives(
   offset: Int,
   directives: Seq[StrictDirective]
-)
+) {
+  @targetName("append")
+  def ++(other: ExtractedDirectives): ExtractedDirectives =
+    ExtractedDirectives(offset, directives ++ other.directives)
+}
 
 object ExtractedDirectives {
 

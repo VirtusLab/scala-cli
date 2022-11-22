@@ -61,7 +61,7 @@ object MarkdownCodeBlock {
   def findCodeBlocks(
     subPath: os.SubPath,
     md: String,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: BuildException => Option[BuildException] = Some(_)
   ): Either[BuildException, Seq[MarkdownCodeBlock]] = {
     val allLines = md
       .lines()

@@ -139,4 +139,140 @@ class MarkdownTests extends ScalaCliSuite {
       expect(result.out.trim() == expectedOutput)
     }
   }
+  test("run a simple .md file with a using directive in a scala script snippet") {
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |A simple scala script snippet.
+           |```scala
+           |//> using lib "com.lihaoyi::os-lib:0.8.1"
+           |println(os.pwd)
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      expect(result.out.trim() == root.toString())
+    }
+  }
+
+  test("run a simple .md file with a using directive in a scala raw snippet") {
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |A simple scala raw snippet.
+           |```scala raw
+           |//> using lib "com.lihaoyi::os-lib:0.8.1"
+           |object Hello extends App {
+           |  println(os.pwd)
+           |}
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      expect(result.out.trim() == root.toString())
+    }
+  }
+
+  test("run a simple .md file with multiple using directives spread across scala script snippets") {
+    val msg1 = "Hello"
+    val msg2 = "world"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |Let's try to spread the using directives into multiple simple `scala` code blocks of various kinds.
+           |
+           |## Circe
+           |Let's depend on `circe-parser` in this one.
+           |```scala
+           |//> using lib "io.circe::circe-parser:0.14.3"
+           |import io.circe._, io.circe.parser._
+           |val json = \"\"\"{ "message": "$msg1"}\"\"\"
+           |val parsed = parse(json).getOrElse(Json.Null)
+           |val msg = parsed.hcursor.downField("message").as[String].getOrElse("")
+           |println(msg)
+           |```
+           |
+           |## `pprint`
+           |And `pprint`, too.
+           |```scala
+           |//> using lib "com.lihaoyi::pprint:0.8.0"
+           |pprint.PPrinter.BlackWhite.pprintln("$msg2")
+           |```
+           |
+           |## `os-lib`
+           |And then on `os-lib`, just because.
+           |And let's reset the scope for good measure, too.
+           |```scala reset
+           |//> using lib "com.lihaoyi::os-lib:0.8.1"
+           |val msg = os.pwd.toString
+           |println(msg)
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val expectedOutput =
+        s"""$msg1
+           |"$msg2"
+           |$root""".stripMargin
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
+
+  test("run a simple .md file with multiple using directives spread across scala raw snippets") {
+    val msg1 = "Hello"
+    val msg2 = "world"
+    TestInputs(
+      os.rel / "sample.md" ->
+        s"""# Sample Markdown file
+           |Let's try to spread the using directives into multiple simple `scala` code blocks of various kinds.
+           |
+           |## Circe
+           |Let's depend on `circe-parser` in this one.
+           |```scala raw
+           |//> using lib "io.circe::circe-parser:0.14.3"
+           |
+           |object CirceSnippet {
+           |  import io.circe._, io.circe.parser._
+           |
+           |  def printStuff(): Unit = {
+           |    val json = \"\"\"{ "message": "$msg1"}\"\"\"
+           |    val parsed = parse(json).getOrElse(Json.Null)
+           |    val msg = parsed.hcursor.downField("message").as[String].getOrElse("")
+           |    println(msg)
+           |  }
+           |}
+           |```
+           |
+           |## `pprint`
+           |And `pprint`, too.
+           |```scala raw
+           |//> using lib "com.lihaoyi::pprint:0.8.0"
+           |object PprintSnippet {
+           |  def printStuff(): Unit =
+           |    pprint.PPrinter.BlackWhite.pprintln("$msg2")
+           |}
+           |```
+           |
+           |## `os-lib`
+           |And then on `os-lib`, just because.
+           |And let's reset the scope for good measure, too.
+           |```scala raw
+           |//> using lib "com.lihaoyi::os-lib:0.8.1"
+           |
+           |object OsLibSnippet extends App {
+           |  CirceSnippet.printStuff()
+           |  PprintSnippet.printStuff()
+           |  println(os.pwd)
+           |}
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val expectedOutput =
+        s"""$msg1
+           |"$msg2"
+           |$root""".stripMargin
+      expect(result.out.trim() == expectedOutput)
+    }
+  }
 }
