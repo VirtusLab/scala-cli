@@ -1,42 +1,47 @@
 package scala.build.internal.markdown
 
 import scala.annotation.tailrec
-import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.internal.{AmmUtil, Name}
+import scala.build.preprocessing.{
+  ExtractedDirectives,
+  PreprocessedMarkdown,
+  PreprocessedMarkdownCodeBlocks
+}
 
 /** A util for extraction and wrapping of code blocks in Markdown files.
   */
 object MarkdownCodeWrapper {
+
+  case class WrappedMarkdownCode(
+    code: String,
+    directives: ExtractedDirectives = ExtractedDirectives.empty
+  )
 
   /** Extracts scala code blocks from Markdown snippets, divides them into 3 categories and wraps
     * when necessary.
     *
     * @param subPath
     *   the project [[os.SubPath]] to the Markdown file
-    * @param content
-    *   Markdown code
+    * @param markdown
+    *   preprocessed Markdown code blocks
     * @return
-    *   a tuple of (Option(simple scala snippets code), Option(raw scala snippets code), Option(test
-    *   scala snippets code))
+    *   a tuple of (Option(simple scala code blocks), Option(raw scala snippets code blocks),
+    *   Option(test scala snippets code blocks))
     */
   def apply(
     subPath: os.SubPath,
-    content: String,
-    maybeRecoverOnError: BuildException => Option[BuildException] = b => Some(b)
-  ): Either[BuildException, (Option[String], Option[String], Option[String])] = either {
+    markdown: PreprocessedMarkdown
+  ): (Option[WrappedMarkdownCode], Option[WrappedMarkdownCode], Option[WrappedMarkdownCode]) = {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
     val maybePkgString =
       if pkg.isEmpty then None else Some(s"package ${AmmUtil.encodeScalaSourcePath(pkg)}")
-    val allSnippets = value(MarkdownCodeBlock.findCodeBlocks(subPath, content, maybeRecoverOnError))
-    val (rawSnippets, processedSnippets) = allSnippets.partition(_.isRaw)
-    val (testSnippets, mainSnippets)     = processedSnippets.partition(_.isTest)
-    val wrapperName                      = s"${wrapper.raw}_md"
+    val wrapperName = s"${wrapper.raw}_md"
     (
-      wrapScalaCode(mainSnippets, wrapperName, maybePkgString),
-      rawScalaCode(rawSnippets),
-      rawScalaCode(testSnippets)
+      wrapScalaCode(markdown.scriptCodeBlocks, wrapperName, maybePkgString),
+      rawScalaCode(markdown.rawCodeBlocks),
+      rawScalaCode(markdown.testCodeBlocks)
     )
   }
 
@@ -75,12 +80,12 @@ object MarkdownCodeWrapper {
     *   an option of the wrapped code String
     */
   def wrapScalaCode(
-    snippets: Seq[MarkdownCodeBlock],
+    preprocessed: PreprocessedMarkdownCodeBlocks,
     wrapperName: String,
     pkg: Option[String]
-  ): Option[String] =
+  ): Option[WrappedMarkdownCode] =
     code(
-      snippets,
+      preprocessed.codeBlocks,
       s => {
         val packageDirective = pkg.map(_ + "; ").getOrElse("")
         val noWarnAnnotation = """@annotation.nowarn("msg=pure expression does nothing")"""
@@ -88,7 +93,7 @@ object MarkdownCodeWrapper {
           s"""${packageDirective}object $wrapperName { $noWarnAnnotation def main(args: Array[String]): Unit = { """
         s.indices.foldLeft(0 -> firstLine) {
           case ((nextScopeIndex, sum), index) =>
-            if snippets(index).resetScope || index == 0 then
+            if preprocessed.codeBlocks(index).resetScope || index == 0 then
               nextScopeIndex + 1 -> (sum :++ s"${scopeObjectName(nextScopeIndex)}; ")
             else nextScopeIndex  -> sum // that class hasn't been created
         }
@@ -97,7 +102,7 @@ object MarkdownCodeWrapper {
           .:++(generateMainScalaLines(s, 0, 0, 0))
           .:++("}")
       }
-    )
+    ).map(c => WrappedMarkdownCode(c, preprocessed.extractedDirectives))
 
   @tailrec
   private def generateMainScalaLines(
@@ -137,8 +142,9 @@ object MarkdownCodeWrapper {
     * @return
     *   an option of the resulting code String
     */
-  def rawScalaCode(snippets: Seq[MarkdownCodeBlock]): Option[String] =
-    code(snippets, generateRawScalaLines(_, 0, 0))
+  def rawScalaCode(preprocessed: PreprocessedMarkdownCodeBlocks): Option[WrappedMarkdownCode] =
+    code(preprocessed.codeBlocks, generateRawScalaLines(_, 0, 0))
+      .map(c => WrappedMarkdownCode(c, preprocessed.extractedDirectives))
 
   @tailrec
   private def generateRawScalaLines(

@@ -175,14 +175,42 @@ case object ScalaPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean
   ): Either[BuildException, Option[ProcessingOutput]] = either {
+    val extractedDirectives = value(ExtractedDirectives.from(
+      content.toCharArray,
+      path,
+      logger,
+      UsingDirectiveKind.values(),
+      scopeRoot,
+      maybeRecoverOnError
+    ))
+    value(process(
+      content,
+      extractedDirectives,
+      path,
+      scopeRoot,
+      logger,
+      maybeRecoverOnError,
+      allowRestrictedFeatures
+    ))
+  }
+
+  def process(
+    content: String,
+    extractedDirectives: ExtractedDirectives,
+    path: Either[String, os.Path],
+    scopeRoot: ScopePath,
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    allowRestrictedFeatures: Boolean
+  ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
       value(processStrictUsing(
         content0,
+        extractedDirectives,
         path,
         scopeRoot,
         logger,
-        maybeRecoverOnError,
         allowRestrictedFeatures
       ))
 
@@ -298,22 +326,14 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def processStrictUsing(
     content: String,
+    extractedDirectives: ExtractedDirectives,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
-    val contentChars = content.toCharArray
-    val ExtractedDirectives(codeOffset, directives0) =
-      value(ExtractedDirectives.from(
-        contentChars,
-        path,
-        logger,
-        UsingDirectiveKind.values(),
-        cwd,
-        maybeRecoverOnError
-      ))
+    val contentChars                                 = content.toCharArray
+    val ExtractedDirectives(codeOffset, directives0) = extractedDirectives
 
     val updatedOptions = value {
       DirectivesProcessor.process(

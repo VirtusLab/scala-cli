@@ -6,7 +6,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, MarkdownFile, SingleElement, VirtualMarkdownFile}
-import scala.build.internal.markdown.MarkdownCodeWrapper
+import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
@@ -67,16 +67,17 @@ case object MarkdownPreprocessor extends Preprocessor {
     allowRestrictedFeatures: Boolean
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
     def preprocessSnippets(
-      maybeCode: Option[String],
+      maybeWrapper: Option[MarkdownCodeWrapper.WrappedMarkdownCode],
       generatedSourceNameSuffix: String
     ): Either[BuildException, Option[PreprocessedSource.InMemory]] =
       either {
-        maybeCode
-          .map { code =>
-            val processingOutput =
+        maybeWrapper
+          .map { wrappedMarkdown =>
+            val processingOutput: ProcessingOutput =
               value {
                 ScalaPreprocessor.process(
-                  content = code,
+                  content = wrappedMarkdown.code,
+                  extractedDirectives = wrappedMarkdown.directives,
                   path = reportingPath,
                   scopeRoot = scopePath / os.up,
                   logger = logger,
@@ -84,7 +85,7 @@ case object MarkdownPreprocessor extends Preprocessor {
                   allowRestrictedFeatures = allowRestrictedFeatures
                 )
               }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
-            val processedCode = processingOutput.updatedContent.getOrElse(code)
+            val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)
             PreprocessedSource.InMemory(
               originalPath = reportingPath.map(subPath -> _),
               relPath = os.rel / (subPath / os.up) / s"${subPath.last}$generatedSourceNameSuffix",
@@ -99,8 +100,19 @@ case object MarkdownPreprocessor extends Preprocessor {
           }
       }
 
+    val codeBlocks: Seq[MarkdownCodeBlock] =
+      value(MarkdownCodeBlock.findCodeBlocks(subPath, content, maybeRecoverOnError))
+    val preprocessedMarkdown: PreprocessedMarkdown =
+      value(MarkdownCodeBlockProcessor.process(
+        codeBlocks,
+        reportingPath,
+        scopePath,
+        logger,
+        maybeRecoverOnError
+      ))
+
     val (mainScalaCode, rawScalaCode, testScalaCode) =
-      value(MarkdownCodeWrapper(subPath, content, maybeRecoverOnError))
+      MarkdownCodeWrapper(subPath, preprocessedMarkdown)
 
     val maybeMainFile = value(preprocessSnippets(mainScalaCode, ".scala"))
     val maybeRawFile  = value(preprocessSnippets(rawScalaCode, ".raw.scala"))
