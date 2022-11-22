@@ -2,7 +2,9 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class DefaultTests extends ScalaCliSuite {
+class DefaultTests extends WithWarmUpScalaCliSuite {
+  override def warmUpExtraTestOptions: Seq[String] = TestUtil.extraOptions
+
   test("running scala-cli with no args should default to repl") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--repl-dry-run").call(cwd = root, mergeErrIntoOut = true)
