@@ -13,6 +13,7 @@ import scala.build.preprocessing.{
   PreprocessedMarkdown,
   PreprocessedMarkdownCodeBlocks
 }
+import scala.build.tests.markdown.MarkdownTestUtil.*
 
 class MarkdownCodeWrapperTests extends munit.FunSuite {
 
@@ -23,15 +24,75 @@ class MarkdownCodeWrapperTests extends munit.FunSuite {
 
   test("a simple Scala code block is wrapped correctly") {
     val snippet                = """println("Hello")"""
-    val codeBlock              = MarkdownCodeBlock(Seq("scala"), snippet, 3, 3)
+    val codeBlock              = MarkdownCodeBlock(PlainScalaInfo, snippet, 3, 3)
     val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock))
     val markdown               = PreprocessedMarkdown(scriptCodeBlocks = preprocessedCodeBlocks)
     val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
-      """object Example_md { @annotation.nowarn("msg=pure expression does nothing") def main(args: Array[String]): Unit = { Scope; }
-        |
-        |object Scope {
-        |println("Hello")
-        |}}""".stripMargin
+      s"""object Example_md { @annotation.nowarn("msg=pure expression does nothing") def main(args: Array[String]): Unit = { Scope; }
+         |
+         |object Scope {
+         |$snippet
+         |}}""".stripMargin
+    )
+    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    expect(result == (Some(expectedScala), None, None))
+  }
+
+  test("multiple plain Scala code blocks are wrapped correctly") {
+    val snippet1   = """println("Hello")"""
+    val codeBlock1 = MarkdownCodeBlock(PlainScalaInfo, snippet1, 3, 3)
+    val snippet2   = """println("world")"""
+    val codeBlock2 = MarkdownCodeBlock(PlainScalaInfo, snippet2, 8, 8)
+    val snippet3   = """println("!")"""
+    val codeBlock3 = MarkdownCodeBlock(PlainScalaInfo, snippet3, 12, 12)
+    val preprocessedCodeBlocks =
+      PreprocessedMarkdownCodeBlocks(Seq(codeBlock1, codeBlock2, codeBlock3))
+    val markdown = PreprocessedMarkdown(scriptCodeBlocks = preprocessedCodeBlocks)
+    val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
+      s"""object Example_md { @annotation.nowarn("msg=pure expression does nothing") def main(args: Array[String]): Unit = { Scope; }
+         |
+         |object Scope {
+         |$snippet1
+         |
+         |
+         |
+         |
+         |$snippet2
+         |
+         |
+         |
+         |$snippet3
+         |}}""".stripMargin
+    )
+    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    expect(result == (Some(expectedScala), None, None))
+  }
+
+  test("multiple plain Scala code blocks with different scopes are wrapped correctly") {
+    val snippet1   = """println("Hello")"""
+    val codeBlock1 = MarkdownCodeBlock(PlainScalaInfo, snippet1, 3, 3)
+    val snippet2   = """println("world")"""
+    val codeBlock2 = MarkdownCodeBlock(ResetScalaInfo, snippet2, 8, 8)
+    val snippet3   = """println("!")"""
+    val codeBlock3 = MarkdownCodeBlock(PlainScalaInfo, snippet3, 12, 12)
+    val preprocessedCodeBlocks =
+      PreprocessedMarkdownCodeBlocks(Seq(codeBlock1, codeBlock2, codeBlock3))
+    val markdown = PreprocessedMarkdown(scriptCodeBlocks = preprocessedCodeBlocks)
+    val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
+      s"""object Example_md { @annotation.nowarn("msg=pure expression does nothing") def main(args: Array[String]): Unit = { Scope; Scope1; }
+         |
+         |object Scope {
+         |$snippet1
+         |
+         |
+         |
+         |}; object Scope1 {
+         |$snippet2
+         |
+         |
+         |
+         |$snippet3
+         |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
     expect(result == (Some(expectedScala), None, None))
@@ -42,17 +103,39 @@ class MarkdownCodeWrapperTests extends munit.FunSuite {
       """object Main extends App {
         |  println("Hello")
         |}""".stripMargin
-    val codeBlock              = MarkdownCodeBlock(Seq("scala", "raw"), snippet, 3, 5)
+    val codeBlock              = MarkdownCodeBlock(RawScalaInfo, snippet, 3, 5)
     val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock))
     val markdown               = PreprocessedMarkdown(rawCodeBlocks = preprocessedCodeBlocks)
     val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
-      """
-        |
-        |
-        |object Main extends App {
-        |  println("Hello")
-        |}
-        |""".stripMargin
+      s"""
+         |
+         |
+         |$snippet
+         |""".stripMargin
+    )
+    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    expect(result == (None, Some(expectedScala), None))
+  }
+
+  test("multiple raw Scala code blocks are glued together correctly") {
+    val snippet1 =
+      """case class Message(value: String)""".stripMargin
+    val codeBlock1 = MarkdownCodeBlock(RawScalaInfo, snippet1, 3, 3)
+    val snippet2 =
+      """object Main extends App {
+        |  println(Message("Hello").value)
+        |}""".stripMargin
+    val codeBlock2             = MarkdownCodeBlock(RawScalaInfo, snippet2, 5, 7)
+    val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock1, codeBlock2))
+    val markdown               = PreprocessedMarkdown(rawCodeBlocks = preprocessedCodeBlocks)
+    val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
+      s"""
+         |
+         |
+         |$snippet1
+         |
+         |$snippet2
+         |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
     expect(result == (None, Some(expectedScala), None))
@@ -64,18 +147,42 @@ class MarkdownCodeWrapperTests extends munit.FunSuite {
         |class Test extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin
-    val codeBlock              = MarkdownCodeBlock(Seq("scala", "test"), snippet, 3, 6)
+    val codeBlock              = MarkdownCodeBlock(TestScalaInfo, snippet, 3, 6)
     val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock))
     val markdown               = PreprocessedMarkdown(testCodeBlocks = preprocessedCodeBlocks)
     val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
-      """
-        |
-        |
-        |//> using lib "org.scalameta::munit:0.7.29"
-        |class Test extends munit.FunSuite {
+      s"""
+         |
+         |
+         |$snippet
+         |""".stripMargin
+    )
+    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    expect(result == (None, None, Some(expectedScala)))
+  }
+
+  test("multiple test Scala snippets are glued together correctly") {
+    val snippet1 =
+      """//> using lib "org.scalameta::munit:0.7.29"
+        |class Test1 extends munit.FunSuite {
         |  assert(true)
-        |}
-        |""".stripMargin
+        |}""".stripMargin
+    val codeBlock1 = MarkdownCodeBlock(TestScalaInfo, snippet1, 3, 6)
+    val snippet2 =
+      """class Test2 extends munit.FunSuite {
+        |  assert(true)
+        |}""".stripMargin
+    val codeBlock2             = MarkdownCodeBlock(TestScalaInfo, snippet2, 8, 10)
+    val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock1, codeBlock2))
+    val markdown               = PreprocessedMarkdown(testCodeBlocks = preprocessedCodeBlocks)
+    val expectedScala = MarkdownCodeWrapper.WrappedMarkdownCode(
+      s"""
+         |
+         |
+         |$snippet1
+         |
+         |$snippet2
+         |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
     expect(result == (None, None, Some(expectedScala)))

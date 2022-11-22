@@ -6,6 +6,7 @@ import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.preprocessing.MarkdownCodeBlockProcessor
+import scala.build.tests.markdown.MarkdownTestUtil.*
 
 class MarkdownCodeBlockTests extends munit.FunSuite {
   test("no code blocks are extracted from markdown if none are present") {
@@ -35,7 +36,7 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
          |""".stripMargin
     val expectedResult =
       MarkdownCodeBlock(
-        info = Seq("scala"),
+        info = PlainScalaInfo,
         body = code,
         startLine = 3,
         endLine = 3
@@ -58,7 +59,7 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
          |""".stripMargin
     val expectedResult =
       MarkdownCodeBlock(
-        info = Seq("scala", "raw"),
+        info = RawScalaInfo,
         body = code,
         startLine = 3,
         endLine = 5
@@ -83,7 +84,7 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
          |""".stripMargin
     val expectedResult =
       MarkdownCodeBlock(
-        info = Seq("scala", "test"),
+        info = TestScalaInfo,
         body = code,
         startLine = 3,
         endLine = 6
@@ -148,7 +149,7 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
       MarkdownCodeBlock.findCodeBlocks(subPath, markdown, maybeRecoverOnError = recoveryFunction)
     val expectedResult =
       MarkdownCodeBlock(
-        info = Seq("scala"),
+        info = PlainScalaInfo,
         body = code,
         startLine = 2,
         endLine = 2

@@ -39,7 +39,7 @@ case class MarkdownOpenFence(
     val bodyLines: Array[String] = lines.slice(start, tickEndLine)
     MarkdownCodeBlock(
       info.split("\\s+").toList, // strip info by whitespaces
-      bodyLines.tail.foldLeft(bodyLines.head)((body, line) => body.:++("\n" + line)),
+      bodyLines.mkString("\n"),
       start,          // snippet has to begin in the new line
       tickEndLine - 1 // ending backticks have to be placed below the snippet
     )
