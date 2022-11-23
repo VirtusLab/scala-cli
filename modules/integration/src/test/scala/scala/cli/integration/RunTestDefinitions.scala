@@ -11,7 +11,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite
+    extends WithWarmUpScalaCliSuite
     with TestScalaVersionArgs
     with RunScriptTestDefinitions
     with RunScalaJsTestDefinitions
@@ -23,24 +23,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions {
 
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-  protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
+  protected lazy val extraOptions: Seq[String]     = scalaVersionArgs ++ TestUtil.extraOptions
+  protected val emptyInputs: TestInputs            = TestInputs(os.rel / ".placeholder" -> "")
+  override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
   protected val ciOpt: Seq[String] =
     Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
-
-  // warm-up run that downloads compiler bridges
-  // The "Downloading compiler-bridge (from bloop?) pollute the output, and would make the first test fail.
-  lazy val warmupTest: Unit = {
-    System.err.println("Running RunTests warmup test…")
-    simpleScriptTest(ignoreErrors = true)
-    System.err.println("Done running RunTests warmup test.")
-  }
-
-  override def test(name: String)(body: => Any)(implicit loc: munit.Location): Unit =
-    super.test(name) { warmupTest; body }(loc)
-  override def test(name: munit.TestOptions)(body: => Any)(implicit loc: munit.Location): Unit =
-    super.test(name) { warmupTest; body }(loc)
 
   test("print command") {
     val fileName = "simple.sc"
