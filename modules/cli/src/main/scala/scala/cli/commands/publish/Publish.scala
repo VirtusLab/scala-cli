@@ -1,7 +1,7 @@
 package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
-import coursier.cache.ArchiveCache
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Authentication, Configuration}
 import coursier.maven.MavenRepository
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
@@ -31,10 +31,16 @@ import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
-import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, Scope}
+import scala.build.options.{
+  BuildOptions,
+  ConfigMonoid,
+  PublishContextualOptions,
+  ScalaSigningCliOptions,
+  Scope
+}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.{Package => PackageCmd}
-import scala.cli.commands.pgp.PgpExternalCommand
+import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.shared.{MainClassOptions, SharedOptions, SharedPythonOptions}
@@ -65,6 +71,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
     sharedPython: SharedPythonOptions,
+    scalaSigning: PgpScalaSigningOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
@@ -143,7 +150,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             baseOptions.notForBloopOptions.publishOptions.ci,
             if (publishParams.isCi) contextualOptions
             else PublishContextualOptions()
-          ))
+          )),
+          signingCli = ScalaSigningCliOptions(
+            signingCliVersion = scalaSigning.signingCliVersion,
+            useJvm = scalaSigning.forceJvmSigningCli,
+            javaArgs = scalaSigning.signingCliJavaArg
+          )
         ),
         python = sharedPython.python,
         pythonSetup = sharedPython.pythonSetup,
@@ -180,6 +192,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       options.sharedPublish,
       options.publishRepo,
       options.sharedPython,
+      options.signingCli,
       options.mainClass,
       options.ivy2LocalLike
     ).orExit(logger)
@@ -841,17 +854,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         publishOptions.contextual(isCi).secretKey match {
           case Some(secretKey0) =>
             val getLauncher: Supplier[Array[String]] = { () =>
-              val archiveCache = builds.headOption
-                .map(_.options.archiveCache)
+              val buildOptions = builds.headOption.map(_.options)
+              val archiveCache = buildOptions.map(_.archiveCache)
                 .getOrElse(ArchiveCache())
+              val fileCache = buildOptions.map(_.finalCache).getOrElse(FileCache())
               PgpExternalCommand.launcher(
+                fileCache,
                 archiveCache,
-                None,
                 logger,
-                () => builds.head.options.javaHome().value.javaCommand
+                () => builds.head.options.javaHome().value.javaCommand,
+                publishOptions.signingCli
               ) match {
-                case Left(e)       => throw new Exception(e)
-                case Right(binary) => binary.command.toArray
+                case Left(e)              => throw new Exception(e)
+                case Right(binaryCommand) => binaryCommand.toArray
               }
             }
             val secretKey = secretKey0.get(configDb()).orExit(logger)

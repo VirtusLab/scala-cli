@@ -1,13 +1,13 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import coursier.cache.Cache
+import coursier.cache.{Cache, FileCache}
 import coursier.util.Task
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.Logger
 import scala.build.errors.BuildException
+import scala.build.{Logger, options => bo}
 import scala.cli.errors.PgpError
 import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
 import scala.cli.signing.shared.{PasswordOption, Secret}
@@ -19,9 +19,10 @@ class PgpProxyJvm extends PgpProxy {
     mail: String,
     quiet: Boolean,
     password: String,
-    cache: Cache[Task],
+    cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
     PgpCreate.tryRun(
@@ -40,9 +41,10 @@ class PgpProxyJvm extends PgpProxy {
   override def keyId(
     key: String,
     keyPrintablePath: String,
-    cache: Cache[Task],
+    cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String
+    javaCommand: () => String,
+    signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] =
     PgpKeyId.get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)
       .headOption

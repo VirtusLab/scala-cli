@@ -2,7 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
-import scala.cli.commands.pgp.SharedPgpPushPullOptions
+import scala.cli.commands.pgp.{PgpScalaSigningOptions, SharedPgpPushPullOptions}
 import scala.cli.commands.shared.*
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
@@ -27,6 +27,9 @@ final case class PublishSetupOptions(
     sharedPgp: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Recurse
     sharedJvm: SharedJvmOptions = SharedJvmOptions(),
+  @Recurse
+  scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
+
 
   @Group("Publishing")
   @HelpMessage("Public key to use to verify artifacts (to be uploaded to a key server)")
