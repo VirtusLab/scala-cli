@@ -186,7 +186,7 @@ final class BspImpl(
       buildChangedTest
     )
 
-    if (actionableDiagnostics.getOrElse(false)) {
+    if (actionableDiagnostics.getOrElse(true)) {
       val projectOptions = options0Test.orElse(options0Main)
       projectOptions.logActionableDiagnostics(persistentLogger)
     }
