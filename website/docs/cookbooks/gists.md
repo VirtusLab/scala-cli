@@ -64,6 +64,7 @@ object Hello extends App {
     println(inputs.mkString(","))
 }
 ```
+
 ```scala title=input
 1
 2
@@ -72,10 +73,19 @@ object Hello extends App {
 ```
 
 and run them:
+
+<ChainedSnippets>
+
 ```bash
 scala-cli https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080
-# 1,2,3,4
 ```
+
+```text
+1,2,3,4
+```
+
+</ChainedSnippets>
+
 <!-- Expected:
 1,2,3,4
 -->
