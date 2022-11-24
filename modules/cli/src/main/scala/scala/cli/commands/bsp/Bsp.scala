@@ -78,9 +78,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
-      options.shared.logging.verbosityOptions.actions.orElse(
-        configDb.get(Keys.actions).getOrElse(None)
-      )
+      options.shared.logging.verbosityOptions.actions
 
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(

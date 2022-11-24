@@ -403,7 +403,7 @@ object Build {
     for (testBuild <- builds.get(Scope.Test))
       ResourceMapper.copyResourceToClassesDir(testBuild)
 
-    if (actionableDiagnostics.getOrElse(false)) {
+    if (actionableDiagnostics.getOrElse(true)) {
       val projectOptions = builds.get(Scope.Test).getOrElse(builds.main).options
       projectOptions.logActionableDiagnostics(logger)
     }
