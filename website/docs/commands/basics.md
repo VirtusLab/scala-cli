@@ -22,7 +22,7 @@ in which case it defaults to one of the sub-commands based on context:
 - if any inputs were passed, it defaults to the `run` sub-command
     - and so, `scala-cli a.scala` runs your `a.scala` file
 - additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
-    - if a snippet was passed with `--execute-script`, `--execute-scala` or `--execute-java`
+    - if a snippet was passed with `-e`, `--execute-script`, `--execute-scala`, `--execute-java` or `--execute-markdown`
     - if a main class was passed with the `--main-class` option alongside an extra `--classpath`
 - otherwise if no inputs were passed, it defaults to the `repl` sub-command
 
@@ -205,6 +205,14 @@ You can also pipe code to `scala-cli` for execution:
 - Java code
   ```bash
   echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
+  # Hello
+  ```
+- Markdown code (experimental)
+  ```bash
+  echo '# Example Snippet
+  ```scala
+  println("Hello")
+  ```' | scala-cli _.md
   # Hello
   ```
 

@@ -29,7 +29,8 @@ The available options are as follows:
 
 - for standard Scala code use `_`, `_.scala` or `-.scala`;
 - for Scala scripts use `-`, `_.sc` or `-.sc`;
-- for Java code use `_.java` or `-.java`.
+- for Java code use `_.java` or `-.java`;
+- for Markdown code use `_.md` or `-.md`.
 
 ## Examples
 
@@ -67,6 +68,23 @@ Hello
 
 ```bash
 echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
+- Markdown code (experimental)
+
+<ChainedSnippets>
+
+```bash
+echo '# Example Snippet
+```scala
+println("Hello")
+```' | scala-cli _.md
 ```
 
 ```text

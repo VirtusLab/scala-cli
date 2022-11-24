@@ -3,6 +3,8 @@ title: Sharing and testing code with GitHub gists
 sidebar_position: 6
 ---
 
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 ## Running code from gists
 
 `scala-cli` lets you run Scala code straight from GitHub gists, without the need to manually download them first.
@@ -79,3 +81,29 @@ scala-cli https://gist.github.com/lwronski/7ee12fa4b8b8bac3211841273df82080
 -->
 
 it will print `1,2,3,4` to the standard output.
+
+## Gists and Markdown code
+
+:::note
+This feature is a work in progress and should currently be treated as experimental.
+Markdown sources are ignored by default unless passed explicitly as inputs.
+You can enable including non-explicit `.md` inputs by passing the `--enable-markdown` option.
+:::
+
+It is possible to run markdown sources from a GitHub gist. 
+The gist is technically treated as a zipped archive (which it is downloaded as), so it is necessary to pass
+the `--enable-markdown` option alongside the gist URL to run any contained Markdown sources.
+
+<ChainedSnippets>
+
+```bash
+scala-cli https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
+You can find more information on working with Markdown in the [Markdown guide](../guides/markdown.md).
