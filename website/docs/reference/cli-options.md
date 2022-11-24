@@ -1120,7 +1120,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version (1.11.0 by default).
+The Scala.js version (1.12.0 by default).
 
 ### `--js-mode`
 
