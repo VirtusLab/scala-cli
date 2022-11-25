@@ -2,33 +2,26 @@ package sclicheck
 
 class SclicheckTests extends munit.FunSuite:
   test("Run regex") {
-    assert(None == clue(CompileBlock.unapplySeq("``scala compile")))
+    assert(clue(CompileBlock.unapplySeq("``scala compile")).isEmpty)
     assert(
-      Some(Seq("```", "scala", "compile", null)) == clue(
-        CompileBlock.unapplySeq("```scala compile")
-      )
+      clue(CompileBlock.unapplySeq("```scala compile"))
+        .contains(Seq("```", "scala", "compile", null))
     )
     assert(
-      Some(Seq("```", "scala", "fail", null)) == clue(CompileBlock.unapplySeq("```scala fail"))
+      clue(CompileBlock.unapplySeq("```scala fail"))
+        .contains(Seq("```", "scala", "fail", null))
     )
     assert(
-      Some(Seq("````", "markdown", "compile", null)) == clue(
-        CompileBlock.unapplySeq("````markdown compile")
-      )
+      clue(CompileBlock.unapplySeq("````markdown compile"))
+        .contains(Seq("````", "markdown", "compile", null))
     )
     assert(
-      Some(Seq("````", "markdown", "fail", "a.md")) == clue(
-        CompileBlock.unapplySeq("````markdown fail  title=a.md")
-      )
+      clue(CompileBlock.unapplySeq("````markdown fail  title=a.md"))
+        .contains(Seq("````", "markdown", "fail", "a.md"))
     )
+    assert(clue(CompileBlock.unapplySeq("``scala fail  title=a.sc")).isEmpty)
     assert(
-      None == clue(
-        CompileBlock.unapplySeq("``scala fail  title=a.sc")
-      )
-    )
-    assert(
-      Some(Seq("```", "scala", "fail", "a.sc")) == clue(
-        CompileBlock.unapplySeq("```scala fail  title=a.sc")
-      )
+      clue(CompileBlock.unapplySeq("```scala fail  title=a.sc"))
+        .contains(Seq("```", "scala", "fail", "a.sc"))
     )
   }
