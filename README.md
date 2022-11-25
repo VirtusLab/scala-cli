@@ -197,8 +197,9 @@ To just check the documents, run:
 ./mill -i docs-tests.test 'sclicheck.DocTests.*'
 ```
 
-You can also check all commands, guides or cookbooks:
+You can also check all root docs, commands, guides or cookbooks:
 ```bash
+./mill -i docs-tests.test 'sclicheck.DocTests.root*'
 ./mill -i docs-tests.test 'sclicheck.DocTests.guide*'
 ./mill -i docs-tests.test 'sclicheck.DocTests.command*'
 ./mill -i docs-tests.test 'sclicheck.DocTests.cookbook*'

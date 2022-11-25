@@ -19,8 +19,9 @@ class DocTests extends munit.FunSuite {
     os.read.lines(f).exists(lineContainsAnyChecks)
 
   for {
-    (tpe, dir) <- dirs
-    inputs = os.walk(dir)
+    (tpe, dir) <- dirs :+ ("root", docsRootPath)
+    maxDepth = if dir == docsRootPath then 1 else Int.MaxValue
+    inputs = os.walk(dir, maxDepth = maxDepth)
       .filter(_.last.endsWith(".md"))
       .filter(os.isFile(_))
       .filter(fileContainsAnyChecks)
