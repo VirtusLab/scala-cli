@@ -10,16 +10,20 @@ class DocTests extends munit.FunSuite {
 
   val options: Options = Options(scalaCliCommand = Seq(TestUtil.scalaCliPath))
 
-  private def containsCheck(f: os.Path): Boolean =
-    os.read.lines(f)
-      .exists(line => line.startsWith("```md") || line.startsWith("```bash"))
+  private def lineContainsAnyChecks(l: String): Boolean =
+    l.startsWith("```md") || l.startsWith("```bash") ||
+    l.startsWith("```scala compile") || l.startsWith("```scala fail") ||
+    l.startsWith("````markdown compile") || l.startsWith("````markdown fail") ||
+    l.startsWith("```java compile") || l.startsWith("````java fail")
+  private def fileContainsAnyChecks(f: os.Path): Boolean =
+    os.read.lines(f).exists(lineContainsAnyChecks)
 
   for {
     (tpe, dir) <- dirs
     inputs = os.walk(dir)
       .filter(_.last.endsWith(".md"))
       .filter(os.isFile(_))
-      .filter(containsCheck)
+      .filter(fileContainsAnyChecks)
       .map(_.relativeTo(dir))
       .sortBy(_.toString)
     md <- inputs
