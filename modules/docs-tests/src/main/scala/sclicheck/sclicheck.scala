@@ -9,16 +9,13 @@ import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.util.matching.Regex
 
-val SnippetBlock = """ *(```[`]*)[^ ]+ title=([\w\d\.\-\/_]+) *""".r
-val CompileBlock = """ *(```[`]*) *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
-def compileBlockEnds(backticks: String): Regex = {
-  val regexString = s""" *$backticks *"""
-  regexString.r
-}
-val BashCommand   = """ *```bash *(fail)? *""".r
-val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
-val CheckBlockEnd = """ *\--> *""".r
-val Clear         = """ *<!--+ *clear *-+-> *""".r
+val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
+val CompileBlock = """ *(`{2}`+) *(\w+) +(compile|fail) *(?:title=([\w\d.\-/_]+))? *""".r
+def compileBlockEnds(backticks: String) = s""" *$backticks *""".r
+val BashCommand                         = """ *```bash *(fail)? *""".r
+val CheckBlock                          = """ *\<\!-- Expected(-regex)?: *""".r
+val CheckBlockEnd                       = """ *\--> *""".r
+val Clear                               = """ *<!--+ *clear *-+-> *""".r
 
 case class Options(
   scalaCliCommand: Seq[String],
