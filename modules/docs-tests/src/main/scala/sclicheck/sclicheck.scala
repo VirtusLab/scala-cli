@@ -9,9 +9,12 @@ import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.util.matching.Regex
 
-val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
-val CompileBlock  = """ *``` *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
-val CodeBlockEnds = """ *``` *""".r
+val SnippetBlock = """ *(```[`]*)[^ ]+ title=([\w\d\.\-\/_]+) *""".r
+val CompileBlock = """ *(```[`]*) *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
+def compileBlockEnds(backticks: String): Regex = {
+  val regexString = s""" *$backticks *"""
+  regexString.r
+}
 val BashCommand   = """ *```bash *(fail)? *""".r
 val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
 val CheckBlockEnd = """ *\--> *""".r
@@ -67,7 +70,7 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
   inline def parseMultiline(
     lines: Seq[String],
     newCommand: Seq[String] => Commands,
-    endMarker: Regex = CodeBlockEnds
+    endMarker: Regex = compileBlockEnds("```")
   ) =
     val codeLines = lines.takeWhile(l => !endMarker.matches(l))
     check(codeLines.size > 0, "Block cannot be empty!")
@@ -81,12 +84,17 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
   content match
     case Nil => currentCommands
 
-    case SnippetBlock(name) :: tail =>
-      parseMultiline(tail, Commands.Write(name, _, context))
+    case SnippetBlock(backticks, name) :: tail =>
+      parseMultiline(tail, Commands.Write(name, _, context), compileBlockEnds(backticks))
 
-    case CompileBlock(name, status, fileName) :: tail =>
-      val file = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + "." + name)
-      parseMultiline(tail, Commands.Compile(file, _, context, status == "fail"))
+    case CompileBlock(backticks, name, status, fileName) :: tail =>
+      val fileSuffix = if name == "markdown" then ".md" else s".$name"
+      val file       = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + fileSuffix)
+      parseMultiline(
+        tail,
+        Commands.Compile(file, _, context, status == "fail"),
+        compileBlockEnds(backticks)
+      )
 
     case BashCommand(failGroup) :: tail =>
       parseMultiline(tail, Commands.Run(_, failGroup != null, context))
