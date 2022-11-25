@@ -3,6 +3,8 @@ title: Basics
 sidebar_position: 3
 ---
 
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
 given [configuration](../guides/configuration.md) to produce a result.
 
@@ -22,7 +24,7 @@ in which case it defaults to one of the sub-commands based on context:
 - if any inputs were passed, it defaults to the `run` sub-command
     - and so, `scala-cli a.scala` runs your `a.scala` file
 - additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
-    - if a snippet was passed with `--execute-script`, `--execute-scala` or `--execute-java`
+    - if a snippet was passed with `-e`, `--execute-script`, `--execute-scala`, `--execute-java` or `--execute-markdown`
     - if a main class was passed with the `--main-class` option alongside an extra `--classpath`
 - otherwise if no inputs were passed, it defaults to the `repl` sub-command
 
@@ -60,10 +62,17 @@ object Hello {
 
 Then run it by passing it to `scala-cli`:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli Hello.scala
-# Hello from Scala
 ```
+
+```text
+Hello from Scala
+```
+
+</ChainedSnippets>
 
 You can also split your code into multiple files:
 
@@ -82,10 +91,17 @@ object Hello {
 
 and the run them with `scala-cli`:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli Hello.scala Messages.scala
-# Hello from Scala
 ```
+
+```text
+Hello from Scala
+```
+
+</ChainedSnippets>
 
 :::note
 Scala CLI compiles only the provided inputs.
@@ -124,10 +140,17 @@ object Hello {
 
 In this case, you can run all the source code files in `my-app` by supplying the directory name:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli my-app
-# Hello from Scala
 ```
+
+```text
+Hello from Scala
+```
+
+</ChainedSnippets>
 
 In our experience, `scala-cli .` is the most used command; it compiles and runs all sources in the current directory.
 
@@ -160,10 +183,19 @@ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d63
 `scala-cli` accepts input via Github Gist’s urls.
 It downloads the gist zip archive and runs it:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
-# Hello
 ```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
+More details in the [GitHub gists cookbook](../cookbooks/gists.md).
 
 ### Zip archive
 
@@ -176,37 +208,93 @@ object Hello extends App {
 }
 ```
 
+<ChainedSnippets>
+
 ```bash ignore
 unzip -l hello.zip
-# Archive:  hello.zip
-#   Length      Date    Time    Name
-# ---------  ---------- -----   ----
-#        49  12-07-2021 00:06   Hello.scala
-# ---------                     -------
-#        49                     1 file
-scala-cli hello.zip
-# Hello
 ```
+
+```text
+Archive:  hello.zip
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+       49  12-07-2021 00:06   Hello.scala
+---------                     -------
+       49                     1 file
+```
+
+```bash ignore
+scala-cli hello.zip
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
 
 ## Piping
 
 You can also pipe code to `scala-cli` for execution:
 
 - scripts
+
+  <ChainedSnippets>
+
   ```bash
   echo 'println("Hello")' | scala-cli _.sc
-  # Hello
   ```
+  
+  ```text
+  Hello
+  ```
+
+  </ChainedSnippets>
+
 - Scala code
+
+  <ChainedSnippets>
+
   ```bash
   echo '@main def hello() = println("Hello")' | scala-cli _.scala
-  # Hello
   ```
+  
+  ```text
+  Hello
+  ```
+
+  </ChainedSnippets>
+
 - Java code
+
+  <ChainedSnippets>
+
   ```bash
   echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
-  # Hello
   ```
+  
+  ```text
+  Hello
+  ```
+
+  </ChainedSnippets>
+
+- Markdown code (experimental)
+
+  <ChainedSnippets>
+
+  ```bash
+  echo '# Example Snippet
+  ```scala
+  println("Hello")
+  ```' | scala-cli _.md
+  ```
+  
+  ```text
+  Hello
+  ```
+
+  </ChainedSnippets>
 
 More details in the [Piping guide](../guides/piping.md).
 
@@ -219,30 +307,55 @@ Running another Scala CLI version might be slower because it uses JVM-based Scal
 
 To run another Scala CLI version, specify it with `--cli-version` before any other argument:
 
+<ChainedSnippets>
+
 ```bash
-scala-cli --cli-version 0.1.3-51-g4d314eee-SNAPSHOT about
-# Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
+scala-cli --cli-version 0.1.17-62-g21e1cf44-SNAPSHOT about
 ```
 
+```text
+Scala CLI version: 0.1.17-62-g21e1cf44-SNAPSHOT
+Scala version (default): 3.2.1
+```
+
+</ChainedSnippets>
+
 <!-- Expected:
-Scala CLI version 0.1.3-51-g4d314eee-SNAPSHOT
+Scala CLI version: 0.1.17-62-g21e1cf44-SNAPSHOT
+Scala version (default): 3.2.1
 -->
 
 To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` parameter:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli --cli-version nightly about
-# Scala CLI version 0.1.3-8-g431cc15f-SNAPSHOT
 ```
+
+```text
+Fetching Scala CLI 0.1.17-62-g21e1cf44-SNAPSHOT
+Scala CLI version: 0.1.17-62-g21e1cf44-SNAPSHOT
+Scala version (default): 3.2.1
+```
+
+</ChainedSnippets>
 
 ## Process substitution
 
 Lastly, `scala-cli` also accepts input via shell process substitution:
 
+<ChainedSnippets>
+
 ```bash
 scala-cli <(echo 'println("Hello")')
-# Hello
 ```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 Hello
