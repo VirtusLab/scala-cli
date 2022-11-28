@@ -5,17 +5,18 @@ import fansi.Color.{Blue, Green, Red}
 import java.io.File
 import java.security.SecureRandom
 
+import scala.annotation.tailrec
 import scala.io.StdIn.readLine
 import scala.util.Random
 import scala.util.matching.Regex
 
-val SnippetBlock  = """ *```[^ ]+ title=([\w\d\.\-\/_]+) *""".r
-val CompileBlock  = """ *``` *(\w+) +(compile|fail) *(?:title=([\w\d\.\-\/_]+))? *""".r
-val CodeBlockEnds = """ *``` *""".r
-val BashCommand   = """ *```bash *(fail)? *""".r
-val CheckBlock    = """ *\<\!-- Expected(-regex)?: *""".r
-val CheckBlockEnd = """ *\--> *""".r
-val Clear         = """ *<!--+ *clear *-+-> *""".r
+val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
+val CompileBlock = """ *(`{2}`+) *(\w+) +(compile|fail) *(?:title=([\w\d.\-/_]+))? *""".r
+def compileBlockEnds(backticks: String) = s""" *$backticks *""".r
+val BashCommand                         = """ *```bash *(fail)? *""".r
+val CheckBlock                          = """ *\<\!-- Expected(-regex)?: *""".r
+val CheckBlockEnd                       = """ *\--> *""".r
+val Clear                               = """ *<!--+ *clear *-+-> *""".r
 
 case class Options(
   scalaCliCommand: Seq[String],
@@ -28,8 +29,8 @@ case class Options(
 
 enum Commands:
   def context: Context
-  def name = toString.takeWhile(_ != '(')
-  def log = this match {
+  def name: String = toString.takeWhile(_ != '(')
+  def log: Any = this match {
     case _: Clear => ""
     case Check(patterns, regex, _) =>
       val kind = if regex then "regexes" else "patterns"
@@ -51,13 +52,13 @@ enum Commands:
   case Clear(context: Context)
 
 case class Context(file: os.RelPath, line: Int):
-  def proceed(linesToSkip: Int = 1) = copy(line = line + linesToSkip)
-  override def toString             = s"$file:$line"
+  def proceed(linesToSkip: Int = 1): Context = copy(line = line + linesToSkip)
+  override def toString                      = s"$file:$line"
 
 case class FailedCheck(line: Int, file: os.RelPath, txt: String)
     extends RuntimeException(s"[$file:$line] $txt")
 
-def check(cond: Boolean, msg: => String)(using c: Context) =
+def check(cond: Boolean, msg: => String)(using c: Context): Unit =
   if !cond then throw FailedCheck(c.line, c.file, msg)
 
 @annotation.tailrec
@@ -67,7 +68,7 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
   inline def parseMultiline(
     lines: Seq[String],
     newCommand: Seq[String] => Commands,
-    endMarker: Regex = CodeBlockEnds
+    endMarker: Regex = compileBlockEnds("```")
   ) =
     val codeLines = lines.takeWhile(l => !endMarker.matches(l))
     check(codeLines.size > 0, "Block cannot be empty!")
@@ -81,12 +82,17 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
   content match
     case Nil => currentCommands
 
-    case SnippetBlock(name) :: tail =>
-      parseMultiline(tail, Commands.Write(name, _, context))
+    case SnippetBlock(backticks, name) :: tail =>
+      parseMultiline(tail, Commands.Write(name, _, context), compileBlockEnds(backticks))
 
-    case CompileBlock(name, status, fileName) :: tail =>
-      val file = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + "." + name)
-      parseMultiline(tail, Commands.Compile(file, _, context, status == "fail"))
+    case CompileBlock(backticks, name, status, fileName) :: tail =>
+      val fileSuffix = if name == "markdown" then ".md" else s".$name"
+      val file       = Option(fileName).getOrElse("snippet_" + Random.nextInt(1000) + fileSuffix)
+      parseMultiline(
+        tail,
+        Commands.Compile(file, _, context, status == "fail"),
+        compileBlockEnds(backticks)
+      )
 
     case BashCommand(failGroup) :: tail =>
       parseMultiline(tail, Commands.Run(_, failGroup != null, context))
@@ -192,10 +198,10 @@ def checkFile(file: os.Path, options: Options): Unit =
   var lastOutput: String = null
   val allSources         = Set.newBuilder[os.Path]
 
-  def runCommand(cmd: Commands, log: String => Unit) =
+  def runCommand(cmd: Commands, log: String => Unit): Unit =
     given Context = cmd.context
 
-    def writeFile(file: os.Path, code: Seq[String], c: Context) =
+    def writeFile(file: os.Path, code: Seq[String], c: Context): Unit =
       val (prefixLines, codeLines) =
         code match
           case shbang :: tail if shbang.startsWith("#!") =>
@@ -249,7 +255,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         else
           check(exitCode == 0, s"Compilation failed.")
 
-      case Commands.Check(patterns, regex, line) =>
+      case Commands.Check(patterns, regex, _) =>
         check(lastOutput != null, "No output stored from previous commands")
         val lines = lastOutput.linesIterator.toList
 
@@ -277,7 +283,7 @@ def checkFile(file: os.Path, options: Options): Unit =
     commands.foreach { cmd =>
       val logs = List.newBuilder[String]
 
-      def printResult(success: Boolean, startTime: Long) =
+      def printResult(success: Boolean, startTime: Long): Unit =
         val duration    = System.currentTimeMillis - startTime
         val commandName = s"[${cmd.name} in $duration ms]"
         val cmdLog =
@@ -336,8 +342,8 @@ def checkFile(file: os.Path, options: Options): Unit =
 
     os.list(out).filter(_.last.endsWith(".scala")).foreach(p => os.copy.into(p, exampleDir))
 
-@main def check(args: String*) =
-  def processFiles(options: Options) =
+@main def check(args: String*): Unit =
+  def processFiles(options: Options): Unit =
     val paths = options.files.map { str =>
       val path = os.Path(str, os.pwd)
       assert(os.exists(path), s"Provided path $str does not exists in ${os.pwd}")
@@ -377,6 +383,7 @@ def checkFile(file: os.Path, options: Options): Unit =
   val Dest       = PathParameter("--dest")
   val StatusFile = PathParameter("--status-file")
 
+  @tailrec
   def parseArgs(args: Seq[String], options: Options): Options = args match
     case Nil => options
     case "--step" :: rest =>

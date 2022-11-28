@@ -172,7 +172,7 @@ Added by [@lwronski](https://github.com/lwronski) in https://github.com/VirtusLa
 ### Fixes in Scala Native binaries caching
 
 When running a sequence of commands such as
-```bash
+```bash ignore
 $ scala-cli run --native .
 $ scala-cli package --native . -o my-app
 ```

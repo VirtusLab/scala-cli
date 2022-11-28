@@ -19,14 +19,21 @@ You can enable including non-explicit `.md` inputs by passing the `--enable-mark
 
 You can pass local `.md` inputs by passing their path to Scala CLI (as you would for any other kind of input).
 
-```bash ignore
-scala-cli hello.md
+````markdown title=dir/hello.md
+# Simple snippet
+```scala
+println("Hello")
+```
+````
+
+```bash
+scala-cli dir/hello.md
 ```
 
 `.md` sources inside of directories are ignored by default, unless the `--enable-markdown` option is passed.
 
-```bash ignore
-scala-cli dir-with-markdown --enable-markdown
+```bash
+scala-cli dir --enable-markdown
 ```
 
 ### Zipped archives
@@ -147,7 +154,7 @@ top-level.
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli run Example.md
 ```
 
@@ -160,14 +167,29 @@ Hello from Markdown
 Similarly to `.sc` scripts, when multiple `.md` files with plain `scala` snippets are being run, each of them will have
 its own main class, that can be run.
 
+````markdown title=Main1.md
+# Main class 1
+```scala
+println("1")
+```
+````
+
+
+````markdown title=Main2.md
+# Main class 2
+```scala
+println("2")
+```
+````
+
 <ChainedSnippets>
 
-```bash ignore
-scala-cli Example1.md Example2.md
+```bash fail
+scala-cli Main1.md Main2.md
 ```
 
 ```text
-[error]  Found several main classes: Example1_md, Example2_md
+[error]  Found several main classes: Main1_md, Main2_md
 ```
 
 </ChainedSnippets>
@@ -177,12 +199,12 @@ option.
 
 <ChainedSnippets>
 
-```bash ignore
-scala-cli Example1.md Example2.md --main-class Example1_md
+```bash
+scala-cli Main1.md Main2.md --main-class Main1_md
 ```
 
 ```text
-Hello from Markdown
+1
 ```
 
 </ChainedSnippets>
@@ -191,12 +213,12 @@ You can always check what main classes are available in the context with the `--
 
 <ChainedSnippets>
 
-```bash ignore
-scala-cli Example1.md Example2.md --list-main-classes
+```bash
+scala-cli Main1.md Main2.md --list-main-classes
 ```
 
 ```text
-Example1_md Example2_md
+Main1_md Main2_md
 ```
 
 </ChainedSnippets>
@@ -222,7 +244,7 @@ object Main extends App {
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli RawExample.md
 ```
 
@@ -255,7 +277,7 @@ class Test extends munit.FunSuite {
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli test TestExample.md
 ```
 
@@ -303,8 +325,8 @@ println(message)
 
 <ChainedSnippets>
 
-```bash ignore
-scala-cli test ResetExample.md
+```bash
+scala-cli ResetExample.md
 ```
 
 ```text
@@ -315,12 +337,12 @@ world
 
 </ChainedSnippets>
 
-## `using` directives and markdown code blocks
+## `using` directives and Markdown code blocks
 
 It is possible to define `using` directives at the beginning of a `scala` code block inside a markdown input.
 This is supported for all `scala` code block flavours.
 
-````markdown title=UsingDirectives.md
+````markdown compile title=UsingDirectives.md
 # Using directives in `.md` inputs
 
 ## `scala raw` example
@@ -339,7 +361,7 @@ println(os.pwd)
 
 ## `scala test` example
 ```scala test
-//> using lib "org.scalameta::munit:0.7.29"
+//> using lib "org.scalameta::munit:1.0.0-M7"
 
 class Test extends munit.FunSuite {
   test("foo") {
@@ -362,7 +384,7 @@ pprint.pprintln("world")
 `scala` snippets inside of a Markdown input are not isolated. Each `using` directive applies to the whole project's
 context. A directive defined in a later snippet within the same source may override another defined in an earlier one.
 
-````markdown title="OverriddenDirective.md"
+````markdown title=OverriddenDirective.md
 ## 1
 
 ```scala
@@ -383,7 +405,7 @@ be used for both.
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli OverriddenDirective.md
 ```
 
@@ -411,17 +433,17 @@ snippet): `Scope{scopeNumber}`. The `snippetNumber` is omitted for the first scr
 the first scope is just `Scope`, the second is `Scope1`, then `Scope2` and so on.
 
 ````markdown title=src/markdown/Example.md
-## Scope 1
+## Scope 0
 ```scala
 def hello: String = "Hello"
 ```
 
-## Still scope 1, since `reset` wasn't used yet
+## Still scope 0, since `reset` wasn't used yet
 ```scala
 def space: String = " "
 ```
 
-## Scope 2
+## Scope 1
 ```scala reset
 def world: String = "world"
 ```
@@ -429,17 +451,17 @@ def world: String = "world"
 
 ```scala title=Main.scala
 object Main extends App {
-  val hello = src.markdown.Example_md.Scope.hello
-  val space = src.markdown.Example_md.Scope.space
-  val world = src.markdown.Example_md.Scope.world
-  println(s"$hello$space$world)
+  val hello = markdown.Example_md.Scope.hello
+  val space = markdown.Example_md.Scope.space
+  val world = markdown.Example_md.Scope1.world
+  println(s"$hello$space$world")
 }
 ```
 
 <ChainedSnippets>
 
-```bash ignore
-scala-cli . --enable-markdown --main-class Main
+```bash
+scala-cli src Main.scala --enable-markdown --main-class Main
 ```
 
 ```text
@@ -463,7 +485,7 @@ object Something {
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli RawSnippetToReferTo.md -e 'println(Something.message)'
 ```
 
