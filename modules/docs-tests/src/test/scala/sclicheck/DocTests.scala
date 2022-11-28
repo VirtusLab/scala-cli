@@ -1,11 +1,15 @@
 package sclicheck
 
 class DocTests extends munit.FunSuite {
+  case class DocTestEntry(name: String, path: os.Path, depth: Int = Int.MaxValue)
+
   val docsRootPath: os.Path = os.pwd / "website" / "docs"
-  val dirs: Seq[(String, os.Path)] = Seq(
-    "cookbook" -> docsRootPath / "cookbooks",
-    "command"  -> docsRootPath / "commands",
-    "guide"    -> docsRootPath / "guides"
+  val entries: Seq[DocTestEntry] = Seq(
+    DocTestEntry("root", docsRootPath, depth = 1),
+    DocTestEntry("cookbook", docsRootPath / "cookbooks"),
+    DocTestEntry("command", docsRootPath / "commands"),
+    DocTestEntry("guide", docsRootPath / "guides"),
+    DocTestEntry("reference", docsRootPath / "reference")
   )
 
   val options: Options = Options(scalaCliCommand = Seq(TestUtil.scalaCliPath))
@@ -19,9 +23,8 @@ class DocTests extends munit.FunSuite {
     os.read.lines(f).exists(lineContainsAnyChecks)
 
   for {
-    (tpe, dir) <- dirs :+ ("root", docsRootPath)
-    maxDepth = if dir == docsRootPath then 1 else Int.MaxValue
-    inputs = os.walk(dir, maxDepth = maxDepth)
+    DocTestEntry(tpe, dir, depth) <- entries
+    inputs = os.walk(dir, maxDepth = depth)
       .filter(_.last.endsWith(".md"))
       .filter(os.isFile(_))
       .filter(fileContainsAnyChecks)
