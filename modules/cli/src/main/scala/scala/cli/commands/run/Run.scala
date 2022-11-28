@@ -4,6 +4,7 @@ import ai.kien.python.Python
 import caseapp.*
 
 import java.io.File
+import java.util.Locale
 import java.util.concurrent.CompletableFuture
 
 import scala.build.EitherCps.{either, value}
@@ -338,6 +339,27 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     value(res)
   }
 
+  def pythonPathEnv(dirs: os.Path*): Map[String, String] = {
+    val onlySafePaths = sys.env.exists {
+      case (k, v) =>
+        k.toLowerCase(Locale.ROOT) == "pythonsafepath" && v.nonEmpty
+    }
+    // Don't add unsafe directories to PYTHONPATH if PYTHONSAFEPATH is set,
+    // see https://docs.python.org/3/using/cmdline.html#envvar-PYTHONSAFEPATH
+    // and https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1336017760
+    // for more details.
+    if (onlySafePaths) Map.empty[String, String]
+    else {
+      val (pythonPathEnvVarName, currentPythonPath) = sys.env
+        .find(_._1.toLowerCase(Locale.ROOT) == "pythonpath")
+        .getOrElse(("PYTHONPATH", ""))
+      val updatedPythonPath = (currentPythonPath +: dirs.map(_.toString))
+        .filter(_.nonEmpty)
+        .mkString(File.pathSeparator)
+      Map(pythonPathEnvVarName -> updatedPythonPath)
+    }
+  }
+
   private def runOnce(
     build: Build.Successful,
     mainClass: String,
@@ -397,9 +419,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         value(res)
       case Platform.Native =>
         val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
-        val (pythonExecutable, pythonLibraryPaths) =
-          if (setupPython)
-            value {
+        val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
+          if (setupPython) {
+            val (exec, libPaths) = value {
               val python = Python()
               val pythonPropertiesOrError = for {
                 paths      <- python.nativeLibraryPaths
@@ -408,8 +430,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               logger.debug(s"Python executable and native library paths: $pythonPropertiesOrError")
               pythonPropertiesOrError.orPythonDetectionError
             }
+            // Putting the workspace in PYTHONPATH, see
+            // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
+            // for context.
+            (exec, libPaths, pythonPathEnv(build.inputs.workspace))
+          }
           else
-            (None, Nil)
+            (None, Nil, Map())
         // seems conda doesn't add the lib directory to LD_LIBRARY_PATH (see conda/conda#308),
         // which prevents apps from finding libpython for example, so we update it manually here
         val libraryPathsEnv =
@@ -434,7 +461,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           }
         val programNameEnv =
           pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
-        val extraEnv = libraryPathsEnv ++ programNameEnv
+        val extraEnv = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
         val maybeResult = withNativeLauncher(
           build,
           mainClass,
@@ -463,7 +490,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case RunMode.Default =>
             val baseJavaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
             val setupPython   = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
-            val pythonJavaProps =
+            val (pythonJavaProps, pythonExtraEnv) =
               if (setupPython) {
                 val scalapyProps = value {
                   val python       = Python()
@@ -471,12 +498,16 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   logger.debug(s"Python Java properties: $propsOrError")
                   propsOrError.orPythonDetectionError
                 }
-                scalapyProps.toVector.sorted.map {
+                val props = scalapyProps.toVector.sorted.map {
                   case (k, v) => s"-D$k=$v"
                 }
+                // Putting the workspace in PYTHONPATH, see
+                // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
+                // for context.
+                (props, pythonPathEnv(build.inputs.workspace))
               }
               else
-                Nil
+                (Nil, Map.empty[String, String])
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
             if (showCommand) {
               val command = Runner.jvmCommand(
@@ -485,6 +516,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 build.fullClassPath,
                 mainClass,
                 args,
+                extraEnv = pythonExtraEnv,
                 useManifest = build.options.notForBloopOptions.runWithManifest,
                 scratchDirOpt = scratchDirOpt
               )
@@ -499,6 +531,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 args,
                 logger,
                 allowExecve = allowExecve,
+                extraEnv = pythonExtraEnv,
                 useManifest = build.options.notForBloopOptions.runWithManifest,
                 scratchDirOpt = scratchDirOpt
               )
