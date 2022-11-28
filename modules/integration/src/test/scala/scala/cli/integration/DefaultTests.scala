@@ -8,7 +8,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
   test("running scala-cli with no args should default to repl") {
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "--repl-dry-run").call(cwd = root, mergeErrIntoOut = true)
-      expect(res.out.trim() == replDryRunOutput)
+      expect(res.out.lines().lastOption.contains(replDryRunOutput))
     }
   }
   test("running scala-cli with no args should not accept run-only options") {
@@ -20,7 +20,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim() == unrecognizedArgMessage(runSpecificOption))
+      expect(res.out.lines().endsWith(unrecognizedArgMessage(runSpecificOption)))
     }
   }
   test("running scala-cli with args should not accept repl-only options") {
@@ -32,7 +32,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
         check = false
       )
       expect(res.exitCode == 1)
-      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.lines().endsWith(unrecognizedArgMessage(replSpecificOption)))
     }
   }
 
@@ -112,7 +112,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
       expect(res.exitCode == 1)
-      expect(res.out.trim() == unrecognizedArgMessage(replSpecificOption))
+      expect(res.out.lines().endsWith(unrecognizedArgMessage(replSpecificOption)))
     }
   }
 
@@ -165,7 +165,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
         "-classpath",
         (os.rel / compilationOutputDir).toString
       ).call(cwd = root, mergeErrIntoOut = true)
-      expect(runRes.out.trim() == replDryRunOutput)
+      expect(runRes.out.lines().lastOption.contains(replDryRunOutput))
     }
   }
 
@@ -189,7 +189,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
        |
        |To list all available options, run
        |  ${Console.BOLD}${TestUtil.detectCliPath} --help${Console.RESET}
-       |""".stripMargin.trim
+       |""".stripMargin.trim.linesIterator.toVector
 
   private lazy val replDryRunOutput = "Dry run, not running REPL."
 }
