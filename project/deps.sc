@@ -160,7 +160,7 @@ object Deps {
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   // Force using of 2.13 - is there a better way?
   def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
-  def scalaPy                  = ivy"me.shadaj::scalapy-core::0.5.2+5-83f1eb68"
+  def scalaPy                  = ivy"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
