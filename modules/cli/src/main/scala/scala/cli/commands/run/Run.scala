@@ -152,17 +152,22 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             val onExitProcess = process.onExit().thenApply { p1 =>
               val retCode = p1.exitValue()
               onExitOpt.foreach(_())
-              if (retCode != 0)
-                if (allowTerminate)
+              (retCode, allowTerminate) match {
+                case (0, true) =>
+                case (0, false) =>
+                  val gray  = "\u001b[90m"
+                  val reset = Console.RESET
+                  System.err.println(s"${gray}Program exited with return code $retCode.$reset")
+                case (_, true) =>
                   sys.exit(retCode)
-                else {
+                case (_, false) =>
                   val red      = Console.RED
                   val lightRed = "\u001b[91m"
                   val reset    = Console.RESET
                   System.err.println(
                     s"${red}Program exited with return code $lightRed$retCode$red.$reset"
                   )
-                }
+              }
             }
 
             Some((process, onExitProcess))
@@ -207,7 +212,11 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         buildTests = false,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
-        postAction = () => WatchUtil.printWatchMessage()
+        postAction = () =>
+          if (processOpt.exists(_._1.isAlive()))
+            WatchUtil.printWatchWhileRunningMessage()
+          else
+            WatchUtil.printWatchMessage()
       ) { res =>
         for ((process, onExitProcess) <- processOpt) {
           onExitProcess.cancel(true)
