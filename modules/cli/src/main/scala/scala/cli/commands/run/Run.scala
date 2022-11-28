@@ -194,7 +194,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       )
 
     if (options.sharedRun.watch.watchMode) {
-      var processOpt = Option.empty[(Process, CompletableFuture[_])]
+      var processOpt      = Option.empty[(Process, CompletableFuture[_])]
+      var shouldReadInput = false
+      var mainThreadOpt   = Option.empty[Thread]
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -216,6 +218,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             for ((proc, _) <- processOpt if proc.isAlive)
               // If the process doesn't exit, send SIGKILL
               ProcUtil.forceKillProcess(proc, logger)
+            shouldReadInput = false
+            mainThreadOpt.foreach(_.interrupt())
             val maybeProcess = maybeRun(
               s,
               allowTerminate = false,
@@ -225,18 +229,34 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             )
               .orReport(logger)
               .flatten
+              .map {
+                case (proc, onExit) =>
+                  if (options.sharedRun.watch.restart)
+                    onExit.thenApply { _ =>
+                      shouldReadInput = true
+                      mainThreadOpt.foreach(_.interrupt())
+                    }
+                  (proc, onExit)
+              }
             s.copyOutput(options.shared)
             if (options.sharedRun.watch.restart)
               processOpt = maybeProcess
-            else
+            else {
               for ((proc, onExit) <- maybeProcess)
                 ProcUtil.waitForProcess(proc, onExit)
+              shouldReadInput = true
+              mainThreadOpt.foreach(_.interrupt())
+            }
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
       }
-      try WatchUtil.waitForCtrlC(() => watcher.schedule())
-      finally watcher.dispose()
+      mainThreadOpt = Some(Thread.currentThread())
+      try WatchUtil.waitForCtrlC(() => watcher.schedule(), () => shouldReadInput)
+      finally {
+        mainThreadOpt = None
+        watcher.dispose()
+      }
     }
     else {
       val builds =

@@ -1,5 +1,7 @@
 package scala.cli.commands
 
+import scala.annotation.tailrec
+
 object WatchUtil {
 
   lazy val isDevMode: Boolean =
@@ -17,10 +19,32 @@ object WatchUtil {
   def printWatchMessage(): Unit =
     System.err.println(waitMessage("Watching sources"))
 
-  def waitForCtrlC(onPressEnter: () => Unit = () => ()): Unit = {
+  def waitForCtrlC(
+    onPressEnter: () => Unit = () => (),
+    shouldReadInput: () => Boolean = () => true
+  ): Unit = synchronized {
+
+    @tailrec
+    def readNextChar(): Int =
+      if (shouldReadInput())
+        try System.in.read()
+        catch {
+          case _: InterruptedException =>
+            // Actually never called, as System.in.read isn't interruptible…
+            // That means we sometimes read input when we shouldn't.
+            readNextChar()
+        }
+      else {
+        try wait()
+        catch {
+          case _: InterruptedException =>
+        }
+        readNextChar()
+      }
+
     var readKey = -1
     while ({
-      readKey = System.in.read()
+      readKey = readNextChar()
       readKey != -1
     })
       if (readKey == '\n')
