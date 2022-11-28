@@ -16,7 +16,7 @@ perfectly suit the needs of a fast scripting tool.
 As an example, let’s build a script printing files from
 a directory with sizes bigger than a passed value.
 
-```scala compile title=size-higher-than.scala
+```scala title=size-higher-than.scala
 //> using scala "3.1.1"
 //> using lib "com.lihaoyi::os-lib::0.8.1"
  
@@ -33,13 +33,17 @@ Running this for a `dir` directory and 20 MB as a lower limit with
 `scala-cli size-higher-than.scala – dir 20` can give us for example:
 
 
+```text title=dir/large-file.txt
+(>20MB of text)
+```
+
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli size-higher-than.scala -- dir 20
 ```
 
-```
+```text
 Compiling project (Scala 3.1.1, JVM)
 Compiled project (Scala 3.1.1, JVM)
 /Users/user/Documents/workspace/dir/large-file.txt

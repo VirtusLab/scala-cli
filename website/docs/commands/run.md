@@ -3,6 +3,8 @@ title: Run
 sidebar_position: 6
 ---
 
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 The `run` command runs your Scala code:
 
 ```scala title=Hello.scala
@@ -12,16 +14,31 @@ object Hello {
 }
 ```
 
+<ChainedSnippets>
+
 ```bash
 scala-cli run Hello.scala
-# Hello
 ```
 
+```text
+Hello
+```
+
+</ChainedSnippets>
+
 This is the default command, so you don’t have to specify it explicitly:
+
+<ChainedSnippets>
+
 ```bash
 scala-cli Hello.scala
-# Hello
 ```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
 
 ## Passing arguments
 
@@ -31,10 +48,17 @@ You can pass arguments to the application or script you're launching after `--`:
 println(args.mkString("App called with arguments: ", ", ", ""))
 ```
 
+<ChainedSnippets>
+
 ```bash
 scala-cli app.sc -- first-arg second-arg
-# App called with arguments: first-arg, second-arg
 ```
+
+```text
+App called with arguments: first-arg, second-arg
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 App called with arguments: first-arg, second-arg
@@ -61,7 +85,7 @@ scala-cli Hello.scala --jvm adopt:14
 ```
 
 You can also specify custom JVM with the using directive `//> using jvm`:
-```scala
+```scala compile
 //> using jvm "adopt:14"
 ```
 
@@ -78,7 +102,7 @@ scala-cli Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
 ```
 
 You can also add java options with the using directive `//> using javaOpt`:
-```
+```scala compile
 //> using javaOpt "-Xmx1g", "-Dfoo=bar"
 ```
 
@@ -102,19 +126,30 @@ object Utils {
 
 `scala-cli` takes it into account and compiles `Utils.scala`.
 
+<ChainedSnippets>
+
 ```bash
 scala-cli Main.scala
-# Hello World
 ```
+
+```text
+Hello World
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 Hello World
 -->
 
 It is also possible to pass multiple paths to source files in a single using directive:
- ```
- //> using files "Utils.scala" "Helper.scala"
- ```
+```scala title=Multiple.scala
+//> using files "Utils.scala", "Main.scala"
+```
+
+```bash
+scala-cli run Multiple.scala
+```
 
  Note that the `//> using file` using directive only supports `.java`, `.scala`, `.sc` files or a directory. 
 
@@ -122,28 +157,43 @@ It is also possible to pass multiple paths to source files in a single using dir
 
 `--watch` makes `scala-cli` watch your code for changes, and re-runs it upon any change:
 
+<ChainedSnippets>
+
 ```bash ignore
 scala-cli run Hello.scala  --watch
-# Hello
-# Watching sources, press Ctrl+C to exit.
-# Compiling project (Scala 3.1.1, JVM)
-# Compiled project (Scala 3.1.1, JVM)
-# Hello World
-# Watching sources, press Ctrl+C to exit.
 ```
+
+```text
+Hello
+Watching sources, press Ctrl+C to exit.
+Compiling project (Scala 3.1.1, JVM)
+Compiled project (Scala 3.1.1, JVM)
+Hello World
+Watching sources, press Ctrl+C to exit.
+```
+
+</ChainedSnippets>
+
 ### Watch mode - restart
 
 `--restart` mode runs your application in the background and automatically restarts it upon any change:
 
+<ChainedSnippets>
+
 ```bash ignore
 scala-cli run Hello.scala --restart
-# Hello
-# Watching sources, press Ctrl+C to exit.
-# Compiling project (Scala 3.1.1, JVM)
-# Compiled project (Scala 3.1.1, JVM)
-# Hello World
-# Watching sources, press Ctrl+C to exit.
 ```
+
+```text
+Hello
+Watching sources, press Ctrl+C to exit.
+Compiling project (Scala 3.1.1, JVM)
+Compiled project (Scala 3.1.1, JVM)
+Hello World
+Watching sources, press Ctrl+C to exit.
+```
+
+</ChainedSnippets>
 
 ## Scala.js
 
@@ -198,10 +248,17 @@ Scala CLI can also compile and run Scala scripts:
 println("Hello world from scala script")
 ```
 
+<ChainedSnippets>
+
 ```bash
 scala-cli run HelloScript.sc
-# Hello world from scala script
 ```
+
+```text
+Hello world from scala script
+```
+
+</ChainedSnippets>
 
 Our [scripts guide](../guides/scripts.md) provides many more details.
 
@@ -219,10 +276,17 @@ object HelloWorld extends App {
 }
 ```
 
+<ChainedSnippets>
+
 ```bash ignore
 docker run  -v $(pwd)/HelloWorld.scala:/HelloWorld.scala virtuslab/scala-cli /HelloWorld.scala
-# Hello world
 ```
+
+```text
+Hello world
+```
+
+</ChainedSnippets>
 
 ## Debugging
 

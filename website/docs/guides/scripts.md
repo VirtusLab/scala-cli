@@ -78,9 +78,9 @@ To specify a main class when running a script, use this command:
 
 <ChainedSnippets>
 
-```bash ignore
+```bash
 scala-cli my-app --main-class main_sc
-````
+```
 
 ```text
 Hello from Scala scripts
@@ -180,10 +180,17 @@ object Utils {
 
 `scala-cli` takes into account and compiles `Utils.scala`.
 
+<ChainedSnippets>
+
 ```bash
 scala-cli main.sc
-# Hello World
 ```
+
+```text
+Hello World
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 Hello World

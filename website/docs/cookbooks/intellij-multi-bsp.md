@@ -40,6 +40,43 @@ tree -a
 7 directories, 6 files
 ```
 
+```scala title=app1/src/HelloWorld1.scala
+@main def hello: Unit = println("hello1")
+```
+
+```scala title=app1/test/MyTests1.scala
+//> using lib "org.scalameta::munit:1.0.0-M7"
+class MyTests1 extends munit.FunSuite {
+  test("my test 1") {
+    assert(2 + 2 == 4)
+  }
+}
+```
+
+```scala title=app2/src/HelloWorld2.scala
+@main def hello: Unit = println("hello2")
+```
+
+```scala title=app2/test/MyTests2.scala
+//> using lib "com.lihaoyi::utest::0.8.1"
+import utest.*
+object MessagesTests extends TestSuite {
+  val tests = Tests {
+    test("my test 2") {
+      assert(2 + 2 == 4)
+    }
+  }
+}
+```
+
+```scala title=scripts/SomeScript.sc
+println("some script")
+```
+
+```scala title=scripts/AnotherScript.sc
+println("another script")
+```
+
 </ChainedSnippets>
 
 When running these apps, you'd like to run them separately. `app1` and `app2` may have conflicting dependencies, or it
@@ -63,7 +100,7 @@ share their classpath. This in turn means that things will break.
 The only way to solve this is for each to have its own `BSP` configuration, really.
 And so:
 
-```bash ignore
+```bash
 scala-cli setup-ide app1
 scala-cli setup-ide app2
 scala-cli setup-ide scripts
