@@ -139,6 +139,8 @@ def mkBashScript(content: Seq[String]) =
      |${content.mkString("\n")}
      |""".stripMargin
 
+def removeAnsiColors(str: String) = str.replaceAll("\\e\\[[0-9]+m", "")
+
 private lazy val baseTmpDir = {
   val random  = new SecureRandom
   val dirName = s"run-${math.abs(random.nextInt.toLong)}"
@@ -251,7 +253,7 @@ def checkFile(file: os.Path, options: Options): Unit =
 
       case Commands.Check(patterns, regex, line) =>
         check(lastOutput != null, "No output stored from previous commands")
-        val lines = lastOutput.linesIterator.toList
+        val lines = lastOutput.linesIterator.toList.map(removeAnsiColors)
 
         if regex then
           patterns.foreach { pattern =>
