@@ -213,8 +213,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            for ((proc, _) <- processOpt) // If the process doesn't exit, send SIGKILL
-              if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
+            for ((proc, _) <- processOpt if proc.isAlive)
+              // If the process doesn't exit, send SIGKILL
+              ProcUtil.forceKillProcess(proc, logger)
             val maybeProcess = maybeRun(
               s,
               allowTerminate = false,
