@@ -1459,6 +1459,10 @@ Name of the test framework's runner class to use while running tests
 
 Fail if no test suites were run
 
+### `--test-only`
+
+Specify a glob pattern to filter the tests suite to be run.
+
 ## Uninstall options
 
 Available in commands:

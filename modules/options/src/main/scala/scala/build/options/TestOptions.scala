@@ -1,7 +1,8 @@
 package scala.build.options
 
 final case class TestOptions(
-  frameworkOpt: Option[String] = None
+  frameworkOpt: Option[String] = None,
+  testOnly: Option[String] = None
 )
 
 object TestOptions {

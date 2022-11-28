@@ -85,6 +85,77 @@ MyTests
 foo
 -->
 
+## Filter test suite
+
+Passing the `--test-only` option to the `test` sub-command filters the test suites to be run:
+
+```scala title=BarTests.scala
+//> using lib "org.scalameta::munit::0.7.29"
+package tests.only
+
+class BarTests extends munit.FunSuite {
+  test("bar") {
+    assert(2 + 3 == 5)
+  }
+}
+```
+```scala title=HelloTests.scala
+package tests
+
+class HelloTests extends munit.FunSuite {
+  test("hello") {
+    assert(2 + 2 == 4)
+  }
+}
+```
+
+```bash
+scala-cli test . --test-only 'tests.only*' 
+# tests.only.BarTests:
+#   + bar 0.045s
+```
+
+<!-- Expected:
+tests.only.BarTests:
++ bar
+-->
+
+## Filter test case 
+
+### Munit
+
+To run a specific test case inside the unit test suite pass `*exact-test-name*` as an argument to scala-cli:
+
+```scala title=BarTests.scala
+//> using lib "org.scalameta::munit::0.7.29"
+package tests.only
+
+class Tests extends munit.FunSuite {
+  test("bar") {
+    assert(2 + 2 == 5)
+  }
+  test("foo") {
+    assert(2 + 3 == 5)
+  }
+  test("foo-again") {
+    assert(2 + 3 == 5)
+  }
+}
+```
+```bash
+scala-cli test . --test-only 'tests.only*'  -- '*foo*'
+# tests.only.Tests:
+#   + foo 0.045s
+#   + foo-again 0.001s
+```
+
+<!-- Expected:
+tests.only.Tests:
++ foo
++ foo-again
+-->
+
+
 ## Test arguments
 
 You can pass test arguments to your test framework by passing them after `--`:

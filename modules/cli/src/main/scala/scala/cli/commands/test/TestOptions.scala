@@ -33,7 +33,12 @@ final case class TestOptions(
   @Group("Test")
   @Tag(tags.should)
   @HelpMessage("Fail if no test suites were run")
-    requireTests: Boolean = false
+    requireTests: Boolean = false,
+  @Group("Test")
+  @Tag(tags.should)
+  @HelpMessage("Specify a glob pattern to filter the tests suite to be run.")
+    testOnly: Option[String] = None
+
 ) extends HasSharedOptions
 // format: on
 

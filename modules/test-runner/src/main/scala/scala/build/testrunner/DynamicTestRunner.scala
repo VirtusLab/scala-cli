@@ -6,6 +6,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.nio.file.{Files, Path}
 import java.util.ServiceLoader
+import java.util.regex.Pattern
 
 import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
@@ -148,27 +149,55 @@ object DynamicTestRunner {
       .headOption
   }
 
+  /** Based on junit-interface [GlobFilter.
+    * compileGlobPattern](https://github.com/sbt/junit-interface/blob/f8c6372ed01ce86f15393b890323d96afbe6d594/src/main/java/com/novocode/junit/GlobFilter.java#L37)
+    *
+    * @return
+    *   Pattern allows to regex input which contains only *, for example `*foo*` match to
+    *   `MyTests.foo`
+    */
+  private def globPattern(expr: String): Pattern = {
+    val a = expr.split("\\*", -1)
+    val b = new StringBuilder()
+    for (i <- 0 until a.length) {
+      if (i != 0) b.append(".*")
+      if (a(i).nonEmpty) b.append(Pattern.quote(a(i).replaceAll("\n", "\\n")))
+    }
+    Pattern.compile(b.toString)
+  }
+
   def main(args: Array[String]): Unit = {
 
-    val (testFrameworkOpt, requireTests, verbosity, args0) = {
+    val (testFrameworkOpt, requireTests, verbosity, testOnly, args0) = {
       @tailrec
       def parse(
         testFrameworkOpt: Option[String],
         reverseTestArgs: List[String],
         requireTests: Boolean,
         verbosity: Int,
+        testOnly: Option[String],
         args: List[String]
-      ): (Option[String], Boolean, Int, List[String]) =
+      ): (Option[String], Boolean, Int, Option[String], List[String]) =
         args match {
-          case Nil => (testFrameworkOpt, requireTests, verbosity, reverseTestArgs.reverse)
+          case Nil => (testFrameworkOpt, requireTests, verbosity, testOnly, reverseTestArgs.reverse)
           case "--" :: t =>
-            (testFrameworkOpt, requireTests, verbosity, reverseTestArgs.reverse ::: t)
+            (testFrameworkOpt, requireTests, verbosity, testOnly, reverseTestArgs.reverse ::: t)
           case h :: t if h.startsWith("--test-framework=") =>
             parse(
               Some(h.stripPrefix("--test-framework=")),
               reverseTestArgs,
               requireTests,
               verbosity,
+              testOnly,
+              t
+            )
+          case h :: t if h.startsWith("--test-only=") =>
+            parse(
+              testFrameworkOpt,
+              reverseTestArgs,
+              requireTests,
+              verbosity,
+              Some(h.stripPrefix("--test-only=")),
               t
             )
           case h :: t if h.startsWith("--verbosity=") =>
@@ -177,14 +206,16 @@ object DynamicTestRunner {
               reverseTestArgs,
               requireTests,
               h.stripPrefix("--verbosity=").toInt,
+              testOnly,
               t
             )
           case "--require-tests" :: t =>
-            parse(testFrameworkOpt, reverseTestArgs, true, verbosity, t)
-          case h :: t => parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, verbosity, t)
+            parse(testFrameworkOpt, reverseTestArgs, true, verbosity, testOnly, t)
+          case h :: t =>
+            parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, verbosity, testOnly, t)
         }
 
-      parse(None, Nil, false, 0, args.toList)
+      parse(None, Nil, false, 0, None, args.toList)
     }
 
     val classLoader = Thread.currentThread().getContextClassLoader
@@ -214,6 +245,12 @@ object DynamicTestRunner {
         .iterator
     }
     val taskDefs = clsFingerprints
+      .filter {
+        case (cls, _) =>
+          testOnly.forall(pattern =>
+            globPattern(pattern).matcher(cls.getName.stripSuffix("$")).matches()
+          )
+      }
       .map {
         case (cls, fp) =>
           new TaskDef(cls.getName.stripSuffix("$"), fp, false, Array(new SuiteSelector))
