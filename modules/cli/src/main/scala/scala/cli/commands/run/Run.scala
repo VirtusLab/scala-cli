@@ -149,17 +149,22 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             val onExitProcess = process.onExit().thenApply { p1 =>
               val retCode = p1.exitValue()
               onExitOpt.foreach(_())
-              if (retCode != 0)
-                if (allowTerminate)
+              (retCode, allowTerminate) match {
+                case (0, true) =>
+                case (0, false) =>
+                  val gray  = "\u001b[90m"
+                  val reset = Console.RESET
+                  System.err.println(s"${gray}Program exited with return code $retCode.$reset")
+                case (_, true) =>
                   sys.exit(retCode)
-                else {
+                case (_, false) =>
                   val red      = Console.RED
                   val lightRed = "\u001b[91m"
                   val reset    = Console.RESET
                   System.err.println(
                     s"${red}Program exited with return code $lightRed$retCode$red.$reset"
                   )
-                }
+              }
             }
 
             Some((process, onExitProcess))
@@ -191,7 +196,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       )
 
     if (options.sharedRun.watch.watchMode) {
-      var processOpt = Option.empty[(Process, CompletableFuture[_])]
+      var processOpt      = Option.empty[(Process, CompletableFuture[_])]
+      var shouldReadInput = false
+      var mainThreadOpt   = Option.empty[Thread]
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -202,7 +209,11 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         buildTests = false,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
-        postAction = () => WatchUtil.printWatchMessage()
+        postAction = () =>
+          if (processOpt.exists(_._1.isAlive()))
+            WatchUtil.printWatchWhileRunningMessage()
+          else
+            WatchUtil.printWatchMessage()
       ) { res =>
         for ((process, onExitProcess) <- processOpt) {
           onExitProcess.cancel(true)
@@ -210,8 +221,11 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            for ((proc, _) <- processOpt) // If the process doesn't exit, send SIGKILL
-              if (proc.isAlive) ProcUtil.forceKillProcess(proc, logger)
+            for ((proc, _) <- processOpt if proc.isAlive)
+              // If the process doesn't exit, send SIGKILL
+              ProcUtil.forceKillProcess(proc, logger)
+            shouldReadInput = false
+            mainThreadOpt.foreach(_.interrupt())
             val maybeProcess = maybeRun(
               s,
               allowTerminate = false,
@@ -221,18 +235,34 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             )
               .orReport(logger)
               .flatten
+              .map {
+                case (proc, onExit) =>
+                  if (options.sharedRun.watch.restart)
+                    onExit.thenApply { _ =>
+                      shouldReadInput = true
+                      mainThreadOpt.foreach(_.interrupt())
+                    }
+                  (proc, onExit)
+              }
             s.copyOutput(options.shared)
             if (options.sharedRun.watch.restart)
               processOpt = maybeProcess
-            else
+            else {
               for ((proc, onExit) <- maybeProcess)
                 ProcUtil.waitForProcess(proc, onExit)
+              shouldReadInput = true
+              mainThreadOpt.foreach(_.interrupt())
+            }
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
       }
-      try WatchUtil.waitForCtrlC(() => watcher.schedule())
-      finally watcher.dispose()
+      mainThreadOpt = Some(Thread.currentThread())
+      try WatchUtil.waitForCtrlC(() => watcher.schedule(), () => shouldReadInput)
+      finally {
+        mainThreadOpt = None
+        watcher.dispose()
+      }
     }
     else {
       val builds =
