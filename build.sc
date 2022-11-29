@@ -1474,8 +1474,8 @@ object ci extends Module {
     val targetDir          = os.pwd / "target"
     val homebrewFormulaDir = targetDir / "homebrew-scala-experimental"
 
-    // clean target directory
-    if (os.exists(targetDir)) os.remove.all(targetDir)
+    // clean homebrew-scala-experimental directory
+    if (os.exists(homebrewFormulaDir)) os.remove.all(homebrewFormulaDir)
 
     os.makeDir.all(targetDir)
 
