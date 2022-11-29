@@ -38,7 +38,8 @@ object Test extends ScalaCommand[TestOptions] {
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       ),
       testOptions = baseOptions.testOptions.copy(
-        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty)
+        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty),
+        testOnly = testOnly.map(_.trim).filter(_.nonEmpty)
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
         addTestRunnerDependencyOpt = Some(true)
@@ -228,11 +229,13 @@ object Test extends ScalaCommand[TestOptions] {
         val testFrameworkOpt0 = testFrameworkOpt.orElse {
           findTestFramework(classPath.map(_.toNIO), logger)
         }
+        val testOnly = build.options.testOptions.testOnly
 
         val extraArgs =
           (if (requireTests) Seq("--require-tests") else Nil) ++
             build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
             testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
+            testOnly.map(to => s"--test-only=$to").toSeq ++
             Seq("--") ++ args
 
         Runner.runJvm(

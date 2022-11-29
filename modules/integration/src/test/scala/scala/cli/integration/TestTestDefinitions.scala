@@ -258,6 +258,85 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("run only one test from munit") {
+    val inputs: TestInputs = TestInputs(
+      os.rel / "MyTests.scala" ->
+        """//> using lib "org.scalameta::munit::0.7.29"
+          |package test
+          |
+          |class MyTests extends munit.FunSuite {
+          |  test("foo") {
+          |    assert(2 + 2 == 5, "foo")
+          |  }
+          |  test("bar") {
+          |    assert(2 + 3 == 5)
+          |    println("Hello from bar")
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "test",
+          ".",
+          extraOptions,
+          "--test-only",
+          "test.MyTests",
+          "--",
+          "*bar*"
+        ).call(cwd = root)
+      val output = res.out.text()
+      expect(res.exitCode == 0)
+      expect(output.contains("Hello from bar"))
+    }
+  }
+  test("run only one test from utest") {
+    val inputs: TestInputs = TestInputs(
+      os.rel / "FooTests.scala" ->
+        """//> using lib "com.lihaoyi::utest::0.7.10"
+          |package tests.foo
+          |import utest._
+          |
+          |object FooTests extends TestSuite {
+          |  val tests = Tests {
+          |    test("foo") {
+          |      assert(2 + 2 == 5)
+          |    }
+          |  }
+          |}
+          |""".stripMargin,
+      os.rel / "BarTests.scala" ->
+        """//> using lib "com.lihaoyi::utest::0.7.10"
+          |package tests.bar
+          |import utest._
+          |
+          |object BarTests extends TestSuite {
+          |  val tests = Tests {
+          |    test("bar") {
+          |      assert(2 + 2 == 4)
+          |      println("Hello from bar")
+          |    }
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "test",
+          ".",
+          extraOptions,
+          "--test-only",
+          "tests.b*"
+        ).call(cwd = root)
+      val output = res.out.text()
+      expect(res.exitCode == 0)
+      expect(output.contains("Hello from bar"))
+    }
+  }
   def successfulNativeTest(): Unit =
     successfulTestInputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
