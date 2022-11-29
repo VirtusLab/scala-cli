@@ -173,10 +173,17 @@ Make sure that you trust the code that you are about to run.
 `scala-cli` accepts input via URLs pointing at `.scala` files.
 It downloads their content, and runs them:
 
+<ChainedSnippet>
+
 ```bash
 scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
-# Hello from Scala GitHub Gist
 ```
+
+```text
+Hello from Scala GitHub Gist
+```
+
+</ChainedSnippet>
 
 ### GitHub Gist
 

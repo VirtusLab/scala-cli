@@ -3,6 +3,8 @@ title: Test
 sidebar_position: 7
 ---
 
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 The `test` command runs test suites in the test sources.
 Test sources are complied separately (after the 'main' sources), and may use different dependencies, compiler options, and other configurations.
 
@@ -18,8 +20,14 @@ A source file is treated as test source if:
 
 The last rule may sound a bit complicated, so let's explain it using following directory structure:
 
-```bash ignore
-example/
+<ChainedSnippets>
+
+```bash
+tree example
+```
+
+```text
+example
 ├── a.scala
 ├── a.test.scala
 └── src
@@ -33,6 +41,8 @@ example/
         └── scala
             └── e.scala
 ```
+
+</ChainedSnippets>
 
 Given that directory structure, let's analyze what file(s) will be treated as tests based on the provided inputs.
 
@@ -72,13 +82,20 @@ class MyTests extends munit.FunSuite {
 }
 ```
 
+<ChainedSnippets>
+
 ```bash
 scala-cli test MyTests.scala
-# Compiling project (1 Scala source)
-# Compiled project
-# MyTests:
-#   + foo 0.143s
 ```
+
+```text
+Compiling project (1 Scala source)
+Compiled project
+MyTests:
+  + foo 0.143s
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 MyTests
@@ -103,19 +120,26 @@ class Tests extends AnyFlatSpec with should.Matchers {
 }
 ```
 
+<ChainedSnippets>
+
 ```bash
 scala-cli test MyTests.scala -- -oD
-# Compiling project (1 Scala source)
-# Compiled project
-# Tests:
-# A thing
-# - should thing (22 milliseconds)
-# Run completed in 359 milliseconds.
-# Total number of tests run: 1
-# Suites: completed 1, aborted 0
-# Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
-# All tests passed.
 ```
+
+```text
+Compiling project (1 Scala source)
+Compiled project
+Tests:
+A thing
+- should thing (22 milliseconds)
+Run completed in 359 milliseconds.
+Total number of tests run: 1
+Suites: completed 1, aborted 0
+Tests: succeeded 1, failed 0, canceled 0, ignored 0, pending 0
+All tests passed.
+```
+
+</ChainedSnippets>
 
 <!-- Expected:
 Tests:

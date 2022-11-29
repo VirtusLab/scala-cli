@@ -118,18 +118,14 @@ It is also possible to mix snippets with on-disk sources.
 
 <ChainedSnippets>
 
-```bash ignore
-cat Main.scala
-```
-
-```scala
+```scala title=Main.scala
 object Main extends App {
   val snippetData = SnippetData()
   println(snippetData.value)
 }
 ```
 
-```bash ignore
+```bash
 scala-cli Main.scala --scala-snippet 'case class SnippetData(value: String = "Hello")'
 ```
 
@@ -157,11 +153,7 @@ Nothing stops you from mixing everything all at once, really.
 
 <ChainedSnippets>
 
-```bash ignore
-cat Main.scala
-```
-
-```scala
+```scala title=Main.scala
 object Main extends App {
   val scalaSnippetString = ScalaSnippet().value
   val javaSnippetString = JavaSnippet.data
@@ -172,15 +164,11 @@ object Main extends App {
 }
 ```
 
-```bash ignore
-cat ondisk.sc
-```
-
-```scala
+```scala title=ondisk.sc
 def script = "on-disk-script"
 ```
 
-```bash ignore
+```bash
 echo 'def piped = "piped-script"'|scala-cli . _.sc --scala-snippet 'case class ScalaSnippet(value: String = "scala-snippet")' --java-snippet 'public class JavaSnippet { public static String data = "java-snippet"; }' --script-snippet 'def script = "script-snippet"'
 ```
 
@@ -233,16 +221,12 @@ main class was passed).
 
 <ChainedSnippets>
 
-```bash ignore
-cat ondisk.sc
-```
-
 ```scala title=ondisk.sc
 println(s"${stdin.hello} ${snippet.world}${snippet1.exclamation}")
 ```
 
-```bash ignore
-echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!" --main-class ondisk_sc
+```bash
+echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --main-class ondisk_sc
 ```
 
 ```text
@@ -256,8 +240,8 @@ of `--list-main-classes`
 
 <ChainedSnippets>
 
-```bash ignore
-echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' --list-main-classes
+```bash
+echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --list-main-classes
 ```
 
 ```text

@@ -3,6 +3,8 @@ title: Configuration
 sidebar_position: 7
 ---
 
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 `scala-cli` can be configured in two ways:
 - on the command-line
 - directly in `.scala` and `.sc` files
@@ -23,14 +25,35 @@ scala-cli package --help
 ```
 
 As an example of command line configuration, one thing you can do with `scala-cli` command line options is to specify the Scala version:
-```bash ignore
+```scala title=Test.scala
+@main def test = println("test")
+```
+
+<ChainedSnippets>
+
+```bash
 scala-cli --scala 3.0.0 Test.scala
 ```
 
-Another thing you can do is to specify dependencies:
-```bash ignore
-scala-cli --dependency org.typelevel::cats-core:2.3.0 Test.scala
+```text
+test
 ```
+
+</ChainedSnippets>
+
+Another thing you can do is to specify dependencies:
+
+<ChainedSnippets>
+
+```bash
+scala-cli --dependency org.typelevel::cats-core:2.9.0 Test.scala
+```
+
+```text
+test
+```
+
+</ChainedSnippets>
 
 The reference documentation lists [all of the available options](../reference/cli-options.md).
 
@@ -44,7 +67,7 @@ Configuration information can also be put in `.scala` and `.sc` files using spec
 Scala CLI can be configured inside `.scala` files.
 This is achieved by specifying `using` directives inside comments at the top of a `.scala` file, before any `package` or `import` statement:
 
-```scala
+```scala compile
 //> using scala "2.13"
 //> using platform "scala-js"
 //> using options "-Xasync"
@@ -59,7 +82,7 @@ The reference documentation lists [all available using directives](../reference/
 Dependencies can be added right from `.scala` and `.sc` files, using the same
 syntax as Ammonite and Metals worksheets:
 
-```scala
+```scala compile
 import $dep.`com.lihaoyi::upickle:1.4.0`
 import $ivy.`com.lihaoyi::pprint:0.6.6`
 import ujson._
