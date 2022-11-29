@@ -22,8 +22,6 @@ final case class PublishOptions(
   @Recurse
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
-    sharedPython: SharedPythonOptions = SharedPythonOptions(),
-  @Recurse
     signingCli: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
   @Group("Publishing")

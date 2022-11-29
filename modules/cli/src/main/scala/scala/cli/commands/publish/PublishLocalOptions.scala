@@ -27,8 +27,6 @@ final case class PublishLocalOptions(
   @Recurse
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
-    sharedPython: SharedPythonOptions = SharedPythonOptions(),
-  @Recurse
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 ) extends HasSharedOptions
 // format: on

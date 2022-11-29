@@ -63,6 +63,8 @@ final case class SharedOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
+  @Recurse
+    sharedPython: SharedPythonOptions = SharedPythonOptions(),
 
   @Group("Scala")
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
@@ -321,7 +323,10 @@ final case class SharedOptions(
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
-        addRunnerDependencyOpt = runner
+        addRunnerDependencyOpt = runner,
+        python = sharedPython.python,
+        pythonSetup = sharedPython.pythonSetup,
+        scalaPyVersion = sharedPython.scalaPyVersion
       )
     )
   }

@@ -894,4 +894,36 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       )
     }
   }
+
+  test("scalapy") {
+
+    def maybeScalapyPrefix =
+      if (actualScalaVersion.startsWith("2.13.")) ""
+      else "import me.shadaj.scalapy.py" + System.lineSeparator()
+
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""$maybeScalapyPrefix
+           |object Hello {
+           |  def main(args: Array[String]): Unit = {
+           |    py.Dynamic.global.print("Hello from Python", flush = true)
+           |  }
+           |}
+           |""".stripMargin
+    )
+
+    val dest =
+      if (Properties.isWin) "hello.bat"
+      else "hello"
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "package", "--python", ".", "-o", dest, extraOptions)
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val launcher = root / dest
+      val res      = os.proc(launcher).call(cwd = root)
+      val output   = res.out.trim()
+      expect(output == "Hello from Python")
+    }
+  }
 }

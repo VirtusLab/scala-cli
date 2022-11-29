@@ -3,6 +3,7 @@ package scala.cli.commands.package0
 import ai.kien.python.Python
 import caseapp.*
 import coursier.launcher.*
+import dependency.*
 import packager.config.*
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
@@ -36,7 +37,7 @@ import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
-import scala.cli.internal.{CachedBinary, ProcUtil, ScalaJsLinker}
+import scala.cli.internal.{CachedBinary, Constants, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.util.Properties
 
@@ -300,7 +301,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
       val outputPath = packageType match {
         case PackageType.Bootstrap =>
-          value(bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck()))
+          value(bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
           destPath
         case PackageType.LibraryJar =>
           val content = Library.libraryJar(build)
@@ -391,7 +392,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
         case nativePackagerType: PackageType.NativePackagerType =>
           val bootstrapPath = os.temp.dir(prefix = "scala-packager") / "app"
-          value(bootstrap(build, bootstrapPath, value(mainClass), () => alreadyExistsCheck()))
+          value {
+            bootstrap(
+              build,
+              bootstrapPath,
+              value(mainClass),
+              () => alreadyExistsCheck(),
+              logger
+            )
+          }
           val sharedSettings = SharedSettings(
             sourceAppPath = bootstrapPath,
             version = packageOptions.packageVersion,
@@ -627,7 +636,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
-      case Platform.JVM => value(bootstrap(build, appPath, mainClass, () => Right(())))
+      case Platform.JVM => value(bootstrap(build, appPath, mainClass, () => Right(()), logger))
       case Platform.JS  => buildJs(build, appPath, mainClass, logger)
       case Platform.Native =>
         val dest = value(buildNative(build, mainClass, logger))
@@ -669,7 +678,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     build: Build.Successful,
     destPath: os.Path,
     mainClass: String,
-    alreadyExistsCheck: () => Either[BuildException, Unit]
+    alreadyExistsCheck: () => Either[BuildException, Unit],
+    logger: Logger
   ): Either[BuildException, Unit] = either {
     val byteCodeZipEntries = os.walk(build.output)
       .filter(os.isFile(_))
@@ -708,9 +718,40 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .withOsKind(Properties.isWin)
       .callsItself(Properties.isWin)
       .withJavaOpts(build.options.javaOptions.javaOpts.toSeq.map(_.value.value))
-    val params = Parameters.Bootstrap(Seq(loaderContent), mainClass)
+    val baseParams = Parameters.Bootstrap(Seq(loaderContent), mainClass)
       .withDeterministic(true)
       .withPreamble(preamble)
+
+    val params =
+      if (build.options.notForBloopOptions.doSetupPython.getOrElse(false)) {
+        val res = value {
+          Artifacts.fetch(
+            Positioned.none(Seq(
+              dep"${Constants.pythonInterfaceOrg}:${Constants.pythonInterfaceName}:${Constants.pythonInterfaceVersion}"
+            )),
+            Nil,
+            None,
+            logger,
+            build.options.finalCache,
+            None,
+            Some(_)
+          )
+        }
+        val entries = res.artifacts.map {
+          case (a, f) =>
+            val path = os.Path(f)
+            if (build.options.notForBloopOptions.packageOptions.isStandalone)
+              ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
+            else
+              ClassPathEntry.Url(a.url)
+        }
+        val pythonContent = Seq(
+          ClassLoaderContent(entries)
+        )
+        baseParams.addExtraContent("python", pythonContent).withPython(true)
+      }
+      else
+        baseParams
 
     value(alreadyExistsCheck())
     BootstrapGenerator.generate(params, destPath.toNIO)

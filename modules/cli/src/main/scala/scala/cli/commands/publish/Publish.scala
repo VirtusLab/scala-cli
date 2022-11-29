@@ -70,7 +70,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
-    sharedPython: SharedPythonOptions,
     scalaSigning: PgpScalaSigningOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
@@ -156,10 +155,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             useJvm = scalaSigning.forceJvmSigningCli,
             javaArgs = scalaSigning.signingCliJavaArg
           )
-        ),
-        python = sharedPython.python,
-        pythonSetup = sharedPython.pythonSetup,
-        scalaPyVersion = sharedPython.scalaPyVersion
+        )
       )
     )
   }
@@ -191,7 +187,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       options.publishParams,
       options.sharedPublish,
       options.publishRepo,
-      options.sharedPython,
       options.signingCli,
       options.mainClass,
       options.ivy2LocalLike

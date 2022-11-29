@@ -78,9 +78,6 @@ object Repl extends ScalaCommand[ReplOptions] {
           ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty),
           ammoniteArgs = ammoniteArg
         ),
-        python = sharedPython.python,
-        pythonSetup = sharedPython.pythonSetup,
-        scalaPyVersion = sharedPython.scalaPyVersion,
         addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt
           .orElse(Some(false))
       )
