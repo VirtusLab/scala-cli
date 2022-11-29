@@ -186,7 +186,7 @@ object ConsoleBloopBuildClient {
       logger.message(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         logger.message(prefix + line)
-      val codeOpt = Option(diag.getCode).orElse {
+      val codeOpt = {
         val lineOpt =
           if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
             Option(diag.getRange.getStart.getLine)
