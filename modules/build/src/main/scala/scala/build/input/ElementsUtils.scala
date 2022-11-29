@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.Directories
+import scala.build.internal.Constants
 
 object ElementsUtils {
   extension (d: Directory) {
@@ -15,7 +16,7 @@ object ElementsUtils {
         .collect {
           case p if p.last.endsWith(".java") =>
             JavaFile(d.path, p.subRelativeTo(d.path))
-          case p if p.last == "project.scala" =>
+          case p if p.last == Constants.projectFileName =>
             ProjectScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".scala") =>
             SourceScalaFile(d.path, p.subRelativeTo(d.path))
@@ -31,8 +32,8 @@ object ElementsUtils {
     }
 
     def configFile: Seq[ProjectScalaFile] =
-      if (os.exists(d.path / "project.scala"))
-        Seq(ProjectScalaFile(d.path, os.sub / "project.scala"))
+      if (os.exists(d.path / Constants.projectFileName))
+        Seq(ProjectScalaFile(d.path, os.sub / Constants.projectFileName))
       else Nil
   }
 

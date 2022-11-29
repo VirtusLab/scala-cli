@@ -18,16 +18,23 @@ import scala.jdk.CollectionConverters.*
 
 case class ExtractedDirectives(
   offset: Int,
-  directives: Seq[StrictDirective]
+  directives: Seq[StrictDirective],
+  positions: Option[DirectivesPositions]
 ) {
   @targetName("append")
   def ++(other: ExtractedDirectives): ExtractedDirectives =
-    ExtractedDirectives(offset, directives ++ other.directives)
+    ExtractedDirectives(offset, directives ++ other.directives, positions)
 }
+
+case class DirectivesPositions(
+  codeDirectives: Position.File,
+  specialCommentDirectives: Position.File,
+  plainCommentDirectives: Position.File
+)
 
 object ExtractedDirectives {
 
-  def empty: ExtractedDirectives = ExtractedDirectives(0, Seq.empty)
+  def empty: ExtractedDirectives = ExtractedDirectives(0, Seq.empty, None)
 
   val changeToSpecialCommentMsg =
     "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
@@ -73,9 +80,20 @@ object ExtractedDirectives {
             Nil
         }
 
+      def getPosition(directives: UsingDirectives) =
+        val line   = directives.getAst().getPosition().getLine()
+        val column = directives.getAst().getPosition().getColumn()
+        Position.File(path, (0, 0), (line, column))
+
       val codeDirectives           = byKind(UsingDirectiveKind.Code)
       val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
       val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
+
+      val directivesPositions = DirectivesPositions(
+        getPosition(codeDirectives),
+        getPosition(specialCommentDirectives),
+        getPosition(plainCommentDirectives)
+      )
 
       def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
         values.foreach { v =>
@@ -126,7 +144,7 @@ object ExtractedDirectives {
         if (usedDirectives.getKind != UsingDirectiveKind.Code) 0
         else usedDirectives.getCodeOffset
       if (supportedDirectives.contains(usedDirectives.getKind))
-        Right(ExtractedDirectives(offset, strictDirectives))
+        Right(ExtractedDirectives(offset, strictDirectives, Some(directivesPositions)))
       else {
         val directiveVales =
           usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)

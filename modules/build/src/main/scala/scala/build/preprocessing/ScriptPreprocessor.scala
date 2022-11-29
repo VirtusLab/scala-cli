@@ -88,7 +88,7 @@ object ScriptPreprocessor {
         maybeRecoverOnError,
         allowRestrictedFeatures
       ))
-        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
+        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -108,7 +108,8 @@ object ScriptPreprocessor {
       Some(processingOutput.globalReqs),
       processingOutput.scopedReqs,
       Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
-      scopePath
+      scopePath,
+      processingOutput.directivesPositions
     )
     List(file)
   }

@@ -84,7 +84,7 @@ case object MarkdownPreprocessor extends Preprocessor {
                   maybeRecoverOnError = maybeRecoverOnError,
                   allowRestrictedFeatures = allowRestrictedFeatures
                 )
-              }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None))
+              }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
             val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)
             PreprocessedSource.InMemory(
               originalPath = reportingPath.map(subPath -> _),
@@ -95,7 +95,8 @@ case object MarkdownPreprocessor extends Preprocessor {
               requirements = Some(processingOutput.globalReqs),
               processingOutput.scopedReqs,
               mainClassOpt = None,
-              scopePath = scopePath
+              scopePath = scopePath,
+              directivesPositions = processingOutput.directivesPositions
             )
           }
       }

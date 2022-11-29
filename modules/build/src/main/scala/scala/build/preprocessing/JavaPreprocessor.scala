@@ -13,6 +13,7 @@ import scala.build.input.{Inputs, JavaFile, SingleElement, VirtualJavaFile}
 import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
+import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 import scala.build.preprocessing.ScalaPreprocessor._
 
 /** Java source preprocessor.
@@ -42,29 +43,23 @@ final case class JavaPreprocessor(
       case j: JavaFile => Some(either {
           val content   = value(PreprocessingUtil.maybeRead(j.path))
           val scopePath = ScopePath.fromPath(j.path)
-          val ExtractedDirectives(_, directives0) =
-            value(from(
-              content.toCharArray,
+          val (updatedOptions, directivesPositions) = value {
+            optionsAndPositionsFromDirectives(
+              content,
+              scopePath,
               Right(j.path),
               logger,
-              Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment),
-              scopePath,
-              maybeRecoverOnError
-            ))
-          val updatedOptions = value(DirectivesProcessor.process(
-            directives0,
-            usingDirectiveHandlers,
-            Right(j.path),
-            scopePath,
-            logger,
-            allowRestrictedFeatures
-          ))
+              maybeRecoverOnError,
+              allowRestrictedFeatures
+            )
+          }
           Seq(PreprocessedSource.OnDisk(
             j.path,
             Some(updatedOptions.global),
             Some(BuildRequirements()),
             Nil,
-            None
+            None,
+            directivesPositions
           ))
         })
       case v: VirtualJavaFile =>
@@ -88,16 +83,27 @@ final case class JavaPreprocessor(
             }
             else v.subPath
           val content = new String(v.content, StandardCharsets.UTF_8)
+          val (updatedOptions, directivesPositions) = value {
+            optionsAndPositionsFromDirectives(
+              content,
+              v.scopePath,
+              Left(relPath.toString),
+              logger,
+              maybeRecoverOnError,
+              allowRestrictedFeatures
+            )
+          }
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
             code = content,
             ignoreLen = 0,
-            options = None,
-            requirements = None,
+            options = Some(updatedOptions.global),
+            requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
             mainClassOpt = None,
-            scopePath = v.scopePath
+            scopePath = v.scopePath,
+            directivesPositions = directivesPositions
           )
           Seq(s)
         }
