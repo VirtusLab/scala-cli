@@ -75,8 +75,19 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
           ).call(cwd = root / "mill-proj")
         val output = res.out.text(Charset.defaultCharset())
         expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
-        expect(output.contains("def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq("))
-        expect(output.contains("ivy\"com.olegpy::better-monadic-for:0.3.1\""))
+      }
+      locally {
+        // scalacPluginIvyDeps
+        val res =
+          os.proc(
+            root / "mill-proj" / launcher,
+            "--disable-ticker",
+            "show",
+            s"$projectName.scalacPluginIvyDeps"
+          ).call(cwd = root / "mill-proj")
+        val output = res.out.text(Charset.defaultCharset())
+        expect(output.contains("com.olegpy"))
+        expect(output.contains("better-monadic-for"))
       }
       locally {
         // test
