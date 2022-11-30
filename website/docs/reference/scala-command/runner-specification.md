@@ -324,7 +324,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -831,7 +831,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -1344,7 +1344,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -1881,7 +1881,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -2440,7 +2440,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -2945,7 +2945,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -3526,7 +3526,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -4147,7 +4147,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
@@ -5009,7 +5009,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.1.2-sc1 by default).
+Scala.js CLI version to use for linking (1.1.3-sc1 by default).
 
 **--js-cli-java-arg**
 
