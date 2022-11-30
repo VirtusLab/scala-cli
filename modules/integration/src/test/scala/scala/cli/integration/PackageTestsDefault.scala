@@ -24,7 +24,7 @@ class PackageTestsDefault extends PackageTestDefinitions(scalaVersionOpt = None)
       val packageOutput    = packageRes.out.trim()
       val topPackageOutput = packageOutput.linesIterator.takeWhile(!_.startsWith("Wrote ")).toVector
       // no compilation or Scala Native pipeline output, as this should just re-use what the run command wrote
-      expect(topPackageOutput.isEmpty)
+      expect(topPackageOutput.forall(!_.startsWith("[info] ")))
     }
   }
 
