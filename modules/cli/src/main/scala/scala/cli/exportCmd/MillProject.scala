@@ -12,6 +12,7 @@ final case class MillProject(
   testDeps: Seq[String] = Nil,
   scalaVersion: Option[String] = None,
   scalacOptions: Seq[String] = Nil,
+  scalaCompilerPlugins: Seq[String] = Nil,
   scalaJsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
   nameOpt: Option[String] = None,
@@ -87,6 +88,23 @@ final case class MillProject(
           ")" + nl
       }
 
+    val maybeScalaCompilerPlugins =
+      if (scalaCompilerPlugins.isEmpty) ""
+      else {
+        val depLen = scalaCompilerPlugins.length
+        "def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(" + nl +
+          scalaCompilerPlugins
+            .iterator
+            .zipWithIndex
+            .map {
+              case (dep, idx) =>
+                val maybeComma = if (idx == depLen - 1) "" else ","
+                """  ivy"""" + dep + "\"" + maybeComma + nl
+            }
+            .mkString + nl +
+          ")" + nl
+      }
+
     val maybeMain = mainClass.fold("") { mc =>
       s"""def mainClass = Some("$mc")""" + nl
     }
@@ -101,6 +119,7 @@ final case class MillProject(
          |  $maybeScalacOptions
          |  $extraDecs
          |  ${maybeDeps(mainDeps)}
+         |  $maybeScalaCompilerPlugins
          |  $maybeMain
          |  ${extraDecls.map("  " + _ + nl).mkString}
          |

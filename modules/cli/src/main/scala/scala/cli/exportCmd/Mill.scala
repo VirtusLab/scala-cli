@@ -46,6 +46,11 @@ final case class Mill(
       MillProject(scalaVersion = Some(sv))
   }
 
+  private def scalaCompilerPlugins(buildOptions: BuildOptions): MillProject =
+    MillProject(scalaCompilerPlugins =
+      buildOptions.scalaOptions.compilerPlugins.toSeq.map(_.value.render)
+    )
+
   private def scalacOptionsSettings(buildOptions: BuildOptions): MillProject =
     MillProject(scalacOptions = buildOptions.scalaOptions.scalacOptions.toSeq.map(_.value.value))
 
@@ -187,6 +192,7 @@ final case class Mill(
       sourcesSettings(sourcesMain, sourcesTest),
       scalaVersionSettings(optionsMain, sourcesMain),
       scalacOptionsSettings(optionsMain),
+      scalaCompilerPlugins(optionsMain),
       dependencySettings(optionsMain, optionsTest),
       repositorySettings(optionsMain),
       if (optionsMain.platform.value == Platform.JS) scalaJsSettings(optionsMain.scalaJsOptions)
