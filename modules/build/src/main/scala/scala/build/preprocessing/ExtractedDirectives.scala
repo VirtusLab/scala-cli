@@ -31,7 +31,10 @@ case class DirectivesPositions(
   codeDirectives: Position.File,
   specialCommentDirectives: Position.File,
   plainCommentDirectives: Position.File
-)
+) {
+  def scope: Position.File =
+    Seq(codeDirectives, specialCommentDirectives, plainCommentDirectives).maxBy(p => p.endPos._1)
+}
 
 object ExtractedDirectives {
 

@@ -120,18 +120,22 @@ object CrossSources {
     }
 
   /** @return
-    *   a CrossSources and Inputs which contains element processed from using directives
+    *   Inputs which contain elements processed from using directives and preprocessed sources
+    *   extracted from given Inputs
     */
-  def forInputs(
+  def allInputsAndPreprocessedSources(
     inputs: Inputs,
     preprocessors: Seq[Preprocessor],
     logger: Logger,
-    suppressDirectivesInMultipleFilesWarning: Option[Boolean],
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  ): Either[BuildException, (CrossSources, Inputs)] = either {
-
-    def preprocessSources(elems: Seq[SingleElement])
-      : Either[BuildException, Seq[PreprocessedSource]] =
+  ): Either[BuildException, (Inputs, Seq[PreprocessedSource])] = either {
+    def preprocessSources(
+      elems: Seq[SingleElement],
+      inputs: Inputs,
+      preprocessors: Seq[Preprocessor],
+      logger: Logger,
+      maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    ): Either[BuildException, Seq[PreprocessedSource]] =
       elems
         .map { elem =>
           preprocessors
@@ -153,7 +157,13 @@ object CrossSources {
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
 
-    val preprocessedInputFromArgs = value(preprocessSources(inputs.flattened()))
+    val preprocessedInputFromArgs = value(preprocessSources(
+      inputs.flattened(),
+      inputs,
+      preprocessors,
+      logger,
+      maybeRecoverOnError
+    ))
 
     val sourcesFromDirectives =
       preprocessedInputFromArgs
@@ -162,11 +172,33 @@ object CrossSources {
         .distinct
     val inputsElemFromDirectives =
       value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
-    val preprocessedSourcesFromDirectives = value(preprocessSources(inputsElemFromDirectives))
-    val allInputs                         = inputs.add(inputsElemFromDirectives)
+    val preprocessedSourcesFromDirectives = value(preprocessSources(
+      inputsElemFromDirectives,
+      inputs,
+      preprocessors,
+      logger,
+      maybeRecoverOnError
+    ))
 
-    val preprocessedSources =
+    val allInputs = inputs.add(inputsElemFromDirectives)
+    val allPreprocessedSources =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
+
+    (allInputs, allPreprocessedSources)
+  }
+
+  /** @return
+    *   a CrossSources and Inputs which contains element processed from using directives
+    */
+  def forInputs(
+    inputs: Inputs,
+    preprocessors: Seq[Preprocessor],
+    logger: Logger,
+    suppressDirectivesInMultipleFilesWarning: Option[Boolean],
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  ): Either[BuildException, (CrossSources, Inputs)] = either {
+    val (allInputs, preprocessedSources) =
+      value(allInputsAndPreprocessedSources(inputs, preprocessors, logger, maybeRecoverOnError))
 
     val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
     if (
@@ -182,14 +214,9 @@ object CrossSources {
         .foreach { source =>
           source.directivesPositions match
             case Some(positions) =>
-              val pos = Seq(
-                positions.codeDirectives,
-                positions.specialCommentDirectives,
-                positions.plainCommentDirectives
-              ).maxBy(p => p.endPos._1)
               logger.diagnostic(
                 s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
-                positions = Seq(pos)
+                positions = Seq(positions.scope)
               )
             case _ => ()
         }
