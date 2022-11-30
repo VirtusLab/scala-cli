@@ -5,6 +5,195 @@ sidebar_position: 99
 
 # Release notes
 
+## [v0.1.18](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.18)
+
+## Filter tests with `--test-only`
+It is now possible to filter test suites with the `--test-only` option.
+
+```scala title=BarTests.scala
+//> using lib "org.scalameta::munit::1.0.0-M7"
+package tests.only
+class Tests extends munit.FunSuite {
+  test("bar") {
+    assert(2 + 2 == 5)
+  }
+  test("foo") {
+    assert(2 + 3 == 5)
+  }
+  test("foo-again") {
+    assert(2 + 3 == 5)
+  }
+}
+```
+
+```scala title=HelloTests.scala
+package tests
+class HelloTests extends munit.FunSuite {
+  test("hello") {
+    assert(2 + 2 == 4)
+  }
+}
+```
+
+```bash fail
+scala-cli test BarTests.scala HelloTests.scala --test-only 'tests.only*' 
+# tests.only.Tests:
+# ==> X tests.only.Tests.bar  0.037s munit.FailException: ~/project/src/test/BarTests.scala:5 assertion failed
+# 4:  test("bar") {
+# 5:    assert(2 + 2 == 5)
+# 6:  }
+#     at munit.FunSuite.assert(FunSuite.scala:11)
+#     at tests.only.Tests.$init$$$anonfun$1(BarTests.scala:5)
+#     at tests.only.Tests.$init$$$anonfun$adapted$1(BarTests.scala:6)
+#   + foo 0.004s
+#   + foo-again 0.001s
+```
+
+Filtering particular tests by name requires passing args to the test framework.
+For example, with `munit`:
+
+```bash
+scala-cli test BarTests.scala HelloTests.scala --test-only 'tests.only*'  -- '*foo*'
+# tests.only.Tests:
+#   + foo 0.032s
+#   + foo-again 0.001s
+```
+
+Added by [@lwronski](https://github.com/lwronski) in [#1604](https://github.com/VirtusLab/scala-cli/pull/1604)
+
+## Accept authenticated proxy params via Scala CLI config
+If you can only download artifacts through an authenticated proxy, it is now possible to configure it
+with the `config` subcommand.
+
+```bash ignore
+scala-cli config httpProxy.address https://proxy.company.com
+scala-cli config httpProxy.user _encoded_user_
+scala-cli config httpProxy.password _encoded_password_
+```
+
+Replace `_encoded_user_` and `_encoded_password_` by your actual user and password, following
+the [password option format](reference/password-options.md). They should typically look like
+`env:ENV_VAR_NAME`, `file:/path/to/file`, or `command:command to run`.
+
+Added by [@alexarchambault](https://github.com/alexarchambault) in [#1593](https://github.com/VirtusLab/scala-cli/pull/1593)
+
+## Support for running Markdown sources from zipped archives and gists
+It is now possible to run `.md` sources inside a `.zip` archive.
+Same as with directories,  `.md` sources inside zipped archives are ignored by default, unless
+the `--enable-markdown` option is passed.
+
+```bash ignore
+scala-cli archive-with-markdown.zip --enable-markdown
+```
+
+This also enables running Markdown sources fom GitHub gists, as those are downloaded by Scala CLI as zipped archives.
+
+```bash
+scala-cli https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
+```
+
+It is also possible to point Scala CLI to a `.md` file with a direct URL.
+
+```bash
+scala-cli https://gist.githubusercontent.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839/raw/4c5ce7593e19f1390555221e0d076f4b02f4b4fd/example.md
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#1581](https://github.com/VirtusLab/scala-cli/pull/1581)
+
+## Support for running piped Markdown sources
+Instead of passing paths to your Markdown sources, you can also pipe your code via standard input:
+
+```bash
+echo '# Example Snippet
+```scala
+println("Hello")
+```' | scala-cli _.md
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#1582](https://github.com/VirtusLab/scala-cli/pull/1582)
+
+## Support for running Markdown snippets
+It is now possible to pass Markdown code as a snippet directly from the command line.
+
+````bash
+scala-cli run --markdown-snippet '# Markdown snippet
+with a code block
+```scala
+println("Hello")
+```'
+````
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#1583](https://github.com/VirtusLab/scala-cli/pull/1583)
+
+## Customize exported Mill project name
+It is now possible to pass the desired name of your Mill project to the `export` sub-command 
+with the `--project` option. 
+
+```bash
+scala-cli export . --mill -o mill-proj --project project-name
+```
+
+Added by [@carlosedp](https://github.com/carlosedp) in [#1563](https://github.com/VirtusLab/scala-cli/pull/1563)
+
+## Export Scala compiler options to Mill projects
+It is now possible to export `scalac` options from a Scala CLI project to Mill with the `export` sub-command.
+
+Added by [@lolgab](https://github.com/lolgab) in [#1562](https://github.com/VirtusLab/scala-cli/pull/1562)
+
+## Other changes
+
+## Fixes
+* Fix overriding settings from tests by [@alexarchambault](https://github.com/alexarchambault) in [#1566](https://github.com/VirtusLab/scala-cli/pull/1566)
+* Print compilation failed in watch mode too in test command by [@alexarchambault](https://github.com/alexarchambault) in [#1548](https://github.com/VirtusLab/scala-cli/pull/1548)
+* Fix error message when running JVM launcher from Java 8 by [@alexarchambault](https://github.com/alexarchambault) in [#1575](https://github.com/VirtusLab/scala-cli/pull/1575)
+* Fix `using` directives for Markdown inputs by [@Gedochao](https://github.com/Gedochao) in [#1598](https://github.com/VirtusLab/scala-cli/pull/1598)
+* Fix - clean up only homebrew-scala-experimental directory by [@lwronski](https://github.com/lwronski) in [#1615](https://github.com/VirtusLab/scala-cli/pull/1615)
+* Warn users when pushing to Sonatype with missing credentials or params by [@alexarchambault](https://github.com/alexarchambault) in [#1545](https://github.com/VirtusLab/scala-cli/pull/1545)
+* Warning for multiple files with using directives by [@wleczny](https://github.com/wleczny) in [#1591](https://github.com/VirtusLab/scala-cli/pull/1591)
+* Make package --python work by [@alexarchambault](https://github.com/alexarchambault) in [#1531](https://github.com/VirtusLab/scala-cli/pull/1531)
+* Better revolver output by [@alexarchambault](https://github.com/alexarchambault) in [#1614](https://github.com/VirtusLab/scala-cli/pull/1614)
+* Make `PackageTestsDefault.reuse run native binary` more robust by [@lwronski](https://github.com/lwronski) in [1621](https://github.com/VirtusLab/scala-cli/pull/1621)
+
+## Documentation updates
+* Add some explanations on implicit sub-commands in `-help` by [@Gedochao](https://github.com/Gedochao) in [#1587](https://github.com/VirtusLab/scala-cli/pull/1587)
+* Runner specification by [@romanowski](https://github.com/romanowski) in [#1445](https://github.com/VirtusLab/scala-cli/pull/1445)
+* Install documentation update by [@wleczny](https://github.com/wleczny) in [#1595](https://github.com/VirtusLab/scala-cli/pull/1595)
+* Document recent features & changes affecting working with Markdown inputs  by [@Gedochao](https://github.com/Gedochao) in [#1606](https://github.com/VirtusLab/scala-cli/pull/1606)
+* Improve docs coverage with `sclicheck` by [@Gedochao](https://github.com/Gedochao) in [#1612](https://github.com/VirtusLab/scala-cli/pull/1612)
+* Reduce ignore tags in the docs snippets by [@Gedochao](https://github.com/Gedochao) in [#1617](https://github.com/VirtusLab/scala-cli/pull/1617)
+
+## Build and internal changes
+* Remove superfluous annotation by [@alexarchambault](https://github.com/alexarchambault) in [#1567](https://github.com/VirtusLab/scala-cli/pull/1567)
+* Decompose & refactor `Inputs` by [@Gedochao](https://github.com/Gedochao) in [#1565](https://github.com/VirtusLab/scala-cli/pull/1565)
+* Disable create PGP key test on Windows CI by [@alexarchambault](https://github.com/alexarchambault) in [#1588](https://github.com/VirtusLab/scala-cli/pull/1588)
+* Switch to Scala 3-based case-app by [@alexarchambault](https://github.com/alexarchambault) in [#1568](https://github.com/VirtusLab/scala-cli/pull/1568)
+* Remove cli-options module by [@alexarchambault](https://github.com/alexarchambault) in [#1552](https://github.com/VirtusLab/scala-cli/pull/1552)
+* Enable to force using jvm signing launcher for native launcher of scala-cli by [@lwronski](https://github.com/lwronski) in [#1597](https://github.com/VirtusLab/scala-cli/pull/1597)
+* Run warm up test before running default tests by [@lwronski](https://github.com/lwronski) in [#1599](https://github.com/VirtusLab/scala-cli/pull/1599)
+* Make DefaultTests more robust by [@alexarchambault](https://github.com/alexarchambault) in [#1613](https://github.com/VirtusLab/scala-cli/pull/1613)
+
+## Updates & maintenance
+* Update scala-cli.sh launcher for 0.1.17 by [@github-actions](https://github.com/github-actions) in [#1564](https://github.com/VirtusLab/scala-cli/pull/1564)
+* Update zip-input-stream to 0.1.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1573](https://github.com/VirtusLab/scala-cli/pull/1573)
+* Update coursier-jvm_2.13, ... to 2.1.0-RC1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1572](https://github.com/VirtusLab/scala-cli/pull/1572)
+* Update mill-main to 0.10.9 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1571](https://github.com/VirtusLab/scala-cli/pull/1571)
+* Update test-runner, tools to 0.4.8 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1574](https://github.com/VirtusLab/scala-cli/pull/1574)
+* Update case-app_2.13 to 2.1.0-M21 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1570](https://github.com/VirtusLab/scala-cli/pull/1570)
+* Bump VirtusLab/scala-cli-setup from 0.1.16 to 0.1.17 by [@dependabot](https://github.com/dependabot) in [#1579](https://github.com/VirtusLab/scala-cli/pull/1579)
+* Bump Ammonite to 2.5.5-17-df243e14 & Scala to 3.2.1 by [@Gedochao](https://github.com/Gedochao) in [#1586](https://github.com/VirtusLab/scala-cli/pull/1586)
+* Update scala-cli-signing to 0.1.13 by [@alexarchambault](https://github.com/alexarchambault) in [#1569](https://github.com/VirtusLab/scala-cli/pull/1569)
+* Update coursier-jvm_2.13, ... to 2.1.0-RC2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1590](https://github.com/VirtusLab/scala-cli/pull/1590)
+* Update scalajs-sbt-test-adapter_2.13 to 1.11.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1477](https://github.com/VirtusLab/scala-cli/pull/1477)
+* Update slf4j-nop to 2.0.4 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1596](https://github.com/VirtusLab/scala-cli/pull/1596)
+* Update jsoniter-scala-core_2.13 to 2.18.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1608](https://github.com/VirtusLab/scala-cli/pull/1608)
+* Update test-runner, tools to 0.4.9 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1610](https://github.com/VirtusLab/scala-cli/pull/1610)
+* Update Bloop to 1.5.4-sc-4 by [@alexarchambault](https://github.com/alexarchambault) in [#1622](https://github.com/VirtusLab/scala-cli/pull/1622)
+
+## New Contributors
+* [@carlosedp](https://github.com/carlosedp) made their first contribution in [#1563](https://github.com/VirtusLab/scala-cli/pull/1563)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.17...v0.1.18
+
 ## [v0.1.17](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.17)
 
 # Enhancements
