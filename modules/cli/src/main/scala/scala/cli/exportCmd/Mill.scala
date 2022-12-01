@@ -48,7 +48,9 @@ final case class Mill(
 
   private def scalaCompilerPlugins(buildOptions: BuildOptions): MillProject =
     MillProject(scalaCompilerPlugins =
-      buildOptions.scalaOptions.compilerPlugins.toSeq.map(_.value.render)
+      buildOptions.scalaOptions.compilerPlugins.toSeq.map { p =>
+        s"${p.value.organization}:::${p.value.name}:${p.value.version}"
+      }
     )
 
   private def scalacOptionsSettings(buildOptions: BuildOptions): MillProject =
