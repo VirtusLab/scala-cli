@@ -77,6 +77,33 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
       }
       locally {
+        // test
+        val res =
+          os.proc(root / "mill-proj" / launcher, s"$projectName.test").call(cwd =
+            root / "mill-proj"
+          )
+        val output = res.out.text(Charset.defaultCharset())
+        expect(output.contains("1 succeeded"))
+      }
+    }
+  }
+
+  def jvmTestCompilerPlugin(projectName: String = "project"): Unit = {
+    val inputs = addMillJvmOpts(ExportTestProjects.jvmTest(actualScalaVersion))
+    inputs.fromRoot { root =>
+      val setProject = if (projectName != "project") Seq("-p", projectName) else Seq.empty
+      os.proc(
+        TestUtil.cli,
+        "export",
+        extraOptions,
+        "--mill",
+        setProject,
+        "-o",
+        "mill-proj",
+        "."
+      )
+        .call(cwd = root, stdout = os.Inherit)
+      locally {
         // scalacPluginIvyDeps
         val res =
           os.proc(
@@ -100,6 +127,7 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
   if (runExportTests)
     test("JVM") {
       jvmTest()
@@ -108,6 +136,11 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
   if (runExportTests)
     test("JVM custom project name") {
       jvmTest("newproject")
+    }
+
+  if (runExportTests && !actualScalaVersion.startsWith("3."))
+    test("JVM with compiler plugin") {
+      jvmTestCompilerPlugin()
     }
 
   if (runExportTests)
