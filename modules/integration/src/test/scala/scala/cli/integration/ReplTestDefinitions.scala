@@ -46,12 +46,18 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("ammonite scalapy") {
-    TestInputs.empty.fromRoot { root =>
+    val inputs = TestInputs(
+      os.rel / "foo" / "something.py" ->
+        """messageStart = 'Hello from'
+          |messageEnd = 'ScalaPy'
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
         """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)
-          |// py.Dynamic.global.print("Hello from", "ScalaPy") // doesn't work
-          |println(py"'Hello from '" + py"'ScalaPy'")
+          |val sth = py.module("foo.something")
+          |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
           |""".stripMargin
       )
         .map {
@@ -61,6 +67,24 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
             identity
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
+
+      val errorRes = os.proc(
+        TestUtil.cli,
+        "repl",
+        extraOptions,
+        "--ammonite",
+        "--python",
+        ammArgs
+      ).call(
+        cwd = root,
+        env = Map("PYTHONSAFEPATH" -> "foo"),
+        mergeErrIntoOut = true,
+        check = false
+      )
+      expect(errorRes.exitCode != 0)
+      val errorOutput = errorRes.out.text()
+      expect(errorOutput.contains("No module named 'foo'"))
+
       val res = os.proc(
         TestUtil.cli,
         "repl",
