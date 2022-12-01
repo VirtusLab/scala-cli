@@ -28,6 +28,9 @@ object ScalaVersionUtil {
 
   private def scala2Library = cmod"org.scala-lang:scala-library"
   private def scala3Library = cmod"org.scala-lang:scala3-library_3"
+  def scala212Nightly       = "2.12.nightly"
+  def scala213Nightly       = List("2.13.nightly", "2.nightly")
+  def scala3Nightly         = "3.nightly"
 
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
@@ -179,10 +182,11 @@ object ScalaVersionUtil {
   def validateNonStable(
     scalaVersionStringArg: String,
     cache: FileCache[Task],
-    latestSupportedStableVersions: Seq[String]
+    latestSupportedStableVersions: Seq[String],
+    repositories: Seq[Repository]
   ): Either[ScalaVersionError, String] = {
     val versionPool =
-      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache)
+      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
 
     if (versionPool.contains(scalaVersionStringArg))
       if (isSupportedVersion(scalaVersionStringArg))
@@ -203,10 +207,11 @@ object ScalaVersionUtil {
     scalaVersionStringArg: String,
     cache: FileCache[Task],
     latestSupportedStableVersions: Seq[String],
-    maxSupportedStableScalaVersions: Seq[Version]
+    maxSupportedStableScalaVersions: Seq[Version],
+    repositories: Seq[Repository]
   ): Either[ScalaVersionError, String] = {
     val versionPool =
-      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache)
+      ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
         .filter(ScalaVersionUtil.isStable)
     val prefix =
       if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
@@ -259,6 +264,8 @@ object ScalaVersionUtil {
 
   def isScala2Nightly(version: String): Boolean =
     scala2NightlyRegex.unapplySeq(version).isDefined
+    || (scala212Nightly +: scala213Nightly).contains(version)
+
   def isScala3Nightly(version: String): Boolean =
     version.startsWith("3") && version.endsWith("-NIGHTLY")
 
@@ -267,7 +274,8 @@ object ScalaVersionUtil {
 
   def allMatchingVersions(
     maybeScalaVersionArg: Option[String],
-    cache: FileCache[Task]
+    cache: FileCache[Task],
+    repositories: Seq[Repository]
   ): Seq[String] = {
 
     val modules =
@@ -285,6 +293,7 @@ object ScalaVersionUtil {
         val versions = cache.logger.use {
           try Versions(cache)
               .withModule(mod)
+              .addRepositories(repositories: _*)
               .result()
               .unsafeRun()(cache.ec)
           catch {

@@ -1,6 +1,7 @@
 package scala.build
 
 import coursier.cache.FileCache
+import coursier.core.{Repository, Version}
 import coursier.util.Task
 import dependency._
 
@@ -42,25 +43,25 @@ object ReplArtifacts {
     dependencies: Seq[AnyDependency],
     extraClassPath: Seq[os.Path],
     extraSourceJars: Seq[os.Path],
+    extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task],
     directories: Directories,
     addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
-    val localRepoOpt = LocalRepo.localRepo(directories.localRepoDir)
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion") ++ scalapyDeps
     val replArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
-      localRepoOpt.toSeq,
+      extraRepositories,
       Some(scalaParams),
       logger,
       cache.withMessage(s"Downloading Ammonite $ammoniteVersion")
     )
     val replSourceArtifacts = Artifacts.artifacts(
       Positioned.none(allDeps),
-      localRepoOpt.toSeq,
+      extraRepositories,
       Some(scalaParams),
       logger,
       cache.withMessage(s"Downloading Ammonite $ammoniteVersion sources"),
@@ -82,7 +83,7 @@ object ReplArtifacts {
     extraClassPath: Seq[os.Path],
     logger: Logger,
     cache: FileCache[Task],
-    repositories: Seq[String],
+    repositories: Seq[Repository],
     addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")

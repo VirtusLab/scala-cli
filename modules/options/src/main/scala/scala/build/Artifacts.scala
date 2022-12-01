@@ -1,7 +1,7 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Classifier, Module, ModuleName, Organization}
+import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
 import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
@@ -92,7 +92,7 @@ object Artifacts {
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJmhDependencies: Option[String],
-    extraRepositories: Seq[String],
+    extraRepositories: Seq[Repository],
     keepResolution: Boolean,
     cache: FileCache[Task],
     logger: Logger,
@@ -113,7 +113,7 @@ object Artifacts {
       val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
       if (hasSnapshots)
-        Seq(coursier.Repositories.sonatype("snapshots").root)
+        Seq(coursier.Repositories.sonatype("snapshots"))
       else
         Nil
     }
@@ -347,7 +347,7 @@ object Artifacts {
           if (addJvmRunner0) {
             val maybeSnapshotRepo =
               if (runnerVersion.endsWith("SNAPSHOT"))
-                Seq(coursier.Repositories.sonatype("snapshots").root)
+                Seq(coursier.Repositories.sonatype("snapshots"))
               else Nil
             value {
               artifacts(
@@ -415,7 +415,7 @@ object Artifacts {
 
   private[build] def artifacts(
     dependencies: Positioned[Seq[AnyDependency]],
-    extraRepositories: Seq[String],
+    extraRepositories: Seq[Repository],
     paramsOpt: Option[ScalaParameters],
     logger: Logger,
     cache: FileCache[Task],
@@ -439,7 +439,7 @@ object Artifacts {
 
   def fetch(
     dependencies: Positioned[Seq[AnyDependency]],
-    extraRepositories: Seq[String],
+    extraRepositories: Seq[Repository],
     paramsOpt: Option[ScalaParameters],
     logger: Logger,
     cache: FileCache[Task],
@@ -488,7 +488,7 @@ object Artifacts {
 
   def fetch0(
     dependencies: Positioned[Seq[coursier.Dependency]],
-    extraRepositories: Seq[String],
+    extraRepositories: Seq[Repository],
     forceScalaVersionOpt: Option[String],
     forcedVersions: Seq[(coursier.Module, String)],
     logger: Logger,
@@ -501,15 +501,8 @@ object Artifacts {
         (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
     }
 
-    val fallbackRepository = TemporaryInMemoryRepository(fallbacks)
-
-    val extraRepositories0 = value {
-      RepositoryParser.repositories(extraRepositories)
-        .either
-        .left.map(errors => new RepositoryFormatError(errors))
-    }
-
-    val extraRepositoriesWithFallback = extraRepositories0 :+ fallbackRepository
+    val fallbackRepository            = TemporaryInMemoryRepository(fallbacks)
+    val extraRepositoriesWithFallback = extraRepositories :+ fallbackRepository
 
     val forceScalaVersions = forceScalaVersionOpt match {
       case None => Nil

@@ -7,6 +7,7 @@ import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error, RemainingArgs}
+import coursier.core.{Repository, Version}
 import dependency.*
 
 import scala.annotation.tailrec
@@ -180,7 +181,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
             val docArtifacts = value {
               Artifacts.fetch(
                 Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
-                buildOptions.finalRepositories,
+                value(buildOptions.finalRepositories),
                 Some(scalaParams),
                 logger,
                 buildOptions.finalCache,
@@ -211,7 +212,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
                 Positioned.none(Seq(
                   dep"${Constants.scalafmtOrganization}:${Constants.scalafmtName}:${Constants.defaultScalafmtVersion}"
                 )),
-                buildOptions.finalRepositories,
+                value(buildOptions.finalRepositories),
                 Some(scalaParams),
                 logger,
                 buildOptions.finalCache,

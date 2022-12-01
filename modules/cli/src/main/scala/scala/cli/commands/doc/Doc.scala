@@ -138,7 +138,7 @@ object Doc extends ScalaCommand[DocOptions] {
         val res = value {
           Artifacts.fetch(
             Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
-            build.options.finalRepositories,
+            value(build.options.finalRepositories),
             Some(scalaParams),
             logger,
             build.options.finalCache,

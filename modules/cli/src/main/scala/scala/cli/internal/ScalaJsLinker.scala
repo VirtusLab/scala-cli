@@ -53,7 +53,7 @@ object ScalaJsLinker {
 
         val extraRepos =
           if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
-            Seq(Repositories.sonatype("snapshots").root)
+            Seq(Repositories.sonatype("snapshots"))
           else
             Nil
 

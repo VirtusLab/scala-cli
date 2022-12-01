@@ -16,6 +16,7 @@ class ReplArtifactsTests extends munit.FunSuite {
         Nil,
         Nil,
         Nil,
+        Nil,
         Logger.nop,
         FileCache(),
         Directories.under(root),
