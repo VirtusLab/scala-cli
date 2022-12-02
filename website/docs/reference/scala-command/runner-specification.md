@@ -1,4 +1,4 @@
----        
+---
 title: Scala Runner specification
 sidebar_position: 1
 ---
@@ -27,7 +27,7 @@ The proposed Scala runner specification should also contain supported `Using dir
 - `-X`
 - `-Y`
 
-are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
+are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly.
 
 
  ## Scalac options that are directly supported in scala CLI (so can be provided as is, without any prefixes etc.):
