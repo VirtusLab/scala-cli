@@ -8,11 +8,18 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.directives.HasBuildOptions
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
-import scala.build.preprocessing.directives.*
+import scala.build.preprocessing.directives
+import scala.build.preprocessing.directives.{
+  DirectiveHandler,
+  DirectiveUtil,
+  RequireDirectiveHandler,
+  ScopedDirective
+}
 import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -44,35 +51,37 @@ case object ScalaPreprocessor extends Preprocessor {
     directivesPositions: Option[DirectivesPositions]
   )
 
-  val usingDirectiveHandlers: Seq[UsingDirectiveHandler] = Seq(
-    UsingCompilerPluginDirectiveHandler,
-    UsingCustomJarDirectiveHandler,
-    UsingDependencyDirectiveHandler,
-    UsingJavaHomeDirectiveHandler,
-    UsingJavacOptionsDirectiveHandler,
-    UsingJavaOptionsDirectiveHandler,
-    UsingJavaPropsDirectiveHandler,
-    UsingJvmDirectiveHandler,
-    UsingMainClassDirectiveHandler,
-    UsingOptionDirectiveHandler,
-    UsingPackagingDirectiveHandler,
-    UsingPlatformDirectiveHandler,
-    UsingPublishContextualDirectiveHandler,
-    UsingPublishDirectiveHandler,
-    UsingPythonDirectiveHandler,
-    UsingRepositoryDirectiveHandler,
-    UsingResourcesDirectiveHandler,
-    UsingScalaJsOptionsDirectiveHandler,
-    UsingScalaNativeOptionsDirectiveHandler,
-    UsingScalaVersionDirectiveHandler,
-    UsingSourceDirectiveHandler,
-    UsingTestFrameworkDirectiveHandler
-  )
+  val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] = Seq(
+    directives.UsingCompilerPluginDirectiveHandler,
+    directives.UsingCustomJarDirectiveHandler,
+    directives.UsingDependencyDirectiveHandler,
+    directives.UsingJavaHomeDirectiveHandler,
+    directives.UsingJavacOptionsDirectiveHandler,
+    directives.UsingJavaOptionsDirectiveHandler,
+    directives.UsingJavaPropsDirectiveHandler,
+    directives.UsingJvmDirectiveHandler,
+    directives.UsingMainClassDirectiveHandler,
+    directives.UsingOptionDirectiveHandler,
+    directives.UsingPackagingDirectiveHandler,
+    directives.UsingPlatformDirectiveHandler,
+    directives.UsingPublishContextualDirectiveHandler,
+    directives.UsingPublishDirectiveHandler,
+    directives.UsingPythonDirectiveHandler,
+    directives.UsingRepositoryDirectiveHandler,
+    directives.UsingResourcesDirectiveHandler,
+    directives.UsingScalaJsOptionsDirectiveHandler,
+    directives.UsingScalaNativeOptionsDirectiveHandler,
+    directives.UsingScalaVersionDirectiveHandler,
+    directives.UsingSourceDirectiveHandler,
+    directives.UsingTestFrameworkDirectiveHandler
+  ) ++
+    Seq[DirectiveHandler[_ <: HasBuildOptions]](
+    ).map(_.mapE(_.buildOptions))
 
   val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
-    RequirePlatformsDirectiveHandler,
-    RequireScalaVersionDirectiveHandler,
-    RequireScopeDirectiveHandler
+    directives.RequirePlatformsDirectiveHandler,
+    directives.RequireScalaVersionDirectiveHandler,
+    directives.RequireScopeDirectiveHandler
   )
 
   def preprocess(

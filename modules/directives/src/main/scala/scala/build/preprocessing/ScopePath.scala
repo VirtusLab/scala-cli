@@ -6,6 +6,10 @@ final case class ScopePath(
 ) {
   def /(subPath: os.PathChunk): ScopePath =
     copy(subPath = this.subPath / subPath)
+  def path: Either[String, os.Path] =
+    root
+      .left.map(r => s"$r/$subPath")
+      .map(_ / subPath)
 }
 
 object ScopePath {
