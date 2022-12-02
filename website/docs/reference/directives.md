@@ -116,9 +116,7 @@ Add Javac options which will be passed when compiling sources.
 `//> using javacOpt `_options_
 
 #### Examples
-`//> using javacOpt "source", "1.8"`
-
-`"target", "1.8"`
+`//> using javacOpt "source", "1.8", "target", "1.8"`
 
 ### Main class
 
@@ -175,19 +173,35 @@ Set parameters for publishing
 
 `//> using publish.version "0.1.1"`
 
+### Publish (CI)
+
+Set CI parameters for publishing
+
+`//> using publish.ci.computeVersion `"value"
+`//> using publish.ci.repository `"value"
+`//> using publish.ci.secretKey `"value"
+
+
+#### Examples
+`//> using publish.ci.computeVersion "git:tag"`
+
+`//> using publish.ci.repository "central-s01"`
+
+`//> using publish.ci.secretKey "env:PUBLISH_SECRET_KEY"`
+
 ### Publish (contextual)
 
 Set contextual parameters for publishing
 
 `//> using publish.computeVersion `"value"
-`//> using publish.ci.repository `"value"
+`//> using publish.repository `"value"
 `//> using publish.secretKey `"value"
 
 
 #### Examples
 `//> using publish.computeVersion "git:tag"`
 
-`//> using publish.ci.repository "central-s01"`
+`//> using publish.repository "central-s01"`
 
 `//> using publish.secretKey "env:PUBLISH_SECRET_KEY"`
 

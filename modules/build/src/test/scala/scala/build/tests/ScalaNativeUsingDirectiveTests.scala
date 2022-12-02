@@ -54,12 +54,13 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
   test("ScalaNativeOptions for native-gc") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-gc` 78
+        """//> using `native-gc` "78"
           |def foo() = println("hello foo")
           |""".stripMargin
     )
     inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.options.scalaNativeOptions.gcStr.get == "78")
+      val gcStr = maybeBuild.options.scalaNativeOptions.gcStr
+      expect(gcStr.contains("78"))
     }
   }
 
@@ -157,8 +158,8 @@ class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
           |""".stripMargin
     )
     inputs.withBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
-      assert(maybeBuild.left.exists {
-        case _: UsingDirectiveValueNumError => true; case _ => false
+      assert(maybeBuild.exists { build =>
+        build.options.scalaNativeOptions.linkingOptions.isEmpty
       })
     }
   }

@@ -1,5 +1,11 @@
 package scala.build.errors
 
-final class MalformedPlatformError(marformedInput: String) extends BuildException(
-      s"Unrecognized platform: $marformedInput"
+import scala.build.Position
+
+final class MalformedPlatformError(
+  marformedInput: String,
+  positions: Seq[Position] = Nil
+) extends BuildException(
+      s"Unrecognized platform: $marformedInput",
+      positions = positions
     )

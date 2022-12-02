@@ -1,5 +1,11 @@
 package scala.build.errors
 
-final class UnexpectedJvmPlatformVersionError extends BuildException(
-      "Unexpected version specified for JVM platform"
+import scala.build.Position
+
+final class UnexpectedJvmPlatformVersionError(
+  version: String,
+  positions: Seq[Position]
+) extends BuildException(
+      s"Unexpected version '$version' specified for JVM platform",
+      positions = positions
     )

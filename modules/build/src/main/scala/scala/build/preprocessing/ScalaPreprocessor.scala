@@ -51,31 +51,31 @@ case object ScalaPreprocessor extends Preprocessor {
     directivesPositions: Option[DirectivesPositions]
   )
 
-  val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] = Seq(
-    directives.UsingCompilerPluginDirectiveHandler,
-    directives.UsingCustomJarDirectiveHandler,
-    directives.UsingDependencyDirectiveHandler,
-    directives.UsingJavaHomeDirectiveHandler,
-    directives.UsingJavacOptionsDirectiveHandler,
-    directives.UsingJavaOptionsDirectiveHandler,
-    directives.UsingJavaPropsDirectiveHandler,
-    directives.UsingJvmDirectiveHandler,
-    directives.UsingMainClassDirectiveHandler,
-    directives.UsingOptionDirectiveHandler,
-    directives.UsingPackagingDirectiveHandler,
-    directives.UsingPlatformDirectiveHandler,
-    directives.UsingPublishContextualDirectiveHandler,
-    directives.UsingPublishDirectiveHandler,
-    directives.UsingPythonDirectiveHandler,
-    directives.UsingRepositoryDirectiveHandler,
-    directives.UsingResourcesDirectiveHandler,
-    directives.UsingScalaJsOptionsDirectiveHandler,
-    directives.UsingScalaNativeOptionsDirectiveHandler,
-    directives.UsingScalaVersionDirectiveHandler,
-    directives.UsingSourceDirectiveHandler,
-    directives.UsingTestFrameworkDirectiveHandler
-  ) ++
+  val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
     Seq[DirectiveHandler[_ <: HasBuildOptions]](
+      directives.CustomJar.handler,
+      directives.Dependency.handler,
+      directives.JavacOptions.handler,
+      directives.JavaOptions.handler,
+      directives.JavaProps.handler,
+      directives.JavaHome.handler,
+      directives.Jvm.handler,
+      directives.MainClass.handler,
+      directives.Packaging.handler,
+      directives.Platform.handler,
+      directives.Plugin.handler,
+      directives.Publish.handler,
+      directives.PublishContextual.Local.handler,
+      directives.PublishContextual.CI.handler,
+      directives.Python.handler,
+      directives.Repository.handler,
+      directives.Resources.handler,
+      directives.ScalacOptions.handler,
+      directives.ScalaJs.handler,
+      directives.ScalaNative.handler,
+      directives.ScalaVersion.handler,
+      directives.Sources.handler,
+      directives.Tests.handler
     ).map(_.mapE(_.buildOptions))
 
   val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
