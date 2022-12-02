@@ -1,13 +1,14 @@
 package scala.build.actionable
 
 import coursier.Versions
+import coursier.parse.RepositoryParser
 import dependency._
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
 import scala.build.actionable.ActionableDiagnostic._
 import scala.build.actionable.errors.ActionableHandlerError
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, RepositoryFormatError}
 import scala.build.internal.Util._
 import scala.build.options.BuildOptions
 import scala.build.options.ScalaVersionUtil.versionsWithTtl0
@@ -40,12 +41,15 @@ case object ActionableDependencyHandler
     buildOptions: BuildOptions,
     dependency: AnyDependency
   ): Either[BuildException, String] = either {
-    val scalaParams = value(buildOptions.scalaParams)
-    val cache       = buildOptions.finalCache
-    val csModule    = value(dependency.toCs(scalaParams)).module
+    val scalaParams  = value(buildOptions.scalaParams)
+    val cache        = buildOptions.finalCache
+    val csModule     = value(dependency.toCs(scalaParams)).module
+    val repositories = value(buildOptions.finalRepositories)
 
     value {
-      cache.versionsWithTtl0(csModule).versions.latest(coursier.core.Latest.Release).toRight {
+      cache.versionsWithTtl0(csModule, repositories).versions.latest(
+        coursier.core.Latest.Stable
+      ).toRight {
         new ActionableHandlerError(s"No latest version found for ${dependency.render}")
       }
     }
