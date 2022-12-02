@@ -28,6 +28,7 @@ object ExportTestProjects {
         s"""//> using scala "$scalaVersion"
            |//> using resourceDir "./input"
            |//> using option "-deprecation"
+           |//> using plugins "com.olegpy::better-monadic-for:0.3.1"
            |
            |import scala.io.Source
            |
