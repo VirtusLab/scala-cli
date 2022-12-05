@@ -982,7 +982,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         Nil
     val pythonCliOptions = pythonLdFlags.flatMap(f => Seq("--linking-option", f)).toList
 
-    val allCliOptions = pythonCliOptions ++ cliOptions
+    val allCliOptions = pythonCliOptions ++ cliOptions ++ Seq(mainClass)
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
