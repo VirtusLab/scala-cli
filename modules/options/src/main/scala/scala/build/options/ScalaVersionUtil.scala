@@ -46,12 +46,9 @@ object ScalaVersionUtil {
       repositories: Seq[Repository] = Seq.empty
     ): Versions.Result =
       cache.withTtl(0.seconds).logger.use {
-        val versionsWithModule = Versions(cache)
+        Versions(cache)
           .withModule(module)
-        val versionsWithRepositories =
-          if repositories.nonEmpty then versionsWithModule.withRepositories(repositories)
-          else versionsWithModule
-        versionsWithRepositories
+          .addRepositories(repositories: _*)
           .result()
           .unsafeRun()(cache.ec)
       }
