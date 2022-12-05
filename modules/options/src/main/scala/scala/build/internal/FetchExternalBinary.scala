@@ -45,7 +45,7 @@ object FetchExternalBinary {
               params.forcedVersions.map { case (m, v) => m.toCs -> v }*
             )
           }
-          .withRepositories(params.extraRepos)
+          .addRepositories(params.extraRepos: _*)
           .run()(archiveCache.cache.ec)
           .map(os.Path(_, os.pwd))
         ExternalBinary.ClassPath(javaCommand(), classPath, params.mainClass)
