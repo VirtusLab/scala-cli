@@ -15,7 +15,7 @@ concurrency:
 jobs:
   unit-tests:
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -43,7 +43,7 @@ jobs:
 
   jvm-tests-1:
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -59,7 +59,7 @@ jobs:
 
   jvm-tests-2:
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -75,7 +75,7 @@ jobs:
 
   jvm-tests-3:
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -91,7 +91,7 @@ jobs:
 
   generate-linux-launcher:
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -118,7 +118,7 @@ jobs:
   native-linux-tests-1:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -142,7 +142,7 @@ jobs:
   native-linux-tests-2:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -166,7 +166,7 @@ jobs:
   native-linux-tests-3:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -467,7 +467,7 @@ jobs:
 
   generate-mostly-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -491,7 +491,7 @@ jobs:
   native-mostly-static-tests-1:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -528,7 +528,7 @@ jobs:
   native-mostly-static-tests-2:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -552,7 +552,7 @@ jobs:
   native-mostly-static-tests-3:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -575,7 +575,7 @@ jobs:
 
   generate-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -599,7 +599,7 @@ jobs:
   native-static-tests-1:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -636,7 +636,7 @@ jobs:
   native-static-tests-2:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -662,7 +662,7 @@ jobs:
   native-static-tests-3:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -687,7 +687,7 @@ jobs:
 
   docs-tests:
     # for now, let's run those tests only on ubuntu
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -706,7 +706,7 @@ jobs:
 
   checks:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -731,7 +731,7 @@ jobs:
 
   format:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -745,7 +745,7 @@ jobs:
 
   reference-doc:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -765,7 +765,7 @@ jobs:
 
   bloop-memory-footprint:
     timeout-minutes: 120
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -808,7 +808,7 @@ jobs:
   publish:
     needs: [unit-tests, jvm-tests-1, jvm-tests-2, jvm-tests-3, format, checks, reference-doc]
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -870,7 +870,7 @@ jobs:
       - checks
       - reference-doc
     if: github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
       with:
@@ -923,7 +923,7 @@ jobs:
   update-packages:
     name: Update packages
     needs: launchers
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v3
