@@ -47,4 +47,21 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
       archLinuxTest()
     }
 
+  test("3.nightly") { // should run code using scala 3 nightly version
+    TestInputs(os.rel / "sample.sc" -> """println("Hello World")""").fromRoot {
+      root =>
+        val res =
+          os.proc(
+            TestUtil.cli,
+            "run",
+            ".",
+            "-S",
+            "3.nightly",
+            TestUtil.extraOptions
+          )
+            .call(cwd = root)
+        expect(res.out.trim() == "Hello World")
+    }
+  }
+
 }

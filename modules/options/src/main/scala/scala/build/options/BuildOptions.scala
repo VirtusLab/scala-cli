@@ -2,7 +2,8 @@ package scala.build.options
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.core.Version
+import coursier.core.{Repository, Version}
+import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
 
@@ -22,6 +23,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
+import scala.collection.immutable.Seq
 import scala.concurrent.duration.*
 import scala.util.Properties
 
@@ -268,36 +270,47 @@ final case class BuildOptions(
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
 
-  def finalRepositories: Seq[String] = {
-
+  def finalRepositories: Either[BuildException, Seq[Repository]] = {
     val nightlyRepos =
-      if (
-        scalaParams.toOption.flatten.exists(params =>
-          ScalaVersionUtil.isScala2Nightly(params.scalaVersion)
-        )
-      )
+      if (scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)))
         scala2NightlyRepo
       else
         Nil
 
-    nightlyRepos ++
+    val repositories = nightlyRepos ++
       classPathOptions.extraRepositories ++
       internal.localRepository.toSeq
+
+    RepositoryParser.repositories(repositories)
+      .either
+      .left.map(errors => new RepositoryFormatError(errors))
   }
 
-  lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] =
-    if (System.getenv("CI") == null)
-      computeScalaParams(Constants.version, finalCache).orElse(
-        // when the passed scala version is missed in the cache, we always force a cache refresh
-        // https://github.com/VirtusLab/scala-cli/issues/1090
-        computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
-      )
-    else
-      computeScalaParams(Constants.version, finalCache.withTtl(0.seconds))
+  lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
+    val params =
+      if (System.getenv("CI") == null)
+        computeScalaParams(Constants.version, finalCache, value(finalRepositories)).orElse(
+          // when the passed scala version is missed in the cache, we always force a cache refresh
+          // https://github.com/VirtusLab/scala-cli/issues/1090
+          computeScalaParams(
+            Constants.version,
+            finalCache.withTtl(0.seconds),
+            value(finalRepositories)
+          )
+        )
+      else
+        computeScalaParams(
+          Constants.version,
+          finalCache.withTtl(0.seconds),
+          value(finalRepositories)
+        )
+    value(params)
+  }
 
   private[build] def computeScalaParams(
     scalaCliVersion: String,
-    cache: FileCache[Task] = finalCache
+    cache: FileCache[Task] = finalCache,
+    repositories: Seq[Repository] = Nil
   ): Either[BuildException, Option[ScalaParameters]] = either {
 
     lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion(scalaCliVersion)
@@ -309,7 +322,7 @@ final case class BuildOptions(
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {
-            case "3.nightly" =>
+            case sv if sv == ScalaVersionUtil.scala3Nightly =>
               ScalaVersionUtil.GetNightly.scala3(cache)
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
               ScalaVersionUtil.GetNightly.scala3X(
@@ -317,9 +330,9 @@ final case class BuildOptions(
                 cache,
                 latestSupportedStableVersions
               )
-            case "2.nightly" | "2.13.nightly" =>
+            case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
               ScalaVersionUtil.GetNightly.scala2("2.13", cache)
-            case "2.12.nightly" =>
+            case sv if sv == ScalaVersionUtil.scala212Nightly =>
               ScalaVersionUtil.GetNightly.scala2("2.12", cache)
             case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
               ScalaVersionUtil.CheckNightly.scala3(
@@ -339,22 +352,25 @@ final case class BuildOptions(
               ScalaVersionUtil.validateNonStable(
                 versionString,
                 cache,
-                latestSupportedStableVersions
+                latestSupportedStableVersions,
+                repositories
               )
             case versionString =>
               ScalaVersionUtil.validateStable(
                 versionString,
                 cache,
                 latestSupportedStableVersions,
-                maxSupportedStableScalaVersions
+                maxSupportedStableScalaVersions,
+                repositories
               )
           }
         }
         Some(sv)
 
       case None =>
-        val allStableVersions = ScalaVersionUtil.allMatchingVersions(None, finalCache)
-          .filter(ScalaVersionUtil.isStable)
+        val allStableVersions =
+          ScalaVersionUtil.allMatchingVersions(None, finalCache, value(finalRepositories))
+            .filter(ScalaVersionUtil.isStable)
         val sv = value {
           ScalaVersionUtil.default(
             allStableVersions,
@@ -429,7 +445,7 @@ final case class BuildOptions(
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,
-      extraRepositories = finalRepositories,
+      extraRepositories = value(finalRepositories),
       keepResolution = internal.keepResolution,
       cache = finalCache,
       logger = logger,

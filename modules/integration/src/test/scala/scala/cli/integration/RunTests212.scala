@@ -31,4 +31,21 @@ class RunTests212 extends RunTestDefinitions(
       )
     }
   }
+  test("2.12.nightly") {
+    TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
+      root =>
+        val res =
+          os.proc(
+            TestUtil.cli,
+            "run",
+            ".",
+            "-S",
+            "2.12.nightly",
+            TestUtil.extraOptions
+          )
+            .call(cwd = root)
+        val version = res.out.trim()
+        expect(version.startsWith("2.12"))
+    }
+  }
 }

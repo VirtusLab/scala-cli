@@ -371,19 +371,22 @@ object Repl extends ScalaCommand[ReplOptions] {
           value(Left(new ReplError(retCode)))
       }
 
-    def defaultArtifacts(): Either[BuildException, ReplArtifacts] =
-      ReplArtifacts.default(
-        scalaParams,
-        artifacts.userDependencies,
-        artifacts.extraClassPath,
-        logger,
-        cache,
-        options.finalRepositories,
-        addScalapy =
-          if (setupPython)
-            Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
-          else None
-      )
+    def defaultArtifacts(): Either[BuildException, ReplArtifacts] = either {
+      value {
+        ReplArtifacts.default(
+          scalaParams,
+          artifacts.userDependencies,
+          artifacts.extraClassPath,
+          logger,
+          cache,
+          value(options.finalRepositories),
+          addScalapy =
+            if (setupPython)
+              Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
+            else None
+        )
+      }
+    }
     def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
         scalaParams,
@@ -391,6 +394,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         artifacts.userDependencies,
         artifacts.extraClassPath,
         artifacts.extraSourceJars,
+        value(options.finalRepositories),
         logger,
         cache,
         directories,

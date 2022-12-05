@@ -37,12 +37,6 @@ object FetchExternalBinary {
       case Some(binary) =>
         ExternalBinary.Native(binary)
       case None =>
-        val extraRepositories0 = value {
-          RepositoryParser.repositories(params.extraRepos)
-            .either
-            .left.map(errors => new RepositoryFormatError(errors))
-        }
-
         val classPath = coursier.Fetch()
           .withCache(archiveCache.cache)
           .addDependencies(params.dependencies.map(_.toCs)*)
@@ -51,7 +45,7 @@ object FetchExternalBinary {
               params.forcedVersions.map { case (m, v) => m.toCs -> v }*
             )
           }
-          .addRepositories(extraRepositories0*)
+          .withRepositories(params.extraRepos)
           .run()(archiveCache.cache.ec)
           .map(os.Path(_, os.pwd))
         ExternalBinary.ClassPath(javaCommand(), classPath, params.mainClass)

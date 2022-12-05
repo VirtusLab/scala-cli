@@ -24,7 +24,7 @@ object LauncherCli {
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
     val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
     val scalaParameters = ScalaParameters(scalaVersion)
-    val snapshotsRepo   = Seq(Repositories.central.root, Repositories.sonatype("snapshots").root)
+    val snapshotsRepo   = Seq(Repositories.central, Repositories.sonatype("snapshots"))
 
     val cliVersion: String =
       if (version == "nightly") resolveNightlyScalaCliVersion(cache, scalaParameters) else version

@@ -139,7 +139,7 @@ object PgpExternalCommand {
     if (signingCliOptions.useJvm.getOrElse(false)) {
       val extraRepos =
         if (version.endsWith("SNAPSHOT"))
-          Seq(Repositories.sonatype("snapshots").root)
+          Seq(Repositories.sonatype("snapshots"))
         else
           Nil
 
