@@ -337,6 +337,18 @@ world
 
 </ChainedSnippets>
 
+## `shebang` header and Markdown code blocks
+The `shebang` line in `scala` code blocks inside a markdown input are always ignored.
+You can use them (i.e. to give an example of their usage), but they do not change how the code is handled.
+
+````markdown
+## Self executable Scala script
+```scala
+#!/usr/bin/env -S scala-cli shebang
+println("Hello world")
+```
+````
+
 ## `using` directives and Markdown code blocks
 
 It is possible to define `using` directives at the beginning of a `scala` code block inside a markdown input.

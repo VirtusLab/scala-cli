@@ -2,6 +2,7 @@ package scala.build.internal.markdown
 
 import scala.build.Position
 import scala.build.errors.MarkdownUnclosedBackticksError
+import scala.build.preprocessing.SheBang
 
 /** Representation for an open code block in Markdown. (open meaning the closing backticks haven't
   * yet been parsed or they aren't at all present)
@@ -37,9 +38,11 @@ case class MarkdownOpenFence(
   ): MarkdownCodeBlock = {
     val start: Int               = tickStartLine + 1
     val bodyLines: Array[String] = lines.slice(start, tickEndLine)
+    val body                     = bodyLines.mkString("\n")
+    val (bodyWithNoSheBang, _)   = SheBang.ignoreSheBangLines(body)
     MarkdownCodeBlock(
       info.split("\\s+").toList, // strip info by whitespaces
-      bodyLines.mkString("\n"),
+      bodyWithNoSheBang,
       start,          // snippet has to begin in the new line
       tickEndLine - 1 // ending backticks have to be placed below the snippet
     )

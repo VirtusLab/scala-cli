@@ -46,6 +46,28 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
     expect(actualResult == expectedResult)
   }
 
+  test("shebang line is ignored in plain scala code blocks") {
+    val code = """println("Hello")""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 4
+      )
+    val Right(Seq(actualResult: MarkdownCodeBlock)) =
+      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    expect(actualResult == expectedResult)
+  }
+
   test("a raw Scala code block is extracted correctly from markdown") {
     val code = """object Main extends App {
                  |  println("Hello")
@@ -65,6 +87,31 @@ class MarkdownCodeBlockTests extends munit.FunSuite {
         endLine = 5
       )
     val Right(Seq(actualResult)) =
+      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    expect(actualResult == expectedResult)
+  }
+
+  test("shebang line is ignored in raw scala code blocks") {
+    val code =
+      """object Main extends App {
+        |  println("Hello")
+        |}""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala raw
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = RawScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 6
+      )
+    val Right(Seq(actualResult: MarkdownCodeBlock)) =
       MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
     expect(actualResult == expectedResult)
   }
