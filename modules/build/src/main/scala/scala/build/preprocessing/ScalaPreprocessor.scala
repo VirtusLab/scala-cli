@@ -187,8 +187,9 @@ case object ScalaPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean
   ): Either[BuildException, Option[ProcessingOutput]] = either {
+    val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
     val extractedDirectives = value(ExtractedDirectives.from(
-      content.toCharArray,
+      contentWithNoShebang.toCharArray,
       path,
       logger,
       UsingDirectiveKind.values(),
