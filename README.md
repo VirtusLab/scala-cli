@@ -13,7 +13,7 @@ User-facing documentation can be found on our website: [scala-cli.virtuslab.org]
 
 ### Requirements
 
-Building Scala CLI requires a JVM 17 to work properly.
+Building Scala CLI requires JVM 17 to work properly.
 
 In theory, our build is able to download and install for its own needs JVM 17 on some OSes however it may not work in Intellij / Metals out of the box.
 
@@ -77,30 +77,10 @@ Build native packagers:
 ./mill -i scala package ..arguments... --pkg --output 'path.pkg'
 ```
 
-#### Generate Metals configuration files
+#### IDE Import
 
-```bash
-./mill mill.contrib.Bloop/install
-```
-
-Then run the command "Metals: Connect to build server".
-
-(Recommended over the Metals import project functionality.)
-
-Whenever the build is updated, just do these two steps again.
-
-#### Generate IntelliJ configuration files
-
-```bash
-./mill mill.scalalib.GenIdea/idea
-```
-
-Then open the scala-cli directory in IntelliJ.
-
-(Recommended over the IntelliJ import project functionality.)
-
-Whenever the build is updated, run the command above again. IntelliJ
-should then pick up the new changes.
+The Scala CLI repository should work when imported automatically from Mill to IDEA IntelliJ and Metals.
+Please raise an issue if you run into any problems.
 
 #### Generate a native launcher
 
@@ -164,7 +144,7 @@ generate these binaries on the GitHub-provided GitHub actions hosts).
 
 The Scala CLI website is built with [Docusaurus](https://v1.docusaurus.io/en/) and uses [Infima](https://infima.dev/docs/layout/spacing) for styling.
 
-Ensure you are using Node >= 14.
+Ensure you are using Node >= 16.14.2.
 
 #### Generate the website once
 
