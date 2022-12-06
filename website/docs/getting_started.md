@@ -86,12 +86,12 @@ Scala CLI reuses most of its options across all of its commands.
 
 One of the main strengths of Scala is its ecosystem. Scala CLI is designed in a way to expose the Scala ecosystem to all usages of Scala, and running the REPL is no exception.
 
-To demonstrate this, let's start prototyping with [os-lib](https://github.com/com-lihaoyi/os-lib) — a Scala interface to common OS filesystem and subprocess methods. To experiment with `os-lib` in the REPL, we simply need to add the parameter `--dep com.lihaoyi::os-lib:0.7.8`, as shown here:
+To demonstrate this, let's start prototyping with [os-lib](https://github.com/com-lihaoyi/os-lib) — a Scala interface to common OS filesystem and subprocess methods. To experiment with `os-lib` in the REPL, we simply need to add the parameter `--dep com.lihaoyi::os-lib:0.9.0`, as shown here:
 
 <ChainedSnippets>
 
 ```bash ignore
-scala-cli repl --dep com.lihaoyi::os-lib:0.7.8
+scala-cli repl --dep com.lihaoyi::os-lib:0.9.0
 ```
 
 ```scala ignore
@@ -119,7 +119,7 @@ cd scala-cli-getting-started
 Now we can write our logic in a file named `files.scala`:
 
 ```scala title=files.scala
-//> using lib "com.lihaoyi::os-lib:0.7.8"
+//> using lib "com.lihaoyi::os-lib:0.9.0"
 
 def filesByExtension(
   extension: String,
@@ -129,7 +129,7 @@ def filesByExtension(
     }
 ```
 
-As you may have noticed, we specified a dependency within `files.scala` using the `//> using lib com.lihaoyi::os-lib:0.7.8` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](./guides/using-directives.md).
+As you may have noticed, we specified a dependency within `files.scala` using the `//> using lib com.lihaoyi::os-lib:0.9.0` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](./guides/using-directives.md).
 
 Now let's check if our code compiles. We do that by running:
 
