@@ -24,8 +24,14 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
       sharedOptions.compilationOutput.filter(_.nonEmpty)
         .orElse(sharedOptions.scalac.scalacOption.getScalacOption("-d"))
         .filter(_.nonEmpty)
-        .map(os.Path(_, Os.pwd)).foreach(output =>
-          os.copy.over(successfulBuild.output, output, createFolders = true)
-        )
+        .map(os.Path(_, Os.pwd)).foreach { output =>
+          os.copy(
+            successfulBuild.output,
+            output,
+            createFolders = true,
+            mergeFolders = true,
+            replaceExisting = true
+          )
+        }
   }
 }

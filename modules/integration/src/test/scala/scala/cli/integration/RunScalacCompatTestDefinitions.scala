@@ -268,6 +268,47 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
       expect(runRes.out.trim() == expectedOutput)
     }
   }
+  test("dont clear output dir") {
+    val expectedOutput = "Hello"
+    val `lib.scala`    = os.rel / "lib.scala"
+    val `utils.scala`  = os.rel / "utils.scala"
+    TestInputs(
+      `lib.scala`   -> s"""object lib { def foo = "$expectedOutput" }""",
+      `utils.scala` -> s"""object utils { def bar = lib.foo }"""
+    ).fromRoot { (root: os.Path) =>
+      val compilationOutputDir = os.rel / "compilationOutput"
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        "compile",
+        "-d",
+        compilationOutputDir,
+        `lib.scala`,
+        extraOptions
+      ).call(cwd = root)
+
+      val outputFiles = os.list(root / compilationOutputDir)
+      expect(outputFiles.exists(_.endsWith(os.rel / "lib$.class")))
+      expect(outputFiles.exists(_.endsWith(os.rel / "lib.class")))
+
+      os.proc(
+        TestUtil.cli,
+        "compile",
+        "-d",
+        compilationOutputDir,
+        "-cp",
+        compilationOutputDir,
+        `utils.scala`,
+        extraOptions
+      ).call(cwd = root)
+
+      val outputFlies2 = os.list(root / compilationOutputDir)
+      expect(outputFlies2.exists(_.endsWith(os.rel / "utils$.class")))
+      expect(outputFlies2.exists(_.endsWith(os.rel / "utils.class")))
+      expect(outputFlies2.exists(_.endsWith(os.rel / "lib$.class")))
+      expect(outputFlies2.exists(_.endsWith(os.rel / "lib.class")))
+    }
+  }
 
   test("run main class from a jar even when no explicit inputs are passed") {
     val expectedOutput = "Hello"
