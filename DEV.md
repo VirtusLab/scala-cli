@@ -20,7 +20,14 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 #### Run unit tests
 
 ```bash
-./mill 'build-module.test' './mill 'build-module.test'
+./mill 'build-module.test'
+```
+
+To can filter unit test suites:
+
+```bash
+./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.*'
+./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.simple'
 ```
 
 #### Run integration tests with the JVM launcher
