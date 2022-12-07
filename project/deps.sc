@@ -114,7 +114,7 @@ object Deps {
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def guava         = ivy"com.google.guava:guava:31.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.3.0.202209071007-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.4.0.202211300538-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore213 =
@@ -138,7 +138,7 @@ object Deps {
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def organizeImports            = ivy"com.github.liancheng::organize-imports:0.6.0"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.8.1"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.8.0"
+  def pprint                     = ivy"com.lihaoyi::pprint:0.8.1"
   def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
@@ -172,7 +172,7 @@ object Deps {
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
     else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
-  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.3"
+  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.5"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
