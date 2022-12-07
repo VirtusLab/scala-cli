@@ -14,6 +14,7 @@ details [here](https://scala-cli.virtuslab.org/docs/reference/scala-command/).
 
 ## Docs
 - user-facing documentation: [scala-cli.virtuslab.org](https://scala-cli.virtuslab.org/)
+- [contributing guide](CONTRIBUTING.md)
 - [developer docs](DEV.md)
 - [app internals](INTERNALS.md)
 - [docs website readme](website/README.md)
