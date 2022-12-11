@@ -12,6 +12,7 @@ import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
+import scala.cli.util.SeqHelpers._
 
 final case class Mill(
   millVersion: String,
@@ -107,19 +108,8 @@ final case class Mill(
   }
 
   private def customResourcesSettings(options: BuildOptions): MillProject = {
-
-    val customResourcesDecls =
-      if (options.classPathOptions.resourcesDir.isEmpty) Nil
-      else {
-        val resources =
-          options.classPathOptions.resourcesDir.map(p => s"""PathRef(os.Path("$p"))""")
-        Seq(
-          s"""def runClasspath = super.runClasspath() ++ Seq(${resources.mkString(", ")})"""
-        )
-      }
-
     MillProject(
-      extraDecls = customResourcesDecls
+      resourcesDirs = options.classPathOptions.resourcesDir
     )
   }
 
