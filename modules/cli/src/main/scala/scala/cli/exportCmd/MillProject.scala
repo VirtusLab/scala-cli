@@ -131,11 +131,11 @@ final case class MillProject(
          |""".stripMargin
 
     for ((path, language, content) <- mainSources) {
-      val path0 = dir / name / "src" / "main" / "scala" / path
+      val path0 = dir / name / "src" / path
       os.write(path0, content, createFolders = true)
     }
     for ((path, language, content) <- testSources) {
-      val path0 = dir / name / "test" / "src" / "test" / path
+      val path0 = dir / name / "test" / "src" / path
       os.write(path0, content, createFolders = true)
     }
 
