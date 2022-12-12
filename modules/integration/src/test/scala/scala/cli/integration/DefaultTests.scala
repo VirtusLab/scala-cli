@@ -183,6 +183,42 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
     }
   }
 
+  test("ensure -save/--save works with the default command") {
+    val msg = "Hello world"
+    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
+      val legacySaveOption = "-save"
+      val res1 =
+        os.proc(TestUtil.cli, ".", legacySaveOption, TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res1.out.trim() == msg)
+      expect(res1.err.trim().contains(s"Deprecated option '$legacySaveOption' is ignored"))
+      val doubleDashSaveOption = "--save"
+      val res2 =
+        os.proc(TestUtil.cli, ".", doubleDashSaveOption, TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res2.out.trim() == msg)
+      expect(res2.err.trim().contains(s"Deprecated option '$doubleDashSaveOption' is ignored"))
+    }
+  }
+
+  test("ensure -nosave/--nosave works with the default command") {
+    val msg = "Hello world"
+    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
+      val legacyNoSaveOption = "-nosave"
+      val res1 =
+        os.proc(TestUtil.cli, ".", legacyNoSaveOption, TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res1.out.trim() == msg)
+      expect(res1.err.trim().contains(s"Deprecated option '$legacyNoSaveOption' is ignored"))
+      val doubleDashNoSaveOption = "--nosave"
+      val res2 =
+        os.proc(TestUtil.cli, ".", doubleDashNoSaveOption, TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res2.out.trim() == msg)
+      expect(res2.err.trim().contains(s"Deprecated option '$doubleDashNoSaveOption' is ignored"))
+    }
+  }
+
   private def unrecognizedArgMessage(argName: String) =
     s"""
        |Unrecognized argument: $argName
