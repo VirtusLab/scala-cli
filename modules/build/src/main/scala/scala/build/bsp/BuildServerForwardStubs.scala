@@ -79,11 +79,12 @@ trait BuildServerForwardStubs extends b.BuildServer {
     forwardTo.workspaceBuildTargets()
       .handle(fatalExceptionHandler("workspaceBuildTargets"))
 
+  /** This implementation should never be called and is merely a placeholder. As Bloop doesn't
+    * support reloading its workspace, Scala CLI has to reload Bloop instead. And so,
+    * [[BuildServerProxy]].workspaceReload() is responsible for the actual reload.
+    */
   override def workspaceReload(): CompletableFuture[Object] =
-    CompletableFuture.completedFuture(new Object)
-  // Bloop does not support workspaceReload and Intellij calls it at the start
-  // forwardTo.workspaceReload()
-  //   .handle(fatalExceptionHandler("workspaceReload"))
+    CompletableFuture.completedFuture(new Object) // should never be called, as per scaladoc
 
   override def buildTargetDependencyModules(params: DependencyModulesParams)
     : CompletableFuture[DependencyModulesResult] =

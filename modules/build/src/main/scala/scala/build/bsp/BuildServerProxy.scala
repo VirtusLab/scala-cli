@@ -8,6 +8,12 @@ import scala.build.GeneratedSource
 import scala.build.input.Inputs
 import scala.build.options.Scope
 
+/** A wrapper for [[BspServer]], allowing to reload the workspace on the fly.
+  * @param bspServer
+  *   the underlying BSP server relying on Bloop
+  * @param onReload
+  *   the actual `workspace/reload` function
+  */
 class BuildServerProxy(
   bspServer: () => BspServer,
   onReload: () => CompletableFuture[Object]
@@ -77,6 +83,10 @@ class BuildServerProxy(
   override def buildTargetOutputPaths(params: b.OutputPathsParams)
     : CompletableFuture[b.OutputPathsResult] =
     bspServer().buildTargetOutputPaths(params)
+
+  /** As Bloop doesn't support `workspace/reload` requests and we have to reload it on Scala CLI's
+    * end, this is used instead of [[BspServer]]'s [[BspServerForwardStubs]].workspaceReload().
+    */
   override def workspaceReload(): CompletableFuture[AnyRef] =
     onReload()
 
