@@ -977,6 +977,59 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("workspace/reload extra dependency directive") {
+    val sourceFilePath = os.rel / "ReloadTest.scala"
+    val inputs = TestInputs(
+      sourceFilePath ->
+        s"""object ReloadTest {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
+
+            val depName    = "os-lib"
+            val depVersion = "0.8.1"
+            val updatedSourceFile =
+              s"""//> using lib "com.lihaoyi::$depName:$depVersion"
+                 |
+                 |object ReloadTest {
+                 |  println(os.pwd)
+                 |}
+                 |""".stripMargin
+            os.write.over(root / sourceFilePath, updatedSourceFile)
+
+            val reloadResponse =
+              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
+
+            val depSourcesParams = new b.DependencySourcesParams(targets.asJava)
+            val depSourcesResponse =
+              await(remoteServer.buildTargetDependencySources(depSourcesParams).asScala)
+            val depSources = depSourcesResponse.getItems.asScala.flatMap(_.getSources.asScala)
+            expect(depSources.exists(s => s.contains(depName) && s.contains(depVersion)))
+          }
+      }
+
+    }
+  }
+
   test("workspace/reload of an extra sources directory") {
     val dir1 = "dir1"
     val dir2 = "dir2"

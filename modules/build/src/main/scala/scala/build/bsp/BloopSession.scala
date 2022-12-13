@@ -10,6 +10,7 @@ import scala.build.input.{Inputs, OnDisk, SingleFile, Virtual}
 
 final class BloopSession(
   val inputs: Inputs,
+  val inputsHash: String,
   val remoteServer: BloopCompiler,
   val bspServer: BspServer,
   val watcher: Build.Watcher
@@ -53,6 +54,13 @@ final class BloopSession(
 }
 
 object BloopSession {
+
+  def apply(
+    inputs: Inputs,
+    remoteServer: BloopCompiler,
+    bspServer: BspServer,
+    watcher: Build.Watcher
+  ): BloopSession = new BloopSession(inputs, inputs.sourceHash(), remoteServer, bspServer, watcher)
 
   final class Reference {
     private val ref = new AtomicReference[BloopSession](null)
