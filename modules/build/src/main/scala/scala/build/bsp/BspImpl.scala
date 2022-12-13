@@ -390,12 +390,7 @@ final class BspImpl(
       build(bloopSession0, actualLocalClient, notifyChanges = true, reloadableOptions),
       ()
     )
-    lazy val bloopSession0: BloopSession = new BloopSession(
-      inputs,
-      remoteServer,
-      bspServer,
-      watcher
-    )
+    lazy val bloopSession0: BloopSession = BloopSession(inputs, remoteServer, bspServer, watcher)
 
     bloopSession0.registerWatchInputs()
     bspServer.newInputs(inputs)
@@ -578,8 +573,11 @@ final class BspImpl(
           }
         }
         val newInputs      = value(argsToInputs(ideInputs.args))
+        val newHash        = newInputs.sourceHash()
         val previousInputs = currentBloopSession.inputs
-        if (newInputs == previousInputs) CompletableFuture.completedFuture(new Object)
+        val previousHash   = currentBloopSession.inputsHash
+        if newInputs == previousInputs && newHash == previousHash then
+          CompletableFuture.completedFuture(new Object)
         else reloadBsp(currentBloopSession, previousInputs, newInputs, reloadableOptions)
       }
       maybeResponse match {
