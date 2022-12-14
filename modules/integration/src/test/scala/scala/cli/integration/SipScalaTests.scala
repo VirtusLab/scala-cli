@@ -122,6 +122,20 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
+  def checkHelp(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+    val cliPath = os.Path(TestUtil.cliPath, os.pwd)
+    val ext = if (Properties.isWin) ".exe" else ""
+    val newCliPath = root / s"$binaryName$ext"
+    os.copy(cliPath, newCliPath)
+
+    for { helpOption <- Seq("help", "-help", "--help") } {
+      val res = os.proc(newCliPath, helpOption).call(cwd = root)
+      val restrictedFeaturesMentioned = res.out.trim().contains("package")
+      if (binaryName == "scala") expect(!restrictedFeaturesMentioned)
+      else expect(restrictedFeaturesMentioned)
+    }
+  }
+
   if (TestUtil.isNativeCli) {
     test("version command print detailed info run as scala") {
       runVersionCommand("scala")
@@ -129,6 +143,14 @@ class SipScalaTests extends ScalaCliSuite {
 
     test("version command print detailed info run as scala-cli") {
       runVersionCommand("scala-cli")
+    }
+
+    test("help command mentions non-restricted features only when run as scala") {
+      checkHelp("scala")
+    }
+
+    test("help command mentions all core features when run as scala") {
+      checkHelp("scala-cli")
     }
   }
 }

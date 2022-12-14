@@ -70,8 +70,13 @@ class ScalaCliCommands(
       (if (pgpUseBinaryCommands) Nil else pgpCommands.allExternalCommands.toSeq) ++
       (if (pgpUseBinaryCommands) pgpBinaryCommands.allExternalCommands.toSeq else Nil)
 
-  override def description =
-    s"$fullRunnerName is a command-line tool to interact with the Scala language. It lets you compile, run, test, and package your Scala code."
+  override def description: String = {
+    val coreFeaturesString =
+      if ScalaCli.allowRestrictedFeatures then "compile, run, test and package"
+      else "compile, run and test"
+    s"$fullRunnerName is a command-line tool to interact with the Scala language. It lets you $coreFeaturesString your Scala code."
+  }
+
   override def summaryDesc =
     s"""|See '$baseRunnerName <command> --help' to read about a specific subcommand. To see full help run '$baseRunnerName <command> --help-full'.
         |To run another $fullRunnerName version, specify it with '--cli-version' before any other argument, like '$baseRunnerName --cli-version <version> args'.""".stripMargin
