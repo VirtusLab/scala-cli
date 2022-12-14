@@ -17,7 +17,7 @@ If none of these commands were run:
 - `setup-ide`
 
 or a previously-generated connection detail file was deleted, your IDE will *not* use Scala CLI to configure your
-workspace.
+workspace. (Although there are ongoing efforts to improve that situation.)
 
 In this case, just run one of the commands above to recreate the connection details file.
 :::
@@ -33,8 +33,7 @@ But note that once `setup-ide` is used, Scala CLI does not update the configurat
 To enable automatic updates again, remove the `.bsp` directory and run `compile`, `run`, or `test` to recreate the
 connection details file.
 
-<!-- TODO: Does this belong here? Is it related to IDEs? -->
-For now non-local sources are supported. What are non-local sources? Gists, URLs or piped sources.
+## Specific IDEs supporting Scala CLI
 
 Scala CLI has been tested with two main Scala IDEs:
 
@@ -49,26 +48,17 @@ IDEs above as you would expect.” However, mainly due to how fresh Scala CLI is
 the project structure, using a Scala CLI project with your favourite IDE may not be as amazing as we would like. (That
 being said, proper IDE integration is our top priority at this moment!)
 
-## Metals
+### VS Code with Metals
 
-Once Metals picks up the project structure that’s created by Scala CLI, basic features like navigation, diagnostics, and
-code completion should work.
-Reloading the workspace on project structure changes is currently experimental and should work for most scenarios, we
-are working on improving its stability.
-For some cases it may still be necessary to restart the build server manually.
-(Closing & reopening the project should also be sufficient.)
+Check the cookbook on [how to set up a Scala CLI project in VSCode with Metals](../cookbooks/vscode.md).
 
-## IntelliJ
+### IntelliJ
 
-Here are a few notes related to IntelliJ support:
+Cookbooks on how to work with IntelliJ:
 
-- IntelliJ currently does not automatically pick up changes in the project structure, so any change in dependencies,
-  compiler options, etc., need to be manually reloaded.
-- Similarly to Metals, reloading the workspace on project structure changes is currently experimental and should work
-  for most scenarios.
-  We are working on improving its stability. For some cases it may still be necessary to restart the build server
-  manually.
-  (Closing & reopening the project should also be sufficient.)
+- [set up a simple Scala CLI project in IDEA IntelliJ](../cookbooks/intellij.md)
+- [set up a Scala CLI project in IntelliJ alongside an existing SBT project](../cookbooks/intellij-sbt-with-bsp.md)
+- [set up multiple Scala CLI projects in IDEA IntelliJ as separate modules](../cookbooks/intellij-multi-bsp.md)
 
 ## Directories vs single files when working with an IDE
 
@@ -115,3 +105,15 @@ scala-cli setup-ide .
 
 That way all the contents of `some-directory` will be treated as a part of the project as you go,
 without the need to jump into the command line whenever you create a new file.
+
+## Remote and virtual inputs
+
+Do note that IDEs do not yet support working with Scala CLI's remote and virtual inputs. That includes:
+
+- [piped sources](./piping.md),
+- URLs and [GitHub gists](../cookbooks/gists.md),
+- [code snippets](./snippets.md).
+
+Beyond that, IDE support for some non-standard (like `.c` and `.h` resources used
+with [Scala Native](./scala-native.md)) and experimental inputs (like i.e. [`.md` sources](./markdown.md)) may not yet
+be on par with on-disk Scala and Java source files.
