@@ -9,7 +9,7 @@ For example, here is a simple project in scala-cli which contains only one main 
 
 ```scala title=HelloWorld.scala
 @main
-    def hello() = println("Hello, world")
+def hello() = println("Hello, world")
 ```
 
 ```scala title=MyTests.test.scala
@@ -43,8 +43,8 @@ and then, we launch Visual Studio Code
 code .
 ```
 
-After starting metals, you will see the `run/debug` buttons in `HelloWorld.scala` and `test/debug` in `MyTests.test.scala` (
-assuming the following directory layout).
+After starting metals, you will see the `run/debug` buttons in `HelloWorld.scala` and `test/debug`
+in `MyTests.test.scala` (assuming the following directory layout).
 
 ![layout](/img/source_layout.png)
 

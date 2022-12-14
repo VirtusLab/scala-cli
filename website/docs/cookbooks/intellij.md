@@ -1,5 +1,5 @@
 ---
-title: Setup Scala CLI project in IDEA IntelliJ
+title: Setup a Scala CLI project in IDEA IntelliJ
 sidebar_position: 7
 ---
 
@@ -13,7 +13,7 @@ Here's a walk-through for a simple import scenario.
 
 ```scala title=src/HelloWorld.scala
 @main
-    def hello() = println("Hello, world")
+def hello() = println("Hello, world")
 ```
 
 ```scala title=test/MyTests.test.scala
