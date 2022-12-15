@@ -78,7 +78,7 @@ tree -a
 </ChainedSnippets>
 
 Now, let's say that at some point you decide you need to occasionally run some scripts relevant to this project. You run
-those scripts with Scala CLI and decide it'd be convenient to keep them in the same repository. 
+those scripts with Scala CLI and decide it'd be convenient to keep them in the same repository.
 
 <ChainedSnippets>
 ```bash ignore
@@ -92,6 +92,7 @@ scripts
 
 0 directories, 2 files
 ```
+
 </ChainedSnippets>
 
 However, you already import this repo as an `SBT` project, so what can you do?

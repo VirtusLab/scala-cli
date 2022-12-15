@@ -59,7 +59,9 @@ class MyTests1 extends munit.FunSuite {
 
 ```scala title=app2/test/MyTests2.scala
 //> using lib "com.lihaoyi::utest::0.8.1"
+
 import utest.*
+
 object MessagesTests extends TestSuite {
   val tests = Tests {
     test("my test 2") {
