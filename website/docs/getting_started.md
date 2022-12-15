@@ -160,8 +160,8 @@ We also need to add a test framework. Scala CLI support most popular test framew
 
 class TestSuite extends munit.FunSuite {
   test("hello") {
-    val expected = Seq("files.scala", "files.test.scala")
-    val obtained = filesByExtension("scala").map(_.last)
+    val expected = Set("files.scala", "files.test.scala")
+    val obtained = filesByExtension("scala").map(_.last).toSet
     assertEquals(obtained, expected)
   }
 }
