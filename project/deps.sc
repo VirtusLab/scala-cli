@@ -167,7 +167,7 @@ object Deps {
   def signingCliShared =
     ivy"io.github.alexarchambault.scala-cli.signing::shared:${Versions.signingCli}"
   def signingCli = ivy"io.github.alexarchambault.scala-cli.signing::cli:${Versions.signingCli}"
-  def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.5"
+  def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.6"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
