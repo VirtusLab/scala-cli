@@ -14,6 +14,8 @@ case class DefaultOptions(
     sharedRun: SharedRunOptions = SharedRunOptions(),
   @Recurse
     sharedRepl: SharedReplOptions = SharedReplOptions(),
+  @Recurse
+    legacyScala: LegacyScalaOptions = LegacyScalaOptions(),
   @Name("-version")
     version: Boolean = false
 ) extends HasSharedOptions
