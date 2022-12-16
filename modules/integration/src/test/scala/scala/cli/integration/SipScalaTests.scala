@@ -6,32 +6,40 @@ import scala.util.Properties
 
 class SipScalaTests extends ScalaCliSuite {
 
-  def noDirectoriesCommandTest(binaryName: String): Unit =
+  implicit class BinaryNameOps(binaryName: String) {
+    def prepareBinary(root: os.Path): os.Path = {
+      val cliPath    = os.Path(TestUtil.cliPath, os.pwd)
+      val ext        = if (Properties.isWin) ".exe" else ""
+      val newCliPath = root / s"$binaryName$ext"
+      os.copy(cliPath, newCliPath)
+      if (!Properties.isWin) os.perms.set(newCliPath, "rwxr-xr-x")
+      newCliPath
+    }
+
+    def isSip: Boolean = binaryName == "scala" || binaryName.endsWith("sip")
+  }
+
+  def testDirectoriesCommand(binaryName: String): Unit =
     TestInputs.empty.fromRoot { root =>
-      val cliPath = os.Path(TestUtil.cliPath, os.pwd)
+      val binary = binaryName.prepareBinary(root)
 
-      os.proc(cliPath, "directories").call(cwd = root)
-      os.proc(cliPath, "compile", "--help").call(cwd = root)
-      os.proc(cliPath, "run", "--help").call(cwd = root)
+      os.proc(binary, "compile", "--help").call(cwd = root)
+      os.proc(binary, "run", "--help").call(cwd = root)
 
-      os.copy(cliPath, root / binaryName)
-      os.perms.set(root / binaryName, "rwxr-xr-x")
-
-      os.proc(root / binaryName, "compile", "--help").call(cwd = root)
-      os.proc(root / binaryName, "run", "--help").call(cwd = root)
-
-      val res = os.proc(root / binaryName, "directories").call(
+      val res = os.proc(binary, "directories").call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
       )
-      expect(res.exitCode == 1)
-      val output = res.out.text()
-      expect(output.contains(s"directories: not found"))
-
+      if (binaryName.isSip) {
+        expect(res.exitCode == 1)
+        val output = res.out.text()
+        expect(output.contains(s"directories: not found"))
+      }
+      else expect(res.exitCode == 0)
     }
 
-  def noPublishDirectives(): Unit = TestInputs.empty.fromRoot { root =>
+  def testPublishDirectives(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
         | //> using publish.name "my-library"
@@ -41,24 +49,24 @@ class SipScalaTests extends ScalaCliSuite {
     val source = root / "A.scala"
     os.write(source, code)
 
-    val cliPath = os.Path(TestUtil.cliPath, os.pwd)
+    val binary = binaryName.prepareBinary(root)
 
-    os.proc(cliPath, "compile", source).call(cwd = root)
-
-    os.copy(cliPath, root / "scala")
-    os.perms.set(root / "scala", "rwxr-xr-x")
-
-    val res = os.proc(root / "scala", "compile", source).call(
+    val res = os.proc(binary, "compile", source).call(
       cwd = root,
       check = false,
       mergeErrIntoOut = true
     )
-    expect(res.exitCode == 1)
-    val output = res.out.text()
-    expect(output.contains(s"directive is not supported"))
+
+    if (binaryName.isSip) {
+      expect(res.exitCode == 1)
+      val output = res.out.text()
+      expect(output.contains(s"directive is not supported"))
+    }
+    else
+      expect(res.exitCode == 0)
   }
 
-  def noMarkdownOptions(): Unit = TestInputs.empty.fromRoot { root =>
+  def testMarkdownOptions(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
         | println("ala")
@@ -67,68 +75,64 @@ class SipScalaTests extends ScalaCliSuite {
     val source = root / "A.sc"
     os.write(source, code)
 
-    val cliPath = os.Path(TestUtil.cliPath, os.pwd)
+    val binary = binaryName.prepareBinary(root)
 
-    os.proc(cliPath, "--markdown", source).call(cwd = root)
-
-    os.copy(cliPath, root / "scala")
-    os.perms.set(root / "scala", "rwxr-xr-x")
-
-    val res = os.proc(root / "scala", "--markdown", source).call(
+    val res = os.proc(binary, "--markdown", source).call(
       cwd = root,
       check = false,
       mergeErrIntoOut = true
     )
-    expect(res.exitCode == 1)
-    val output = res.out.text()
-    expect(output.contains(s"option is not supported"))
+    if (binaryName.isSip) {
+      expect(res.exitCode == 1)
+      val output = res.out.text()
+      expect(output.contains(s"option is not supported"))
+    }
+    else expect(res.exitCode == 0)
   }
 
-  if (TestUtil.isNativeCli && !Properties.isWin) {
-    test("no directories command when run as scala") {
-      noDirectoriesCommandTest("scala")
-    }
-    test("no directories command when run as scala-cli-sip") {
-      noDirectoriesCommandTest("scala-cli-sip")
-    }
-
-    test("no publish directives when run as scala") {
-      noPublishDirectives()
-    }
-
-    test("no markdown option when run as scala") {
-      noMarkdownOptions()
-    }
-  }
-
-  def runVersionCommand(binaryName: String) =
+  def testVersionCommand(binaryName: String): Unit =
     TestInputs.empty.fromRoot { root =>
-      val cliPath    = os.Path(TestUtil.cliPath, os.pwd)
-      val ext        = if (Properties.isWin) ".exe" else ""
-      val newCliPath = root / s"$binaryName$ext"
-      os.copy(cliPath, newCliPath)
-
+      val binary = binaryName.prepareBinary(root)
       for { versionOption <- Seq("version", "-version", "--version") } {
-        val version = os.proc(newCliPath, versionOption).call(check = false)
+        val version = os.proc(binary, versionOption).call(check = false)
         assert(
           version.exitCode == 0,
           clues(version, version.out.text(), version.err.text(), version.exitCode)
         )
         val expectedLauncherVersion =
-          if (binaryName == "scala") "Scala code runner version:"
+          if (binaryName.isSip) "Scala code runner version:"
           else "Scala CLI version:"
         expect(version.out.text().contains(expectedLauncherVersion))
         expect(version.out.text().contains(s"Scala version (default): ${Constants.defaultScala}"))
       }
     }
 
-  if (TestUtil.isNativeCli) {
-    test("version command print detailed info run as scala") {
-      runVersionCommand("scala")
-    }
-
-    test("version command print detailed info run as scala-cli") {
-      runVersionCommand("scala-cli")
+  def testHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+    val binary = binaryName.prepareBinary(root)
+    for { helpOption <- Seq("help", "-help", "--help") } {
+      val res                         = os.proc(binary, helpOption).call(cwd = root)
+      val restrictedFeaturesMentioned = res.out.trim().contains("package")
+      if (binaryName.isSip) expect(!restrictedFeaturesMentioned)
+      else expect(restrictedFeaturesMentioned)
     }
   }
+
+  if (TestUtil.isNativeCli)
+    for (binaryName <- Seq("scala", "scala-cli", "scala-cli-sip")) {
+      test(s"test directories command when run as $binaryName") {
+        testDirectoriesCommand(binaryName)
+      }
+      test(s"test publish directives when run as $binaryName") {
+        testPublishDirectives(binaryName)
+      }
+      test(s"test markdown options when run as $binaryName") {
+        testMarkdownOptions(binaryName)
+      }
+      test(s"test version command when run as $binaryName") {
+        testVersionCommand(binaryName)
+      }
+      test(s"test help when run as $binaryName") {
+        testHelpOutput(binaryName)
+      }
+    }
 }
