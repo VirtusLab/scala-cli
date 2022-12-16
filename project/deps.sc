@@ -85,8 +85,8 @@ object Deps {
     def coursierCli        = "2.1.0-RC3"
     def coursierM1Cli      = "2.1.0-RC3"
     def jsoniterScala      = "2.19.1"
-    def jsoniterScalaJava8 = "2.13.5"
-    def scalaMeta          = "4.6.0"
+    def jsoniterScalaJava8 = "2.13.5.2"
+    def scalaMeta          = "4.7.0"
     def scalaNative        = "0.4.9"
     def scalaPackager      = "0.1.29"
     def signingCli         = "0.1.13"
@@ -167,7 +167,7 @@ object Deps {
   def signingCliShared =
     ivy"io.github.alexarchambault.scala-cli.signing::shared:${Versions.signingCli}"
   def signingCli = ivy"io.github.alexarchambault.scala-cli.signing::cli:${Versions.signingCli}"
-  def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.5"
+  def slf4jNop   = ivy"org.slf4j:slf4j-nop:2.0.6"
   // Force using of 2.13 - is there a better way?
   def snailgun(force213: Boolean = false) =
     if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
@@ -176,7 +176,7 @@ object Deps {
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
-  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.9"
+  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.10"
   // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
