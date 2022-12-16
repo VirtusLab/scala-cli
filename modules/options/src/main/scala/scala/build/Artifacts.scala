@@ -323,12 +323,12 @@ object Artifacts {
         if (addStubs) {
           val maybeSnapshotRepo =
             if (stubsVersion.endsWith("SNAPSHOT"))
-              Seq(coursier.Repositories.sonatype("snapshots").root)
+              Seq(coursier.Repositories.sonatype("snapshots"))
             else Nil
           value {
             artifacts(
               Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
-              allExtraRepositories,
+              allExtraRepositories ++ maybeSnapshotRepo,
               scalaArtifactsParamsOpt.map(_.params),
               logger,
               cache.withMessage("Downloading internal stub dependency")
