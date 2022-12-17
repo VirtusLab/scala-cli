@@ -187,6 +187,59 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
 
+  # Copied from https://github.com/coursier/coursier/blob/44e1a024897fb1046303f705e0e4143d808e1adc/.github/workflows/ci.yml#L263-L326
+  generate-linux-arm64-native-launcher:
+    runs-on: "ubuntu-20.04"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+      - uses: VirtusLab/scala-cli-setup@2d4aee229d96837c8da9e6068322de977e2f781a
+        with:
+          jvm: "temurin:17"
+      - uses: uraimo/run-on-arch-action@v2.3.0
+        with:
+          arch: aarch64
+          distro: ubuntu20.04
+
+          # Speeds up builds per the run-on-arch-action README
+          githubToken: ${{ github.token }}
+
+          setup: |
+            mkdir -p artifacts
+            mkdir -p utils
+            cp "$(cs get https://github.com/coursier/coursier/releases/download/v2.0.16/cs-aarch64-pc-linux)" utils/cs
+            chmod +x utils/cs
+          dockerRunArgs: |
+            --volume "${PWD}/artifacts:/artifacts"
+            --volume "${PWD}/utils:/utils"
+          env: |
+            JAVA_HOME: /jvm
+            JAVA_OPTS: "-Djdk.lang.Process.launchMechanism=vfork"
+
+          # The shell to run commands with in the container
+          shell: /bin/bash
+
+          # build-essential and libz-dev are required to build native images.
+          # git is required by some of the launcher.sc logic.
+          # python3-pip is required for some CLI tests.
+          # gnupg2 is for signing the resulting binary.
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y build-essential libz-dev git python3-pip gnupg2 curl
+          run: |
+            set -e
+            export PATH="/utils:$PATH"
+            git config --global --add safe.directory "$(pwd)"
+            ./mill -i copyDefaultLauncher artifacts/
+      - uses: actions/upload-artifact@v3
+        with:
+          name: linux-aarch64-launchers
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 2
+
   generate-macos-launcher:
     timeout-minutes: 120
     runs-on: "macos-latest"
@@ -869,6 +922,7 @@ jobs:
       - format
       - checks
       - reference-doc
+      - generate-linux-arm64-native-launcher
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     steps:
@@ -884,6 +938,11 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-launchers
+        path: artifacts/
+    - uses: actions/download-artifact@v3
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: linux-aarch64-launchers
         path: artifacts/
     - uses: actions/download-artifact@v3
       if: env.SHOULD_PUBLISH == 'true'
