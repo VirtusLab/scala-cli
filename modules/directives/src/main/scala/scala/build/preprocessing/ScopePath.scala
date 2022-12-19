@@ -2,10 +2,10 @@ package scala.build.preprocessing
 
 final case class ScopePath(
   root: Either[String, os.Path],
-  path: os.SubPath
+  subPath: os.SubPath
 ) {
   def /(subPath: os.PathChunk): ScopePath =
-    copy(path = path / subPath)
+    copy(subPath = this.subPath / subPath)
 }
 
 object ScopePath {

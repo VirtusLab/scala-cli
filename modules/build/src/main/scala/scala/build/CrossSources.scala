@@ -109,7 +109,7 @@ object CrossSources {
 
   private def withinTestSubDirectory(p: ScopePath, inputs: Inputs): Boolean =
     p.root.exists { path =>
-      val fullPath = path / p.path
+      val fullPath = path / p.subPath
       inputs.elements.exists {
         case Directory(path) =>
           // Is this file subdirectory of given dir and if we have a subdiretory 'test' on the way
@@ -204,7 +204,7 @@ object CrossSources {
       // If file has `using target <scope>` directive this take precendeces.
       if (
         fromDirectives.scope.isEmpty &&
-        (path.path.last.endsWith(".test.scala") || withinTestSubDirectory(path, allInputs))
+        (path.subPath.last.endsWith(".test.scala") || withinTestSubDirectory(path, allInputs))
       )
         fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
       else fromDirectives
@@ -223,8 +223,9 @@ object CrossSources {
     }
 
     val defaultMainClassOpt = for {
-      mainClassPath <- allInputs.defaultMainClassElement.map(s => ScopePath.fromPath(s.path).path)
-      processedMainClass <- preprocessedSources.find(_.scopePath.path == mainClassPath)
+      mainClassPath <- allInputs.defaultMainClassElement
+        .map(s => ScopePath.fromPath(s.path).subPath)
+      processedMainClass <- preprocessedSources.find(_.scopePath.subPath == mainClassPath)
       mainClass          <- processedMainClass.mainClassOpt
     } yield mainClass
 
