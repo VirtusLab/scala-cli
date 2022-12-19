@@ -167,7 +167,9 @@ trait CliLaunchers extends SbtModule { self =>
         s"-H:IncludeResources=$defaultFilesResourcePath/.*",
         "-H:-ParseRuntimeOptions",
         s"-H:CLibraryPath=$cLibPath"
-      )
+      ) ++ (if (Properties.isLinux && isArmArchitecture) // https://stackoverflow.com/a/61325264
+              Seq("-Djdk.lang.Process.launchMechanism=vfork")
+            else Nil)
     }
     def nativeImageName = "scala-cli"
     def nativeImageClassPath = T {
