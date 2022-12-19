@@ -178,14 +178,14 @@ object dummy extends Module {
     def skipBloop    = true
     def scalaVersion = Scala.defaultInternal
     def ivyDeps = Agg(
-      Deps.scalafmtCli
+      Deps.bloop
     )
   }
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop    = true
     def scalaVersion = Scala.defaultInternal
     def ivyDeps = Agg(
-      Deps.bloop
+      Deps.scalafmtCli
     )
   }
   object pythonInterface extends JavaModule with Bloop.Module {
