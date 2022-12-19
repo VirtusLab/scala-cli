@@ -1,6 +1,6 @@
 package scala.build.interactive
 
-import scala.io.StdIn.readLine
+import scala.io.StdIn
 
 sealed abstract class Interactive extends Product with Serializable {
   def confirmOperation(msg: String): Option[Boolean]                = None
@@ -8,6 +8,25 @@ sealed abstract class Interactive extends Product with Serializable {
 }
 
 object Interactive {
+
+  private var interactiveInputsOpt =
+    Option(System.getenv("SCALA_CLI_INTERACTIVE_INPUTS"))
+      .map(_.linesIterator.toList)
+
+  private def readLine(): String =
+    interactiveInputsOpt match {
+      case None =>
+        StdIn.readLine()
+      case Some(interactiveInputs) =>
+        synchronized {
+          interactiveInputs match {
+            case Nil => ""
+            case h :: t =>
+              interactiveInputsOpt = Some(t)
+              h
+          }
+        }
+    }
 
   case object InteractiveNop extends Interactive
 
@@ -17,7 +36,7 @@ object Interactive {
       def msg: String
       def action: Option[V]
       final def run: Option[V] =
-        if (coursier.paths.Util.useAnsiOutput())
+        if (interactiveInputsOpt.nonEmpty || coursier.paths.Util.useAnsiOutput())
           action
         else None
     }
