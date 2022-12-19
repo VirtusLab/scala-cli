@@ -2,8 +2,104 @@
 title: Release notes
 sidebar_position: 99
 ---
+import ReactPlayer from 'react-player'
+
 
 # Release notes
+
+## [v0.1.19](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.19)
+
+## What's Changed
+
+## The Linux `aarch64` native launcher is here! (experimental)
+
+We are happy to announce that there is a new dedicated launcher for the Linux Aarch64. You can find it [here](https://github.com/VirtusLab/scala-cli/releases/download/v0.1.19/scala-cli-aarch64-pc-linux.gz).
+
+Added in [#1703](https://github.com/VirtusLab/scala-cli/pull/1703) by [@lwronski](https://github.com/lwronski)
+
+## Fix `workspace/reload` for Intellij IDEA
+
+Dependencies (and other configurations) from `using` directives should now always be picked up after a BSP project reload.
+
+<ReactPlayer playing controls url='https://user-images.githubusercontent.com/18601388/207319736-534f2d8a-862d-4c0a-8c8a-e52d95ac03e6.mov' />
+
+Fixed by [@Gedochao](https://github.com/Gedochao) in [#1681](https://github.com/VirtusLab/scala-cli/pull/1681).
+
+##  `shebang` headers in Markdown
+
+The `shebang` headers in `scala` code blocks inside a markdown input are always ignored.
+
+````markdown
+# Scala with `shebang`
+A sample code block with the `shebang` header.
+```scala
+#!/usr/bin/env -S scala-cli shebang
+println("Hello world")
+```
+````
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#1647](https://github.com/VirtusLab/scala-cli/pull/1647)
+
+## Export Scala compiler plugins to Mill projects
+It is now possible to export `scalac` compiler plugins from a Scala CLI project to Mill with the `export` sub-command.
+
+Added by [@carlosedp](https://github.com/carlosedp) in [#1626](https://github.com/VirtusLab/scala-cli/pull/1626)
+
+## Other changes
+
+## SIP Changes
+* Fix the order of help command groups for the default help by [@Gedochao](https://github.com/Gedochao) in [#1697](https://github.com/VirtusLab/scala-cli/pull/1697)
+* Adjust SIP help output & ensure `ScalaSipTests` are run on Windows by [@Gedochao](https://github.com/Gedochao) in [#1695](https://github.com/VirtusLab/scala-cli/pull/1695)
+* Add warnings for `-save` & `-nosave` legacy `scala` runner options instead of failing by [@Gedochao](https://github.com/Gedochao) in [#1679](https://github.com/VirtusLab/scala-cli/pull/1679)
+
+## Fixes
+* Suggest to update only to stable version by [@lwronski](https://github.com/lwronski) in [#1634](https://github.com/VirtusLab/scala-cli/pull/1634)
+* Fix - Skip checking file order by [@lwronski](https://github.com/lwronski) in [#1696](https://github.com/VirtusLab/scala-cli/pull/1696)
+* fix if else in mill.bat by [@MFujarewicz](https://github.com/MFujarewicz) in [#1661](https://github.com/VirtusLab/scala-cli/pull/1661)
+* Add repositories from build options when validating scala versions by [@lwronski](https://github.com/lwronski) in [#1630](https://github.com/VirtusLab/scala-cli/pull/1630)
+* Fix using directives not working with the shebang line in `.scala` files by [@Gedochao](https://github.com/Gedochao) in [#1639](https://github.com/VirtusLab/scala-cli/pull/1639)
+* Don't clear compilation output dir by [@clutroth](https://github.com/clutroth) in [#1660](https://github.com/VirtusLab/scala-cli/pull/1660)
+
+## Documentation updates
+
+* Decompose the README & add a contributing guide by [@Gedochao](https://github.com/Gedochao) in [#1650](https://github.com/VirtusLab/scala-cli/pull/1650)
+* Improve IDE support docs by [@Gedochao](https://github.com/Gedochao) in [#1684](https://github.com/VirtusLab/scala-cli/pull/1684)
+
+
+## Build and internal changes
+* Use snapshot repo to download stubs by [@lwronski](https://github.com/lwronski) in [#1693](https://github.com/VirtusLab/scala-cli/pull/1693)
+* Temporarily rollback CI to `ubuntu-20.04` by [@Gedochao](https://github.com/Gedochao) in [#1640](https://github.com/VirtusLab/scala-cli/pull/1640)
+* Fix - merge extra repos with resolve.repositories by [@lwronski](https://github.com/lwronski) in [#1643](https://github.com/VirtusLab/scala-cli/pull/1643)
+* Use Mill directory convention in mill project by [@lolgab](https://github.com/lolgab) in [#1676](https://github.com/VirtusLab/scala-cli/pull/1676)
+
+
+## Updates & maintenance
+* Update coursier-jvm_2.13, ... to 2.1.0-RC3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1688](https://github.com/VirtusLab/scala-cli/pull/1688)
+* Update coursier-jvm_2.13, ... to 2.1.0-RC3-1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1702](https://github.com/VirtusLab/scala-cli/pull/1702)
+* Update slf4j-nop to 2.0.6 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1691](https://github.com/VirtusLab/scala-cli/pull/1691)
+* Ignore `jsoniter` updates for JDK 8 by [@lwronski](https://github.com/lwronski) in [#1694](https://github.com/VirtusLab/scala-cli/pull/1694)
+* Update trees_2.13 to 4.7.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1690](https://github.com/VirtusLab/scala-cli/pull/1690)
+* Update jsoniter-scala-core_2.13 to 2.19.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1674](https://github.com/VirtusLab/scala-cli/pull/1674)
+* Update jsoniter-scala-core_2.13 to 2.19.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1672](https://github.com/VirtusLab/scala-cli/pull/1672)
+* Update os-lib to 0.9.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1653](https://github.com/VirtusLab/scala-cli/pull/1653)
+* Update scala-collection-compat to 2.9.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1657](https://github.com/VirtusLab/scala-cli/pull/1657)
+* Update core_2.13 to 3.8.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1655](https://github.com/VirtusLab/scala-cli/pull/1655)
+* Update pprint to 0.8.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1654](https://github.com/VirtusLab/scala-cli/pull/1654)
+* Update mill-main to 0.10.10 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1652](https://github.com/VirtusLab/scala-cli/pull/1652)
+* Update org.eclipse.jgit to 6.4.0.202211300538-r by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1656](https://github.com/VirtusLab/scala-cli/pull/1656)
+* Update jsoniter-scala-core_2.13 to 2.18.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1651](https://github.com/VirtusLab/scala-cli/pull/1651)
+* Update slf4j-nop to 2.0.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1658](https://github.com/VirtusLab/scala-cli/pull/1658)
+* Bump VirtusLab/scala-cli-setup from 0.1.17 to 0.1.18 by @dependabot in [#1644](https://github.com/VirtusLab/scala-cli/pull/1644)
+* Update scala-cli.sh launcher for 0.1.18 by @[@github-actions](https://github.com/github-actions) in [#1624](https://github.com/VirtusLab/scala-cli/pull/1624)
+* Update using_directives to 0.0.10 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1692](https://github.com/VirtusLab/scala-cli/pull/1692)
+* Bumped up com.lihaoyi::os-lib version to 0.9.0 by [@pingu1m](https://github.com/scala-steward-org/pingu1m) in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
+
+## New Contributors
+* [@pingu1m](https://github.com/scala-steward-org/pingu1m) made their first contribution in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
+* [@clutroth](https://github.com/clutroth) made their first contribution in [#1660](https://github.com/VirtusLab/scala-cli/pull/1660)
+* [@MFujarewicz](https://github.com/MFujarewicz) made their first contribution in [#1661](https://github.com/VirtusLab/scala-cli/pull/1661)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.18...v0.1.19
 
 ## [v0.1.18](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.18)
 
