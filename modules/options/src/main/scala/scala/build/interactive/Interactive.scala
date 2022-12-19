@@ -42,30 +42,31 @@ object Interactive {
         options.zipWithIndex.foreach {
           case (option, index) => System.err.println(s"[$index] $option")
         }
-        val response      = readLine()
-        val inputIndexOpt = parseIndexInput(response, options.length - 1)
-        inputIndexOpt.map(options(_))
+        val response = readLine()
+        parseIndexInput(response, options.length - 1)
       }
 
-      private def parseIndexInput(input: String, range: Int): Option[Int] = {
-        val indexOpt = input.toIntOption
-        indexOpt match {
+      private def parseIndexInput(input: String, range: Int): Option[String] =
+        input.toIntOption match {
           case Some(index) =>
             val isInRange = index <= range && index >= 0
-            if (isInRange) Some(index)
+            if (isInRange) Some(options(index))
             else {
               System.err.println(
                 s"The input index number is invalid, integer value from 0 to $range is expected."
               )
               None
             }
-          case _ =>
-            System.err.println(
-              s"Unable to parse input: integer value from 0 to $range is expected."
-            )
-            None
+          case None =>
+            if (options.contains(input))
+              Some(input)
+            else {
+              System.err.println(
+                s"Unable to parse input: integer value from 0 to $range is expected."
+              )
+              None
+            }
         }
-      }
     }
 
     override def confirmOperation(msg: String): Option[Boolean] = ConfirmOperation(msg).run
