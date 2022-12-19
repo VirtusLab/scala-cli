@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.removeAnsiColors
+import scala.util.Properties
 
 trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   def simpleNativeTests(): Unit = {
@@ -233,5 +234,43 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     expect(nativeVersionHelp.contains(s"(${Constants.scalaNativeVersion} by default)"))
     expect(lines.exists(_.contains("Scala Native options")))
     expect(!lines.exists(_.contains("Scala.js options")))
+  }
+
+  test("Take into account interactive main class when caching binaries") {
+    val inputs = TestInputs(
+      os.rel / "Main1.scala" ->
+        """package foo
+          |
+          |object Main1 {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello from Main1")
+          |}
+          |""".stripMargin,
+      os.rel / "Main2.scala" ->
+        """package foo
+          |
+          |object Main2 {
+          |  def main(args: Array[String]): Unit =
+          |    println("Hello from Main2")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val configDir = root / "config"
+      os.makeDir.all(configDir)
+      if (!Properties.isWin)
+        os.perms.set(configDir, "rwx------")
+      val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
+      os.proc(TestUtil.cli, "config", "interactive", "true")
+        .call(cwd = root, env = configEnv)
+      val output1 = os.proc(TestUtil.cli, "run", "--native", ".")
+        .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
+        .out.lines().last
+      expect(output1 == "Hello from Main1")
+      val output2 = os.proc(TestUtil.cli, "run", "--native", ".")
+        .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
+        .out.lines().last
+      expect(output2 == "Hello from Main2")
+    }
   }
 }
