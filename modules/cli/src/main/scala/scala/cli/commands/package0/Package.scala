@@ -982,7 +982,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         Nil
     val pythonCliOptions = pythonLdFlags.flatMap(f => Seq("--linking-option", f)).toList
 
-    val allCliOptions = pythonCliOptions ++ cliOptions
+    val allCliOptions = pythonCliOptions ++
+      cliOptions ++
+      Seq("--main", mainClass)
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)
@@ -1007,9 +1009,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
               "--outpath",
               dest.toString(),
               "--workdir",
-              nativeWorkDir.toString(),
-              "--main",
-              mainClass
+              nativeWorkDir.toString()
             ) ++ classpath
 
         val scalaNativeCli = build.artifacts.scalaOpt

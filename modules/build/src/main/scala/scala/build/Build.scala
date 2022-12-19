@@ -60,7 +60,8 @@ object Build {
     def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
     def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
     def foundMainClasses(): Seq[String] =
-      MainClass.find(output) ++ options.classPathOptions.extraClassPath.flatMap(MainClass.find)
+      MainClass.find(output).sorted ++
+        options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
     def retainedMainClass(
       mainClasses: Seq[String],
       commandString: String,
