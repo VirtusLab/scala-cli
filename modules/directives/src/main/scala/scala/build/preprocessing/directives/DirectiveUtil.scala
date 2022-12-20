@@ -56,7 +56,7 @@ object DirectiveUtil {
   }
 
   def scope(v: Value[_], cwd: ScopePath): Option[ScopePath] =
-    Option(v.getScope).map((p: String) => cwd / os.RelPath(p))
+    None
 
   def kind(v: Value[_]): UsingDirectiveValueKind = v match {
     case _: StringValue  => UsingDirectiveValueKind.STRING
