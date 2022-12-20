@@ -17,12 +17,7 @@ import scala.build.errors.{
   UsingDirectiveWrongValueTypeError
 }
 import scala.build.preprocessing.ScopePath
-import scala.build.preprocessing.directives.{
-  DirectiveUtil,
-  GroupedScopedValuesContainer,
-  UsingDirectiveValueKind,
-  UsingDirectiveValueNumberBounds
-}
+import scala.build.preprocessing.directives.DirectiveUtil
 import scala.build.{Position, Positioned}
 
 abstract class DirectiveValueParser[+T] {
@@ -67,7 +62,7 @@ object DirectiveValueParser {
             new UsingDirectiveValueNumError(
               path,
               "",
-              UsingDirectiveValueNumberBounds(1, 1),
+              "1",
               values.length
             )
           )
@@ -129,8 +124,7 @@ object DirectiveValueParser {
           new UsingDirectiveWrongValueTypeError(
             path,
             "",
-            Set(UsingDirectiveValueKind.BOOLEAN),
-            GroupedScopedValuesContainer(),
+            Seq("boolean"),
             ""
           )
         }

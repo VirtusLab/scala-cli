@@ -426,11 +426,11 @@ case object ScalaPreprocessor extends Preprocessor {
     scopedDirective: ScopedDirective
   ): BuildException = {
     val values =
-      DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(scopedDirective))
+      DirectiveUtil.concatAllValues(scopedDirective)
     new UnusedDirectiveError(
       scopedDirective.directive.key,
-      values.map(_.positioned.value),
-      values.flatMap(_.positioned.positions)
+      values.map(_.value),
+      values.flatMap(_.positions)
     )
   }
 
