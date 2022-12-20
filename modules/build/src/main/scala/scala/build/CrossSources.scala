@@ -10,18 +10,18 @@ import scala.build.internal.Constants
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
-  HasBuildRequirements,
   MaybeScalaVersion,
-  Scope
+  Scope,
+  WithBuildRequirements
 }
 import scala.build.preprocessing.*
 
 final case class CrossSources(
-  paths: Seq[HasBuildRequirements[(os.Path, os.RelPath)]],
-  inMemory: Seq[HasBuildRequirements[Sources.InMemory]],
+  paths: Seq[WithBuildRequirements[(os.Path, os.RelPath)]],
+  inMemory: Seq[WithBuildRequirements[Sources.InMemory]],
   defaultMainClass: Option[String],
-  resourceDirs: Seq[HasBuildRequirements[os.Path]],
-  buildOptions: Seq[HasBuildRequirements[BuildOptions]]
+  resourceDirs: Seq[WithBuildRequirements[os.Path]],
+  buildOptions: Seq[WithBuildRequirements[BuildOptions]]
 ) {
 
   def sharedOptions(baseOptions: BuildOptions): BuildOptions =
@@ -216,7 +216,7 @@ object CrossSources {
       if opt != BuildOptions()
     } yield {
       val baseReqs0 = baseReqs(s.scopePath)
-      HasBuildRequirements(
+      WithBuildRequirements(
         s.requirements.fold(baseReqs0)(_ orElse baseReqs0),
         opt
       )
@@ -232,7 +232,7 @@ object CrossSources {
     val paths = preprocessedSources.collect {
       case d: PreprocessedSource.OnDisk =>
         val baseReqs0 = baseReqs(d.scopePath)
-        HasBuildRequirements(
+        WithBuildRequirements(
           d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
           (d.path, d.path.relativeTo(allInputs.workspace))
         )
@@ -240,7 +240,7 @@ object CrossSources {
     val inMemory = preprocessedSources.collect {
       case m: PreprocessedSource.InMemory =>
         val baseReqs0 = baseReqs(m.scopePath)
-        HasBuildRequirements(
+        WithBuildRequirements(
           m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
           Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
         )
@@ -248,9 +248,9 @@ object CrossSources {
 
     val resourceDirs = allInputs.elements.collect {
       case r: ResourceDirectory =>
-        HasBuildRequirements(BuildRequirements(), r.path)
+        WithBuildRequirements(BuildRequirements(), r.path)
     } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
-      HasBuildRequirements(BuildRequirements(), _)
+      WithBuildRequirements(BuildRequirements(), _)
     )
 
     (CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions), allInputs)
