@@ -103,7 +103,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       |- `-X`
       |- `-Y`
       |
-      |are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly. 
+      |are assumed to be Scala compiler options and will be propagated to Scala Compiler. This applies to all commands that uses compiler directly or indirectly.
       |
       |
       | ## Scalac options that are directly supported in scala CLI (so can be provided as is, without any prefixes etc.):
@@ -232,7 +232,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val b = new StringBuilder
 
     b.section(
-      """---        
+      """---
         |title: Scala Runner specification
         |sidebar_position: 1
         |---

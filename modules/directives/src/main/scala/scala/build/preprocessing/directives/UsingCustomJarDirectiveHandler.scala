@@ -31,7 +31,7 @@ case object UsingCustomJarDirectiveHandler extends UsingDirectiveHandler {
             Directive.osRoot(scopedDirective.cwd, positioned.positions.headOption)
           eitherRootPathOrBuildException.flatMap { root =>
             scala.util.Try(os.Path(positioned.value, root)) match {
-              case Failure(exception) => Left(new WrongJarPathError(exception.getLocalizedMessage))
+              case Failure(exception) => Left(new WrongJarPathError(exception))
               case Success(jarPath)   => Right(jarPath)
             }
           }

@@ -19,8 +19,8 @@ object Directive {
 
   def osRootResource(cwd: ScopePath): (Option[os.SubPath], Option[os.Path]) =
     cwd.root match {
-      case Left(_)     => (Some(cwd.path), None)
-      case Right(root) => (None, Some(root / cwd.path))
+      case Left(_)     => (Some(cwd.subPath), None)
+      case Right(root) => (None, Some(root / cwd.subPath))
     }
 
   def osRoot(cwd: ScopePath, pos: Option[Position]): Either[BuildException, os.Path] =
@@ -28,6 +28,6 @@ object Directive {
       case Left(virtualRoot) =>
         Left(new ForbiddenPathReferenceError(virtualRoot, pos))
       case Right(root) =>
-        Right(root / cwd.path)
+        Right(root / cwd.subPath)
     }
 }

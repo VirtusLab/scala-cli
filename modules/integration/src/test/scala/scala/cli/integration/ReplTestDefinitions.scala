@@ -64,8 +64,6 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
       val res = os.proc(
         TestUtil.cli,
         "repl",
-        "-v",
-        "-v",
         extraOptions,
         "--ammonite",
         "--python",

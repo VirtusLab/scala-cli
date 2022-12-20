@@ -32,7 +32,7 @@ case object UsingJavaHomeDirectiveHandler extends UsingDirectiveHandler {
       Directive.osRoot(scopedDirective.cwd, rawHome.positions.headOption).flatMap { root =>
         scala.util.Try(os.Path(rawHome.value, root)) match {
           case Failure(exception) =>
-            Left(new WrongJavaHomePathError(rawHome.value, exception.getLocalizedMessage))
+            Left(new WrongJavaHomePathError(rawHome.value, exception))
           case Success(homePath) => Right(ProcessedDirective(
               Some(BuildOptions(
                 javaOptions = JavaOptions(

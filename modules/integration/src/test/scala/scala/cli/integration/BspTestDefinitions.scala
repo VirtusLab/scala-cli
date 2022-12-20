@@ -94,16 +94,40 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         .spawn(cwd = root)
       var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = null
 
+      val bspServerExited = Promise[Unit]()
+      val t = new Thread("bsp-server-watcher") {
+        setDaemon(true)
+        override def run() = {
+          proc.join()
+          bspServerExited.success(())
+        }
+      }
+      t.start()
+
+      def whileBspServerIsRunning[T](f: Future[T]): Future[T] = {
+        val ex = new Exception
+        Future.firstCompletedOf(Seq(f.map(Right(_)), bspServerExited.future.map(Left(_))))
+          .transform {
+            case Success(Right(t)) => Success(t)
+            case Success(Left(())) => Failure(new Exception("BSP server exited too early", ex))
+            case Failure(ex)       => Failure(ex)
+          }
+      }
+
       try {
         val (localClient, remoteServer0, _) =
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
-        Await.result(remoteServer.buildInitialize(initParams(root)).asScala, Duration.Inf)
-        Await.result(f(root, localClient, remoteServer), Duration.Inf)
+        Await.result(
+          whileBspServerIsRunning(remoteServer.buildInitialize(initParams(root)).asScala),
+          Duration.Inf
+        )
+        Await.result(whileBspServerIsRunning(f(root, localClient, remoteServer)), Duration.Inf)
       }
       finally {
         if (remoteServer != null)
-          try Await.result(remoteServer.buildShutdown().asScala, 20.seconds)
+          try
+            Await.result(whileBspServerIsRunning(remoteServer.buildShutdown().asScala), 20.seconds)
           catch {
             case NonFatal(e) =>
               System.err.println(s"Ignoring $e while shutting down BSP server")

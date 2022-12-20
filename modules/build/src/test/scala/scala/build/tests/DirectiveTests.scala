@@ -30,7 +30,7 @@ class DirectiveTests extends munit.FunSuite {
     )
   )
 
-  test("resolving position of lib directive ") {
+  test("resolving position of lib directive") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """//> using lib "com.lihaoyi::utest:0.7.10"
