@@ -96,8 +96,9 @@ object Deps {
   // that Scala CLI supports.
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.5-17-df243e14"
   def asm      = ivy"org.ow2.asm:asm:9.4"
+  def bloop    = ivy"io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.6-sc-1"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig      = ivy"io.github.alexarchambault.bleep:bloop-config_2.13:1.5.4-sc-4"
+  def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M21"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.9.0"
