@@ -29,34 +29,21 @@ object DirectiveUtil {
 
   def concatAllValues(
     scopedDirective: ScopedDirective
-  ): Seq[Positioned[String]] = {
-    val values = scopedDirective.directive.values
-
-    var scopedStringValues    = Seq.empty[Positioned[String]]
-    var scopedNumericValues   = Seq.empty[Positioned[String]]
-    var scopedBooleanValues   = Seq.empty[Positioned[String]]
-    var maybeScopedEmptyValue = Option.empty[Positioned[String]]
-
-    values.foreach {
+  ): Seq[Positioned[String]] =
+    scopedDirective.directive.values.map {
       case v: StringValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = true)
-        scopedStringValues =
-          scopedStringValues :+ Positioned(pos, v.get)
+        Positioned(pos, v.get)
       case v: NumericValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
-        scopedNumericValues =
-          scopedNumericValues :+ Positioned(pos, v.get)
+        Positioned(pos, v.get)
       case v: BooleanValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
-        scopedBooleanValues =
-          scopedBooleanValues :+ Positioned(pos, v.get.toString)
+        Positioned(pos, v.get.toString)
       case v: EmptyValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
-        maybeScopedEmptyValue = Some(Positioned(pos, v.get))
+        Positioned(pos, v.get)
     }
-    scopedStringValues ++ scopedNumericValues ++ scopedBooleanValues ++
-      maybeScopedEmptyValue.to(Seq)
-  }
 
   def positions(
     values: Seq[Value[_]],
