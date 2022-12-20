@@ -11,9 +11,9 @@ import shapeless.tag
 import java.nio.charset.StandardCharsets
 import java.util.{Arrays, Locale}
 
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor
-import scala.build.preprocessing.directives.{DirectiveHandler, RequireDirectiveHandler}
+import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, SpecificationLevel, tags}
 import scala.cli.{ScalaCli, ScalaCliCommands}
 
@@ -392,7 +392,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   private def usingContent(
     usingHandlers: Seq[DirectiveHandler[BuildOptions]],
-    requireHandlers: Seq[RequireDirectiveHandler],
+    requireHandlers: Seq[DirectiveHandler[BuildRequirements]],
     onlyRestricted: Boolean
   ): String = {
     val b = new StringBuilder

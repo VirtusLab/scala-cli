@@ -345,6 +345,13 @@ Require a Scala version for the current file
 #### Examples
 `//> using target.scala "3"`
 
+### Scala version bounds
+
+Require a Scala version for the current file
+
+`//> using target.scala.>= `_version_
+
+#### Examples
 `//> using target.scala.>= "2.13"`
 
 `//> using target.scala.< "3.0.2"`

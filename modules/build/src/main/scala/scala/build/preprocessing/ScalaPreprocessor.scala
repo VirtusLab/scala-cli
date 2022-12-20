@@ -8,18 +8,13 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.directives.HasBuildOptions
+import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
 import scala.build.preprocessing.directives
-import scala.build.preprocessing.directives.{
-  DirectiveHandler,
-  DirectiveUtil,
-  RequireDirectiveHandler,
-  ScopedDirective
-}
+import scala.build.preprocessing.directives.{DirectiveHandler, DirectiveUtil, ScopedDirective}
 import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -78,11 +73,13 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.Tests.handler
     ).map(_.mapE(_.buildOptions))
 
-  val requireDirectiveHandlers: Seq[RequireDirectiveHandler] = Seq(
-    directives.RequirePlatformsDirectiveHandler,
-    directives.RequireScalaVersionDirectiveHandler,
-    directives.RequireScopeDirectiveHandler
-  )
+  val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =
+    Seq[DirectiveHandler[_ <: HasBuildRequirements]](
+      directives.RequirePlatform.handler,
+      directives.RequireScalaVersion.handler,
+      directives.RequireScalaVersionBounds.handler,
+      directives.RequireScope.handler
+    ).map(_.mapE(_.buildRequirements))
 
   def preprocess(
     input: SingleElement,
