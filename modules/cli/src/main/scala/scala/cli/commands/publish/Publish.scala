@@ -517,7 +517,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       }
       val content = Library.libraryJar(build, mainClassOpt)
       val dest    = workingDir / org / s"$moduleName-$ver.jar"
-      os.write(dest, content, createFolders = true)
+      os.write.over(dest, content, createFolders = true)
       dest
     }
 
@@ -525,7 +525,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       if (publishOptions.contextual(isCi).sourceJar.getOrElse(true)) {
         val content   = PackageCmd.sourceJar(build, now.toEpochMilli)
         val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
-        os.write(sourceJar, content, createFolders = true)
+        os.write.over(sourceJar, content, createFolders = true)
         Some(sourceJar)
       }
       else
@@ -538,7 +538,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           case Some(docBuild) =>
             val docJarPath = value(PackageCmd.docJar(docBuild, logger, Nil))
             val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
-            os.copy(docJarPath, docJar, createFolders = true)
+            os.copy.over(docJarPath, docJar, createFolders = true)
             Some(docJar)
         }
       else
