@@ -19,16 +19,18 @@ final class BloopCompilerMaker(
     buildClient: BuildClient,
     logger: Logger
   ): BloopCompiler = {
-    val buildServer = BloopServer.buildServer(
-      config,
-      "scala-cli",
-      Constants.version,
-      workspace.toNIO,
-      classesDir.toNIO,
-      buildClient,
-      threads,
-      logger.bloopRifleLogger
-    )
-    new BloopCompiler(buildServer, 20.seconds, strictBloopJsonCheck)
+    val createBuildServer =
+      () =>
+        BloopServer.buildServer(
+          config,
+          "scala-cli",
+          Constants.version,
+          workspace.toNIO,
+          classesDir.toNIO,
+          buildClient,
+          threads,
+          logger.bloopRifleLogger
+        )
+    new BloopCompiler(createBuildServer, 20.seconds, strictBloopJsonCheck)
   }
 }

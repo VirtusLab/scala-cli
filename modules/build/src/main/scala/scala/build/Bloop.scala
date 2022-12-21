@@ -6,9 +6,11 @@ import coursier.util.Task
 import dependency.parser.ModuleParser
 import dependency.{AnyDependency, DependencyLike, ScalaParameters, ScalaVersion}
 
-import java.io.File
+import java.io.{File, IOException}
 
+import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
+import scala.build.bloop.BuildServer
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
 import scala.build.internal.CsLoggerUtil._
@@ -17,33 +19,49 @@ import scala.jdk.CollectionConverters._
 
 object Bloop {
 
+  private object BrokenPipeInCauses {
+    @tailrec
+    def unapply(ex: Throwable): Option[IOException] =
+      ex match {
+        case null                                                           => None
+        case ex: IOException if ex.getMessage == "Broken pipe"              => Some(ex)
+        case ex: IOException if ex.getMessage == "Connection reset by peer" => Some(ex)
+        case _                                                              => unapply(ex.getCause)
+      }
+  }
+
   def compile(
     projectName: String,
-    bloopServer: bloop.BloopServer,
+    buildServer: BuildServer,
     logger: Logger,
     buildTargetsTimeout: FiniteDuration
-  ): Boolean = {
+  ): Either[Throwable, Boolean] =
+    try {
+      logger.debug("Listing BSP build targets")
+      val results = buildServer.workspaceBuildTargets()
+        .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+      val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
-    logger.debug("Listing BSP build targets")
-    val results = bloopServer.server.workspaceBuildTargets()
-      .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
-    val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
+      val buildTarget = buildTargetOpt.getOrElse {
+        throw new Exception(
+          s"Expected to find project '$projectName' in build targets (only got ${results.getTargets.asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
+        )
+      }
 
-    val buildTarget = buildTargetOpt.getOrElse {
-      throw new Exception(
-        s"Expected to find project '$projectName' in build targets (only got ${results.getTargets.asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
-      )
+      logger.debug(s"Compiling $projectName with Bloop")
+      val compileRes = buildServer.buildTargetCompile(
+        new bsp4j.CompileParams(List(buildTarget.getId).asJava)
+      ).get()
+
+      val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
+      logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
+      Right(success)
     }
-
-    logger.debug(s"Compiling $projectName with Bloop")
-    val compileRes = bloopServer.server.buildTargetCompile(
-      new bsp4j.CompileParams(List(buildTarget.getId).asJava)
-    ).get()
-
-    val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
-    logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
-    success
-  }
+    catch {
+      case ex @ BrokenPipeInCauses(e) =>
+        logger.debug(s"Caught $ex while exchanging with Bloop server, assuming Bloop server exited")
+        Left(ex)
+    }
 
   def bloopClassPath(
     dep: AnyDependency,

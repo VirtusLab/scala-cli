@@ -76,6 +76,16 @@ object TestUtil {
 
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
+  def withThreadPool[T](prefix: String, size: Int)(f: ExecutorService => T): T = {
+    var pool: ExecutorService = null
+    try {
+      pool = threadPool(prefix, size)
+      f(pool)
+    }
+    finally
+      if (pool != null)
+        pool.shutdown()
+  }
 
   def scheduler(prefix: String): ScheduledExecutorService =
     Executors.newSingleThreadScheduledExecutor(daemonThreadFactory(prefix))

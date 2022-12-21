@@ -3,6 +3,8 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.util.BloopUtil
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
 
 class BloopTests extends ScalaCliSuite {
 
@@ -136,6 +138,44 @@ class BloopTests extends ScalaCliSuite {
 
       os.proc(TestUtil.cli, "bloop", "compile", proj)
         .call(cwd = root / Constants.workspaceDirName)
+    }
+  }
+
+  test("Restart Bloop server while watching") {
+    TestUtil.withThreadPool("bloop-restart-test", 2) { pool =>
+      val timeout = Duration("20 seconds")
+      def readLine(stream: os.SubProcess.OutputStream): String = {
+        implicit val ec = ExecutionContext.fromExecutorService(pool)
+        val readLineF = Future {
+          stream.readLine()
+        }
+        Await.result(readLineF, timeout)
+      }
+      def content(message: String) =
+        s"""object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("$message")
+           |}
+           |""".stripMargin
+      val sourcePath = os.rel / "Hello.scala"
+      val inputs = TestInputs(
+        sourcePath -> content("Hello")
+      )
+      inputs.fromRoot { root =>
+        val proc = os.proc(TestUtil.cli, "run", "-w", ".")
+          .spawn(cwd = root)
+        val firstLine = readLine(proc.stdout)
+        expect(firstLine == "Hello")
+
+        os.proc(TestUtil.cli, "bloop", "exit")
+          .call(cwd = root)
+
+        os.write.over(root / sourcePath, content("Foo"))
+        val secondLine = readLine(proc.stdout)
+        expect(secondLine == "Foo")
+
+        proc.destroy()
+      }
     }
   }
 }
