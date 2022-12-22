@@ -20,6 +20,12 @@ final case class Positioned[+T](
       pos0.value
     )
   }
+
+  def eitherSequence[L, R](using ev: T <:< Either[L, R]): Either[L, Positioned[R]] =
+    ev(value) match {
+      case Left(l)  => Left(l)
+      case Right(r) => Right(copy(value = r))
+    }
 }
 
 object Positioned {

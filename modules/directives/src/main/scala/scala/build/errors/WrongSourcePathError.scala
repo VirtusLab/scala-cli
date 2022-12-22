@@ -1,9 +1,10 @@
 package scala.build.errors
 
-class WrongSourcePathError(exceptionMessage: String, cause: Throwable)
+import scala.build.Position
+
+class WrongSourcePathError(path: String, cause: Throwable, positions: Seq[Position])
     extends BuildException(
-      message =
-        s"""The file path argument in the using directives at could not be found!
-           |""".stripMargin + exceptionMessage,
-      cause = cause
+      message = s"Invalid path argument '$path' in using directives".stripMargin,
+      cause = cause,
+      positions = positions
     )

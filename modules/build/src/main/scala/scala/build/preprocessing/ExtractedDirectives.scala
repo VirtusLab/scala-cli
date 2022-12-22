@@ -148,14 +148,14 @@ object ExtractedDirectives {
       else {
         val directiveVales =
           usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)
-        val values = DirectiveUtil.concatAllValues(DirectiveUtil.getGroupedValues(ScopedDirective(
+        val values = DirectiveUtil.concatAllValues(ScopedDirective(
           StrictDirective("", directiveVales),
           path,
           cwd
-        )))
+        ))
         val directiveErrors = new DirectiveErrors(
           ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
-          values.flatMap(_.positioned.positions)
+          values.flatMap(_.positions)
         )
         maybeRecoverOnError(directiveErrors) match {
           case Some(e) => Left(e)

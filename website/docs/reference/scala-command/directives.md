@@ -150,9 +150,7 @@ Add Javac options which will be passed when compiling sources.
 `//> using javacOpt `_options_
 
 #### Examples
-`//> using javacOpt "source", "1.8"`
-
-`"target", "1.8"`
+`//> using javacOpt "source", "1.8", "target", "1.8"`
 
 ### Platform
 
