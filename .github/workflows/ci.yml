@@ -190,6 +190,7 @@ jobs:
   # Copied from https://github.com/coursier/coursier/blob/44e1a024897fb1046303f705e0e4143d808e1adc/.github/workflows/ci.yml#L263-L326
   generate-linux-arm64-native-launcher:
     runs-on: "ubuntu-20.04"
+    if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
         with:
