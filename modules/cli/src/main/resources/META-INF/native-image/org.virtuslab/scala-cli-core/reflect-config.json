@@ -956,20 +956,6 @@
     "allDeclaredFields": true
   },
   {
-    "name": "scala.build.bloop.ScalaDebugServer",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.build.bloop.ScalaDebugServerForwardStubs",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
     "name": "scala.build.bloop.bloop4j.BloopExtraBuildParams",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
@@ -1111,13 +1097,6 @@
   },
   {
     "name": "scala.build.bsp.protocol.TextEdit",
-    "allDeclaredConstructors": true,
-    "allPublicConstructors": true,
-    "allDeclaredMethods": true,
-    "allDeclaredFields": true
-  },
-  {
-    "name": "scala.cli.commands.BloopJson",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
