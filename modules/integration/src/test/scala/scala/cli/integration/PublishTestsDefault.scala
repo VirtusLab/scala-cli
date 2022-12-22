@@ -4,31 +4,35 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None) {
 
-  test("publish local") {
-    val testOrg     = "test-local-org.sth"
-    val testName    = "my-proj"
-    val testVersion = "1.5.6"
+  private object PublishTestInputs {
+    def testOrg     = "test-local-org.sth"
+    def testName    = "my-proj"
+    def testVersion = "1.5.6"
+    def sbv         = "2.13"
+    def projFile(message: String): String =
+      s"""//> using publish.organization "$testOrg"
+         |//> using publish.name "$testName"
+         |//> using publish.version "$testVersion"
+         |
+         |//> using scala "$sbv"
+         |//> using lib "com.lihaoyi::os-lib:0.8.1"
+         |
+         |object Project {
+         |  def message = "$message"
+         |
+         |  def main(args: Array[String]): Unit =
+         |    println(message)
+         |}
+         |""".stripMargin
     val inputs = TestInputs(
-      os.rel / "Project.scala" ->
-        s"""//> using publish.organization "$testOrg"
-           |//> using publish.name "$testName"
-           |//> using publish.version "$testVersion"
-           |
-           |//> using scala "2.13"
-           |//> using lib "com.lihaoyi::os-lib:0.8.1"
-           |
-           |object Project {
-           |  def message = "Hello"
-           |
-           |  def main(args: Array[String]): Unit =
-           |    println(message)
-           |}
-           |""".stripMargin
+      os.rel / "Project.scala" -> projFile("Hello")
     )
+  }
 
+  test("publish local") {
     val expectedFiles = {
-      val modName = s"${testName}_2.13"
-      val base    = os.rel / testOrg / modName / testVersion
+      val modName = s"${PublishTestInputs.testName}_2.13"
+      val base    = os.rel / PublishTestInputs.testOrg / modName / PublishTestInputs.testVersion
       val baseFiles = Seq(
         base / "jars" / s"$modName.jar",
         base / "docs" / s"$modName-javadoc.jar",
@@ -45,7 +49,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
         .toSet
     }
 
-    inputs.fromRoot { root =>
+    PublishTestInputs.inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "publish", "local", "Project.scala", "--ivy2-home", os.rel / "ivy2")
         .call(cwd = root)
       val ivy2Local = root / "ivy2" / "local"
@@ -61,6 +65,41 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
         pprint.err.log(unexpectedFiles)
       expect(missingFiles.isEmpty)
       expect(unexpectedFiles.isEmpty)
+    }
+  }
+
+  test("publish local twice") {
+    PublishTestInputs.inputs.fromRoot { root =>
+      def publishLocal(): os.CommandResult =
+        os.proc(
+          TestUtil.cli,
+          "publish",
+          "local",
+          "Project.scala",
+          "--ivy2-home",
+          os.rel / "ivy2",
+          "--working-dir",
+          os.rel / "work-dir"
+        )
+          .call(cwd = root)
+      def output(): String =
+        os.proc(
+          TestUtil.cs,
+          s"-J-Divy.home=${root / "ivy2"}",
+          "launch",
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_${PublishTestInputs.sbv}:${PublishTestInputs.testVersion}"
+        )
+          .call(cwd = root)
+          .out.trim()
+
+      publishLocal()
+      val output1 = output()
+      expect(output1 == "Hello")
+
+      os.write.over(root / "Project.scala", PublishTestInputs.projFile("olleH"))
+      publishLocal()
+      val output2 = output()
+      expect(output2 == "olleH")
     }
   }
 
