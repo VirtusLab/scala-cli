@@ -713,6 +713,26 @@ object Build {
           }
         }
       }
+
+      val artifacts = res
+        .map { builds =>
+          def artifacts(build: Build): Seq[os.Path] =
+            build.successfulOpt.toSeq.flatMap(_.artifacts.classPath)
+          val main = artifacts(builds.main)
+          val test = builds.get(Scope.Test).map(artifacts).getOrElse(Nil)
+          (main ++ test).distinct
+        }
+        .getOrElse(Nil)
+      for (artifact <- artifacts) {
+        val depth    = if (os.isFile(artifact)) -1 else Int.MaxValue
+        val watcher0 = watcher.newWatcher()
+        watcher0.register(artifact.toNIO, depth)
+        watcher0.addObserver {
+          onChangeBufferedObserver { _ =>
+            watcher.schedule()
+          }
+        }
+      }
     }
 
     try doWatch()
