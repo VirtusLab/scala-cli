@@ -48,22 +48,28 @@ final case class MillProject(
     val escapedName =
       if (NameTransformer.encode(name) == name) name
       else "`" + name + "`"
-    val (parentModule, extraImports, extraDecs) =
-      if (scalaVersion.isEmpty) ("JavaModule", "", "")
+    val (parentModule, maybeExtraImport, maybePlatformVer) =
+      if (scalaVersion.isEmpty) ("JavaModule", None, None)
       else
-        scalaJsVersion match {
-          case Some(ver) =>
-            ("ScalaJSModule", "import mill.scalajslib._", s"""def scalaJSVersion = "$ver"""")
-          case None =>
-            scalaNativeVersion match {
-              case Some(ver) => (
-                  "ScalaNativeModule",
-                  "import mill.scalanativelib._",
-                  s"""def scalaNativeVersion = "$ver""""
-                )
-              case None => ("ScalaModule", "", "")
-            }
-        }
+        scalaJsVersion
+          .map(ver =>
+            (
+              "ScalaJSModule",
+              Some("import mill.scalajslib._"),
+              Some(s"""def scalaJSVersion = "$ver"""")
+            )
+          )
+          .orElse(
+            scalaNativeVersion.map(ver =>
+              (
+                "ScalaNativeModule",
+                Some("import mill.scalanativelib._"),
+                Some(s"""def scalaNativeVersion = "$ver"""")
+              )
+            )
+          )
+          .getOrElse(("ScalaModule", None, None))
+
     val maybeScalaVer = scalaVersion.map { sv =>
       s"""def scalaVersion = "$sv""""
     }
@@ -97,7 +103,8 @@ final case class MillProject(
     val customResourcesDecls =
       if (resourcesDirs.isEmpty) Nil
       else {
-        val resources = resourcesDirs.map(p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")""")
+        val resources =
+          resourcesDirs.map(p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")""")
         Seq("def runClasspath = super.runClasspath() ++ Seq(") ++
           resources.map(resource => s"  $resource").appendOnInit(",") ++
           Seq(").map(PathRef(_))")
@@ -106,11 +113,12 @@ final case class MillProject(
     val buildSc: String = {
       val parts: Seq[String] = Seq(
         "import mill._",
-        "import mill.scalalib._",
-        extraImports,
+        "import mill.scalalib._"
+      ) ++ maybeExtraImport ++ Seq(
         s"object $escapedName extends $parentModule {"
       ) ++
         maybeScalaVer.map(s => s"  $s") ++
+        maybePlatformVer.map(s => s"  $s") ++
         maybeScalacOptions.map(s => s"  $s") ++
         maybeDeps(mainDeps).map(s => s"  $s") ++
         maybeScalaCompilerPlugins.map(s => s"  $s") ++
