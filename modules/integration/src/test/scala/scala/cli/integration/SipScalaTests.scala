@@ -109,9 +109,9 @@ class SipScalaTests extends ScalaCliSuite {
 
   def testHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
     val binary = binaryName.prepareBinary(root)
-    for { helpOption <- Seq("help", "-help", "--help") } {
-      val res                         = os.proc(binary, helpOption).call(cwd = root)
-      val restrictedFeaturesMentioned = res.out.trim().contains("package")
+    for { helpOptions <- HelpTests.HelpVariants } {
+      val output                      = os.proc(binary, helpOptions).call(cwd = root).out.trim()
+      val restrictedFeaturesMentioned = output.contains("package")
       if (binaryName.isSip) expect(!restrictedFeaturesMentioned)
       else expect(restrictedFeaturesMentioned)
     }

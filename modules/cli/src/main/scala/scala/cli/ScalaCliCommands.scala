@@ -79,7 +79,10 @@ class ScalaCliCommands(
 
   override def summaryDesc =
     s"""|See '$baseRunnerName <command> --help' to read about a specific subcommand. To see full help run '$baseRunnerName <command> --help-full'.
-        |To run another $fullRunnerName version, specify it with '--cli-version' before any other argument, like '$baseRunnerName --cli-version <version> args'.""".stripMargin
+        |
+        |To use launcher options, specify them before any other argument.
+        |For example, to run another $fullRunnerName version, specify it with the '--cli-version' launcher option:
+        |  ${Console.BOLD}$baseRunnerName --cli-version <version> args${Console.RESET}""".stripMargin
   final override def defaultCommand = Some(actualDefaultCommand)
 
   // FIXME Report this in case-app default NameFormatter

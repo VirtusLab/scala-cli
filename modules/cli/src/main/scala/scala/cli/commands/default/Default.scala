@@ -1,22 +1,24 @@
 package scala.cli.commands.default
 
-import caseapp.core.help.RuntimeCommandsHelp
+import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
-import scala.cli.commands.shared.{ScalaCliHelp, SharedOptions}
+import scala.cli.commands.shared.ScalaCliHelp.helpFormat
+import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.version.Version
+import scala.cli.commands.{ScalaCommand, ScalaCommandWithCustomHelp}
+import scala.cli.launcher.LauncherOptions
 
 class Default(
   actualHelp: => RuntimeCommandsHelp,
   isSipScala: Boolean
-) extends ScalaCommand[DefaultOptions] {
+) extends ScalaCommandWithCustomHelp[DefaultOptions](actualHelp) {
 
   private lazy val defaultCommandHelp: String =
     s"""
@@ -29,10 +31,8 @@ class Default(
        |    - if a main class was passed with the '--main-class' option alongside an extra '--classpath'
        |  - otherwise, if no inputs were passed, it defaults to the 'repl' subcommand""".stripMargin
 
-  private def defaultHelp: String = actualHelp.help(ScalaCliHelp.helpFormat) + defaultCommandHelp
-
-  private def defaultFullHelp: String =
-    actualHelp.help(ScalaCliHelp.helpFormat, showHidden = true) + defaultCommandHelp
+  override def customHelp(showHidden: Boolean): String =
+    super.customHelp(showHidden) + defaultCommandHelp
 
   override def scalaSpecificationLevel = SpecificationLevel.MUST
 
@@ -41,16 +41,6 @@ class Default(
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
 
   private[cli] var rawArgs = Array.empty[String]
-
-  override def helpAsked(progName: String, maybeOptions: Either[Error, DefaultOptions]): Nothing = {
-    println(defaultHelp)
-    sys.exit(0)
-  }
-
-  override def fullHelpAsked(progName: String): Nothing = {
-    println(defaultFullHelp)
-    sys.exit(0)
-  }
 
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit =
     if options.version then println(Version.versionInfo)

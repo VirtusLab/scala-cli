@@ -6,14 +6,15 @@ import caseapp.*
 final case class LauncherOptions(
   @Group("Launcher")
   @HelpMessage("Set the Scala CLI version")
+  @ValueDescription("nightly|version")
   cliVersion: Option[String] = None,
   @Group("Launcher")
   @HelpMessage("The version of Scala on which Scala CLI was published")
   @ValueDescription("2.12|2.13|3")
+  @Hidden
   cliScalaVersion: Option[String] = None,
   @Group("Launcher")
   @HelpMessage("When called as 'scala', allow to use power commands too")
-  @Hidden
   power: Boolean = false
 )
 
