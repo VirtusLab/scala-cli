@@ -10,9 +10,9 @@ const Index = (props) => {
     image="gifs/prototyping.gif"
     id="prototyping"
     >
-    <p>If you ever waste time prototyping, experimenting or reproducing a nasty bug by testing different environment then you intendted?</p>
+    <p>Have you ever wasted time prototyping, experimenting or reproducing a nasty bug by testing in a different environment than you intended?</p>
 
-    <p>With Scala CLI defining Scala or JVM versions, platform, compiler options and dependencies is setting an argument.</p>
+    <p>With Scala CLI you can explicitly define Scala or JVM versions, platform, compiler options and dependencies by setting them as arguments.</p>
   </UseCase>;
 };
 

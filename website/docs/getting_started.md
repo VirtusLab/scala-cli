@@ -29,7 +29,7 @@ Hello
 
 </ChainedSnippets>
 
-Running this command the first time may take a bit longer then usual and print a fair number of logging output because Scala CLI needs to download all the artifacts it needs to compile and run the code.
+Running this command the first time may take a bit longer than usual and prints a fair number of logging output because Scala CLI needs to download all the artifacts it needs to compile and run the code.
 
 ## Scripting
 
