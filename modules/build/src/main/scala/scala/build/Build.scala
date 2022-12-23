@@ -675,11 +675,13 @@ object Build {
       val elements: Seq[Element] =
         if (res == null) inputs.elements
         else
-          res.map { builds =>
-            val mainElems = builds.main.inputs.elements
-            val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
-            (mainElems ++ testElems).distinct
-          }.getOrElse(inputs.elements)
+          res
+            .map { builds =>
+              val mainElems = builds.main.inputs.elements
+              val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
+              (mainElems ++ testElems).distinct
+            }
+            .getOrElse(inputs.elements)
       for (elem <- elements) {
         val depth = elem match {
           case _: SingleFile => -1
