@@ -3,6 +3,7 @@ package scala.cli.exportCmd
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
+import scala.cli.util.SeqHelpers._
 import scala.reflect.NameTransformer
 import scala.util.Properties
 
@@ -20,6 +21,7 @@ final case class MillProject(
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   extraDecls: Seq[String] = Nil,
+  resourcesDirs: Seq[os.Path] = Nil,
   extraTestDecls: Seq[String] = Nil,
   mainClass: Option[String] = None
 ) extends Project {
@@ -46,89 +48,95 @@ final case class MillProject(
     val escapedName =
       if (NameTransformer.encode(name) == name) name
       else "`" + name + "`"
-    val (parentModule, extraImports, extraDecs) =
-      if (scalaVersion.isEmpty) ("JavaModule", "", "")
+    val (parentModule, maybeExtraImport, maybePlatformVer) =
+      if (scalaVersion.isEmpty) ("JavaModule", None, None)
       else
-        scalaJsVersion match {
-          case Some(ver) =>
-            ("ScalaJSModule", "import mill.scalajslib._", s"""def scalaJSVersion = "$ver"""" + nl)
-          case None =>
-            scalaNativeVersion match {
-              case Some(ver) => (
-                  "ScalaNativeModule",
-                  "import mill.scalanativelib._",
-                  s"""def scalaNativeVersion = "$ver"""" + nl
-                )
-              case None => ("ScalaModule", "", "")
-            }
-        }
-    val maybeScalaVer = scalaVersion.fold("") { sv =>
-      s"""def scalaVersion = "$sv"""" + nl
+        scalaJsVersion
+          .map(ver =>
+            (
+              "ScalaJSModule",
+              Some("import mill.scalajslib._"),
+              Some(s"""def scalaJSVersion = "$ver"""")
+            )
+          )
+          .orElse(
+            scalaNativeVersion.map(ver =>
+              (
+                "ScalaNativeModule",
+                Some("import mill.scalanativelib._"),
+                Some(s"""def scalaNativeVersion = "$ver"""")
+              )
+            )
+          )
+          .getOrElse(("ScalaModule", None, None))
+
+    val maybeScalaVer = scalaVersion.map { sv =>
+      s"""def scalaVersion = "$sv""""
     }
     val maybeScalacOptions =
-      if (scalacOptions.isEmpty) ""
+      if (scalacOptions.isEmpty) None
       else {
         val optsString = scalacOptions.map(opt => s"\"$opt\"").mkString(", ")
-        s"""def scalacOptions = super.scalacOptions() ++ Seq($optsString)"""
+        Some(s"""def scalacOptions = super.scalacOptions() ++ Seq($optsString)""")
       }
     def maybeDeps(deps: Seq[String]) =
-      if (deps.isEmpty) ""
-      else {
-        val depLen = deps.length
-        "def ivyDeps = super.ivyDeps() ++ Seq(" + nl +
+      if (deps.isEmpty) Seq.empty[String]
+      else
+        Seq("def ivyDeps = super.ivyDeps() ++ Seq(") ++
           deps
-            .iterator
-            .zipWithIndex
-            .map {
-              case (dep, idx) =>
-                val maybeComma = if (idx == depLen - 1) "" else ","
-                """  ivy"""" + dep + "\"" + maybeComma + nl
-            }
-            .mkString + nl +
-          ")" + nl
-      }
+            .map(dep => """  ivy"""" + dep + "\"")
+            .appendOnInit(",") ++
+          Seq(")")
 
     val maybeScalaCompilerPlugins =
-      if (scalaCompilerPlugins.isEmpty) ""
-      else {
-        val depLen = scalaCompilerPlugins.length
-        "def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(" + nl +
+      if (scalaCompilerPlugins.isEmpty) Seq.empty
+      else
+        Seq("def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Seq(") ++
           scalaCompilerPlugins
-            .iterator
-            .zipWithIndex
-            .map {
-              case (dep, idx) =>
-                val maybeComma = if (idx == depLen - 1) "" else ","
-                """  ivy"""" + dep + "\"" + maybeComma + nl
-            }
-            .mkString + nl +
-          ")" + nl
+            .map(dep => s"  ivy\"$dep\"")
+            .appendOnInit(",")
+          ++ Seq(")")
+
+    val maybeMain = mainClass.map { mc =>
+      s"""def mainClass = Some("$mc")"""
+    }
+    val customResourcesDecls =
+      if (resourcesDirs.isEmpty) Nil
+      else {
+        val resources =
+          resourcesDirs.map(p => s"""T.workspace / os.RelPath("${p.relativeTo(dir)}")""")
+        Seq("def runClasspath = super.runClasspath() ++ Seq(") ++
+          resources.map(resource => s"  $resource").appendOnInit(",") ++
+          Seq(").map(PathRef(_))")
       }
 
-    val maybeMain = mainClass.fold("") { mc =>
-      s"""def mainClass = Some("$mc")""" + nl
+    val buildSc: String = {
+      val parts: Seq[String] = Seq(
+        "import mill._",
+        "import mill.scalalib._"
+      ) ++ maybeExtraImport ++ Seq(
+        s"object $escapedName extends $parentModule {"
+      ) ++
+        maybeScalaVer.map(s => s"  $s") ++
+        maybePlatformVer.map(s => s"  $s") ++
+        maybeScalacOptions.map(s => s"  $s") ++
+        maybeDeps(mainDeps).map(s => s"  $s") ++
+        maybeScalaCompilerPlugins.map(s => s"  $s") ++
+        maybeMain.map(s => s"  $s") ++
+        customResourcesDecls.map(s => s"  $s") ++
+        extraDecls.map("  " + _) ++
+        Seq(
+          "",
+          "  object test extends Tests {"
+        ) ++
+        maybeDeps(testDeps).map(s => s"    $s") ++
+        extraTestDecls.map(s => s"    $s") ++ Seq(
+          "  }",
+          "}",
+          ""
+        )
+      parts.mkString(nl)
     }
-
-    val buildSc =
-      s"""import mill._
-         |import mill.scalalib._
-         |$extraImports
-         |
-         |object $escapedName extends $parentModule {
-         |  $maybeScalaVer
-         |  $maybeScalacOptions
-         |  $extraDecs
-         |  ${maybeDeps(mainDeps)}
-         |  $maybeScalaCompilerPlugins
-         |  $maybeMain
-         |  ${extraDecls.map("  " + _ + nl).mkString}
-         |
-         |  object test extends Tests {
-         |    ${maybeDeps(testDeps)}
-         |    ${extraTestDecls.map("  " + _ + nl).mkString}
-         |  }
-         |}
-         |""".stripMargin
 
     for ((path, language, content) <- mainSources) {
       val path0 = dir / name / "src" / path
