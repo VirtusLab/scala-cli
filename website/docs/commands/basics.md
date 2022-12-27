@@ -46,7 +46,7 @@ Scala CLI accepts the following types of source code:
 - `.scala` files, containing Scala code
 - `.sc` files, containing Scala scripts (see more in the [Scripts guide](../guides/scripts.md))
 - `.java` files, containing Java code
-- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/scripts.md))
+- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/markdown.md))
 - `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in
   the [Scala Native guide](../guides/scala-native.md))
 
