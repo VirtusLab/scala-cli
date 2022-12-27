@@ -199,7 +199,7 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@7e6a0b2468fc28b94936417e4cad385e380ac735
         with:
           jvm: "temurin:17"
-      - uses: uraimo/run-on-arch-action@v2.3.0
+      - uses: uraimo/run-on-arch-action@v2.5.0
         with:
           arch: aarch64
           distro: ubuntu20.04
