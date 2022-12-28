@@ -184,7 +184,13 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [update](./c
 
 ## version
 
-Print version
+Print the version of the scala runner and the default version of Scala (unless specified in the project).
+
+The version of the scala runner is the version of the command-line tool that runs Scala programs, which
+is distinct from the Scala version of a program. We recommend you specify the version of Scala of a
+program in the program itself (via a configuration directive). Otherwise, the runner falls back to the default
+Scala version defined by the runner.
+
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
