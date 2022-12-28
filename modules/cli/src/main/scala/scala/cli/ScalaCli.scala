@@ -4,6 +4,7 @@ import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
 import java.nio.charset.StandardCharsets
+import java.nio.file.Paths
 import java.util.Locale
 
 import scala.build.blooprifle.FailedToStartServerException
@@ -21,7 +22,15 @@ object ScalaCli {
     // the Scala CLI native image, no need to manually load it.
     coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
-  val progName = (new Argv0).get("scala-cli")
+  val progName = {
+    val argv0 = (new Argv0).get("scala-cli")
+    val last  = Paths.get(argv0).getFileName.toString
+    last match {
+      case s".${name}.aux" =>
+        name // cs installs binaries under .app-name.aux and adds them to the PATH
+      case _ => argv0
+    }
+  }
 
   private def checkName(name: String) = {
     val baseProgName = if (Properties.isWin) progName.stripSuffix(".exe") else progName
