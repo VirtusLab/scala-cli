@@ -465,9 +465,19 @@ Aliases: `-J`
 
 Set Java options, such as `-Xmx1g`
 
-### `--java-prop`
+## Java prop options
 
-Set Java properties
+Available in commands:
+
+[`package`](./commands.md#package), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--java-prop-option`
+
+Aliases: `--java-prop`
+
+Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
 
 ## Jvm options
 

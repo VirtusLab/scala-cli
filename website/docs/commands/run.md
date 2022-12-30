@@ -106,6 +106,12 @@ You can also add java options with the using directive `//> using javaOpt`:
 //> using javaOpt "-Xmx1g", "-Dfoo=bar"
 ```
 
+Additionally, java properties can be passed to `scala-cli` without `--java-prop`:
+
+```bash
+scala-cli Hello.scala -Dfoo=bar
+```
+
 ### JAR
 
 `scala-cli` lets you run JAR files just like any other input.

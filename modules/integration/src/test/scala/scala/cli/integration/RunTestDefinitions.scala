@@ -644,6 +644,21 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("java style -Dproperty=value system properties") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        """object Hello extends App {
+          |  print(System.getProperty("foo"))
+          |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "Hello.scala", "-Dfoo=bar").call(
+        cwd = root
+      )
+      expect(res.out.trim() == "bar")
+    }
+  }
+
   test("add to class path sources from using directive") {
     val fileName       = "Hello.scala"
     val (hello, world) = ("Hello", "World")

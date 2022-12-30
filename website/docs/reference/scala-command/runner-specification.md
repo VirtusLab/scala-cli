@@ -1112,10 +1112,6 @@ Set Java options, such as `-Xmx1g`
 
 Aliases: `-J`
 
-**--java-prop**
-
-Set Java properties
-
 ### SHOULD have options
 
 **--js**
@@ -1564,6 +1560,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 
 
+**--java-prop-option**
+
+Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
+
+Aliases: `--java-prop`
+
 **--repl-dry-run**
 
 Don't actually run the REPL, just fetch it
@@ -1632,10 +1634,6 @@ Aliases: `--compile-out` ,`--compile-output` ,`--destination` ,`-d` ,`--output-d
 Set Java options, such as `-Xmx1g`
 
 Aliases: `-J`
-
-**--java-prop**
-
-Set Java properties
 
 **--main-class**
 
@@ -2100,6 +2098,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--java-prop-option**
+
+Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
+
+Aliases: `--java-prop`
 
 **--scratch-dir**
 
@@ -2192,10 +2196,6 @@ Set Java options, such as `-Xmx1g`
 
 Aliases: `-J`
 
-**--java-prop**
-
-Set Java properties
-
 **--main-class**
 
 Specify which main class to run
@@ -2659,6 +2659,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--java-prop-option**
+
+Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
+
+Aliases: `--java-prop`
 
 **--scratch-dir**
 
@@ -3282,10 +3288,6 @@ Set Java options, such as `-Xmx1g`
 
 Aliases: `-J`
 
-**--java-prop**
-
-Set Java properties
-
 ### SHOULD have options
 
 **--js**
@@ -3745,6 +3747,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--java-prop-option**
+
+Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
+
+Aliases: `--java-prop`
 
 </details>
 

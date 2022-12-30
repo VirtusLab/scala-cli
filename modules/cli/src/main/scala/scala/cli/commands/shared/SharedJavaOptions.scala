@@ -12,15 +12,12 @@ final case class SharedJavaOptions(
   @Tag(tags.must)
   @Name("J")
     javaOpt: List[String] = Nil,
-  @Group("Java")
-  @HelpMessage("Set Java properties")
-  @ValueDescription("key=value|key")
-  @Tag(tags.must)
-    javaProp: List[String] = Nil
+  @Recurse
+    javaProperties: JavaPropOptions = JavaPropOptions(),
 ) {
   // format: on
   def allJavaOpts: Seq[String] =
-    javaOpt ++ javaProp.filter(_.nonEmpty).map(_.split("=", 2)).map {
+    javaOpt ++ javaProperties.javaProp.filter(_.nonEmpty).map(_.split("=", 2)).map {
       case Array(k)    => s"-D$k"
       case Array(k, v) => s"-D$k=$v"
     }
