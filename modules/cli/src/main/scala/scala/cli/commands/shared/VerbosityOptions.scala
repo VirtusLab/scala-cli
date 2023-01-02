@@ -14,10 +14,12 @@ final case class VerbosityOptions(
   @Tag(tags.implementation)
   @Name("v")
     verbose: Int @@ Counter = Tag.of(0),
+  @Group("Logging")
   @HelpMessage("Interactive mode")
   @Name("i")
   @Tag(tags.implementation)
     interactive: Option[Boolean] = None,
+  @Group("Logging")
   @HelpMessage("Enable actionable diagnostics")
   @Tag(tags.implementation)
     actions: Option[Boolean] = None

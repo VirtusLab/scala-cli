@@ -1,6 +1,7 @@
 package scala.cli.commands.version
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 
 import scala.build.Logger
 import scala.build.internal.Constants
@@ -11,6 +12,16 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
 
   override def scalaSpecificationLevel = SpecificationLevel.SHOULD
+  override def hasFullHelp: Boolean    = false
+  override def helpFormat: HelpFormat = super.helpFormat.copy(
+    hiddenGroups = Some(Seq("Logging")),
+    sortedGroups = Some(
+      Seq(
+        "Version",
+        "Help"
+      )
+    )
+  )
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.cliVersion)
