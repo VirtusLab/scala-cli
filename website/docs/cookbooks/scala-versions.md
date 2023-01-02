@@ -99,7 +99,7 @@ object OldCode
 Now when you compile that code along with the previous `ScalaVersion.scala` file:
 
 ```bash
-scala-cli ScalaVersion.scala version.scala
+scala-cli run ScalaVersion.scala version.scala
 ```
 
 <!-- Expected-regex:

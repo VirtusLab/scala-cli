@@ -21,7 +21,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
+        os.proc(TestUtil.cli, "run", extraOptions, fileName, "--native", "-q")
           .call(cwd = root)
           .out.trim()
       expect(output == message)
@@ -47,7 +47,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
+        os.proc(TestUtil.cli, "run", extraOptions, fileName, "--native", "--command")
           .call(cwd = root)
           .out.trim()
       val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
@@ -82,7 +82,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+        os.proc(TestUtil.cli, "run", extraOptions, projectDir, "-q")
           .call(cwd = root)
           .out.trim()
       println(output)
@@ -122,7 +122,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, projectDir, "-q")
+        os.proc(TestUtil.cli, "run", extraOptions, projectDir, "-q")
           .call(cwd = root)
           .out.trim()
       expect(output == interopMsg)
@@ -185,7 +185,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native", "-q")
+        os.proc(TestUtil.cli, "run", extraOptions, "print.sc", "messages.sc", "--native", "-q")
           .call(cwd = root)
           .out.trim()
       expect(output == message)
@@ -213,7 +213,16 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc", "-q")
+        os.proc(
+          TestUtil.cli,
+          "run",
+          extraOptions,
+          "dir",
+          "--native",
+          "--main-class",
+          "print_sc",
+          "-q"
+        )
           .call(cwd = root)
           .out.trim()
       expect(output == message)

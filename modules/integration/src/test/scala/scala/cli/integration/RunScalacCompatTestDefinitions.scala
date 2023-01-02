@@ -24,7 +24,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
       def run(warnAny: Boolean) = {
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, extraOptions, ".",
+          TestUtil.cli, "run", extraOptions, ".",
           if (warnAny) Seq("-Xlint:infer-any") else Nil
         )
         // format: on
@@ -111,7 +111,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
       // to the application's main method. This test ensures it is not
       // cut. "--java-opt" option requires a value, so it would fail
       // if -Xmx1g is cut
-      val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Xmx1g").call(
+      val res = os.proc(TestUtil.cli, "run", "Hello.scala", "--java-opt", "-Xmx1g").call(
         cwd = root,
         check = false
       )
@@ -389,7 +389,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
     val inputRelPath   = os.rel / s"$mainClass.scala"
     TestInputs(inputRelPath -> s"""object $mainClass extends App { println("$expectedOutput") }""")
       .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, ".", "--scalac-verbose", extraOptions)
+        val res = os.proc(TestUtil.cli, "run", ".", "--scalac-verbose", extraOptions)
           .call(cwd = root, stderr = os.Pipe)
         val errLines = res.err.trim().lines.toList.asScala
         // there should be a lot of logs, but different stuff is logged depending on the Scala version
@@ -409,6 +409,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
         .fromRoot { root =>
           val res = os.proc(
             TestUtil.cli,
+            "run",
             "s.scala",
             "-encoding",
             "cp1252",
@@ -437,6 +438,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
         .fromRoot { root =>
           val res = os.proc(
             TestUtil.cli,
+            "run",
             fileName,
             "-new-syntax",
             "-rewrite",
@@ -454,6 +456,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
         .fromRoot { root =>
           val res = os.proc(
             TestUtil.cli,
+            "run",
             fileName,
             "-old-syntax",
             "-rewrite",

@@ -65,7 +65,7 @@ When referring to code from a piped script, just use its wrapper name: `stdin`.
 
 ```bash
 echo '@main def main() = println(stdin.message)' > PrintMessage.scala
-echo 'def message: String = "Hello"' | scala-cli PrintMessage.scala _.sc
+echo 'def message: String = "Hello"' | scala-cli run PrintMessage.scala _.sc
 ```
 
 ```text
@@ -79,7 +79,7 @@ To specify a main class when running a script, use this command:
 <ChainedSnippets>
 
 ```bash
-scala-cli my-app --main-class main_sc
+scala-cli run my-app --main-class main_sc
 ```
 
 ```text

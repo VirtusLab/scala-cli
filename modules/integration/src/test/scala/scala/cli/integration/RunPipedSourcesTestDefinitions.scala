@@ -23,7 +23,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
       val message = "Hello"
       val input   = s"println(\"$message\")"
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "-", extraOptions)
+        val output = os.proc(TestUtil.cli, "run", "-", extraOptions)
           .call(cwd = root, stdin = input)
           .out.trim()
         expect(output == message)
@@ -33,7 +33,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
       val expectedOutput = "Hello"
       val pipedInput     = s"object Test extends App { println(\"$expectedOutput\") }"
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.scala", extraOptions)
+        val output = os.proc(TestUtil.cli, "run", "_.scala", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -48,7 +48,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
            |}""".stripMargin
       val inputs = TestInputs(os.rel / "SomeData.scala" -> "case class SomeData(value: String)")
       inputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, ".", "_.scala", extraOptions)
+        val output = os.proc(TestUtil.cli, "run", ".", "_.scala", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -64,7 +64,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
+        val output = os.proc(TestUtil.cli, "run", "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -88,7 +88,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
            |}
            |""".stripMargin
       emptyInputs.fromRoot { root =>
-        val output = os.proc(TestUtil.cli, "_.java", extraOptions)
+        val output = os.proc(TestUtil.cli, "run", "_.java", extraOptions)
           .call(cwd = root, stdin = pipedInput)
           .out.trim()
         expect(output == expectedOutput)
@@ -121,6 +121,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
         val output =
           os.proc(
             TestUtil.cli,
+            "run",
             ".",
             "_.sc",
             "--script-snippet",
@@ -196,7 +197,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
          |```
          |""".stripMargin
     emptyInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "_.md", extraOptions)
+      val output = os.proc(TestUtil.cli, "run", "_.md", extraOptions)
         .call(cwd = root, stdin = pipedInput)
         .out.trim()
       expect(output == expectedOutput)

@@ -11,7 +11,9 @@ given [configuration](../guides/configuration.md) to produce a result.
 The most important sub-commands are:
 
 - [compile](./compile.md) compiles your code (excluding tests)
-- [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided)
+- [run](./run.md) runs your code using the provided arguments (it’s also used when no other command is provided))
+- `shebang` is a variant of the `run` sub-command, which is meant for a more natural way of handling arguments when
+  working with scripts. (see more in [the scripts guide](../guides/scripts.md))
 - [test](./test.md) compiles and runs the tests defined in your code
 - [package](./package.md) packages your code into a jar or other format
 - [repl](./repl.md) / [console](./repl.md) runs the interactive Scala shell
@@ -21,9 +23,9 @@ Scala CLI can also be run without passing any explicit sub-command,
 in which case it defaults to one of the sub-commands based on context:
 
 - if the `--version` option is passed, it prints the `version` command output (unmodified by any other options)
-- if any inputs were passed, it defaults to the `run` sub-command
+- if any inputs were passed, it defaults to the `shebang` sub-command
     - and so, `scala-cli a.scala` runs your `a.scala` file
-- additionally, when no inputs were passed, it defaults to the `run` sub-command in the following scenarios:
+- additionally, when no inputs were passed, it defaults to the `shebang` sub-command in the following scenarios:
     - if a snippet was passed with `-e`, `--execute-script`, `--execute-scala`, `--execute-java` or `--execute-markdown`
     - if a main class was passed with the `--main-class` option alongside an extra `--classpath`
 - otherwise if no inputs were passed, it defaults to the `repl` sub-command
@@ -95,7 +97,7 @@ and the run them with `scala-cli`:
 <ChainedSnippets>
 
 ```bash
-scala-cli Hello.scala Messages.scala
+scala-cli run Hello.scala Messages.scala
 ```
 
 ```text
@@ -252,7 +254,7 @@ You can also pipe code to `scala-cli` for execution:
   ```bash
   echo 'println("Hello")' | scala-cli _.sc
   ```
-  
+
   ```text
   Hello
   ```
@@ -266,7 +268,7 @@ You can also pipe code to `scala-cli` for execution:
   ```bash
   echo '@main def hello() = println("Hello")' | scala-cli _.scala
   ```
-  
+
   ```text
   Hello
   ```
@@ -280,7 +282,7 @@ You can also pipe code to `scala-cli` for execution:
   ```bash
   echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
   ```
-  
+
   ```text
   Hello
   ```
@@ -297,7 +299,7 @@ You can also pipe code to `scala-cli` for execution:
   println("Hello")
   ```' | scala-cli _.md
   ```
-  
+
   ```text
   Hello
   ```

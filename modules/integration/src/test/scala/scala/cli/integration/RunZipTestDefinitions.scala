@@ -18,7 +18,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.asZip { (root, zipPath) =>
       val message = "Hello"
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.trim()
       expect(output == message)
@@ -44,7 +44,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.trim()
       expect(output == message)
@@ -68,7 +68,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.trim()
       expect(output == message)
@@ -97,7 +97,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
-      val result = os.proc(TestUtil.cli, extraOptions, zipPath, "--md").call(cwd = root)
+      val result = os.proc(TestUtil.cli, "run", extraOptions, zipPath, "--md").call(cwd = root)
       expect(result.out.trim() == expectedMessage)
     }
   }

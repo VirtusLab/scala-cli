@@ -101,7 +101,7 @@ It is also possible to pipe some code via standard input, while the rest of your
 
 ```bash
 echo 'case class HelloMessage(msg: String)' > HelloMessage.scala
-echo '@main def hello() = println(HelloMessage(msg = "Hello").msg)' | scala-cli _ HelloMessage.scala
+echo '@main def hello() = println(HelloMessage(msg = "Hello").msg)' | scala-cli run _ HelloMessage.scala
 ```
 
 ```text
@@ -117,7 +117,7 @@ name `stdin`, as in the example below.
 
 ```bash
 echo '@main def main() = println(stdin.message)' > PrintMessage.scala
-echo 'def message: String = "Hello"' | scala-cli PrintMessage.scala _.sc
+echo 'def message: String = "Hello"' | scala-cli run PrintMessage.scala _.sc
 ```
 
 ```text

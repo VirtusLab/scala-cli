@@ -51,7 +51,7 @@ println(args.mkString("App called with arguments: ", ", ", ""))
 <ChainedSnippets>
 
 ```bash
-scala-cli app.sc -- first-arg second-arg
+scala-cli run app.sc -- first-arg second-arg
 ```
 
 ```text
@@ -73,7 +73,7 @@ println("Hi")
 ```
 
 ```bash
-scala-cli Hello.scala hi.sc --main-class hi_sc
+scala-cli run Hello.scala hi.sc --main-class hi_sc
 ```
 
 ## Custom JVM
@@ -81,7 +81,7 @@ scala-cli Hello.scala hi.sc --main-class hi_sc
 `--jvm` lets you run your application with a custom JVM:
 
 ```bash
-scala-cli Hello.scala --jvm adopt:14
+scala-cli run Hello.scala --jvm adopt:14
 ```
 
 You can also specify custom JVM with the using directive `//> using jvm`:
@@ -98,7 +98,7 @@ swiftly.)
 `--java-opt` lets you add `java` options which will be passed when running an application:
 
 ```bash
-scala-cli Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
+scala-cli run Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
 ```
 
 You can also add java options with the using directive `//> using javaOpt`:
@@ -142,7 +142,7 @@ object Utils {
 <ChainedSnippets>
 
 ```bash
-scala-cli Main.scala
+scala-cli run Main.scala
 ```
 
 ```text
@@ -214,13 +214,13 @@ Scala.js applications can also be compiled and run with the `--js` option.
 Note that this requires `node` to be [installed](/install#scala-js) on your system:
 
 ```bash
-scala-cli Hello.scala --js
+scala-cli run Hello.scala --js
 ```
 
 It is also possible to achieve it using `--platform` option:
 
 ```bash
-scala-cli Hello.scala --platform js
+scala-cli run Hello.scala --platform js
 ```
 
 See our dedicated [Scala.js guide](../guides/scala-js.md) for more information.
@@ -231,13 +231,13 @@ Scala Native applications can be compiled and run with the `--native` option.
 Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work:
 
 ```bash
-scala-cli Hello.scala --native -S 2.13.6
+scala-cli run Hello.scala --native -S 2.13.6
 ```
 
 It is also possible to achieve it using `--platform` option:
 
 ```bash
-scala-cli Hello.scala --platform native
+scala-cli run Hello.scala --platform native
 ```
 
 We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.

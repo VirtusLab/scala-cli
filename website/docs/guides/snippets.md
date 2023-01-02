@@ -169,7 +169,7 @@ def script = "on-disk-script"
 ```
 
 ```bash
-echo 'def piped = "piped-script"'|scala-cli . _.sc --scala-snippet 'case class ScalaSnippet(value: String = "scala-snippet")' --java-snippet 'public class JavaSnippet { public static String data = "java-snippet"; }' --script-snippet 'def script = "script-snippet"'
+echo 'def piped = "piped-script"'|scala-cli run . _.sc --scala-snippet 'case class ScalaSnippet(value: String = "scala-snippet")' --java-snippet 'public class JavaSnippet { public static String data = "java-snippet"; }' --script-snippet 'def script = "script-snippet"'
 ```
 
 ```text
@@ -226,7 +226,7 @@ println(s"${stdin.hello} ${snippet.world}${snippet1.exclamation}")
 ```
 
 ```bash
-echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --main-class ondisk_sc
+echo 'def hello = "Hello"' | scala-cli run _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --main-class ondisk_sc
 ```
 
 ```text
@@ -241,7 +241,7 @@ of `--list-main-classes`
 <ChainedSnippets>
 
 ```bash
-echo 'def hello = "Hello"' | scala-cli _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --list-main-classes
+echo 'def hello = "Hello"' | scala-cli run _.sc ondisk.sc -e 'def world = "world"' -e 'def exclamation = "!"' --list-main-classes
 ```
 
 ```text

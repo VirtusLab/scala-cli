@@ -17,9 +17,10 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
-        root
-      ).out.trim()
+      val output =
+        os.proc(TestUtil.cli, "run", extraOptions, fileName, "--js", extraArgs).call(cwd =
+          root
+        ).out.trim()
       expect(output.linesIterator.toSeq.last == message)
     }
   }
@@ -45,6 +46,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(
         TestUtil.cli,
+        "run",
         extraOptions,
         fileName,
         "--js",
@@ -79,7 +81,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js")
+      val output = os.proc(TestUtil.cli, "run", extraOptions, fileName, "--js")
         .call(cwd = root).out.trim()
       expect(output == message)
     }
@@ -97,7 +99,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root).out.trim()
+      val output = os.proc(TestUtil.cli, "run", extraOptions, ".").call(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -115,7 +117,9 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, ".", "--platform", "js").call(cwd = root).out.trim()
+        os.proc(TestUtil.cli, "run", extraOptions, ".", "--platform", "js").call(cwd =
+          root
+        ).out.trim()
       expect(output == message)
     }
   }
@@ -133,9 +137,10 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
-        root
-      ).out.trim()
+      val output =
+        os.proc(TestUtil.cli, "run", extraOptions, "print.sc", "messages.sc", "--js").call(cwd =
+          root
+        ).out.trim()
       expect(output == message)
     }
   }
@@ -159,7 +164,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
       os.proc(npmPath, "init", "private").call(cwd = root)
       os.proc(npmPath, "install", "jsdom").call(cwd = root)
 
-      val output = os.proc(TestUtil.cli, extraOptions, ".", "--js", "--js-dom")
+      val output = os.proc(TestUtil.cli, "run", extraOptions, ".", "--js", "--js-dom")
         .call(cwd = root)
         .out.text()
       expect(output.contains("Hello from js dom"))
@@ -194,9 +199,10 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print_sc")
-        .call(cwd = root)
-        .out.trim()
+      val output =
+        os.proc(TestUtil.cli, "run", extraOptions, "dir", "--js", "--main-class", "print_sc")
+          .call(cwd = root)
+          .out.trim()
       expect(output == message)
     }
   }

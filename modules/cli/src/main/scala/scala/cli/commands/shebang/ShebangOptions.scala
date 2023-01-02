@@ -2,7 +2,7 @@ package scala.cli.commands.shebang
 
 import caseapp.*
 
-import scala.cli.commands.run.RunOptions
+import scala.cli.commands.run.{RunOptions, SharedRunOptions}
 import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
 
 @HelpMessage(
@@ -34,9 +34,11 @@ import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
 )
 final case class ShebangOptions(
   @Recurse
-  runOptions: RunOptions = RunOptions()
+  shared: SharedOptions = SharedOptions(),
+  @Recurse
+  sharedRun: SharedRunOptions = SharedRunOptions()
 ) extends HasSharedOptions {
-  override def shared: SharedOptions = runOptions.shared
+  def runOptions: RunOptions = RunOptions(shared, sharedRun)
 }
 
 object ShebangOptions {

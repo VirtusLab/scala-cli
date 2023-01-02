@@ -16,7 +16,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, extraArgs, fileName).call(cwd = root).out.trim()
+        os.proc(TestUtil.cli, "run", extraOptions, extraArgs, fileName).call(cwd = root).out.trim()
       if (!ignoreErrors)
         expect(output == message)
     }
@@ -41,7 +41,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc").call(cwd =
+      val output = os.proc(TestUtil.cli, "run", extraOptions, "print.sc", "messages.sc").call(cwd =
         root
       ).out.trim()
       expect(output == message)
@@ -56,7 +56,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+      val output = os.proc(TestUtil.cli, "run", extraOptions, "main.sc").call(cwd =
         root
       ).out.trim()
       expect(output == message)
@@ -74,7 +74,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
+      val output = os.proc(TestUtil.cli, "run", extraOptions, "message.sc", "main.sc").call(cwd =
         root
       ).out.trim()
       expect(output == message)
@@ -92,9 +92,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
-        root
-      ).out.trim()
+      val output =
+        os.proc(TestUtil.cli, "run", extraOptions, "dir", "--main-class", "print_sc").call(cwd =
+          root
+        ).out.trim()
       expect(output == message)
     }
   }
@@ -109,7 +110,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, scriptPath.toString)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, scriptPath.toString)
         .call(cwd = root)
         .out.text()
         .trim
@@ -138,7 +139,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", scriptPath.toString)
+      val output = os.proc(TestUtil.cli, "run", extraOptions, "dir", scriptPath.toString)
         .call(cwd = root)
         .out.text()
         .trim
@@ -299,7 +300,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val p =
-        os.proc(TestUtil.cli, "main0.sc", "f.sc", "--", "20").call(cwd = root)
+        os.proc(TestUtil.cli, "run", "main0.sc", "f.sc", "--", "20").call(cwd = root)
       val res = p.out.trim()
       expect(res == "202020")
     }
@@ -307,7 +308,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   test("CLI args passed to script") {
     val inputs = TestInputs(os.rel / "f.sc" -> "println(args(0))")
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "f.sc", "--", "16").call(cwd = root)
+      val p = os.proc(TestUtil.cli, "run", "f.sc", "--", "16").call(cwd = root)
       expect(p.out.trim() == "16")
     }
   }

@@ -116,7 +116,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
     }
   }
 
-  test("default to the run sub-command if -classpath and --main-class are passed") {
+  test("default to the shebang sub-command if -classpath and --main-class are passed") {
     val expectedOutput = "Hello"
     val mainClassName  = "Main"
     TestInputs(
@@ -131,15 +131,15 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
         compilationOutputDir
       ).call(cwd = root)
 
-      // next, run while relying on the pre-compiled class instead of passing inputs
-      val runRes = os.proc(
+      // next, run shebang while relying on the pre-compiled class instead of passing inputs
+      val shebangRes = os.proc(
         TestUtil.cli,
         "--main-class",
         mainClassName,
         "-classpath",
         (os.rel / compilationOutputDir).toString
       ).call(cwd = root)
-      expect(runRes.out.trim() == expectedOutput)
+      expect(shebangRes.out.trim() == expectedOutput)
     }
   }
 
@@ -216,6 +216,15 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
           .call(cwd = root, stderr = os.Pipe)
       expect(res2.out.trim() == msg)
       expect(res2.err.trim().contains(s"Deprecated option '$doubleDashNoSaveOption' is ignored"))
+    }
+  }
+
+  test("ensure natural arguments handling is supported by default") {
+    TestInputs(os.rel / "s.sc" -> s"""println(args.mkString)""").fromRoot { root =>
+      val msg = "Hello"
+      val res = os.proc(TestUtil.cli, ".", msg, TestUtil.extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == msg)
     }
   }
 

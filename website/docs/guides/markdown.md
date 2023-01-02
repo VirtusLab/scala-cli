@@ -473,7 +473,7 @@ object Main extends App {
 <ChainedSnippets>
 
 ```bash
-scala-cli src Main.scala --enable-markdown --main-class Main
+scala-cli run src Main.scala --enable-markdown --main-class Main
 ```
 
 ```text
@@ -498,7 +498,7 @@ object Something {
 <ChainedSnippets>
 
 ```bash
-scala-cli RawSnippetToReferTo.md -e 'println(Something.message)'
+scala-cli run RawSnippetToReferTo.md -e 'println(Something.message)'
 ```
 
 ```text
