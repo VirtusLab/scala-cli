@@ -1008,6 +1008,24 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("run jar file") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println("Hello World")
+           |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      // build jar
+      val helloJarPath = root / "Hello.jar"
+      os.proc(TestUtil.cli, "package", ".", "--library", "-o", helloJarPath).call(cwd = root)
+
+      // run jar
+      val output = os.proc(TestUtil.cli, helloJarPath).call(cwd = root).out.trim()
+      expect(output == "Hello World")
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"

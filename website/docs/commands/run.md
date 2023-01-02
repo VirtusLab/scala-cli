@@ -106,6 +106,19 @@ You can also add java options with the using directive `//> using javaOpt`:
 //> using javaOpt "-Xmx1g", "-Dfoo=bar"
 ```
 
+### JAR
+
+`scala-cli` lets you run JAR files just like any other input.
+
+```bash ignore
+scala-cli Hello.jar
+```
+
+```text
+Hello World
+```
+
+When you provide a JAR file as input to `scala-cli`, it will be added to the `classPath`.
 
 ## Define source files in using directives
 

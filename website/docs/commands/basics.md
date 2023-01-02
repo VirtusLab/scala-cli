@@ -49,6 +49,7 @@ Scala CLI accepts the following types of source code:
 - `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/markdown.md))
 - `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in
   the [Scala Native guide](../guides/scala-native.md))
+- `.jar` files, (see more in the [Run docs](run#jar))
 
 The following example shows the simplest input format.
 First, create a source file:

@@ -96,6 +96,7 @@ object Sources {
       MarkdownPreprocessor,
       JavaPreprocessor(archiveCache, javaClassNameVersionOpt, javaCommand),
       ScalaPreprocessor,
-      DataPreprocessor
+      DataPreprocessor,
+      JarPreprocessor
     )
 }
