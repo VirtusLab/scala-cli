@@ -45,4 +45,8 @@ In order set them, the `-D` command-line flags must be placed as the first optio
 ``` bash
 scala-cli -Dfoo1=bar1 -Dfoo2=bar2 run ...
 ```
-Please note, that `scala-cli run -Dfoo=bar` wouldn't work
+
+:::note
+- `scala-cli run . -Dfoo=bar` would pass the java property into your Scala app
+- `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli.`
+:::
