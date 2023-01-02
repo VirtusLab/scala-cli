@@ -286,6 +286,7 @@ object Inputs {
       else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
       else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
       else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
+      else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
       else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
       else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
       else if os.isDir(path) then Right(Seq(Directory(path)))

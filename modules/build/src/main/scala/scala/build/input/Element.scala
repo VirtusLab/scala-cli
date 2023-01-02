@@ -85,6 +85,11 @@ final case class JavaFile(base: os.Path, subPath: os.SubPath)
   lazy val path: os.Path = base / subPath
 }
 
+final case class JarFile(base: os.Path, subPath: os.SubPath)
+    extends OnDisk with SourceFile {
+  lazy val path: os.Path = base / subPath
+}
+
 final case class CFile(base: os.Path, subPath: os.SubPath)
     extends OnDisk with SourceFile with Compiled {
   lazy val path: os.Path = base / subPath
