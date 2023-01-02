@@ -5,12 +5,13 @@ import caseapp.core.complete.{Bash, Zsh}
 
 import java.io.File
 import java.nio.charset.Charset
+import java.nio.file.Paths
 import java.util
 
 import scala.build.Logger
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
+import scala.cli.{CurrentParams, ScalaCli}
 
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
@@ -101,13 +102,8 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
 
   def getName(name: Option[String]): String =
     name.getOrElse {
-      val baseName = (new Argv0).get(baseRunnerName)
-      val idx      = baseName.lastIndexOf(File.separator)
-      val last     = if (idx < 0) baseName else baseName.drop(idx + 1)
-      last match {
-        case s".${name}.aux" => name // // cs install binaries under .app-name.aux
-        case name            => name
-      }
+      val progName = ScalaCli.progName
+      Paths.get(progName).getFileName.toString
     }
 
   def getFormat(format: Option[String]): Option[String] =
