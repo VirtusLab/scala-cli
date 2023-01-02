@@ -16,7 +16,8 @@ object ScalaCliHelp {
           "Package",
           "Metabrowse server",
           "Logging",
-          "Runner"
+          "Runner",
+          "Launcher"
         )
       ),
       sortedCommandGroups = Some(
