@@ -41,7 +41,7 @@ object Version extends ScalaCommand[VersionOptions] {
     else println(versionInfo)
   }
 
-  def versionInfo: String =
+  private def versionInfo: String =
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
     s"""$fullRunnerName version: $version$detailedVersionOpt
