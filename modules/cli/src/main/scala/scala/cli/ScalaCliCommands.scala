@@ -37,7 +37,6 @@ class ScalaCliCommands(
     dependencyupdate.DependencyUpdate,
     directories.Directories,
     doc.Doc,
-    doctor.Doctor,
     export0.Export,
     fmt.Fmt,
     new HelpCmd(help),

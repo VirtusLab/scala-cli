@@ -121,12 +121,6 @@ Clean the workspace
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
-### doctor
-
-Print details about this application
-
-Accepts option groups: [doctor](./cli-options.md#doctor-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ### help
 
 Print help message
