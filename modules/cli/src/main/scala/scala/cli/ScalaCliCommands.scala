@@ -24,7 +24,6 @@ class ScalaCliCommands(
   private def pgpBinaryCommands = new pgp.PgpCommandsSubst
 
   private def allCommands = Seq[ScalaCommand[_]](
-    about.About,
     addpath.AddPath,
     bloop.Bloop,
     bloop.BloopExit,

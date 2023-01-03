@@ -109,12 +109,6 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 Commands which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification.
 
-### about
-
-Print details about this application
-
-Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ### bsp
 
 Start BSP server

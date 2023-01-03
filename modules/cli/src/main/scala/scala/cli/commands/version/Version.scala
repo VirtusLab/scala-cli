@@ -6,7 +6,9 @@ import caseapp.core.help.HelpFormat
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
+import scala.cli.commands.update.Update
+import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.config.PasswordOption
 
 object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
@@ -24,12 +26,19 @@ object Version extends ScalaCommand[VersionOptions] {
   )
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
-    if (options.cliVersion)
-      println(Constants.version)
-    else if (options.scalaVersion)
-      println(Constants.defaultScalaVersion)
-    else
+    lazy val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))
+    lazy val isVersionOutOfDate: Boolean =
+      CommandUtils.isOutOfDateVersion(newestScalaCliVersion, Constants.version)
+    if options.cliVersion then println(Constants.version)
+    else if options.scalaVersion then println(Constants.defaultScalaVersion)
+    else if !options.offline && isVersionOutOfDate then {
       println(versionInfo)
+      logger.message(
+        s"""Your $fullRunnerName version is outdated. The newest version is $newestScalaCliVersion
+           |It is recommended that you update $fullRunnerName through the same tool or method you used for its initial installation for avoiding the creation of outdated duplicates.""".stripMargin
+      )
+    }
+    else println(versionInfo)
   }
 
   def versionInfo: String =

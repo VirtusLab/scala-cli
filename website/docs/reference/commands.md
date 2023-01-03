@@ -6,12 +6,6 @@ sidebar_position: 3
 
 
 
-## about
-
-Print details about this application
-
-Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ## clean
 
 Clean the workspace
