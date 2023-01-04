@@ -11,7 +11,7 @@ import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
 import scala.cli.commands.shared.ScalaCliHelp.helpFormat
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.version.Version
+import scala.cli.commands.version.{Version, VersionOptions}
 import scala.cli.commands.{ScalaCommand, ScalaCommandWithCustomHelp}
 import scala.cli.launcher.LauncherOptions
 
@@ -43,7 +43,8 @@ class Default(
   private[cli] var rawArgs = Array.empty[String]
 
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit =
-    if options.version then println(Version.versionInfo)
+    // can't fully re-parse and redirect to Version because of --cli-version and --scala-version clashing
+    if options.version then Version.runCommand(VersionOptions(options.shared.logging), args, logger)
     else
       {
         val shouldDefaultToRun =

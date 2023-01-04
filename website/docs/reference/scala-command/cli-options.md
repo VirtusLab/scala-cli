@@ -344,7 +344,7 @@ Pass scalafmt version before running it (3.6.1 by default). If passed, this over
 
 Available in commands:
 
-[`about`](./commands.md#about), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -558,7 +558,7 @@ Port for BSP debugging
 
 Available in commands:
 
-[`about`](./commands.md#about), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1152,7 +1152,7 @@ A github token used to access GitHub. Not needed in most cases.
 
 Available in commands:
 
-[`about`](./commands.md#about), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`doctor`](./commands.md#doctor), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1192,7 +1192,7 @@ Aliases: `--cli`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Show only plain version
+Show plain Scala CLI version only
 
 ### `--scala-version`
 
@@ -1200,7 +1200,19 @@ Aliases: `--scala`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Show only plain scala version
+Show plain Scala version only
+
+### `--gh-token`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+A github token used to access GitHub. Not needed in most cases.
+
+### `--offline`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Don't check for the newest available Scala CLI version upstream
 
 ## Watch options
 
@@ -1227,20 +1239,6 @@ Aliases: `--revolver`
 Run your application in background and automatically restart if sources have been changed
 
 ## Internal options 
-### About options
-
-Available in commands:
-
-[`about`](./commands.md#about)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--gh-token`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-A github token used to access GitHub. Not needed in most cases.
-
 ### Bsp options
 
 Available in commands:
@@ -1304,20 +1302,6 @@ Set the coursier cache location
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Enable checksum validation of artifacts downloaded by coursier
-
-### Doctor options
-
-Available in commands:
-
-[`doctor`](./commands.md#doctor)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--gh-token`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-A github token used to access GitHub. Not needed in most cases.
 
 ### Input options
 

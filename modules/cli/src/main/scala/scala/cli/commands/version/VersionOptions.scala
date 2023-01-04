@@ -2,8 +2,11 @@ package scala.cli.commands.version
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
 import scala.cli.commands.tags
+import scala.cli.signing.shared.PasswordOption
+import scala.cli.signing.util.ArgParsers.*
 
 // format: off
 @HelpMessage(
@@ -20,14 +23,21 @@ final case class VersionOptions(
     logging: LoggingOptions = LoggingOptions(),
   @Tag(tags.implementation)
   @Group("Version")
-  @HelpMessage("Show only plain version")
+  @HelpMessage(s"Show plain $fullRunnerName version only")
   @Name("cli")
     cliVersion: Boolean = false,
-  @HelpMessage("Show only plain scala version")
   @Group("Version")
+  @HelpMessage("Show plain Scala version only")
   @Tag(tags.implementation)
   @Name("scala")
-    scalaVersion: Boolean = false
+    scalaVersion: Boolean = false,
+  @Hidden
+  @HelpMessage(HelpMessages.passwordOption)
+  @Tag(tags.implementation)
+    ghToken: Option[PasswordOption] = None,
+  @Group("Version")
+  @HelpMessage(s"Don't check for the newest available $fullRunnerName version upstream")
+    offline: Boolean = false
 ) extends HasLoggingOptions
 // format: on
 

@@ -109,12 +109,6 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 Commands which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification.
 
-### about
-
-Print details about this application
-
-Accepts option groups: [about](./cli-options.md#about-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ### bsp
 
 Start BSP server
@@ -126,12 +120,6 @@ Accepts option groups: [bsp](./cli-options.md#bsp-options), [compilation server]
 Clean the workspace
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [directories](./cli-options.md#directories-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
-### doctor
-
-Print details about this application
-
-Accepts option groups: [doctor](./cli-options.md#doctor-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### help
 

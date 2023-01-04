@@ -3813,82 +3813,29 @@ Use progress bars
 
 **--cli-version**
 
-Show only plain version
+Show plain Scala CLI version only
 
 Aliases: `--cli`
 
 **--scala-version**
 
-Show only plain scala version
+Show plain Scala version only
 
 Aliases: `--scala`
+
+**--gh-token**
+
+A github token used to access GitHub. Not needed in most cases.
+
+**--offline**
+
+Don't check for the newest available Scala CLI version upstream
 
 </details>
 
 ---
 
 # IMPLEMENTATION specific commands
-
-## `about` command
-**IMPLEMENTATION specific for Scala Runner specification.**
-
-Print details about this application
-
-<details><summary>
-
-### Implementantation specific options
-
-</summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
-**--verbose**
-
-Increase verbosity (can be specified multiple times)
-
-Aliases: `-v`
-
-**--interactive**
-
-Interactive mode
-
-Aliases: `-i`
-
-**--actions**
-
-Enable actionable diagnostics
-
-**--quiet**
-
-Decrease verbosity
-
-Aliases: `-q`
-
-**--progress**
-
-Use progress bars
-
-**--gh-token**
-
-A github token used to access GitHub. Not needed in most cases.
-
-</details>
-
----
 
 ## `bsp` command
 **IMPLEMENTATION specific for Scala Runner specification.**
@@ -4457,67 +4404,6 @@ Aliases: `--name`
 **--workspace**
 
 Directory where .scala-build is written
-
-</details>
-
----
-
-## `doctor` command
-**IMPLEMENTATION specific for Scala Runner specification.**
-
-Print details about this application
-
-<details><summary>
-
-### Implementantation specific options
-
-</summary>
-
-**--usage**
-
-Print usage and exit
-
-**--help**
-
-Print help message and exit
-
-Aliases: `-h` ,`-help`
-
-**--help-full**
-
-Print help message, including hidden options, and exit
-
-Aliases: `--full-help` ,`-help-full` ,`-full-help`
-
-**--verbose**
-
-Increase verbosity (can be specified multiple times)
-
-Aliases: `-v`
-
-**--interactive**
-
-Interactive mode
-
-Aliases: `-i`
-
-**--actions**
-
-Enable actionable diagnostics
-
-**--quiet**
-
-Decrease verbosity
-
-Aliases: `-q`
-
-**--progress**
-
-Use progress bars
-
-**--gh-token**
-
-A github token used to access GitHub. Not needed in most cases.
 
 </details>
 

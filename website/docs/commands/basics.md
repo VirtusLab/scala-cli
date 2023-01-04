@@ -318,7 +318,7 @@ To run another Scala CLI version, specify it with `--cli-version` before any oth
 <ChainedSnippets>
 
 ```bash
-scala-cli --cli-version 0.1.17-62-g21e1cf44-SNAPSHOT about
+scala-cli --cli-version 0.1.17-62-g21e1cf44-SNAPSHOT version
 ```
 
 ```text
@@ -338,7 +338,7 @@ To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` par
 <ChainedSnippets>
 
 ```bash
-scala-cli --cli-version nightly about
+scala-cli --cli-version nightly version
 ```
 
 ```text
