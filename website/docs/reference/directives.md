@@ -146,6 +146,8 @@ Set parameters for packaging
 
 `//> using packaging.provided "org.apache.spark::spark-sql"`
 
+`//> using packaging.dockerFrom "openjdk:11"`
+
 ### Platform
 
 Set the default platform to Scala.js or Scala Native
