@@ -11,6 +11,7 @@ import scala.build.errors.{
   MalformedInputError,
   ModuleFormatError
 }
+import scala.build.options.packaging.DockerOptions
 import scala.build.options.{
   BuildOptions,
   JavaOpt,
@@ -27,10 +28,15 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using packaging.packageType \"assembly\"")
 @DirectiveExamples("//> using packaging.output \"foo\"")
 @DirectiveExamples("//> using packaging.provided \"org.apache.spark::spark-sql\"")
+@DirectiveExamples("//> using packaging.dockerFrom \"openjdk:11\"")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
     |using packaging.provided [module]
+    |using packaging.dockerFrom [base docker image]
+    |using packaging.dockerImageTag [image tag]
+    |using packaging.dockerImageRegistry [image registry]
+    |using packaging.dockerImageRepository [image repository]
     |""".stripMargin,
   """`//> using packaging.packageType `"package type"
     |
@@ -44,7 +50,11 @@ import scala.cli.commands.SpecificationLevel
 final case class Packaging(
   packageType: Option[Positioned[String]] = None,
   output: Option[String] = None,
-  provided: List[Positioned[String]] = Nil
+  provided: List[Positioned[String]] = Nil,
+  dockerFrom: Option[String] = None,
+  dockerImageTag: Option[String] = None,
+  dockerImageRegistry: Option[String] = None,
+  dockerImageRepository: Option[String] = None
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
@@ -90,7 +100,13 @@ final case class Packaging(
         packageOptions = PackageOptions(
           packageTypeOpt = packageTypeOpt,
           output = output0.map(_.toString),
-          provided = provided0
+          provided = provided0,
+          dockerOptions = DockerOptions(
+            from = dockerFrom,
+            imageRegistry = dockerImageRegistry,
+            imageRepository = dockerImageRepository,
+            imageTag = dockerImageTag
+          )
         )
       )
     )

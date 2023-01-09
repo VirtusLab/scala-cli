@@ -456,3 +456,38 @@ This using directive makes it possible to define the destination path of the pac
 ```
 
 The using directive above makes it possible to create a package named `foo` inside the current directory.
+
+### Docker
+
+#### packaging.dockerFrom
+
+The using directive allows you to define the base Docker image that is used to run your application.
+
+```scala compile
+//> using packaging.dockerFrom "openjdk:11"
+```
+
+#### packaging.dockerFrom
+
+The using directive allows you to define the generated Docker image tag.
+
+```scala compile
+//> using packaging.dockerImageTag "1.0.0"
+```
+
+#### packaging.dockerImageRegistry
+
+The using directive allows you to define the image registry.
+
+```scala compile
+//> using packaging.dockerImageRegistry "virtuslab"
+```
+
+#### packaging.dockerImageRegistry
+
+The using directive allows you to define the image repository.
+
+```scala compile
+//> using packaging.dockerImageRepository "scala-cli"
+```
+

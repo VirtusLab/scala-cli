@@ -51,4 +51,24 @@ class PackagingUsingDirectiveTests extends munit.FunSuite {
     }
   }
 
+  test("docker options") {
+    val inputs = TestInputs(
+      os.rel / "p.sc" ->
+        """//> using packaging.dockerFrom "openjdk:11"
+          |//> using packaging.dockerImageTag "1.0.0"
+          |//> using packaging.dockerImageRegistry "virtuslab"
+          |//> using packaging.dockerImageRepository "scala-cli"
+          |
+          |def foo() = println("hello foo")
+          |""".stripMargin
+    )
+    inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+      val dockerOpt = maybeBuild.options.notForBloopOptions.packageOptions.dockerOptions
+      expect(dockerOpt.from == Some("openjdk:11"))
+      expect(dockerOpt.imageTag == Some("1.0.0"))
+      expect(dockerOpt.imageRegistry == Some("virtuslab"))
+      expect(dockerOpt.imageRepository == Some("scala-cli"))
+    }
+  }
+
 }
