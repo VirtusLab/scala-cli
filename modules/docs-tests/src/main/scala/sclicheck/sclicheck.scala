@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
 val CompileBlock = """ *(`{2}`+) *(\w+) +(compile|fail) *(?:title=([\w\d.\-/_]+))? *""".r
 def compileBlockEnds(backticks: String) = s""" *$backticks *""".r
-val BashCommand                         = """ *```bash *(fail)? *""".r
+val BashCommand                         = """ *```bash *(fail|run-fail)? *""".r
 val CheckBlock                          = """ *\<\!-- Expected(-regex)?: *""".r
 val CheckBlockEnd                       = """ *\--> *""".r
 val Clear                               = """ *<!--+ *clear *-+-> *""".r
