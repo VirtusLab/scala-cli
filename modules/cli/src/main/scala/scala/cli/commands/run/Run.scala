@@ -258,6 +258,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
       }
       mainThreadOpt = Some(Thread.currentThread())
+
       try WatchUtil.waitForCtrlC(() => watcher.schedule(), () => shouldReadInput)
       finally {
         mainThreadOpt = None

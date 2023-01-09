@@ -82,7 +82,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           cliBuildOptions.internal.javaClassNameVersionOpt,
           () => cliBuildOptions.javaHome().value.javaCommand
         ),
-        logger
+        logger,
+        suppressDirectivesInMultipleFilesWarning = None
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)

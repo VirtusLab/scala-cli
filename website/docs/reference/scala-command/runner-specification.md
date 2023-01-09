@@ -272,6 +272,12 @@ Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -778,6 +784,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 
@@ -1287,6 +1299,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 
@@ -1826,6 +1844,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 
@@ -2388,6 +2412,12 @@ Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -2898,6 +2928,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 
@@ -3476,6 +3512,12 @@ Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4049,6 +4091,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 
@@ -4850,6 +4898,12 @@ Aliases: `-h` ,`-help`
 Print help message, including hidden options, and exit
 
 Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--suppress-directives-in-multiple-files-warning**
+
+Suppress warnings about using directives in multiple files
+
+Aliases: `--suppress-warning-directives-in-multiple-files`
 
 **--verbose**
 

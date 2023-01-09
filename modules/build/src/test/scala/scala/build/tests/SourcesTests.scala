@@ -56,7 +56,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -92,7 +93,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -125,7 +127,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -156,7 +159,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -187,7 +191,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -221,7 +226,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -257,7 +263,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -285,7 +292,8 @@ class SourcesTests extends munit.FunSuite {
       val crossSources = CrossSources.forInputs(
         inputs,
         preprocessors,
-        TestLogger()
+        TestLogger(),
+        suppressDirectivesInMultipleFilesWarning = None
       )
       expect(crossSources.isLeft)
     }
@@ -312,7 +320,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -377,7 +386,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -409,7 +419,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -444,7 +455,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -470,7 +482,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources  = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -507,7 +520,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         ).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources   = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
@@ -546,7 +560,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         )
       crossSources match {
         case Left(_: UsingDirectiveValueNumError) =>
@@ -566,7 +581,8 @@ class SourcesTests extends munit.FunSuite {
         CrossSources.forInputs(
           inputs,
           preprocessors,
-          TestLogger()
+          TestLogger(),
+          suppressDirectivesInMultipleFilesWarning = None
         )
       crossSources match {
         case Left(_: UsingDirectiveWrongValueTypeError) =>

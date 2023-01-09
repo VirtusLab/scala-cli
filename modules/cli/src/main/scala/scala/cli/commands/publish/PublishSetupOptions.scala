@@ -28,7 +28,7 @@ final case class PublishSetupOptions(
   @Recurse
     sharedJvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
-  scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
+    scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
 
   @Group("Publishing")

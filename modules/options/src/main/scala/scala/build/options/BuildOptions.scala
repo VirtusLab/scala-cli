@@ -28,6 +28,7 @@ import scala.concurrent.duration.*
 import scala.util.Properties
 
 final case class BuildOptions(
+  suppressWarningOptions: SuppressWarningOptions = SuppressWarningOptions(),
   scalaOptions: ScalaOptions = ScalaOptions(),
   scalaJsOptions: ScalaJsOptions = ScalaJsOptions(),
   scalaNativeOptions: ScalaNativeOptions = ScalaNativeOptions(),

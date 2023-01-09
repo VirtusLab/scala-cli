@@ -37,7 +37,8 @@ object Export extends ScalaCommand[ExportOptions] {
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand
         ),
-        logger
+        logger,
+        buildOptions.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
       )
     }
     val scopedSources = value(crossSources.scopedSources(buildOptions))
@@ -108,10 +109,22 @@ object Export extends ScalaCommand[ExportOptions] {
       initialBuildOptions.copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
-      prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Main)
+      prepareBuild(
+        inputs,
+        baseOptions,
+        logger,
+        options.shared.logging.verbosity,
+        Scope.Main
+      )
         .orExit(logger)
     val (sourcesTest, optionsTest0) =
-      prepareBuild(inputs, baseOptions, logger, options.shared.logging.verbosity, Scope.Test)
+      prepareBuild(
+        inputs,
+        baseOptions,
+        logger,
+        options.shared.logging.verbosity,
+        Scope.Test
+      )
         .orExit(logger)
 
     for {
