@@ -2,12 +2,10 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.cli.integration.HelpTests.HelpVariants
-
 class HelpTests extends ScalaCliSuite {
-  for { helpOptions <- HelpVariants } {
-    val help              = os.proc(TestUtil.cli, helpOptions).call(check = false)
-    val helpOutput        = help.out.trim()
+  for (helpOptions <- HelpTests.variants) {
+    lazy val help         = os.proc(TestUtil.cli, helpOptions).call(check = false)
+    lazy val helpOutput   = help.out.trim()
     val helpOptionsString = helpOptions.mkString(" ")
     test(s"$helpOptionsString works correctly") {
       assert(
@@ -32,6 +30,6 @@ class HelpTests extends ScalaCliSuite {
 }
 
 object HelpTests {
-  val HelpVariants =
+  val variants =
     Seq(Seq("help"), Seq("help", "-help"), Seq("help", "--help"), Seq("-help"), Seq("--help"))
 }
