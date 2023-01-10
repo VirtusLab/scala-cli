@@ -1,7 +1,6 @@
 package scala.cli.commands.dependencyupdate
 
 import caseapp.*
-import os.Path
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
@@ -101,7 +100,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   }
 
   private def updateDependencies(
-    file: Path,
+    file: os.Path,
     diagnostics: Seq[(Position.File, ActionableDependencyUpdateDiagnostic)]
   ): String = {
     val fileContent   = os.read(file)

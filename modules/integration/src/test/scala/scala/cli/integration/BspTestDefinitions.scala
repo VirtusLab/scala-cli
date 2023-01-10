@@ -954,9 +954,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("workspace/reload --dependency option") {
     val inputs = TestInputs(
       os.rel / "ReloadTest.scala" ->
-        s"""import os.pwd
-           |object ReloadTest {
-           |  println(pwd)
+        s"""object ReloadTest {
+           |  println(os.pwd)
            |}
            |""".stripMargin
     )

@@ -6,7 +6,6 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
 import dependency.*
-import os.Path
 
 import java.net.URL
 
