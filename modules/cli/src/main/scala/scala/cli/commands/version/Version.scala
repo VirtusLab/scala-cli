@@ -26,19 +26,28 @@ object Version extends ScalaCommand[VersionOptions] {
   )
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
-    lazy val newestScalaCliVersion = Update.newestScalaCliVersion(options.ghToken.map(_.get()))
-    lazy val isVersionOutOfDate: Boolean =
-      CommandUtils.isOutOfDateVersion(newestScalaCliVersion, Constants.version)
+    lazy val maybeNewerScalaCliVersion: Option[String] =
+      Update.newestScalaCliVersion(options.ghToken.map(_.get())) match {
+        case Left(e) =>
+          logger.debug(e.message)
+          None
+        case Right(newestScalaCliVersion) =>
+          if CommandUtils.isOutOfDateVersion(newestScalaCliVersion, Constants.version) then
+            Some(newestScalaCliVersion)
+          else None
+      }
     if options.cliVersion then println(Constants.version)
     else if options.scalaVersion then println(Constants.defaultScalaVersion)
-    else if !options.offline && isVersionOutOfDate then {
+    else {
       println(versionInfo)
-      logger.message(
-        s"""Your $fullRunnerName version is outdated. The newest version is $newestScalaCliVersion
-           |It is recommended that you update $fullRunnerName through the same tool or method you used for its initial installation for avoiding the creation of outdated duplicates.""".stripMargin
-      )
+      if !options.offline then
+        maybeNewerScalaCliVersion.foreach { v =>
+          logger.message(
+            s"""Your $fullRunnerName version is outdated. The newest version is $v
+               |It is recommended that you update $fullRunnerName through the same tool or method you used for its initial installation for avoiding the creation of outdated duplicates.""".stripMargin
+          )
+        }
     }
-    else println(versionInfo)
   }
 
   private def versionInfo: String =
