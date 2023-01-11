@@ -219,6 +219,28 @@ class DefaultTests extends WithWarmUpScalaCliSuite {
     }
   }
 
+  test("ensure -howtorun/--how-to-run works with the default command") {
+    val msg = "Hello world"
+    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
+      Seq("object", "script", "jar", "repl", "guess", "invalid").foreach { htrValue =>
+        val legacyHtrOption = "-howtorun"
+        val res1 =
+          os.proc(TestUtil.cli, ".", legacyHtrOption, htrValue, TestUtil.extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+        expect(res1.out.trim() == msg)
+        expect(res1.err.trim().contains(s"Deprecated option '$legacyHtrOption' is ignored"))
+        expect(res1.err.trim().contains(htrValue))
+        val doubleDashHtrOption = "--how-to-run"
+        val res2 =
+          os.proc(TestUtil.cli, ".", doubleDashHtrOption, htrValue, TestUtil.extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+        expect(res2.out.trim() == msg)
+        expect(res2.err.trim().contains(s"Deprecated option '$doubleDashHtrOption' is ignored"))
+        expect(res2.err.trim().contains(htrValue))
+      }
+    }
+  }
+
   private def unrecognizedArgMessage(argName: String) =
     s"""
        |Unrecognized argument: $argName
