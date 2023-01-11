@@ -804,6 +804,10 @@ GraalVM version to use to build GraalVM native images (22.3.0 by default)
 
 JVM id of GraalVM distribution to build GraalVM native images (like "graalvm-java17:22.0.0")
 
+### `--graalvm-args`
+
+Pass args to GraalVM
+
 ## Pgp push pull options
 
 Available in commands:

@@ -11,7 +11,7 @@ import scala.build.errors.{
   MalformedInputError,
   ModuleFormatError
 }
-import scala.build.options.packaging.DockerOptions
+import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
 import scala.build.options.{
   BuildOptions,
   JavaOpt,
@@ -29,10 +29,12 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using packaging.output \"foo\"")
 @DirectiveExamples("//> using packaging.provided \"org.apache.spark::spark-sql\"")
 @DirectiveExamples("//> using packaging.dockerFrom \"openjdk:11\"")
+@DirectiveExamples("//> using packaging.graalvmArgs \"--no-fallback\"")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
     |using packaging.provided [module]
+    |using packaging.graalvmArgs [args]
     |using packaging.dockerFrom [base docker image]
     |using packaging.dockerImageTag [image tag]
     |using packaging.dockerImageRegistry [image registry]
@@ -51,6 +53,7 @@ final case class Packaging(
   packageType: Option[Positioned[String]] = None,
   output: Option[String] = None,
   provided: List[Positioned[String]] = Nil,
+  graalvmArgs: List[Positioned[String]] = Nil,
   dockerFrom: Option[String] = None,
   dockerImageTag: Option[String] = None,
   dockerImageRegistry: Option[String] = None,
@@ -106,6 +109,9 @@ final case class Packaging(
             imageRegistry = dockerImageRegistry,
             imageRepository = dockerImageRepository,
             imageTag = dockerImageTag
+          ),
+          nativeImageOptions = NativeImageOptions(
+            graalvmArgs = graalvmArgs
           )
         )
       )

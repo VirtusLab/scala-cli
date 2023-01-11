@@ -71,4 +71,20 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
+  test("should parse graalVM args") {
+    val expectedGraalVMArgs @ Seq(noFallback, enableUrl) =
+      Seq("--no-fallback", "--enable-url-protocols=http,https")
+    TestInputs(
+      os.rel / "simple.sc" ->
+        s"""//> using packaging.graalvmArgs "$noFallback", "$enableUrl"
+           |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val graalvmArgs =
+          build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs
+        expect(graalvmArgs.map(_.value) == expectedGraalVMArgs)
+    }
+  }
+
 }

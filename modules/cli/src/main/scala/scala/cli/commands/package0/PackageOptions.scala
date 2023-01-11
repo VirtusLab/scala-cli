@@ -3,13 +3,13 @@ package scala.cli.commands.package0
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.build.BuildThreads
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormatError}
 import scala.build.options.*
 import scala.build.options.packaging.*
+import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
 import scala.cli.commands.shared.{
   CrossOptions,
@@ -189,7 +189,9 @@ final case class PackageOptions(
           nativeImageOptions = NativeImageOptions(
             graalvmJvmId = packager.graalvmJvmId.map(_.trim).filter(_.nonEmpty),
             graalvmJavaVersion = packager.graalvmJavaVersion.filter(_ > 0),
-            graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty)
+            graalvmVersion = packager.graalvmVersion.map(_.trim).filter(_.nonEmpty),
+            graalvmArgs =
+              packager.graalvmArgs.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine)
           ),
           useDefaultScaladocOptions = defaultScaladocOptions
         ),

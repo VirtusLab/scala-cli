@@ -119,7 +119,10 @@ final case class PackagerOptions(
   @Group("Native image")
   @HelpMessage("JVM id of GraalVM distribution to build GraalVM native images (like \"graalvm-java17:22.0.0\")")
   @ValueDescription("jvm-id")
-    graalvmJvmId: Option[String] = None
+    graalvmJvmId: Option[String] = None,
+  @Group("Native image")
+  @HelpMessage("Pass args to GraalVM")
+   graalvmArgs: List[String] = Nil
 )
 // format: on
 

@@ -263,6 +263,7 @@ Several options can be passed to adjust the GraalVM version used by Scala CLI:
 - `--graalvm-jvm-id` accepts a JVM identifier, such as `graalvm-java17:22.0.0` or `graalvm-java17:21` (short versions accepted).
 - `--graalvm-java-version` makes it possible to specify only a target Java version, such as `11` or `17` (note that only specific Java versions may be supported by the default GraalVM version that Scala CLI picks)
 - `--graalvm-version` makes it possible to specify only a GraalVM version, such as `22.0.0` or `21` (short versions accepted)
+- `--graalvm-args` makes it possible to pass args to GraalVM version
 
 ## Scala Native
 
@@ -456,6 +457,14 @@ This using directive makes it possible to define the destination path of the pac
 ```
 
 The using directive above makes it possible to create a package named `foo` inside the current directory.
+
+### packaging.graalvmArgs
+
+This using directive makes it possible to pass args to GraalVM:
+
+```scala compile
+//> using packaging.graalvmArgs "--no-fallback", "--enable-url-protocols=http,https"
+```
 
 ### Docker
 

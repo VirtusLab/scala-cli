@@ -176,10 +176,12 @@ object NativeImage {
     )
 
     val javaHome = options.javaHome().value
+    val nativeImageArgs =
+      options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs.map(_.value)
 
     val cacheData = CachedBinary.getCacheData(
       build,
-      s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList,
+      s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList ++ nativeImageArgs,
       dest,
       nativeImageWorkDir
     )
@@ -228,7 +230,7 @@ object NativeImage {
               "-cp",
               classPath.map(_.toString).mkString(File.pathSeparator),
               mainClass
-            )
+            ) ++ nativeImageArgs
 
             maybeWithShorterGraalvmHome(javaHome.javaHome, logger) { graalVMHome =>
 
