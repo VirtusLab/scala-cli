@@ -93,7 +93,7 @@ class SipScalaTests extends ScalaCliSuite {
   def testVersionCommand(binaryName: String): Unit =
     TestInputs.empty.fromRoot { root =>
       val binary = binaryName.prepareBinary(root)
-      for { versionOption <- Seq("version", "-version", "--version") } {
+      for { versionOption <- VersionTests.variants } {
         val version = os.proc(binary, versionOption).call(check = false)
         assert(
           version.exitCode == 0,

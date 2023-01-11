@@ -6,6 +6,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.core
 
 import scala.build.Logger
+import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
 import scala.cli.commands.{CommandUtils, ScalaCommand}
@@ -31,29 +32,28 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   private lazy val releaseListCodec: JsonValueCodec[List[Release]] = JsonCodecMaker.make
 
-  def newestScalaCliVersion(tokenOpt: Option[Secret[String]]): String = {
-
+  def newestScalaCliVersion(tokenOpt: Option[Secret[String]])
+    : Either[CheckScalaCliVersionError, String] = {
     // FIXME Do we need paging here?
     val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
     val headers =
       Seq("Accept" -> "application/vnd.github.v3+json") ++
         tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
-    val resp = ProcUtil.download(url, headers: _*)
 
-    val releases =
-      try readFromArray(resp)(releaseListCodec)
-      catch {
-        case e: JsonReaderException =>
-          throw new Exception(s"Error reading $url", e)
-      }
-
-    releases
-      .filter(_.actualRelease)
-      .maxByOption(_.version)
-      .map(_.version.repr)
-      .getOrElse {
-        sys.error(s"No $fullRunnerName versions found in $url")
-      }
+    try {
+      val resp = ProcUtil.download(url, headers: _*)
+      readFromArray(resp)(releaseListCodec).filter(_.actualRelease)
+        .maxByOption(_.version)
+        .map(_.version.repr)
+        .toRight(CheckScalaCliVersionError(s"No $fullRunnerName versions found in $url"))
+    }
+    catch {
+      case e: JsonReaderException => Left(CheckScalaCliVersionError(s"Error reading $url", e))
+      case e: Throwable => Left(CheckScalaCliVersionError(
+          s"Failed to check for the newest Scala CLI version upstream: ${e.getMessage}",
+          e
+        ))
+    }
   }
 
   def installDirPath(options: UpdateOptions): os.Path =
@@ -107,7 +107,12 @@ object Update extends ScalaCommand[UpdateOptions] {
 
   private def update(options: UpdateOptions, currentVersion: String, logger: Logger): Unit = {
 
-    val newestScalaCliVersion0 = newestScalaCliVersion(options.ghToken.map(_.get()))
+    val newestScalaCliVersion0 = newestScalaCliVersion(options.ghToken.map(_.get())) match {
+      case Left(e) =>
+        logger.log(e.message)
+        sys.error(e.message)
+      case Right(v) => v
+    }
     val isOutdated = CommandUtils.isOutOfDateVersion(newestScalaCliVersion0, currentVersion)
 
     if (!options.isInternalRun)
