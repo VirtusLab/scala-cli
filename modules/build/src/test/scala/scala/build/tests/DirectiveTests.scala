@@ -3,11 +3,12 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{BuildThreads, Directories, LocalRepo, Position, Positioned}
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import scala.build.Position
+import dependency.AnyDependency
 
 class DirectiveTests extends munit.FunSuite {
 
@@ -84,6 +85,25 @@ class DirectiveTests extends munit.FunSuite {
         val graalvmArgs =
           build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs
         expect(graalvmArgs.map(_.value) == expectedGraalVMArgs)
+    }
+  }
+
+  test("resolve toolkit dependency") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using toolkit "latest"
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val dep   = build.options.classPathOptions.extraDependencies.toSeq.headOption
+        assert(dep.nonEmpty)
+
+        val toolkitDep = dep.get.value
+        expect(toolkitDep.organization == "org.virtuslab")
+        expect(toolkitDep.name == "toolkit")
+        expect(toolkitDep.version == "latest.release")
     }
   }
 

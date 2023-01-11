@@ -16,6 +16,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
+import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException}
 import scala.build.input.{Element, Inputs, ResourceDirectory}
 import scala.build.interactive.Interactive
@@ -24,6 +25,7 @@ import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
@@ -180,6 +182,10 @@ final case class SharedOptions(
   @ValueDescription("/example/path")
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
+  @HelpMessage("Add toolkit to classPath")
+  @ValueDescription("version|latest")
+  @Name("toolkit")
+    withToolkit: Option[String] = None
 ) extends HasLoggingOptions {
   // format: on
 
@@ -310,7 +316,7 @@ final case class SharedOptions(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),
             ignoreErrors
-          )
+          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
         )
       ),
       internal = bo.InternalOptions(
@@ -623,4 +629,7 @@ object SharedOptions {
         }
       }
 
+  private def resolveToolkitDependency(toolkitVersion: Option[String])
+    : Seq[Positioned[AnyDependency]] =
+    toolkitVersion.toList.map(Positioned.commandLine).map(Toolkit.resolveDependency)
 }
