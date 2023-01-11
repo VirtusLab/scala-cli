@@ -148,6 +148,8 @@ Set parameters for packaging
 
 `//> using packaging.dockerFrom "openjdk:11"`
 
+`//> using packaging.graalvmArgs "--no-fallback"`
+
 ### Platform
 
 Set the default platform to Scala.js or Scala Native
