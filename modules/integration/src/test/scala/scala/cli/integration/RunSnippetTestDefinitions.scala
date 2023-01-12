@@ -144,4 +144,28 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
       expect(res.out.trim() == expectedOutput)
     }
   }
+  test("running a script snippet should not create the workspace dir in cwd") {
+    emptyInputs.fromRoot { root =>
+      val quotation = TestUtil.argQuotationMark
+      val msg       = "Hello World from snippet"
+      os.proc(TestUtil.cli, "-e", s"println($quotation$msg$quotation)", extraOptions)
+        .call(cwd = root)
+        .out.trim()
+      expect(!os.exists(root / Constants.workspaceDirName))
+    }
+  }
+  test("running a script snippet with one source file should create the workspace dir in cwd") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello {
+           | val hello = "Hello World"
+           |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "-e", s"println(Hello.hello)", ".", extraOptions)
+        .call(cwd = root)
+        .out.trim()
+      expect(os.exists(root / Constants.workspaceDirName))
+    }
+  }
 }
