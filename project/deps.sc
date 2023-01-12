@@ -8,7 +8,7 @@ object Scala {
   def scala212     = "2.12.17"
   def scala213     = "2.13.10"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.2.1"
+  def scala3       = "3.2.2"
   val allScala2    = Seq(scala213, scala212)
   val all          = allScala2 ++ Seq(scala3)
   val mainVersions = Seq(scala3, scala213)
@@ -33,7 +33,7 @@ object Scala {
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = scala3
+  def maxAmmoniteScala3Version   = "3.2.1"
   lazy val listAllAmmonite = {
     import coursier.core.Version
     val max212 = Version(maxAmmoniteScala212Version)
