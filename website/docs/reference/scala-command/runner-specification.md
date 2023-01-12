@@ -64,7 +64,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -569,7 +569,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -1078,7 +1078,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -1601,7 +1601,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2162,7 +2162,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2703,7 +2703,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3254,7 +3254,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3858,7 +3858,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4659,7 +4659,7 @@ Aliases: `--plugin` ,`-P`
 
 **--scala-version**
 
-Set the Scala version (3.2.1 by default)
+Set the Scala version (3.2.2 by default)
 
 Aliases: `-S` ,`--scala`
 
