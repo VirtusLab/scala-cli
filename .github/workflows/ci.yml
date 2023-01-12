@@ -218,6 +218,7 @@ jobs:
           env: |
             JAVA_HOME: /jvm
             JAVA_OPTS: "-Djdk.lang.Process.launchMechanism=vfork"
+            GITHUB_ENV: "/tmp/github_env"
 
           # The shell to run commands with in the container
           shell: /bin/bash
@@ -228,12 +229,18 @@ jobs:
           # gnupg2 is for signing the resulting binary.
           install: |
             apt-get update -q -y
-            apt-get install -q -y build-essential libz-dev git python3-pip gnupg2 curl
+            apt-get install -q -y build-essential libz-dev git python3-pip gnupg2 curl zip
+            touch /tmp/github_env
           run: |
             set -e
             export PATH="/utils:$PATH"
             git config --global --add safe.directory "$(pwd)"
             ./mill -i copyDefaultLauncher artifacts/
+            ./mill -i ci.setShouldPublish
+            if grep -q "SHOULD_PUBLISH=true" /tmp/github_env; then
+              .github/scripts/generate-os-packages.sh
+            fi
+      - run: sudo chown -R $USER .
       - uses: actions/upload-artifact@v3
         with:
           name: linux-aarch64-launchers
@@ -996,6 +1003,10 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: linux-launchers
+          path: artifacts/
+      - uses: actions/download-artifact@v3
+        with:
+          name: linux-aarch64-launchers
           path: artifacts/
       - uses: actions/download-artifact@v3
         with:
