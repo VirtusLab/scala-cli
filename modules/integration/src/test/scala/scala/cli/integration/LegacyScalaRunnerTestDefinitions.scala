@@ -87,4 +87,15 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
       }
     }
   }
+
+  test("ensure -I works with the default command") {
+    val msg = "Hello world"
+    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
+      val legacyIOption = "-I"
+      val res =
+        os.proc(TestUtil.cli, legacyIOption, "s.sc", "--repl-dry-run", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res.err.trim().contains(s"Deprecated option '$legacyIOption' is ignored"))
+    }
+  }
 }

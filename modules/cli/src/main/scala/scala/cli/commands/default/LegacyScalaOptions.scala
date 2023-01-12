@@ -30,6 +30,11 @@ case class LegacyScalaOptions(
   @ValueDescription("object|script|jar|repl|guess")
   @Name("-howtorun")
     howToRun: Option[Indexed[String]] = None,
+  @Group("Scala")
+  @HelpMessage("Ignored legacy option. Deprecated option allowing to preload inputs for the repl or command execution.")
+  @Tag(tags.must)
+  @ValueDescription("file")
+    I: Option[Indexed[List[String]]] = None,
 ) {
 // format: on
 
@@ -46,7 +51,8 @@ case class LegacyScalaOptions(
     val saveOptionString   = save.findArg(args)
     val noSaveOptionString = nosave.findArg(args)
     val howToRunString     = howToRun.findArg(args)
-    val deprecatedArgs     = Seq(saveOptionString, noSaveOptionString, howToRunString).flatten
+    val iString            = I.findArg(args)
+    val deprecatedArgs     = Seq(saveOptionString, noSaveOptionString, howToRunString, iString).flatten
     val filteredArgs       = args.filterNot(deprecatedArgs.contains)
     val filteredArgsString = filteredArgs.mkString(" ")
     saveOptionString.foreach { s =>
@@ -89,6 +95,17 @@ case class LegacyScalaOptions(
            |To learn more, try viewing the help.
            |  ${Console.BOLD}$progName -help${Console.RESET}""".stripMargin
       )
+    }
+    for {
+      optionName <- iString
+      optionValues <- I.map(_.value)
+      exampleReplInputs = optionValues.mkString(" ")
+    } {
+      logger.message(s"Deprecated option '$optionName' is ignored.".stripMargin)
+      logger.message(
+        s"""To preload the extra files for the repl, try passing them as inputs for the repl sub-command.
+           |  ${Console.BOLD}$progName repl $exampleReplInputs${Console.RESET}
+           |""".stripMargin)
     }
     filteredArgs
   }
