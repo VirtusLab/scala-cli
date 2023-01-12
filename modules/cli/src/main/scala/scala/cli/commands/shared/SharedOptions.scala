@@ -273,7 +273,7 @@ final case class SharedOptions(
     }
     bo.BuildOptions(
       suppressWarningOptions =
-        bo.SuppressWarningOptions(suppress.suppressDirectivesInMultipleFilesWarning),
+        bo.SuppressWarningOptions(suppressDirectivesInMultipleFilesWarning),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion
           .map(_.trim)
@@ -419,6 +419,18 @@ final case class SharedOptions(
       case _ => InteractiveNop
     }
   }
+
+  def suppressDirectivesInMultipleFilesWarning: Option[Boolean] =
+    suppress.suppressDirectivesInMultipleFilesWarning.filter(identity).orElse(
+      configDb.map(_.get(Keys.suppressDirectivesInMultipleFilesWarning))
+        .map {
+          case Right(opt) => opt
+          case Left(ex) =>
+            logger.debug(ConfigDbException(ex))
+            None
+        }
+        .getOrElse(None)
+    )
 
   def configDb: Either[BuildException, ConfigDb] =
     ConfigDb.open(directories.directories.dbPath.toNIO)
