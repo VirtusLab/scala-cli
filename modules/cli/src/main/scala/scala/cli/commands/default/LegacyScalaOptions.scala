@@ -14,30 +14,35 @@ import scala.cli.commands.tags
   */
 // format: off
 case class LegacyScalaOptions(
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage(s"Ignored legacy option. Deprecated equivalent of running a subsequent `$PowerString${Package.name}` command.")
   @Tag(tags.must)
+  @Hidden
   @Name("-save")
     save: Option[Indexed[Boolean]] = None,
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage("Ignored legacy option. Deprecated override canceling the `-nosave` option.")
   @Tag(tags.must)
+  @Hidden
   @Name("-nosave")
     nosave: Option[Indexed[Boolean]] = None,
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage("Ignored legacy option. Deprecated override defining how the runner should treat the input. Use the appropriate sub-command instead.")
   @Tag(tags.must)
+  @Hidden
   @ValueDescription("object|script|jar|repl|guess")
   @Name("-howtorun")
     howToRun: Option[Indexed[String]] = None,
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage("Ignored legacy option. Deprecated option allowing to preload inputs for the repl or command execution.")
   @Tag(tags.must)
+  @Hidden
   @ValueDescription("file")
     I: Option[Indexed[List[String]]] = None,
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage("Ignored legacy option. Deprecated option allowing to prevent the use of the legacy fsc compilation daemon.")
   @Tag(tags.must)
+  @Hidden
   @Name("-nc")
   @Name("-nocompdaemon")
     noCompilationDaemon: Option[Indexed[Boolean]] = None,

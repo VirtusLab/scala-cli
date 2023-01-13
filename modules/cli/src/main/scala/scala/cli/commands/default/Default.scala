@@ -22,7 +22,6 @@ class Default(
 
   private lazy val defaultCommandHelp: String =
     s"""
-       |
        |When no subcommand is passed explicitly, an implicit subcommand is used based on context:
        |  - if the '--version' option is passed, it prints the 'version' subcommand output, unmodified by any other options
        |  - if any inputs were passed, it defaults to the 'run' subcommand
