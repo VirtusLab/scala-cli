@@ -35,6 +35,12 @@ case class LegacyScalaOptions(
   @Tag(tags.must)
   @ValueDescription("file")
     I: Option[Indexed[List[String]]] = None,
+  @Group("Scala")
+  @HelpMessage("Ignored legacy option. Deprecated option allowing to prevent the use of the legacy fsc compilation daemon.")
+  @Tag(tags.must)
+  @Name("-nc")
+  @Name("-nocompdaemon")
+    noCompilationDaemon: Option[Indexed[Boolean]] = None,
 ) {
 // format: on
 
@@ -48,11 +54,14 @@ case class LegacyScalaOptions(
     progName: String,
     logger: Logger
   ): Array[String] = {
-    val saveOptionString   = save.findArg(args)
-    val noSaveOptionString = nosave.findArg(args)
-    val howToRunString     = howToRun.findArg(args)
-    val iString            = I.findArg(args)
-    val deprecatedArgs     = Seq(saveOptionString, noSaveOptionString, howToRunString, iString).flatten
+    val saveOptionString          = save.findArg(args)
+    val noSaveOptionString        = nosave.findArg(args)
+    val howToRunString            = howToRun.findArg(args)
+    val iString                   = I.findArg(args)
+    val noCompilationDaemonString = noCompilationDaemon.findArg(args)
+    val deprecatedArgs =
+      Seq(saveOptionString, noSaveOptionString, howToRunString, iString, noCompilationDaemonString)
+        .flatten
     val filteredArgs       = args.filterNot(deprecatedArgs.contains)
     val filteredArgsString = filteredArgs.mkString(" ")
     saveOptionString.foreach { s =>
@@ -97,7 +106,7 @@ case class LegacyScalaOptions(
       )
     }
     for {
-      optionName <- iString
+      optionName   <- iString
       optionValues <- I.map(_.value)
       exampleReplInputs = optionValues.mkString(" ")
     } {
@@ -105,7 +114,12 @@ case class LegacyScalaOptions(
       logger.message(
         s"""To preload the extra files for the repl, try passing them as inputs for the repl sub-command.
            |  ${Console.BOLD}$progName repl $exampleReplInputs${Console.RESET}
-           |""".stripMargin)
+           |""".stripMargin
+      )
+    }
+    noCompilationDaemonString.foreach { nc =>
+      logger.message(s"Deprecated option '$nc' is ignored.")
+      logger.message("The script runner can no longer be picked as before.")
     }
     filteredArgs
   }

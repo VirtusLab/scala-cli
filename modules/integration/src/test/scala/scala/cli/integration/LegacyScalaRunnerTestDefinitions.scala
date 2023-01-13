@@ -98,4 +98,25 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
       expect(res.err.trim().contains(s"Deprecated option '$legacyIOption' is ignored"))
     }
   }
+
+  test("ensure -nc/-nocompdaemon/--no-compilation-daemon works with the default command") {
+    val msg = "Hello world"
+    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
+      val legacyOption = "-nc"
+      val res =
+        os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res.err.trim().contains(s"Deprecated option '$legacyOption' is ignored"))
+      val legacyOption2 = "-nocompdaemon"
+      val res2 =
+        os.proc(TestUtil.cli, legacyOption2, "s.sc", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res2.err.trim().contains(s"Deprecated option '$legacyOption2' is ignored"))
+      val legacyOption3 = "--no-compilation-daemon"
+      val res3 =
+        os.proc(TestUtil.cli, legacyOption3, "s.sc", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res3.err.trim().contains(s"Deprecated option '$legacyOption3' is ignored"))
+    }
+  }
 }
