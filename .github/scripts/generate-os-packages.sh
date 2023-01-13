@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
 set -eu
 
+ARCHITECTURE="x86_64" # Set the default architecture
+if [[ "$OSTYPE" == "linux-gnu"* ]] || [[ "$OSTYPE" == "darwin"* ]]; then
+  # When running on macOS and Linux lets determine the architecture
+  ARCHITECTURE=$(uname -m)
+fi
+if [[ $# -eq 1 ]]; then
+  # architecture gets overridden by command line param
+  ARCHITECTURE=$1
+fi
+
 ARTIFACTS_DIR="artifacts/"
 mkdir -p "$ARTIFACTS_DIR"
 
@@ -103,10 +113,15 @@ generate_sdk() {
   local binName
 
   if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    sdkDirectory="scala-cli-x86_64-pc-linux-static-sdk"
+    if [[ "$ARCHITECTURE" == "aarch64" ]] || [[ "$ARCHITECTURE" == "x86_64" ]]; then
+      sdkDirectory="scala-cli-$ARCHITECTURE-pc-linux-static-sdk"
+    else
+      echo "scala-cli is not supported on $ARCHITECTURE"
+      exit 2
+    fi
     binName="scala-cli"
   elif [[ "$OSTYPE" == "darwin"* ]]; then
-    if [[ "$(uname -m)" == "arm64" ]]; then
+    if [[ "$ARCHITECTURE" == "arm64" ]]; then
       sdkDirectory="scala-cli-aarch64-apple-darwin-sdk"
     else
       sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
@@ -133,11 +148,13 @@ generate_sdk() {
 }
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  generate_deb
-  generate_rpm
+  if [ "$ARCHITECTURE" == "x86_64" ]; then
+    generate_deb
+    generate_rpm
+  fi
   generate_sdk
 elif [[ "$OSTYPE" == "darwin"* ]]; then
-  if [ "$(uname -m)" == "arm64" ]; then
+  if [ "$ARCHITECTURE" == "arm64" ]; then
     generate_pkg "aarch64"
   else
     generate_pkg "x86_64"
