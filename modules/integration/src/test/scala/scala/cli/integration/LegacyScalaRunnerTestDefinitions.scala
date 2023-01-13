@@ -31,92 +31,64 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
   }
 
   test("ensure -save/--save works with the default command") {
-    val msg = "Hello world"
-    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      val legacySaveOption = "-save"
-      val res1 =
-        os.proc(TestUtil.cli, ".", legacySaveOption, TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res1.out.trim() == msg)
-      expect(res1.err.trim().contains(s"Deprecated option '$legacySaveOption' is ignored"))
-      val doubleDashSaveOption = "--save"
-      val res2 =
-        os.proc(TestUtil.cli, ".", doubleDashSaveOption, TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res2.out.trim() == msg)
-      expect(res2.err.trim().contains(s"Deprecated option '$doubleDashSaveOption' is ignored"))
-    }
+    simpleLegacyOptionBackwardsCompatTest("-save", "--save")
   }
 
   test("ensure -nosave/--nosave works with the default command") {
-    val msg = "Hello world"
-    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      val legacyNoSaveOption = "-nosave"
-      val res1 =
-        os.proc(TestUtil.cli, ".", legacyNoSaveOption, TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res1.out.trim() == msg)
-      expect(res1.err.trim().contains(s"Deprecated option '$legacyNoSaveOption' is ignored"))
-      val doubleDashNoSaveOption = "--nosave"
-      val res2 =
-        os.proc(TestUtil.cli, ".", doubleDashNoSaveOption, TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res2.out.trim() == msg)
-      expect(res2.err.trim().contains(s"Deprecated option '$doubleDashNoSaveOption' is ignored"))
-    }
+    simpleLegacyOptionBackwardsCompatTest("-nosave", "--nosave")
   }
 
   test("ensure -howtorun/--how-to-run works with the default command") {
-    val msg = "Hello world"
-    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      Seq("object", "script", "jar", "repl", "guess", "invalid").foreach { htrValue =>
-        val legacyHtrOption = "-howtorun"
-        val res1 =
-          os.proc(TestUtil.cli, ".", legacyHtrOption, htrValue, TestUtil.extraOptions)
+    legacyOptionBackwardsCompatTest("-howtorun", "--how-to-run") {
+      (legacyHtrOption, root) =>
+        Seq("object", "script", "jar", "repl", "guess", "invalid").foreach { htrValue =>
+          val res = os.proc(TestUtil.cli, legacyHtrOption, htrValue, "s.sc", TestUtil.extraOptions)
             .call(cwd = root, stderr = os.Pipe)
-        expect(res1.out.trim() == msg)
-        expect(res1.err.trim().contains(s"Deprecated option '$legacyHtrOption' is ignored"))
-        expect(res1.err.trim().contains(htrValue))
-        val doubleDashHtrOption = "--how-to-run"
-        val res2 =
-          os.proc(TestUtil.cli, ".", doubleDashHtrOption, htrValue, TestUtil.extraOptions)
-            .call(cwd = root, stderr = os.Pipe)
-        expect(res2.out.trim() == msg)
-        expect(res2.err.trim().contains(s"Deprecated option '$doubleDashHtrOption' is ignored"))
-        expect(res2.err.trim().contains(htrValue))
-      }
+          expect(res.err.trim().contains(deprecatedOptionWarning(legacyHtrOption)))
+          expect(res.err.trim().contains(htrValue))
+        }
     }
   }
 
   test("ensure -I works with the default command") {
-    val msg = "Hello world"
-    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      val legacyIOption = "-I"
-      val res =
-        os.proc(TestUtil.cli, legacyIOption, "s.sc", "--repl-dry-run", TestUtil.extraOptions)
+    legacyOptionBackwardsCompatTest("-I") {
+      (legacyOption, root) =>
+        val res = os.proc(TestUtil.cli, legacyOption, "--repl-dry-run", TestUtil.extraOptions)
           .call(cwd = root, stderr = os.Pipe)
-      expect(res.err.trim().contains(s"Deprecated option '$legacyIOption' is ignored"))
+        expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
     }
   }
 
   test("ensure -nc/-nocompdaemon/--no-compilation-daemon works with the default command") {
+    simpleLegacyOptionBackwardsCompatTest("-nc", "-nocompdaemon", "--no-compilation-daemon")
+  }
+
+  private def simpleLegacyOptionBackwardsCompatTest(optionAliases: String*): Unit =
+    abstractLegacyOptionBackwardsCompatTest(optionAliases) {
+      (legacyOption, expectedMsg, root) =>
+        val res = os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == expectedMsg)
+        expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
+    }
+
+  private def legacyOptionBackwardsCompatTest(optionAliases: String*)(f: (String, os.Path) => Unit)
+    : Unit =
+    abstractLegacyOptionBackwardsCompatTest(optionAliases) { (legacyOption, _, root) =>
+      f(legacyOption, root)
+    }
+
+  private def abstractLegacyOptionBackwardsCompatTest(optionAliases: Seq[String])(f: (
+    String,
+    String,
+    os.Path
+  ) => Unit): Unit = {
     val msg = "Hello world"
     TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      val legacyOption = "-nc"
-      val res =
-        os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res.err.trim().contains(s"Deprecated option '$legacyOption' is ignored"))
-      val legacyOption2 = "-nocompdaemon"
-      val res2 =
-        os.proc(TestUtil.cli, legacyOption2, "s.sc", TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res2.err.trim().contains(s"Deprecated option '$legacyOption2' is ignored"))
-      val legacyOption3 = "--no-compilation-daemon"
-      val res3 =
-        os.proc(TestUtil.cli, legacyOption3, "s.sc", TestUtil.extraOptions)
-          .call(cwd = root, stderr = os.Pipe)
-      expect(res3.err.trim().contains(s"Deprecated option '$legacyOption3' is ignored"))
+      optionAliases.foreach(f(_, msg, root))
     }
   }
+
+  private def deprecatedOptionWarning(optionName: String) =
+    s"Deprecated option '$optionName' is ignored"
 }
