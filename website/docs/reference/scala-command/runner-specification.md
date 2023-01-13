@@ -276,7 +276,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -783,7 +783,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -1292,7 +1292,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -1831,7 +1831,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -2392,7 +2392,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -2903,7 +2903,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -3480,7 +3480,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -3789,7 +3789,7 @@ Aliases: `-h` ,`-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4054,7 +4054,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4361,7 +4361,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4440,7 +4440,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4499,7 +4499,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4590,7 +4590,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4855,7 +4855,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5174,7 +5174,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5353,7 +5353,7 @@ Custom completions name
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5410,7 +5410,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 

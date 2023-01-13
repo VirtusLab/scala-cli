@@ -1570,7 +1570,7 @@ Available in commands:
 
 ### `--verbose`
 
-Aliases: `-v`
+Aliases: `-v`, `-verbose`
 
 Increase verbosity (can be specified multiple times)
 

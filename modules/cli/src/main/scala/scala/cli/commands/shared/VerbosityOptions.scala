@@ -13,6 +13,7 @@ final case class VerbosityOptions(
   @HelpMessage("Increase verbosity (can be specified multiple times)")
   @Tag(tags.implementation)
   @Name("v")
+  @Name("-verbose")
     verbose: Int @@ Counter = Tag.of(0),
   @Group("Logging")
   @HelpMessage("Interactive mode")
