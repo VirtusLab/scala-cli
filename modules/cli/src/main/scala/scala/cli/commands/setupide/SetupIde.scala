@@ -39,7 +39,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
             options.internal.javaClassNameVersionOpt,
             () => options.javaHome().value.javaCommand
           ),
-          logger
+          logger,
+          options.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
         )
       }
 
@@ -113,7 +114,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val logger = options.shared.logger
 
     if (buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
-      value(downloadDeps(inputs, buildOptions, logger))
+      value(downloadDeps(
+        inputs,
+        buildOptions,
+        logger
+      ))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =

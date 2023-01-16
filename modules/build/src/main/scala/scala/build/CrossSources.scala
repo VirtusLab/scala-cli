@@ -126,6 +126,7 @@ object CrossSources {
     inputs: Inputs,
     preprocessors: Seq[Preprocessor],
     logger: Logger,
+    suppressDirectivesInMultipleFilesWarning: Option[Boolean],
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (CrossSources, Inputs)] = either {
 
@@ -168,7 +169,11 @@ object CrossSources {
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
 
     val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
-    if (preprocessedWithUsingDirs.length > 1) {
+    if (
+      preprocessedWithUsingDirs.length > 1 && !suppressDirectivesInMultipleFilesWarning.getOrElse(
+        false
+      )
+    ) {
       val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
         case Some(s) => s.path
         case _       => inputs.workspace / Constants.projectFileName
@@ -200,7 +205,7 @@ object CrossSources {
           .foldLeft(BuildRequirements())(_ orElse _)
 
       // Scala CLI treats all `.test.scala` files tests as well as
-      // files from witin `test` subdirectory from provided input directories
+      // files from within `test` subdirectory from provided input directories
       // If file has `using target <scope>` directive this take precendeces.
       if (
         fromDirectives.scope.isEmpty &&

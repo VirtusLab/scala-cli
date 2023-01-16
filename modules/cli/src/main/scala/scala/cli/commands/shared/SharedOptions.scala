@@ -31,7 +31,8 @@ import scala.cli.commands.shared.{
   HasLoggingOptions,
   ScalaJsOptions,
   ScalaNativeOptions,
-  SharedOptions
+  SharedOptions,
+  SuppressWarningOptions
 }
 import scala.cli.commands.tags
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -43,6 +44,8 @@ import scala.util.control.NonFatal
 
 // format: off
 final case class SharedOptions(
+  @Recurse
+    suppress: SuppressWarningOptions = SuppressWarningOptions(),
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
@@ -269,6 +272,8 @@ final case class SharedOptions(
       }
     }
     bo.BuildOptions(
+      suppressWarningOptions =
+        bo.SuppressWarningOptions(suppress.suppressDirectivesInMultipleFilesWarning),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion
           .map(_.trim)

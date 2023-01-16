@@ -58,7 +58,8 @@ object Bsp extends ScalaCommand[BspOptions] {
                 buildOptions0.internal.javaClassNameVersionOpt,
                 () => buildOptions0.javaHome().value.javaCommand
               ),
-              persistentLogger
+              persistentLogger,
+              sharedOptions.suppress.suppressDirectivesInMultipleFilesWarning
             ).map(_._2).getOrElse(initialInputs)
 
           Build.updateInputs(allInputs, buildOptions(sharedOptions))

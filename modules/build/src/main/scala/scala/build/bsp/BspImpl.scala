@@ -101,6 +101,7 @@ final class BspImpl(
           () => buildOptions.javaHome().value.javaCommand
         ),
         persistentLogger,
+        suppressDirectivesInMultipleFilesWarning = None,
         maybeRecoverOnError(Scope.Main)
       ).left.map((_, Scope.Main))
     }
