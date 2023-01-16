@@ -38,6 +38,7 @@ final case class Sbt(
   private def pureJavaSettings(options: BuildOptions, sources: Sources): SbtProject = {
 
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
+      !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
       options.classPathOptions.extraDependencies.toSeq

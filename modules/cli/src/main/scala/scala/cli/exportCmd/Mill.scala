@@ -32,6 +32,7 @@ final case class Mill(
   private def scalaVersionSettings(options: BuildOptions, sources: Sources): MillProject = {
 
     val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
+      !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
       options.classPathOptions.extraDependencies.toSeq

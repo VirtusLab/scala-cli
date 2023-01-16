@@ -540,4 +540,32 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       expect(classFiles.contains(os.rel / "Hello.class"))
     }
   }
+
+  private def compilerArtifactName: String =
+    if (actualScalaVersion.startsWith("3")) "scala3-compiler" else "scala-compiler"
+
+  test(s"ensure the -with-compiler option adds $compilerArtifactName to the classpath") {
+    TestInputs(os.rel / "s.sc" -> """println("Hello")""")
+      .fromRoot { root =>
+        val compileRes = os.proc(
+          TestUtil.cli,
+          "compile",
+          "s.sc",
+          "--print-classpath",
+          extraOptions
+        )
+          .call(cwd = root)
+        expect(!compileRes.out.trim().contains(compilerArtifactName))
+        val compileWithCompilerRes = os.proc(
+          TestUtil.cli,
+          "compile",
+          "s.sc",
+          "-with-compiler",
+          "--print-classpath",
+          extraOptions
+        )
+          .call(cwd = root)
+        expect(compileWithCompilerRes.out.trim().contains(compilerArtifactName))
+      }
+  }
 }

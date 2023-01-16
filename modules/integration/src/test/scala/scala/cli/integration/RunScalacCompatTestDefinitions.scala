@@ -466,4 +466,29 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
         }
     }
   }
+
+  if (actualScalaVersion.startsWith("3"))
+    test("ensure -with-compiler is supported for Scala 3") {
+      TestInputs(
+        os.rel / "s.sc" ->
+          "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+      )
+        .fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)
+              .call(cwd = root)
+          expect(res.out.trim() == actualScalaVersion)
+        }
+    }
+
+  if (actualScalaVersion.startsWith("2.13"))
+    test("ensure -with-compiler is supported for Scala 2.13") {
+      TestInputs(os.rel / "s.sc" -> "println(scala.tools.nsc.Properties.versionString)")
+        .fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "-with-compiler", "s.sc", extraOptions)
+              .call(cwd = root)
+          expect(res.out.trim() == s"version $actualScalaVersion")
+        }
+    }
 }
