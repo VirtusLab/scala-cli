@@ -59,7 +59,7 @@ object Bsp extends ScalaCommand[BspOptions] {
                 () => buildOptions0.javaHome().value.javaCommand
               ),
               persistentLogger,
-              sharedOptions.suppress.suppressDirectivesInMultipleFilesWarning
+              buildOptions0.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
             ).map(_._2).getOrElse(initialInputs)
 
           Build.updateInputs(allInputs, buildOptions(sharedOptions))

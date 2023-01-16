@@ -733,6 +733,36 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("suppress multiple using directives warning message with global config") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using scala "3.2.0"
+           |
+           |object Foo extends App {
+           |  println("Foo")
+           |}
+           |""".stripMargin,
+      os.rel / "Bar.scala"  -> "",
+      os.rel / "Hello.java" -> "//> using packaging.output \"out\""
+    )
+    inputs.fromRoot { root =>
+      val warningMessage = "Using directives detected in"
+
+      os.proc(TestUtil.cli, "config", "suppress-warning.directives-in-multiple-files", "true")
+        .call(cwd = root)
+
+      val output =
+        os.proc(TestUtil.cli, ".").call(
+          cwd = root,
+          stderr = os.Pipe
+        ).err.trim()
+      expect(!output.contains(warningMessage))
+
+      os.proc(TestUtil.cli, "config", "suppress-warning.directives-in-multiple-files", "false")
+        .call(cwd = root)
+    }
+  }
+
   def sudoTest(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"

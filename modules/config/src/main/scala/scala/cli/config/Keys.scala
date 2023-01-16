@@ -21,6 +21,9 @@ object Keys {
 
   val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
 
+  val suppressDirectivesInMultipleFilesWarning =
+    new Key.BooleanEntry(Seq("suppress-warning"), "directives-in-multiple-files")
+
   val proxyAddress  = new Key.StringEntry(Seq("httpProxy"), "address")
   val proxyUser     = new Key.PasswordEntry(Seq("httpProxy"), "user")
   val proxyPassword = new Key.PasswordEntry(Seq("httpProxy"), "password")
@@ -40,6 +43,7 @@ object Keys {
     ghToken,
     globalInteractiveWasSuggested,
     interactive,
+    suppressDirectivesInMultipleFilesWarning,
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,
