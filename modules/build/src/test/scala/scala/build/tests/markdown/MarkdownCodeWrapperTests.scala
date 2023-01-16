@@ -2,7 +2,6 @@ package scala.build.tests.markdown
 
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import com.eed3si9n.expecty.Expecty.expect
-import os.RelPath
 
 import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}

@@ -1,7 +1,5 @@
 package scala.cli.integration
 
-import os.{CommandResult, Path}
-
 import java.io.File
 import java.net.ServerSocket
 import java.util.Locale
@@ -78,6 +76,16 @@ object TestUtil {
 
   def threadPool(prefix: String, size: Int): ExecutorService =
     Executors.newFixedThreadPool(size, daemonThreadFactory(prefix))
+  def withThreadPool[T](prefix: String, size: Int)(f: ExecutorService => T): T = {
+    var pool: ExecutorService = null
+    try {
+      pool = threadPool(prefix, size)
+      f(pool)
+    }
+    finally
+      if (pool != null)
+        pool.shutdown()
+  }
 
   def scheduler(prefix: String): ScheduledExecutorService =
     Executors.newSingleThreadScheduledExecutor(daemonThreadFactory(prefix))
@@ -129,13 +137,13 @@ object TestUtil {
   def relPathStr(relPath: os.RelPath): String =
     (Seq.fill(relPath.ups)("..") ++ relPath.segments).mkString(File.separator)
 
-  def kill(pid: Int): CommandResult =
+  def kill(pid: Int): os.CommandResult =
     if (Properties.isWin)
       os.proc("taskkill", "/F", "/PID", pid).call()
     else
       os.proc("kill", pid).call()
 
-  def pwd: Path =
+  def pwd: os.Path =
     if (Properties.isWin)
       os.Path(os.pwd.toIO.getCanonicalFile)
     else

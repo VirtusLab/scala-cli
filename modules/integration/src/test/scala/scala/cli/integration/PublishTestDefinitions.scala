@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import os.RelPath
 
 import java.nio.file.Paths
 import java.util.zip.ZipFile
@@ -41,9 +40,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     val scalaSuffix: String =
       if (actualScalaVersion.startsWith("3.")) "_3"
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
-    val expectedArtifactsDir: RelPath =
+    val expectedArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
-    val expectedJsArtifactsDir: RelPath =
+    val expectedJsArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 

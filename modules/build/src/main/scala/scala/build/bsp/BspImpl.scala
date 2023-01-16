@@ -362,18 +362,20 @@ final class BspImpl(
   ): BloopSession = {
     val logger       = reloadableOptions.logger
     val buildOptions = reloadableOptions.buildOptions
-    val bloopServer = BloopServer.buildServer(
-      reloadableOptions.bloopRifleConfig,
-      "scala-cli",
-      Constants.version,
-      (inputs.workspace / Constants.workspaceDirName).toNIO,
-      Build.classesRootDir(inputs.workspace, inputs.projectName).toNIO,
-      localClient,
-      threads.buildThreads.bloop,
-      logger.bloopRifleLogger
-    )
+    val createBloopServer =
+      () =>
+        BloopServer.buildServer(
+          reloadableOptions.bloopRifleConfig,
+          "scala-cli",
+          Constants.version,
+          (inputs.workspace / Constants.workspaceDirName).toNIO,
+          Build.classesRootDir(inputs.workspace, inputs.projectName).toNIO,
+          localClient,
+          threads.buildThreads.bloop,
+          logger.bloopRifleLogger
+        )
     val remoteServer = new BloopCompiler(
-      bloopServer,
+      createBloopServer,
       20.seconds,
       strictBloopJsonCheck = buildOptions.internal.strictBloopJsonCheckOrDefault
     )
