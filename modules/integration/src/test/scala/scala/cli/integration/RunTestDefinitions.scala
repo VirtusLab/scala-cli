@@ -176,11 +176,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       passArgumentsScala3()
     }
 
-  test("setting root dir with no inputs") {
+  test("setting root dir with virtual input") {
     val url = "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
     emptyInputs.fromRoot { root =>
       os.proc(TestUtil.cli, extraOptions, escapedUrls(url)).call(cwd = root)
-      expect(os.exists(root / ".scala-build"))
+      expect(
+        !os.exists(root / ".scala-build")
+      ) // virtual source should not create workspace dir in cwd
     }
   }
 

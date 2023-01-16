@@ -157,6 +157,11 @@ object Inputs {
               )
             (f.path / os.up, true, WorkspaceOrigin.SourcePaths)
         }
+      }.orElse {
+        validElems.collectFirst {
+          case _: Virtual =>
+            (os.temp.dir(), true, WorkspaceOrigin.VirtualForced)
+        }
       }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
     }
 

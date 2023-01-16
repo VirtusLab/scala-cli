@@ -9,5 +9,6 @@ object WorkspaceOrigin {
 
   case object ResourcePaths extends WorkspaceOrigin
 
-  case object HomeDir extends WorkspaceOrigin
+  case object HomeDir       extends WorkspaceOrigin
+  case object VirtualForced extends WorkspaceOrigin
 }
