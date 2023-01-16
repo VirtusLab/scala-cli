@@ -8,6 +8,7 @@ import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorServic
 
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Properties
 
 object TestUtil {
@@ -258,5 +259,17 @@ object TestUtil {
       }
     }
     Map(pathVarName -> s"$binDir${File.pathSeparator}$currentPath")
+  }
+
+  def readLine(
+    stream: os.SubProcess.OutputStream,
+    ec: ExecutionContext,
+    timeout: Duration
+  ): String = {
+    implicit val ec0 = ec
+    val readLineF = Future {
+      stream.readLine()
+    }
+    Await.result(readLineF, timeout)
   }
 }
