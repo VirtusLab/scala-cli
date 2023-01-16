@@ -1112,4 +1112,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         expect(output.contains(exceptionMsg))
       }
     }
+
+  test("should add toolkit to classpath") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println(os.pwd) // os lib should be added to classpath by toolkit
+           |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--toolkit", "0.1.4")
+        .call(cwd = root).out.trim()
+
+      expect(output == root.toString())
+    }
+  }
 }

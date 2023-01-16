@@ -70,7 +70,8 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.ScalaNative.handler,
       directives.ScalaVersion.handler,
       directives.Sources.handler,
-      directives.Tests.handler
+      directives.Tests.handler,
+      directives.Toolkit.handler
     ).map(_.mapE(_.buildOptions))
 
   val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =

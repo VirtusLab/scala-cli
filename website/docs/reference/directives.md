@@ -324,6 +324,17 @@ Set the test framework
 #### Examples
 `//> using testFramework "utest.runner.Framework"`
 
+### Toolkit
+
+Use a toolkit as dependency
+
+`//> using toolkit` _version_
+
+#### Examples
+`//> using toolkit "0.1.0"`
+
+`//> using toolkit "latest"`
+
 
 ## target directives
 

@@ -970,6 +970,14 @@ Aliases: `--compile-out`, `--compile-output`, `-d`, `--destination`, `--output-d
 
 Copy compilation results to output directory using either relative or absolute path
 
+### `--with-toolkit`
+
+Aliases: `--toolkit`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Add toolkit to classPath
+
 ## Snippet options
 
 Available in commands:

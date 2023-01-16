@@ -177,6 +177,7 @@ object Deps {
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
+  def toolkit         = ivy"org.virtuslab:toolkit:0.1.0"
   def usingDirectives = ivy"org.virtuslab:using_directives:0.0.10"
   // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users

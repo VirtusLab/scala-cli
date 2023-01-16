@@ -394,6 +394,9 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def scalafmtName = "${Deps.scalafmtCli.dep.module.name.value}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |
+         |  def toolkitOrganization = "${Deps.toolkit.dep.module.organization.value}"
+         |  def toolkitName = "${Deps.toolkit.dep.module.name.value}"
+         |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
