@@ -86,6 +86,19 @@ final case class BuildOptions(
     }
   }
 
+  private def scalaCompilerDependencies: Either[BuildException, Seq[AnyDependency]] = either {
+    value(scalaParams).toSeq.flatMap { sp =>
+      if (scalaOptions.addScalaCompiler.getOrElse(false))
+        Seq(
+          if (sp.scalaVersion.startsWith("3."))
+            dep"org.scala-lang::scala3-compiler::${sp.scalaVersion}"
+          else
+            dep"org.scala-lang:scala-compiler:${sp.scalaVersion}"
+        )
+      else Nil
+    }
+  }
+
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
     if (platform.value == Platform.JS)
       value(scalaParams).toSeq.flatMap { scalaParams0 =>
@@ -104,6 +117,7 @@ final case class BuildOptions(
     value(maybeJsDependencies).map(Positioned.none(_)) ++
       value(maybeNativeDependencies).map(Positioned.none(_)) ++
       value(scalaLibraryDependencies).map(Positioned.none(_)) ++
+      value(scalaCompilerDependencies).map(Positioned.none(_)) ++
       classPathOptions.extraDependencies.toSeq
   }
 

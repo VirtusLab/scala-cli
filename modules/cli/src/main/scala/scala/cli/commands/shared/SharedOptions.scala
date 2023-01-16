@@ -147,6 +147,12 @@ final case class SharedOptions(
   @Tag(tags.implementation)
   @Hidden
     scalaLibrary: Option[Boolean] = None,
+  @Group("Scala")
+  @HelpMessage("Allows to include the Scala compiler artifacts on the classpath.")
+  @Tag(tags.must)
+  @Name("withScalaCompiler")
+  @Name("-with-compiler")
+    withCompiler: Option[Boolean] = None,
   @Group("Java")
   @HelpMessage("Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.")
   @Tag(tags.implementation)
@@ -281,6 +287,7 @@ final case class SharedOptions(
           .map(bo.MaybeScalaVersion(_)),
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
+        addScalaCompiler = withCompiler,
         generateSemanticDbs = semanticDb,
         scalacOptions = scalac
           .scalacOption

@@ -86,6 +86,12 @@ Add a resource directory
 
 Aliases: `--resource-dir`
 
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
+
 **--compilation-output**
 
 Copy compilation results to output directory using either relative or absolute path
@@ -596,6 +602,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -1111,6 +1123,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -1640,6 +1658,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -2208,6 +2232,12 @@ Add a resource directory
 
 Aliases: `--resource-dir`
 
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
+
 **--compilation-output**
 
 Copy compilation results to output directory using either relative or absolute path
@@ -2754,6 +2784,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -3311,6 +3347,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -3921,6 +3963,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 
@@ -4728,6 +4776,12 @@ Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--with-compiler**
+
+Allows to include the Scala compiler artifacts on the classpath.
+
+Aliases: `-with-compiler` ,`--with-scala-compiler`
 
 **--compilation-output**
 

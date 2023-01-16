@@ -926,6 +926,14 @@ Specify platform
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
+### `--with-compiler`
+
+Aliases: `-with-compiler`, `--with-scala-compiler`
+
+`MUST have` per Scala Runner specification
+
+Allows to include the Scala compiler artifacts on the classpath.
+
 ### `--java`
 
 `IMPLEMENTATION specific` per Scala Runner specification

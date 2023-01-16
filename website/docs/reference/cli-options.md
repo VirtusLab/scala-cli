@@ -1379,6 +1379,12 @@ Specify platform
 ### `--scala-library`
 
 [Internal]
+### `--with-compiler`
+
+Aliases: `-with-compiler`, `--with-scala-compiler`
+
+Allows to include the Scala compiler artifacts on the classpath.
+
 ### `--java`
 
 [Internal]
