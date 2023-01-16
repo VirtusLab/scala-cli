@@ -1408,6 +1408,13 @@ Aliases: `--compile-out`, `--compile-output`, `-d`, `--destination`, `--output-d
 
 Copy compilation results to output directory using either relative or absolute path
 
+### `--supported-scala-versions-url`
+
+Aliases: `--scala-versions-url`
+
+[Internal]
+Set the supported scala versions url
+
 ## Snippet options
 
 Available in commands:

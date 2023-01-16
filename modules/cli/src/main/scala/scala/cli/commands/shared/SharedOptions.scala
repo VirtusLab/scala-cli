@@ -180,6 +180,11 @@ final case class SharedOptions(
   @ValueDescription("/example/path")
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
+  @Group("Scala")
+  @HelpMessage("Set the supported scala versions url")
+  @Name("scalaVersionsUrl")
+  @Hidden
+    supportedScalaVersionsUrl: Option[String] = None,
 ) extends HasLoggingOptions {
   // format: on
 
@@ -288,7 +293,8 @@ final case class SharedOptions(
             dependencies.compilerPlugin.map(Positioned.none),
             ignoreErrors
           ),
-        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
+        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o)),
+        supportedScalaVersionsUrl = supportedScalaVersionsUrl
       ),
       scriptOptions = bo.ScriptOptions(
         codeWrapper = None

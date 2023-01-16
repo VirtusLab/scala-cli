@@ -544,6 +544,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 
 
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
+
 </details>
 
 ---
@@ -1050,6 +1056,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 </details>
 
@@ -1559,6 +1571,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 **--java-prop-option**
 
@@ -2098,6 +2116,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 **--java-prop-option**
 
@@ -2660,6 +2684,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 
 
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
+
 **--java-prop-option**
 
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
@@ -3170,6 +3200,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 **--respect-project-filters**
 
@@ -3748,6 +3784,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 
 
 
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
+
 **--java-prop-option**
 
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
@@ -4321,6 +4363,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 **--json-options**
 
@@ -5122,6 +5170,12 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 **--strict-bloop-json-check**
 
 
+
+**--supported-scala-versions-url**
+
+Set the supported scala versions url
+
+Aliases: `--scala-versions-url`
 
 **--bsp-directory**
 
