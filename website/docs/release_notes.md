@@ -7,6 +7,163 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v0.1.20](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.20)
+
+### Add support for Scala Toolkit
+Scala CLI now has support for [Scala Toolkit](https://virtuslab.com/blog/scala-toolkit-makes-scala-powerful-straight-out-of-the-box/).
+
+Scala Toolkit is an ongoing effort by [Scala Center](https://scala.epfl.ch/) and [VirtusLab](https://www.virtuslab.com/) 
+to compose a set of approachable libraries to solve everyday problems.
+
+It is currently in its pre-release phase and includes the following libraries:
+- [MUnit](https://github.com/scalameta/munit) for testing;
+- [Sttp](https://github.com/softwaremill/sttp) for HTTP client;
+- [UPickle/UJson](https://github.com/com-lihaoyi/upickle) for reading, writing and operating on JSONs;
+- [OS-Lib](https://github.com/com-lihaoyi/os-lib) for operating on files and the operating system.
+
+You can add it to your Scala CLI build from the command line with the `--with-toolkit` option.
+
+```bash ignore
+scala-cli . --with-toolkit latest
+```
+
+There's also an appropriate `using` directive.
+
+```scala compile
+//> using toolkit "0.1.4"
+```
+
+Added by [@lwronski](https://github.com/lwronski) in [#1768](https://github.com/VirtusLab/scala-cli/pull/1768)
+
+### Scala CLI is built with Scala `3.2.2`
+We now rely on Scala `3.2.2` as the default internal Scala version used to build the project.
+
+Added by [@lwronski](https://github.com/lwronski) and [@Gedochao](https://github.com/Gedochao) in [#1772](https://github.com/VirtusLab/scala-cli/pull/1772)
+
+### Removal of the `about` and `doctor` sub-commands
+The `about` command has been removed, its features merged back to the `version` command.
+As a result, the `version` command will now check if your locally installed Scala CLI is up-to-date.
+It is possible to skip the check with the `--offline` option, or when printing raw CLI or default Scala
+versions with `--cli-version` and `--scala-version`, respectively.
+
+```bash
+scala-cli version --offline                     
+# Scala CLI version: 0.1.20
+# Scala version (default): 3.2.2
+```
+
+Similarly, the `doctor` sub-command has been removed, with its past and previously planned functionalities to be delivered
+in a more interactive manner in the future.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#1744](https://github.com/VirtusLab/scala-cli/pull/1744)
+
+### The Scala CLI `aarch64/arm64` binary is now available via `sdkman`
+You can now get the platform-appropriate Scala CLI binary on `aarch64/arm64` architecture via `sdkman`.
+
+Added by [@mkurz](https://github.com/mkurz) in [#1748](https://github.com/VirtusLab/scala-cli/pull/1748)
+
+### `aarch64/arm64` artifact with the launcher script
+The `scala-cli.sh` launcher script now correctly downloads the `aarch64/arm64` artifact on the appropriate architecture.
+
+Added by [@mkurz](https://github.com/mkurz) in [#1745](https://github.com/VirtusLab/scala-cli/pull/1745)
+
+### Run a `.jar` file as a regular input
+JARs can now be run just like any other input, without the need of passing the `-cp` option.
+```bash ignore
+scala-cli Hello.jar
+# Hello
+```
+Added by [@lwronski](https://github.com/lwronski) in [#1738](https://github.com/VirtusLab/scala-cli/pull/1738)
+
+### Java properties without the need for `--java-prop`
+The `--java-prop` option can be skipped when passing Java properties to Scala CLI now.
+```bash ignore
+scala-cli Hello.scala -Dfoo=bar
+```
+Added by [@lwronski](https://github.com/lwronski) in [#1739](https://github.com/VirtusLab/scala-cli/pull/1739)
+
+### Docker packaging with `using` directives
+It is now possible to configure packaging into a docker image via `using` directives.
+```scala compile
+//> using packaging.dockerFrom "openjdk:11"
+//> using packaging.dockerImageTag "1.0.0"
+//> using packaging.dockerImageRegistry "virtuslab"
+//> using packaging.dockerImageRepository "scala-cli"
+```
+Added by [@lwronski](https://github.com/lwronski) in [#1753](https://github.com/VirtusLab/scala-cli/pull/1753)
+
+### Pass GraalVM args via a `using` directive
+It is now possible to pass args to GraalVM via the following `using` directive:
+```scala compile
+//> using packaging.graalvmArgs "--no-fallback", "--enable-url-protocols=http,https"
+```
+
+Added by [@lwronski](https://github.com/lwronski) in [#1767](https://github.com/VirtusLab/scala-cli/pull/1767)
+
+### Other changes
+
+#### SIP-related changes
+* Remove irrelevant options from `version` help message by [@lwronski](https://github.com/lwronski) in [#1737](https://github.com/VirtusLab/scala-cli/pull/1737)
+* Include launcher options in the help for the default and `help` sub-commands by [@Gedochao](https://github.com/Gedochao) in [#1725](https://github.com/VirtusLab/scala-cli/pull/1725)
+* Remove suffix `.aux` from progName when installed by cs by [@lwronski](https://github.com/lwronski) in [#1736](https://github.com/VirtusLab/scala-cli/pull/1736)
+* Don't fail in case of connection errors in the version sub-command by [@Gedochao](https://github.com/Gedochao) in [#1760](https://github.com/VirtusLab/scala-cli/pull/1760)
+* Set workspace dir to `os.tmp.dir` for virtual sources by [@lwronski](https://github.com/lwronski) in [#1771](https://github.com/VirtusLab/scala-cli/pull/1771)
+* Add support for deprecated Scala `2.13.x`-specific `scala` runner options by [@Gedochao](https://github.com/Gedochao) in [#1774](https://github.com/VirtusLab/scala-cli/pull/1774)
+* Add support for the `-with-compiler` runner option by [@Gedochao](https://github.com/Gedochao) in [#1780](https://github.com/VirtusLab/scala-cli/pull/1780)
+
+#### Fixes
+* Take into account interactively picked options when caching binaries by [@alexarchambault](https://github.com/alexarchambault) in [#1701](https://github.com/VirtusLab/scala-cli/pull/1701)
+* Erase things in working dir in publish by [@alexarchambault](https://github.com/alexarchambault) in [#1715](https://github.com/VirtusLab/scala-cli/pull/1715)
+* Improve formatting of generated Mill project by [@lolgab](https://github.com/lolgab) in [#1677](https://github.com/VirtusLab/scala-cli/pull/1677)
+* Restart Bloop server if it exited by [@alexarchambault](https://github.com/alexarchambault) in [#1716](https://github.com/VirtusLab/scala-cli/pull/1716)
+* Add a global configuration for suppressing the warning about directives in multiple files by [@MaciejG604](https://github.com/MaciejG604) in [#1779](https://github.com/VirtusLab/scala-cli/pull/1779)
+* Add CLI option for suppressing the warning about directives in multiple files by [@MaciejG604](https://github.com/MaciejG604) in [#1754](https://github.com/VirtusLab/scala-cli/pull/1754)
+* Set page size for aarch64 Linux binaries to 64k by [@mkurz](https://github.com/mkurz) in [#1726](https://github.com/VirtusLab/scala-cli/pull/1726)
+
+#### Build and internal changes
+* Tweaking by [@alexarchambault](https://github.com/alexarchambault) in [#1711](https://github.com/VirtusLab/scala-cli/pull/1711)
+* Address some native-image warnings by [@alexarchambault](https://github.com/alexarchambault) in [#1719](https://github.com/VirtusLab/scala-cli/pull/1719)
+* Do not generate Linux aarch64 binaries from PRs by [@alexarchambault](https://github.com/alexarchambault) in [#1720](https://github.com/VirtusLab/scala-cli/pull/1720)
+* Derive using directives handlers from case classes by [@alexarchambault](https://github.com/alexarchambault) in [#1637](https://github.com/VirtusLab/scala-cli/pull/1637)
+* Don't run commands upon HelpTests instantiation by [@alexarchambault](https://github.com/alexarchambault) in [#1762](https://github.com/VirtusLab/scala-cli/pull/1762)
+
+#### Documentation updates
+* Add test-only cookbook by [@lwronski](https://github.com/lwronski) in [#1718](https://github.com/VirtusLab/scala-cli/pull/1718)
+* Fixing minor typos and some wordsmithing. by [@medale](https://github.com/medale) in [#1731](https://github.com/VirtusLab/scala-cli/pull/1731)
+* Back port of documentation changes to main by @github-actions in [#1735](https://github.com/VirtusLab/scala-cli/pull/1735)
+* Explain the differences in using shebang vs scala-cli directly in script by [@lwronski](https://github.com/lwronski) in [#1740](https://github.com/VirtusLab/scala-cli/pull/1740)
+* Add instruction for Intellij JVM version by [@MaciejG604](https://github.com/MaciejG604) in [#1773](https://github.com/VirtusLab/scala-cli/pull/1773)
+* Fix a broken link by [@xerial](https://github.com/xerial) and [@lwronski](https://github.com/lwronski) in [#1777](https://github.com/VirtusLab/scala-cli/pull/1777)
+
+#### Updates & maintenance
+* Update svm to 22.3.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1689](https://github.com/VirtusLab/scala-cli/pull/1689)
+* Update scala-cli.sh launcher for 0.1.19 by [@github-actions](https://github.com/github-actions) in [#1707](https://github.com/VirtusLab/scala-cli/pull/1707)
+* Bump VirtusLab/scala-cli-setup from 0.1.18 to 0.1.19 by [@dependabot](https://github.com/dependabot) in [#1709](https://github.com/VirtusLab/scala-cli/pull/1709)
+* Update Bloop to 1.5.6-sc-1 by [@lwronski](https://github.com/lwronski) in [#1704](https://github.com/VirtusLab/scala-cli/pull/1704)
+* Update trees_2.13 to 4.7.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1717](https://github.com/VirtusLab/scala-cli/pull/1717)
+* Update coursier-jvm_2.13, ... to 2.1.0-RC4 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1723](https://github.com/VirtusLab/scala-cli/pull/1723)
+* Bump uraimo/run-on-arch-action from 2.3.0 to 2.5.0 by [@dependabot](https://github.com/dependabot) in [#1734](https://github.com/VirtusLab/scala-cli/pull/1734)
+* Update jsoniter-scala-core_2.13, ... to 2.20.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1732](https://github.com/VirtusLab/scala-cli/pull/1732)
+* Update jsoniter-scala-core_2.13, ... to 2.20.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1741](https://github.com/VirtusLab/scala-cli/pull/1741)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.6.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1742](https://github.com/VirtusLab/scala-cli/pull/1742)
+* Update core_2.13 to 3.8.6 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1746](https://github.com/VirtusLab/scala-cli/pull/1746)
+* Update libdaemon to 0.0.11 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1759](https://github.com/VirtusLab/scala-cli/pull/1759)
+* Update jsoniter-scala-core_2.13, ... to 2.20.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1757](https://github.com/VirtusLab/scala-cli/pull/1757)
+* Update core_2.13 to 3.8.7 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1758](https://github.com/VirtusLab/scala-cli/pull/1758)
+* Update bloop core to 1.5.6-sc-2 by [@lwronski](https://github.com/lwronski) in [#1761](https://github.com/VirtusLab/scala-cli/pull/1761)
+* Update core_2.13 to 3.8.8 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1770](https://github.com/VirtusLab/scala-cli/pull/1770)
+* Update ammonite to 2.5.6 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1769](https://github.com/VirtusLab/scala-cli/pull/1769)
+* Update jsoniter-scala-core_2.13, ... to 2.20.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1776](https://github.com/VirtusLab/scala-cli/pull/1776)
+* Update amm to 2.5.6-1-f8bff243 by [@lwronski](https://github.com/lwronski) in [#1778](https://github.com/VirtusLab/scala-cli/pull/1778)
+
+### New Contributors
+* [@mkurz](https://github.com/mkurz) made their first contribution in [#1726](https://github.com/VirtusLab/scala-cli/pull/1726)
+* [@medale](https://github.com/medale) made their first contribution in [#1731](https://github.com/VirtusLab/scala-cli/pull/1731)
+* [@MaciejG604](https://github.com/MaciejG604) made their first contribution in [#1773](https://github.com/VirtusLab/scala-cli/pull/1773)
+* [@xerial](https://github.com/xerial) made their first contribution in [#1777](https://github.com/VirtusLab/scala-cli/pull/1777)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.19...v0.1.20
+
 ## [v0.1.19](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.19)
 
 ### The Linux `aarch64` native launcher is here! (experimental)
@@ -87,13 +244,13 @@ Added by [@carlosedp](https://github.com/carlosedp) in [#1626](https://github.co
 * Update org.eclipse.jgit to 6.4.0.202211300538-r by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1656](https://github.com/VirtusLab/scala-cli/pull/1656)
 * Update jsoniter-scala-core_2.13 to 2.18.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1651](https://github.com/VirtusLab/scala-cli/pull/1651)
 * Update slf4j-nop to 2.0.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1658](https://github.com/VirtusLab/scala-cli/pull/1658)
-* Bump VirtusLab/scala-cli-setup from 0.1.17 to 0.1.18 by @dependabot in [#1644](https://github.com/VirtusLab/scala-cli/pull/1644)
-* Update scala-cli.sh launcher for 0.1.18 by @[@github-actions](https://github.com/github-actions) in [#1624](https://github.com/VirtusLab/scala-cli/pull/1624)
+* Bump VirtusLab/scala-cli-setup from 0.1.17 to 0.1.18 by [@dependabot](https://github.com/dependabot) in [#1644](https://github.com/VirtusLab/scala-cli/pull/1644)
+* Update scala-cli.sh launcher for 0.1.18 by [@github-actions](https://github.com/github-actions) in [#1624](https://github.com/VirtusLab/scala-cli/pull/1624)
 * Update using_directives to 0.0.10 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1692](https://github.com/VirtusLab/scala-cli/pull/1692)
 * Bumped up com.lihaoyi::os-lib version to 0.9.0 by [@pingu1m](https://github.com/scala-steward-org/pingu1m) in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
 
 ### New Contributors
-* [@pingu1m](https://github.com/scala-steward-org/pingu1m) made their first contribution in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
+* [@pingu1m](https://github.com/pingu1m) made their first contribution in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
 * [@clutroth](https://github.com/clutroth) made their first contribution in [#1660](https://github.com/VirtusLab/scala-cli/pull/1660)
 * [@MFujarewicz](https://github.com/MFujarewicz) made their first contribution in [#1661](https://github.com/VirtusLab/scala-cli/pull/1661)
 
