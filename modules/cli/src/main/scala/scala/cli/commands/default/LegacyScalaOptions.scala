@@ -5,6 +5,7 @@ import caseapp.core.Indexed
 
 import scala.build.Logger
 import scala.cli.ScalaCli
+import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.default.LegacyScalaOptions.*
 import scala.cli.commands.package0.Package
 import scala.cli.commands.tags
@@ -13,16 +14,38 @@ import scala.cli.commands.tags
   */
 // format: off
 case class LegacyScalaOptions(
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage(s"Ignored legacy option. Deprecated equivalent of running a subsequent `$PowerString${Package.name}` command.")
   @Tag(tags.must)
+  @Hidden
   @Name("-save")
     save: Option[Indexed[Boolean]] = None,
-  @Group("Scala")
+  @Group("Legacy Scala runner")
   @HelpMessage("Ignored legacy option. Deprecated override canceling the `-nosave` option.")
   @Tag(tags.must)
+  @Hidden
   @Name("-nosave")
     nosave: Option[Indexed[Boolean]] = None,
+  @Group("Legacy Scala runner")
+  @HelpMessage("Ignored legacy option. Deprecated override defining how the runner should treat the input. Use the appropriate sub-command instead.")
+  @Tag(tags.must)
+  @Hidden
+  @ValueDescription("object|script|jar|repl|guess")
+  @Name("-howtorun")
+    howToRun: Option[Indexed[String]] = None,
+  @Group("Legacy Scala runner")
+  @HelpMessage("Ignored legacy option. Deprecated option allowing to preload inputs for the repl or command execution.")
+  @Tag(tags.must)
+  @Hidden
+  @ValueDescription("file")
+    I: Option[Indexed[List[String]]] = None,
+  @Group("Legacy Scala runner")
+  @HelpMessage("Ignored legacy option. Deprecated option allowing to prevent the use of the legacy fsc compilation daemon.")
+  @Tag(tags.must)
+  @Hidden
+  @Name("-nc")
+  @Name("-nocompdaemon")
+    noCompilationDaemon: Option[Indexed[Boolean]] = None,
 ) {
 // format: on
 
@@ -36,9 +59,14 @@ case class LegacyScalaOptions(
     progName: String,
     logger: Logger
   ): Array[String] = {
-    val saveOptionString   = save.findArg(args)
-    val noSaveOptionString = nosave.findArg(args)
-    val deprecatedArgs     = Seq(saveOptionString, noSaveOptionString).flatten
+    val saveOptionString          = save.findArg(args)
+    val noSaveOptionString        = nosave.findArg(args)
+    val howToRunString            = howToRun.findArg(args)
+    val iString                   = I.findArg(args)
+    val noCompilationDaemonString = noCompilationDaemon.findArg(args)
+    val deprecatedArgs =
+      Seq(saveOptionString, noSaveOptionString, howToRunString, iString, noCompilationDaemonString)
+        .flatten
     val filteredArgs       = args.filterNot(deprecatedArgs.contains)
     val filteredArgsString = filteredArgs.mkString(" ")
     saveOptionString.foreach { s =>
@@ -54,6 +82,49 @@ case class LegacyScalaOptions(
         s"""Deprecated option '$ns' is ignored.
            |A jar file is not saved unless the '$PowerString${Package.name}' sub-command is called.""".stripMargin
       )
+    }
+    for {
+      htrString <- howToRunString
+      htrValue  <- howToRun.map(_.value)
+    } {
+      logger.message(s"Deprecated option '$htrString' is ignored.".stripMargin)
+      val passedValueExplanation = htrValue match {
+        case v @ ("object" | "script" | "jar") =>
+          s"""$fullRunnerName does not support explicitly forcing an input to be run as '$v'.
+             |Just make sure your inputs have the correct format and extension.""".stripMargin
+        case "guess" =>
+          s"""$fullRunnerName does not support `guess` mode.
+             |Just make sure your inputs have the correct format and extension.""".stripMargin
+        case "repl" =>
+          s"""In order to explicitly run the repl, use the 'repl' sub-command.
+             |  ${Console.BOLD}$progName repl $filteredArgsString${Console.RESET}
+             |""".stripMargin
+        case invalid @ _ =>
+          s"""'$invalid' is not an accepted value for the '$htrString' option.
+             |$fullRunnerName uses an equivalent of the old 'guess' mode by default at all times.""".stripMargin
+      }
+      logger.message(passedValueExplanation)
+      logger.message(
+        s"""Instead of the deprecated '$htrString' option, $fullRunnerName now uses a sub-command system.
+           |To learn more, try viewing the help.
+           |  ${Console.BOLD}$progName -help${Console.RESET}""".stripMargin
+      )
+    }
+    for {
+      optionName   <- iString
+      optionValues <- I.map(_.value)
+      exampleReplInputs = optionValues.mkString(" ")
+    } {
+      logger.message(s"Deprecated option '$optionName' is ignored.".stripMargin)
+      logger.message(
+        s"""To preload the extra files for the repl, try passing them as inputs for the repl sub-command.
+           |  ${Console.BOLD}$progName repl $exampleReplInputs${Console.RESET}
+           |""".stripMargin
+      )
+    }
+    noCompilationDaemonString.foreach { nc =>
+      logger.message(s"Deprecated option '$nc' is ignored.")
+      logger.message("The script runner can no longer be picked as before.")
     }
     filteredArgs
   }

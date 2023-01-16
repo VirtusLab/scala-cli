@@ -1174,7 +1174,7 @@ Available in commands:
 
 ### `--verbose`
 
-Aliases: `-v`
+Aliases: `-v`, `-verbose`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
