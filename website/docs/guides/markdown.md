@@ -89,7 +89,7 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on running GitHub Gists in the [gists cookbook](../cookbooks/gists.md).
+You can find more information on running GitHub Gists in the [gists cookbook](/docs/cookbooks/gists.md).
 
 ### Piped Markdown code
 

@@ -24,7 +24,7 @@ The `compile` command is useful if you want to check that your code compiles
 
 The most common `compile` options are shown below.
 For a full list of options, run `scala-cli compile --help`, or check the options linked in the
-[reference documentation](../reference/commands.md#compile).
+[reference documentation](/docs/reference/commands.md#compile).
 
 ## Test scope
 
@@ -67,7 +67,7 @@ Watching sources, press Ctrl+C to exit.
 ## Scala version
 
 Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list
-of [Supported Scala Versions](../reference/scala-versions)). You can specify the Scala version you'd like to use
+of [Supported Scala Versions](/docs/reference/scala-versions)). You can specify the Scala version you'd like to use
 with `--scala`:
 
 ```bash
@@ -115,7 +115,7 @@ For compiling with a specific nightly build you have the full version:
 scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
 
-For setting this inside scala files, use [`using` directives](../guides/using-directives.md):
+For setting this inside scala files, use [`using` directives](/docs/guides/using-directives.md):
 
 ```scala compile
 //> using scala "2.nightly"
@@ -139,7 +139,7 @@ scala-cli compile Hello.scala \
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favor
-adding dependencies in the source files themselves via [`using` directives](../guides/configuration.md#special-imports).
+adding dependencies in the source files themselves via [`using` directives](/docs/guides/configuration.md#special-imports).
 
 You can also add simple JAR files — those that don’t have transitive dependencies — as dependencies, with `--jar`:
 
@@ -147,7 +147,7 @@ You can also add simple JAR files — those that don’t have transitive depende
 scala-cli compile Hello.scala --jar /path/to/library.jar
 ```
 
-See the [Dependency management](../guides/dependencies.md) guide for more details.
+See the [Dependency management](/docs/guides/dependencies.md) guide for more details.
 
 ## Scala compiler options
 

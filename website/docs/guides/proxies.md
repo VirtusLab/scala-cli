@@ -25,7 +25,7 @@ scala-cli config httpProxy.password _encoded_password_
 ```
 
 Replace `_encoded_user_` and `_encoded_password_` by your actual user and password, following
-the [password option format](../reference/password-options.md). They should typically look like
+the [password option format](/docs/reference/password-options.md). They should typically look like
 `env:ENV_VAR_NAME`, `file:/path/to/file`, or `command:command to run`.
 
 ## Default repositories

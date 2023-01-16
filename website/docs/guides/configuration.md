@@ -55,7 +55,7 @@ test
 
 </ChainedSnippets>
 
-The reference documentation lists [all of the available options](../reference/cli-options.md).
+The reference documentation lists [all of the available options](/docs/reference/cli-options.md).
 
 
 ## In .scala and .sc files
@@ -75,7 +75,7 @@ This is achieved by specifying `using` directives inside comments at the top of 
 // package and import statements follow here ...
 ```
 
-The reference documentation lists [all available using directives](../reference/directives.md#using-directives).
+The reference documentation lists [all available using directives](/docs/reference/directives.md#using-directives).
 
 ### Special imports
 

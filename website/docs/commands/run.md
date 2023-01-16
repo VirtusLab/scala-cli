@@ -229,7 +229,7 @@ It is also possible to achieve it using `--platform` option:
 scala-cli Hello.scala --platform js
 ```
 
-See our dedicated [Scala.js guide](../guides/scala-js.md) for more information.
+See our dedicated [Scala.js guide](/docs/guides/scala-js.md) for more information.
 
 ## Scala Native
 
@@ -246,7 +246,7 @@ It is also possible to achieve it using `--platform` option:
 scala-cli Hello.scala --platform native
 ```
 
-We have a dedicated [Scala Native guide](../guides/scala-native.md) as well.
+We have a dedicated [Scala Native guide](/docs/guides/scala-native.md) as well.
 
 ## Platform
 
@@ -279,7 +279,7 @@ Hello world from scala script
 
 </ChainedSnippets>
 
-Our [scripts guide](../guides/scripts.md) provides many more details.
+Our [scripts guide](/docs/guides/scripts.md) provides many more details.
 
 ## Scala CLI from docker
 

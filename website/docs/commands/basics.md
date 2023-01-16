@@ -6,7 +6,7 @@ sidebar_position: 3
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
-given [configuration](../guides/configuration.md) to produce a result.
+given [configuration](/docs/guides/configuration.md) to produce a result.
 
 The most important sub-commands are:
 
@@ -44,11 +44,11 @@ Note that all of these input formats can be used alongside each other.
 Scala CLI accepts the following types of source code:
 
 - `.scala` files, containing Scala code
-- `.sc` files, containing Scala scripts (see more in the [Scripts guide](../guides/scripts.md))
+- `.sc` files, containing Scala scripts (see more in the [Scripts guide](/docs/guides/scripts.md))
 - `.java` files, containing Java code
-- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/markdown.md))
+- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](/docs/guides/markdown.md))
 - `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in
-  the [Scala Native guide](../guides/scala-native.md))
+  the [Scala Native guide](/docs/guides/scala-native.md))
 - `.jar` files, (see more in the [Run docs](run#jar))
 
 The following example shows the simplest input format.
@@ -203,7 +203,7 @@ Hello
 
 </ChainedSnippets>
 
-More details in the [GitHub gists cookbook](../cookbooks/gists.md).
+More details in the [GitHub gists cookbook](/docs/cookbooks/gists.md).
 
 ### Zip archive
 
@@ -304,7 +304,7 @@ You can also pipe code to `scala-cli` for execution:
 
   </ChainedSnippets>
 
-More details in the [Piping guide](../guides/piping.md).
+More details in the [Piping guide](/docs/guides/piping.md).
 
 ## Scala CLI version
 
