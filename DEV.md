@@ -86,6 +86,14 @@ Build native packagers:
 The Scala CLI repository should work when imported automatically from Mill to IDEA IntelliJ and Metals.
 Please raise an issue if you run into any problems.
 
+When working with IntelliJ make sure that the project's Java is set correctly.
+To confirm, check under `File -> Project Structure` that:
+- in `Project Settings/Project` `SDK` and `Language level` is set to **17**
+- in `Project Settings/Modules` all the modules have `Language level` set to **17**
+- in `Platform Settings/SDKs` only **Java 17** is visible
+
+Otherwise, some IDE features may not work correctly, i.e. the debugger might crash upon connection.
+
 #### Generate a native launcher
 
 ```bash
