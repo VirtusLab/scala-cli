@@ -26,7 +26,7 @@ Since Scala CLI has a command-line-first approach, this is reflected in its IDE 
 By default, Scala CLI stores options passed to the last `compile`, `run`, or `test` command, and uses those options to
 configure the IDE.
 
-For more control we also expose the [`setup-ide` command](../commands/setup-ide.md), which lets you fine-tune the
+For more control we also expose the [`setup-ide` command](/docs/commands/setup-ide.md), which lets you fine-tune the
 options that are passed to the IDE.
 
 But note that once `setup-ide` is used, Scala CLI does not update the configuration based on latest command.
@@ -50,15 +50,15 @@ being said, proper IDE integration is our top priority at this moment!)
 
 ### VS Code with Metals
 
-Check the cookbook on [how to set up a Scala CLI project in VSCode with Metals](../cookbooks/vscode.md).
+Check the cookbook on [how to set up a Scala CLI project in VSCode with Metals](/docs/cookbooks/vscode.md).
 
 ### IntelliJ
 
 Cookbooks on how to work with IntelliJ:
 
-- [set up a simple Scala CLI project in IDEA IntelliJ](../cookbooks/intellij.md)
-- [set up a Scala CLI project in IntelliJ alongside an existing SBT project](../cookbooks/intellij-sbt-with-bsp.md)
-- [set up multiple Scala CLI projects in IDEA IntelliJ as separate modules](../cookbooks/intellij-multi-bsp.md)
+- [set up a simple Scala CLI project in IDEA IntelliJ](/docs/cookbooks/intellij.md)
+- [set up a Scala CLI project in IntelliJ alongside an existing SBT project](/docs/cookbooks/intellij-sbt-with-bsp.md)
+- [set up multiple Scala CLI projects in IDEA IntelliJ as separate modules](/docs/cookbooks/intellij-multi-bsp.md)
 
 ## Directories vs single files when working with an IDE
 
@@ -111,7 +111,7 @@ without the need to jump into the command line whenever you create a new file.
 Do note that IDEs do not yet support working with Scala CLI's remote and virtual inputs. That includes:
 
 - [piped sources](./piping.md),
-- URLs and [GitHub gists](../cookbooks/gists.md),
+- URLs and [GitHub gists](/docs/cookbooks/gists.md),
 - [code snippets](./snippets.md).
 
 Beyond that, IDE support for some non-standard (like `.c` and `.h` resources used
