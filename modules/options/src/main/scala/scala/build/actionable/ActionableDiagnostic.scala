@@ -30,16 +30,4 @@ object ActionableDiagnostic {
       s"""|"$dependencyModuleName is outdated, update to $newVersion"
           |     $dependencyModuleName $currentVersion -> $suggestion""".stripMargin
   }
-
-  case class ActionableAmmoniteImportUpdateDiagnostic(
-    msg: String,
-    positions: Seq[Position],
-    importText: String,
-    importSuggestion: String
-  ) extends ActionableDiagnostic {
-    override def message: String = s"""|$msg
-                                       |     import $importText -> $suggestion""".stripMargin
-
-    override def suggestion: String = s"//> using lib \"$importSuggestion\""
-  }
 }

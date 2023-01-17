@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.actionable.ActionableDiagnostic.ActionableAmmoniteImportUpdateDiagnostic
 import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
@@ -235,24 +234,20 @@ case object ScalaPreprocessor extends Preprocessor {
         allowRestrictedFeatures
       ))
 
-    val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
-      processSpecialImports(
+    value {
+      checkForAmmoniteImports(
         afterStrictUsing.strippedContent.getOrElse(content0),
-        path,
-        logger
+        path
       )
     }
 
-    if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
+    if (afterStrictUsing.isEmpty) None
     else {
-      val allRequirements    = afterProcessImports.map(_.reqs).toSeq :+ afterStrictUsing.globalReqs
+      val allRequirements    = Seq(afterStrictUsing.globalReqs)
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.globalUsings +:
-        afterProcessImports.map(_.opts).toSeq
-      val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContentOpt = afterProcessImports
-        .map(_.content)
-        .orElse(afterStrictUsing.strippedContent)
+      val allOptions         = Seq(afterStrictUsing.globalUsings)
+      val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
+      val lastContentOpt = afterStrictUsing.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
       val directivesPositions = afterStrictUsing.directivesPositions
 
@@ -267,11 +262,10 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def processSpecialImports(
+  private def checkForAmmoniteImports(
     content: String,
-    path: Either[String, os.Path],
-    logger: Logger
-  ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
+    path: Either[String, os.Path]
+  ): Either[BuildException, Unit] = {
 
     import fastparse.*
 
@@ -318,51 +312,18 @@ case object ScalaPreprocessor extends Preprocessor {
       t.prefix.lengthCompare(1) > 0
     }
 
-    if (dependencyTrees.isEmpty) None
-    else {
+    if (dependencyTrees.nonEmpty) {
       val toFilePos = Position.Raw.filePos(path, content)
-      val msg =
-        "Switch to 'using lib' directive, Ammonite imports using \"$ivy\" and \"$dep\" are no longer supported"
-      val diagnostics = dependencyTrees.map { case (importStart, t) =>
-        val pos        = toFilePos(Position.Raw(importStart, t.end))
-        val importText = t.prefix.mkString(".")
-        val suggestion = t.prefix.drop(1).mkString(".")
-        ActionableAmmoniteImportUpdateDiagnostic(msg, Seq(pos), importText, suggestion)
-      }
+      val exceptions = for {
+        (importStart, t) <- dependencyTrees
+        pos           = toFilePos(Position.Raw(importStart, t.end))
+        dep           = t.prefix.drop(1).mkString(".")
+        newImportText = s"//> using lib \"$dep\""
+      } yield new UnsupportedAmmoniteImportError(Seq(pos), newImportText)
 
-      logger.log(diagnostics)
-
-      // replace statements like
-      //   import $ivy.`foo`,
-      // by
-      //   import $ivy.A   ,
-      // Ideally, we should just wipe those statements, and take care of keeping 'import' and ','
-      // for standard imports.
-      val buf = content.toCharArray
-      for ((_, t) <- dependencyTrees) {
-        val substitute = (t.prefix.head + ".A").padTo(t.end - t.start, ' ')
-        assert(substitute.length == (t.end - t.start))
-        System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
-      }
-      val newCode = new String(buf)
-      val deps = value {
-        dependencyTrees
-          .map { case (_, t) => // skip ivy ($ivy.`) or dep syntax ($dep.`)
-            val pos      = toFilePos(Position.Raw(t.start + "$ivy.`".length, t.end - 1))
-            val strDep   = t.prefix.drop(1).mkString(".")
-            val maybeDep = parseDependency(strDep, pos)
-            maybeDep.map(dep => Positioned(Seq(pos), dep))
-          }
-          .sequence
-          .left.map(CompositeBuildException(_))
-      }
-      val options = BuildOptions(
-        classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq.from(deps)
-        )
-      )
-      Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))
+      Left(CompositeBuildException(exceptions))
     }
+    else Right(())
   }
 
   private def processStrictUsing(
