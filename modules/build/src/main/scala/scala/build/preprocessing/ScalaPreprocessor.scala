@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.actionable.ActionableDiagnostic.ActionableAmmoniteImportUpdateDiagnostic
 import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
@@ -237,7 +238,8 @@ case object ScalaPreprocessor extends Preprocessor {
     val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
       processSpecialImports(
         afterStrictUsing.strippedContent.getOrElse(content0),
-        path
+        path,
+        logger
       )
     }
 
@@ -267,7 +269,8 @@ case object ScalaPreprocessor extends Preprocessor {
 
   private def processSpecialImports(
     content: String,
-    path: Either[String, os.Path]
+    path: Either[String, os.Path],
+    logger: Logger
   ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
 
     import fastparse.*
@@ -304,12 +307,12 @@ case object ScalaPreprocessor extends Preprocessor {
           val code      = content.substring(start, end) // .trim // meh
           val importRes = parse(code, ImportSplitter(_))
           importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
-            tree.copy(start = start + tree.start, end = start + tree.end)
+            (start, tree.copy(start = start + tree.start, end = start + tree.end))
           }
       }
       .toVector
 
-    val dependencyTrees = importTrees.filter { t =>
+    val dependencyTrees = importTrees.filter { case (_, t) =>
       val firstSegmentOpt = t.prefix.headOption
       (firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")) &&
       t.prefix.lengthCompare(1) > 0
@@ -317,6 +320,18 @@ case object ScalaPreprocessor extends Preprocessor {
 
     if (dependencyTrees.isEmpty) None
     else {
+      val toFilePos = Position.Raw.filePos(path, content)
+      val msg =
+        "Switch to 'using lib' directive, Ammonite imports using \"$ivy\" and \"$dep\" are no longer supported"
+      val diagnostics = dependencyTrees.map { case (importStart, t) =>
+        val pos        = toFilePos(Position.Raw(importStart, t.end))
+        val importText = t.prefix.mkString(".")
+        val suggestion = t.prefix.drop(1).mkString(".")
+        ActionableAmmoniteImportUpdateDiagnostic(msg, Seq(pos), importText, suggestion)
+      }
+
+      logger.log(diagnostics)
+
       // replace statements like
       //   import $ivy.`foo`,
       // by
@@ -324,16 +339,15 @@ case object ScalaPreprocessor extends Preprocessor {
       // Ideally, we should just wipe those statements, and take care of keeping 'import' and ','
       // for standard imports.
       val buf = content.toCharArray
-      for (t <- dependencyTrees) {
+      for ((_, t) <- dependencyTrees) {
         val substitute = (t.prefix.head + ".A").padTo(t.end - t.start, ' ')
         assert(substitute.length == (t.end - t.start))
         System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
       }
-      val newCode   = new String(buf)
-      val toFilePos = Position.Raw.filePos(path, content)
+      val newCode = new String(buf)
       val deps = value {
         dependencyTrees
-          .map { t => /// skip ivy ($ivy.`) or dep syntax ($dep.`)
+          .map { case (_, t) => // skip ivy ($ivy.`) or dep syntax ($dep.`)
             val pos      = toFilePos(Position.Raw(t.start + "$ivy.`".length, t.end - 1))
             val strDep   = t.prefix.drop(1).mkString(".")
             val maybeDep = parseDependency(strDep, pos)
