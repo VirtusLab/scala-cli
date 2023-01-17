@@ -675,11 +675,13 @@ object Build {
       val elements: Seq[Element] =
         if (res == null) inputs.elements
         else
-          res.map { builds =>
-            val mainElems = builds.main.inputs.elements
-            val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
-            (mainElems ++ testElems).distinct
-          }.getOrElse(inputs.elements)
+          res
+            .map { builds =>
+              val mainElems = builds.main.inputs.elements
+              val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
+              (mainElems ++ testElems).distinct
+            }
+            .getOrElse(inputs.elements)
       for (elem <- elements) {
         val depth = elem match {
           case _: SingleFile => -1
@@ -708,6 +710,26 @@ object Build {
           onChangeBufferedObserver { event =>
             if (eventFilter(event))
               watcher.schedule()
+          }
+        }
+      }
+
+      val artifacts = res
+        .map { builds =>
+          def artifacts(build: Build): Seq[os.Path] =
+            build.successfulOpt.toSeq.flatMap(_.artifacts.classPath)
+          val main = artifacts(builds.main)
+          val test = builds.get(Scope.Test).map(artifacts).getOrElse(Nil)
+          (main ++ test).distinct
+        }
+        .getOrElse(Nil)
+      for (artifact <- artifacts) {
+        val depth    = if (os.isFile(artifact)) -1 else Int.MaxValue
+        val watcher0 = watcher.newWatcher()
+        watcher0.register(artifact.toNIO, depth)
+        watcher0.addObserver {
+          onChangeBufferedObserver { _ =>
+            watcher.schedule()
           }
         }
       }
