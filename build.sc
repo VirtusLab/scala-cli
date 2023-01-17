@@ -194,6 +194,13 @@ object dummy extends Module {
       Deps.pythonInterface
     )
   }
+  object scalaPy extends ScalaModule with Bloop.Module {
+    def skipBloop    = true
+    def scalaVersion = Scala.defaultInternal
+    def ivyDeps = Agg(
+      Deps.scalaPy
+    )
+  }
 }
 
 trait BuildMacros extends ScalaCliSbtModule

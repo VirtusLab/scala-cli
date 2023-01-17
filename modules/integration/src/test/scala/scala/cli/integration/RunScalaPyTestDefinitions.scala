@@ -78,4 +78,61 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
     test("scalapy native") {
       scalapyNativeTest()
     }
+
+  def pythonAndScalaSourcesTest(native: Boolean): Unit = {
+    val tq = "\"\"\""
+    val inputs = TestInputs(
+      os.rel / "src" / "helpers.py" ->
+        s"""class Helper:
+           |    ${tq}Helper class$tq
+           |
+           |    def message(self):
+           |        return 'Hello from Python'
+           |""".stripMargin,
+      os.rel / "src" / "Hello.scala" ->
+        s"""//> using python
+           |$maybeScalapyPrefix
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    py.local {
+           |      val helpers = py.module("helpers")
+           |      println(helpers.Helper().message())
+           |    }
+           |}
+           |""".stripMargin
+    )
+    val nativeOpt = if (native) Seq("--native") else Nil
+    inputs.fromRoot { root =>
+
+      // Script dir shouldn't be added to PYTHONPATH if PYTHONSAFEPATH is non-empty
+      val errorRes = os.proc(TestUtil.cli, "run", extraOptions, nativeOpt, "src")
+        .call(
+          cwd = root,
+          env = Map("PYTHONSAFEPATH" -> "foo"),
+          mergeErrIntoOut = true,
+          check = false
+        )
+      expect(errorRes.exitCode != 0)
+      val errorOutput = errorRes.out.text()
+      expect(errorOutput.contains("No module named 'helpers'"))
+
+      val res = os.proc(TestUtil.cli, "run", extraOptions, nativeOpt, "src")
+        .call(cwd = root)
+      val output = res.out.trim()
+      if (native)
+        expect(output.linesIterator.toVector.endsWith(Seq("Hello from Python")))
+      else
+        expect(output == "Hello from Python")
+    }
+  }
+
+  test("Python and Scala sources") {
+    pythonAndScalaSourcesTest(native = false)
+  }
+  // disabled on Windows for now, for context, see
+  // https://github.com/VirtusLab/scala-cli/pull/1270#issuecomment-1237904394
+  if (!Properties.isWin)
+    test("Python and Scala sources (native)") {
+      pythonAndScalaSourcesTest(native = true)
+    }
 }

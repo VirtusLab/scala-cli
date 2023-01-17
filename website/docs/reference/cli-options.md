@@ -1039,7 +1039,7 @@ Enable Python support via ScalaPy
 
 Aliases: `--scalapy-version`
 
-[experimental] Set ScalaPy version (0.5.2+5-83f1eb68 by default)
+[experimental] Set ScalaPy version (0.5.3 by default)
 
 ## Repl options
 

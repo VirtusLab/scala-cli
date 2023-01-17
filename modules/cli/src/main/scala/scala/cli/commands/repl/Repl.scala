@@ -14,7 +14,11 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.run.Run.{maybePrintSimpleScalacOutput, orPythonDetectionError}
+import scala.cli.commands.run.Run.{
+  maybePrintSimpleScalacOutput,
+  orPythonDetectionError,
+  pythonPathEnv
+}
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.{ScalaCommand, WatchUtil}
@@ -264,7 +268,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       }
       .params
 
-    val scalapyJavaOpts =
+    val (scalapyJavaOpts, scalapyExtraEnv) =
       if (setupPython) {
         val props = value {
           val python       = Python()
@@ -272,12 +276,17 @@ object Repl extends ScalaCommand[ReplOptions] {
           logger.debug(s"Python Java properties: $propsOrError")
           propsOrError.orPythonDetectionError
         }
-        props.toVector.sorted.map {
+        val props0 = props.toVector.sorted.map {
           case (k, v) => s"-D$k=$v"
         }
+        // Putting current dir in PYTHONPATH, see
+        // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
+        // for context.
+        val dirs = buildOpt.map(_.inputs.workspace).toSeq ++ Seq(os.pwd)
+        (props0, pythonPathEnv(dirs: _*))
       }
       else
-        Nil
+        (Nil, Map.empty[String, String])
 
     def additionalArgs = {
       val pythonArgs =
@@ -365,7 +374,7 @@ object Repl extends ScalaCommand[ReplOptions] {
           maybeAdaptForWindows(replArgs),
           logger,
           allowExecve = allowExit,
-          extraEnv = extraEnv
+          extraEnv = scalapyExtraEnv ++ extraEnv
         ).waitFor()
         if (retCode != 0)
           value(Left(new ReplError(retCode)))
