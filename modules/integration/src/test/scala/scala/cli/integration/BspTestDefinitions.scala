@@ -1283,7 +1283,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
           checkDiagnostic(
             diagnostic = updateActionableDiagnostic,
-            expectedMessage = "com.lihaoyi::os-lib:0.7.8 is outdated",
+            expectedMessage = "os-lib is outdated",
             expectedSeverity = b.DiagnosticSeverity.HINT,
             expectedStartLine = 0,
             expectedStartCharacter = 15,

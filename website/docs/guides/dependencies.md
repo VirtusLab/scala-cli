@@ -97,10 +97,10 @@ scala-cli dependency-update Hello.scala
 
 ```text
 Updates
-   * com.lihaoyi::os-lib:0.7.8 -> 0.8.1
-   * com.lihaoyi::utest:0.7.10 -> 0.8.0
-   * com.lihaoyi::geny:0.6.5 -> 0.7.1
-   * com.lihaoyi::pprint:0.6.6 -> 0.7.3
+   * com.lihaoyi 0.7.8 -> 0.8.1
+   * com.lihaoyi 0.7.10 -> 0.8.0
+   * com.lihaoyi 0.6.5 -> 0.7.1
+   * com.lihaoyi 0.6.6 -> 0.7.3
 To update all dependencies run: 
     scala-cli dependency-update --all
 ```
@@ -116,10 +116,10 @@ scala-cli dependency-update Hello.scala --all
 ```
 
 ```text
-Updated dependency to: com.lihaoyi::os-lib:0.8.1
-Updated dependency to: com.lihaoyi::utest:0.8.0
-Updated dependency to: com.lihaoyi::geny:0.7.1
-Updated dependency to: com.lihaoyi::pprint:0.7.3
+Updated dependency os-lib: 0.7.8 -> 0.9.0
+Updated dependency utest: 0.7.10 -> 0.8.1
+Updated dependency geny: 0.6.5 -> 1.0.0
+Updated dependency pprint: 0.6.6 -> 0.8.1
 ```
 
 </ChainedSnippets>
