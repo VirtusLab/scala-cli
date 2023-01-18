@@ -1,5 +1,5 @@
 import $ivy.`com.goyeau::mill-scalafix::0.2.8`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.19`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.23`
 
 import $file.deps,
 deps.{BuildDeps, Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
