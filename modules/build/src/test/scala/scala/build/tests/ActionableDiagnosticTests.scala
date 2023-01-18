@@ -43,7 +43,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         expect(osLibDiagnosticOpt.nonEmpty)
         val osLibDiagnostic = osLibDiagnosticOpt.get
 
-        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.oldDependency.version))
+        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
     }
   }
 
@@ -71,8 +71,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         expect(osLibDiagnosticOpt.nonEmpty)
         val osLibDiagnostic = osLibDiagnosticOpt.get
 
-        expect(osLibDiagnostic.oldDependency.render == dependencyOsLib)
-        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.oldDependency.version))
+        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
     }
   }
 
@@ -100,8 +99,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         expect(osLibDiagnosticOpt.nonEmpty)
         val osLibDiagnostic = osLibDiagnosticOpt.get
 
-        expect(osLibDiagnostic.oldDependency.render == dependencyOsLib)
-        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.oldDependency.version))
+        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
     }
   }
 

@@ -29,10 +29,23 @@ case object ActionableDependencyHandler
     val currentVersion = dependency.version
     val latestVersion  = value(findLatestVersion(buildOptions, dependency))
 
-    if (latestVersion != currentVersion) {
-      val msg = s"${dependency.render} is outdated, update to $latestVersion"
-      Some(ActionableDependencyUpdateDiagnostic(msg, setting.positions, dependency, latestVersion))
-    }
+    if (latestVersion != currentVersion)
+      if (dependency.userParams.contains("toolkit"))
+        Some(ActionableDependencyUpdateDiagnostic(
+          setting.positions,
+          currentVersion,
+          latestVersion,
+          dependencyModuleName = "toolkit",
+          suggestion = latestVersion
+        ))
+      else
+        Some(ActionableDependencyUpdateDiagnostic(
+          setting.positions,
+          currentVersion,
+          latestVersion,
+          dependencyModuleName = dependency.module.name,
+          suggestion = dependency.copy(version = latestVersion).render
+        ))
     else
       None
   }

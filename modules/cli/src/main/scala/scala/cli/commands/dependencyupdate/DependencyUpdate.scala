@@ -62,7 +62,9 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     else {
       println("Updates")
       actionableUpdateDiagnostics.foreach(update =>
-        println(s"   * ${update.oldDependency.render} -> ${update.newVersion}")
+        println(
+          s"   * ${update.dependencyModuleName} ${update.currentVersion} -> ${update.newVersion}"
+        )
       )
       println(s"""|To update all dependencies run:
                   |    $baseRunnerName dependency-update --all""".stripMargin)
@@ -88,7 +90,9 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         val appliedDiagnostics = updateDependencies(file, sortedByLine)
         os.write.over(file, appliedDiagnostics)
         diagnostics.foreach(diagnostic =>
-          logger.message(s"Updated dependency to: ${diagnostic._2.suggestion}")
+          logger.message(
+            s"Updated dependency ${diagnostic._2.dependencyModuleName}: ${diagnostic._2.currentVersion} -> ${diagnostic._2.newVersion}"
+          )
         )
       case (Left(file), diagnostics) =>
         diagnostics.foreach {
@@ -109,9 +113,10 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
 
     diagnostics.foldLeft(fileContent) {
       case (fileContent, (file, diagnostic)) =>
-        val (line, column) = (file.startPos._1, file.startPos._2)
-        val startIndex     = startIndicies(line) + column
-        val endIndex       = startIndex + diagnostic.oldDependency.render.length()
+        val (line, column)       = (file.startPos._1, file.startPos._2)
+        val (lineEnd, columnEnd) = (file.endPos._1, file.endPos._2)
+        val startIndex           = startIndicies(line) + column
+        val endIndex             = startIndicies(lineEnd) + columnEnd
 
         val newDependency = diagnostic.suggestion
         s"${fileContent.slice(0, startIndex)}$newDependency${fileContent.drop(endIndex)}"

@@ -20,14 +20,15 @@ abstract class ActionableDiagnostic extends Diagnostic {
 object ActionableDiagnostic {
 
   case class ActionableDependencyUpdateDiagnostic(
-    msg: String,
     positions: Seq[Position],
-    oldDependency: AnyDependency,
-    newVersion: String
+    currentVersion: String,
+    newVersion: String,
+    dependencyModuleName: String,
+    suggestion: String
   ) extends ActionableDiagnostic {
-    override def message: String = s"""|$msg
-                                       |     ${oldDependency.render} -> $suggestion""".stripMargin
-    override def suggestion: String = oldDependency.copy(version = newVersion).render
+    override def message: String =
+      s"""|"$dependencyModuleName is outdated, update to $newVersion"
+          |     $dependencyModuleName $currentVersion -> $suggestion""".stripMargin
   }
 
 }
