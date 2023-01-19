@@ -96,6 +96,8 @@ object Operations {
     envExists && findInPath("sh").nonEmpty
   }
 
+  private def serverAlreadyRunningExitCode = 222
+
   /** Starts a new bloop server.
     *
     * @param host
@@ -235,8 +237,16 @@ object Operations {
       val start = System.currentTimeMillis()
       () =>
         try {
+          lazy val exitCode = {
+            val value = p.exitValue()
+            if (value == serverAlreadyRunningExitCode)
+              logger.debug(s"Bloop server exited with code $value (server already running)")
+            else
+              logger.debug(s"Bloop server exited with code $value")
+            value
+          }
           val completionOpt =
-            if (!p.isAlive())
+            if (!p.isAlive() && exitCode != serverAlreadyRunningExitCode)
               Some(Failure(new FailedToStartServerException))
             else if (check(address, logger))
               Some(Success(()))
