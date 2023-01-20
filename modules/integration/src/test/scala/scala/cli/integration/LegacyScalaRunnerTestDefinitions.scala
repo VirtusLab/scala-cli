@@ -40,10 +40,11 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
 
   test("ensure -howtorun/--how-to-run works with the default command") {
     legacyOptionBackwardsCompatTest("-howtorun", "--how-to-run") {
-      (legacyHtrOption, root) =>
+      (legacyHtrOption, inputFile, root) =>
         Seq("object", "script", "jar", "repl", "guess", "invalid").foreach { htrValue =>
-          val res = os.proc(TestUtil.cli, legacyHtrOption, htrValue, "s.sc", TestUtil.extraOptions)
-            .call(cwd = root, stderr = os.Pipe)
+          val res =
+            os.proc(TestUtil.cli, legacyHtrOption, htrValue, inputFile, TestUtil.extraOptions)
+              .call(cwd = root, stderr = os.Pipe)
           expect(res.err.trim().contains(deprecatedOptionWarning(legacyHtrOption)))
           expect(res.err.trim().contains(htrValue))
         }
@@ -52,10 +53,21 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
 
   test("ensure -I works with the default command") {
     legacyOptionBackwardsCompatTest("-I") {
-      (legacyOption, root) =>
-        val res = os.proc(TestUtil.cli, legacyOption, "--repl-dry-run", TestUtil.extraOptions)
+      (legacyOption, inputFile, root) =>
+        val anotherInputFile = "smth.scala"
+        val res = os.proc(
+          TestUtil.cli,
+          legacyOption,
+          inputFile,
+          legacyOption,
+          anotherInputFile,
+          "--repl-dry-run",
+          TestUtil.extraOptions
+        )
           .call(cwd = root, stderr = os.Pipe)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
+        expect(res.err.trim().contains(inputFile))
+        expect(res.err.trim().contains(anotherInputFile))
     }
   }
 
@@ -65,38 +77,42 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
 
   test("ensure -run works with the default command") {
     legacyOptionBackwardsCompatTest("-run") {
-      (legacyOption, root) =>
-        val legacyOptionParam = "s.sc"
-        val res = os.proc(TestUtil.cli, legacyOption, legacyOptionParam, ".", TestUtil.extraOptions)
+      (legacyOption, inputFile, root) =>
+        val res = os.proc(TestUtil.cli, legacyOption, inputFile, ".", TestUtil.extraOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
-        expect(res.err.trim().contains(legacyOptionParam))
+        expect(res.err.trim().contains(inputFile))
     }
   }
 
   private def simpleLegacyOptionBackwardsCompatTest(optionAliases: String*): Unit =
     abstractLegacyOptionBackwardsCompatTest(optionAliases) {
-      (legacyOption, expectedMsg, root) =>
+      (legacyOption, expectedMsg, _, root) =>
         val res = os.proc(TestUtil.cli, legacyOption, "s.sc", TestUtil.extraOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim() == expectedMsg)
         expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
     }
 
-  private def legacyOptionBackwardsCompatTest(optionAliases: String*)(f: (String, os.Path) => Unit)
-    : Unit =
-    abstractLegacyOptionBackwardsCompatTest(optionAliases) { (legacyOption, _, root) =>
-      f(legacyOption, root)
+  private def legacyOptionBackwardsCompatTest(optionAliases: String*)(f: (
+    String,
+    String,
+    os.Path
+  ) => Unit): Unit =
+    abstractLegacyOptionBackwardsCompatTest(optionAliases) { (legacyOption, _, inputFile, root) =>
+      f(legacyOption, inputFile, root)
     }
 
   private def abstractLegacyOptionBackwardsCompatTest(optionAliases: Seq[String])(f: (
     String,
     String,
+    String,
     os.Path
   ) => Unit): Unit = {
-    val msg = "Hello world"
-    TestInputs(os.rel / "s.sc" -> s"""println("$msg")""").fromRoot { root =>
-      optionAliases.foreach(f(_, msg, root))
+    val msg       = "Hello world"
+    val inputFile = "s.sc"
+    TestInputs(os.rel / inputFile -> s"""println("$msg")""").fromRoot { root =>
+      optionAliases.foreach(f(_, msg, inputFile, root))
     }
   }
 
