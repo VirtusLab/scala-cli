@@ -33,44 +33,6 @@ class SourcesTests extends munit.FunSuite {
     () => sys.error("shouldn't be used")
   )
 
-  test("dependencies in .scala - $ivy") {
-    val testInputs = TestInputs(
-      os.rel / "something.scala" ->
-        """import $ivy.`org1:name1:1.1`
-          |import $ivy.`org2::name2:2.2`
-          |import $ivy.`org3:::name3:3.3`
-          |import scala.collection.mutable
-          |
-          |object Something {
-          |  def a = 1
-          |}
-          |""".stripMargin
-    )
-    val expectedDeps = Seq(
-      dep"org1:name1:1.1",
-      dep"org2::name2:2.2",
-      dep"org3:::name3:3.3"
-    )
-    testInputs.withInputs { (_, inputs) =>
-      val (crossSources, _) =
-        CrossSources.forInputs(
-          inputs,
-          preprocessors,
-          TestLogger(),
-          suppressDirectivesInMultipleFilesWarning = None
-        ).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
-
-      expect(
-        sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
-      )
-      expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
-    }
-  }
-
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
@@ -299,7 +261,7 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("dependencies in .sc - $ivy") {
+  test("should fail for ammonite imports in .sc - $ivy") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
         """import $ivy.`org1:name1:1.1`
@@ -310,28 +272,13 @@ class SourcesTests extends munit.FunSuite {
           |def a = 1
           |""".stripMargin
     )
-    val expectedDeps = Seq(
-      dep"org1:name1:1.1",
-      dep"org2::name2:2.2",
-      dep"org3:::name3:3.3"
-    )
     testInputs.withInputs { (_, inputs) =>
-      val (crossSources, _) =
-        CrossSources.forInputs(
-          inputs,
-          preprocessors,
-          TestLogger(),
-          suppressDirectivesInMultipleFilesWarning = None
-        ).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
-
-      expect(
-        sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
-      )
-      expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
+      expect(CrossSources.forInputs(
+        inputs,
+        preprocessors,
+        TestLogger(),
+        suppressDirectivesInMultipleFilesWarning = None
+      ).isLeft)
     }
   }
 

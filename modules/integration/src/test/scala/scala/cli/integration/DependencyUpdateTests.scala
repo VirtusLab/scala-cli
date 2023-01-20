@@ -11,8 +11,6 @@ class DependencyUpdateTests extends ScalaCliSuite {
     val fileContent =
       s"""|//> using lib "com.lihaoyi::os-lib:0.7.8"
           |//> using lib "com.lihaoyi::utest:0.7.10"
-          |import $$ivy.`com.lihaoyi::geny:0.6.5`
-          |import $$dep.`com.lihaoyi::pprint:0.6.6`
           |
           |object Hello extends App {
           |  println("$message")

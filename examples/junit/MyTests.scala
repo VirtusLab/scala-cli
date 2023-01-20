@@ -1,4 +1,4 @@
-import $ivy.`com.github.sbt:junit-interface:0.13.2`
+//> using lib "com.github.sbt:junit-interface:0.13.2"
 import org.junit.Test
 
 class MyTests {

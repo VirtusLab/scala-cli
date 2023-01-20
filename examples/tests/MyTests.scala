@@ -1,4 +1,4 @@
-import $ivy.`org.scalameta::munit::0.7.29`
+//> using lib "org.scalameta::munit::0.7.29"
 
 class MyTests extends munit.FunSuite {
   test("foo") {

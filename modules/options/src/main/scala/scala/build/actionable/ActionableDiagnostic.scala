@@ -30,5 +30,4 @@ object ActionableDiagnostic {
       s"""|"$dependencyModuleName is outdated, update to $newVersion"
           |     $dependencyModuleName $currentVersion -> $suggestion""".stripMargin
   }
-
 }

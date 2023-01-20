@@ -234,23 +234,20 @@ case object ScalaPreprocessor extends Preprocessor {
         allowRestrictedFeatures
       ))
 
-    val afterProcessImports: Option[SpecialImportsProcessingOutput] = value {
-      processSpecialImports(
+    value {
+      checkForAmmoniteImports(
         afterStrictUsing.strippedContent.getOrElse(content0),
         path
       )
     }
 
-    if (afterStrictUsing.isEmpty && afterProcessImports.isEmpty) None
+    if (afterStrictUsing.isEmpty) None
     else {
-      val allRequirements    = afterProcessImports.map(_.reqs).toSeq :+ afterStrictUsing.globalReqs
+      val allRequirements    = Seq(afterStrictUsing.globalReqs)
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions = afterStrictUsing.globalUsings +:
-        afterProcessImports.map(_.opts).toSeq
-      val summedOptions = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContentOpt = afterProcessImports
-        .map(_.content)
-        .orElse(afterStrictUsing.strippedContent)
+      val allOptions         = Seq(afterStrictUsing.globalUsings)
+      val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
+      val lastContentOpt = afterStrictUsing.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
       val directivesPositions = afterStrictUsing.directivesPositions
 
@@ -265,10 +262,10 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def processSpecialImports(
+  private def checkForAmmoniteImports(
     content: String,
     path: Either[String, os.Path]
-  ): Either[BuildException, Option[SpecialImportsProcessingOutput]] = either {
+  ): Either[BuildException, Unit] = {
 
     import fastparse.*
 
@@ -304,51 +301,29 @@ case object ScalaPreprocessor extends Preprocessor {
           val code      = content.substring(start, end) // .trim // meh
           val importRes = parse(code, ImportSplitter(_))
           importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
-            tree.copy(start = start + tree.start, end = start + tree.end)
+            (start, tree.copy(start = start + tree.start, end = start + tree.end))
           }
       }
       .toVector
 
-    val dependencyTrees = importTrees.filter { t =>
+    val dependencyTrees = importTrees.filter { case (_, t) =>
       val firstSegmentOpt = t.prefix.headOption
       (firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")) &&
       t.prefix.lengthCompare(1) > 0
     }
 
-    if (dependencyTrees.isEmpty) None
-    else {
-      // replace statements like
-      //   import $ivy.`foo`,
-      // by
-      //   import $ivy.A   ,
-      // Ideally, we should just wipe those statements, and take care of keeping 'import' and ','
-      // for standard imports.
-      val buf = content.toCharArray
-      for (t <- dependencyTrees) {
-        val substitute = (t.prefix.head + ".A").padTo(t.end - t.start, ' ')
-        assert(substitute.length == (t.end - t.start))
-        System.arraycopy(substitute.toArray, 0, buf, t.start, substitute.length)
-      }
-      val newCode   = new String(buf)
+    if (dependencyTrees.nonEmpty) {
       val toFilePos = Position.Raw.filePos(path, content)
-      val deps = value {
-        dependencyTrees
-          .map { t => /// skip ivy ($ivy.`) or dep syntax ($dep.`)
-            val pos      = toFilePos(Position.Raw(t.start + "$ivy.`".length, t.end - 1))
-            val strDep   = t.prefix.drop(1).mkString(".")
-            val maybeDep = parseDependency(strDep, pos)
-            maybeDep.map(dep => Positioned(Seq(pos), dep))
-          }
-          .sequence
-          .left.map(CompositeBuildException(_))
-      }
-      val options = BuildOptions(
-        classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq.from(deps)
-        )
-      )
-      Some(SpecialImportsProcessingOutput(BuildRequirements(), options, newCode))
+      val exceptions = for {
+        (importStart, t) <- dependencyTrees
+        pos           = toFilePos(Position.Raw(importStart, t.end))
+        dep           = t.prefix.drop(1).mkString(".")
+        newImportText = s"//> using lib \"$dep\""
+      } yield new UnsupportedAmmoniteImportError(Seq(pos), newImportText)
+
+      Left(CompositeBuildException(exceptions))
     }
+    else Right(())
   }
 
   private def processStrictUsing(

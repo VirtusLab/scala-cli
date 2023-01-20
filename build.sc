@@ -59,11 +59,6 @@ object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions: _*)
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Scala3GraalProcessor
 
-object stubs extends JavaModule with ScalaCliPublishModule {
-  def javacOptions = T {
-    super.javacOptions() ++ Seq("-target", "8", "-source", "8")
-  }
-}
 object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Seq(
     Deps.bsp4j
@@ -366,10 +361,6 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |
          |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"
-         |
-         |  def stubsOrganization = "${stubs.pomSettings().organization}"
-         |  def stubsModuleName = "${stubs.artifactName()}"
-         |  def stubsVersion = "${stubs.publishVersion()}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
          |  def testRunnerModuleName = "${`test-runner`(Scala.runnerScala3).artifactName()}"
@@ -1171,16 +1162,11 @@ object `local-repo` extends LocalRepo {
    */
   def developingOnStubModules = false
 
-  def stubsModules = {
-    val javaModules = Seq(
-      stubs
-    )
-    val crossModules = for {
+  def stubsModules =
+    for {
       sv   <- Scala.runnerScalaVersions
       proj <- Seq(runner, `test-runner`)
     } yield proj(sv)
-    javaModules ++ crossModules
-  }
   def version = runner(Scala.runnerScala3).publishVersion()
 }
 

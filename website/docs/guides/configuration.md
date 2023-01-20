@@ -79,15 +79,12 @@ The reference documentation lists [all available using directives](/docs/referen
 
 ### Special imports
 
-Dependencies can be added right from `.scala` and `.sc` files, using the same
-syntax as Ammonite and Metals worksheets:
+Dependencies can be added right from `.scala` and `.sc` files with [`using` directives](#using-directives):
 
 ```scala compile
-import $dep.`com.lihaoyi::upickle:1.4.0`
-import $ivy.`com.lihaoyi::pprint:0.6.6`
+//> using lib "com.lihaoyi::upickle:1.4.0"
+//> using lib "com.lihaoyi::pprint:0.6.6"
 import ujson._
 ```
 
-Both `import $ivy` and `import $dep` are accepted, and are equivalent. Note that this syntax
-might be deprecated - and then removed - in the future. It's recommended to add dependencies
-with [`using` directives](#using-directives).
+Both `import $ivy` and `import $dep` are not supported.

@@ -250,7 +250,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       simpleNativeTest()
     }
 
-  test("dependencies - $ivy") {
+  test("should fail for ammonite imports - $ivy") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """import $ivy.`com.lihaoyi::geny:0.6.5`
@@ -260,16 +260,10 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "simple.class",
-        "simple_sc.class",
-        "simple$.class",
-        "simple_sc$.class"
-      )
-      maybeBuild.orThrow.assertNoDiagnostics
+      expect(maybeBuild.isLeft)
     }
   }
-  test("dependencies - $dep") {
+  test("should fail for ammonite imports - $dep") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
         """import $dep.`com.lihaoyi::geny:0.6.5`
@@ -279,13 +273,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "simple.class",
-        "simple_sc.class",
-        "simple$.class",
-        "simple_sc$.class"
-      )
-      maybeBuild.orThrow.assertNoDiagnostics
+      expect(maybeBuild.isLeft)
     }
   }
   test("dependencies - using") {
@@ -295,27 +283,6 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "simple.class",
-        "simple_sc.class",
-        "simple$.class",
-        "simple_sc$.class"
-      )
-      maybeBuild.orThrow.assertNoDiagnostics
-    }
-  }
-
-  test("several dependencies - $ivy") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """import $ivy.`com.lihaoyi::geny:0.6.5`
-          |import $ivy.`com.lihaoyi::pprint:0.8.1`
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |pprint.log(g)
           |""".stripMargin
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
@@ -553,25 +520,6 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       val sources = maybeBuild.toOption.get.successfulOpt.get.sources
       expect(sources.inMemory.isEmpty)
       expect(sources.paths.lengthCompare(1) == 0)
-    }
-  }
-
-  if (hasDiagnostics)
-    test("Ignore malformed import $ivy") {
-      ignoreMalformedImportIvyTest()
-    }
-  def ignoreMalformedImportIvyTest(): Unit = {
-    val inputs = TestInputs(
-      os.rel / "p.sc" ->
-        """#!/usr/bin/env scala-cli
-          |import $ivy"com.lihaoyi::os-lib:0.7.8"
-          |""".stripMargin
-    )
-    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      val diagnostics = maybeBuild.orThrow.diagnostics.getOrElse(Nil).map(_._2)
-      expect(
-        diagnostics.exists(_.getMessage.contains("identifier expected but string literal found"))
-      )
     }
   }
 

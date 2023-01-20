@@ -315,30 +315,6 @@ object Artifacts {
       )
     }
 
-    val extraStubsJars =
-      if (scalaOpt.nonEmpty)
-        // stubs add classes for 'import $ivy' and 'import $dep' to work
-        // we only need those in Scala sources, not in pure Java projects
-        if (addStubs) {
-          val maybeSnapshotRepo =
-            if (stubsVersion.endsWith("SNAPSHOT"))
-              Seq(coursier.Repositories.sonatype("snapshots"))
-            else Nil
-          value {
-            artifacts(
-              Positioned.none(Seq(dep"$stubsOrganization:$stubsModuleName:$stubsVersion")),
-              allExtraRepositories ++ maybeSnapshotRepo,
-              scalaArtifactsParamsOpt.map(_.params),
-              logger,
-              cache.withMessage("Downloading internal stub dependency")
-            ).map(_.map(_._2))
-          }
-        }
-        else
-          Nil
-      else
-        Nil
-
     val (hasRunner, extraRunnerJars) =
       if (scalaOpt.nonEmpty) {
         val addJvmRunner0 = addJvmRunner.getOrElse(false)
@@ -395,7 +371,7 @@ object Artifacts {
         (d, p, a, os.Path(f, Os.pwd))
       },
       extraClassPath,
-      extraCompileOnlyJars ++ extraStubsJars,
+      extraCompileOnlyJars,
       extraRunnerJars,
       extraSourceJars,
       scalaOpt,

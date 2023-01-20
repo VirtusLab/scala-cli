@@ -69,10 +69,9 @@ Some source code files that Scala CLI accepts cannot be passed as-is to `scalac`
 This is the case for:
 - `.sc` files, which can contain top-level definitions not accepted by `scalac`
 - `.scala` files that have uncommented `using` directives
-- `.sc` or `.scala` files with `import $ivy` statements
 
-In all of those cases, Scala CLI parses the top of those files, and looks for `import $ivy` or `using` directives.
-It then replaces those with either dummy imports (for the `import $ivy` statements) or space characters (for non-commented `using` directives).
+In all of those cases, Scala CLI parses the top of those files, and looks for `using` directives.
+It then replaces the non-commented `using` directives with space characters.
 
 As described in [Scripts](scripts.md), `.sc` files are also "wrapped" in an `object`, and a `main` class is added to them, so that `.sc` files can be run as-is, and can access arguments via a special `args` variable.
 

@@ -217,13 +217,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   val importPprintOnlyProject: TestInputs = TestInputs(
-    os.rel / "simple.sc" -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`"
+    os.rel / "simple.sc" -> s"//> using lib \"com.lihaoyi::pprint:${Constants.pprintVersion}\""
   )
 
   test("setup-ide should have only absolute paths even if relative ones were specified") {
     val path = os.rel / "directory" / "simple.sc"
     val inputs =
-      TestInputs(path -> s"import $$ivy.`com.lihaoyi::pprint:${Constants.pprintVersion}`")
+      TestInputs(path -> s"//> using lib \"com.lihaoyi::pprint:${Constants.pprintVersion}\"")
     inputs.fromRoot { root =>
       val relativeCliCommand = TestUtil.cliCommand(
         TestUtil.relPathStr(os.Path(TestUtil.cliPath).relativeTo(root))

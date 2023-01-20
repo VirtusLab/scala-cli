@@ -1,12 +1,16 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
+
 import scala.build.options.{BuildOptions, InternalOptions}
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.actionable.ActionablePreprocessor
-import scala.build.actionable.ActionableDiagnostic._
+import scala.build.actionable.ActionableDiagnostic.*
+import scala.build.Position.File
 import coursier.core.Version
+
+import scala.build.errors.{BuildException, CompositeBuildException, UnsupportedAmmoniteImportError}
 
 class ActionableDiagnosticTests extends munit.FunSuite {
 
@@ -47,11 +51,15 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     }
   }
 
-  test("update ivy dependence upickle") {
-    val dependencyOsLib = "com.lihaoyi::upickle:1.4.0"
+  test("error on ammonite imports") {
+    val dependencyOsLib      = "com.lihaoyi::os-lib:0.7.8"
+    val dependencyUpickleLib = "com.lihaoyi::upickle:1.4.0"
+    val ivyImport            = s"import $$ivy.`$dependencyOsLib`"
+    val depImport            = s"import $$dep.`$dependencyUpickleLib`"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""import $$ivy.`$dependencyOsLib`
+        s"""$ivyImport
+           |$depImport
            |
            |object Hello extends App {
            |  println("Hello")
@@ -60,46 +68,26 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
-        val updateDiagnostics =
-          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
-
-        val osLibDiagnosticOpt = updateDiagnostics.collectFirst {
-          case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
+        expect(maybeBuild.isLeft)
+        val exceptions = maybeBuild match {
+          case Left(c: CompositeBuildException) => c.exceptions
+          case _                                => Seq()
         }
 
-        expect(osLibDiagnosticOpt.nonEmpty)
-        val osLibDiagnostic = osLibDiagnosticOpt.get
+        expect(exceptions.length == 2)
+        expect(exceptions.forall(_.isInstanceOf[UnsupportedAmmoniteImportError]))
 
-        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
-    }
-  }
+        expect(exceptions.head.textEdit.get.newText == s"//> using lib \"$dependencyOsLib\"")
+        expect(
+          exceptions.tail.head.textEdit.get.newText == s"//> using lib \"$dependencyUpickleLib\""
+        )
 
-  test("update dep dependence upickle") {
-    val dependencyOsLib = "com.lihaoyi::upickle:1.4.0"
-    val testInputs = TestInputs(
-      os.rel / "Foo.scala" ->
-        s"""import $$dep.`$dependencyOsLib`
-           |
-           |object Hello extends App {
-           |  println("Hello")
-           |}
-           |""".stripMargin
-    )
-    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
-      (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
-        val updateDiagnostics =
-          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
+        val filePositions = exceptions.flatMap(_.positions.collect {
+          case File(_, startPos, endPos) => (startPos, endPos)
+        })
 
-        val osLibDiagnosticOpt = updateDiagnostics.collectFirst {
-          case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
-        }
-
-        expect(osLibDiagnosticOpt.nonEmpty)
-        val osLibDiagnostic = osLibDiagnosticOpt.get
-
-        expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
+        expect(filePositions.head == ((0, 0), (0, ivyImport.length)))
+        expect(filePositions.tail.head == ((1, 0), (1, depImport.length)))
     }
   }
 

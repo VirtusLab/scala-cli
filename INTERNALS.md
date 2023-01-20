@@ -21,7 +21,6 @@ The other modules are either:
 These are:
 - `bloop-rifle`: starts a Bloop server if needed, connects to it via nailgun, opens a BSP server to it, …
 - `runner`: simple app that starts a main class, catches any exception it throws and pretty-prints it.
-- `stubs`: empty classes, so that lines such as `import $ivy.$`, left after full blown `import $ivy`s are processed, compile fine (about to be removed?)
 - `test-runner`: finds test frameworks, test suites, and runs them
 - `tasty-lib`: edits file names in `.tasty` files
 
@@ -56,7 +55,7 @@ We roughly go from user inputs to byte code through 3 classes:
 Most commands
 - take the arguments passed on the command-line: we have an `Array[String]`
 - check whether each of them is a `.scala` file, an `.sc` file, a directory, …: we get an `Inputs` instance
-- reads the directories, the `.scala` / `.sc` files, processes `import $ivy` in them: we get a `Sources` instance
+- reads the directories, the `.scala` / `.sc` files: we get a `Sources` instance
 - compile those sources: we get a `Build` instance
 - do something with the build output (run it, run tests, package it, …)
 
@@ -64,21 +63,9 @@ In watch mode, we loop over the last 3 steps (`Inputs` is computed only once, th
 
 ## Source pre-processing
 
-Some input files cannot be passed as is to scalac, because:
-- they contain `import $ivy`s
-- they are scripts (`.sc` files), which contain top-level statements
+Some input files cannot be passed as is to scalac, if they are scripts (`.sc` files), which contain top-level statements
 
-The `import $ivy` gets replaced like
-```scala
-import $ivy.`org:name:ver`, something.else._
-```
-becomes
-```scala
-import $ivy.$             , something.else._
-```
-(We just do the same as Ammonite.)
-
-Scripts gets wrapped. If the script `a/b/foo.sc` contains
+Scripts get wrapped. If the script `a/b/foo.sc` contains
 ```scala
 val n = 2
 ```
