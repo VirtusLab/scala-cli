@@ -568,7 +568,7 @@ Aliases: `-q`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Decrease verbosity
+Decrease logging verbosity
 
 ### `--progress`
 

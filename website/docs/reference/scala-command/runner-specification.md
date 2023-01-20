@@ -302,7 +302,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -827,7 +827,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -1354,7 +1354,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -1911,7 +1911,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -2490,7 +2490,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -3019,7 +3019,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -3614,7 +3614,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -3929,7 +3929,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -4206,7 +4206,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -4519,7 +4519,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -4598,7 +4598,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -4657,7 +4657,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -4748,7 +4748,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -5025,7 +5025,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -5350,7 +5350,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -5529,7 +5529,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 
@@ -5586,7 +5586,7 @@ Enable actionable diagnostics
 
 **--quiet**
 
-Decrease verbosity
+Decrease logging verbosity
 
 Aliases: `-q`
 

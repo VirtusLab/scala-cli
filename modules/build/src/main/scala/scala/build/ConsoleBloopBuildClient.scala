@@ -183,7 +183,7 @@ object ConsoleBloopBuildClient {
           "." + File.separator + p.relativeTo(Os.pwd).toString
         case Right(p) => p.toString
       }
-      logger.message(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      logger.error(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
       for (line <- msgIt)
         logger.message(prefix + line)
       val codeOpt = {
@@ -199,7 +199,7 @@ object ConsoleBloopBuildClient {
         } yield line
       }
       for (code <- codeOpt)
-        code.linesIterator.map(prefix + _).foreach(logger.message(_))
+        code.linesIterator.map(prefix + _).foreach(logger.error(_))
       val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
         diag.getRange.getStart.getCharacter != null &&
         diag.getRange.getEnd.getCharacter != null &&
@@ -207,7 +207,7 @@ object ConsoleBloopBuildClient {
       if (canPrintUnderline) {
         val len =
           math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
-        logger.message(
+        logger.error(
           prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
         )
       }

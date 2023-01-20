@@ -541,7 +541,7 @@ Available in commands:
 
 Aliases: `-q`
 
-Decrease verbosity
+Decrease logging verbosity
 
 ### `--progress`
 

@@ -368,3 +368,36 @@ Hello
 <!-- Expected:
 Hello
 -->
+
+### Logging
+
+To turn off logging in the application, pass the `-q` flag once. This will suppress all logging output except for errors:
+
+```scala title=Hello.scala
+object Hello extends App {
+  println("Hello"
+}
+```
+
+<ChainedSnippets>
+
+```bash run-fail
+scala-cli Hello.scala -q  
+```
+
+```text
+[error] ./Hello.scala:6:3: ')' expected, but '}' found
+[error]   }
+[error]   ^
+Compilation failed
+```
+
+<!-- Expected:
+')' expected, but '}' found
+Compilation failed
+-->
+
+</ChainedSnippets>
+
+Note that this will also suppress any logging related to tasks such as downloading dependencies, logs
+about the start of compilation, and so on.
