@@ -286,7 +286,7 @@ Our [scripts guide](/docs/guides/scripts.md) provides many more details.
 Scala applications can also be compiled and run using a [docker](https://docs.docker.com/get-started/) image with `scala-cli`, without needing to install Scala CLI manually:
 
 ```bash
-docker run virtuslab/scala-cli:latest about
+docker run virtuslab/scala-cli:latest version
 ```
 
 ```scala title=HelloWorld.scala
