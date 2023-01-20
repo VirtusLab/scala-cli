@@ -63,6 +63,17 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
     simpleLegacyOptionBackwardsCompatTest("-nc", "-nocompdaemon", "--no-compilation-daemon")
   }
 
+  test("ensure -run works with the default command") {
+    legacyOptionBackwardsCompatTest("-run") {
+      (legacyOption, root) =>
+        val legacyOptionParam = "s.sc"
+        val res = os.proc(TestUtil.cli, legacyOption, legacyOptionParam, ".", TestUtil.extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
+        expect(res.err.trim().contains(legacyOptionParam))
+    }
+  }
+
   private def simpleLegacyOptionBackwardsCompatTest(optionAliases: String*): Unit =
     abstractLegacyOptionBackwardsCompatTest(optionAliases) {
       (legacyOption, expectedMsg, root) =>
