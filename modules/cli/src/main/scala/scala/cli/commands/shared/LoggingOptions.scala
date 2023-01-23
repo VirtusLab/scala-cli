@@ -13,7 +13,7 @@ final case class LoggingOptions(
   @Recurse
     verbosityOptions: VerbosityOptions = VerbosityOptions(),
   @Group("Logging")
-  @HelpMessage("Decrease verbosity")
+  @HelpMessage("Decrease logging verbosity")
   @Tag(tags.implementation)
   @Name("q")
     quiet: Boolean = false,
