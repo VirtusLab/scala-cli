@@ -46,6 +46,13 @@ case class LegacyScalaOptions(
   @Name("-nc")
   @Name("-nocompdaemon")
     noCompilationDaemon: Option[Indexed[Boolean]] = None,
+  @Group("Legacy Scala runner")
+  @HelpMessage("Ignored legacy option. Deprecated option allowing to force the `run` mode on an input.")
+  @Tag(tags.must)
+  @Hidden
+  @ValueDescription("file")
+  @Name("-run")
+    run: Option[Indexed[String]] = None,
 ) {
 // format: on
 
@@ -64,8 +71,16 @@ case class LegacyScalaOptions(
     val howToRunString            = howToRun.findArg(args)
     val iString                   = I.findArg(args)
     val noCompilationDaemonString = noCompilationDaemon.findArg(args)
+    val runString                 = run.findArg(args)
     val deprecatedArgs =
-      Seq(saveOptionString, noSaveOptionString, howToRunString, iString, noCompilationDaemonString)
+      Seq(
+        saveOptionString,
+        noSaveOptionString,
+        howToRunString,
+        iString,
+        noCompilationDaemonString,
+        runString
+      )
         .flatten
     val filteredArgs       = args.filterNot(deprecatedArgs.contains)
     val filteredArgsString = filteredArgs.mkString(" ")
@@ -125,6 +140,20 @@ case class LegacyScalaOptions(
     noCompilationDaemonString.foreach { nc =>
       logger.message(s"Deprecated option '$nc' is ignored.")
       logger.message("The script runner can no longer be picked as before.")
+    }
+    for {
+      rString <- runString
+      rValue  <- run.map(_.value)
+    } {
+      logger.message(s"Deprecated option '$rString' is ignored.")
+      logger.message(
+        s"""$fullRunnerName does not support explicitly forcing the old `run` mode.
+           |Just pass $rValue as input and make sure it has the correct format and extension.
+           |i.e. to run a JAR, pass it as an input, just make sure it has the `.jar` extension and a main class.
+           |For details on how inputs can be run with $fullRunnerName, check the `run` sub-command.
+           |  ${Console.BOLD}$progName run --help${Console.RESET}
+           |""".stripMargin
+      )
     }
     filteredArgs
   }
