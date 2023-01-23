@@ -20,6 +20,7 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
       case Seq(head, _*) => f(head)
       case _             => true
     }
+  def keys: Seq[T] = values.map(_.head)
   def ++(other: Seq[T])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =
     addGroups(ShadowingSeq.groups(other, key.groups(other)))
   private def addGroups(other: Seq[Seq[T]])(implicit key: ShadowingSeq.KeyOf[T]): ShadowingSeq[T] =

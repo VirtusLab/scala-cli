@@ -15,8 +15,9 @@ import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, Runner}
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
+import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.{HasLoggingOptions, ScalaCliHelp, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -132,6 +133,18 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   def maybePrintGroupHelp(options: T): Unit =
     for (shared <- sharedOptions(options))
       shared.helpGroups.maybePrintGroupHelp(help, helpFormat)
+
+  private def maybePrintWarnings(options: T): Unit = {
+    import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
+    val logger = options.logging.logger
+    sharedOptions(options).foreach { so =>
+      val scalacOpts = so.scalac.scalacOption.toScalacOptShadowingSeq
+      if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
+        logger.message(
+          LegacyScalaOptions.yScriptRunnerWarning(scalacOpts.getOption(YScriptRunnerOption))
+        )
+    }
+  }
 
   /** Print `scalac` output if passed options imply no inputs are necessary and raw `scalac` output
     * is required instead. (i.e. `--scalac-option -help`)
@@ -265,6 +278,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
+    maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)

@@ -300,6 +300,7 @@ final case class SharedOptions(
           .withScalacExtraOptions(scalacExtra)
           .toScalacOptShadowingSeq
           .filterNonRedirected
+          .filterNonDeprecated
           .map(Positioned.commandLine),
         compilerPlugins =
           SharedOptions.parseDependencies(

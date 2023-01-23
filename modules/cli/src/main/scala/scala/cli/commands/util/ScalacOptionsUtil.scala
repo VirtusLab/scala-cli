@@ -1,6 +1,10 @@
 package scala.cli.commands.util
 
+import scala.build.Logger
 import scala.build.options.{ScalacOpt, ShadowingSeq}
+import scala.cli.commands.bloop.BloopExit
+import scala.cli.commands.default.LegacyScalaOptions
+import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.shared.{ScalacExtraOptions, ScalacOptions}
 
 object ScalacOptionsUtil {
@@ -31,6 +35,8 @@ object ScalacOptionsUtil {
       opts.filterKeys(_.key.exists(f))
     def filterNonRedirected: ShadowingSeq[ScalacOpt] =
       opts.filterScalacOptionKeys(!ScalacOptions.ScalaCliRedirectedOptions.contains(_))
+    def filterNonDeprecated: ShadowingSeq[ScalacOpt] =
+      opts.filterScalacOptionKeys(!ScalacOptions.ScalacDeprecatedOptions.contains(_))
     def getOption(key: String): Option[String] =
       opts.get(ScalacOpt(key)).headOption.map(_.value)
   }
