@@ -177,7 +177,7 @@ final case class SharedOptions(
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
   @Recurse
-  helpGroups: HelpGroupOptions = HelpGroupOptions(),
+    helpGroups: HelpGroupOptions = HelpGroupOptions(),
 
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
@@ -512,7 +512,8 @@ final case class SharedOptions(
 
   def inputs(
     args: Seq[String],
-    defaultInputs: () => Option[Inputs] = () => Inputs.default()
+    defaultInputs: () => Option[Inputs] = () => Inputs.default(),
+    isRunWithShebang: Boolean = false
   ): Either[BuildException, Inputs] =
     SharedOptions.inputs(
       args,
@@ -529,7 +530,8 @@ final case class SharedOptions(
       javaSnippetList = allJavaSnippets,
       markdownSnippetList = allMarkdownSnippets,
       enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty
+      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty,
+      isRunWithShebang = isRunWithShebang
     )
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
@@ -544,7 +546,8 @@ final case class SharedOptions(
       SharedOptions.downloadInputs(coursierCache),
       SharedOptions.readStdin(logger = logger),
       !Properties.isWin,
-      enableMarkdown = true
+      enableMarkdown = true,
+      isRunWithShebang = false
     )
 
   def strictBloopJsonCheckOrDefault: Boolean =
@@ -582,7 +585,8 @@ object SharedOptions {
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
-    extraClasspathWasPassed: Boolean = false
+    extraClasspathWasPassed: Boolean = false,
+    isRunWithShebang: Boolean = false
   ): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -606,7 +610,8 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed
+      extraClasspathWasPassed = extraClasspathWasPassed,
+      isRunWithShebang
     )
     maybeInputs.map { inputs =>
       val forbiddenDirs =

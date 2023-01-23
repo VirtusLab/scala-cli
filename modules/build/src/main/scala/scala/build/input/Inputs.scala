@@ -13,6 +13,7 @@ import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
 import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.Properties
 import scala.util.matching.Regex
 
@@ -261,7 +262,8 @@ object Inputs {
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean,
-    enableMarkdown: Boolean
+    enableMarkdown: Boolean,
+    isRunWithShebang: Boolean
   ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
     case (arg, idx) =>
       lazy val path      = os.Path(arg, cwd)
@@ -297,10 +299,21 @@ object Inputs {
       else if os.isDir(path) then Right(Seq(Directory(path)))
       else if acceptFds && arg.startsWith("/dev/fd/") then
         Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
+      else if isRunWithShebang && os.exists(path) then
+        if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath)))
+        else
+          Left(s"""$arg does not contain shebang header
+                  |possible fixes:
+                  |  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
+                  |  Add extension to the file's name e.q. '.sc'
+                  |""".stripMargin)
       else {
         val msg =
-          if (os.exists(path))
-            s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+          if os.exists(path) then
+            if isShebangScript(String(content)) then
+              s"$arg scripts with no file extension should be run with 'scala-cli shebang'"
+            else
+              s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
           else s"$arg: not found"
         Left(msg)
       }
@@ -320,10 +333,11 @@ object Inputs {
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
+    extraClasspathWasPassed: Boolean,
+    isRunWithShebang: Boolean
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
-      validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown)
+      validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown, isRunWithShebang)
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
@@ -364,7 +378,8 @@ object Inputs {
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
+    extraClasspathWasPassed: Boolean,
+    isRunWithShebang: Boolean
   ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
@@ -388,7 +403,8 @@ object Inputs {
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
-        extraClasspathWasPassed
+        extraClasspathWasPassed,
+        isRunWithShebang
       )
 
   def default(): Option[Inputs] = None

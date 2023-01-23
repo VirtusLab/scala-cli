@@ -21,7 +21,8 @@ object Clean extends ScalaCommand[CleanOptions] {
       defaultInputs = () => Inputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = false
+      extraClasspathWasPassed = false,
+      isRunWithShebang = false
     ) match {
       case Left(message) =>
         System.err.println(message)
