@@ -187,9 +187,8 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
 
-  # Copied from https://github.com/coursier/coursier/blob/44e1a024897fb1046303f705e0e4143d808e1adc/.github/workflows/ci.yml#L263-L326
   generate-linux-arm64-native-launcher:
-    runs-on: "ubuntu-20.04"
+    runs-on: "macOS-m1"
     if: github.event_name == 'push'
     steps:
       - uses: actions/checkout@v3
@@ -198,49 +197,9 @@ jobs:
           submodules: true
       - uses: VirtusLab/scala-cli-setup@7e6a0b2468fc28b94936417e4cad385e380ac735
         with:
-          jvm: "temurin:17"
-      - uses: uraimo/run-on-arch-action@v2.5.0
-        with:
-          arch: aarch64
-          distro: ubuntu20.04
-
-          # Speeds up builds per the run-on-arch-action README
-          githubToken: ${{ github.token }}
-
-          setup: |
-            mkdir -p artifacts
-            mkdir -p utils
-            cp "$(cs get https://github.com/coursier/coursier/releases/download/v2.0.16/cs-aarch64-pc-linux)" utils/cs
-            chmod +x utils/cs
-          dockerRunArgs: |
-            --volume "${PWD}/artifacts:/artifacts"
-            --volume "${PWD}/utils:/utils"
-          env: |
-            JAVA_HOME: /jvm
-            JAVA_OPTS: "-Djdk.lang.Process.launchMechanism=vfork"
-            GITHUB_ENV: "/tmp/github_env"
-
-          # The shell to run commands with in the container
-          shell: /bin/bash
-
-          # build-essential and libz-dev are required to build native images.
-          # git is required by some of the launcher.sc logic.
-          # python3-pip is required for some CLI tests.
-          # gnupg2 is for signing the resulting binary.
-          install: |
-            apt-get update -q -y
-            apt-get install -q -y build-essential libz-dev git python3-pip gnupg2 curl zip
-            touch /tmp/github_env
-          run: |
-            set -e
-            export PATH="/utils:$PATH"
-            git config --global --add safe.directory "$(pwd)"
-            ./mill -i copyDefaultLauncher artifacts/
-            ./mill -i ci.setShouldPublish
-            if grep -q "SHOULD_PUBLISH=true" /tmp/github_env; then
-              .github/scripts/generate-os-packages.sh
-            fi
-      - run: sudo chown -R $USER .
+          apps: ""
+      - name: Generate native launcher and generate os packages
+        run: .github/scripts/build-linux-aarch64.sh
       - uses: actions/upload-artifact@v3
         with:
           name: linux-aarch64-launchers

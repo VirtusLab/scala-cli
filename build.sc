@@ -1795,7 +1795,9 @@ object ci extends Module {
   def setShouldPublish() = T.command {
     publish.setShouldPublish()
   }
-
+  def shouldPublish() = T.command {
+    println(publish.shouldPublish())
+  }
   def copyJvm(jvm: String = deps.graalVmJvmId, dest: String = "jvm") = T.command {
     import sys.process._
     val command = Seq(
