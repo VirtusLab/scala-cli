@@ -47,7 +47,8 @@ final case class Project(
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
         options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value),
-        jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList
+        jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList,
+        bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)
       )
     }
     baseBloopProject(
@@ -228,6 +229,7 @@ object Project {
       options = Nil,
       jars = Nil,
       analysis = None,
-      setup = None
+      setup = None,
+      bridgeJars = None
     )
 }

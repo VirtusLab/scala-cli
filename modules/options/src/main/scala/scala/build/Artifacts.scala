@@ -134,6 +134,15 @@ object Artifacts {
         val compilerDependenciesMessage =
           s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} compiler"
 
+        val bridgeDependenciesOpt =
+          Option.when(scalaArtifactsParams.params.scalaVersion.startsWith("3.")) {
+            Seq(
+              dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
+            )
+          }
+        val bridgeDependenciesMessage =
+          s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} bridge"
+
         val compilerPlugins0 = value {
           scalaArtifactsParams.compilerPlugins
             .map { posDep =>
@@ -163,6 +172,21 @@ object Artifacts {
             logger,
             cache.withMessage(compilerDependenciesMessage)
           ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
+        }
+
+        val bridgeJarsOpt = bridgeDependenciesOpt match {
+          case None => None
+          case Some(bridgeDependencies) =>
+            val jars = value {
+              artifacts(
+                Positioned.none(bridgeDependencies),
+                allExtraRepositories,
+                Some(scalaArtifactsParams.params),
+                logger,
+                cache.withMessage(bridgeDependenciesMessage)
+              ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
+            }.map(_._2)
+            Some(jars)
         }
 
         def fetchedArtifactToPath(fetched: Fetch.Result): Seq[os.Path] =
@@ -265,7 +289,8 @@ object Artifacts {
           scalaNativeCli,
           internalDependencies,
           scalapyDependencies,
-          scalaArtifactsParams.params
+          scalaArtifactsParams.params,
+          bridgeJarsOpt
         )
         Some(scala)
 
