@@ -200,12 +200,13 @@ def isTag: Boolean =
   Option(System.getenv("BUILD_SOURCEBRANCH"))
     .orElse(Option(System.getenv("GITHUB_REF")))
     .exists(_.startsWith("refs/tags"))
-
-def setShouldPublish() = T.command {
+def shouldPublish = T.persistent {
   val isSnapshot = finalPublishVersion().endsWith("SNAPSHOT")
   // not a snapshot, not a tag: let the tag job do the publishing
-  val shouldPublish = isSnapshot || isTag
-  val envFile       = System.getenv("GITHUB_ENV")
+  isSnapshot || isTag
+}
+def setShouldPublish() = T.command {
+  val envFile = System.getenv("GITHUB_ENV")
   if (envFile == null)
     sys.error("GITHUB_ENV not set")
   val charSet = Charset.defaultCharset()
