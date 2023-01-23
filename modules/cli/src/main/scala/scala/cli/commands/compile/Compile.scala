@@ -4,6 +4,7 @@ import caseapp.*
 
 import java.io.File
 
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
@@ -24,7 +25,10 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
   override def runCommand(options: CompileOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val inputs       = options.shared.inputs(args.all).orExit(logger)
+    val inputs = options.shared.inputs(
+      args.all,
+      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
+    ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,

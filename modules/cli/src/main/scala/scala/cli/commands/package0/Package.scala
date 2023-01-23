@@ -21,6 +21,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
 import scala.build.errors.*
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
@@ -30,7 +31,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.orPythonDetectionError
 import scala.cli.commands.shared.{MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
@@ -49,7 +50,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def buildOptions(options: PackageOptions): Option[BuildOptions] =
     Some(options.baseBuildOptions.orExit(options.shared.logger))
   override def runCommand(options: PackageOptions, args: RemainingArgs, logger: Logger): Unit = {
-    val inputs = options.shared.inputs(args.remaining).orExit(logger)
+    val inputs = options.shared.inputs(
+      args.remaining,
+      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
+    ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     // FIXME mainClass encoding has issues with special chars, such as '-'

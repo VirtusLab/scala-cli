@@ -34,7 +34,7 @@ class SipScalaTests extends ScalaCliSuite {
       if (binaryName.isSip) {
         expect(res.exitCode == 1)
         val output = res.out.text()
-        expect(output.contains(s"directories: not found"))
+        expect(output.contains(s"directories is not a $binaryName sub-command"))
       }
       else expect(res.exitCode == 0)
     }

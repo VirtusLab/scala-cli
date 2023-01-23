@@ -4,6 +4,7 @@ import caseapp.*
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
@@ -24,7 +25,10 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
 
-    val inputs = options.shared.inputs(args.all).orExit(logger)
+    val inputs = options.shared.inputs(
+      args.all,
+      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
+    ).orExit(logger)
 
     val (crossSources, _) =
       CrossSources.forInputs(

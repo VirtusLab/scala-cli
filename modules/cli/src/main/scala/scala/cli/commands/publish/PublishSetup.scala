@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.{CrossSources, Directories, Logger, Sources}
@@ -58,7 +59,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         Nil,
         Nil,
         Nil,
-        Nil
+        Nil,
+        ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
       )
       maybeInputs match {
         case Left(error) =>

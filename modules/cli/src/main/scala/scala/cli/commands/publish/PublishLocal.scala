@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
 
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.options.BuildOptions
 import scala.build.{BuildThreads, Logger}
 import scala.cli.CurrentParams
@@ -29,7 +30,10 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     Publish.maybePrintChecksumsAndExit(options.sharedPublish)
 
     val baseOptions = buildOptionsOrExit(options)
-    val inputs      = options.shared.inputs(args.all).orExit(logger)
+    val inputs = options.shared.inputs(
+      args.all,
+      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
+    ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = Publish.mkBuildOptions(

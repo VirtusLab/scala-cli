@@ -4,6 +4,7 @@ import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
@@ -55,5 +56,11 @@ class Default(
       }.parse(options.legacyScala.filterNonDeprecatedArgs(rawArgs, progName, logger)) match
         case Left(e)                              => error(e)
         case Right((replOptions: ReplOptions, _)) => Repl.runCommand(replOptions, args, logger)
-        case Right((runOptions: RunOptions, _))   => Run.runCommand(runOptions, args, logger)
+        case Right((runOptions: RunOptions, _)) =>
+          Run.runCommand(
+            runOptions,
+            args,
+            logger,
+            ScalaCliInvokeData(progName, actualCommandName, SubCommand.Default)
+          )
 }

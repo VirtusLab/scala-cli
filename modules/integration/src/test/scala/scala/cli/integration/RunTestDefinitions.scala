@@ -1127,4 +1127,61 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == root.toString())
     }
   }
+
+  val commands = Seq("", "run", "compile")
+
+  for (command <- commands) {
+    test(
+      s"error output for unrecognized source type for ${if (command == "") "default" else command}"
+    ) {
+      val inputs = TestInputs(
+        os.rel / "print.hehe" ->
+          s"""println("Foo")
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val proc = if (command == "") os.proc(TestUtil.cli, "print.hehe")
+        else os.proc(TestUtil.cli, command, "print.hehe")
+        val output = proc.call(cwd = root, check = false, stderr = os.Pipe)
+          .err.trim()
+
+        expect(output.contains("unrecognized source type"))
+      }
+    }
+
+    test(s"error output for nonexistent file for ${if (command == "") "default" else command}") {
+      val inputs = TestInputs(
+        os.rel / "print.hehe" ->
+          s"""println("Foo")
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val proc = if (command == "") os.proc(TestUtil.cli, "nonexisten.no")
+        else os.proc(TestUtil.cli, command, "nonexisten.no")
+        val output = proc.call(cwd = root, check = false, stderr = os.Pipe)
+          .err.trim()
+
+        expect(output.contains("file not found"))
+      }
+    }
+
+    test(s"error output for invalid sub-command for ${if (command == "") "default" else command}") {
+      val inputs = TestInputs(
+        os.rel / "print.hehe" ->
+          s"""println("Foo")
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val proc = if (command == "") os.proc(TestUtil.cli, "invalid")
+        else os.proc(TestUtil.cli, command, "invalid")
+        val output = proc.call(cwd = root, check = false, stderr = os.Pipe)
+          .err.trim()
+
+        if (command == "")
+          expect(output.contains(s"is not a ${TestUtil.detectCliPath} sub-command"))
+        else
+          expect(output.contains("file not found"))
+      }
+    }
+  }
 }

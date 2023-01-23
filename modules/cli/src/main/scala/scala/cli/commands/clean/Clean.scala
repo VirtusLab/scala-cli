@@ -2,7 +2,7 @@ package scala.cli.commands.clean
 
 import caseapp.*
 
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Constants
 import scala.build.{Logger, Os}
 import scala.cli.commands.ScalaCommand
@@ -22,7 +22,7 @@ object Clean extends ScalaCommand[CleanOptions] {
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
       extraClasspathWasPassed = false,
-      isRunWithShebang = false
+      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
     ) match {
       case Left(message) =>
         System.err.println(message)

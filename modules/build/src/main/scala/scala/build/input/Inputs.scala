@@ -263,7 +263,7 @@ object Inputs {
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean,
     enableMarkdown: Boolean,
-    isRunWithShebang: Boolean
+    programInvokeData: ScalaCliInvokeData
   ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
     case (arg, idx) =>
       lazy val path      = os.Path(arg, cwd)
@@ -271,6 +271,14 @@ object Inputs {
       lazy val subPath   = path.subRelativeTo(dir)
       lazy val stdinOpt0 = stdinOpt
       lazy val content   = os.read.bytes(path)
+      val (isRunWithShebang, isRunWithDefault) = programInvokeData.subCommand match
+        case SubCommand.Shebang => (true, false)
+        case SubCommand.Default => (false, true)
+        case _                  => (false, false)
+      lazy val fullProgramCall = programInvokeData.progName +
+        s"${if isRunWithDefault then "" else s" ${programInvokeData.subCommandName}"}"
+      lazy val progName = os.Path(programInvokeData.progName, cwd).baseName
+
       if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
         Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
       else if (arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty then
@@ -304,17 +312,27 @@ object Inputs {
         else
           Left(s"""$arg does not contain shebang header
                   |possible fixes:
-                  |  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
+                  |  Add '#!/usr/bin/env $fullProgramCall' to the top of the file
                   |  Add extension to the file's name e.q. '.sc'
                   |""".stripMargin)
       else {
         val msg =
           if os.exists(path) then
             if isShebangScript(String(content)) then
-              s"$arg scripts with no file extension should be run with 'scala-cli shebang'"
+              s"$arg scripts with no file extension should be run with '$progName shebang'"
             else
-              s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
-          else s"$arg: not found"
+              s"""$arg: unrecognized source type (expected .scala or .sc extension, or a directory),
+                 |if it's meant to be a script add a '!#' pointing to '$progName shebang' in the top line
+                 |and run the source with '$progName shebang $arg'
+                 |""".stripMargin
+          else if isRunWithDefault && idx == 0 && arg.forall(_.isLetterOrDigit) then
+            s"""$arg is not a $progName sub-command and it is not a valid path to an input file or directory
+               |Try '$progName --help' to see the list of available sub-commands and options
+               |""".stripMargin
+          else
+            s"""$arg: file not found
+               |Try '$fullProgramCall --help' for usage information
+               |""".stripMargin
         Left(msg)
       }
   }
@@ -334,10 +352,18 @@ object Inputs {
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean,
-    isRunWithShebang: Boolean
+    programInvokeData: ScalaCliInvokeData
   ): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
-      validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown, isRunWithShebang)
+      validateArgs(
+        args,
+        cwd,
+        download,
+        stdinOpt,
+        acceptFds,
+        enableMarkdown,
+        programInvokeData
+      )
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
@@ -379,7 +405,7 @@ object Inputs {
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean,
-    isRunWithShebang: Boolean
+    programInvokeData: ScalaCliInvokeData
   ): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
@@ -404,7 +430,7 @@ object Inputs {
         enableMarkdown,
         allowRestrictedFeatures,
         extraClasspathWasPassed,
-        isRunWithShebang
+        programInvokeData
       )
 
   def default(): Option[Inputs] = None
