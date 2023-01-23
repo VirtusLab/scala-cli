@@ -89,11 +89,19 @@ object ExtractedDirectives {
       val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
       val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
 
-      val directivesPositions = DirectivesPositions(
-        getPosition(codeDirectives),
-        getPosition(specialCommentDirectives),
-        getPosition(plainCommentDirectives)
-      )
+      val directivesPositionsOpt =
+        if (
+          codeDirectives.getFlattenedMap.isEmpty &&
+          specialCommentDirectives.getFlattenedMap.isEmpty &&
+          plainCommentDirectives.getFlattenedMap.isEmpty
+        )
+          None
+        else
+          Some(DirectivesPositions(
+            getPosition(codeDirectives),
+            getPosition(specialCommentDirectives),
+            getPosition(plainCommentDirectives)
+          ))
 
       def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
         values.foreach { v =>
@@ -144,7 +152,7 @@ object ExtractedDirectives {
         if (usedDirectives.getKind != UsingDirectiveKind.Code) 0
         else usedDirectives.getCodeOffset
       if (supportedDirectives.contains(usedDirectives.getKind))
-        Right(ExtractedDirectives(offset, strictDirectives, Some(directivesPositions)))
+        Right(ExtractedDirectives(offset, strictDirectives, directivesPositionsOpt))
       else {
         val directiveVales =
           usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)

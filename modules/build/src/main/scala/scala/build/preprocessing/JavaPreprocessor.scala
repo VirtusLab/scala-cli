@@ -14,7 +14,7 @@ import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.BuildRequirements
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
-import scala.build.preprocessing.ScalaPreprocessor._
+import scala.build.preprocessing.ScalaPreprocessor.*
 
 /** Java source preprocessor.
   *

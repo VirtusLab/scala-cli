@@ -58,6 +58,26 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         |""".stripMargin
   )
 
+  test(
+    "java files with no using directives should not produce warnings about using directives in multiple files"
+  ) {
+    val inputs = TestInputs(
+      os.rel / "Bar.java" ->
+        """public class Bar {}
+          |""".stripMargin,
+      os.rel / "Foo.java" ->
+        """public class Foo {}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val warningMessage = "Using directives detected in multiple files"
+      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root, stderr = os.Pipe).err.trim()
+      expect(!output.contains(warningMessage))
+    }
+  }
+
   test("no arg") {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
