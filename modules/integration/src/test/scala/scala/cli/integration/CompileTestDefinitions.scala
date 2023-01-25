@@ -78,6 +78,54 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test(
+    "target directives in files should not produce warnings about using directives in multiple files"
+  ) {
+    val inputs = TestInputs(
+      os.rel / "Bar.java" ->
+        """//> using target.platform "jvm"
+          |//> using target.scope "test"
+          |public class Bar {}
+          |""".stripMargin,
+      os.rel / "Foo.scala" ->
+        """//> using target.scala.>= "2.13"
+          |//> using target.scope "test"
+          |class Foo {}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val warningMessage = "Using directives detected in multiple files"
+      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root).err.trim()
+      expect(!output.contains(warningMessage))
+    }
+  }
+
+  test(
+    "warn about directives in multiple files"
+  ) {
+    val inputs = TestInputs(
+      os.rel / "Bar.java" ->
+        """//> using jvm "17"
+          |//> using target.scope "test"
+          |public class Bar {}
+          |""".stripMargin,
+      os.rel / "Foo.scala" ->
+        """//> using target.scala.>= "2.13"
+          |//> using lib "com.lihaoyi::os-lib::0.8.1"
+          |class Foo {}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val warningMessage = "Using directives detected in multiple files"
+      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+        .call(cwd = root, stderr = os.Pipe).err.trim()
+      expect(output.contains(warningMessage))
+    }
+  }
+
   test("no arg") {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)

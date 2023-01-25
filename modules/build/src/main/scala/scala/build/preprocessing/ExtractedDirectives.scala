@@ -11,6 +11,7 @@ import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 
 import scala.annotation.targetName
 import scala.build.errors.*
+import scala.build.preprocessing.UsingDirectivesOps.*
 import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
 import scala.collection.mutable
@@ -72,35 +73,22 @@ object ExtractedDirectives {
 
       def byKind(kind: UsingDirectiveKind) = all.find(_.getKind == kind).get
 
-      def getDirectives(directives: UsingDirectives) =
-        directives.getAst match {
-          case ud: UsingDefs =>
-            ud.getUsingDefs.asScala.toSeq
-          case _ =>
-            Nil
-        }
-
-      def getPosition(directives: UsingDirectives) =
-        val line   = directives.getAst().getPosition().getLine()
-        val column = directives.getAst().getPosition().getColumn()
-        Position.File(path, (0, 0), (line, column))
-
       val codeDirectives           = byKind(UsingDirectiveKind.Code)
       val specialCommentDirectives = byKind(UsingDirectiveKind.SpecialComment)
       val plainCommentDirectives   = byKind(UsingDirectiveKind.PlainComment)
 
       val directivesPositionsOpt =
         if (
-          codeDirectives.getFlattenedMap.isEmpty &&
-          specialCommentDirectives.getFlattenedMap.isEmpty &&
-          plainCommentDirectives.getFlattenedMap.isEmpty
+          codeDirectives.containsTargetDirectivesOnly &&
+          specialCommentDirectives.containsTargetDirectivesOnly &&
+          plainCommentDirectives.containsTargetDirectivesOnly
         )
           None
         else
           Some(DirectivesPositions(
-            getPosition(codeDirectives),
-            getPosition(specialCommentDirectives),
-            getPosition(plainCommentDirectives)
+            codeDirectives.getPosition(path),
+            specialCommentDirectives.getPosition(path),
+            plainCommentDirectives.getPosition(path)
           ))
 
       def reportWarning(msg: String, values: Seq[UsingDef], before: Boolean = true): Unit =
@@ -114,7 +102,7 @@ object ExtractedDirectives {
         }
 
       val usedDirectives =
-        if (!codeDirectives.getFlattenedMap.isEmpty) {
+        if (codeDirectives.nonEmpty) {
           val msg =
             "This using directive is ignored. File contains directives outside comments and those have higher precedence."
           reportWarning(
@@ -123,7 +111,7 @@ object ExtractedDirectives {
           )
           codeDirectives
         }
-        else if (!specialCommentDirectives.getFlattenedMap.isEmpty) {
+        else if (specialCommentDirectives.nonEmpty) {
           val msg =
             s"This using directive is ignored. $changeToSpecialCommentMsg"
           reportWarning(msg, getDirectives(plainCommentDirectives))
