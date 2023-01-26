@@ -1460,14 +1460,14 @@ A synonym to --scala-snippet, which defaults the sub-command to `run` when no su
 
 Aliases: `--md-snippet`
 
-[experimental] Allows to execute a passed string as Markdown code
+Allows to execute a passed string as Markdown code
 
 ### `--execute-markdown`
 
 Aliases: `--execute-md`
 
 [Internal]
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
+A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
 ## Suppress warning options
 

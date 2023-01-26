@@ -42,13 +42,15 @@ final case class SnippetOptions(
     executeJava: List[String] = List.empty,
 
   @Group("Markdown")
-  @HelpMessage("[experimental] Allows to execute a passed string as Markdown code")
+  @HelpMessage("Allows to execute a passed string as Markdown code")
   @Name("mdSnippet")
+  @Tag(tags.experimental)
     markdownSnippet: List[String] = List.empty,
 
   @Group("Markdown")
-  @HelpMessage("[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
+  @HelpMessage("A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
   @Name("executeMd")
+  @Tag(tags.experimental)
   @Hidden
     executeMarkdown: List[String] = List.empty,
 )
