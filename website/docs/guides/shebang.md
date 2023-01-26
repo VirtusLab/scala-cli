@@ -69,13 +69,13 @@ Note that the extra `--` must be added to make it work. If it is not supplied, t
 ```
 
 ```text
-[error] Hello: not found
-World: not found
+[error] Hello: file not found
+World: file not found
 ```
 
 <!-- Expected:
-Hello: not found
-World: not found
+Hello: file not found
+World: file not found
 -->
 
 </ChainedSnippets>
@@ -164,13 +164,13 @@ scala-cli run Main.scala Hello world
 ```
 
 ```text
-[error]  Hello: not found
-world: not found
+[error]  Hello: file not found
+world: file not found
 ```
 
 <!-- Expected:
-[error]  Hello: not found
-world: not found
+[error]  Hello: file not found
+world: file not found
 -->
 
 </ChainedSnippets>
@@ -230,6 +230,6 @@ possible fixes:
   Add extension to the file's name e.q. '.sc'
 -->
 
-Note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
+Please note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
 
 </ChainedSnippets>
