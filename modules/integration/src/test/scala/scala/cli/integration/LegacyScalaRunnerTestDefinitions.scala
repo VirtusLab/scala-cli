@@ -85,6 +85,26 @@ trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
     }
   }
 
+  test("ensure -Yscriptrunner works with the default command") {
+    legacyOptionBackwardsCompatTest("-Yscriptrunner") {
+      (legacyOption, inputFile, root) =>
+        Seq("default", "resident", "shutdown", "scala.tools.nsc.fsc.ResidentScriptRunner").foreach {
+          legacyOptionValue =>
+            val res =
+              os.proc(
+                TestUtil.cli,
+                legacyOption,
+                legacyOptionValue,
+                inputFile,
+                TestUtil.extraOptions
+              )
+                .call(cwd = root, stderr = os.Pipe)
+            expect(res.err.trim().contains(deprecatedOptionWarning(legacyOption)))
+            expect(res.err.trim().contains(legacyOptionValue))
+        }
+    }
+  }
+
   private def simpleLegacyOptionBackwardsCompatTest(optionAliases: String*): Unit =
     abstractLegacyOptionBackwardsCompatTest(optionAliases) {
       (legacyOption, expectedMsg, _, root) =>

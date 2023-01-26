@@ -35,12 +35,13 @@ object ScalacOptions {
     origin = Some("ScalacOptions")
   )
   // .withIsFlag(true) // The scalac options we handle accept no value after the -… argument
+  val YScriptRunnerOption = "-Yscriptrunner"
   private val scalacOptionsPurePrefixes =
     Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
     Set("-g", "-language", "-opt", "-P", "-target", "-source") ++ scalacOptionsPurePrefixes
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
-    Set("-encoding", "-release", "-color")
+    Set("-encoding", "-release", "-color", YScriptRunnerOption)
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
       "-nowarn",
@@ -64,6 +65,9 @@ object ScalacOptions {
     "-classpath", // redirected to --extra-jars
     "-d"          // redirected to --compilation-output
   )
+  val ScalacDeprecatedOptions: Set[String] = Set(
+    YScriptRunnerOption // old 'scala' runner specific, no longer supported
+  )
 
   private val scalacOptionsArgument: Argument[List[String]] =
     new Argument[List[String]] {
@@ -81,7 +85,9 @@ object ScalacOptions {
         formatter: Formatter[Name]
       ): Either[(Error, List[String]), Option[(Option[List[String]], List[String])]] =
         args match {
-          case h :: t if scalacOptionsPrefixes.exists(h.startsWith) =>
+          case h :: t
+              if scalacOptionsPrefixes.exists(h.startsWith) &&
+              !ScalacDeprecatedOptions.contains(h) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
           case h :: t if scalacNoArgAliasedOptions.contains(h) =>
             Right(Some((Some(h :: acc.getOrElse(Nil)), t)))

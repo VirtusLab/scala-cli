@@ -5,9 +5,11 @@ import caseapp.core.Indexed
 
 import scala.build.Logger
 import scala.cli.ScalaCli
-import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.ScalaCli.{fullRunnerName, progName}
+import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.default.LegacyScalaOptions.*
 import scala.cli.commands.package0.Package
+import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.tags
 
 /** Options covering backwards compatibility with the old scala runner.
@@ -164,4 +166,26 @@ object LegacyScalaOptions {
 
   private[default] lazy val PowerString =
     if ScalaCli.allowRestrictedFeatures then "" else "--power "
+
+  def yScriptRunnerWarning(yScriptRunnerValue: Option[String]): String = {
+    val valueSpecificMsg = yScriptRunnerValue match {
+      case Some(v @ "default") =>
+        s"scala.tools.nsc.DefaultScriptRunner (the $v script runner) is no longer available."
+      case Some(v @ "resident") =>
+        s"scala.tools.nsc.fsc.ResidentScriptRunner (the $v script runner) is no longer available."
+      case Some(v @ "shutdown") =>
+        val bloopExitCommandName =
+          BloopExit.names.headOption.map(_.mkString(" ")).getOrElse(BloopExit.name)
+        s"""scala.tools.nsc.fsc.DaemonKiller (the $v script runner) is no longer available.
+           |Did you want to stop the $fullRunnerName build server (Bloop) instead?
+           |If so, consider using the following command:
+           |  ${Console.BOLD}$progName $PowerString$bloopExitCommandName${Console.RESET}""".stripMargin
+      case Some(className) =>
+        s"Using $className as the script runner is no longer supported and will not be attempted."
+      case _ => ""
+    }
+    s"""Deprecated option '$YScriptRunnerOption' is ignored.
+       |The script runner can no longer be picked as before.
+       |$valueSpecificMsg""".stripMargin
+  }
 }
