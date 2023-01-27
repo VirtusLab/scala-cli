@@ -41,7 +41,7 @@ final case class Toolkit(
 object Toolkit {
   def resolveDependency(toolkitVersion: Positioned[String]) = toolkitVersion.map(version =>
     val v = if version == "latest" then "latest.release" else version
-    dep"${Constants.toolkitOrganization}::${Constants.toolkitName}:$v,toolkit"
+    dep"${Constants.toolkitOrganization}::${Constants.toolkitName}::$v,toolkit"
   )
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
 }
