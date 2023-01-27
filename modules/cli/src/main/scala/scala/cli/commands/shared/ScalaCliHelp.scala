@@ -1,12 +1,16 @@
 package scala.cli.commands.shared
 
+import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
+import scala.cli.ScalaCli.allowRestrictedFeatures
+import scala.cli.commands.RestrictedCommandsParser.isExperimentalOrRestricted
 import scala.util.{Properties, Try}
 
 object ScalaCliHelp {
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
+      filterArgs = Some(allowRestrictedFeatures || !isExperimentalOrRestricted(_)),
       sortedGroups = Some(
         Seq(
           "Help",
