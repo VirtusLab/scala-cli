@@ -4,13 +4,13 @@ import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
 import scala.cli.ScalaCli.allowRestrictedFeatures
-import scala.cli.commands.RestrictedCommandsParser.isExperimentalOrRestricted
+import scala.cli.util.ArgHelpers.*
 import scala.util.{Properties, Try}
 
 object ScalaCliHelp {
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
-      filterArgs = Some(allowRestrictedFeatures || !isExperimentalOrRestricted(_)),
+      filterArgs = Some(_.isSupported),
       sortedGroups = Some(
         Seq(
           "Help",

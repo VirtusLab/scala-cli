@@ -14,7 +14,8 @@ import java.util.{Arrays, Locale}
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
-import scala.cli.commands.{RestrictedCommandsParser, ScalaCommand, SpecificationLevel, tags}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
+import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
@@ -122,7 +123,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   ): String = {
     val argsToShow = if (!onlyRestricted) allArgs
     else
-      allArgs.filterNot(RestrictedCommandsParser.isExperimentalOrRestricted)
+      allArgs.filterNot(_.isExperimentalOrRestricted)
 
     val argsByOrigin = argsToShow.groupBy(arg => cleanUpOrigin(arg.origin.getOrElse("")))
 
@@ -201,7 +202,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
             )
 
           if (onlyRestricted)
-            b.section(s"`${RestrictedCommandsParser.level(arg).md}` per Scala Runner specification")
+            b.section(s"`${arg.level.md}` per Scala Runner specification")
           else if (isInternal || arg.noHelp) b.append("[Internal]\n")
 
           for (desc <- arg.helpMessage.map(_.message))
@@ -224,7 +225,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     allArgs: Seq[Arg],
     nameFormatter: Formatter[Name]
   ): String = {
-    val argsToShow = allArgs.filterNot(RestrictedCommandsParser.isExperimentalOrRestricted)
+    val argsToShow = allArgs.filterNot(_.isExperimentalOrRestricted)
 
     val b = new StringBuilder
 
@@ -254,7 +255,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     def optionsForCommand(command: Command[_]) = {
       val supportedArgs = actualHelp(command).args
-      val argsByLevel   = supportedArgs.groupBy(RestrictedCommandsParser.level)
+      val argsByLevel   = supportedArgs.groupBy(_.level)
 
       import caseapp.core.util.NameOps._
 
