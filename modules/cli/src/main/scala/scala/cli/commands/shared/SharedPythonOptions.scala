@@ -14,7 +14,7 @@ final case class SharedPythonOptions(
   @ExtraName("py")
     python: Option[Boolean] = None,
   @Tag(tags.experimental)
-  @HelpMessage(s"[experimental] Set ScalaPy version (${Constants.scalaPyVersion} by default)")
+  @HelpMessage(s"Set ScalaPy version (${Constants.scalaPyVersion} by default)")
   @ExtraName("scalapyVersion")
     scalaPyVersion: Option[String] = None
 )
