@@ -1,6 +1,7 @@
 package scala.build.actionable
 
 import coursier.Versions
+import coursier.core.Version
 import coursier.parse.RepositoryParser
 import dependency._
 
@@ -29,7 +30,7 @@ case object ActionableDependencyHandler
     val currentVersion = dependency.version
     val latestVersion  = value(findLatestVersion(buildOptions, dependency))
 
-    if (latestVersion != currentVersion)
+    if (Version(latestVersion) > Version(currentVersion))
       if (dependency.userParams.contains("toolkit"))
         Some(ActionableDependencyUpdateDiagnostic(
           setting.positions,
