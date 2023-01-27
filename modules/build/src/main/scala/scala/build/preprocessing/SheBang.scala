@@ -5,6 +5,8 @@ import scala.util.matching.Regex
 object SheBang {
   private val sheBangRegex: Regex = s"""(^(#!.*(\\r\\n?|\\n)?)+(\\s*!#.*)?)""".r
 
+  def isShebangScript(content: String): Boolean = sheBangRegex.unanchored.matches(content)
+
   def ignoreSheBangLines(content: String): (String, Boolean) =
     if (content.startsWith("#!")) {
       val regexMatch = sheBangRegex.findFirstMatchIn(content)

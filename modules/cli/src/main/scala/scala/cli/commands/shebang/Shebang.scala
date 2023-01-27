@@ -23,6 +23,7 @@ object Shebang extends ScalaCommand[ShebangOptions] {
       args.remaining.headOption.toSeq,
       args.remaining.drop(1),
       () => None,
-      logger
+      logger,
+      isRunWithShebang = true
     )
 }

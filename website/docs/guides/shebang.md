@@ -19,7 +19,7 @@ println(args.size)
 println(args.headOption)
 ```
 
-And it works almost correctly.
+And it works correctly:
 
 <ChainedSnippets>
 
@@ -40,7 +40,7 @@ None
 
 </ChainedSnippets>
 
-And it also works.
+And it also works:
 
 <ChainedSnippets>
 
@@ -172,5 +172,64 @@ world: not found
 [error]  Hello: not found
 world: not found
 -->
+
+</ChainedSnippets>
+
+### Script files' extensions
+
+When running the `shebang` subcommand, script files don't need the `.sc` extension,
+but they are then REQUIRED to start with a shebang line:
+
+```scala title=hello-with-shebang
+#!/usr/bin/env -S scala-cli shebang -S 3
+
+println(args.size)
+println(args.headOption)
+```
+
+<ChainedSnippets>
+
+```bash
+chmod +x hello-with-shebang
+./hello-with-shebang Hello World
+```
+
+```text
+2
+Some(Hello)
+```
+<!-- Expected:
+2
+Some(Hello)
+-->
+
+</ChainedSnippets>
+
+```scala title=hello-no-shebang
+println(args.size)
+println(args.headOption)
+```
+
+<ChainedSnippets>
+
+```bash run-fail
+chmod +x hello-no-shebang
+scala-cli shebang hello-no-shebang Hello World
+```
+
+```text
+[error]  hello-no-shebang does not contain shebang header
+possible fixes:
+  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
+  Add extension to the file's name e.q. '.sc'
+```
+<!-- Expected:
+[error]  hello-no-shebang does not contain shebang header
+possible fixes:
+  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
+  Add extension to the file's name e.q. '.sc'
+-->
+
+Note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
 
 </ChainedSnippets>

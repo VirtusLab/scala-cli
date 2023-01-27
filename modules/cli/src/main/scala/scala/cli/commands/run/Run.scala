@@ -106,11 +106,16 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     inputArgs: Seq[String],
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs],
-    logger: Logger
+    logger: Logger,
+    isRunWithShebang: Boolean = false
   ): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
 
-    val inputs = options.shared.inputs(inputArgs, defaultInputs = defaultInputs).orExit(logger)
+    val inputs = options.shared.inputs(
+      inputArgs,
+      defaultInputs = defaultInputs,
+      isRunWithShebang
+    ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 

@@ -44,7 +44,8 @@ final case class TestInputs(
         tmpDir,
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
-        extraClasspathWasPassed = false
+        extraClasspathWasPassed = false,
+        isRunWithShebang = false
       )
       res match {
         case Left(err)     => throw new Exception(err)

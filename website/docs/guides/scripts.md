@@ -140,6 +140,10 @@ It is also possible to set `scala-cli` command-line options in the shebang line,
 #!/usr/bin/env -S scala-cli shebang --scala-version 2.13
 ```
 
+The command `shebang` also allows script files to be executed even if they have no file extension,
+provided they start with the [`shebang` header](../guides/shebang.md#shebang-script-headers).
+Note that those files are always run as scripts even though they may contain e.g. valid `.scala` program.
+
 ### Arguments
 
 You may also pass arguments to your script, and they are referenced with the special `args` variable:
