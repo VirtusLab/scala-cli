@@ -64,6 +64,16 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
       expect(testOutput.contains("1 succeeded"))
     }
   }
+
+  def logbackBugCase(): Unit =
+    ExportTestProjects.logbackBugCase(actualScalaVersion).fromRoot { root =>
+      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
+        .call(cwd = root, stdout = os.Inherit)
+      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
+      val output = res.out.text(Charset.defaultCharset())
+      expect(output.contains("Hello"))
+    }
+
   if (runExportTests)
     test("JVM") {
       jvmTest()
@@ -77,6 +87,11 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
   if (runExportTests && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
       simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
+    }
+
+  if (runExportTests)
+    test("Ensure test framework NPE is not thrown when depending on logback") {
+      logbackBugCase()
     }
 
 }

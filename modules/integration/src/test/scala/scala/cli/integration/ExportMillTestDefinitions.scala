@@ -128,6 +128,16 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def logbackBugCase(): Unit =
+    ExportTestProjects.logbackBugCase(actualScalaVersion).fromRoot { root =>
+      os.proc(TestUtil.cli, "export", extraOptions, "--mill", "-o", "mill-proj", ".")
+        .call(cwd = root, stdout = os.Inherit)
+      val res = os.proc(root / "mill-proj" / launcher, "-i", "project.run")
+        .call(cwd = root / "mill-proj")
+      val output = res.out.text(Charset.defaultCharset())
+      expect(output.contains("Hello"))
+    }
+
   if (runExportTests)
     test("JVM") {
       jvmTest()
@@ -151,6 +161,11 @@ abstract class ExportMillTestDefinitions(val scalaVersionOpt: Option[String])
   if (runExportTests && !actualScalaVersion.startsWith("3."))
     test("Scala Native") {
       simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
+    }
+
+  if (runExportTests)
+    test("Ensure test framework NPE is not thrown when depending on logback") {
+      logbackBugCase()
     }
 
 }
