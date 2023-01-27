@@ -120,7 +120,7 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
-  def testHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+  def testDefaultHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
     val binary = binaryName.prepareBinary(root)
     for (helpOptions <- HelpTests.variants) {
       val output                      = os.proc(binary, helpOptions).call(cwd = root).out.trim()
@@ -128,6 +128,15 @@ class SipScalaTests extends ScalaCliSuite {
       if (binaryName.isSip) expect(!restrictedFeaturesMentioned)
       else expect(restrictedFeaturesMentioned)
     }
+  }
+
+  def testReplHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+    val binary                        = binaryName.prepareBinary(root)
+    val output                        = os.proc(binary, "repl", "-help").call(cwd = root).out.trim()
+    val restrictedFeaturesMentioned   = output.contains("--amm")
+    val experimentalFeaturesMentioned = output.contains("--python")
+    if (binaryName.isSip) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)
+    else expect(restrictedFeaturesMentioned && experimentalFeaturesMentioned)
   }
 
   if (TestUtil.isNativeCli)
@@ -144,8 +153,11 @@ class SipScalaTests extends ScalaCliSuite {
       test(s"test version command when run as $binaryName") {
         testVersionCommand(binaryName)
       }
-      test(s"test help when run as $binaryName") {
-        testHelpOutput(binaryName)
+      test(s"test default help when run as $binaryName") {
+        testDefaultHelpOutput(binaryName)
+      }
+      test(s"test repl help when run as $binaryName") {
+        testReplHelpOutput(binaryName)
       }
     }
 }

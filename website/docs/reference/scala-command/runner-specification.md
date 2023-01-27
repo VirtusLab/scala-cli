@@ -490,18 +490,6 @@ Allows to execute a passed string as Java code
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
 **--scala-library**
 
 
@@ -1014,18 +1002,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 
@@ -1541,18 +1517,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 
@@ -2098,18 +2062,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 
@@ -2678,18 +2630,6 @@ Allows to execute a passed string as Java code
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
 **--scala-library**
 
 
@@ -3206,18 +3146,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 
@@ -3802,18 +3730,6 @@ Allows to execute a passed string as Java code
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
-
 **--scala-library**
 
 
@@ -4393,18 +4309,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 
@@ -5212,18 +5116,6 @@ Allows to execute a passed string as Java code
 **--execute-java**
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-**--markdown-snippet**
-
-[experimental] Allows to execute a passed string as Markdown code
-
-Aliases: `--md-snippet`
-
-**--execute-markdown**
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
-Aliases: `--execute-md`
 
 **--scala-library**
 

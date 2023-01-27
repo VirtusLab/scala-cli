@@ -1024,22 +1024,6 @@ Allows to execute a passed string as Java code
 
 A synonym to --scala-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
-### `--markdown-snippet`
-
-Aliases: `--md-snippet`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-[experimental] Allows to execute a passed string as Markdown code
-
-### `--execute-markdown`
-
-Aliases: `--execute-md`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-[experimental] A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
-
 ## Suppress warning options
 
 Available in commands:
