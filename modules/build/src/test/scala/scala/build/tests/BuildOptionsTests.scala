@@ -272,64 +272,6 @@ class BuildOptionsTests extends munit.FunSuite {
       expect(scalaParams == expectedScalaParams)
     }
 
-  val expectedScalaConfVersions = Seq(
-    Some("3")      -> "3.0.1",
-    Some("3.0")    -> "3.0.1",
-    None           -> "3.0.1",
-    Some("2.13")   -> "2.13.4",
-    Some("2.12")   -> "2.12.13",
-    Some("2")      -> "2.13.4",
-    Some("2.13.2") -> "2.13.2"
-  )
-
-  val testVersion           = "1.11.3"
-  val testRightAfterVersion = "1.11.4"
-  val testPrevVersion       = "1.11.1"
-  val testNextVersion       = "1.11.5"
-  val confFile =
-    s"""[
-       | {
-       |  "scalaCliVersion": "$testPrevVersion",
-       |  "supportedScalaVersions": ["3.0.0", "2.13.3", "2.12.11"]
-       | },
-       | {
-       |  "scalaCliVersion": "$testVersion",
-       |  "supportedScalaVersions": ["3.0.1", "2.13.4", "2.12.13"]
-       | },
-       | {
-       |  "scalaCliVersion": "$testNextVersion",
-       |  "supportedScalaVersions": ["3.1.0", "2.13.8", "2.12.15]"]
-       | }
-       |]""".stripMargin
-
-  for {
-    (testVer, testNameSuffix) <-
-      Seq((testVersion, "exact version"), (testRightAfterVersion, "next version"))
-    (prefix, expectedScalaVersion) <- expectedScalaConfVersions
-  }
-    test(
-      s"use expected scala version from conf file, prefix: ${prefix.getOrElse("empty")}, $testNameSuffix"
-    ) {
-      TestInputs.withTmpDir("conf-scala-versions") { dirPath =>
-
-        val confFilePath = dirPath / "conf-file.json"
-        os.write(confFilePath, confFile)
-
-        val options = BuildOptions(
-          scalaOptions = ScalaOptions(
-            scalaVersion = prefix.map(MaybeScalaVersion(_)),
-            supportedScalaVersionsUrl = Some(confFilePath.toNIO.toUri.toASCIIString)
-          )
-        )
-
-        val scalaParams         = options.computeScalaParams(testVer).orThrow.getOrElse(???)
-        val expectedScalaParams = ScalaParameters(expectedScalaVersion)
-
-        expect(scalaParams == expectedScalaParams)
-      }
-
-    }
-
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)
   val buildThreads    = BuildThreads.create()

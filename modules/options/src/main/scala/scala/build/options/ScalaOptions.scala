@@ -14,15 +14,8 @@ final case class ScalaOptions(
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,
-  extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty,
-  supportedScalaVersionsUrl: Option[String] = None,
-  ignoreSupportedScalaVersionsErrors: Option[Boolean] = None
+  extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty
 ) {
-
-  lazy val scalaVersionsUrl = supportedScalaVersionsUrl.getOrElse(
-    "https://github.com/VirtusLab/scala-cli-scala-versions/raw/main/scala-versions-v1.json"
-  )
-
   def normalize: ScalaOptions = {
     var opt = this
     for (sv <- opt.scalaVersion.map(_.asString) if opt.extraScalaVersions.contains(sv))
