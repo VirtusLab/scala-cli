@@ -213,7 +213,7 @@ Set contextual parameters for publishing
 
 Enable Python support
 
-`//> using python
+`//> using python`
 
 #### Examples
 `//> using python`
