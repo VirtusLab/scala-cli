@@ -208,7 +208,30 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         val testLibDiagnosticOpt = updateDiagnostics.collectFirst {
           case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
         }
-        println(testLibDiagnosticOpt)
+        expect(testLibDiagnosticOpt.isEmpty)
+    }
+  }
+
+  test("actionable actions should not suggest update if uses version: latest") {
+    val testInputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using toolkit "latest"
+           |
+           |object Hello extends App {
+           |  os.list(os.pwd).foreach(println)
+           |}
+           |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+
+        val updateDiagnostics =
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
+
+        val testLibDiagnosticOpt = updateDiagnostics.collectFirst {
+          case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
+        }
         expect(testLibDiagnosticOpt.isEmpty)
     }
   }
