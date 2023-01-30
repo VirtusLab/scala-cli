@@ -1,18 +1,7 @@
 package scala.cli.integration
 
-import com.eed3si9n.expecty.Expecty.expect
-
-import java.nio.charset.Charset
-
-import scala.util.Properties
-
-abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
-
-  protected def runExportTests: Boolean =
-    Properties.isLinux
+abstract class ExportSbtTestDefinitions(override val scalaVersionOpt: Option[String])
+    extends ScalaCliSuite with TestScalaVersionArgs with ExportCommonTestDefinitions {
 
   private lazy val sbtLaunchJar = {
     val res =
@@ -34,64 +23,11 @@ abstract class ExportSbtTestDefinitions(val scalaVersionOpt: Option[String])
       sbtLaunchJar
     )
 
-  protected def simpleTest(
-    inputs: TestInputs,
-    extraExportArgs: Seq[String] = Nil,
-    sbtArgs: Seq[String] = Seq("run")
-  ): Unit =
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".", extraExportArgs)
-        .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, sbtArgs).call(cwd = root / "sbt-proj")
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello from exported Scala CLI project"))
-    }
+  override def exportCommand(args: String*): os.proc =
+    os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", outputDir.toString, args)
 
-  def jvmTest(): Unit = {
-    val inputs = ExportTestProjects.jvmTest(actualScalaVersion)
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
-        .call(cwd = root, stdout = os.Inherit)
-      // main
-      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello from " + actualScalaVersion))
-      // resource
-      expect(output.contains("resource:1,2"))
-      // test
-      val testRes    = os.proc(sbt, "test").call(cwd = root / "sbt-proj")
-      val testOutput = testRes.out.text(Charset.defaultCharset())
-      expect(testOutput.contains("1 succeeded"))
-    }
-  }
+  override def buildToolCommand(root: os.Path, args: String*): os.proc = os.proc(sbt, args)
 
-  def logbackBugCase(): Unit =
-    ExportTestProjects.logbackBugCase(actualScalaVersion).fromRoot { root =>
-      os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", "sbt-proj", ".")
-        .call(cwd = root, stdout = os.Inherit)
-      val res    = os.proc(sbt, "run").call(cwd = root / "sbt-proj")
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello"))
-    }
-
-  if (runExportTests)
-    test("JVM") {
-      jvmTest()
-    }
-
-  if (runExportTests)
-    test("Scala.js") {
-      simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
-    }
-
-  if (runExportTests && !actualScalaVersion.startsWith("3."))
-    test("Scala Native") {
-      simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
-    }
-
-  if (runExportTests)
-    test("Ensure test framework NPE is not thrown when depending on logback") {
-      logbackBugCase()
-    }
-
+  override val runMainArgs: Seq[String]  = Seq("run")
+  override val runTestsArgs: Seq[String] = Seq("test")
 }
