@@ -11,7 +11,9 @@ final case class PostBuildOptions(
   pythonSetup: Option[Boolean] = None,
   python: Option[Boolean] = None,
   scalaPyVersion: Option[String] = None,
-  addRunnerDependencyOpt: Option[Boolean] = None
+  addRunnerDependencyOpt: Option[Boolean] = None,
+  entrypoints: Option[Boolean] = None,
+  entrypointsVersion: Option[String] = None
 ) {
 
   def doSetupPython: Option[Boolean] =

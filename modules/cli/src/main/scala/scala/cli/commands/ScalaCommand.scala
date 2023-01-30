@@ -87,6 +87,9 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
       else parent.format(t)
   }
 
+  def postDoubleDashCompleter(state: Option[T], args: RemainingArgs): Option[Completer[T]] =
+    None
+
   override def completer: Completer[T] = {
     val parent = super.completer
     new Completer[T] {
@@ -132,6 +135,9 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
       }
       def argument(prefix: String, state: Option[T], args: RemainingArgs): List[CompletionItem] =
         parent.argument(prefix, state, args)
+
+      override def postDoubleDash(state: Option[T], args: RemainingArgs): Option[Completer[T]] =
+        postDoubleDashCompleter(state, args)
     }
   }
 

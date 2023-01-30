@@ -50,6 +50,7 @@ case object ScalaPreprocessor extends Preprocessor {
     Seq[DirectiveHandler[_ <: HasBuildOptions]](
       directives.CustomJar.handler,
       directives.Dependency.handler,
+      directives.Entrypoints.handler,
       directives.JavacOptions.handler,
       directives.JavaOptions.handler,
       directives.JavaProps.handler,

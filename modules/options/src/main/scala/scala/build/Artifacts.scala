@@ -75,7 +75,8 @@ object Artifacts {
     scalaJsVersion: Option[String],
     scalaJsCliVersion: Option[String],
     scalaNativeCliVersion: Option[String],
-    addScalapy: Option[String]
+    addScalapy: Option[String],
+    addEntrypoints: Option[String]
   )
 
   def apply(
@@ -253,6 +254,15 @@ object Artifacts {
             Nil
         }
 
+        val entrypointsDependencies = scalaArtifactsParams.addEntrypoints match {
+          case Some(entrypointsVersion) =>
+            Seq(
+              dep"com.github.alexarchambault::case-app-entrypoint-annotation::$entrypointsVersion"
+            )
+          case None =>
+            Nil
+        }
+
         val internalDependencies =
           jsTestBridgeDependencies ++
             nativeTestInterfaceDependencies
@@ -264,7 +274,7 @@ object Artifacts {
           scalaJsCli,
           scalaNativeCli,
           internalDependencies,
-          scalapyDependencies,
+          scalapyDependencies ++ entrypointsDependencies,
           scalaArtifactsParams.params
         )
         Some(scala)

@@ -416,6 +416,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
+         |
+         |  def entrypointsVersion = "${Deps.entrypoints.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

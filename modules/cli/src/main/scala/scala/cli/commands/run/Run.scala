@@ -25,6 +25,9 @@ import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
 import scala.util.{Properties, Try}
+import caseapp.core.complete.Completer
+import caseapp.core.complete.CompletionItem
+import caseapp.core.Arg
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group                                                     = "Main"
@@ -100,6 +103,78 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       )
     )
   }
+
+  override def postDoubleDashCompleter(
+    state: Option[RunOptions],
+    args: RemainingArgs
+  ): Option[Completer[RunOptions]] =
+    state.map { options =>
+
+      // ???
+
+      val initialBuildOptions = buildOptionsOrExit(options)
+
+      val logger = options.logging.logger
+      val inputs = options.shared.inputs(
+        args.remaining,
+        defaultInputs = () => None,
+        false
+      ).orExit(logger)
+
+      val threads = BuildThreads.create()
+
+      val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+
+      val builds =
+        Build.build(
+          inputs,
+          initialBuildOptions,
+          compilerMaker,
+          None,
+          logger,
+          crossBuilds = false,
+          buildTests = false,
+          partial = None,
+          actionableDiagnostics = Some(false)
+        )
+          .orExit(logger)
+      val detailsOpt = builds.main match {
+        case s: Build.Successful =>
+          val mainClassOpt = s.options.mainClass.filter(_.nonEmpty) // trim it too?
+          val mainClass = mainClassOpt match {
+            case Some(cls) => cls
+            case None =>
+              s.retainedMainClass(logger, mainClasses = s.foundMainClasses()).orExit(logger)
+          }
+          EntrypointDetails.find(s.fullClassPath, mainClass)
+        case _: Build.Failed =>
+          None
+      }
+
+      val userOptions = detailsOpt
+        .map { details =>
+          EntrypointDetails.parse(details).toList
+        }
+        .getOrElse(Nil)
+
+      new Completer[RunOptions] {
+        def optionName(
+          prefix: String,
+          state: Option[RunOptions],
+          args: RemainingArgs
+        ): List[CompletionItem] =
+          userOptions.flatMap { opt =>
+            val retainedNames = opt.names.filter(_.startsWith(prefix))
+            retainedNames match {
+              case Nil    => Nil
+              case h :: t => List(CompletionItem(h, opt.help, t))
+            }
+          }
+        def optionValue(arg: Arg, prefix: String, state: Option[RunOptions], args: RemainingArgs) =
+          Nil
+        def argument(prefix: String, state: Option[RunOptions], args: RemainingArgs) = Nil
+      }
+    }
 
   def runCommand(
     options: RunOptions,

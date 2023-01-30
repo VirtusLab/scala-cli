@@ -111,6 +111,7 @@ object Deps {
   def dependency         = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
+  def entrypoints   = ivy"com.github.alexarchambault::case-app-entrypoint-annotation:0.1.0"
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def guava         = ivy"com.google.guava:guava:31.1-jre"

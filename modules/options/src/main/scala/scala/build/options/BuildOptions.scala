@@ -351,6 +351,11 @@ final case class BuildOptions(
             if (notForBloopOptions.doSetupPython.getOrElse(false))
               Some(notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
             else
+              None,
+          addEntrypoints =
+            if (notForBloopOptions.entrypoints.getOrElse(false))
+              Some(notForBloopOptions.entrypointsVersion.getOrElse(Constants.entrypointsVersion))
+            else
               None
         )
         Some(params)
