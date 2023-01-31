@@ -242,13 +242,13 @@ Generate SemanticDBs
 
 **--watch**
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 Aliases: `-w`
 
 **--restart**
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
 
@@ -1274,13 +1274,13 @@ Generate SemanticDBs
 
 **--watch**
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 Aliases: `-w`
 
 **--restart**
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
 
@@ -1809,13 +1809,13 @@ Generate SemanticDBs
 
 **--watch**
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 Aliases: `-w`
 
 **--restart**
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
 
@@ -2376,13 +2376,13 @@ Generate SemanticDBs
 
 **--watch**
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 Aliases: `-w`
 
 **--restart**
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
 
@@ -3474,13 +3474,13 @@ Generate SemanticDBs
 
 **--watch**
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 Aliases: `-w`
 
 **--restart**
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
 

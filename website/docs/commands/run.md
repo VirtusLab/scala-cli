@@ -174,7 +174,8 @@ scala-cli run Multiple.scala
 
 ## Watch mode
 
-`--watch` makes `scala-cli` watch your code for changes, and re-runs it upon any change:
+`--watch` makes Scala CLI watch your code for changes, and re-runs it upon any change 
+or when the `ENTER` key is passed from the command line:
 
 <ChainedSnippets>
 
@@ -184,18 +185,20 @@ scala-cli run Hello.scala  --watch
 
 ```text
 Hello
-Watching sources, press Ctrl+C to exit.
+Program exited with return code 0.
+Watching sources, press Ctrl+C to exit, or press Enter to re-run.
 Compiling project (Scala 3.1.1, JVM)
 Compiled project (Scala 3.1.1, JVM)
 Hello World
-Watching sources, press Ctrl+C to exit.
+Program exited with return code 0.
+Watching sources, press Ctrl+C to exit, or press Enter to re-run.
 ```
 
 </ChainedSnippets>
 
-### Watch mode - restart
-
-`--restart` mode runs your application in the background and automatically restarts it upon any change:
+### Watch mode (restart)
+The `--restart` option works very similarly to `--watch`, but instead of waking the sleeping thread, 
+it kills the process and restarts the app whenever sources change or the `ENTER` key is passed from the command line.
 
 <ChainedSnippets>
 
@@ -204,12 +207,15 @@ scala-cli run Hello.scala --restart
 ```
 
 ```text
+Watching sources while your program is running.
 Hello
-Watching sources, press Ctrl+C to exit.
+Program exited with return code 0.
+Watching sources while your program is running.
 Compiling project (Scala 3.1.1, JVM)
 Compiled project (Scala 3.1.1, JVM)
 Hello World
-Watching sources, press Ctrl+C to exit.
+Program exited with return code 0.
+Watching sources while your program is running.
 ```
 
 </ChainedSnippets>
