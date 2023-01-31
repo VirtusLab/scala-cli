@@ -66,7 +66,8 @@ App called with arguments: first-arg, second-arg
 
 ## Main class
 
-If your application has multiple main classes, the `--main-class` option lets you explicitly specify the main class you want to run:
+If your application has multiple main classes, the `--main-class` option lets you explicitly specify the main class you
+want to run:
 
 ```scala title=hi.sc
 println("Hi")
@@ -85,11 +86,13 @@ scala-cli Hello.scala --jvm adopt:14
 ```
 
 You can also specify custom JVM with the using directive `//> using jvm`:
+
 ```scala compile
 //> using jvm "adopt:14"
 ```
 
-JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from the [coursier JVM index](https://github.com/coursier/jvm-index).
+JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from
+the [coursier JVM index](https://github.com/coursier/jvm-index).
 (New JVM versions are automatically checked daily, and updates for those are - manually - merged
 swiftly.)
 
@@ -102,6 +105,7 @@ scala-cli Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
 ```
 
 You can also add java options with the using directive `//> using javaOpt`:
+
 ```scala compile
 //> using javaOpt "-Xmx1g", "-Dfoo=bar"
 ```
@@ -134,9 +138,10 @@ You can also add source files with the using directive `//> using file`:
 //> using file "Utils.scala" 
 
 object Main extends App {
-   println(Utils.message)
+  println(Utils.message)
 }
 ```
+
 ```scala title=Utils.scala
 object Utils {
   val message = "Hello World"
@@ -162,6 +167,7 @@ Hello World
 -->
 
 It is also possible to pass multiple paths to source files in a single using directive:
+
 ```scala title=Multiple.scala
 //> using files "Utils.scala", "Main.scala"
 ```
@@ -170,11 +176,11 @@ It is also possible to pass multiple paths to source files in a single using dir
 scala-cli run Multiple.scala
 ```
 
- Note that the `//> using file` using directive only supports `.java`, `.scala`, `.sc` files or a directory. 
+Note that the `//> using file` using directive only supports `.java`, `.scala`, `.sc` files or a directory.
 
 ## Watch mode
 
-`--watch` makes Scala CLI watch your code for changes, and re-runs it upon any change 
+`--watch` makes Scala CLI watch your code for changes, and re-runs it upon any change
 or when the `ENTER` key is passed from the command line:
 
 <ChainedSnippets>
@@ -187,8 +193,8 @@ scala-cli run Hello.scala  --watch
 Hello
 Program exited with return code 0.
 Watching sources, press Ctrl+C to exit, or press Enter to re-run.
-Compiling project (Scala 3.1.1, JVM)
-Compiled project (Scala 3.1.1, JVM)
+Compiling project (Scala 3.2.2, JVM)
+Compiled project (Scala 3.2.2, JVM)
 Hello World
 Program exited with return code 0.
 Watching sources, press Ctrl+C to exit, or press Enter to re-run.
@@ -197,7 +203,8 @@ Watching sources, press Ctrl+C to exit, or press Enter to re-run.
 </ChainedSnippets>
 
 ### Watch mode (restart)
-The `--restart` option works very similarly to `--watch`, but instead of waking the sleeping thread, 
+
+The `--restart` option works very similarly to `--watch`, but instead of waking the sleeping thread,
 it kills the process and restarts the app whenever sources change or the `ENTER` key is passed from the command line.
 
 <ChainedSnippets>
@@ -211,8 +218,8 @@ Watching sources while your program is running.
 Hello
 Program exited with return code 0.
 Watching sources while your program is running.
-Compiling project (Scala 3.1.1, JVM)
-Compiled project (Scala 3.1.1, JVM)
+Compiling project (Scala 3.2.2, JVM)
+Compiled project (Scala 3.2.2, JVM)
 Hello World
 Program exited with return code 0.
 Watching sources while your program is running.
@@ -240,7 +247,9 @@ See our dedicated [Scala.js guide](/docs/guides/scala-js.md) for more informatio
 ## Scala Native
 
 Scala Native applications can be compiled and run with the `--native` option.
-Note that the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies) need to be [installed](/install#scala-native) for this to work:
+Note that
+the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/user/setup.html#installing-clang-and-runtime-dependencies)
+need to be [installed](/install#scala-native) for this to work:
 
 ```bash
 scala-cli Hello.scala --native -S 2.13.6
@@ -256,19 +265,22 @@ We have a dedicated [Scala Native guide](/docs/guides/scala-native.md) as well.
 
 ## Platform
 
-The `--platform` option can be used to choose the platform, which should be used to compile and run application. Available platforms are:
+The `--platform` option can be used to choose the platform, which should be used to compile and run application.
+Available platforms are:
+
 * JVM (`jvm`)
 * Scala.js (`scala.js` | `scala-js` | `scalajs` | `js`)
 * Scala Native (`scala-native` | `scalanative` | `native`)
 
-Passing the `--platform` along with `--js` or `--native` is not recommended. If two different types of platform are passed, Scala CLI throws an error.
+Passing the `--platform` along with `--js` or `--native` is not recommended. If two different types of platform are
+passed, Scala CLI throws an error.
 
 ## Scala Scripts
 
 Scala CLI can also compile and run Scala scripts:
 
 ```scala title=HelloScript.sc
-#!/usr/bin/env -S scala-cli shebang
+#!/ usr / bin / env -S scala -cli shebang
 
 println("Hello world from scala script")
 ```
@@ -289,7 +301,8 @@ Our [scripts guide](/docs/guides/scripts.md) provides many more details.
 
 ## Scala CLI from docker
 
-Scala applications can also be compiled and run using a [docker](https://docs.docker.com/get-started/) image with `scala-cli`, without needing to install Scala CLI manually:
+Scala applications can also be compiled and run using a [docker](https://docs.docker.com/get-started/) image
+with `scala-cli`, without needing to install Scala CLI manually:
 
 ```bash
 docker run virtuslab/scala-cli:latest version
@@ -318,10 +331,12 @@ Hello world
 It is possible to debug code by passing `--debug` flag.
 
 Additional debug options:
+
 * `--debug-mode` (attach by default)
 * `--debug-port` (5005 by default)
 
 Available debug modes:
+
 * Attach (`attach` | `att` | `a`)
 * Listen (`listen` | `lis` | `l`)
 
