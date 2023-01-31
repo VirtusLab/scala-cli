@@ -599,8 +599,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     val buildOptions = baseOptions.copy(
       scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = Some(MaybeScalaVersion(s"3.${Int.MaxValue}.3")),
-        scalaBinaryVersion = None,
-        supportedScalaVersionsUrl = None
+        scalaBinaryVersion = None
       )
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
@@ -871,30 +870,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |}
           |""".stripMargin
     )
-    val options = baseOptions.copy(
-      scalaOptions = baseOptions.scalaOptions.copy(
-        supportedScalaVersionsUrl =
-          Some("abcd://nope"), // should not be checked, as we're a pure Java project
-        ignoreSupportedScalaVersionsErrors = Some(false)
-      )
-    )
-
-    // Checking that this effectively throws if it tries to download the supported Scala version
-    // listing.
-    // The test right after checks that things _don't_ throw, meaning it doesn't try to download
-    // the listing (which would have thrown).
-    val gotExpectedError =
-      try {
-        options.scalaParams
-        false
-      }
-      catch {
-        case e if e.getCause.isInstanceOf[ArtifactError.DownloadError] =>
-          true
-      }
-    expect(gotExpectedError)
-
-    inputs.withBuild(options, buildThreads, bloopConfigOpt, buildTests = false) {
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, buildTests = false) {
       (_, _, maybeBuild) =>
         expect(maybeBuild.exists(_.success))
         val build = maybeBuild

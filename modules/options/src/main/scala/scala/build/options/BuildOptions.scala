@@ -205,79 +205,6 @@ final case class BuildOptions(
   private def defaultStableScalaVersions =
     Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
 
-  private def latestSupportedStableScalaVersion(scalaCliVersion: String): Seq[Version] = {
-
-    val msg =
-      if (internal.verbosityOrDefault > 0)
-        "Getting list of Scala CLI supported Scala versions"
-      else ""
-    val cache                     = finalCache.withMessage(msg)
-    val supportedScalaVersionsUrl = scalaOptions.scalaVersionsUrl
-    val ignoreErrors              = scalaOptions.ignoreSupportedScalaVersionsErrors.getOrElse(true)
-
-    val task = {
-      val art = Artifact(supportedScalaVersionsUrl).withChanging(true)
-      cache.file(art).run.flatMap {
-        case Left(e) => Task.fail(e)
-        case Right(f) =>
-          Task.delay {
-            val content = os.read.bytes(os.Path(f, Os.pwd))
-            readFromArray(content)(StableScalaVersion.seqCodec)
-          }
-      }
-    }
-
-    val launchersTask = cache.logger.using(task)
-
-    //  If an error occurred while downloading stable versions,
-    //  it uses stable scala versions from Deps.sc
-    val supportedScalaVersions =
-      launchersTask.attempt.unsafeRun()(cache.ec) match {
-        case Left(e) =>
-          if (ignoreErrors)
-            // FIXME Log the exception
-            defaultStableScalaVersions
-          else
-            // wrapped in an exception so that the current stack trace appears in the exception
-            throw new Exception(e)
-        case Right(versions) =>
-          versions.find(_.scalaCliVersion == scalaCliVersion)
-            .orElse {
-              val retainedCliVersion =
-                if (scalaCliVersion.endsWith("-SNAPSHOT"))
-                  if (scalaCliVersion.contains("-g"))
-                    // version like 0.1.7-30-g51330f19d-SNAPSHOT
-                    scalaCliVersion.takeWhile(_ != '-').split('.') match {
-                      case Array(maj, min, patch) if patch.nonEmpty && patch.forall(_.isDigit) =>
-                        val patch0 = patch.toInt + 1
-                        s"$maj.$min.$patch0"
-                      case _ =>
-                        // shouldn't happen
-                        scalaCliVersion
-                    }
-                  else
-                    // version like 0.1.8-SNAPSHOT
-                    scalaCliVersion.takeWhile(_ != '-')
-                else
-                  scalaCliVersion
-              val retainedCliVersion0 = Version(retainedCliVersion)
-              versions
-                .filter(_.scalaCliVersion0.compareTo(retainedCliVersion0) <= 0)
-                .maxByOption(_.scalaCliVersion0)
-            }
-            .map(_.supportedScalaVersions)
-            .getOrElse {
-              // FIXME Log that: logger.debug(s"Couldn't find Scala CLI version $scalaCliVersion in $versions")
-              defaultStableScalaVersions
-            }
-      }
-
-    supportedScalaVersions
-      .map(Version(_))
-      .sorted
-      .reverse
-  }
-
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
   lazy val javaHomeManager =
@@ -328,9 +255,6 @@ final case class BuildOptions(
     repositories: Seq[Repository] = Nil
   ): Either[BuildException, Option[ScalaParameters]] = either {
 
-    lazy val maxSupportedStableScalaVersions = latestSupportedStableScalaVersion(scalaCliVersion)
-    lazy val latestSupportedStableVersions   = maxSupportedStableScalaVersions.map(_.repr)
-
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
       case Some(MaybeScalaVersion(None)) =>
         None
@@ -342,8 +266,7 @@ final case class BuildOptions(
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
               ScalaVersionUtil.GetNightly.scala3X(
                 threeSubBinaryNum,
-                cache,
-                latestSupportedStableVersions
+                cache
               )
             case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
               ScalaVersionUtil.GetNightly.scala2("2.13", cache)
@@ -352,30 +275,25 @@ final case class BuildOptions(
             case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
               ScalaVersionUtil.CheckNightly.scala3(
                 versionString,
-                cache,
-                latestSupportedStableVersions
+                cache
               )
                 .map(_ => versionString)
             case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
               ScalaVersionUtil.CheckNightly.scala2(
                 versionString,
-                cache,
-                latestSupportedStableVersions
+                cache
               )
                 .map(_ => versionString)
             case versionString if versionString.exists(_.isLetter) =>
               ScalaVersionUtil.validateNonStable(
                 versionString,
                 cache,
-                latestSupportedStableVersions,
                 repositories
               )
             case versionString =>
               ScalaVersionUtil.validateStable(
                 versionString,
                 cache,
-                latestSupportedStableVersions,
-                maxSupportedStableScalaVersions,
                 repositories
               )
           }
@@ -387,11 +305,7 @@ final case class BuildOptions(
           ScalaVersionUtil.allMatchingVersions(None, finalCache, value(finalRepositories))
             .filter(ScalaVersionUtil.isStable)
         val sv = value {
-          ScalaVersionUtil.default(
-            allStableVersions,
-            latestSupportedStableVersions,
-            maxSupportedStableScalaVersions
-          )
+          ScalaVersionUtil.default(allStableVersions)
         }
         Some(sv)
     }
