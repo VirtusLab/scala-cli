@@ -115,11 +115,12 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 ### version
 
-Print the version of the scala runner and the default version of Scala (unless specified in the project).
+Prints the version of the Scala CLI and the default version of Scala (which can be overridden in the project).
+If network connection is available, this sub-command also checks if the installed Scala CLI is up-to-date.
 
-The version of the scala runner is the version of the command-line tool that runs Scala programs, which
-is distinct from the Scala version of a program. We recommend you specify the version of Scala of a
-program in the program itself (via a configuration directive). Otherwise, the runner falls back to the default
+The version of the Scala CLI is the version of the command-line tool that runs Scala programs, which
+is distinct from the Scala version of the compiler. We recommend to specify the version of the Scala compiler
+for a project in its sources (via a using directive). Otherwise, Scala CLI falls back to the default
 Scala version defined by the runner.
 
 
