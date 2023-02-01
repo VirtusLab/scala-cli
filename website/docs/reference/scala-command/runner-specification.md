@@ -1199,7 +1199,21 @@ Aliases: `--toolkit`
 
 Aliases: `console`
 
-Fire-up a Scala REPL
+Fire-up a Scala REPL.
+
+The entire Scala CLI project's classpath is loaded to the repl.
+
+Specific repl configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
@@ -4804,7 +4818,19 @@ Binary directory
 ## `setup-ide` command
 **IMPLEMENTATION specific for Scala Runner specification.**
 
-Generate a BSP file that you can import into your IDE
+Generates a BSP file that you can import into your IDE.
+
+The `setup-ide` sub-command allows to pre-configure a Scala CLI project to import to an IDE with BSP support.
+It is also ran implicitly when `compile`, `run`, `shebang` or `test` sub-commands are called.
+
+The pre-configuration should be saved in a BSP json connection file under the path:
+    {project-root}/.bsp/scala-cli.json
+
+Specific setup-ide configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 

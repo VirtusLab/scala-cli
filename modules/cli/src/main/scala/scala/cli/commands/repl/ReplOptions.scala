@@ -2,10 +2,20 @@ package scala.cli.commands.repl
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 
 // format: off
-@HelpMessage("Fire-up a Scala REPL")
+@HelpMessage(
+  s"""Fire-up a Scala REPL.
+     |
+     |The entire $fullRunnerName project's classpath is loaded to the repl.
+     |
+     |${HelpMessages.commandConfigurations("repl")}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class ReplOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
