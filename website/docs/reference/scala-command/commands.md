@@ -184,7 +184,10 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [uninstall c
 
 ### update
 
-Update scala-cli - only works when installed by the installation script
+Updates Scala CLI.
+Works only when installed with the installation script.
+If Scala CLI was installed with an external tool, refer to its update methods.
+For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 

@@ -1562,7 +1562,7 @@ Binary directory
 
 Aliases: `-f`
 
-Force update scala-cli if is outdated
+Force update Scala CLI if it is outdated
 
 ### `--is-internal-run`
 
