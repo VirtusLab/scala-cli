@@ -2,7 +2,7 @@ package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
 
-import java.lang.{Boolean => JBoolean}
+import java.lang.Boolean as JBoolean
 import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
@@ -155,12 +155,11 @@ class BspClient(
       case None =>
         logger.debug(s"Not reporting $ex to users (no build target id)")
       case Some(targetId) =>
-        val allExceptions = ex match {
-          case c: CompositeBuildException => c.exceptions
-          case _                          => Seq(ex)
-        }
-        val touchedFiles =
-          allExceptions.flatMap(reportDiagnosticForFiles(targetId, reset = reset)).toSet
+        val touchedFiles = (ex match {
+          case c: CompositeBuildException =>
+            reportDiagnosticsForFiles(targetId, c.exceptions, reset = reset)
+          case _ => reportDiagnosticsForFiles(targetId, Seq(ex), reset = reset)
+        }).toSet
 
         // Small chance of us wiping some Bloop diagnostics, if these happen
         // between the call to remove and the call to actualBuildPublishDiagnostics.
@@ -182,7 +181,34 @@ class BspClient(
         }
     }
 
-  def reportDiagnosticForFiles(
+  def reportDiagnosticsForFiles(
+    targetId: b.BuildTargetIdentifier,
+    diags: Seq[Diagnostic],
+    reset: Boolean = true
+  ): Seq[os.Path] =
+    if reset then // send diagnostic with reset only once for every file path
+      diags.flatMap { diag =>
+        diag.positions.map { position =>
+          Diagnostic(diag.message, diag.severity, Seq(position), diag.textEdit)
+        }
+      }
+        .groupBy(_.positions.headOption match
+          case Some(File(Right(path), _, _)) => Some(path)
+          case _                             => None
+        )
+        .filter(_._1.isDefined)
+        .values
+        .toSeq
+        .flatMap {
+          case head :: tail =>
+            reportDiagnosticForFiles(targetId, reset = reset)(head)
+              ++ tail.flatMap(reportDiagnosticForFiles(targetId))
+          case _ => Nil
+        }
+    else
+      diags.flatMap(reportDiagnosticForFiles(targetId))
+
+  private def reportDiagnosticForFiles(
     targetId: b.BuildTargetIdentifier,
     reset: Boolean = false
   )(diag: Diagnostic): Seq[os.Path] =

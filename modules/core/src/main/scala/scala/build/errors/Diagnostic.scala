@@ -20,12 +20,14 @@ object Diagnostic {
   private case class ADiagnostic(
     message: String,
     severity: Severity,
-    positions: Seq[Position]
+    positions: Seq[Position],
+    override val textEdit: Option[TextEdit]
   ) extends Diagnostic
 
   def apply(
     message: String,
     severity: Severity,
-    positions: Seq[Position] = Nil
-  ): Diagnostic = ADiagnostic(message, severity, positions)
+    positions: Seq[Position] = Nil,
+    textEdit: Option[TextEdit] = None
+  ): Diagnostic = ADiagnostic(message, severity, positions, textEdit)
 }
