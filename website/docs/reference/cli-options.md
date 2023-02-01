@@ -1651,13 +1651,13 @@ Available in commands:
 
 Aliases: `-w`
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 ### `--restart`
 
 Aliases: `--revolver`
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 ## Internal options 
 ### Add path options

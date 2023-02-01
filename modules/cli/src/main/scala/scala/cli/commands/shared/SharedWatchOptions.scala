@@ -7,17 +7,17 @@ import scala.cli.commands.tags
 // format: off
 final case class SharedWatchOptions(
 
-  @HelpMessage("Watch source files for changes")
+  @HelpMessage("Run the application in the background, automatically wake the thread and re-run if sources have been changed")
   @Tag(tags.should)
   @Name("w")
     watch: Boolean = false,
-  @HelpMessage("Run your application in background and automatically restart if sources have been changed")
+  @HelpMessage("Run the application in the background, automatically kill the process and restart if sources have been changed")
   @Tag(tags.should)
   @Name("revolver")
     restart: Boolean = false
 ) { // format: on
 
-  lazy val watchMode = watch || restart
+  lazy val watchMode: Boolean = watch || restart
 }
 
 object SharedWatchOptions {

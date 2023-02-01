@@ -1244,7 +1244,7 @@ Aliases: `-w`
 
 `SHOULD have` per Scala Runner specification
 
-Watch source files for changes
+Run the application in the background, automatically wake the thread and re-run if sources have been changed
 
 ### `--restart`
 
@@ -1252,7 +1252,7 @@ Aliases: `--revolver`
 
 `SHOULD have` per Scala Runner specification
 
-Run your application in background and automatically restart if sources have been changed
+Run the application in the background, automatically kill the process and restart if sources have been changed
 
 ## Internal options 
 ### Bsp options
