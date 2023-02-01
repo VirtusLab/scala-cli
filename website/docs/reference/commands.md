@@ -88,11 +88,26 @@ Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./
 
 Compile and run Scala code.
 
-To pass arguments to the application, just add them after `--`, like:
+Specific run configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+For a run to be successful, a main method must be present on the classpath.
+.sc scripts are an exception, as a main class is provided in their wrapper.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+To pass arguments to the actual application, just add them after `--`, like:
 
 ```sh
-scala-cli MyApp.scala -- first-arg second-arg
+scala-cli run Main.scala AnotherSource.scala -- first-arg second-arg
 ```
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 

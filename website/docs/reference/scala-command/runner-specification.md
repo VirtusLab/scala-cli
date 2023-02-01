@@ -1718,11 +1718,26 @@ Don't actually run the REPL, just fetch it
 
 Compile and run Scala code.
 
-To pass arguments to the application, just add them after `--`, like:
+Specific run configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+For a run to be successful, a main method must be present on the classpath.
+.sc scripts are an exception, as a main class is provided in their wrapper.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+To pass arguments to the actual application, just add them after `--`, like:
 
 ```sh
-scala-cli MyApp.scala -- first-arg second-arg
+scala-cli run Main.scala AnotherSource.scala -- first-arg second-arg
 ```
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
