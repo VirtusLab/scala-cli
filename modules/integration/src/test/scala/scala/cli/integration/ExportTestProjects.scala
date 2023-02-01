@@ -270,4 +270,11 @@ object ExportTestProjects {
          |""".stripMargin
     TestInputs(os.rel / "Test.scala" -> testFile)
   }
+
+  def logbackBugCase(scalaVersion: String): TestInputs =
+    TestInputs(os.rel / "script.sc" ->
+      s"""//> using scala "$scalaVersion"
+         |//> using lib "ch.qos.logback:logback-classic:1.4.5"
+         |println("Hello")
+         |""".stripMargin)
 }

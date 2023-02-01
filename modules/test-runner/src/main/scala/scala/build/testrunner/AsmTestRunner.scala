@@ -16,7 +16,7 @@ object AsmTestRunner {
 
     private val cache = new ConcurrentHashMap[String, Seq[String]]
 
-    def parents(className: String): Seq[String] =
+    private def parents(className: String): Seq[String] =
       Option(cache.get(className)) match {
         case Some(value) => value
         case None =>
@@ -225,7 +225,7 @@ object AsmTestRunner {
       }
     (preferredClassesByteCode ++ listClassesByteCode(classPath, true))
       .flatMap {
-        case ("module-info", _) => Iterator.empty
+        case (moduleInfo, _) if moduleInfo.contains("module-info") => Iterator.empty
         case (name, is) =>
           val checker          = new TestClassChecker
           var is0: InputStream = null
@@ -275,7 +275,7 @@ object AsmTestRunner {
       isInterfaceOpt = Some((access & asm.Opcodes.ACC_INTERFACE) != 0)
       isAbstractOpt = Some((access & asm.Opcodes.ACC_ABSTRACT) != 0)
       nameOpt = Some(name)
-      implements0 = superName :: implements0
+      implements0 = Option(superName).toList ::: implements0
       if (interfaces.nonEmpty)
         implements0 = interfaces.toList ::: implements0
     }
