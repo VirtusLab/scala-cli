@@ -12,7 +12,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(s"""Updates $fullRunnerName.
                 |Works only when installed with the installation script.
                 |If $fullRunnerName was installed with an external tool, refer to its update methods.
-                |For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install""".stripMargin)
+                |${HelpMessages.installationDocsWebsiteReference}""".stripMargin)
 final case class UpdateOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

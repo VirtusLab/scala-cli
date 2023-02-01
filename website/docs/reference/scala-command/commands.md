@@ -170,7 +170,9 @@ Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [compilati
 
 ### uninstall
 
-Uninstall scala-cli - only works when installed by the installation script
+Uninstalls Scala CLI.
+Works only when installed with the installation script.
+For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [uninstall](./cli-options.md#uninstall-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 

@@ -4,6 +4,8 @@ object HelpMessages {
   val passwordOption = "A github token used to access GitHub. Not needed in most cases."
   val docsWebsiteReference =
     "Detailed documentation can be found on our website: https://scala-cli.virtuslab.org"
+  val installationDocsWebsiteReference =
+    "For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install"
   val acceptedInputs: String =
     """Multiple inputs can be passed at once.
       |Paths to directories, URLs and supported file types are accepted as inputs.

@@ -1070,7 +1070,7 @@ Force scala-cli uninstall
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Don't clear scala-cli cache
+Don't clear Scala CLI cache
 
 ### `--binary-name`
 

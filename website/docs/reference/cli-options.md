@@ -1506,7 +1506,7 @@ Force scala-cli uninstall
 ### `--skip-cache`
 
 [Internal]
-Don't clear scala-cli cache
+Don't clear Scala CLI cache
 
 ### `--binary-name`
 

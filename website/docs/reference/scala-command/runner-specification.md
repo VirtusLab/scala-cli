@@ -5290,7 +5290,9 @@ Aliases: `--name`
 ## `uninstall` command
 **IMPLEMENTATION specific for Scala Runner specification.**
 
-Uninstall scala-cli - only works when installed by the installation script
+Uninstalls Scala CLI.
+Works only when installed with the installation script.
+For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
 <details><summary>
 
@@ -5432,7 +5434,7 @@ Aliases: `-f`
 
 **--skip-cache**
 
-Don't clear scala-cli cache
+Don't clear Scala CLI cache
 
 **--binary-name**
 
