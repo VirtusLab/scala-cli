@@ -68,29 +68,30 @@ Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [c
 
 ### shebang
 
-Like `run`, but more handy from shebang scripts
+Like `run`, but handier for shebang scripts.
 
-This command is equivalent to `run`, but it changes the way
+This command is equivalent to the `run` sub-command, but it changes the way
 Scala CLI parses its command-line arguments in order to be compatible
 with shebang scripts.
 
-Normally, inputs and scala-cli options can be mixed. And program arguments have to be
-specified after `--`.
+When relying on the `run` sub-command, inputs and scala-cli options can be mixed,
+while program args have to be specified after `--`
 
 ```sh
-scala-cli [command] [scala_cli_options | input]... -- [program_arguments]...
+scala-cli [command] [scala-cli_options | input]... -- [program_arguments]...
 ```
 
-Contrary, for shebang command, only a single input file can be set, all scala-cli options
-have to be set before the input file, and program arguments after the input file
+However, for the `shebang` sub-command, only a single input file can be set, while all scala-cli options
+have to be set before the input file.
+All inputs after the first are treated as program arguments, without the need for `--`
 ```sh
-scala-cli shebang [scala_cli_options]... input [program_arguments]...
+scala-cli shebang [scala-cli_options]... input [program_arguments]...
 ```
 
 Using this, it is possible to conveniently set up Unix shebang scripts. For example:
 ```sh
 #!/usr/bin/env -S scala-cli shebang --scala-version 2.13
-println("Hello, world)
+println("Hello, world")
 ```
 
 
