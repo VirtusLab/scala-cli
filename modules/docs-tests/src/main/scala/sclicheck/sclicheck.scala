@@ -179,7 +179,7 @@ def checkFile(file: os.Path, options: Options): Unit =
   // putting a custom scala-cli binary in the PATH, that in turn calls the Scala CLI launcher
   // build from Mill, so that doc scripts run it rather than any user-installed scala-cli.
   val binDir = {
-    val binDir0 = out / ".scala-build" / "bin"
+    val binDir0 = out / ".scala-cli"
     os.makeDir.all(binDir0)
     val escapedCommand = options.scalaCliCommand
       .map(arg => "\"" + arg.replace("\"", "\\\"") + "\"")
@@ -277,7 +277,7 @@ def checkFile(file: os.Path, options: Options): Unit =
             )
           }
       case Commands.Clear(_) =>
-        os.list(out).foreach(os.remove.all)
+        os.list(out).filterNot(_ == binDir).foreach(os.remove.all)
 
   try
     println(Blue(s"\n[${file.relativeTo(os.pwd)}]  Running checks in $out"))
