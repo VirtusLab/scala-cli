@@ -2,11 +2,12 @@ package scala.cli.commands.installcompletions
 
 import caseapp.*
 
+import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage("Installs completions into your shell")
+@HelpMessage(s"Installs $fullRunnerName completions into your shell")
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

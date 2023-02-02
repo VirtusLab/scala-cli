@@ -185,7 +185,7 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 Aliases: `install-completions`
 
-Installs completions into your shell
+Installs Scala CLI completions into your shell
 
 Accepts option groups: [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 

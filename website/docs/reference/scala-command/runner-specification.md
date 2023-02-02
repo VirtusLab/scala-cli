@@ -4654,7 +4654,7 @@ Use progress bars
 
 Aliases: `install-completions`
 
-Installs completions into your shell
+Installs Scala CLI completions into your shell
 
 <details><summary>
 
