@@ -2,10 +2,24 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
+import scala.cli.ScalaCli.baseRunnerName
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.*
 
 // format: off
+@HelpMessage(
+  s"""Publishes build artifacts to Maven repositories.
+     |
+     |We recommend running the `publish setup` sub-command once prior to
+     |running `publish` in order to set missing `using` directives for publishing.
+     |(but this is not mandatory)
+     |    $baseRunnerName ${HelpMessages.PowerString}publish setup .
+     |
+     |${HelpMessages.commandConfigurations("publish")}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class PublishOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

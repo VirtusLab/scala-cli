@@ -8,6 +8,10 @@ import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
 // format: off
+@HelpMessage(
+  s"""Configures the project for publishing.
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class PublishSetupOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

@@ -1,7 +1,10 @@
 package scala.cli.commands.shared
 
+import scala.cli.ScalaCli
+
 object HelpMessages {
-  val passwordOption = "A github token used to access GitHub. Not needed in most cases."
+  lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
+  val passwordOption           = "A github token used to access GitHub. Not needed in most cases."
   val docsWebsiteReference =
     "Detailed documentation can be found on our website: https://scala-cli.virtuslab.org"
   val installationDocsWebsiteReference =

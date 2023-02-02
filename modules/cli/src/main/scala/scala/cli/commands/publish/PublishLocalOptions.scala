@@ -3,16 +3,20 @@ package scala.cli.commands.publish
 import caseapp.*
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HasSharedOptions,
-  MainClassOptions,
-  SharedOptions,
-  SharedPythonOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared._
 
 // format: off
+@HelpMessage(
+  s"""Publishes build artifacts to the local Ivy2 repository.
+     |
+     |The local Ivy2 repository usually lives under `~/.ivy2/local`.
+     |It is taken into account most of the time by most Scala tools when fetching artifacts.
+     |
+     |${HelpMessages.commandConfigurations("publish local")}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class PublishLocalOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

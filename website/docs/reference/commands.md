@@ -88,13 +88,53 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 ## publish
 
+Publishes build artifacts to Maven repositories.
+
+We recommend running the `publish setup` sub-command once prior to
+running `publish` in order to set missing `using` directives for publishing.
+(but this is not mandatory)
+    scala-cli publish setup .
+
+Specific publish configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
 ## publish local
 
+Publishes build artifacts to the local Ivy2 repository.
+
+The local Ivy2 repository usually lives under `~/.ivy2/local`.
+It is taken into account most of the time by most Scala tools when fetching artifacts.
+
+Specific publish local configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
 ## publish setup
+
+Configures the project for publishing.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
