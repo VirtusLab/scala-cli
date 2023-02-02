@@ -45,7 +45,7 @@ tree -a
 ```
 
 ```scala title=app1/test/MyTests1.scala
-//> using lib "org.scalameta::munit:1.0.0-M7"
+//> using dep "org.scalameta::munit:1.0.0-M7"
 class MyTests1 extends munit.FunSuite {
   test("my test 1") {
     assert(2 + 2 == 4)
@@ -58,7 +58,7 @@ class MyTests1 extends munit.FunSuite {
 ```
 
 ```scala title=app2/test/MyTests2.scala
-//> using lib "com.lihaoyi::utest::0.8.1"
+//> using dep "com.lihaoyi::utest::0.8.1"
 
 import utest.*
 

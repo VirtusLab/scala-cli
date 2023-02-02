@@ -27,7 +27,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using lib "$dependencyOsLib"
+        s"""//> using dep "$dependencyOsLib"
            |
            |object Hello extends App {
            |  println("Hello")
@@ -77,9 +77,9 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         expect(exceptions.length == 2)
         expect(exceptions.forall(_.isInstanceOf[UnsupportedAmmoniteImportError]))
 
-        expect(exceptions.head.textEdit.get.newText == s"//> using lib \"$dependencyOsLib\"")
+        expect(exceptions.head.textEdit.get.newText == s"//> using dep \"$dependencyOsLib\"")
         expect(
-          exceptions.tail.head.textEdit.get.newText == s"//> using lib \"$dependencyUpickleLib\""
+          exceptions.tail.head.textEdit.get.newText == s"//> using dep \"$dependencyUpickleLib\""
         )
 
         val filePositions = exceptions.flatMap(_.positions.collect {
@@ -94,7 +94,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   test("actionable actions suggest update only to stable version") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using lib "test-org::test-name-1:1.0.6"
+        s"""//> using dep "test-org::test-name-1:1.0.6"
            |
            |object Hello extends App {
            |  println("Hello")
@@ -157,7 +157,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   test("actionable actions should not suggest update to previous version") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using lib "test-org::test-name-1:2.0.0-M1"
+        s"""//> using dep "test-org::test-name-1:2.0.0-M1"
            |
            |object Hello extends App {
            |  println("Hello")

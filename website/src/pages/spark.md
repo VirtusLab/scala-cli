@@ -10,7 +10,7 @@ to `spark-submit`, and optimized for it.
 <ChainedSnippets>
 
 ```scala title=SparkJob.scala
-//> using lib "org.apache.spark::spark-sql:3.0.3"
+//> using dep "org.apache.spark::spark-sql:3.0.3"
 //> using scala "2.12.15"
 
 import org.apache.spark._
@@ -81,7 +81,7 @@ The `run` sub-command can run Hadoop jobs, by calling the `hadoop jar` command u
 <ChainedSnippets>
 
 ```java title=WordCount.java
-//> using lib "org.apache.hadoop:hadoop-client-api:3.3.3"
+//> using dep "org.apache.hadoop:hadoop-client-api:3.3.3"
 
 // from https://hadoop.apache.org/docs/r3.3.3/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html
 

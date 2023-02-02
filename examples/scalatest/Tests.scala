@@ -1,4 +1,4 @@
-//> using lib "org.scalatest::scalatest::3.2.9"
+//> using dep "org.scalatest::scalatest::3.2.9"
 
 import org.scalatest._
 import flatspec._

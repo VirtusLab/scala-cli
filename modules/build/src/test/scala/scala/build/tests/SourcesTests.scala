@@ -36,8 +36,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -46,9 +46,9 @@ class SourcesTests extends munit.FunSuite {
           |""".stripMargin
     )
     val expectedDeps = Seq(
+      dep"org3:::name3:3.3",
       dep"org1:name1:1.1",
-      dep"org2::name2:2.2",
-      dep"org3:::name3:3.3"
+      dep"org2::name2:2.2"
     )
     testInputs.withInputs { (_, inputs) =>
       val (crossSources, _) =
@@ -74,8 +74,8 @@ class SourcesTests extends munit.FunSuite {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
         """//> using target.scope "test"
-          |//> using libs "org1:name1:1.1", "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+          |//> using deps "org1:name1:1.1", "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -106,8 +106,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
-        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -138,8 +138,8 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in test/name.scala") {
     val files = Seq(
       os.rel / "test" / "something.scala" ->
-        """//> using libs "org1:name1:1.1", "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -168,9 +168,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .scala - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """//> using lib "org1:name1:1.1"
-          |//> using lib "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using dep "org1:name1:1.1"
+          |//> using dep "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |object Something {
@@ -206,9 +206,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .java - //> using") {
     val testInputs = TestInputs(
       os.rel / "Something.java" ->
-        """//> using lib "org1:name1:1.1"
-          |//> using lib "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using dep "org1:name1:1.1"
+          |//> using dep "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |
           |public class Something {
           |  public Int a = 1;
@@ -243,7 +243,7 @@ class SourcesTests extends munit.FunSuite {
   test("should fail dependencies in .java  with using keyword") {
     val testInputs = TestInputs(
       os.rel / "Something.java" ->
-        """using lib "org3:::name3:3.3"
+        """using dep "org3:::name3:3.3"
           |
           |public class Something {
           |  public Int a = 1;
@@ -350,7 +350,7 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using libs "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
+        """//> using deps "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1
@@ -384,9 +384,9 @@ class SourcesTests extends munit.FunSuite {
   test("dependencies in .sc - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using lib "org1:name1:1.1"
-          |//> using lib "org2::name2:2.2"
-          |//> using lib "org3:::name3:3.3"
+        """//> using dep "org1:name1:1.1"
+          |//> using dep "org2::name2:2.2"
+          |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
           |def a = 1

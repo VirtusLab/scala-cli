@@ -143,7 +143,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "JsDom.scala" ->
-        s"""|//> using lib "org.scala-js::scalajs-dom::2.1.0"
+        s"""|//> using dep "org.scala-js::scalajs-dom::2.1.0"
             |
             |import org.scalajs.dom.document
             |

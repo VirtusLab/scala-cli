@@ -279,7 +279,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using lib "com.lihaoyi::geny:0.6.5"
+        """//> using dep "com.lihaoyi::geny:0.6.5"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
@@ -299,14 +299,14 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("several dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using lib "com.lihaoyi::geny:0.6.5"
-          |//> using lib "com.lihaoyi::pprint:0.6.6"
+        """//> using dep "com.lihaoyi::geny:0.6.5"
+          |//> using dep "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using lib "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
+        """//> using dep "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -509,7 +509,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Pass files with only commented directives as is to scalac") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """//> using lib "com.lihaoyi::pprint:0.6.6"
+        """//> using dep "com.lihaoyi::pprint:0.6.6"
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    pprint.log("Hello " + "from tests")
@@ -617,7 +617,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        s"""//> using lib "$usingDependency"
+        s"""//> using dep "$usingDependency"
            |def foo = "bar"
            |""".stripMargin
     )
@@ -805,7 +805,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Pin Scala 2 artifacts version") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        """//> using lib "com.lihaoyi:ammonite_2.13.8:2.5.1-6-5fce97fb"
+        """//> using dep "com.lihaoyi:ammonite_2.13.8:2.5.1-6-5fce97fb"
           |//> using scala "2.13.5"
           |
           |object Foo {
@@ -835,7 +835,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Pin Scala 3 artifacts version") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        """//> using lib "com.lihaoyi:ammonite_3.1.1:2.5.1-6-5fce97fb"
+        """//> using dep "com.lihaoyi:ammonite_3.1.1:2.5.1-6-5fce97fb"
           |//> using scala "3.1.0"
           |
           |object Foo {

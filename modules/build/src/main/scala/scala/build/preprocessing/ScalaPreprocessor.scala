@@ -318,7 +318,7 @@ case object ScalaPreprocessor extends Preprocessor {
         (importStart, t) <- dependencyTrees
         pos           = toFilePos(Position.Raw(importStart, t.end))
         dep           = t.prefix.drop(1).mkString(".")
-        newImportText = s"//> using lib \"$dep\""
+        newImportText = s"//> using dep \"$dep\""
       } yield new UnsupportedAmmoniteImportError(Seq(pos), newImportText)
 
       Left(CompositeBuildException(exceptions))

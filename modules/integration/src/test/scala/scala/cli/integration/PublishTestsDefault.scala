@@ -15,7 +15,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
          |//> using publish.version "$testVersion"
          |
          |//> using scala "$sbv"
-         |//> using lib "com.lihaoyi::os-lib:0.8.1"
+         |//> using dep "com.lihaoyi::os-lib:0.8.1"
          |
          |object Project {
          |  def message = "$message"

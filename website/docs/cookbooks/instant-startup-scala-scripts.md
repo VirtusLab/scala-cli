@@ -18,7 +18,7 @@ a directory with sizes bigger than a passed value.
 
 ```scala title=size-higher-than.scala
 //> using scala "3.1.1"
-//> using lib "com.lihaoyi::os-lib::0.8.1"
+//> using dep "com.lihaoyi::os-lib::0.8.1"
  
 @main
 def sizeHigherThan(dir: String, minSizeMB: Int) =
@@ -56,7 +56,7 @@ in this case, by including an additional using directive:
 
 ```scala compile title=size-higher-than.scala
 //> using scala "3.1.1"
-//> using lib "com.lihaoyi::os-lib::0.8.1"
+//> using dep "com.lihaoyi::os-lib::0.8.1"
 //> using platform "scala-native"
  
 @main
@@ -82,7 +82,7 @@ We pass these using a `-–native-mode` scala-cli option or, like previously, by
 
 ```scala compile title=size-higher-than.scala
 //> using scala "3.1.1"
-//> using lib "com.lihaoyi::os-lib::0.8.1"
+//> using dep "com.lihaoyi::os-lib::0.8.1"
 //> using platform "scala-native"
 //> using nativeMode "release-full"
  

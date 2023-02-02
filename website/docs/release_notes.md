@@ -262,7 +262,7 @@ Added by [@carlosedp](https://github.com/carlosedp) in [#1626](https://github.co
 It is now possible to filter test suites with the `--test-only` option.
 
 ```scala title=BarTests.scala
-//> using lib "org.scalameta::munit::1.0.0-M7"
+//> using dep "org.scalameta::munit::1.0.0-M7"
 package tests.only
 class Tests extends munit.FunSuite {
   test("bar") {

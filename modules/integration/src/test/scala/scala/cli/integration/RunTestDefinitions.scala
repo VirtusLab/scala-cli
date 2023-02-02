@@ -544,7 +544,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("test scope") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using lib "com.lihaoyi::utest:0.7.10"
+        """//> using dep "com.lihaoyi::utest:0.7.10"
           |
           |object Main {
           |  val err = utest.compileError("pprint.log(2)")
@@ -556,7 +556,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin,
       os.rel / "Tests.scala" ->
-        """//> using lib "com.lihaoyi::pprint:0.6.6"
+        """//> using dep "com.lihaoyi::pprint:0.6.6"
           |//> using target.scope "test"
           |
           |import utest._
@@ -620,7 +620,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   test("workspace dir") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        """|//> using lib "com.lihaoyi::os-lib:0.7.8"
+        """|//> using dep "com.lihaoyi::os-lib:0.7.8"
            |
            |object Hello extends App {
            |  println(os.pwd)

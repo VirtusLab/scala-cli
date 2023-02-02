@@ -217,13 +217,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   val importPprintOnlyProject: TestInputs = TestInputs(
-    os.rel / "simple.sc" -> s"//> using lib \"com.lihaoyi::pprint:${Constants.pprintVersion}\""
+    os.rel / "simple.sc" -> s"//> using dep \"com.lihaoyi::pprint:${Constants.pprintVersion}\""
   )
 
   test("setup-ide should have only absolute paths even if relative ones were specified") {
     val path = os.rel / "directory" / "simple.sc"
     val inputs =
-      TestInputs(path -> s"//> using lib \"com.lihaoyi::pprint:${Constants.pprintVersion}\"")
+      TestInputs(path -> s"//> using dep \"com.lihaoyi::pprint:${Constants.pprintVersion}\"")
     inputs.fromRoot { root =>
       val relativeCliCommand = TestUtil.cliCommand(
         TestUtil.relPathStr(os.Path(TestUtil.cliPath).relativeTo(root))
@@ -555,7 +555,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("directive diagnostics") {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->
-        s"""//> using lib "com.lihaoyi::pprint:0.0.0.0.0.1"
+        s"""//> using dep "com.lihaoyi::pprint:0.0.0.0.0.1"
            |
            |object Test {
            |  val msg = "Hello"
@@ -651,7 +651,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """//> using lib "com.lihaoyi::pprint:0.6.6"
+          """//> using dep "com.lihaoyi::pprint:0.6.6"
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
@@ -799,13 +799,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("test workspace update after adding file to main scope") {
     val inputs = TestInputs(
       os.rel / "Messages.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.7.8"
+        """//> using dep "com.lihaoyi::os-lib:0.7.8"
           |object Messages {
           |  def msg = "Hello"
           |}
           |""".stripMargin,
       os.rel / "MyTests.test.scala" ->
-        """//> using lib "com.lihaoyi::utest::0.7.10"
+        """//> using dep "com.lihaoyi::utest::0.7.10"
           |import utest._
           |
           |object MyTests extends TestSuite {
@@ -1030,7 +1030,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             val depName    = "os-lib"
             val depVersion = "0.8.1"
             val updatedSourceFile =
-              s"""//> using lib "com.lihaoyi::$depName:$depVersion"
+              s"""//> using dep "com.lihaoyi::$depName:$depVersion"
                  |
                  |object ReloadTest {
                  |  println(os.pwd)
@@ -1222,7 +1222,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
-        s"""//> using lib "no::lib:123"
+        s"""//> using dep "no::lib:123"
            |
            |object InvalidUsingDirective extends App {
            |  println("Hello")
@@ -1257,7 +1257,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val fileName = "Hello.scala"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""//> using lib "com.lihaoyi::os-lib:0.7.8"
+        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
            |
            |object Hello extends App {
            |  println("Hello")

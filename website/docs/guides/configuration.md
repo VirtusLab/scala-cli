@@ -82,8 +82,8 @@ The reference documentation lists [all available using directives](/docs/referen
 Dependencies can be added right from `.scala` and `.sc` files with [`using` directives](#using-directives):
 
 ```scala compile
-//> using lib "com.lihaoyi::upickle:1.4.0"
-//> using lib "com.lihaoyi::pprint:0.6.6"
+//> using dep "com.lihaoyi::upickle:1.4.0"
+//> using dep "com.lihaoyi::pprint:0.6.6"
 import ujson._
 ```
 

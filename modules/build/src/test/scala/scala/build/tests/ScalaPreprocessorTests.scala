@@ -10,7 +10,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
   test("should respect using directives in a .scala file with the shebang line") {
     TestInputs(os.rel / "Main.scala" ->
       """#!/usr/bin/env -S scala-cli shebang
-        |//> using lib "com.lihaoyi::os-lib::0.8.1"
+        |//> using dep "com.lihaoyi::os-lib::0.8.1"
         |
         |object Main {
         |  def main(args: Array[String]): Unit = {
@@ -33,7 +33,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
   test("should respect using directives in a .sc file with the shebang line") {
     TestInputs(os.rel / "sample.sc" ->
       """#!/usr/bin/env -S scala-cli shebang
-        |//> using lib "com.lihaoyi::os-lib::0.8.1"
+        |//> using dep "com.lihaoyi::os-lib::0.8.1"
         |println(os.pwd)
         |""".stripMargin).fromRoot { root =>
       val scalaFile = SourceScalaFile(root, os.sub / "sample.sc")

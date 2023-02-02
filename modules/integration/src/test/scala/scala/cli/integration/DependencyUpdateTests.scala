@@ -9,8 +9,8 @@ class DependencyUpdateTests extends ScalaCliSuite {
     val fileName = "Hello.scala"
     val message  = "Hello World"
     val fileContent =
-      s"""|//> using lib "com.lihaoyi::os-lib:0.7.8"
-          |//> using lib "com.lihaoyi::utest:0.7.10"
+      s"""|//> using dep "com.lihaoyi::os-lib:0.7.8"
+          |//> using dep "com.lihaoyi::utest:0.7.10"
           |
           |object Hello extends App {
           |  println("$message")

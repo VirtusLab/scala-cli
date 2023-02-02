@@ -7,7 +7,7 @@ class DocTestsDefault extends DocTestDefinitions(scalaVersionOpt = None) {
   test("javadoc") {
     val inputs = TestInputs(
       os.rel / "Foo.java" ->
-        """//> using lib "org.graalvm.nativeimage:svm:22.0.0.2"
+        """//> using dep "org.graalvm.nativeimage:svm:22.0.0.2"
           |
           |import com.oracle.svm.core.annotate.TargetClass;
           |import org.graalvm.nativeimage.Platform;
