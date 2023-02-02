@@ -11,17 +11,17 @@ import scala.build.options.*
 import scala.build.options.packaging.*
 import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HasSharedOptions,
-  MainClassOptions,
-  SharedJavaOptions,
-  SharedOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared.*
 
 // format: off
-@HelpMessage("Compile and package Scala code")
+@HelpMessage(
+  s"""Compile and package Scala code.
+     |
+     |${HelpMessages.commandConfigurations("package")}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class PackageOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
