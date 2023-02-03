@@ -9,7 +9,6 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
-import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Runner
 import scala.build.options.BuildOptions
@@ -30,10 +29,7 @@ object Doc extends ScalaCommand[DocOptions] {
 
   override def runCommand(options: DocOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.inputs(
-      args.remaining,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 

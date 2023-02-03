@@ -8,7 +8,6 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
@@ -50,10 +49,7 @@ object Test extends ScalaCommand[TestOptions] {
 
   override def runCommand(options: TestOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.inputs(
-      args.remaining,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs              = options.shared.inputs(args.remaining).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     SetupIde.runSafe(
       options.shared,

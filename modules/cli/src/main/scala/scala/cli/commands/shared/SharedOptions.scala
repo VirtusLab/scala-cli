@@ -521,9 +521,8 @@ final case class SharedOptions(
 
   def inputs(
     args: Seq[String],
-    programInvokeData: ScalaCliInvokeData,
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
-  ): Either[BuildException, Inputs] =
+  )(implicit programInvokeData: ScalaCliInvokeData): Either[BuildException, Inputs] =
     SharedOptions.inputs(
       args,
       defaultInputs,
@@ -539,9 +538,8 @@ final case class SharedOptions(
       javaSnippetList = allJavaSnippets,
       markdownSnippetList = allMarkdownSnippets,
       enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty,
-      programInvokeData = programInvokeData
-    )
+      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty
+    )(programInvokeData = programInvokeData)
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
@@ -549,9 +547,8 @@ final case class SharedOptions(
   def allMarkdownSnippets: List[String] = snippet.markdownSnippet ++ snippet.executeMarkdown
 
   def validateInputArgs(
-    args: Seq[String],
-    programInvokeData: ScalaCliInvokeData
-  ): Seq[Either[String, Seq[Element]]] =
+    args: Seq[String]
+  )(implicit programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     Inputs.validateArgs(
       args,
       Os.pwd,
@@ -596,10 +593,9 @@ object SharedOptions {
     scalaSnippetList: List[String],
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
-    programInvokeData: ScalaCliInvokeData,
     enableMarkdown: Boolean = false,
     extraClasspathWasPassed: Boolean = false
-  ): Either[BuildException, Inputs] = {
+  )(implicit programInvokeData: ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map { path =>
@@ -622,9 +618,9 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed,
-      programInvokeData = programInvokeData
-    )
+      extraClasspathWasPassed = extraClasspathWasPassed
+    )(programInvokeData = programInvokeData)
+
     maybeInputs.map { inputs =>
       val forbiddenDirs =
         (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++

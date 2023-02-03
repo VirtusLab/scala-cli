@@ -9,7 +9,7 @@ import dependency.*
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.CurrentParams
@@ -97,11 +97,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val inputs =
-      options.shared.inputs(
-        args.remaining,
-        ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other),
-        defaultInputs = () => Some(default)
-      ).orExit(logger)
+      options.shared.inputs(args.remaining, defaultInputs = () => Some(default)).orExit(logger)
     val programArgs = args.unparsed
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 

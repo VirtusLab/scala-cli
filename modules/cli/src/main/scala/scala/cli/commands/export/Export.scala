@@ -7,7 +7,7 @@ import coursier.util.{Artifact, Task}
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
@@ -103,10 +103,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val buildToolName = if (shouldExportToMill) "mill" else "sbt"
     System.out.println(s"Exporting to a $buildToolName project...")
 
-    val inputs = options.shared.inputs(
-      args.all,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
       initialBuildOptions.copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))

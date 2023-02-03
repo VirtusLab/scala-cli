@@ -5,7 +5,6 @@ import dependency.*
 
 import java.io.File
 
-import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
 import scala.build.{Build, BuildThreads, Logger, Positioned}
@@ -60,10 +59,7 @@ object Metabrowse extends ScalaCommand[MetabrowseOptions] {
 
   override def runCommand(options: MetabrowseOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.inputs(
-      args.all,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs              = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 

@@ -14,6 +14,7 @@ import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
@@ -68,6 +69,9 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   protected def actualFullCommand: String =
     if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
+
+  protected implicit def invokeData: ScalaCliInvokeData =
+    ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
 
   override def error(message: Error): Nothing = {
     System.err.println(

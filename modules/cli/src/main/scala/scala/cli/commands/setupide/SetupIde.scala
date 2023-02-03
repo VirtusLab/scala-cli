@@ -11,7 +11,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.{Inputs, OnDisk, ScalaCliInvokeData, SubCommand, Virtual, WorkspaceOrigin}
+import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
@@ -57,10 +57,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   override def runCommand(options: SetupIdeOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.inputs(
-      args.all,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs       = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
@@ -132,10 +129,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val inputArgs = inputs.elements.collect { case d: OnDisk => d.path.toString }
 
     val ideInputs = IdeInputs(
-      options.shared.validateInputArgs(
-        args,
-        ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-      )
+      options.shared.validateInputArgs(args)
         .flatMap(_.toOption)
         .flatten
         .collect { case d: OnDisk => d.path.toString }

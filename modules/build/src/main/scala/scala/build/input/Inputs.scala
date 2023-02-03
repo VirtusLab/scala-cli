@@ -266,18 +266,16 @@ object Inputs {
     programInvokeData: ScalaCliInvokeData
   ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
     case (arg, idx) =>
-      lazy val path      = os.Path(arg, cwd)
-      lazy val dir       = path / os.up
-      lazy val subPath   = path.subRelativeTo(dir)
-      lazy val stdinOpt0 = stdinOpt
-      lazy val content   = os.read.bytes(path)
-      val (isRunWithShebang, isRunWithDefault) = programInvokeData.subCommand match
-        case SubCommand.Shebang => (true, false)
-        case SubCommand.Default => (false, true)
-        case _                  => (false, false)
+      lazy val path        = os.Path(arg, cwd)
+      lazy val dir         = path / os.up
+      lazy val subPath     = path.subRelativeTo(dir)
+      lazy val stdinOpt0   = stdinOpt
+      lazy val content     = os.read.bytes(path)
+      val isRunWithShebang = programInvokeData.subCommand == SubCommand.Shebang
+      val isRunWithDefault = programInvokeData.subCommand == SubCommand.Default
       lazy val fullProgramCall = programInvokeData.progName +
         s"${if isRunWithDefault then "" else s" ${programInvokeData.subCommandName}"}"
-      lazy val progName = os.Path(programInvokeData.progName, cwd).baseName
+      lazy val progName = programInvokeData.progName
 
       if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
         Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
@@ -404,9 +402,8 @@ object Inputs {
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean,
-    programInvokeData: ScalaCliInvokeData
-  ): Either[BuildException, Inputs] =
+    extraClasspathWasPassed: Boolean
+  )(implicit programInvokeData: ScalaCliInvokeData): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed

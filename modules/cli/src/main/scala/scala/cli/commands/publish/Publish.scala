@@ -27,7 +27,7 @@ import scala.build.Ops.*
 import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
@@ -39,7 +39,7 @@ import scala.build.options.{
   Scope
 }
 import scala.cli.CurrentParams
-import scala.cli.commands.package0.Package as PackageCmd
+import scala.cli.commands.package0.{Package => PackageCmd}
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
@@ -179,10 +179,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     maybePrintChecksumsAndExit(options.sharedPublish)
 
     val baseOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.inputs(
-      args.all,
-      ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
-    ).orExit(logger)
+    val inputs      = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = mkBuildOptions(

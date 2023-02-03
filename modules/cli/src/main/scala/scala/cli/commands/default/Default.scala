@@ -42,6 +42,9 @@ class Default(
 
   private[cli] var rawArgs = Array.empty[String]
 
+  override def invokeData: ScalaCliInvokeData =
+    super.invokeData.copy(subCommand = SubCommand.Default)
+
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit =
     // can't fully re-parse and redirect to Version because of --cli-version and --scala-version clashing
     if options.version then Version.runCommand(VersionOptions(options.shared.logging), args, logger)
@@ -61,6 +64,6 @@ class Default(
             runOptions,
             args,
             logger,
-            ScalaCliInvokeData(progName, actualCommandName, SubCommand.Default)
+            invokeData
           )
 }

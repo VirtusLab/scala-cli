@@ -7,7 +7,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.Inputs
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
@@ -40,11 +40,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       argsSeq =>
         either {
           val sharedOptions = getSharedOptions()
-          val initialInputs = value(sharedOptions.inputs(
-            argsSeq,
-            ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other),
-            () => Inputs.default()
-          ))
+          val initialInputs = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
 
           if (sharedOptions.logging.verbosity >= 3)
             pprint.err.log(initialInputs)
