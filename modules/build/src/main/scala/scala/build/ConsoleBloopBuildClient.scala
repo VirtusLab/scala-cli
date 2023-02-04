@@ -174,7 +174,7 @@ object ConsoleBloopBuildClient {
       val prefix = diagnosticPrefix(diag.getSeverity)
 
       val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
-      val col   = (diag.getRange.getStart.getCharacter + 1).toString + ":"
+      val col   = (diag.getRange.getStart.getCharacter + 1).toString
       val msgIt = diag.getMessage.linesIterator
 
       val path0 = path match {
@@ -183,7 +183,7 @@ object ConsoleBloopBuildClient {
           "." + File.separator + p.relativeTo(Os.pwd).toString
         case Right(p) => p.toString
       }
-      logger.error(s"$prefix$path0:$line$col" + (if (msgIt.hasNext) " " + msgIt.next() else ""))
+      logger.error(s"$prefix$path0:$line$col")
       for (line <- msgIt)
         logger.error(prefix + line)
       val codeOpt = {
