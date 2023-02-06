@@ -45,7 +45,7 @@ final case class TestInputs(
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
         extraClasspathWasPassed = false
-      )(ScalaCliInvokeData("", "", SubCommand.Other))
+      )(ScalaCliInvokeData("", "", SubCommand.Other, false))
       res match {
         case Left(err)     => throw new Exception(err)
         case Right(inputs) => f(tmpDir, inputs)

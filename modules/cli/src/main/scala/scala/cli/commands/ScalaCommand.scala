@@ -22,6 +22,7 @@ import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.{HasLoggingOptions, ScalaCliHelp, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.internal.ProcUtil
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
@@ -71,7 +72,12 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
 
   protected implicit def invokeData: ScalaCliInvokeData =
-    ScalaCliInvokeData(progName, actualCommandName, SubCommand.Other)
+    ScalaCliInvokeData(
+      progName,
+      actualCommandName,
+      SubCommand.Other,
+      ProcUtil.isShebangCapableShell
+    )
 
   override def error(message: Error): Nothing = {
     System.err.println(

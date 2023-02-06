@@ -8,7 +8,12 @@ package scala.build.input
   *   the sub-command that was invoked by user
   */
 
-case class ScalaCliInvokeData(progName: String, subCommandName: String, subCommand: SubCommand)
+case class ScalaCliInvokeData(
+  progName: String,
+  subCommandName: String,
+  subCommand: SubCommand,
+  isShebangCabaleShell: Boolean
+)
 
 enum SubCommand:
   case Default extends SubCommand

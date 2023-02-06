@@ -353,24 +353,23 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
-      if (!Properties.isWin) {
+      val output = if (!Properties.isWin) {
         os.perms.set(root / "script-no-shebang", os.PermSet.fromString("rwx------"))
-        val output = os.proc(TestUtil.cli, "shebang", "script-no-shebang", "1", "2", "3", "-v")
+        os.proc(TestUtil.cli, "shebang", "script-no-shebang", "1", "2", "3", "-v")
+          .call(cwd = root, check = false, stderr = os.Pipe).err.trim()
+      }
+      else
+        os.proc(TestUtil.cli, "shebang", "script-no-shebang", "1", "2", "3", "-v")
           .call(cwd = root, check = false, stderr = os.Pipe).err.trim()
 
-        expect(output.contains(
-          "unrecognized source type (expected .scala or .sc extension, or a directory),\n" +
-            "to use a script with no file extensions add shebang header"
-        ))
-      }
-      else {
-        val output = os.proc(TestUtil.cli, "shebang", "script-no-shebang", "1", "2", "3", "-v")
-          .call(cwd = root, check = false, stderr = os.Pipe).err.trim()
+      expect(output.contains(
+        "unrecognized source type (expected .scala or .sc extension, or a directory)"
+      ))
 
+      if (TestUtil.isShebangCapableShell)
         expect(output.contains(
-          "unrecognized source type (expected .scala or .sc extension, or a directory)"
+          "to use a script with no file extensions add shebang header"
         ))
-      }
     }
   }
 }

@@ -266,16 +266,21 @@ object Inputs {
     programInvokeData: ScalaCliInvokeData
   ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
     case (arg, idx) =>
-      lazy val path        = os.Path(arg, cwd)
-      lazy val dir         = path / os.up
-      lazy val subPath     = path.subRelativeTo(dir)
-      lazy val stdinOpt0   = stdinOpt
-      lazy val content     = os.read.bytes(path)
-      val isRunWithShebang = programInvokeData.subCommand == SubCommand.Shebang
-      val isRunWithDefault = programInvokeData.subCommand == SubCommand.Default
+      lazy val path             = os.Path(arg, cwd)
+      lazy val dir              = path / os.up
+      lazy val subPath          = path.subRelativeTo(dir)
+      lazy val stdinOpt0        = stdinOpt
+      lazy val content          = os.read.bytes(path)
+      val isRunWithShebang      = programInvokeData.subCommand == SubCommand.Shebang
+      val isRunWithDefault      = programInvokeData.subCommand == SubCommand.Default
+      val isShebangCapableShell = programInvokeData.isShebangCabaleShell
+
       lazy val fullProgramCall = programInvokeData.progName +
         s"${if isRunWithDefault then "" else s" ${programInvokeData.subCommandName}"}"
       lazy val progName = programInvokeData.progName
+
+      val unrecognizedSourceError =
+        s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
 
       if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
         Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
@@ -308,21 +313,22 @@ object Inputs {
       else if isRunWithShebang && os.exists(path) then
         if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath)))
         else
-          Left(s"""$arg does not contain shebang header
-                  |possible fixes:
-                  |  Add '#!/usr/bin/env $fullProgramCall' to the top of the file
-                  |  Add extension to the file's name e.q. '.sc'
-                  |""".stripMargin)
+          Left(if isShebangCapableShell then
+            s"""$unrecognizedSourceError,
+               |to use a script with no file extensions add shebang header pointing to '$fullProgramCall' to the top of the file
+               |""".stripMargin
+          else unrecognizedSourceError)
       else {
         val msg =
           if os.exists(path) then
-            if isShebangScript(String(content)) then
+            if isShebangCapableShell && isShebangScript(String(content)) then
               s"$arg scripts with no file extension should be run with '$progName shebang'"
-            else
-              s"""$arg: unrecognized source type (expected .scala or .sc extension, or a directory),
-                 |if it's meant to be a script add a '!#' pointing to '$progName shebang' in the top line
+            else if isShebangCapableShell then
+              s"""$unrecognizedSourceError,
+                 |if it's meant to be a script add a shebang header pointing to '$progName shebang' in the top line
                  |and run the source with '$progName shebang $arg'
                  |""".stripMargin
+            else unrecognizedSourceError
           else if isRunWithDefault && idx == 0 && arg.forall(_.isLetterOrDigit) then
             s"""$arg is not a $progName sub-command and it is not a valid path to an input file or directory
                |Try '$progName --help' to see the list of available sub-commands and options

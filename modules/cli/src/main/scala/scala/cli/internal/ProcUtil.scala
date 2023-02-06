@@ -136,4 +136,21 @@ object ProcUtil {
     appPaths.toList
   }
 
+  // Copied from https://github.com/scalacenter/bloop/blob/a249e0a710ce169ca05d0606778f96f44a398680/shared/src/main/scala/bloop/io/Environment.scala
+  private lazy val shebangCapableShells = Seq(
+    "/bin/sh",
+    "/bin/ash",
+    "/bin/bash",
+    "/bin/dash",
+    "/bin/mksh",
+    "/bin/pdksh",
+    "/bin/posh",
+    "/bin/tcsh",
+    "/bin/zsh",
+    "/bin/fish"
+  )
+
+  def isShebangCapableShell = Option(System.getenv("SHELL")) match
+    case Some(currentShell) if shebangCapableShells.exists(sh => currentShell.contains(sh)) => true
+    case _                                                                                  => false
 }

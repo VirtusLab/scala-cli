@@ -218,16 +218,10 @@ scala-cli shebang hello-no-shebang Hello World
 ```
 
 ```text
-[error]  hello-no-shebang does not contain shebang header
-possible fixes:
-  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
-  Add extension to the file's name e.q. '.sc'
+hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or a directory)
 ```
 <!-- Expected:
-[error]  hello-no-shebang does not contain shebang header
-possible fixes:
-  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
-  Add extension to the file's name e.q. '.sc'
+hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or a directory)
 -->
 
 Please note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
