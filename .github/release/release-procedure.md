@@ -27,6 +27,9 @@
       git tag v0.1
       git push origin v0.1 -f  
       ```
+- [ ] Submit Scala CLI MSI installer `scala-cli-x86_64-pc-win32.msi` for malware analysis. The Msi file must be uploaded
+  using this [service](https://www.microsoft.com/en-us/wdsi/filesubmission). If you have any questions, please contact
+  with [lwronski](https://github.com/lwronski).
 - [ ] Unmark release as `pre-release`.
 - [ ] Announce the new release
     - [ ] announce on Twitter
