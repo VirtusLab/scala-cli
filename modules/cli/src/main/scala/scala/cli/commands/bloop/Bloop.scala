@@ -87,7 +87,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
       case Seq(cmd, args @ _*) =>
         val assumeTty  = System.console() != null
         val workingDir = options.workDirOpt.getOrElse(os.pwd).toNIO
-        Operations.run(
+        val retCode = Operations.run(
           command = cmd,
           args = args.toArray,
           workingDir = workingDir,
@@ -100,6 +100,12 @@ object Bloop extends ScalaCommand[BloopOptions] {
           assumeOutTty = assumeTty,
           assumeErrTty = assumeTty
         )
+        if (retCode == 0)
+          logger.debug(s"Bloop command $cmd ran successfully (return code 0)")
+        else {
+          logger.debug(s"Got return code $retCode from Bloop server when running $cmd, exiting with it")
+          sys.exit(retCode)
+        }
     }
   }
 }
