@@ -152,7 +152,7 @@ Compile test scope
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -328,7 +328,7 @@ Pass scalafmt version before running it (3.6.1 by default). If passed, this over
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -482,7 +482,7 @@ Add java properties. Note that options equal `-Dproperty=value` are assumed to b
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -542,7 +542,7 @@ Port for BSP debugging
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1152,7 +1152,7 @@ A github token used to access GitHub. Not needed in most cases.
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1277,11 +1277,33 @@ Aliases: `--name`
 
 Name of BSP
 
+### Config options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--dump`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Dump config DB as JSON
+
+### `--unset`
+
+Aliases: `--remove`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Remove an entry from config
+
 ### Coursier options
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1356,6 +1378,28 @@ Print the update to `env` variable
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Binary directory
+
+### Pgp scala signing options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--signing-cli-version`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+### `--signing-cli-java-arg`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+### `--force-jvm-signing-cli`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Whether to run the Scala Signing CLI on the JVM or using a native executable
 
 ### Repl options
 

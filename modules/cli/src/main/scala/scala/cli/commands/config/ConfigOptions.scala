@@ -9,6 +9,7 @@ import scala.cli.commands.shared.{
   LoggingOptions,
   SharedJvmOptions
 }
+import scala.cli.commands.tags
 
 // format: off
 final case class ConfigOptions(
@@ -19,6 +20,7 @@ final case class ConfigOptions(
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
+  @Tag(tags.restricted)
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
   @Group("Config")
   @HelpMessage("Dump config DB as JSON")
@@ -26,15 +28,19 @@ final case class ConfigOptions(
     dump: Boolean = false,
   @Group("Config")
   @HelpMessage("Create PGP key in config")
+  @Tag(tags.restricted)
     createPgpKey: Boolean = false,
   @Group("Config")
   @HelpMessage("Email to use to create PGP key in config")
+  @Tag(tags.restricted)
     email: Option[String] = None,
   @Group("Config")
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
+  @Tag(tags.restricted)
     password: Boolean = false,
   @Group("Config")
   @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
+  @Tag(tags.restricted)
     passwordValue: Boolean = false,
   @Group("Config")
   @HelpMessage("Remove an entry from config")
@@ -42,15 +48,19 @@ final case class ConfigOptions(
     unset: Boolean = false,
   @Group("Config")
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")
+  @Tag(tags.restricted)
     httpsOnly: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials automatically based on the host")
+  @Tag(tags.restricted)
     matchHost: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials are optional")
+  @Tag(tags.restricted)
     optional: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
+  @Tag(tags.restricted)
     passOnRedirect: Option[Boolean] = None
 ) extends HasLoggingOptions
 // format: on

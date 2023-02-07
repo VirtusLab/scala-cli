@@ -548,6 +548,145 @@ Aliases: `--toolkit`
 
 ---
 
+## `config` command
+**MUST have for Scala Runner specification.**
+
+### SHOULD have options
+
+**--debug**
+
+Turn debugging on
+
+**--debug-port**
+
+Debug port (5005 by default)
+
+**--debug-mode**
+
+Debug mode (attach by default)
+
+**--java-home**
+
+Set the Java home directory
+
+**--jvm**
+
+Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
+
+Aliases: `-j`
+
+**--javac-plugin**
+
+Javac plugin dependencies or files
+
+**--javac-option**
+
+Javac options
+
+Aliases: `--javac-opt`
+
+<details><summary>
+
+### Implementantation specific options
+
+</summary>
+
+**--usage**
+
+Print usage and exit
+
+**--help**
+
+Print help message and exit
+
+Aliases: `-h` ,`-help`
+
+**--help-full**
+
+Print help message, including hidden options, and exit
+
+Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--verbose**
+
+Increase verbosity (can be specified multiple times)
+
+Aliases: `-verbose` ,`-v`
+
+**--interactive**
+
+Interactive mode
+
+Aliases: `-i`
+
+**--actions**
+
+Enable actionable diagnostics
+
+**--quiet**
+
+Decrease logging verbosity
+
+Aliases: `-q`
+
+**--progress**
+
+Use progress bars
+
+**--ttl**
+
+Specify a TTL for changing dependencies, such as snapshots
+
+**--cache**
+
+Set the coursier cache location
+
+**--coursier-validate-checksums**
+
+Enable checksum validation of artifacts downloaded by coursier
+
+**--jvm-index**
+
+JVM index URL
+
+**--jvm-index-os**
+
+Operating system to use when looking up in the JVM index
+
+**--jvm-index-arch**
+
+CPU architecture to use when looking up in the JVM index
+
+**--bsp-debug-port**
+
+Port for BSP debugging
+
+**--signing-cli-version**
+
+
+
+**--signing-cli-java-arg**
+
+
+
+**--force-jvm-signing-cli**
+
+Whether to run the Scala Signing CLI on the JVM or using a native executable
+
+**--dump**
+
+Dump config DB as JSON
+
+**--unset**
+
+Remove an entry from config
+
+Aliases: `--remove`
+
+</details>
+
+---
+
 ## `doc` command
 **MUST have for Scala Runner specification.**
 
