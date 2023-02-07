@@ -488,9 +488,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     test("generate scoverage.coverage file") {
       val fileName = "Hello.scala"
       val inputs = TestInputs(
-        os.rel / fileName -> // scala version should updated to 3.3 after release
-          s"""//> using scala "3.2.0-RC1-bin-20220604-13ce496-NIGHTLY"
-             |//> using options "-coverage-out:."
+        os.rel / fileName ->
+          s"""//> using options "-coverage-out:."
              |
              |@main def main = ()
              |""".stripMargin
