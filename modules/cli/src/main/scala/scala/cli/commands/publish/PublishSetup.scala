@@ -9,7 +9,7 @@ import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, InternalOptions, Scope}
-import scala.build.{CrossSources, Logger, Sources}
+import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
 import scala.cli.commands.publish.ConfigUtil.*
@@ -36,8 +36,9 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+    val directories   = Directories.directories
 
-    lazy val configDb = ConfigDb.open(options.directories.directories.dbPath.toNIO)
+    lazy val configDb = ConfigDb.open(directories.dbPath.toNIO)
       .wrapConfigException
       .orExit(logger)
 
@@ -48,7 +49,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         inputArgs,
         () => None,
         Nil,
-        options.directories.directories,
+        directories,
         logger,
         coursierCache,
         None,

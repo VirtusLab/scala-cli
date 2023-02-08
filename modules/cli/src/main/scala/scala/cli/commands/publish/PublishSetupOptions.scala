@@ -12,8 +12,6 @@ final case class PublishSetupOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
-  @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),

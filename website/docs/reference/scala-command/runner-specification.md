@@ -422,12 +422,6 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -934,12 +928,6 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--scalac-option**
 
@@ -1449,12 +1437,6 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--scalac-option**
 
@@ -1994,12 +1976,6 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--scalac-option**
 
@@ -2562,12 +2538,6 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -3078,12 +3048,6 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--scalac-option**
 
@@ -3662,12 +3626,6 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -4242,12 +4200,6 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -4431,12 +4383,6 @@ Aliases: `-q`
 
 Use progress bars
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--bsp-directory**
 
 Custom BSP configuration location
@@ -4568,12 +4514,6 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--format**
 
@@ -5049,12 +4989,6 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
-
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -5309,12 +5243,6 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
-
-**--home-directory**
-
-Override the path to user's home directory
-
-Aliases: `--home`
 
 **--ttl**
 

@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util
 
-import scala.build.Logger
+import scala.build.{Directories, Logger}
 import scala.cli.commands.ScalaCommand
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 import scala.cli.{CurrentParams, ScalaCli}
@@ -30,7 +30,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
-        .getOrElse(options.directories.directories.completionsDir)
+        .getOrElse(Directories.directories.completionsDir)
 
     val name = getName(options.name)
     val format = getFormat(options.format).getOrElse {

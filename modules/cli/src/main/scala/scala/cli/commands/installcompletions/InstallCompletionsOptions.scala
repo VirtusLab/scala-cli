@@ -2,7 +2,7 @@ package scala.cli.commands.installcompletions
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions, SharedDirectoriesOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -10,9 +10,6 @@ import scala.cli.commands.tags
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
-
   @Name("shell")
   @Tag(tags.implementation)
   @HelpMessage("Name of the shell, either zsh or bash")

@@ -2,13 +2,11 @@ package scala.cli.commands.directories
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions, SharedDirectoriesOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
 
 // format: off
 @HelpMessage("Prints directories used by Scala CLI")
 final case class DirectoriesOptions(
-  @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     logging: LoggingOptions = LoggingOptions()
 ) extends HasLoggingOptions

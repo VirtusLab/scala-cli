@@ -21,7 +21,7 @@ object Directories extends ScalaCommand[DirectoriesOptions] {
       sys.exit(1)
     }
 
-    val directories = options.directories.directories
+    val directories = scala.build.Directories.directories
 
     println("Local repository: " + directories.localRepoDir)
     println("Completions: " + directories.completionsDir)

@@ -7,7 +7,6 @@ import scala.cli.commands.shared.{
   CoursierOptions,
   HasLoggingOptions,
   LoggingOptions,
-  SharedDirectoriesOptions,
   SharedJvmOptions
 }
 
@@ -15,8 +14,6 @@ import scala.cli.commands.shared.{
 final case class ConfigOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse

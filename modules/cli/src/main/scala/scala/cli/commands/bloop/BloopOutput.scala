@@ -2,8 +2,8 @@ package scala.cli.commands.bloop
 
 import caseapp.core.RemainingArgs
 
-import scala.build.Logger
 import scala.build.blooprifle.BloopRifleConfig
+import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
@@ -23,7 +23,7 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
       CoursierOptions().coursierCache(logger.coursierLogger("Downloading Bloop")), // unused here
       options.logging.verbosity,
       "unused-java", // unused here
-      options.directories.directories
+      Directories.directories
     )
     val outputFile = bloopRifleConfig.address match {
       case s: BloopRifleConfig.Address.DomainSocket =>
