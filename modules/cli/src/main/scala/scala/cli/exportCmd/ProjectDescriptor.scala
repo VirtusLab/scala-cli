@@ -5,7 +5,7 @@ import java.nio.charset.Charset
 import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
 
-abstract class BuildTool extends Product with Serializable {
+abstract class ProjectDescriptor extends Product with Serializable {
   def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
@@ -14,7 +14,7 @@ abstract class BuildTool extends Product with Serializable {
   ): Project
 }
 
-object BuildTool {
+object ProjectDescriptor {
   def sources(sources: Sources, charSet: Charset): Seq[(os.SubPath, String, Array[Byte])] = {
 
     val mainSources = sources.paths.map {

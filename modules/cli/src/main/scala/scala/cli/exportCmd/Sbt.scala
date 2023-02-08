@@ -18,14 +18,14 @@ final case class Sbt(
   sbtVersion: String,
   extraSettings: Seq[String],
   logger: Logger
-) extends BuildTool {
+) extends ProjectDescriptor {
   private val charSet = StandardCharsets.UTF_8
   private val q       = "\""
   private val nl      = System.lineSeparator()
 
   private def sources(sourcesMain: Sources, sourcesTest: Sources): SbtProject = {
-    val mainSources = BuildTool.sources(sourcesMain, charSet)
-    val testSources = BuildTool.sources(sourcesTest, charSet)
+    val mainSources = ProjectDescriptor.sources(sourcesMain, charSet)
+    val testSources = ProjectDescriptor.sources(sourcesTest, charSet)
     SbtProject(
       mainSources = mainSources,
       testSources = testSources
@@ -70,7 +70,7 @@ final case class Sbt(
       "scalaJSUseMainModuleInitializer := true"
     )
 
-    val linkerConfigCalls = BuildTool.scalaJsLinkerCalls(options, logger)
+    val linkerConfigCalls = ProjectDescriptor.scalaJsLinkerCalls(options, logger)
     val linkerConfigSettings =
       if (linkerConfigCalls.isEmpty) Nil
       else

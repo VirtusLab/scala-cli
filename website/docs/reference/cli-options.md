@@ -264,6 +264,10 @@ Sets the export format to SBT
 
 Sets the export format to Mill
 
+### `--json`
+
+Sets the export format to Json
+
 ### `--sbt-setting`
 
 Aliases: `--setting`
