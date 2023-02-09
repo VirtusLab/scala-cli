@@ -79,8 +79,8 @@ scala-cli compile Sample.sc --jar /path/to/library.jar
 To check if dependencies in using directives are up-to-date, use `dependency-update` command:
 
 ```scala title=Hello.scala
-//> using lib "com.lihaoyi::os-lib:0.7.8"
-//> using lib "com.lihaoyi::utest:0.7.10"
+//> using dep "com.lihaoyi::os-lib:0.7.8"
+//> using dep "com.lihaoyi::utest:0.7.10"
 
 object Hello extends App {
   println("Hello World")

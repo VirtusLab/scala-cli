@@ -130,7 +130,7 @@ class DirectiveParsingTest extends munit.FunSuite {
 
   test("interpolator in dependency") {
     val diags =
-      testDiagnostics("""//> using lib ivy"org.scala-sbt::io:1.6.0"""")(Error("interpolator"))
+      testDiagnostics("""//> using dep ivy"org.scala-sbt::io:1.6.0"""")(Error("interpolator"))
     println(diags)
   }
 

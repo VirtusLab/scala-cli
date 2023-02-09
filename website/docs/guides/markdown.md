@@ -266,7 +266,7 @@ You can run `scala test` code blocks with the `test` sub-command.
 This is a simple example of an `.md` file with a test Scala snippet.
 
 ```scala test
-//> using lib "org.scalameta::munit:0.7.29"
+//> using dep "org.scalameta::munit:0.7.29"
 class Test extends munit.FunSuite {
   test("example test") {
     assert(true)
@@ -359,7 +359,7 @@ This is supported for all `scala` code block flavours.
 
 ## `scala raw` example
 ```scala raw
-//> using lib "com.lihaoyi::pprint:0.8.0"
+//> using dep "com.lihaoyi::pprint:0.8.0"
 object Printer {
   def printHello(): Unit = pprint.pprintln("Hello")
 }
@@ -367,13 +367,13 @@ object Printer {
 
 ## Plain `scala` example
 ```scala
-//> using lib "com.lihaoyi::os-lib:0.8.1"
+//> using dep "com.lihaoyi::os-lib:0.8.1"
 println(os.pwd)
 ```
 
 ## `scala test` example
 ```scala test
-//> using lib "org.scalameta::munit:1.0.0-M7"
+//> using dep "org.scalameta::munit:1.0.0-M7"
 
 class Test extends munit.FunSuite {
   test("foo") {

@@ -405,7 +405,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     val message  = "Hello"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""//> using lib "org.typelevel::cats-kernel:2.6.1"
+        s"""//> using dep "org.typelevel::cats-kernel:2.6.1"
            |import cats.kernel._
            |val m = Monoid.instance[String]("", (a, b) => a + b)
            |val msgStuff = m.combineAll(List("$message", "", ""))

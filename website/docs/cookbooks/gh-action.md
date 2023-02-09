@@ -11,7 +11,7 @@ To use Scala CLI features in a simple way you can use the GitHub Actions [scala-
 For example, here's a simple `ls` application printing the files in a given directory:
 ```scala title=Ls.scala
 //> using scala "2.13"
-//> using lib "com.lihaoyi::os-lib:0.7.8"
+//> using dep "com.lihaoyi::os-lib:0.7.8"
 
 @main def hello(args: String*) =
   val path = args.headOption match
@@ -25,7 +25,7 @@ For example, here's a simple `ls` application printing the files in a given dire
 and some tests for `ls` application:
 
 ```scala title=TestsLs.test.scala
-//> using lib "org.scalameta::munit::0.7.27"
+//> using dep "org.scalameta::munit::0.7.27"
 import scala.util.Properties
 
 class TestsLs extends munit.FunSuite {
@@ -107,7 +107,7 @@ Scala CLI allows to build native executable applications using [GraalVM](https:/
 Given this simple Scala Script `package.sc` to package application to every platform:
 ```scala title=package.sc
 //> using scala "3.1.2"
-//> using lib "com.lihaoyi::os-lib:0.8.0"
+//> using dep "com.lihaoyi::os-lib:0.8.0"
 import scala.util.Properties
 
 val platformSuffix: String = {

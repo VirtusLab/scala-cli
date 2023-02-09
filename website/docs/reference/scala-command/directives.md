@@ -37,14 +37,14 @@ Adds compiler plugins
 
 Add dependencies
 
-`//> using lib "`_org_`:`name`:`ver"
+`//> using dep "`_org_`:`name`:`ver"
 
 #### Examples
-`//> using lib "org.scalatest::scalatest:3.2.10"`
+`//> using dep "org.scalatest::scalatest:3.2.10"`
 
-`//> using lib "org.scalameta::munit:0.7.29"`
+`//> using dep "org.scalameta::munit:0.7.29"`
 
-`//> using lib "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
+`//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
 ### Java options
 

@@ -18,7 +18,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val simpleInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using lib "com.lihaoyi::os-lib::0.8.1"
+      """//> using dep "com.lihaoyi::os-lib::0.8.1"
         |
         |object MyTests {
         |  def main(args: Array[String]): Unit = {
@@ -31,7 +31,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   val mainAndTestInputs: TestInputs = TestInputs(
     os.rel / "Main.scala" ->
-      """//> using lib "com.lihaoyi::utest:0.7.10"
+      """//> using dep "com.lihaoyi::utest:0.7.10"
         |
         |object Main {
         |  val err = utest.compileError("pprint.log(2)")
@@ -43,7 +43,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         |}
         |""".stripMargin,
     os.rel / "Tests.scala" ->
-      """//> using lib "com.lihaoyi::pprint:0.6.6"
+      """//> using dep "com.lihaoyi::pprint:0.6.6"
         |//> using target.scope "test"
         |
         |import utest._
@@ -113,7 +113,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |""".stripMargin,
       os.rel / "Foo.scala" ->
         """//> using target.scala.>= "2.13"
-          |//> using lib "com.lihaoyi::os-lib::0.8.1"
+          |//> using dep "com.lihaoyi::os-lib::0.8.1"
           |class Foo {}
           |""".stripMargin
     )
@@ -221,7 +221,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |""".stripMargin,
       os.rel / "Tests.scala" ->
-        """//> using lib "com.lihaoyi::utest:0.7.10"
+        """//> using dep "com.lihaoyi::utest:0.7.10"
           |//> using target.scope "test"
           |
           |import utest._
@@ -512,7 +512,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val sparkVersion = "3.3.0"
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using lib "org.apache.spark::spark-sql:$sparkVersion"
+        s"""//> using dep "org.apache.spark::spark-sql:$sparkVersion"
            |object Hello {
            |  def main(args: Array[String]): Unit =
            |    println("Hello")
@@ -553,7 +553,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |""".stripMargin,
       os.rel / "TestStuff.test.scala" ->
         """//> using jvm "17"
-          |//> using lib "org.scalameta::munit:0.7.29"
+          |//> using dep "org.scalameta::munit:0.7.29"
           |class TestStuff extends munit.FunSuite {
           |  test("the test") {
           |    val javaVer = MainStuff.javaVer

@@ -17,7 +17,7 @@ class TestTestsDefault extends TestTestDefinitions(scalaVersionOpt = None) {
           |""".stripMargin,
       os.rel / "test" / "MessagesTests.scala" ->
         """//> using scala "2.13"
-          |//> using lib "com.lihaoyi::utest::0.7.10"
+          |//> using dep "com.lihaoyi::utest::0.7.10"
           |package messages
           |package tests
           |import utest._

@@ -13,7 +13,7 @@ def hello() = println("Hello, world")
 ```
 
 ```scala title=MyTests.test.scala
-//> using lib "org.scalameta::munit::1.0.0-M1"
+//> using dep "org.scalameta::munit::1.0.0-M1"
 
 class MyTests extends munit.FunSuite {
   test("test") {

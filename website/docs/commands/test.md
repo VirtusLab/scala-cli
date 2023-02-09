@@ -73,7 +73,7 @@ Some of the most popular test frameworks in Scala are:
 The following example shows how to run an munit-based test suite:
 
 ```scala title=MyTests.scala
-//> using lib "org.scalameta::munit::0.7.27"
+//> using dep "org.scalameta::munit::0.7.27"
 
 class MyTests extends munit.FunSuite {
   test("foo") {
@@ -107,7 +107,7 @@ foo
 Passing the `--test-only` option to the `test` sub-command filters the test suites to be run:
 
 ```scala title=BarTests.scala
-//> using lib "org.scalameta::munit::0.7.29"
+//> using dep "org.scalameta::munit::0.7.29"
 package tests.only
 
 class BarTests extends munit.FunSuite {
@@ -144,7 +144,7 @@ tests.only.BarTests:
 To run a specific test case inside the unit test suite pass `*exact-test-name*` as an argument to scala-cli:
 
 ```scala title=BarTests.scala
-//> using lib "org.scalameta::munit::0.7.29"
+//> using dep "org.scalameta::munit::0.7.29"
 package tests.only
 
 class Tests extends munit.FunSuite {
@@ -178,7 +178,7 @@ tests.only.Tests:
 You can pass test arguments to your test framework by passing them after `--`:
 
 ```scala title=MyTests.scala
-//> using lib "org.scalatest::scalatest::3.2.9"
+//> using dep "org.scalatest::scalatest::3.2.9"
 
 import org.scalatest._
 import org.scalatest.flatspec._

@@ -62,9 +62,9 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
   protected def defaultMaster = "local[4]"
   protected def simpleJobInputs(spark: Spark) = TestInputs(
     os.rel / "SparkJob.scala" ->
-      s"""//> using lib "org.apache.spark::spark-sql:${spark.sparkVersion}"
-         |//> using lib "com.chuusai::shapeless:2.3.10"
-         |//> using lib "com.lihaoyi::pprint:0.7.3"
+      s"""//> using dep "org.apache.spark::spark-sql:${spark.sparkVersion}"
+         |//> using dep "com.chuusai::shapeless:2.3.10"
+         |//> using dep "com.lihaoyi::pprint:0.7.3"
          |
          |import org.apache.spark._
          |import org.apache.spark.sql._
@@ -154,7 +154,7 @@ abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends
     val jobName = "the test spark job"
     val inputs = TestInputs(
       os.rel / "SparkJob.scala" ->
-        s"""//> using lib "org.apache.spark::spark-sql:3.3.0"
+        s"""//> using dep "org.apache.spark::spark-sql:3.3.0"
            |
            |import org.apache.spark._
            |import org.apache.spark.sql._

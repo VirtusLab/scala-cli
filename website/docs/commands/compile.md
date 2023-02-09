@@ -31,7 +31,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 `--test` makes `scala-cli` compile main and test scopes:
 
 ```scala title=Sample.test.scala
-//> using lib "org.scalameta::munit:0.7.29"
+//> using dep "org.scalameta::munit:0.7.29"
 class Test extends munit.FunSuite {
   test("sample") {
     assert(2 + 2 == 4)

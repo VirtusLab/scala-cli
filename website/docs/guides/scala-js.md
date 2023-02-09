@@ -143,7 +143,7 @@ npm install jsdom
 :::
 
 ```scala title=Hello.scala
-//> using lib "org.scala-js::scalajs-dom::2.1.0"
+//> using dep "org.scala-js::scalajs-dom::2.1.0"
 //> using platform scala-js
 
 object Hello {

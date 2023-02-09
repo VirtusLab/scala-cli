@@ -9,7 +9,7 @@ class HadoopTests extends munit.FunSuite {
   test("simple map-reduce") {
     val inputs = TestInputs(
       os.rel / "WordCount.java" ->
-        """//> using lib "org.apache.hadoop:hadoop-client-api:3.3.3"
+        """//> using dep "org.apache.hadoop:hadoop-client-api:3.3.3"
           |
           |// from https://hadoop.apache.org/docs/r3.3.3/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html
           |
