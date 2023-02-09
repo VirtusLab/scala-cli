@@ -12,7 +12,8 @@ import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
      |Scala CLI parses its command-line arguments in order to be compatible
      |with shebang scripts.
      |
-     |Normally, inputs and scala-cli options can be mixed. Program have to be specified after `--`
+     |Normally, inputs and scala-cli options can be mixed. And program arguments have to be
+     |specified after `--`.
      |
      |```sh
      |scala-cli [command] [scala_cli_options | input]... -- [program_arguments]...
