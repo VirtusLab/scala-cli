@@ -1,5 +1,5 @@
 FROM alpine:3.14.2
-RUN apk update && apk add gcompat
+RUN apk update && apk add gcompat clang build-base
 ADD scala-cli /usr/bin/
 RUN \
  echo "println(1)" | scala-cli -S 3 - -v -v -v -v && \
