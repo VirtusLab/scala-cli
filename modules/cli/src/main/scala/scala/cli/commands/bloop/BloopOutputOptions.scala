@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions, SharedCompilationServerOptions, SharedDirectoriesOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions, SharedCompilationServerOptions}
 
 // format: off
 final case class BloopOutputOptions(
@@ -10,8 +10,6 @@ final case class BloopOutputOptions(
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
-  @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions()
 ) extends HasLoggingOptions
 // format: on
 

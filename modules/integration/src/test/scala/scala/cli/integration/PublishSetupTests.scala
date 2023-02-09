@@ -19,25 +19,24 @@ class PublishSetupTests extends ScalaCliSuite {
   private def devUrl     = "https://alex.me"
 
   private def configSetup(homeDir: os.Path, root: os.Path): Unit = {
-    val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
-    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", devName)
-      .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.email", devMail)
-      .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "publish.user.url", devUrl)
-      .call(cwd = root, stdout = os.Inherit)
+    val envs = Map("SCALA_CLI_HOME" -> homeDir.toString)
+    os.proc(TestUtil.cli, "config", "publish.user.name", devName)
+      .call(cwd = root, stdout = os.Inherit, env = envs)
+    os.proc(TestUtil.cli, "config", "publish.user.email", devMail)
+      .call(cwd = root, stdout = os.Inherit, env = envs)
+    os.proc(TestUtil.cli, "config", "publish.user.url", devUrl)
+      .call(cwd = root, stdout = os.Inherit, env = envs)
     os.proc(
       TestUtil.cli,
       "config",
-      dirOptions,
       "publish.credentials",
       "s01.oss.sonatype.org",
       "value:uSeR",
       "value:1234"
     )
-      .call(cwd = root, stdout = os.Inherit)
-    os.proc(TestUtil.cli, "config", dirOptions, "--create-pgp-key")
-      .call(cwd = root, stdout = os.Inherit)
+      .call(cwd = root, stdout = os.Inherit, env = envs)
+    os.proc(TestUtil.cli, "config", "--create-pgp-key")
+      .call(cwd = root, stdout = os.Inherit, env = envs)
   }
 
   private val projDir = os.rel / projName
@@ -46,8 +45,8 @@ class PublishSetupTests extends ScalaCliSuite {
       """object Foo
         |""".stripMargin
   )
-  private val homeDir    = os.rel / "home"
-  private val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
+  private val homeDir = os.rel / "home"
+  private val envs    = Map("SCALA_CLI_HOME" -> homeDir.toString)
 
   private def gitInit(dir: os.Path): Git = {
     val git = Git.init().setDirectory(dir.toIO).call()
@@ -101,9 +100,10 @@ class PublishSetupTests extends ScalaCliSuite {
     testInputs.fromRoot { root =>
       configSetup(root / homeDir, root)
       gitInit(root / projDir)
-      val res = os.proc(TestUtil.cli, "publish", "setup", projDir, dirOptions).call(
+      val res = os.proc(TestUtil.cli, "publish", "setup", projDir).call(
         cwd = root,
-        mergeErrIntoOut = true
+        mergeErrIntoOut = true,
+        env = envs
       )
       System.err.write(res.out.bytes)
       val ghSecrets = res.out.text()
@@ -138,9 +138,10 @@ class PublishSetupTests extends ScalaCliSuite {
       configSetup(root / homeDir, root)
       gitInit(root / projDir)
       val res =
-        os.proc(TestUtil.cli, "publish", "setup", "--ci", "--dummy", projDir, dirOptions).call(
+        os.proc(TestUtil.cli, "publish", "setup", "--ci", "--dummy", projDir).call(
           cwd = root,
-          mergeErrIntoOut = true
+          mergeErrIntoOut = true,
+          env = envs
         )
       System.err.write(res.out.bytes)
       val ghSecrets = res.out.text()
@@ -175,11 +176,11 @@ class PublishSetupTests extends ScalaCliSuite {
         "setup",
         "--publish-repository",
         "github",
-        projDir,
-        dirOptions
+        projDir
       ).call(
         cwd = root,
-        mergeErrIntoOut = true
+        mergeErrIntoOut = true,
+        env = envs
       )
       System.err.write(res.out.bytes)
       val ghSecrets = res.out.text()
@@ -218,11 +219,11 @@ class PublishSetupTests extends ScalaCliSuite {
         "--publish-repository",
         "github",
         "--dummy",
-        projDir,
-        dirOptions
+        projDir
       ).call(
         cwd = root,
-        mergeErrIntoOut = true
+        mergeErrIntoOut = true,
+        env = envs
       )
       System.err.write(res.out.bytes)
       val ghSecrets = res.out.text()

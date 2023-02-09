@@ -61,7 +61,13 @@ The typical content of the `.scala-build` directory looks like this:
             └── test.scala
 ```
 
-In particular, `.scala-build/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala-build/project_*` contains byte code, TASTy files, and generated sources.
+In particular, `.scala-build/.bloop` contains Bloop project files and Bloop's own working directories, and `.scala-build/project_*` contains byte code, TASTy files, and generated sources. 
+
+## Home directory for scala-cli
+
+By default, the `scala-cli` uses the home directory to store Coursier caches, the config database, the working directory
+for Bloop, and other internal files. To change this default behavior, set the `SCALA_CLI_HOME` environment variable to point
+to an existing directory.
 
 ## Preprocessing
 

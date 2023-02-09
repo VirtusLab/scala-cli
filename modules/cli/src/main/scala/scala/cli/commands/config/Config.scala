@@ -5,9 +5,9 @@ import coursier.cache.ArchiveCache
 
 import java.util.Base64
 
-import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
+import scala.build.{Directories, Logger}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.util.JvmUtils
@@ -26,7 +26,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
-    val directories = options.directories.directories
+    val directories = Directories.directories
 
     if (options.dump) {
       val content = os.read.bytes(directories.dbPath)

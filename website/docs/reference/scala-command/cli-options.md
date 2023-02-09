@@ -206,22 +206,6 @@ Aliases: `-P`, `--plugin`
 
 Add compiler plugin dependencies
 
-## Directories options
-
-Available in commands:
-
-[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`install completions` , `install-completions`](./commands.md#install-completions), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--home-directory`
-
-Aliases: `--home`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Override the path to user's home directory
-
 ## Doc options
 
 Available in commands:

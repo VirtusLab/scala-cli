@@ -9,62 +9,67 @@ class ConfigTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {
-    val homeDir    = os.rel / "home"
-    val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
-    val name       = "Alex"
+    val homeDir = os.rel / "home"
+    val homeEnv = Map("SCALA_CLI_HOME" -> homeDir.toString())
+    val name    = "Alex"
     TestInputs.empty.fromRoot { root =>
-      val before = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
+      val before =
+        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
       expect(before.out.trim().isEmpty)
 
-      os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", name).call(cwd = root)
-      val res = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
+      os.proc(TestUtil.cli, "config", "publish.user.name", name).call(cwd = root, env = homeEnv)
+      val res = os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
       expect(res.out.trim() == name)
 
-      os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name", "--unset").call(cwd = root)
-      val after = os.proc(TestUtil.cli, "config", dirOptions, "publish.user.name").call(cwd = root)
+      os.proc(TestUtil.cli, "config", "publish.user.name", "--unset").call(
+        cwd = root,
+        env = homeEnv
+      )
+      val after =
+        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
       expect(after.out.trim().isEmpty)
     }
   }
 
   test("password") {
-    val homeDir    = os.rel / "home"
-    val dirOptions = Seq[os.Shellable]("--home-directory", homeDir)
-    val password   = "1234"
-    val key        = "httpProxy.password"
+    val homeDir  = os.rel / "home"
+    val homeEnv  = Map("SCALA_CLI_HOME" -> homeDir.toString)
+    val password = "1234"
+    val key      = "httpProxy.password"
     TestInputs.empty.fromRoot { root =>
 
       def emptyCheck(): Unit = {
-        val value = os.proc(TestUtil.cli, "config", dirOptions, key)
-          .call(cwd = root)
+        val value = os.proc(TestUtil.cli, "config", key)
+          .call(cwd = root, env = homeEnv)
         expect(value.out.trim().isEmpty)
       }
 
       def unset(): Unit =
-        os.proc(TestUtil.cli, "config", dirOptions, key, "--unset")
-          .call(cwd = root)
+        os.proc(TestUtil.cli, "config", key, "--unset")
+          .call(cwd = root, env = homeEnv)
 
       def read(): String = {
-        val res = os.proc(TestUtil.cli, "config", dirOptions, key)
-          .call(cwd = root)
+        val res = os.proc(TestUtil.cli, "config", key)
+          .call(cwd = root, env = homeEnv)
         res.out.trim()
       }
-      def readDecoded(env: Map[String, String] = null): String = {
-        val res = os.proc(TestUtil.cli, "config", dirOptions, key, "--password")
-          .call(cwd = root, env = env)
+      def readDecoded(env: Map[String, String] = Map.empty): String = {
+        val res = os.proc(TestUtil.cli, "config", key, "--password")
+          .call(cwd = root, env = homeEnv ++ env)
         res.out.trim()
       }
 
       emptyCheck()
 
-      os.proc(TestUtil.cli, "config", dirOptions, key, s"value:$password")
-        .call(cwd = root)
+      os.proc(TestUtil.cli, "config", key, s"value:$password")
+        .call(cwd = root, env = homeEnv)
       expect(read() == s"value:$password")
       expect(readDecoded() == password)
       unset()
       emptyCheck()
 
-      os.proc(TestUtil.cli, "config", dirOptions, key, "env:MY_PASSWORD")
-        .call(cwd = root)
+      os.proc(TestUtil.cli, "config", key, "env:MY_PASSWORD")
+        .call(cwd = root, env = homeEnv)
       expect(read() == "env:MY_PASSWORD")
       expect(readDecoded(env = Map("MY_PASSWORD" -> password)) == password)
       unset()
@@ -73,12 +78,11 @@ class ConfigTests extends ScalaCliSuite {
       os.proc(
         TestUtil.cli,
         "config",
-        dirOptions,
         key,
         "env:MY_PASSWORD",
         "--password-value"
       )
-        .call(cwd = root, env = Map("MY_PASSWORD" -> password))
+        .call(cwd = root, env = Map("MY_PASSWORD" -> password) ++ homeEnv)
       expect(read() == s"value:$password")
       expect(readDecoded() == password)
       unset()

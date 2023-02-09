@@ -57,8 +57,6 @@ final case class SharedOptions(
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
-  @Recurse
     dependencies: SharedDependencyOptions = SharedDependencyOptions(),
   @Recurse
     scalac: ScalacOptions = ScalacOptions(),
@@ -334,7 +332,7 @@ final case class SharedOptions(
       ),
       internal = bo.InternalOptions(
         cache = Some(coursierCache),
-        localRepository = LocalRepo.localRepo(directories.directories.localRepoDir),
+        localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
@@ -408,7 +406,7 @@ final case class SharedOptions(
               configDb0
                 .set(Keys.interactive, true)
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(directories.directories.dbPath.toNIO)
+                .save(Directories.directories.dbPath.toNIO)
                 .wrapConfigException
             }
             logger.message(
@@ -422,7 +420,7 @@ final case class SharedOptions(
             value {
               configDb0
                 .set(Keys.globalInteractiveWasSuggested, true)
-                .save(directories.directories.dbPath.toNIO)
+                .save(Directories.directories.dbPath.toNIO)
                 .wrapConfigException
             }
             logger.message(
@@ -447,7 +445,7 @@ final case class SharedOptions(
     )
 
   def configDb: Either[BuildException, ConfigDb] =
-    ConfigDb.open(directories.directories.dbPath.toNIO)
+    ConfigDb.open(Directories.directories.dbPath.toNIO)
       .wrapConfigException
 
   def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
@@ -488,7 +486,7 @@ final case class SharedOptions(
       coursierCache,
       logging.verbosity,
       javaCmd,
-      directories.directories,
+      Directories.directories,
       Some(17)
     )
   }
@@ -520,7 +518,7 @@ final case class SharedOptions(
       args,
       defaultInputs,
       resourceDirs,
-      directories.directories,
+      Directories.directories,
       logger = logger,
       coursierCache,
       workspace.forcedWorkspaceOpt,

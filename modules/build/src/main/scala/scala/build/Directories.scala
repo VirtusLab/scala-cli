@@ -89,4 +89,13 @@ object Directories {
 
   def under(dir: os.Path): Directories =
     SubDir(dir)
+
+  lazy val directories: Directories =
+    Option(System.getenv("SCALA_CLI_HOME")).filter(_.trim.nonEmpty) match {
+      case None =>
+        scala.build.Directories.default()
+      case Some(homeDir) =>
+        val homeDir0 = os.Path(homeDir, Os.pwd)
+        scala.build.Directories.under(homeDir0)
+    }
 }

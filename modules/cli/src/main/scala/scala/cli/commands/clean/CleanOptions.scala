@@ -6,7 +6,6 @@ import scala.cli.commands.shared.{
   HasLoggingOptions,
   LoggingOptions,
   SharedBspFileOptions,
-  SharedDirectoriesOptions,
   SharedWorkspaceOptions
 }
 
@@ -15,8 +14,6 @@ import scala.cli.commands.shared.{
 final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    directories: SharedDirectoriesOptions = SharedDirectoriesOptions(),
   @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Recurse

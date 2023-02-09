@@ -105,7 +105,7 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
-    val directories = options.shared.directories.directories
+    val directories = Directories.directories
 
     def buildFailed(allowExit: Boolean): Unit = {
       System.err.println("Compilation failed")

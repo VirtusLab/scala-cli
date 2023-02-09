@@ -2,11 +2,11 @@ package scala.cli.commands.bloop
 
 import caseapp.core.RemainingArgs
 
-import scala.build.Logger
 import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.internal.{Constants, Operations}
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.internal.OsLibc
+import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{LoggingOptions, SharedOptions}
@@ -30,7 +30,6 @@ object Bloop extends ScalaCommand[BloopOptions] {
     val sharedOptions = SharedOptions(
       logging = opts.logging,
       compilationServer = opts.compilationServer,
-      directories = opts.directories,
       jvm = opts.jvm,
       coursier = opts.coursier
     )
@@ -53,7 +52,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
       sharedOptions.coursierCache,
       opts.logging.verbosity,
       javaCmd,
-      opts.directories.directories,
+      Directories.directories,
       Some(17)
     )
   }

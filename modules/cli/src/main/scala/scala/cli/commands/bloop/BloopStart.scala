@@ -6,7 +6,7 @@ import scala.build.bloop.BloopThreads
 import scala.build.blooprifle.internal.Constants
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.options.{BuildOptions, InternalOptions}
-import scala.build.{Logger, Os}
+import scala.build.{Directories, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.util.JvmUtils
@@ -34,7 +34,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
       coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
       logging.verbosity,
       buildOptions.javaHome().value.javaCommand,
-      directories.directories
+      Directories.directories
     )
   }
 

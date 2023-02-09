@@ -3,7 +3,7 @@ package scala.cli.commands.bloop
 import caseapp.*
 
 import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
-import scala.build.{Logger, Os}
+import scala.build.{Directories, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 
@@ -21,7 +21,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
       coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
       logging.verbosity,
       "java", // shouldn't be used…
-      directories.directories
+      Directories.directories
     )
   }
 
