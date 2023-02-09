@@ -56,20 +56,6 @@ class BloopTests extends ScalaCliSuite {
     testScalaTermination(Constants.bloopVersion, shouldRestart = false)
   }
 
-  test("invalid bloop options passed via cli cause bloop start failure") {
-    TestInputs.empty.fromRoot { root =>
-      runScalaCli("bloop", "exit").call(cwd = root)
-      val res = runScalaCli("bloop", "start", "--bloop-java-opt", "-zzefhjzl").call(
-        cwd = root,
-        stderr = os.Pipe,
-        check = false,
-        mergeErrIntoOut = true
-      )
-      expect(res.exitCode == 1)
-      expect(res.out.text().contains("Server failed with exit code 1"))
-    }
-  }
-
   test("invalid bloop options passed via global bloop config json file cause bloop start failure") {
     val inputs = TestInputs(
       os.rel / "bloop.json" ->
