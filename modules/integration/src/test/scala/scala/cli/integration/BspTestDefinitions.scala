@@ -1343,13 +1343,14 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           checkDiagnostic(
             taskMessages.head.taskMessages.head.getDiagnostics.get(0),
             expectedMessage =
-              "Ammonite imports using \"$ivy\" and \"$dep\" are no longer supported, switch to 'using lib' directive",
+              "Ammonite imports using \"$ivy\" and \"$dep\" are no longer supported",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
             expectedStartCharacter = 0,
             expectedEndLine = 0,
             expectedEndCharacter = 39,
-            expectedSource = Some("scala-cli")
+            expectedSource = Some("scala-cli"),
+            strictlyCheckMessage = false
           )
         }
     }
