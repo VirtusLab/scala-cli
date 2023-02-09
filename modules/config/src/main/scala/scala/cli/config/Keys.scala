@@ -17,9 +17,9 @@ object Keys {
   val pgpSecretKeyPassword = new Key.PasswordEntry(Seq("pgp"), "secret-key-password")
   val pgpPublicKey         = new Key.PasswordEntry(Seq("pgp"), "public-key")
 
-  val actions = new Key.BooleanEntry(Seq.empty, "actions")
-
+  val actions     = new Key.BooleanEntry(Seq.empty, "actions")
   val interactive = new Key.BooleanEntry(Seq.empty, "interactive")
+  val power       = new Key.BooleanEntry(Seq.empty, "power")
 
   val suppressDirectivesInMultipleFilesWarning =
     new Key.BooleanEntry(Seq("suppress-warning"), "directives-in-multiple-files")
@@ -47,6 +47,7 @@ object Keys {
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,
+    power,
     proxyAddress,
     proxyPassword,
     proxyUser,
