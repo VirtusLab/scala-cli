@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.jsonrpc
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 
 import java.io.{InputStream, OutputStream}
+import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
@@ -14,7 +15,12 @@ import scala.build.*
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.bloop.BloopServer
 import scala.build.compiler.BloopCompiler
-import scala.build.errors.{BuildException, Diagnostic, ParsingInputsException}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  Diagnostic,
+  ParsingInputsException
+}
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
@@ -287,10 +293,42 @@ final class BspImpl(
 
     preBuild.thenCompose {
       case Left((ex, scope)) =>
-        actualLocalClient.reportBuildException(
-          currentBloopSession.bspServer.targetScopeIdOpt(scope),
-          ex
-        )
+        val taskId = new b.TaskId(UUID.randomUUID().toString)
+
+        for targetId <- currentBloopSession.bspServer.targetScopeIdOpt(scope) do {
+          val target = targetId.getUri match {
+            case s"$_?id=$targetId" => targetId
+            case targetIdUri        => targetIdUri
+          }
+
+          val taskStartParams = new b.TaskStartParams(taskId)
+          taskStartParams.setEventTime(System.currentTimeMillis())
+          taskStartParams.setMessage(s"Preprocessing '$target'")
+          taskStartParams.setDataKind(b.TaskDataKind.COMPILE_TASK)
+          taskStartParams.setData(new b.CompileTask(targetId))
+
+          actualLocalClient.onBuildTaskStart(taskStartParams)
+
+          actualLocalClient.reportBuildException(
+            Some(targetId),
+            ex
+          )
+
+          val taskFinishParams = new b.TaskFinishParams(taskId, b.StatusCode.ERROR)
+          taskFinishParams.setEventTime(System.currentTimeMillis())
+          taskFinishParams.setMessage(s"Preprocessed '$target'")
+          taskFinishParams.setDataKind(b.TaskDataKind.COMPILE_REPORT)
+
+          val errorSize = ex match {
+            case c: CompositeBuildException => c.exceptions.size
+            case _                          => 1
+          }
+
+          taskFinishParams.setData(new b.CompileReport(targetId, errorSize, 0))
+
+          actualLocalClient.onBuildTaskFinish(taskFinishParams)
+        }
+
         CompletableFuture.completedFuture(
           new b.CompileResult(b.StatusCode.ERROR)
         )
@@ -299,7 +337,7 @@ final class BspImpl(
           actualLocalClient.resetBuildExceptionDiagnostics(targetId)
 
         val targetId = currentBloopSession.bspServer.targetIds.head
-        params.diagnostics.foreach(actualLocalClient.reportDiagnosticForFiles(targetId))
+        actualLocalClient.reportDiagnosticsForFiles(targetId, params.diagnostics, reset = false)
 
         doCompile().thenCompose { res =>
           def doPostProcess(data: PreBuildData, scope: Scope): Unit =

@@ -1306,6 +1306,110 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         }
     }
   }
+
+  test("bsp should report errors with taskStart and taskFinish for ammonite imports") {
+    val fileName = "Hello.scala"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""import $$ivy.`com.lihaoyi::os-lib:0.7.8`
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".", "--actions")) {
+      (_, localClient, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+
+          await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+          val taskMessages = localClient.getTaskDiagnostics()
+
+          expect(taskMessages.size == 1)
+          expect(taskMessages.head.taskMessages.size == 1)
+
+          val taskFinishData = new Gson().fromJson[b.CompileReport](
+            taskMessages.head.finishParams.getData.asInstanceOf[JsonElement],
+            classOf[b.CompileReport]
+          )
+
+          expect(taskFinishData.getErrors == 1)
+
+          checkDiagnostic(
+            taskMessages.head.taskMessages.head.getDiagnostics.get(0),
+            expectedMessage =
+              "Ammonite imports using \"$ivy\" and \"$dep\" are no longer supported, switch to 'using lib' directive",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 0,
+            expectedEndLine = 0,
+            expectedEndCharacter = 39,
+            expectedSource = Some("scala-cli")
+          )
+        }
+    }
+  }
+
+  test(
+    "bsp should report errors with taskStart and taskFinish for ammonite imports in multiple files"
+  ) {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""import $$ivy.`com.lihaoyi::os-lib:0.7.8`
+           |import $$dep.`com.lihaoyi::pprint:0.6.6`
+           |import $$dep.`com.lihaoyi::utest::0.7.10`
+           |import $$dep.`com.lihaoyi::utest::0.7.10`
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin,
+      os.rel / "Foo.scala" ->
+        s"""import $$dep.`com.lihaoyi::utest::0.7.10`
+           |import $$ivy.`com.lihaoyi::pprint:0.6.6`
+           |
+           |object Foo {
+           |  def foo() = println("Hello")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".", "--actions")) {
+      (_, localClient, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+
+          await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+
+          val taskMessages = localClient.getTaskDiagnostics()
+
+          expect(taskMessages.size == 1)
+          expect(taskMessages.head.taskMessages.size == 6)
+
+          val taskFinishData = new Gson().fromJson[b.CompileReport](
+            taskMessages.head.finishParams.getData.asInstanceOf[JsonElement],
+            classOf[b.CompileReport]
+          )
+
+          expect(taskFinishData.getErrors == 6)
+
+          val diagnosticsByPath = taskMessages.head.taskMessages.groupBy(_.getTextDocument)
+
+          for ((_, values) <- diagnosticsByPath) {
+            expect(values.head.getReset)
+            expect(values.tail.forall(!_.getReset))
+          }
+        }
+    }
+  }
+
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult

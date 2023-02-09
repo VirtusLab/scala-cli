@@ -43,6 +43,29 @@ class TestBspClient extends b.BuildClient {
       }
     }
 
+  case class TaskStartFinishDiagnostics(
+    startParams: b.TaskStartParams,
+    finishParams: b.TaskFinishParams,
+    taskMessages: Seq[b.PublishDiagnosticsParams]
+  )
+
+  def getTaskDiagnostics(): Seq[TaskStartFinishDiagnostics] =
+    lock.synchronized {
+      messages0.foldRight(
+        Option.empty[TaskStartFinishDiagnostics],
+        List.empty[TaskStartFinishDiagnostics]
+      ) {
+        case (msg: b.TaskFinishParams, (None, acc)) =>
+          (Some(TaskStartFinishDiagnostics(null, msg, Nil)), acc)
+        case (msg: b.TaskStartParams, (Some(tsfm), acc))
+            if tsfm.finishParams.getTaskId == msg.getTaskId =>
+          (None, tsfm.copy(startParams = msg) :: acc)
+        case (msg: b.PublishDiagnosticsParams, (Some(tsfm), acc)) =>
+          (Some(tsfm.copy(taskMessages = msg +: tsfm.taskMessages)), acc)
+        case (_, accTuple) => accTuple
+      }._2
+    }
+
   def onBuildLogMessage(params: b.LogMessageParams): Unit =
     addMessage(params)
   def onBuildShowMessage(params: b.ShowMessageParams): Unit =
