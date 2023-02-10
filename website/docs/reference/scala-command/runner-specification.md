@@ -690,7 +690,15 @@ Aliases: `--remove`
 ## `doc` command
 **MUST have for Scala Runner specification.**
 
-Generate Scaladoc documentation
+Generate Scaladoc documentation.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 

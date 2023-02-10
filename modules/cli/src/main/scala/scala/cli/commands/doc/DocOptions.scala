@@ -3,11 +3,20 @@ package scala.cli.commands.doc
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage("Generate Scaladoc documentation", "By default, Scala CLI sets common scaladoc options and this mechanism can be disabled by using `--default-scaladoc-opts:false`.")
+@HelpMessage(
+  message =
+    s"""Generate Scaladoc documentation.
+       |
+       |${HelpMessages.acceptedInputs}
+       |
+       |${HelpMessages.docsWebsiteReference}""".stripMargin,
+  messageMd = s"By default, $fullRunnerName sets common `scaladoc` options and this mechanism can be disabled by using `--default-scaladoc-opts:false`."
+)
 final case class DocOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -22,7 +31,7 @@ final case class DocOptions(
   @Name("f")
     force: Boolean = false,
   @Group("Doc")
-  @HelpMessage("Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
+  @HelpMessage(s"Control if $fullRunnerName should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @Tag(tags.should)
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,
