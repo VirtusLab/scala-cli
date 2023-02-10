@@ -1,7 +1,8 @@
 package scala.build.options
 
 final case class SuppressWarningOptions(
-  suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None
+  suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None,
+  suppressOutdatedDependencyWarning: Option[Boolean] = None
 )
 
 object SuppressWarningOptions {

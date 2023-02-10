@@ -9,7 +9,11 @@ final case class SuppressWarningOptions(
   @Tag(tags.implementation)
   @HelpMessage("Suppress warnings about using directives in multiple files")
   @Name("suppressWarningDirectivesInMultipleFiles")
-    suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None
+    suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None,
+
+  @Tag(tags.implementation)
+  @HelpMessage("Suppress warnings about outdated dependencies in project")
+    suppressOutdatedDependencyWarning: Option[Boolean]= None
 )
 // format: on
 

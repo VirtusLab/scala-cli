@@ -283,7 +283,10 @@ final case class SharedOptions(
     }
     bo.BuildOptions(
       suppressWarningOptions =
-        bo.SuppressWarningOptions(suppressDirectivesInMultipleFilesWarning),
+        bo.SuppressWarningOptions(
+          suppressDirectivesInMultipleFilesWarning,
+          suppressOutdatedDependenciesWarning
+        ),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion
           .map(_.trim)
@@ -435,6 +438,18 @@ final case class SharedOptions(
   def suppressDirectivesInMultipleFilesWarning: Option[Boolean] =
     suppress.suppressDirectivesInMultipleFilesWarning.filter(identity).orElse(
       configDb.map(_.get(Keys.suppressDirectivesInMultipleFilesWarning))
+        .map {
+          case Right(opt) => opt
+          case Left(ex) =>
+            logger.debug(ConfigDbException(ex))
+            None
+        }
+        .getOrElse(None)
+    )
+
+  def suppressOutdatedDependenciesWarning: Option[Boolean] =
+    suppress.suppressOutdatedDependencyWarning.filter(identity).orElse(
+      configDb.map(_.get(Keys.suppressOutdatedDependenciessWarning))
         .map {
           case Right(opt) => opt
           case Left(ex) =>

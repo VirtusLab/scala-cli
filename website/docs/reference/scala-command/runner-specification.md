@@ -284,6 +284,10 @@ Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
 
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -930,6 +934,10 @@ Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
 
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -1438,6 +1446,10 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
+
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
 
 **--verbose**
 
@@ -1977,6 +1989,10 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
+
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
 
 **--verbose**
 
@@ -2540,6 +2556,10 @@ Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
 
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3050,6 +3070,10 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
+
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
 
 **--verbose**
 
@@ -3628,6 +3652,10 @@ Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
 
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4201,6 +4229,10 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
+
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
 
 **--verbose**
 
@@ -4990,6 +5022,10 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 Suppress warnings about using directives in multiple files
 
 Aliases: `--suppress-warning-directives-in-multiple-files`
+
+**--suppress-outdated-dependency-warning**
+
+Suppress warnings about outdated dependencies in project
 
 **--verbose**
 
