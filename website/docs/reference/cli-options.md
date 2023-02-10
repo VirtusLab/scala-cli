@@ -220,7 +220,7 @@ Available in commands:
 
 ### `--all`
 
-Update all dependencies if newer version was released
+Update all dependencies if a newer version was released
 
 ## Doc options
 

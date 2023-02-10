@@ -4,14 +4,16 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.commands.tags
 
 // format: off
-@HelpMessage("Update dependencies in project")
+@HelpMessage("Update dependency directives in the project")
 final case class DependencyUpdateOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
   @Group("DependencyUpdate")
-  @HelpMessage("Update all dependencies if newer version was released")
+  @HelpMessage("Update all dependencies if a newer version was released")
+  @Tag(tags.restricted)
     all: Boolean = false,
 ) extends HasSharedOptions
   // format: on
