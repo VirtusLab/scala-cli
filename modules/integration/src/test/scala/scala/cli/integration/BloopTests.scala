@@ -66,7 +66,7 @@ class BloopTests extends ScalaCliSuite {
         mergeErrIntoOut = true
       )
       expect(res.exitCode == 1)
-      expect(res.out.text().contains("Server didn't start"))
+      expect(res.out.text().contains("Server failed with exit code 1"))
     }
   }
 
@@ -87,7 +87,7 @@ class BloopTests extends ScalaCliSuite {
         (root / "bloop.json").toString()
       ).call(cwd = root, stderr = os.Pipe, check = false)
       expect(res.exitCode == 1)
-      expect(res.err.text().contains("Server didn't start") || res.err.text().contains(
+      expect(res.err.text().contains("Server failed with exit code 1") || res.err.text().contains(
         "java.lang.OutOfMemoryError: Garbage-collected heap size exceeded"
       ))
     }

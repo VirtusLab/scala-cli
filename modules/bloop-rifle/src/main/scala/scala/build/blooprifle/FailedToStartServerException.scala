@@ -2,5 +2,11 @@ package scala.build.blooprifle
 
 import scala.concurrent.duration.Duration
 
-final class FailedToStartServerException(timeoutOpt: Option[Duration] = None)
-  extends Exception("Server didn't start" + timeoutOpt.fold("")(t => s" after $t"))
+abstract class FailedToStartServerException(message: String)
+  extends Exception(message)
+
+final class FailedToStartServerExitCodeException(exitCode: Int)
+  extends FailedToStartServerException(f"Server failed with exit code $exitCode")
+
+final class FailedToStartServerTimeoutException(timeout: Duration)
+  extends FailedToStartServerException(f"Server didn't start after $timeout")
