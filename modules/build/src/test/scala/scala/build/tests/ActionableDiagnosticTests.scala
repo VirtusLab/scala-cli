@@ -23,7 +23,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   )
   val buildThreads = BuildThreads.create()
 
-  test("update os-lib") {
+  test("using outdated os-lib") {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
