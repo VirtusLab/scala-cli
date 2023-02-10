@@ -8,7 +8,11 @@ sidebar_position: 3
 
 ## clean
 
-Clean the workspace
+Clean the workspace.
+
+Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 

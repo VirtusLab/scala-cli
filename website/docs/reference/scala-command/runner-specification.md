@@ -4558,7 +4558,11 @@ Command-line options JSON file
 ## `clean` command
 **IMPLEMENTATION specific for Scala Runner specification.**
 
-Clean the workspace
+Clean the workspace.
+
+Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 <details><summary>
 
