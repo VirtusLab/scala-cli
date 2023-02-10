@@ -23,7 +23,7 @@ import scala.cli.config.{
 
 object Config extends ScalaCommand[ConfigOptions] {
   override def hidden                  = true
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
 
   override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
     val directories = Directories.directories

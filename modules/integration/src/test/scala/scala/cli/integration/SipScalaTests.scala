@@ -160,4 +160,28 @@ class SipScalaTests extends ScalaCliSuite {
         testReplHelpOutput(binaryName)
       }
     }
+
+  test("power config turn on power features") {
+    TestInputs.empty.fromRoot { root =>
+      val homeEnv = Map("SCALA_CLI_HOME" -> root.toString())
+      // disable power features
+      os.proc(TestUtil.cli, "config", "power", "false").call(cwd = root, env = homeEnv).out.trim()
+      val output = os.proc(TestUtil.cli, "package").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true,
+        env = homeEnv
+      ).out.text().trim
+      expect(output.contains("package: not found"))
+      // enable power features
+      os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
+      val powerOutput = os.proc(TestUtil.cli, "package").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true,
+        env = homeEnv
+      ).out.text().trim
+      expect(powerOutput.contains("No inputs provided"))
+    }
+  }
 }

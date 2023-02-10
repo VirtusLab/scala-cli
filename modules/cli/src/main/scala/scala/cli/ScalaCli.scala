@@ -7,8 +7,10 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
+import scala.build.Directories
 import scala.build.blooprifle.FailedToStartServerException
 import scala.build.internal.Constants
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.cli.publish.BouncycastleSignerMaker
@@ -40,7 +42,15 @@ object ScalaCli {
     baseProgName.endsWith(s"${File.separator}.$name.aux") // cs install binaries under .app-name.aux
   }
 
-  private var isSipScala      = checkName("scala") || checkName("scala-cli-sip")
+  private var isSipScala = {
+    val isSipConfigDb = for {
+      configDb   <- ConfigDb.open(Directories.directories.dbPath.toNIO).toOption
+      powerEntry <- configDb.get(Keys.power).toOption
+      power      <- powerEntry
+    } yield !power
+
+    isSipConfigDb.getOrElse(checkName("scala") || checkName("scala-cli-sip"))
+  }
   def allowRestrictedFeatures = !isSipScala
   def fullRunnerName          = if (isSipScala) "Scala code runner" else "Scala CLI"
   def baseRunnerName          = if (isSipScala) "scala" else "scala-cli"

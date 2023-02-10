@@ -36,7 +36,8 @@ object RestrictedCommandsParser {
         case Right(Some(_, arg, _)) if !arg.isSupported =>
           Left((
             Error.UnrecognizedArgument(
-              s"`${args(index)}` option is not supported in `scala` command.\n  Please run it with `scala-cli` command or with `--power` flag."
+              s"""`${args(index)}` option is not supported in `scala` command.
+                 |Please run it with `scala-cli` command or with `--power` flag or turn on this flag globally running command `config power true`.""".stripMargin
             ),
             arg,
             Nil
