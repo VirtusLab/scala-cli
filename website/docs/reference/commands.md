@@ -372,7 +372,7 @@ Accepts option groups: [default file](./cli-options.md#default-file-options), [l
 
 ### directories
 
-Prints directories used by Scala CLI
+Prints directories used by Scala CLI.
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
