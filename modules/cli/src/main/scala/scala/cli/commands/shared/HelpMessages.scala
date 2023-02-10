@@ -15,6 +15,9 @@ object HelpMessages {
       |Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
       |For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
       |All supported types of inputs can be mixed with each other.""".stripMargin
+  lazy val bloopInfo: String =
+    s"""Bloop is the build server used by ${ScalaCli.fullRunnerName}.
+       |For more information about Bloop, refer to https://scalacenter.github.io/bloop/""".stripMargin
   def commandConfigurations(cmdName: String): String =
     s"""Specific $cmdName configurations can be specified with both command line options and using directives defined in sources.
        |Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.

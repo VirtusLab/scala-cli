@@ -358,17 +358,40 @@ Accepts option groups: [add path](./cli-options.md#add-path-options), [logging](
 
 ### bloop
 
+Interact with Bloop (the build server) or check its status.
+
+This sub-command allows to check the current status of Bloop.
+If Bloop isn't currently running, it will be started.
+
+Bloop is the build server used by Scala CLI.
+For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+
 Accepts option groups: [bloop](./cli-options.md#bloop-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop exit
+
+Stop Bloop if an instance is running.
+
+Bloop is the build server used by Scala CLI.
+For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop output
 
+Print Bloop output.
+
+Bloop is the build server used by Scala CLI.
+For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop start
+
+Starts a Bloop instance, if none is running.
+
+Bloop is the build server used by Scala CLI.
+For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
 Accepts option groups: [bloop start](./cli-options.md#bloop-start-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
