@@ -551,6 +551,15 @@ Aliases: `--toolkit`
 ## `config` command
 **MUST have for Scala Runner specification.**
 
+Configure global settings for Scala CLI.
+
+Syntax:
+  scala-cli config key value
+For example, to globally set the interactive mode:
+  scala-cli config interactive true
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+
 ### SHOULD have options
 
 **--debug**
@@ -677,11 +686,9 @@ Whether to run the Scala Signing CLI on the JVM or using a native executable
 
 Dump config DB as JSON
 
-**--unset**
+**--create-pgp-key**
 
-Remove an entry from config
-
-Aliases: `--remove`
+Create PGP key in config
 
 </details>
 

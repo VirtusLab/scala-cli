@@ -1291,13 +1291,11 @@ Available in commands:
 
 Dump config DB as JSON
 
-### `--unset`
-
-Aliases: `--remove`
+### `--create-pgp-key`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Remove an entry from config
+Create PGP key in config
 
 ### Coursier options
 

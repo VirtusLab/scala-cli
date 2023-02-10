@@ -2,16 +2,27 @@ package scala.cli.commands.config
 
 import caseapp.*
 
+import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
   CoursierOptions,
   HasLoggingOptions,
+  HelpMessages,
   LoggingOptions,
   SharedJvmOptions
 }
 import scala.cli.commands.tags
 
 // format: off
+@HelpMessage(
+  s"""Configure global settings for $fullRunnerName.
+     |
+     |Syntax:
+     |  $progName ${HelpMessages.PowerString}config key value
+     |For example, to globally set the interactive mode:
+     |  $progName ${HelpMessages.PowerString}config interactive true
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class ConfigOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -25,10 +36,10 @@ final case class ConfigOptions(
   @Group("Config")
   @HelpMessage("Dump config DB as JSON")
   @Hidden
+  @Tag(tags.implementation)
     dump: Boolean = false,
   @Group("Config")
   @HelpMessage("Create PGP key in config")
-  @Tag(tags.restricted)
     createPgpKey: Boolean = false,
   @Group("Config")
   @HelpMessage("Email to use to create PGP key in config")
@@ -45,6 +56,7 @@ final case class ConfigOptions(
   @Group("Config")
   @HelpMessage("Remove an entry from config")
   @ExtraName("remove")
+  @Tag(tags.restricted)
     unset: Boolean = false,
   @Group("Config")
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")
