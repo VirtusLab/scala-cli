@@ -38,6 +38,7 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, ConfigDbException, Keys}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
@@ -284,8 +285,14 @@ final case class SharedOptions(
     bo.BuildOptions(
       suppressWarningOptions =
         bo.SuppressWarningOptions(
-          suppressDirectivesInMultipleFilesWarning,
-          suppressOutdatedDependenciesWarning
+          getOptionOrFromConfig(
+            suppress.suppressDirectivesInMultipleFilesWarning,
+            Keys.suppressDirectivesInMultipleFilesWarning
+          ),
+          getOptionOrFromConfig(
+            suppress.suppressOutdatedDependencyWarning,
+            Keys.suppressOutdatedDependenciessWarning
+          )
         ),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion
@@ -435,21 +442,9 @@ final case class SharedOptions(
     }
   }
 
-  def suppressDirectivesInMultipleFilesWarning: Option[Boolean] =
-    suppress.suppressDirectivesInMultipleFilesWarning.filter(identity).orElse(
-      configDb.map(_.get(Keys.suppressDirectivesInMultipleFilesWarning))
-        .map {
-          case Right(opt) => opt
-          case Left(ex) =>
-            logger.debug(ConfigDbException(ex))
-            None
-        }
-        .getOrElse(None)
-    )
-
-  def suppressOutdatedDependenciesWarning: Option[Boolean] =
-    suppress.suppressOutdatedDependencyWarning.filter(identity).orElse(
-      configDb.map(_.get(Keys.suppressOutdatedDependenciessWarning))
+  def getOptionOrFromConfig(cliOption: Option[Boolean], configDbKey: BooleanEntry) =
+    cliOption.orElse(
+      configDb.map(_.get(configDbKey))
         .map {
           case Right(opt) => opt
           case Left(ex) =>
