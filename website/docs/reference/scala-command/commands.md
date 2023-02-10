@@ -203,7 +203,15 @@ Commands which are used within Scala CLI and should be a part of the `scala` com
 
 ### bsp
 
-Start BSP server
+Start BSP server.
+
+BSP stands for Build Server Protocol.
+For more information refer to https://build-server-protocol.github.io/
+
+This sub-command is not designed to be used by a human.
+It is normally supposed to be invoked by your IDE when a Scala CLI project is imported.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [bsp](./cli-options.md#bsp-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 

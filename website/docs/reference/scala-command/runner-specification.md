@@ -4065,7 +4065,15 @@ Don't check for the newest available Scala CLI version upstream
 ## `bsp` command
 **IMPLEMENTATION specific for Scala Runner specification.**
 
-Start BSP server
+Start BSP server.
+
+BSP stands for Build Server Protocol.
+For more information refer to https://build-server-protocol.github.io/
+
+This sub-command is not designed to be used by a human.
+It is normally supposed to be invoked by your IDE when a Scala CLI project is imported.
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
