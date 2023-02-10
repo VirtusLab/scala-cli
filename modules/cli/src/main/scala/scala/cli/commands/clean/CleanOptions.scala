@@ -17,7 +17,7 @@ import scala.cli.commands.shared.{
     |
     |Passed inputs will establish the $fullRunnerName project, for which the workspace will be cleaned.
     |
-    |${HelpMessages.docsWebsiteReference}""".stripMargin)
+    |${HelpMessages.commandDocWebsiteReference("clean")}""".stripMargin)
 final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

@@ -13,15 +13,17 @@ import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
 import scala.cli.commands.shared.*
 
-// format: off
-@HelpMessage(
+@HelpMessage({
+  val cmdName = "package"
   s"""Compile and package Scala code.
      |
-     |${HelpMessages.commandConfigurations("package")}
+     |${HelpMessages.commandConfigurations(cmdName)}
      |
      |${HelpMessages.acceptedInputs}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
+// format: off
 final case class PackageOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

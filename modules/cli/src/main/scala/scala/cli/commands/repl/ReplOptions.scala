@@ -5,17 +5,19 @@ import caseapp.*
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 
-// format: off
-@HelpMessage(
+@HelpMessage({
+  val cmdName = "repl"
   s"""Fire-up a Scala REPL.
      |
      |The entire $fullRunnerName project's classpath is loaded to the repl.
      |
-     |${HelpMessages.commandConfigurations("repl")}
+     |${HelpMessages.commandConfigurations(cmdName)}
      |
      |${HelpMessages.acceptedInputs}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
+// format: off
 final case class ReplOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

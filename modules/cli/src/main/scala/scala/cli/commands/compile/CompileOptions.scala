@@ -12,15 +12,17 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 
-// format: off
-@HelpMessage(
+@HelpMessage({
+  val cmdName = "compile"
   s"""Compile Scala code.
      |
-     |${HelpMessages.commandConfigurations("compile")}
+     |${HelpMessages.commandConfigurations(cmdName)}
      |
      |${HelpMessages.acceptedInputs}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
+// format: off
 final case class CompileOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

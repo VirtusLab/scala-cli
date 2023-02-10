@@ -22,7 +22,7 @@ import scala.cli.commands.tags
      |For example, to globally set the interactive mode:
      |  $progName ${HelpMessages.PowerString}config interactive true
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference("misc/config")}""".stripMargin)
 final case class ConfigOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

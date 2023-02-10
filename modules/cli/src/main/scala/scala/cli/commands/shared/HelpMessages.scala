@@ -5,10 +5,13 @@ import scala.cli.ScalaCli
 object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
   val passwordOption           = "A github token used to access GitHub. Not needed in most cases."
+  private val docsWebsiteUrl   = "https://scala-cli.virtuslab.org"
   val docsWebsiteReference =
-    "Detailed documentation can be found on our website: https://scala-cli.virtuslab.org"
+    s"Detailed documentation can be found on our website: $docsWebsiteUrl"
+  def commandDocWebsiteReference(websiteSuffix: String): String =
+    s"For detailed documentation refer to our website: $docsWebsiteUrl/docs/commands/$websiteSuffix"
   val installationDocsWebsiteReference =
-    "For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install"
+    s"For detailed installation instructions refer to our website: $docsWebsiteUrl/install"
   val acceptedInputs: String =
     """Multiple inputs can be passed at once.
       |Paths to directories, URLs and supported file types are accepted as inputs.

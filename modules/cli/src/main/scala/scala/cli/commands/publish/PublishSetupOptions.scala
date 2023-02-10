@@ -11,7 +11,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(
   s"""Configures the project for publishing.
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference("publishing/publish-setup")}""".stripMargin)
 final case class PublishSetupOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

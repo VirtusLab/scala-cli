@@ -17,7 +17,8 @@ import scala.cli.signing.util.ArgParsers.*
       |is distinct from the Scala version of the compiler. We recommend to specify the version of the Scala compiler
       |for a project in its sources (via a using directive). Otherwise, $fullRunnerName falls back to the default
       |Scala version defined by the runner.
-      |""".stripMargin
+      |
+      |${HelpMessages.commandDocWebsiteReference("version")}""".stripMargin
 )
 final case class VersionOptions(
   @Recurse

@@ -11,8 +11,8 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 
-// format: off
-@HelpMessage(
+@HelpMessage({
+  val cmdName = "setup-ide"
   s"""Generates a BSP file that you can import into your IDE.
      |
      |The `setup-ide` sub-command allows to pre-configure a $fullRunnerName project to import to an IDE with BSP support.
@@ -21,9 +21,11 @@ import scala.cli.commands.tags
      |The pre-configuration should be saved in a BSP json connection file under the path:
      |    {project-root}/.bsp/$baseRunnerName.json
      |
-     |${HelpMessages.commandConfigurations("setup-ide")}
+     |${HelpMessages.commandConfigurations(cmdName)}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
+// format: off
 final case class SetupIdeOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

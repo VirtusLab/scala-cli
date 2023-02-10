@@ -2,11 +2,14 @@ package scala.cli.commands.uninstallcompletions
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
 // format: off
-@HelpMessage("Uninstalls completions from your shell")
+@HelpMessage(
+  s"""Uninstalls completions from your shell
+     |
+     |${HelpMessages.commandDocWebsiteReference("completions")}""".stripMargin)
 final case class UninstallCompletionsOptions(
   @Recurse
     shared: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),

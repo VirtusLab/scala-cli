@@ -13,20 +13,23 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 
+@HelpMessage({
+  val cmdName = "test"
+  s"""Compile and test Scala code.
+     |
+     |Test sources are compiled separately (after the 'main' sources), and may use different dependencies, compiler options, and other configurations.
+     |A source file is treated as a test source if:
+     |  - it contains the `//> using target.scope "test"` directive
+     |  - the file name ends with `.test.scala`
+     |  - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
+     |
+     |${HelpMessages.commandConfigurations(cmdName)}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
 // format: off
-@HelpMessage(s"""Compile and test Scala code.
-                |
-                |Test sources are compiled separately (after the 'main' sources), and may use different dependencies, compiler options, and other configurations.
-                |A source file is treated as a test source if:
-                |  - it contains the `//> using target.scope "test"` directive
-                |  - the file name ends with `.test.scala`
-                |  - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
-                |
-                |${HelpMessages.commandConfigurations("test")}
-                |
-                |${HelpMessages.acceptedInputs}
-                |
-                |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class TestOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

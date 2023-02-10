@@ -23,7 +23,7 @@ import scala.util.Properties
      |
      |All standard $fullRunnerName inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference("fmt")}""".stripMargin)
 final case class FmtOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

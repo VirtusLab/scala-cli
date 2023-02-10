@@ -58,7 +58,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/compile
 
 ### MUST have options
 
@@ -570,7 +570,7 @@ Syntax:
 For example, to globally set the interactive mode:
   scala-cli config interactive true
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
 ### SHOULD have options
 
@@ -717,7 +717,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/doc
 
 ### MUST have options
 
@@ -1240,7 +1240,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/repl
 
 ### MUST have options
 
@@ -1778,7 +1778,7 @@ To pass arguments to the actual application, just add them after `--`, like:
 scala-cli run Main.scala AnotherSource.scala -- first-arg second-arg
 ```
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 ### MUST have options
 
@@ -2341,7 +2341,7 @@ Using this, it is possible to conveniently set up Unix shebang scripts. For exam
 println("Hello, world")
 ```
 
-
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/shebang
 
 ### MUST have options
 
@@ -2891,7 +2891,7 @@ Default configuration values will be assumed by Scala CLI.
 
 All standard Scala CLI inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 ### MUST have options
 
@@ -3460,7 +3460,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/test
 
 ### MUST have options
 
@@ -3993,6 +3993,7 @@ is distinct from the Scala version of the compiler. We recommend to specify the 
 for a project in its sources (via a using directive). Otherwise, Scala CLI falls back to the default
 Scala version defined by the runner.
 
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
 <details><summary>
 
@@ -4570,7 +4571,7 @@ Clean the workspace.
 
 Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
 <details><summary>
 
@@ -4703,6 +4704,8 @@ Use progress bars
 Aliases: `install-completions`
 
 Installs Scala CLI completions into your shell
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 <details><summary>
 
@@ -4878,7 +4881,7 @@ Specific setup-ide configurations can be specified with both command line option
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
 Using directives can be defined in all supported input source file types.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 ### MUST have options
 
@@ -5547,6 +5550,8 @@ Binary directory
 Aliases: `uninstall-completions`
 
 Uninstalls completions from your shell
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 <details><summary>
 

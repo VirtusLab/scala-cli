@@ -4,7 +4,7 @@ import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}
 import scala.cli.commands.run.RunOptions
-import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 
 @HelpMessage(
   s"""|Like `run`, but handier for shebang scripts.
@@ -33,7 +33,7 @@ import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
       |println("Hello, world")
       |```
       |
-      |""".stripMargin
+      |${HelpMessages.commandDocWebsiteReference("shebang")}""".stripMargin
 )
 final case class ShebangOptions(
   @Recurse

@@ -16,7 +16,7 @@ import scala.cli.commands.shared._
      |
      |${HelpMessages.acceptedInputs}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference("publishing/publish-local")}""".stripMargin)
 final case class PublishLocalOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

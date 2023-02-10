@@ -19,7 +19,7 @@ import scala.cli.commands.shared.*
      |
      |${HelpMessages.acceptedInputs}
      |
-     |${HelpMessages.docsWebsiteReference}""".stripMargin)
+     |${HelpMessages.commandDocWebsiteReference("publishing/publish")}""".stripMargin)
 final case class PublishOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

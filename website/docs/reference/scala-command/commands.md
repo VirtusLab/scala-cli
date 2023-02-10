@@ -29,7 +29,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/compile
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [compile](./cli-options.md#compile-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
@@ -42,7 +42,7 @@ Syntax:
 For example, to globally set the interactive mode:
   scala-cli config interactive true
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
 Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
 
@@ -56,7 +56,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/doc
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [doc](./cli-options.md#doc-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
@@ -78,7 +78,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/repl
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [repl](./cli-options.md#repl-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
@@ -105,7 +105,7 @@ To pass arguments to the actual application, just add them after `--`, like:
 scala-cli run Main.scala AnotherSource.scala -- first-arg second-arg
 ```
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
@@ -137,7 +137,7 @@ Using this, it is possible to conveniently set up Unix shebang scripts. For exam
 println("Hello, world")
 ```
 
-
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/shebang
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
@@ -156,7 +156,7 @@ Default configuration values will be assumed by Scala CLI.
 
 All standard Scala CLI inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [fmt](./cli-options.md#fmt-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
@@ -180,7 +180,7 @@ Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
 For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
 All supported types of inputs can be mixed with each other.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/test
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [test](./cli-options.md#test-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
@@ -194,6 +194,7 @@ is distinct from the Scala version of the compiler. We recommend to specify the 
 for a project in its sources (via a using directive). Otherwise, Scala CLI falls back to the default
 Scala version defined by the runner.
 
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
@@ -221,7 +222,7 @@ Clean the workspace.
 
 Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
@@ -236,6 +237,8 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 Aliases: `install-completions`
 
 Installs Scala CLI completions into your shell
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 Accepts option groups: [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
@@ -259,7 +262,7 @@ Specific setup-ide configurations can be specified with both command line option
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
 Using directives can be defined in all supported input source file types.
 
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [setup IDE](./cli-options.md#setup-ide-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
@@ -276,6 +279,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 Aliases: `uninstall-completions`
 
 Uninstalls completions from your shell
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 

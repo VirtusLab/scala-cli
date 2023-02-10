@@ -14,7 +14,7 @@ import scala.cli.commands.tags
        |
        |${HelpMessages.acceptedInputs}
        |
-       |${HelpMessages.docsWebsiteReference}""".stripMargin,
+       |${HelpMessages.commandDocWebsiteReference("doc")}""".stripMargin,
   messageMd = s"By default, $fullRunnerName sets common `scaladoc` options and this mechanism can be disabled by using `--default-scaladoc-opts:false`."
 )
 final case class DocOptions(
