@@ -12,7 +12,7 @@ import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.config.Secret
 import scala.cli.errors.GitHubApiError
 
-object SecretList extends ScalaCommand[ListSecretsOptions] {
+object SecretList extends ScalaCommand[SecretListOptions] {
 
   override def hidden                  = false
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
@@ -55,7 +55,7 @@ object SecretList extends ScalaCommand[ListSecretsOptions] {
   }
 
   override def runCommand(
-    options: ListSecretsOptions,
+    options: SecretListOptions,
     args: RemainingArgs,
     logger: Logger
   ): Unit = {

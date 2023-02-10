@@ -238,6 +238,8 @@ Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](
 
 Aliases: `gh secret list`
 
+Lists secrets for a given GitHub repository.
+
 Accepts option groups: [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## setup-ide
