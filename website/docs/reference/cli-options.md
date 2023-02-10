@@ -258,7 +258,11 @@ Available in commands:
 
 ### `--sbt`
 
+Sets the export format to SBT
+
 ### `--mill`
+
+Sets the export format to Mill
 
 ### `--sbt-setting`
 
@@ -271,6 +275,8 @@ Aliases: `-p`
 Project name to be used on Mill build file
 
 ### `--sbt-version`
+
+Version of SBT to be used for the export
 
 ### `--output`
 
