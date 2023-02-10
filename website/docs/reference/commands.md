@@ -40,7 +40,16 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Aliases: `format`, `scalafmt`
 
-Format Scala code
+Formats Scala code.
+
+`scalafmt` is used to perform the formatting under the hood.
+
+The `.scalafmt.conf` configuration file is optional.
+Default configuration values will be assumed by Scala CLI.
+
+All standard Scala CLI inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [fmt](./cli-options.md#fmt-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 

@@ -2855,7 +2855,16 @@ Run Java commands using a manifest-based class path (shortens command length)
 
 Aliases: `format`, `scalafmt`
 
-Format Scala code
+Formats Scala code.
+
+`scalafmt` is used to perform the formatting under the hood.
+
+The `.scalafmt.conf` configuration file is optional.
+Default configuration values will be assumed by Scala CLI.
+
+All standard Scala CLI inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
+
+Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 

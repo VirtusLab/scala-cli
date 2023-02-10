@@ -7,12 +7,23 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
-import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 import scala.cli.commands.{Constants, tags}
 import scala.util.Properties
 
 // format: off
-@HelpMessage("Format Scala code")
+@HelpMessage(
+  s"""Formats Scala code.
+     |
+     |`scalafmt` is used to perform the formatting under the hood.
+     |
+     |The `.scalafmt.conf` configuration file is optional.
+     |Default configuration values will be assumed by $fullRunnerName.
+     |
+     |All standard $fullRunnerName inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
+     |
+     |${HelpMessages.docsWebsiteReference}""".stripMargin)
 final case class FmtOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -49,6 +60,7 @@ final case class FmtOptions(
   @Hidden
     scalafmtExtension: Option[String] = None,
   @Group("Format")
+  @Tag(tags.implementation)
   @Hidden
     scalafmtLauncher: Option[String] = None,
 
@@ -64,6 +76,7 @@ final case class FmtOptions(
   @Name("scalafmtConfig")
     scalafmtConf: Option[String] = None,
   @Group("Format")
+  @Tag(tags.implementation)
   @HelpMessage("Pass configuration as a string.")
   @Name("scalafmtConfigStr")
   @Name("scalafmtConfSnippet")
