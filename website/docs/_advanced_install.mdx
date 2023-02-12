@@ -92,7 +92,7 @@ sudo dpkg -i scala-cli.deb
 Scala CLI can be installed via [yum](http://yum.baseurl.org) packager tool.
 
 ```bash
-sudo cat > /etc/yum.repos.d/virtuslab.repo << EOF
+cat << EOF | sudo tee /etc/yum.repos.d/virtuslab.repo
 [virtuslab-repo]
 name=VirtusLab Repo
 baseurl=https://virtuslab.github.io/scala-cli-packages/CentOS/Packages
