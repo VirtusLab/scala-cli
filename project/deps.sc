@@ -89,7 +89,7 @@ object Deps {
     def scalaMeta          = "4.7.1"
     def scalaNative        = "0.4.9"
     def scalaPackager      = "0.1.29"
-    def signingCli         = "0.1.13"
+    def signingCli         = "0.1.15"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -166,11 +166,11 @@ object Deps {
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def shapeless                = ivy"com.chuusai::shapeless:2.3.9"
   def signingCliShared =
-    ivy"io.github.alexarchambault.scala-cli.signing::shared:${Versions.signingCli}"
+    ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
   def signingCli =
-    ivy"io.github.alexarchambault.scala-cli.signing::cli:${Versions.signingCli}"
+    ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
   def slf4jNop = ivy"org.slf4j:slf4j-nop:2.0.6"

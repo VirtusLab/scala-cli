@@ -141,7 +141,7 @@ For example, here are a few external projects used by Scala CLI:
 
 - [scala-js-cli-native-image](https://github.com/scala-cli/scala-js-cli-native-image): provides a binary running the
   Scala.js linker
-- [scala-cli-signing](https://github.com/scala-cli/scala-cli-signing): provides both libraries and binaries to handle
+- [scala-cli-signing](https://github.com/VirtusLab/scala-cli-signing): provides both libraries and binaries to handle
   PGP concerns in Scala CLI
 - [libsodiumjni](https://github.com/scala-cli/libsodiumjni): provides minimal JNI bindings for
   [libsodium](https://github.com/jedisct1/libsodium), that is used by Scala CLI to encrypt secrets
