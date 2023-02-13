@@ -433,6 +433,10 @@ Accepts option groups: [config](./cli-options.md#config-options), [coursier](./c
 
 ### default-file
 
+Generates default files for a Scala CLI project (i.e. .gitignore).
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/default-file
+
 Accepts option groups: [default file](./cli-options.md#default-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### directories

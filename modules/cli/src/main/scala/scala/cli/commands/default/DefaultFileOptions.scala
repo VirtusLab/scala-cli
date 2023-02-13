@@ -2,24 +2,34 @@ package scala.cli.commands.default
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.ScalaCli.fullRunnerName
+import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
+import scala.cli.commands.tags
 
 // format: off
+@HelpMessage(
+  s"""Generates default files for a $fullRunnerName project (i.e. .gitignore).
+     |
+     |${HelpMessages.commandDocWebsiteReference("misc/default-file")}""".stripMargin)
 final case class DefaultFileOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Group("Default")
   @HelpMessage("Write result to files rather than to stdout")
+  @Tag(tags.restricted)
     write: Boolean = false,
   @Group("Default")
   @HelpMessage("List available default files")
+  @Tag(tags.restricted)
     list: Boolean = false,
   @Group("Default")
   @HelpMessage("List available default file ids")
+  @Tag(tags.restricted)
     listIds: Boolean = false,
   @Group("Default")
   @HelpMessage("Force overwriting destination files")
   @ExtraName("f")
+  @Tag(tags.restricted)
     force: Boolean = false
 ) extends HasLoggingOptions
 // format: on
