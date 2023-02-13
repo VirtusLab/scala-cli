@@ -90,9 +90,14 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   override def completer: Completer[T] = {
     val parent = super.completer
     new Completer[T] {
-      def optionName(prefix: String, state: Option[T]): List[CompletionItem] =
-        parent.optionName(prefix, state)
-      def optionValue(arg: Arg, prefix: String, state: Option[T]): List[CompletionItem] = {
+      def optionName(prefix: String, state: Option[T], args: RemainingArgs): List[CompletionItem] =
+        parent.optionName(prefix, state, args)
+      def optionValue(
+        arg: Arg,
+        prefix: String,
+        state: Option[T],
+        args: RemainingArgs
+      ): List[CompletionItem] = {
         val candidates = arg.name.name match {
           case "dependency" =>
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
@@ -123,10 +128,10 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
           case "repository" => Nil // TODO
           case _            => Nil
         }
-        candidates ++ parent.optionValue(arg, prefix, state)
+        candidates ++ parent.optionValue(arg, prefix, state, args)
       }
-      def argument(prefix: String, state: Option[T]): List[CompletionItem] =
-        parent.argument(prefix, state)
+      def argument(prefix: String, state: Option[T], args: RemainingArgs): List[CompletionItem] =
+        parent.argument(prefix, state, args)
     }
   }
 
