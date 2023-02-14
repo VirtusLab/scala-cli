@@ -5,7 +5,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Build, BuildThreads, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Util
 import scala.build.options.BuildOptions
 import scala.util.control.NonFatal
@@ -44,9 +44,8 @@ final case class TestInputs(
         tmpDir,
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
-        extraClasspathWasPassed = false,
-        isRunWithShebang = false
-      )
+        extraClasspathWasPassed = false
+      )(using ScalaCliInvokeData("", "", SubCommand.Other, false))
       res match {
         case Left(err)     => throw new Exception(err)
         case Right(inputs) => f(tmpDir, inputs)

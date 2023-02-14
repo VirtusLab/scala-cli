@@ -4,6 +4,7 @@ import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
@@ -41,6 +42,9 @@ class Default(
 
   private[cli] var rawArgs = Array.empty[String]
 
+  override def invokeData: ScalaCliInvokeData =
+    super.invokeData.copy(subCommand = SubCommand.Default)
+
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit =
     // can't fully re-parse and redirect to Version because of --cli-version and --scala-version clashing
     if options.version then Version.runCommand(VersionOptions(options.shared.logging), args, logger)
@@ -55,5 +59,13 @@ class Default(
       }.parse(options.legacyScala.filterNonDeprecatedArgs(rawArgs, progName, logger)) match
         case Left(e)                              => error(e)
         case Right((replOptions: ReplOptions, _)) => Repl.runCommand(replOptions, args, logger)
-        case Right((runOptions: RunOptions, _))   => Run.runCommand(runOptions, args, logger)
+        case Right((runOptions: RunOptions, _)) =>
+          Run.runCommand(
+            runOptions,
+            args.remaining,
+            args.unparsed,
+            () => Inputs.default(),
+            logger,
+            invokeData
+          )
 }

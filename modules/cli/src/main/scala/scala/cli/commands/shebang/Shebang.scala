@@ -3,6 +3,7 @@ package scala.cli.commands.shebang
 import caseapp.RemainingArgs
 
 import scala.build.Logger
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
@@ -17,6 +18,8 @@ object Shebang extends ScalaCommand[ShebangOptions] {
   override def sharedOptions(options: ShebangOptions): Option[SharedOptions] =
     Run.sharedOptions(options.runOptions)
 
+  override def invokeData: ScalaCliInvokeData =
+    super.invokeData.copy(subCommand = SubCommand.Shebang)
   override def runCommand(options: ShebangOptions, args: RemainingArgs, logger: Logger): Unit =
     Run.runCommand(
       options.runOptions,
@@ -24,6 +27,6 @@ object Shebang extends ScalaCommand[ShebangOptions] {
       args.remaining.drop(1),
       () => None,
       logger,
-      isRunWithShebang = true
+      invokeData
     )
 }

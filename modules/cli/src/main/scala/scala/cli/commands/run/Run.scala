@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.cli.CurrentParams
@@ -55,7 +55,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       args.remaining,
       args.unparsed,
       () => Inputs.default(),
-      logger
+      logger,
+      invokeData
     )
 
   override def buildOptions(options: RunOptions): Some[BuildOptions] = Some {
@@ -107,14 +108,15 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs],
     logger: Logger,
-    isRunWithShebang: Boolean = false
+    invokeData: ScalaCliInvokeData
   ): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
 
     val inputs = options.shared.inputs(
       inputArgs,
-      defaultInputs = defaultInputs,
-      isRunWithShebang
+      defaultInputs
+    )(
+      using invokeData
     ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()

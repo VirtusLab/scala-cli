@@ -14,6 +14,7 @@ import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
+import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
@@ -21,6 +22,7 @@ import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.{HasLoggingOptions, ScalaCliHelp, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.internal.ProcUtil
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
@@ -68,6 +70,16 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   protected def actualFullCommand: String =
     if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
+
+  protected def invokeData: ScalaCliInvokeData =
+    ScalaCliInvokeData(
+      progName,
+      actualCommandName,
+      SubCommand.Other,
+      ProcUtil.isShebangCapableShell
+    )
+
+  given ScalaCliInvokeData = invokeData
 
   override def error(message: Error): Nothing = {
     System.err.println(

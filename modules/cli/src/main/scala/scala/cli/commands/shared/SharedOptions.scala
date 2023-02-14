@@ -18,7 +18,7 @@ import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException}
-import scala.build.input.{Element, Inputs, ResourceDirectory}
+import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
@@ -521,9 +521,8 @@ final case class SharedOptions(
 
   def inputs(
     args: Seq[String],
-    defaultInputs: () => Option[Inputs] = () => Inputs.default(),
-    isRunWithShebang: Boolean = false
-  ): Either[BuildException, Inputs] =
+    defaultInputs: () => Option[Inputs] = () => Inputs.default()
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
     SharedOptions.inputs(
       args,
       defaultInputs,
@@ -539,8 +538,7 @@ final case class SharedOptions(
       javaSnippetList = allJavaSnippets,
       markdownSnippetList = allMarkdownSnippets,
       enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty,
-      isRunWithShebang = isRunWithShebang
+      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty
     )
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
@@ -548,15 +546,16 @@ final case class SharedOptions(
   def allJavaSnippets: List[String]     = snippet.javaSnippet ++ snippet.executeJava
   def allMarkdownSnippets: List[String] = snippet.markdownSnippet ++ snippet.executeMarkdown
 
-  def validateInputArgs(args: Seq[String]): Seq[Either[String, Seq[Element]]] =
+  def validateInputArgs(
+    args: Seq[String]
+  )(using ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     Inputs.validateArgs(
       args,
       Os.pwd,
       SharedOptions.downloadInputs(coursierCache),
       SharedOptions.readStdin(logger = logger),
       !Properties.isWin,
-      enableMarkdown = true,
-      isRunWithShebang = false
+      enableMarkdown = true
     )
 
   def strictBloopJsonCheckOrDefault: Boolean =
@@ -594,9 +593,8 @@ object SharedOptions {
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
-    extraClasspathWasPassed: Boolean = false,
-    isRunWithShebang: Boolean = false
-  ): Either[BuildException, Inputs] = {
+    extraClasspathWasPassed: Boolean = false
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map { path =>
@@ -619,9 +617,9 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed,
-      isRunWithShebang
+      extraClasspathWasPassed = extraClasspathWasPassed
     )
+
     maybeInputs.map { inputs =>
       val forbiddenDirs =
         (if (defaultForbiddenDirectories) myDefaultForbiddenDirectories else Nil) ++

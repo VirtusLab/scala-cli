@@ -34,7 +34,11 @@ class SipScalaTests extends ScalaCliSuite {
       if (binaryName.isSip) {
         expect(res.exitCode == 1)
         val output = res.out.text()
-        expect(output.contains(s"directories: not found"))
+        expect(
+          "directories is not a .* sub-command and it is not a valid path to an input file or directory".r
+            .unanchored
+            .matches(output)
+        )
       }
       else expect(res.exitCode == 0)
     }
@@ -172,7 +176,11 @@ class SipScalaTests extends ScalaCliSuite {
         mergeErrIntoOut = true,
         env = homeEnv
       ).out.text().trim
-      expect(output.contains("package: not found"))
+      expect(
+        "package is not a .* sub-command and it is not a valid path to an input file or directory".r
+          .unanchored
+          .matches(output)
+      )
       // enable power features
       os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
       val powerOutput = os.proc(TestUtil.cli, "package").call(

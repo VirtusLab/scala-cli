@@ -262,62 +262,96 @@ object Inputs {
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean,
-    enableMarkdown: Boolean,
-    isRunWithShebang: Boolean
-  ): Seq[Either[String, Seq[Element]]] = args.zipWithIndex.map {
-    case (arg, idx) =>
-      lazy val path      = os.Path(arg, cwd)
-      lazy val dir       = path / os.up
-      lazy val subPath   = path.subRelativeTo(dir)
-      lazy val stdinOpt0 = stdinOpt
-      lazy val content   = os.read.bytes(path)
-      if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
-        Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
-      else if (arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty then
-        Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>-java-file")))
-      else if (arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty then
-        Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
-      else if (arg == "-.md" || arg == "_.md") && stdinOpt0.nonEmpty then
-        Right(Seq(VirtualMarkdownFile(stdinOpt0.get, "<stdin>-markdown-file", os.sub / "stdin.md")))
-      else if arg.endsWith(".zip") && os.exists(path) then
-        Right(resolveZipArchive(content, enableMarkdown))
-      else if arg.contains("://") then {
-        val isGithubGist = githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty
-        val url          = if isGithubGist then s"$arg/download" else arg
-        download(url).map { urlContent =>
-          if isGithubGist then resolveZipArchive(urlContent, enableMarkdown)
-          else List(Virtual(url, urlContent))
+    enableMarkdown: Boolean
+  )(using programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
+    args.zipWithIndex.map {
+      case (arg, idx) =>
+        lazy val path      = os.Path(arg, cwd)
+        lazy val dir       = path / os.up
+        lazy val subPath   = path.subRelativeTo(dir)
+        lazy val stdinOpt0 = stdinOpt
+        lazy val content   = os.read.bytes(path)
+        lazy val fullProgramCall = programInvokeData.progName +
+          s"${
+              if programInvokeData.subCommand == SubCommand.Default then ""
+              else s" ${programInvokeData.subCommandName}"
+            }"
+        val unrecognizedSourceError =
+          s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+
+        if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
+          Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
+        else if (arg == "-.java" || arg == "_.java") && stdinOpt0.nonEmpty then
+          Right(Seq(VirtualJavaFile(stdinOpt0.get, "<stdin>-java-file")))
+        else if (arg == "-" || arg == "-.sc" || arg == "_.sc") && stdinOpt0.nonEmpty then
+          Right(Seq(VirtualScript(stdinOpt0.get, "stdin", os.sub / "stdin.sc")))
+        else if (arg == "-.md" || arg == "_.md") && stdinOpt0.nonEmpty then
+          Right(Seq(VirtualMarkdownFile(
+            stdinOpt0.get,
+            "<stdin>-markdown-file",
+            os.sub / "stdin.md"
+          )))
+        else if arg.endsWith(".zip") && os.exists(path) then
+          Right(resolveZipArchive(content, enableMarkdown))
+        else if arg.contains("://") then {
+          val isGithubGist = githubGistsArchiveRegex.findFirstMatchIn(arg).nonEmpty
+          val url          = if isGithubGist then s"$arg/download" else arg
+          download(url).map { urlContent =>
+            if isGithubGist then resolveZipArchive(urlContent, enableMarkdown)
+            else List(Virtual(url, urlContent))
+          }
         }
-      }
-      else if path.last == Constants.projectFileName then Right(Seq(ProjectScalaFile(dir, subPath)))
-      else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
-      else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
-      else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
-      else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
-      else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
-      else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
-      else if os.isDir(path) then Right(Seq(Directory(path)))
-      else if acceptFds && arg.startsWith("/dev/fd/") then
-        Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
-      else if isRunWithShebang && os.exists(path) then
-        if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath)))
-        else
-          Left(s"""$arg does not contain shebang header
-                  |possible fixes:
-                  |  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
-                  |  Add extension to the file's name e.q. '.sc'
-                  |""".stripMargin)
-      else {
-        val msg =
-          if os.exists(path) then
-            if isShebangScript(String(content)) then
-              s"$arg scripts with no file extension should be run with 'scala-cli shebang'"
+        else if path.last == Constants.projectFileName then
+          Right(Seq(ProjectScalaFile(dir, subPath)))
+        else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
+        else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
+        else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
+        else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
+        else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
+        else if arg.endsWith(".md") then Right(Seq(MarkdownFile(dir, subPath)))
+        else if os.isDir(path) then Right(Seq(Directory(path)))
+        else if acceptFds && arg.startsWith("/dev/fd/") then
+          Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
+        else if programInvokeData.subCommand == SubCommand.Shebang && os.exists(path) then
+          if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath)))
+          else
+            Left(if programInvokeData.isShebangCapableShell then
+              s"""$unrecognizedSourceError,
+                 |to use a script with no file extensions add shebang header pointing to
+                 |'$fullProgramCall' to the top of the file
+                 |""".stripMargin
+            else unrecognizedSourceError)
+        else {
+          val msg =
+            if os.exists(path) then
+              programInvokeData match {
+                case ScalaCliInvokeData(progName, _, _, true)
+                    if isShebangScript(String(content)) =>
+                  s"""$arg: scripts with no file extension should be run with
+                     |'$progName shebang'
+                     |""".stripMargin
+                case ScalaCliInvokeData(progName, _, _, true) =>
+                  s"""$unrecognizedSourceError,
+                     |if it's meant to be a script add a shebang header pointing to
+                     |'$progName shebang' in the top line
+                     |and run the source with '$progName shebang'
+                     |""".stripMargin
+                case _ => unrecognizedSourceError
+              }
+            else if programInvokeData.subCommand == SubCommand.Default && idx == 0 && arg.forall(
+                _.isLetterOrDigit
+              )
+            then
+              s"""$arg is not a ${programInvokeData.progName} sub-command and it is not a valid path to an input file or directory
+                 |Try '${programInvokeData.progName} --help' to see the list of available sub-commands and options
+                 |""".stripMargin
             else
-              s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
-          else s"$arg: not found"
-        Left(msg)
-      }
-  }
+              s"""$arg: file not found
+                 |Try '$fullProgramCall --help' for usage information
+                 |""".stripMargin
+          Left(msg)
+        }
+    }
 
   private def forNonEmptyArgs(
     args: Seq[String],
@@ -333,11 +367,17 @@ object Inputs {
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean,
-    isRunWithShebang: Boolean
-  ): Either[BuildException, Inputs] = {
+    extraClasspathWasPassed: Boolean
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
-      validateArgs(args, cwd, download, stdinOpt, acceptFds, enableMarkdown, isRunWithShebang)
+      validateArgs(
+        args,
+        cwd,
+        download,
+        stdinOpt,
+        acceptFds,
+        enableMarkdown
+      )
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
@@ -378,9 +418,8 @@ object Inputs {
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean,
-    isRunWithShebang: Boolean
-  ): Either[BuildException, Inputs] =
+    extraClasspathWasPassed: Boolean
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed
@@ -403,8 +442,7 @@ object Inputs {
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
-        extraClasspathWasPassed,
-        isRunWithShebang
+        extraClasspathWasPassed
       )
 
   def default(): Option[Inputs] = None

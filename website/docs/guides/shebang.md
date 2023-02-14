@@ -69,13 +69,13 @@ Note that the extra `--` must be added to make it work. If it is not supplied, t
 ```
 
 ```text
-[error] Hello: not found
-World: not found
+[error] Hello: file not found
+World: file not found
 ```
 
 <!-- Expected:
-Hello: not found
-World: not found
+Hello: file not found
+World: file not found
 -->
 
 </ChainedSnippets>
@@ -164,13 +164,13 @@ scala-cli run Main.scala Hello world
 ```
 
 ```text
-[error]  Hello: not found
-world: not found
+[error]  Hello: file not found
+world: file not found
 ```
 
 <!-- Expected:
-[error]  Hello: not found
-world: not found
+[error]  Hello: file not found
+world: file not found
 -->
 
 </ChainedSnippets>
@@ -218,18 +218,13 @@ scala-cli shebang hello-no-shebang Hello World
 ```
 
 ```text
-[error]  hello-no-shebang does not contain shebang header
-possible fixes:
-  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
-  Add extension to the file's name e.q. '.sc'
+hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or a directory)
 ```
 <!-- Expected:
-[error]  hello-no-shebang does not contain shebang header
-possible fixes:
-  Add '#!/usr/bin/env scala-cli shebang' to the top of the file
-  Add extension to the file's name e.q. '.sc'
+hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or a directory)
 -->
-
-Note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
-
 </ChainedSnippets>
+
+:::note
+Files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
+:::

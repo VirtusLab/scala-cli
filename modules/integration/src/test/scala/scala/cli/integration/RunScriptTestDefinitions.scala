@@ -361,9 +361,15 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       else
         os.proc(TestUtil.cli, "shebang", "script-no-shebang", "1", "2", "3", "-v")
           .call(cwd = root, check = false, stderr = os.Pipe).err.trim()
+
       expect(output.contains(
-        "does not contain shebang header"
+        "unrecognized source type (expected .scala or .sc extension, or a directory)"
       ))
+
+      if (TestUtil.isShebangCapableShell)
+        expect(output.contains(
+          "to use a script with no file extensions add shebang header"
+        ))
     }
   }
 }
