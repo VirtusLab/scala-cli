@@ -4,7 +4,7 @@ import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
-import scala.build.input.{ScalaCliInvokeData, SubCommand}
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
@@ -62,7 +62,9 @@ class Default(
         case Right((runOptions: RunOptions, _)) =>
           Run.runCommand(
             runOptions,
-            args,
+            args.remaining,
+            args.unparsed,
+            () => Inputs.default(),
             logger,
             invokeData
           )

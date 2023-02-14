@@ -59,21 +59,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       invokeData
     )
 
-  def runCommand(
-    options: RunOptions,
-    args: RemainingArgs,
-    logger: Logger,
-    invokeData: ScalaCliInvokeData
-  ): Unit =
-    runCommand(
-      options,
-      args.remaining,
-      args.unparsed,
-      () => Inputs.default(),
-      logger,
-      invokeData
-    )
-
   override def buildOptions(options: RunOptions): Some[BuildOptions] = Some {
     import options.*
     import options.sharedRun.*
@@ -123,7 +108,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs],
     logger: Logger,
-    invokeData: ScalaCliInvokeData = this.invokeData
+    invokeData: ScalaCliInvokeData
   ): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
 
@@ -131,7 +116,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       inputArgs,
       defaultInputs
     )(
-      invokeData
+      using invokeData
     ).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()

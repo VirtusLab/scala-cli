@@ -223,7 +223,8 @@ hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or
 <!-- Expected:
 hello-no-shebang: unrecognized source type (expected .scala or .sc extension, or a directory)
 -->
-
-Please note that files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
-
 </ChainedSnippets>
+
+:::note
+Files with no extensions are always run as scripts even though they may contain e.g. valid `.scala` program.
+:::

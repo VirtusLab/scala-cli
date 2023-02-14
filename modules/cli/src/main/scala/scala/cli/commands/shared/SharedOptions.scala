@@ -522,7 +522,7 @@ final case class SharedOptions(
   def inputs(
     args: Seq[String],
     defaultInputs: () => Option[Inputs] = () => Inputs.default()
-  )(implicit programInvokeData: ScalaCliInvokeData): Either[BuildException, Inputs] =
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
     SharedOptions.inputs(
       args,
       defaultInputs,
@@ -539,7 +539,7 @@ final case class SharedOptions(
       markdownSnippetList = allMarkdownSnippets,
       enableMarkdown = markdown.enableMarkdown,
       extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty
-    )(programInvokeData = programInvokeData)
+    )
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
@@ -548,15 +548,14 @@ final case class SharedOptions(
 
   def validateInputArgs(
     args: Seq[String]
-  )(implicit programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
+  )(using ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     Inputs.validateArgs(
       args,
       Os.pwd,
       SharedOptions.downloadInputs(coursierCache),
       SharedOptions.readStdin(logger = logger),
       !Properties.isWin,
-      enableMarkdown = true,
-      programInvokeData = programInvokeData
+      enableMarkdown = true
     )
 
   def strictBloopJsonCheckOrDefault: Boolean =
@@ -595,7 +594,7 @@ object SharedOptions {
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
     extraClasspathWasPassed: Boolean = false
-  )(implicit programInvokeData: ScalaCliInvokeData): Either[BuildException, Inputs] = {
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map { path =>
@@ -619,7 +618,7 @@ object SharedOptions {
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
       extraClasspathWasPassed = extraClasspathWasPassed
-    )(programInvokeData = programInvokeData)
+    )
 
     maybeInputs.map { inputs =>
       val forbiddenDirs =

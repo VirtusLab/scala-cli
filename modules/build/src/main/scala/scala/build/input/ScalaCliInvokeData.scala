@@ -4,15 +4,19 @@ package scala.build.input
   *
   * @param progName
   *   the actual Scala CLI program name which was run
+  * @param subCommandName
+  *   the name of the sub-command that was invoked by user
   * @param subCommand
-  *   the sub-command that was invoked by user
+  *   the type of the sub-command that was invoked by user
+  * @param isShebangCapableShell
+  *   does the host shell support shebang headers
   */
 
 case class ScalaCliInvokeData(
   progName: String,
   subCommandName: String,
   subCommand: SubCommand,
-  isShebangCabaleShell: Boolean
+  isShebangCapableShell: Boolean
 )
 
 enum SubCommand:

@@ -71,13 +71,15 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   protected def actualFullCommand: String =
     if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
 
-  protected implicit def invokeData: ScalaCliInvokeData =
+  protected def invokeData: ScalaCliInvokeData =
     ScalaCliInvokeData(
       progName,
       actualCommandName,
       SubCommand.Other,
       ProcUtil.isShebangCapableShell
     )
+
+  given ScalaCliInvokeData = invokeData
 
   override def error(message: Error): Nothing = {
     System.err.println(
