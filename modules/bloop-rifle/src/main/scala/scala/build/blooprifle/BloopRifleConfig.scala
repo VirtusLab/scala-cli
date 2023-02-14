@@ -77,6 +77,7 @@ object BloopRifleConfig {
       "-XX:+UseZGC", // ZGC returns unused memory back to the OS, so Bloop does not occupy so much memory if unused
       "-XX:ZUncommitDelay=30",
       "-XX:ZCollectionInterval=5",
+      "-XX:+IgnoreUnrecognizedVMOptions", // Do not fail if an non-standard (-X, -XX) VM option is not recognized.
       "-Dbloop.ignore-sig-int=true"
     )
 
