@@ -2,7 +2,7 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.options.{BuildOptions, InternalOptions, SuppressWarningOptions}
 import scala.build.Ops.*
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.actionable.ActionablePreprocessor
@@ -23,7 +23,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   )
   val buildThreads = BuildThreads.create()
 
-  test("update os-lib") {
+  test("using outdated os-lib") {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
@@ -48,6 +48,39 @@ class ActionableDiagnosticTests extends munit.FunSuite {
         val osLibDiagnostic = osLibDiagnosticOpt.get
 
         expect(Version(osLibDiagnostic.newVersion) > Version(osLibDiagnostic.currentVersion))
+    }
+  }
+
+  test("using outdated dependencies with --suppress-outdated-dependency-warning") {
+    val dependencyOsLib     = "com.lihaoyi::os-lib:0.7.8"
+    val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
+    val testInputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using dep "$dependencyOsLib"
+           |//> using dep "$dependencyPprintLib"
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    val optionsWithSuppress = baseOptions.copy(
+      suppressWarningOptions = SuppressWarningOptions(
+        suppressOutdatedDependencyWarning = Some(true)
+      )
+    )
+
+    testInputs.withBuild(optionsWithSuppress, buildThreads, None, actionableDiagnostics = true) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val updateDiagnostics =
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
+
+        val updateDepsDiagnostics = updateDiagnostics.collect {
+          case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
+        }
+
+        expect(updateDepsDiagnostics.isEmpty)
     }
   }
 

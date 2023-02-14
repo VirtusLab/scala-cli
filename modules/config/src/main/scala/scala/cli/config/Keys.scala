@@ -23,6 +23,8 @@ object Keys {
 
   val suppressDirectivesInMultipleFilesWarning =
     new Key.BooleanEntry(Seq("suppress-warning"), "directives-in-multiple-files")
+  val suppressOutdatedDependenciessWarning =
+    new Key.BooleanEntry(Seq("suppress-warning"), "outdated-dependencies-files")
 
   val proxyAddress  = new Key.StringEntry(Seq("httpProxy"), "address")
   val proxyUser     = new Key.PasswordEntry(Seq("httpProxy"), "user")

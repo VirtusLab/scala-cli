@@ -20,7 +20,10 @@ case object ActionableDependencyHandler
   type Setting = Positioned[AnyDependency]
 
   override def extractSettings(options: BuildOptions): Seq[Positioned[AnyDependency]] =
-    options.classPathOptions.extraDependencies.toSeq
+    if (options.suppressWarningOptions.suppressOutdatedDependencyWarning.getOrElse(false))
+      Nil
+    else
+      options.classPathOptions.extraDependencies.toSeq
 
   override def actionableDiagnostic(
     setting: Positioned[AnyDependency],

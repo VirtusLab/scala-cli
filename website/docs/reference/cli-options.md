@@ -1469,6 +1469,10 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about using directives in multiple files
 
+### `--suppress-outdated-dependency-warning`
+
+Suppress warnings about outdated dependencies in project
+
 ## Test options
 
 Available in commands:
