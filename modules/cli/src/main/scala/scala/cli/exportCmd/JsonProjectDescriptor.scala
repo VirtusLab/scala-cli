@@ -17,7 +17,7 @@ import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.util.SeqHelpers.*
 
-final case class Json(
+final case class JsonProjectDescriptor(
   projectName: Option[String] = None,
   logger: Logger
 ) extends ProjectDescriptor {

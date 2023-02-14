@@ -60,13 +60,17 @@ object Export extends ScalaCommand[ExportOptions] {
   }
 
   // FIXME Auto-update those
-  def sbtProjectDescriptor(extraSettings: Seq[String], sbtVersion: String, logger: Logger): Sbt =
-    Sbt(sbtVersion, extraSettings, logger)
+  def sbtProjectDescriptor(
+    extraSettings: Seq[String],
+    sbtVersion: String,
+    logger: Logger
+  ): SbtProjectDescriptor =
+    SbtProjectDescriptor(sbtVersion, extraSettings, logger)
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],
     logger: Logger
-  ): Mill = {
+  ): MillProjectDescriptor = {
     val launcherArtifacts = Seq(
       os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
       os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
@@ -84,11 +88,11 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
     val launchers     = launchersTask.unsafeRun()(cache.ec)
-    Mill(Constants.millVersion, projectName, launchers, logger)
+    MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
   }
 
-  def jsonProjectDescriptor(projectName: Option[String], logger: Logger): Json =
-    Json(projectName, logger)
+  def jsonProjectDescriptor(projectName: Option[String], logger: Logger): JsonProjectDescriptor =
+    JsonProjectDescriptor(projectName, logger)
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 

@@ -14,7 +14,7 @@ import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.util.SeqHelpers._
 
-final case class Mill(
+final case class MillProjectDescriptor(
   millVersion: String,
   projectName: Option[String] = None,
   launchers: Seq[(os.RelPath, Array[Byte])],

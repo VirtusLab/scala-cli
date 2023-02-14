@@ -14,7 +14,7 @@ import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeO
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 
-final case class Sbt(
+final case class SbtProjectDescriptor(
   sbtVersion: String,
   extraSettings: Seq[String],
   logger: Logger
