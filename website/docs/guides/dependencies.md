@@ -90,7 +90,7 @@ object Hello extends App {
 <ChainedSnippets>
 
 ```bash
-scala-cli dependency-update Hello.scala
+scala-cli --power dependency-update Hello.scala
 ```
 
 ```text
@@ -108,7 +108,7 @@ Passing `--all` to the `dependency-update` sub-command updates all dependencies 
 <ChainedSnippets>
 
 ```bash
-scala-cli dependency-update Hello.scala --all
+scala-cli --power dependency-update Hello.scala --all
 ```
 
 ```text

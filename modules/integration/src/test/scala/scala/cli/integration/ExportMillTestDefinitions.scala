@@ -27,6 +27,7 @@ abstract class ExportMillTestDefinitions(override val scalaVersionOpt: Option[St
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,
+      "--power",
       "export",
       extraOptions,
       "--mill",

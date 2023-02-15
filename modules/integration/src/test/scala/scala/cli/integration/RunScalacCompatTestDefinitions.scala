@@ -319,6 +319,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
       val jarPath = os.rel / "Main.jar"
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         ".",
         "--library",
@@ -349,6 +350,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
       val jarPath            = jarParentDirectory / "Main.jar"
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         ".",
         "--library",

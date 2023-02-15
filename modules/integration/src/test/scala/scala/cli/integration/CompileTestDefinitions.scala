@@ -13,7 +13,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
-    os.proc(TestUtil.cli, "directories").call().out.text()
+    os.proc(TestUtil.cli, "--power", "directories").call().out.text()
   }
 
   val simpleInputs: TestInputs = TestInputs(
@@ -93,7 +93,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -117,7 +117,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -592,7 +592,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "compile", "--python", "--print-class-path", ".", extraOptions)
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "compile",
+          "--python",
+          "--print-class-path",
+          ".",
+          extraOptions
+        )
           .call(cwd = root)
       val classPath = res.out.trim().split(File.pathSeparator)
       val outputDir = os.Path(classPath.head, root)

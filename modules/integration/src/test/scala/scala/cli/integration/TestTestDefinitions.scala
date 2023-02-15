@@ -665,8 +665,9 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       inputs0
     }
     inputs.fromRoot { root =>
-      val res    = os.proc(TestUtil.cli, "test", extraOptions, ".", "--cross").call(cwd = root)
-      val output = res.out.text()
+      val res =
+        os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
+      val output        = res.out.text()
       val expectedCount = 2 + (if (supportsNative) 1 else 0)
       expect(countSubStrings(output, "Hello from shared") == expectedCount)
       expect(output.contains("Hello from jvm"))

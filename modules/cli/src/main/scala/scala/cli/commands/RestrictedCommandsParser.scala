@@ -36,8 +36,8 @@ object RestrictedCommandsParser {
         case (Right(Some(_, arg, _)), passedOption :: _) if !arg.isSupported =>
           Left((
             Error.UnrecognizedArgument(
-              s"""`$passedOption` option is not supported in `scala` command.
-                 |Please run it with `scala-cli` command or with `--power` flag or turn on this flag globally running command `config power true`.""".stripMargin
+              s"""`$passedOption` option is not supported.
+                 |Please run it with the `--power` flag or turn this flag on globally by running `config power true`.""".stripMargin
             ),
             arg,
             Nil

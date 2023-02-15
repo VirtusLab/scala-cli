@@ -44,7 +44,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, fileName).call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -70,7 +70,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -100,7 +100,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / "input" -> message
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -129,7 +129,16 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / resourceFile -> "1,2,3"
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", outputLib, "--library").call(
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        ".",
+        "-o",
+        outputLib,
+        "--library"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -158,7 +167,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.asZip { (root, zipPath) =>
       val message = "1,2"
 
-      os.proc(TestUtil.cli, "package", zipPath, extraOptions, ".").call(
+      os.proc(TestUtil.cli, "--power", "package", zipPath, extraOptions, ".").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -185,7 +194,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destName = fileName.stripSuffix(".sc") + ".js"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--js").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName, "--js").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -215,6 +224,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         fileName,
@@ -255,7 +265,16 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destDir = fileName.stripSuffix(".scala")
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--js", "-o", destDir).call(
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "-o",
+        destDir
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -291,6 +310,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       val extraArgs = if (jvm) Seq("--js-cli-on-jvm") else Nil
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         fileName,
@@ -328,7 +348,16 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destName = fileName.stripSuffix(".sc") + ".js"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--js", "-o", destName).call(
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "-o",
+        destName
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -380,7 +409,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       fileName.stripSuffix(".sc") + ext
     }
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, fileName, "--native").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName, "--native").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -414,7 +443,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val launcherName = fileName.stripSuffix(".sc") + ".jar"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, "--assembly", fileName).call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, "--assembly", fileName).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -463,6 +492,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         "--assembly",
@@ -503,6 +533,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         "--assembly",
@@ -548,6 +579,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         "--assembly",
@@ -623,7 +655,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -665,7 +697,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
   test("source JAR") {
     val dest = os.rel / "sources.jar"
     simpleInputWithScalaAndSc.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--source").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--source").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -698,7 +730,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
   test("doc JAR") {
     val dest = os.rel / "doc.jar"
     simpleInputWithScalaAndSc.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", extraOptions, ".", "-o", dest, "--doc").call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--doc").call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -741,6 +773,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         ".",
@@ -776,6 +809,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         extraOptions,
         ".",
@@ -803,6 +837,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         fileName,
         "-o",
@@ -834,6 +869,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         os.rel / "out" / "inner-out" / "Simple.jar" // the `out` directory doesn't exist and should be created
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         ".",
         "--library",
@@ -859,6 +895,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "package",
         fileName,
         "--docker",
@@ -882,7 +919,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res   = os.proc(TestUtil.cli, "package", extraOptions, "--help").call(cwd = root)
+      val res = os.proc(TestUtil.cli, "--power", "package", extraOptions, "--help").call(cwd = root)
       val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
 
       val graalVmVersionHelp     = lines.find(_.contains("--graalvm-version")).getOrElse("")
@@ -917,7 +954,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       else "hello"
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "package", "--python", ".", "-o", dest, extraOptions)
+      os.proc(TestUtil.cli, "--power", "package", "--python", ".", "-o", dest, extraOptions)
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
       val launcher = root / dest

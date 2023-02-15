@@ -264,6 +264,12 @@ Run the application in the background, automatically kill the process and restar
 
 Aliases: `--revolver`
 
+**--print-class-path**
+
+Print the resulting class path
+
+Aliases: `--print-classpath` ,`-p`
+
 **--test**
 
 Compile test scope
@@ -559,12 +565,6 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
-
-**--print-class-path**
-
-Print the resulting class path
-
-Aliases: `--print-classpath` ,`-p`
 
 </details>
 

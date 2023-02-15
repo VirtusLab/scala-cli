@@ -27,13 +27,13 @@ println("Hello")
 ````
 
 ```bash
-scala-cli dir/hello.md
+scala-cli --power dir/hello.md
 ```
 
 `.md` sources inside of directories are ignored by default, unless the `--enable-markdown` option is passed.
 
 ```bash
-scala-cli dir --enable-markdown
+scala-cli --power dir --enable-markdown
 ```
 
 ### Zipped archives
@@ -43,7 +43,7 @@ Same as with directories,  `.md` sources inside zipped archives are ignored by d
 the `--enable-markdown` option is passed.
 
 ```bash ignore
-scala-cli archive-with-markdown.zip --enable-markdown
+scala-cli --power archive-with-markdown.zip --enable-markdown
 ```
 
 ### Remote inputs
@@ -62,7 +62,7 @@ You can also pass a URL pointing to a `.md` file to run it with Scala CLI.
 <ChainedSnippets>
 
 ```bash
-scala-cli https://gist.githubusercontent.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839/raw/4c5ce7593e19f1390555221e0d076f4b02f4b4fd/example.md
+scala-cli --power https://gist.githubusercontent.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839/raw/4c5ce7593e19f1390555221e0d076f4b02f4b4fd/example.md
 ```
 
 ```text
@@ -80,7 +80,7 @@ the `--enable-markdown` option alongside the gist URL to run any contained Markd
 <ChainedSnippets>
 
 ```bash
-scala-cli https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
+scala-cli --power https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
 ```
 
 ```text
@@ -101,7 +101,7 @@ Instead of passing paths to your Markdown sources, you can also pipe your code v
 echo '# Example Snippet
 ```scala
 println("Hello")
-```' | scala-cli _.md
+```' | scala-cli --power _.md
 ```
 
 ```text
@@ -119,7 +119,7 @@ It is also possible to pass Markdown code as a snippet directly from the command
 <ChainedSnippets>
 
 ````bash
-scala-cli run --markdown-snippet '# Markdown snippet
+scala-cli --power run --markdown-snippet '# Markdown snippet
 with a code block
 ```scala
 println("Hello")
@@ -155,7 +155,7 @@ top-level.
 <ChainedSnippets>
 
 ```bash
-scala-cli run Example.md
+scala-cli --power run Example.md
 ```
 
 ```text
@@ -185,7 +185,7 @@ println("2")
 <ChainedSnippets>
 
 ```bash fail
-scala-cli Main1.md Main2.md
+scala-cli --power Main1.md Main2.md
 ```
 
 ```text
@@ -200,7 +200,7 @@ option.
 <ChainedSnippets>
 
 ```bash
-scala-cli Main1.md Main2.md --main-class Main1_md
+scala-cli --power Main1.md Main2.md --main-class Main1_md
 ```
 
 ```text
@@ -214,7 +214,7 @@ You can always check what main classes are available in the context with the `--
 <ChainedSnippets>
 
 ```bash
-scala-cli Main1.md Main2.md --list-main-classes
+scala-cli --power Main1.md Main2.md --list-main-classes
 ```
 
 ```text
@@ -245,7 +245,7 @@ object Main extends App {
 <ChainedSnippets>
 
 ```bash
-scala-cli RawExample.md
+scala-cli --power RawExample.md
 ```
 
 ```text
@@ -278,7 +278,7 @@ class Test extends munit.FunSuite {
 <ChainedSnippets>
 
 ```bash
-scala-cli test TestExample.md
+scala-cli --power test TestExample.md
 ```
 
 ```text
@@ -326,7 +326,7 @@ println(message)
 <ChainedSnippets>
 
 ```bash
-scala-cli ResetExample.md
+scala-cli --power ResetExample.md
 ```
 
 ```text
@@ -418,7 +418,7 @@ be used for both.
 <ChainedSnippets>
 
 ```bash
-scala-cli OverriddenDirective.md
+scala-cli --power OverriddenDirective.md
 ```
 
 ```text
@@ -473,7 +473,7 @@ object Main extends App {
 <ChainedSnippets>
 
 ```bash
-scala-cli src Main.scala --enable-markdown --main-class Main
+scala-cli --power src Main.scala --enable-markdown --main-class Main
 ```
 
 ```text
@@ -498,7 +498,7 @@ object Something {
 <ChainedSnippets>
 
 ```bash
-scala-cli RawSnippetToReferTo.md -e 'println(Something.message)'
+scala-cli --power RawSnippetToReferTo.md -e 'println(Something.message)'
 ```
 
 ```text

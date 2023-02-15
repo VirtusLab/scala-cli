@@ -18,7 +18,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
     val inputs = TestInputs(os.rel / fileName -> fileContent)
     inputs.fromRoot { root =>
       // update dependencies
-      val p = os.proc(TestUtil.cli, "dependency-update", "--all", fileName)
+      val p = os.proc(TestUtil.cli, "--power", "dependency-update", "--all", fileName)
         .call(
           cwd = root,
           stdin = os.Inherit,
@@ -47,7 +47,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
     )
     testInputs.fromRoot { root =>
       // update toolkit
-      os.proc(TestUtil.cli, "dependency-update", "--all", ".")
+      os.proc(TestUtil.cli, "--power", "dependency-update", "--all", ".")
         .call(cwd = root)
 
       val toolkitDirective = "//> using toolkit \"(.*)\"".r

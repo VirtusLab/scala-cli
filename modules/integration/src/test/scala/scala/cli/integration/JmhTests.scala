@@ -33,7 +33,8 @@ class JmhTests extends ScalaCliSuite {
     )
     val expectedInOutput = """Result "bench.Benchmarks.foo":"""
     inputs.fromRoot { root =>
-      val res    = os.proc(TestUtil.cli, TestUtil.extraOptions, ".", "--jmh").call(cwd = root)
+      val res =
+        os.proc(TestUtil.cli, "--power", TestUtil.extraOptions, ".", "--jmh").call(cwd = root)
       val output = res.out.text(Charset.defaultCharset())
       expect(output.contains(expectedInOutput))
     }

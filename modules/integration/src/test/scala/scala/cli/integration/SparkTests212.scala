@@ -32,7 +32,18 @@ class SparkTests212 extends SparkTestDefinitions(scalaVersionOpt = Some(Constant
   def simplePackageSparkJobTest(spark: Spark): Unit =
     simpleJobInputs(spark).fromRoot { root =>
       val dest = os.rel / "SparkJob.jar"
-      os.proc(TestUtil.cli, "package", extraOptions, "--spark", "--jvm", "8", ".", "-o", dest)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--spark",
+        "--jvm",
+        "8",
+        ".",
+        "-o",
+        dest
+      )
         .call(cwd = root)
 
       val java8Home =
@@ -75,7 +86,7 @@ class SparkTests212 extends SparkTestDefinitions(scalaVersionOpt = Some(Constant
       val env =
         if (usePath) addToPath(spark.sparkHome / "bin")
         else Map("SPARK_HOME" -> spark.sparkHome.toString)
-      val res = os.proc(TestUtil.cli, "run", extraOptions, "--spark", "--jvm", "8", ".")
+      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, "--spark", "--jvm", "8", ".")
         .call(cwd = root, env = env)
 
       val expectedOutput = "Result: 55"

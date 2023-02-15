@@ -42,7 +42,10 @@ class PgpTests extends ScalaCliSuite {
   def pgpKeyIdTest(useSigningJvmLauncher: Boolean) =
     pubKeyInputs.fromRoot { root =>
       val signingCliArgs = if (useSigningJvmLauncher) Seq("--force-jvm-signing-cli") else Seq.empty
-      val res = os.proc(TestUtil.cli, "pgp", "key-id", signingCliArgs, "key.pub").call(cwd = root)
+      val res =
+        os.proc(TestUtil.cli, "--power", "pgp", "key-id", signingCliArgs, "key.pub").call(cwd =
+          root
+        )
       val output         = res.out.trim()
       val expectedOutput = "914d298df8fa4d20"
       expect(output == expectedOutput)
@@ -59,7 +62,7 @@ class PgpTests extends ScalaCliSuite {
 
   test("pgp pull") {
     // random key that I pushed to the default ker server at some point
-    val res = os.proc(TestUtil.cli, "pgp", "pull", "0x914d298df8fa4d20")
+    val res = os.proc(TestUtil.cli, "--power", "pgp", "pull", "0x914d298df8fa4d20")
       .call()
     val output = res.out.trim()
     val start  = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
@@ -78,14 +81,16 @@ class PgpTests extends ScalaCliSuite {
 
   test("pgp push") {
     pubKeyInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "pgp", "push", "key.pub").call(cwd = root)
+      os.proc(TestUtil.cli, "--power", "pgp", "push", "key.pub").call(cwd = root)
     }
   }
 
   if (!TestUtil.isNativeCli)
     test("pgp push with binary") {
       pubKeyInputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "pgp", "push", "key.pub", "--force-signing-binary").call(cwd = root)
+        os.proc(TestUtil.cli, "--power", "pgp", "push", "key.pub", "--force-signing-binary").call(
+          cwd = root
+        )
       }
     }
 

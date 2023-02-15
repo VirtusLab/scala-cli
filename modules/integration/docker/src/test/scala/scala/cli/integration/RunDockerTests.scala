@@ -54,7 +54,7 @@ class RunDockerTests extends munit.FunSuite {
         val cmdPackage = Seq[os.Shellable](
           // format: off
           "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
-          imageName, "package", "--native", fileName, "-o", "Hello"
+          imageName, "--power", "package", "--native", fileName, "-o", "Hello"
           // format: on
         )
         val procPackage = os.proc(cmdPackage).call(cwd = root, check = false)

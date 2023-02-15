@@ -146,7 +146,7 @@ Available in commands:
 
 Aliases: `-p`, `--print-classpath`
 
-`IMPLEMENTATION specific` per Scala Runner specification
+`SHOULD have` per Scala Runner specification
 
 Print the resulting class path
 

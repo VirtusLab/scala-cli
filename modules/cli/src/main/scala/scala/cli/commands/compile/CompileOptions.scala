@@ -34,6 +34,7 @@ final case class CompileOptions(
   @Name("p")
   @Name("printClasspath")
   @HelpMessage("Print the resulting class path")
+  @Tag(tags.should)
     printClassPath: Boolean = false,
 
   @HelpMessage("Compile test scope")

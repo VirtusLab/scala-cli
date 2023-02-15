@@ -29,6 +29,7 @@ class GitHubTests extends ScalaCliSuite {
 
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "github",
         "secret",
         "create",

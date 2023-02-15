@@ -100,7 +100,7 @@ class PublishSetupTests extends ScalaCliSuite {
     testInputs.fromRoot { root =>
       configSetup(root / homeDir, root)
       gitInit(root / projDir)
-      val res = os.proc(TestUtil.cli, "publish", "setup", projDir).call(
+      val res = os.proc(TestUtil.cli, "--power", "publish", "setup", projDir).call(
         cwd = root,
         mergeErrIntoOut = true,
         env = envs
@@ -138,7 +138,7 @@ class PublishSetupTests extends ScalaCliSuite {
       configSetup(root / homeDir, root)
       gitInit(root / projDir)
       val res =
-        os.proc(TestUtil.cli, "publish", "setup", "--ci", "--dummy", projDir).call(
+        os.proc(TestUtil.cli, "--power", "publish", "setup", "--ci", "--dummy", projDir).call(
           cwd = root,
           mergeErrIntoOut = true,
           env = envs
@@ -172,6 +172,7 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         "setup",
         "--publish-repository",
@@ -213,6 +214,7 @@ class PublishSetupTests extends ScalaCliSuite {
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         "setup",
         "--ci",

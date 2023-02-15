@@ -45,7 +45,7 @@ object Hello {
 ```
 
 ```bash
-scala-cli package --js HelloJs.scala -o hello.js
+scala-cli --power package --js HelloJs.scala -o hello.js
 node hello.js
 # Hello World from Scala.js
 ```
@@ -72,7 +72,7 @@ object Hello extends App {
 ```
 
 ```bash
-scala-cli package --js SmallestModules.scala --js-module-split-style smallestmodules --js-module-kind es --output hello
+scala-cli --power package --js SmallestModules.scala --js-module-split-style smallestmodules --js-module-kind es --output hello
 echo "{\"type\": \"module\"}" >> package.json # enable ES module
 node hello/main.js
 # Hello World from Scala.js
@@ -115,7 +115,7 @@ println("sample")
 <ChainedSnippets>
 
 ```bash
-scala-cli package sample.sc --js --js-emit-source-maps
+scala-cli --power package sample.sc --js --js-emit-source-maps
 ```
 
 ```text

@@ -107,7 +107,7 @@ the `--enable-markdown` option alongside the gist URL to run any contained Markd
 <ChainedSnippets>
 
 ```bash
-scala-cli https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
+scala-cli --power https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
 ```
 
 ```text

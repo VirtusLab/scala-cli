@@ -84,7 +84,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#1739](https://github.com/
 
 ### Docker packaging with `using` directives
 It is now possible to configure packaging into a docker image via `using` directives.
-```scala compile
+```scala compile power
 //> using packaging.dockerFrom "openjdk:11"
 //> using packaging.dockerImageTag "1.0.0"
 //> using packaging.dockerImageRegistry "virtuslab"
@@ -94,7 +94,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#1753](https://github.com/
 
 ### Pass GraalVM args via a `using` directive
 It is now possible to pass args to GraalVM via the following `using` directive:
-```scala compile
+```scala compile power
 //> using packaging.graalvmArgs "--no-fallback", "--enable-url-protocols=http,https"
 ```
 
@@ -323,7 +323,7 @@ scala-cli config httpProxy.password _encoded_password_
 ```
 
 Replace `_encoded_user_` and `_encoded_password_` by your actual user and password, following
-the [password option format](reference/password-options.md). They should typically look like
+the [password option format](/docs/reference/password-options.md). They should typically look like
 `env:ENV_VAR_NAME`, `file:/path/to/file`, or `command:command to run`.
 
 Added by [@alexarchambault](https://github.com/alexarchambault) in [#1593](https://github.com/VirtusLab/scala-cli/pull/1593)
@@ -339,13 +339,13 @@ scala-cli archive-with-markdown.zip --enable-markdown
 
 This also enables running Markdown sources fom GitHub gists, as those are downloaded by Scala CLI as zipped archives.
 
-```bash
+```bash ignore
 scala-cli https://gist.github.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839 --enable-markdown
 ```
 
 It is also possible to point Scala CLI to a `.md` file with a direct URL.
 
-```bash
+```bash ignore
 scala-cli https://gist.githubusercontent.com/Gedochao/6415211eeb8ca4d8d6db123f83f0f839/raw/4c5ce7593e19f1390555221e0d076f4b02f4b4fd/example.md
 ```
 
@@ -380,7 +380,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#1583](https://github.com/
 It is now possible to pass the desired name of your Mill project to the `export` sub-command 
 with the `--project` option. 
 
-```bash
+```bash ignore
 scala-cli export . --mill -o mill-proj --project project-name
 ```
 

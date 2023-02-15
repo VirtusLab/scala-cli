@@ -64,6 +64,7 @@ object BloopUtil {
       args =>
         os.proc(
           TestUtil.cli,
+          "--power",
           "bloop",
           jvmArgs,
           "--bloop-version",

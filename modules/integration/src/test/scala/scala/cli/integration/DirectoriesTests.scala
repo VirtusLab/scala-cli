@@ -7,7 +7,7 @@ import scala.util.Properties
 class DirectoriesTests extends ScalaCliSuite {
   test("running directories with args should fail") {
     TestInputs(os.rel / "s.sc" -> """println("Hello")""").fromRoot { root =>
-      val r = os.proc(TestUtil.cli, "directories", "s.sc")
+      val r = os.proc(TestUtil.cli, "--power", "directories", "s.sc")
         .call(cwd = root, stderr = os.Pipe, check = false)
       expect(r.exitCode == 1)
       expect(r.err.trim() == "The directories command doesn't accept arguments.")
@@ -17,7 +17,7 @@ class DirectoriesTests extends ScalaCliSuite {
   if (Properties.isMac)
     test("running directories on Mac with no args should give valid results") {
       TestInputs.empty.fromRoot { root =>
-        val r              = os.proc(TestUtil.cli, "directories").call(cwd = root)
+        val r              = os.proc(TestUtil.cli, "--power", "directories").call(cwd = root)
         val cachesPath     = os.home / "Library" / "Caches" / "ScalaCli"
         val appSupportPath = os.home / "Library" / "Application Support" / "ScalaCli"
         val expectedOutput =

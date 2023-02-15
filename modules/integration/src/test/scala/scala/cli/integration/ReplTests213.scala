@@ -47,7 +47,7 @@ class ReplTests213 extends ReplTestDefinitions(
           .trim
       // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "repl", extraOptions,
+        TestUtil.cli, "--power", "repl", extraOptions,
         "--jar", shapelessJar,
         "--ammonite",
         ammArgs

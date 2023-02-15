@@ -24,7 +24,16 @@ abstract class ExportSbtTestDefinitions(override val scalaVersionOpt: Option[Str
     )
 
   override def exportCommand(args: String*): os.proc =
-    os.proc(TestUtil.cli, "export", extraOptions, "--sbt", "-o", outputDir.toString, args)
+    os.proc(
+      TestUtil.cli,
+      "--power",
+      "export",
+      extraOptions,
+      "--sbt",
+      "-o",
+      outputDir.toString,
+      args
+    )
 
   override def buildToolCommand(root: os.Path, args: String*): os.proc = os.proc(sbt, args)
 

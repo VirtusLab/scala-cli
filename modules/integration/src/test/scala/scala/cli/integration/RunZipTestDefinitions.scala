@@ -97,7 +97,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.asZip { (root, zipPath) =>
-      val result = os.proc(TestUtil.cli, extraOptions, zipPath, "--md").call(cwd = root)
+      val result = os.proc(TestUtil.cli, "--power", extraOptions, zipPath, "--md").call(cwd = root)
       expect(result.out.trim() == expectedMessage)
     }
   }

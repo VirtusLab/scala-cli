@@ -97,7 +97,7 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
       val testRepo = root / "test-repo"
 
       def publishLib(): Unit =
-        os.proc(TestUtil.cli, "publish", "--publish-repo", testRepo, "lib")
+        os.proc(TestUtil.cli, "--power", "publish", "--publish-repo", testRepo, "lib")
           .call(cwd = root)
 
       publishLib()

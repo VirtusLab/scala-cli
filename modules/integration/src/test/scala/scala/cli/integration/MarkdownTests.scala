@@ -134,7 +134,16 @@ class MarkdownTests extends ScalaCliSuite {
     ).fromRoot { root =>
       val snippetCode = "case class SnippetMessage(value: String)"
       val result =
-        os.proc(TestUtil.cli, ".", "-e", snippetCode, "--markdown", "--main-class", "Main_md")
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          ".",
+          "-e",
+          snippetCode,
+          "--markdown",
+          "--main-class",
+          "Main_md"
+        )
           .call(cwd = root)
       expect(result.out.trim() == expectedOutput)
     }

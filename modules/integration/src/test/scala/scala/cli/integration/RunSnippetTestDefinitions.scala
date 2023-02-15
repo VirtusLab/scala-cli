@@ -60,6 +60,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
       val res =
         os.proc(
           TestUtil.cli,
+          "--power",
           "run",
           "--markdown-snippet",
           s"""# A Markdown snippet
