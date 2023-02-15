@@ -394,7 +394,7 @@ object Operations {
             libdaemonjvm.Util.socketFromChannel(socket)
           }
           else if (closed.value.isEmpty)
-            sys.error(s"Timeout while waiting for BSP socket to be created in $socketFile")
+            sys.error(s"Timeout ($timeout) while waiting for BSP socket to be created in $socketFile")
           else
             sys.error(
               s"Bloop BSP connection in $socketFile was unexpectedly closed or bloop didn't start."
