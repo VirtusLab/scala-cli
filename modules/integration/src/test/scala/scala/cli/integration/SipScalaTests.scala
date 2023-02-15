@@ -81,7 +81,7 @@ class SipScalaTests extends ScalaCliSuite {
 
     val binary = binaryName.prepareBinary(root)
 
-    val res = os.proc(binary, "--markdown", source).call(
+    val res = os.proc(binary, "--scala", "3", "--markdown", source).call(
       cwd = root,
       check = false,
       mergeErrIntoOut = true
@@ -90,6 +90,7 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.exitCode == 1)
       val output = res.out.text()
       expect(output.contains(s"option is not supported"))
+      expect(output.contains("--markdown"))
     }
     else expect(res.exitCode == 0)
   }
