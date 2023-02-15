@@ -560,6 +560,12 @@ Add toolkit to classPath
 
 Aliases: `--toolkit`
 
+**--print-class-path**
+
+Print the resulting class path
+
+Aliases: `--print-classpath` ,`-p`
+
 </details>
 
 ---
@@ -705,6 +711,12 @@ Dump config DB as JSON
 **--create-pgp-key**
 
 Create PGP key in config
+
+**--unset**
+
+Remove an entry from config
+
+Aliases: `--remove`
 
 </details>
 

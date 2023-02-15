@@ -56,7 +56,6 @@ final case class ConfigOptions(
   @Group("Config")
   @HelpMessage("Remove an entry from config")
   @ExtraName("remove")
-  @Tag(tags.restricted)
     unset: Boolean = false,
   @Group("Config")
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")

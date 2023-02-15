@@ -33,7 +33,6 @@ final case class CompileOptions(
 
   @Name("p")
   @Name("printClasspath")
-  @Tag(tags.restricted)
   @HelpMessage("Print the resulting class path")
     printClassPath: Boolean = false,
 
