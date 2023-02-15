@@ -10,13 +10,15 @@ import scala.cli.signing.util.ArgParsers.*
 
 // format: off
 @HelpMessage(
-  """|Print the version of the scala runner and the default version of Scala (unless specified in the project).
-     |
-     |The version of the scala runner is the version of the command-line tool that runs Scala programs, which
-     |is distinct from the Scala version of a program. We recommend you specify the version of Scala of a
-     |program in the program itself (via a configuration directive). Otherwise, the runner falls back to the default
-     |Scala version defined by the runner.
-     |""".stripMargin
+  s"""|Prints the version of the $fullRunnerName and the default version of Scala (which can be overridden in the project).
+      |If network connection is available, this sub-command also checks if the installed $fullRunnerName is up-to-date.
+      |
+      |The version of the $fullRunnerName is the version of the command-line tool that runs Scala programs, which
+      |is distinct from the Scala version of the compiler. We recommend to specify the version of the Scala compiler
+      |for a project in its sources (via a using directive). Otherwise, $fullRunnerName falls back to the default
+      |Scala version defined by the runner.
+      |
+      |${HelpMessages.commandDocWebsiteReference("version")}""".stripMargin
 )
 final case class VersionOptions(
   @Recurse

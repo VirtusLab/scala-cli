@@ -1076,7 +1076,7 @@ Force scala-cli uninstall
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Don't clear scala-cli cache
+Don't clear Scala CLI cache
 
 ### `--binary-name`
 
@@ -1142,7 +1142,7 @@ Aliases: `-f`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Force update scala-cli if is outdated
+Force update Scala CLI if it is outdated
 
 ### `--is-internal-run`
 
@@ -1297,13 +1297,11 @@ Available in commands:
 
 Dump config DB as JSON
 
-### `--unset`
-
-Aliases: `--remove`
+### `--create-pgp-key`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Remove an entry from config
+Create PGP key in config
 
 ### Coursier options
 

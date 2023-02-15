@@ -3,11 +3,26 @@ package scala.cli.commands.compile
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{CrossOptions, HasSharedOptions, SharedOptions, SharedWatchOptions}
+import scala.cli.commands.shared.{
+  CrossOptions,
+  HasSharedOptions,
+  HelpMessages,
+  SharedOptions,
+  SharedWatchOptions
+}
 import scala.cli.commands.tags
 
+@HelpMessage({
+  val cmdName = "compile"
+  s"""Compile Scala code.
+     |
+     |${HelpMessages.commandConfigurations(cmdName)}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
 // format: off
-@HelpMessage("Compile Scala code")
 final case class CompileOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),

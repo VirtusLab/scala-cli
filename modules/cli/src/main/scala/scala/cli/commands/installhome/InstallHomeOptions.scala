@@ -2,11 +2,12 @@ package scala.cli.commands.installhome
 
 import caseapp.*
 
+import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage("Install Scala CLI in a sub-directory of the home directory")
+@HelpMessage(s"Install $fullRunnerName in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -21,7 +22,7 @@ final case class InstallHomeOptions(
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Binary name")
-    binaryName: String = "scala-cli",
+    binaryName: String = baseRunnerName,
   @Tag(tags.implementation)
   @HelpMessage("Print the update to `env` variable")
     env: Boolean = false,

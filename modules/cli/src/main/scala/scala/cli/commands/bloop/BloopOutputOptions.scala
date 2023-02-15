@@ -2,9 +2,13 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions, SharedCompilationServerOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions}
 
 // format: off
+@HelpMessage(
+  s"""Print Bloop output.
+     |
+     |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopOutputOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

@@ -2,9 +2,14 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.tags
 
 // format: off
+@HelpMessage(
+  s"""Starts a Bloop instance, if none is running.
+     |
+     |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopStartOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -15,6 +20,7 @@ final case class BloopStartOptions(
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Name("f")
+  @Tag(tags.restricted)
     force: Boolean = false
 ) extends HasLoggingOptions
 // format: on

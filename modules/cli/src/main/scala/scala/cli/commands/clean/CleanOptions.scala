@@ -2,15 +2,22 @@ package scala.cli.commands.clean
 
 import caseapp.*
 
+import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{
   HasLoggingOptions,
+  HelpMessages,
   LoggingOptions,
   SharedBspFileOptions,
   SharedWorkspaceOptions
 }
 
 // format: off
-@HelpMessage("Clean the workspace")
+@HelpMessage(
+  s"""Clean the workspace.
+    |
+    |Passed inputs will establish the $fullRunnerName project, for which the workspace will be cleaned.
+    |
+    |${HelpMessages.commandDocWebsiteReference("clean")}""".stripMargin)
 final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),

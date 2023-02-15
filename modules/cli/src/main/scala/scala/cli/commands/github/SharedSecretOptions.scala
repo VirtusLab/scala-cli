@@ -3,6 +3,7 @@ package scala.cli.commands.github
 import caseapp.*
 
 import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.commands.tags
 import scala.cli.signing.shared.{PasswordOption, Secret}
 import scala.cli.signing.util.ArgParsers.*
 
@@ -10,8 +11,10 @@ import scala.cli.signing.util.ArgParsers.*
 final case class SharedSecretOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  token: PasswordOption = PasswordOption.Value(Secret("")),
+  @Tag(tags.experimental)
+    token: PasswordOption = PasswordOption.Value(Secret("")),
   @ExtraName("repo")
+  @Tag(tags.experimental)
     repository: String = ""
 ) extends HasLoggingOptions {
   // format: on

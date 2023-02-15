@@ -2,9 +2,17 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.tags
 
 // format: off
+@HelpMessage(
+  s"""Interact with Bloop (the build server) or check its status.
+     |
+     |This sub-command allows to check the current status of Bloop.
+     |If Bloop isn't currently running, it will be started.
+     |
+     |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -17,6 +25,7 @@ final case class BloopOptions(
 
   @ExtraName("workingDir")
   @ExtraName("dir")
+  @Tag(tags.restricted)
     workingDirectory: Option[String] = None
 ) extends HasLoggingOptions {
   // format: on

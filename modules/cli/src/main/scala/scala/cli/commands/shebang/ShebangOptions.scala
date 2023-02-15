@@ -2,36 +2,38 @@ package scala.cli.commands.shebang
 
 import caseapp.*
 
+import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}
 import scala.cli.commands.run.RunOptions
-import scala.cli.commands.shared.{HasSharedOptions, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 
 @HelpMessage(
-  """|Like `run`, but more handy from shebang scripts
-     |
-     |This command is equivalent to `run`, but it changes the way
-     |Scala CLI parses its command-line arguments in order to be compatible
-     |with shebang scripts.
-     |
-     |Normally, inputs and scala-cli options can be mixed. And program arguments have to be
-     |specified after `--`.
-     |
-     |```sh
-     |scala-cli [command] [scala_cli_options | input]... -- [program_arguments]...
-     |```
-     |
-     |Contrary, for shebang command, only a single input file can be set, all scala-cli options
-     |have to be set before the input file, and program arguments after the input file
-     |```sh
-     |scala-cli shebang [scala_cli_options]... input [program_arguments]...
-     |```
-     |
-     |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
-     |```sh
-     |#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
-     |println("Hello, world)
-     |```
-     |
-     |""".stripMargin
+  s"""|Like `run`, but handier for shebang scripts.
+      |
+      |This command is equivalent to the `run` sub-command, but it changes the way
+      |$fullRunnerName parses its command-line arguments in order to be compatible
+      |with shebang scripts.
+      |
+      |When relying on the `run` sub-command, inputs and $baseRunnerName options can be mixed,
+      |while program args have to be specified after `--`
+      |
+      |```sh
+      |$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...
+      |```
+      |
+      |However, for the `shebang` sub-command, only a single input file can be set, while all $baseRunnerName options
+      |have to be set before the input file.
+      |All inputs after the first are treated as program arguments, without the need for `--`
+      |```sh
+      |$progName shebang [${baseRunnerName}_options]... input [program_arguments]...
+      |```
+      |
+      |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
+      |```sh
+      |#!/usr/bin/env -S $progName shebang --scala-version 2.13
+      |println("Hello, world")
+      |```
+      |
+      |${HelpMessages.commandDocWebsiteReference("shebang")}""".stripMargin
 )
 final case class ShebangOptions(
   @Recurse

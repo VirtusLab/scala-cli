@@ -2,13 +2,17 @@ package scala.cli.commands.update
 
 import caseapp.*
 
+import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
 // format: off
-@HelpMessage("Update scala-cli - only works when installed by the installation script")
+@HelpMessage(s"""Updates $fullRunnerName.
+                |Works only when installed with the installation script.
+                |If $fullRunnerName was installed with an external tool, refer to its update methods.
+                |${HelpMessages.installationDocsWebsiteReference}""".stripMargin)
 final case class UpdateOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -16,14 +20,14 @@ final case class UpdateOptions(
   @Group("Update")
   @HelpMessage("Binary name")
   @Tag(tags.implementation)
-    binaryName: String = "scala-cli",
+    binaryName: String = baseRunnerName,
   @Hidden
   @Group("Update")
   @HelpMessage("Binary directory")
   @Tag(tags.implementation)
     binDir: Option[String] = None,
   @Name("f")
-  @HelpMessage("Force update scala-cli if is outdated")
+  @HelpMessage(s"Force update $fullRunnerName if it is outdated")
   @Tag(tags.implementation)
     force: Boolean = false,
   @Hidden

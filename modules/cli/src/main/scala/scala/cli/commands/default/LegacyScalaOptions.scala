@@ -9,6 +9,7 @@ import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.default.LegacyScalaOptions.*
 import scala.cli.commands.package0.Package
+import scala.cli.commands.shared.HelpMessages.PowerString
 import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.tags
 
@@ -163,9 +164,6 @@ case class LegacyScalaOptions(
 object LegacyScalaOptions {
   implicit lazy val parser: Parser[LegacyScalaOptions] = Parser.derive
   implicit lazy val help: Help[LegacyScalaOptions]     = Help.derive
-
-  private[default] lazy val PowerString =
-    if ScalaCli.allowRestrictedFeatures then "" else "--power "
 
   def yScriptRunnerWarning(yScriptRunnerValue: Option[String]): String = {
     val valueSpecificMsg = yScriptRunnerValue match {

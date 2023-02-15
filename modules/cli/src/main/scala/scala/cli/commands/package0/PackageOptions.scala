@@ -11,17 +11,19 @@ import scala.build.options.*
 import scala.build.options.packaging.*
 import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HasSharedOptions,
-  MainClassOptions,
-  SharedJavaOptions,
-  SharedOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared.*
 
+@HelpMessage({
+  val cmdName = "package"
+  s"""Compile and package Scala code.
+     |
+     |${HelpMessages.commandConfigurations(cmdName)}
+     |
+     |${HelpMessages.acceptedInputs}
+     |
+     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+})
 // format: off
-@HelpMessage("Compile and package Scala code")
 final case class PackageOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
