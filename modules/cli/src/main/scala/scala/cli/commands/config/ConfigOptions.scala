@@ -18,9 +18,9 @@ import scala.cli.commands.tags
   s"""Configure global settings for $fullRunnerName.
      |
      |Syntax:
-     |  $progName ${HelpMessages.PowerString}config key value
+     |  $progName config key value
      |For example, to globally set the interactive mode:
-     |  $progName ${HelpMessages.PowerString}config interactive true
+     |  $progName config interactive true
      |
      |${HelpMessages.commandDocWebsiteReference("misc/config")}""".stripMargin)
 final case class ConfigOptions(
