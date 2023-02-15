@@ -1,7 +1,7 @@
 package scala.cli.commands
 
 sealed trait SpecificationLevel extends Product with Serializable {
-  def md = toString() + " have"
+  def md: String = toString + " have"
 }
 
 /** Specification levels in the context of Scala CLI runner specification. For more refer to
@@ -32,7 +32,7 @@ object SpecificationLevel {
     * This also means that that thing should be sable and we need to support it.
     */
   case object IMPLEMENTATION extends SpecificationLevel {
-    override def md = toString() + " specific"
+    override def md: String = toString + " specific"
   }
 
   /** Annotated option, directive or command will not be a part of the Scala Runner Specification
@@ -51,20 +51,21 @@ object SpecificationLevel {
     * all new options should be experimental.
     */
   case object EXPERIMENTAL extends SpecificationLevel {
-    override def md: String = toString()
+    override def md: String = toString
   }
 
   val inSpecification = Seq(MUST, SHOULD)
 }
 
 object tags {
-  val experimental   = SpecificationLevel.EXPERIMENTAL.toString()
-  val restricted     = SpecificationLevel.RESTRICTED.toString()
-  val implementation = SpecificationLevel.IMPLEMENTATION.toString()
-  val must           = SpecificationLevel.MUST.toString()
-  val should         = SpecificationLevel.SHOULD.toString()
+  // specification level tags
+  val experimental: String   = SpecificationLevel.EXPERIMENTAL.toString
+  val restricted: String     = SpecificationLevel.RESTRICTED.toString
+  val implementation: String = SpecificationLevel.IMPLEMENTATION.toString
+  val must: String           = SpecificationLevel.MUST.toString
+  val should: String         = SpecificationLevel.SHOULD.toString
 
-  def levelFor(name: String) = name match {
+  def levelFor(name: String): Option[SpecificationLevel] = name match {
     case `experimental`   => Some(SpecificationLevel.EXPERIMENTAL)
     case `restricted`     => Some(SpecificationLevel.RESTRICTED)
     case `implementation` => Some(SpecificationLevel.IMPLEMENTATION)
