@@ -42,9 +42,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         |  }
         |}
         |""".stripMargin,
-    os.rel / "Tests.scala" ->
+    os.rel / "Tests.test.scala" ->
       """//> using dep "com.lihaoyi::pprint:0.6.6"
-        |//> using target.scope "test"
         |
         |import utest._
         |
@@ -84,12 +83,10 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """//> using target.platform "jvm"
-          |//> using target.scope "test"
           |public class Bar {}
           |""".stripMargin,
-      os.rel / "Foo.scala" ->
+      os.rel / "Foo.test.scala" ->
         """//> using target.scala.>= "2.13"
-          |//> using target.scope "test"
           |class Foo {}
           |""".stripMargin
     )
@@ -220,9 +217,8 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           |    println(message)
           |}
           |""".stripMargin,
-      os.rel / "Tests.scala" ->
+      os.rel / "Tests.test.scala" ->
         """//> using dep "com.lihaoyi::utest:0.7.10"
-          |//> using target.scope "test"
           |
           |import utest._
           |

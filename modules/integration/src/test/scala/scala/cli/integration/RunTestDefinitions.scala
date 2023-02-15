@@ -555,9 +555,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           |  }
           |}
           |""".stripMargin,
-      os.rel / "Tests.scala" ->
+      os.rel / "Tests.test.scala" ->
         """//> using dep "com.lihaoyi::pprint:0.6.6"
-          |//> using target.scope "test"
           |
           |import utest._
           |

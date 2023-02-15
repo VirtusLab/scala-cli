@@ -72,9 +72,8 @@ class SourcesTests extends munit.FunSuite {
 
   test("dependencies in .scala - using witin tests") {
     val testInputs = TestInputs(
-      os.rel / "something.scala" ->
-        """//> using target.scope "test"
-          |//> using deps "org1:name1:1.1", "org2::name2:2.2"
+      os.rel / "something.test.scala" ->
+        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
           |//> using dep "org3:::name3:3.3"
           |import scala.collection.mutable
           |
