@@ -1,12 +1,12 @@
 package scala.cli.commands
 
-import caseapp.Name
 import caseapp.core.app.Command
 import caseapp.core.complete.{Completer, CompletionItem}
 import caseapp.core.help.{Help, HelpFormat}
 import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error, RemainingArgs}
+import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
 import dependency.*
 
@@ -19,7 +19,13 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.{HasLoggingOptions, ScalaCliHelp, ScalacOptions, SharedOptions}
+import scala.cli.commands.shared.{
+  HasLoggingOptions,
+  HelpMessages,
+  ScalaCliHelp,
+  ScalacOptions,
+  SharedOptions
+}
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.internal.ProcUtil
@@ -32,9 +38,10 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
-  override def hasFullHelp = true
-
-  protected var argvOpt = Option.empty[Array[String]]
+  override def hasFullHelp       = true
+  override def hidden            = shouldExcludeInSip
+  protected var argvOpt          = Option.empty[Array[String]]
+  private val shouldExcludeInSip = isRestricted && !ScalaCli.allowRestrictedFeatures
   override def setArgv(argv: Array[String]): Unit = {
     argvOpt = Some(argv)
   }
@@ -261,6 +268,11 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
+  override val messages: Help[T] =
+    if (shouldExcludeInSip)
+      Help[T](helpMessage = Some(HelpMessage(HelpMessages.restrictedCommandUsedInSip)))
+    else help
+
   /** @param options
     *   command-specific [[T]] options
     * @return
@@ -289,6 +301,9 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
+    if (shouldExcludeInSip)
+      System.err.println(HelpMessages.restrictedCommandUsedInSip)
+      sys.exit(1)
     CurrentParams.verbosity = options.logging.verbosity
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)

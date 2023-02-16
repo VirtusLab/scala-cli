@@ -18,7 +18,6 @@ import scala.cli.errors.GitHubApiError
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def hidden                  = false
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def names = List(
     List("github", "secret", "create"),
