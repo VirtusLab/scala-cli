@@ -34,11 +34,9 @@ class SipScalaTests extends ScalaCliSuite {
       if (binaryName.isSip) {
         expect(res.exitCode == 1)
         val output = res.out.text()
-        expect(
-          "directories is not a .* sub-command and it is not a valid path to an input file or directory".r
-            .unanchored
-            .matches(output)
-        )
+        expect(output.contains(
+          """This command is restricted and requires setting the `--power` option to be used"""
+        ))
       }
       else expect(res.exitCode == 0)
     }
@@ -176,11 +174,9 @@ class SipScalaTests extends ScalaCliSuite {
         mergeErrIntoOut = true,
         env = homeEnv
       ).out.text().trim
-      expect(
-        "package is not a .* sub-command and it is not a valid path to an input file or directory".r
-          .unanchored
-          .matches(output)
-      )
+      expect(output.contains(
+        """This command is restricted and requires setting the `--power` option to be used"""
+      ))
       // enable power features
       os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
       val powerOutput = os.proc(TestUtil.cli, "package").call(
