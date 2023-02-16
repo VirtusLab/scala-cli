@@ -22,7 +22,7 @@ object DetectOsApp extends App  {
 By default, the `package` sub-command generates a lightweight JAR that contains only your bytecode. This is how you create a lightweight JAR named `DetectOsApp.jar`:
 
 ```bash
-scala-cli package DetectOsApp.scala
+scala-cli --power package DetectOsApp.scala
 ```
 
 <!-- Expected-regex:
@@ -55,7 +55,7 @@ Lightweight JARs built on Windows can only be run on Windows.
 Passing `--assembly` to the `package` sub-command generates so-called "assemblies," or "fat JARs":
 
 ```bash
-scala-cli package --assembly DetectOsApp.scala
+scala-cli --power package --assembly DetectOsApp.scala
 ```
 
 Assemblies also require the `java` command to be available in the `PATH`. But in this case, all of the dependencies that are needed are packaged into the assembly, so nothing gets downloaded upon the first run, and no internet access is required.

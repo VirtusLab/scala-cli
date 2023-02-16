@@ -33,7 +33,7 @@ class NativePackagerTests extends ScalaCliSuite {
         val pkgAppFile = s"$appName.pkg"
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--pkg",
+          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--pkg",
           "--output", pkgAppFile,
           "--identifier", "scala-cli",
           "--launcher-app", appName
@@ -73,7 +73,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--dmg",
+          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--dmg",
           "--output", output,
           "--identifier", "scala-cli",
           "--launcher-app", appName
@@ -125,7 +125,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--deb",
+          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--deb",
           "--output", destDir / s"$appName.deb",
           "--maintainer", "scala-cli-test",
           "--description", "scala-cli-test",
@@ -191,7 +191,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "package", TestUtil.extraOptions, helloWorldFileName, "--rpm",
+          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--rpm",
           "--output", s"$appName.rpm",
           "--description", "scala-cli",
           "--license", "ASL 2.0",
@@ -220,7 +220,7 @@ class NativePackagerTests extends ScalaCliSuite {
 
         // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "package", helloWorldFileName, "--msi",
+          TestUtil.cli, "--power", "package", helloWorldFileName, "--msi",
           "--output", s"$appName.msi",
           "--product-name", "scala-cli",
           "--license-path", licencePath,
@@ -250,6 +250,7 @@ class NativePackagerTests extends ScalaCliSuite {
       // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
+        "--power",
         "package", helloWorldFileName,
         "--docker",
         "--docker-image-repository", imageRepository,
@@ -286,6 +287,7 @@ class NativePackagerTests extends ScalaCliSuite {
       // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
+        "--power",
         "package", helloWorldFileName,
         "--js",
         "--docker",
@@ -324,6 +326,7 @@ class NativePackagerTests extends ScalaCliSuite {
       // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
+        "--power",
         "package", helloWorldFileName,
         "--native",
         "-S", "2.13.6",

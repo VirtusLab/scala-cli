@@ -31,8 +31,9 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
     )
 
     inputs.fromRoot { root =>
-      val res    = os.proc(TestUtil.cli, "run", extraOptions, ".", maybeCliArg).call(cwd = root)
-      val output = res.out.trim()
+      val res =
+        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg).call(cwd = root)
+      val output         = res.out.trim()
       val expectedOutput = "Length is 3"
       expect(output == expectedOutput)
     }
@@ -59,7 +60,9 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "run", extraOptions, ".", "--python", "--native").call(cwd = root)
+        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--python", "--native").call(
+          cwd = root
+        )
       val output = res.out.trim()
         .linesIterator
         .filter { l =>

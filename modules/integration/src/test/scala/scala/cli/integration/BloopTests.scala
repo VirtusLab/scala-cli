@@ -11,7 +11,7 @@ class BloopTests extends ScalaCliSuite {
   def runScalaCli(args: String*): os.proc = os.proc(TestUtil.cli, args)
 
   private lazy val bloopDaemonDir =
-    BloopUtil.bloopDaemonDir(runScalaCli("directories").call().out.text())
+    BloopUtil.bloopDaemonDir(runScalaCli("--power", "directories").call().out.text())
 
   val dummyInputs: TestInputs = TestInputs(
     os.rel / "Test.scala" ->
@@ -65,8 +65,9 @@ class BloopTests extends ScalaCliSuite {
     )
 
     inputs.fromRoot { root =>
-      runScalaCli("bloop", "exit").call()
+      runScalaCli("--power", "bloop", "exit").call()
       val res = runScalaCli(
+        "--power",
         "bloop",
         "start",
         "--bloop-global-options-file",
@@ -90,11 +91,11 @@ class BloopTests extends ScalaCliSuite {
       BloopUtil.killBloop()
       TestUtil.retry()(assert(!bloopRunning()))
 
-      val res = runScalaCli("bloop", "start").call(check = false)
+      val res = runScalaCli("--power", "bloop", "start").call(check = false)
       assert(res.exitCode == 0, clues(res.out.text()))
       assert(bloopRunning(), clues(res.out.text()))
 
-      val resExit = runScalaCli("bloop", "exit").call(check = false)
+      val resExit = runScalaCli("--power", "bloop", "exit").call(check = false)
       assert(resExit.exitCode == 0, clues(resExit.out.text()))
       assert(!bloopRunning())
     }
@@ -114,7 +115,7 @@ class BloopTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, "compile", ".")
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
-      val projRes = os.proc(TestUtil.cli, "bloop", "projects")
+      val projRes = os.proc(TestUtil.cli, "--power", "bloop", "projects")
         .call(cwd = root / Constants.workspaceDirName)
 
       val projList = projRes.out.trim().linesIterator.toVector
@@ -122,7 +123,7 @@ class BloopTests extends ScalaCliSuite {
       expect(projList.length == 1)
       val proj = projList.head
 
-      os.proc(TestUtil.cli, "bloop", "compile", proj)
+      os.proc(TestUtil.cli, "--power", "bloop", "compile", proj)
         .call(cwd = root / Constants.workspaceDirName)
     }
   }
@@ -148,7 +149,7 @@ class BloopTests extends ScalaCliSuite {
         val firstLine = TestUtil.readLine(proc.stdout, ec, timeout)
         expect(firstLine == "Hello")
 
-        os.proc(TestUtil.cli, "bloop", "exit")
+        os.proc(TestUtil.cli, "--power", "bloop", "exit")
           .call(cwd = root)
 
         os.write.over(root / sourcePath, content("Foo"))

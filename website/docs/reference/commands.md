@@ -152,7 +152,7 @@ Publishes build artifacts to Maven repositories.
 We recommend running the `publish setup` sub-command once prior to
 running `publish` in order to set missing `using` directives for publishing.
 (but this is not mandatory)
-    scala-cli publish setup .
+    scala-cli --power publish setup .
 
 Specific publish configurations can be specified with both command line options and using directives defined in sources.
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
@@ -229,7 +229,7 @@ Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [c
 Aliases: `gh secret create`
 
 Creates or updates a GitHub repository secret.
-  scala-cli github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret
+  scala-cli --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret
 
 
 Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)

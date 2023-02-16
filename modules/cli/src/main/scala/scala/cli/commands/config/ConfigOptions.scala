@@ -18,9 +18,9 @@ import scala.cli.commands.tags
   s"""Configure global settings for $fullRunnerName.
      |
      |Syntax:
-     |  $progName ${HelpMessages.PowerString}config key value
+     |  $progName config key value
      |For example, to globally set the interactive mode:
-     |  $progName ${HelpMessages.PowerString}config interactive true
+     |  $progName config interactive true
      |
      |${HelpMessages.commandDocWebsiteReference("misc/config")}""".stripMargin)
 final case class ConfigOptions(
@@ -56,7 +56,6 @@ final case class ConfigOptions(
   @Group("Config")
   @HelpMessage("Remove an entry from config")
   @ExtraName("remove")
-  @Tag(tags.restricted)
     unset: Boolean = false,
   @Group("Config")
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")

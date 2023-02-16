@@ -142,6 +142,14 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--print-class-path`
+
+Aliases: `-p`, `--print-classpath`
+
+`SHOULD have` per Scala Runner specification
+
+Print the resulting class path
+
 ### `--test`
 
 `SHOULD have` per Scala Runner specification
@@ -1302,6 +1310,14 @@ Dump config DB as JSON
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Create PGP key in config
+
+### `--unset`
+
+Aliases: `--remove`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Remove an entry from config
 
 ### Coursier options
 

@@ -85,7 +85,7 @@ All of the features shown for non-scripts work for Scala scripts as well, such a
 For example, run the `package` sub-command to package your script as a lightweight executable JAR file:
 
 ```bash
-scala-cli package HelloScript.sc
+scala-cli --power package HelloScript.sc
 ./HelloScript
 ```
 

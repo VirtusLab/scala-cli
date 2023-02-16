@@ -7,7 +7,7 @@ class DefaultFileTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("Print .gitignore") {
-    val res = os.proc(TestUtil.cli, "default-file", ".gitignore")
+    val res = os.proc(TestUtil.cli, "--power", "default-file", ".gitignore")
       .call()
     val output = res.out.text()
     expect(output.linesIterator.toVector.contains("/.scala-build/"))
@@ -15,7 +15,7 @@ class DefaultFileTests extends ScalaCliSuite {
 
   test("Write .gitignore") {
     TestInputs.empty.fromRoot { root =>
-      os.proc(TestUtil.cli, "default-file", ".gitignore", "--write")
+      os.proc(TestUtil.cli, "--power", "default-file", ".gitignore", "--write")
         .call(cwd = root, stdout = os.Inherit)
       val dest = root / ".gitignore"
       expect(os.isFile(dest))

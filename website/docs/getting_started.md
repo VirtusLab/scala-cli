@@ -233,7 +233,7 @@ We could stop here and call `scala-cli` on our set of sources every time. Scala 
 For these use cases, Scala CLI offers means to package your project. For example, we can run this command to generate a thin, executable jar file, with the compiled code inside:
 
 ```bash
-scala-cli package . -o countByExtension
+scala-cli --power package . -o countByExtension
 ```
 
 The default binary name is `app`, so in this example we provide the `-o` flag to make the name of the binary `countByExtension`. Now we can run our project like this:

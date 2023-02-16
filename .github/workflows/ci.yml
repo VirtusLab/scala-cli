@@ -801,7 +801,7 @@ jobs:
     - name: Build Scala CLI
       run: ./mill copyJvmLauncher build
     - name: Build Benchmark
-      run: java -jar ./build/scala-cli package --standalone gcbenchmark/gcbenchmark.scala -o gc
+      run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark
       run: ./gc $(realpath ./build/scala-cli)
 

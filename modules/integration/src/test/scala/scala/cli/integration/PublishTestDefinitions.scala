@@ -92,6 +92,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     TestCase.testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         extraOptions,
         signingOptions,
@@ -136,6 +137,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       assert(signatures.nonEmpty)
       os.proc(
         TestUtil.cli,
+        "--power",
         "pgp",
         "verify",
         "--key",
@@ -163,6 +165,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     TestCase.testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         extraOptions,
         "project",
@@ -203,6 +206,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     TestCase.testInputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         extraOptions,
         "--sources=false",
@@ -243,6 +247,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         extraOptions,
         ".",
@@ -252,6 +257,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       val output = res.out.trim()
       val resLocal = os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         "local",
         extraOptions,

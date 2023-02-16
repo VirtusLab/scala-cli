@@ -555,9 +555,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           |  }
           |}
           |""".stripMargin,
-      os.rel / "Tests.scala" ->
+      os.rel / "Tests.test.scala" ->
         """//> using dep "com.lihaoyi::pprint:0.6.6"
-          |//> using target.scope "test"
           |
           |import utest._
           |
@@ -698,7 +697,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using packaging.output \"out\""
+      os.rel / "Hello.java" -> "//> using jvm \"11\""
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
@@ -722,7 +721,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using packaging.output \"out\""
+      os.rel / "Hello.java" -> "//> using jvm \"11\""
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
@@ -745,7 +744,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using packaging.output \"out\""
+      os.rel / "Hello.java" -> "//> using jvm \"11\""
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
@@ -1088,7 +1087,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       // build jar
       val helloJarPath = root / "Hello.jar"
-      os.proc(TestUtil.cli, "package", ".", "--library", "-o", helloJarPath).call(cwd = root)
+      os.proc(TestUtil.cli, "--power", "package", ".", "--library", "-o", helloJarPath).call(cwd =
+        root
+      )
 
       // run jar
       val output = os.proc(TestUtil.cli, helloJarPath).call(cwd = root).out.trim()

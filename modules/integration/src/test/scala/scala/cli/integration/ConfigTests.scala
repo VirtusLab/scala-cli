@@ -54,7 +54,7 @@ class ConfigTests extends ScalaCliSuite {
         res.out.trim()
       }
       def readDecoded(env: Map[String, String] = Map.empty): String = {
-        val res = os.proc(TestUtil.cli, "config", key, "--password")
+        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password")
           .call(cwd = root, env = homeEnv ++ env)
         res.out.trim()
       }
@@ -77,6 +77,7 @@ class ConfigTests extends ScalaCliSuite {
 
       os.proc(
         TestUtil.cli,
+        "--power",
         "config",
         key,
         "env:MY_PASSWORD",
@@ -165,11 +166,11 @@ class ConfigTests extends ScalaCliSuite {
       val extraEnv = Map(
         "SCALA_CLI_CONFIG" -> configFile.toString
       )
-      val checkRes = os.proc(TestUtil.cli, "config", "--create-pgp-key")
+      val checkRes = os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key")
         .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
       expect(checkRes.exitCode != 0)
       expect(checkRes.out.text().contains("--email"))
-      os.proc(TestUtil.cli, "config", "--create-pgp-key", "--email", "alex@alex.me")
+      os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--email", "alex@alex.me")
         .call(cwd = root, env = extraEnv, stdin = os.Inherit, stdout = os.Inherit)
 
       val password = os.proc(TestUtil.cli, "config", "pgp.secret-key-password")
@@ -178,7 +179,7 @@ class ConfigTests extends ScalaCliSuite {
       val secretKey = os.proc(TestUtil.cli, "config", "pgp.secret-key")
         .call(cwd = root, env = extraEnv)
         .out.trim()
-      val rawPublicKey = os.proc(TestUtil.cli, "config", "pgp.public-key", "--password")
+      val rawPublicKey = os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password")
         .call(cwd = root, env = extraEnv)
         .out.trim()
 
@@ -192,6 +193,7 @@ class ConfigTests extends ScalaCliSuite {
         else arg
       os.proc(
         TestUtil.cli,
+        "--power",
         "pgp",
         "sign",
         "--password",
@@ -204,7 +206,7 @@ class ConfigTests extends ScalaCliSuite {
 
       val pubKeyFile = root / "key.pub"
       os.write(pubKeyFile, rawPublicKey)
-      os.proc(TestUtil.cli, "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+      os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
     }
   }
@@ -246,6 +248,7 @@ class ConfigTests extends ScalaCliSuite {
       val repoPath = root / "the-repo"
       os.proc(
         TestUtil.cli,
+        "--power",
         "publish",
         "--publish-repo",
         repoPath.toNIO.toUri.toASCIIString,

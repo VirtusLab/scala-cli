@@ -35,7 +35,10 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
             identity
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
-      val res = os.proc(TestUtil.cli, "repl", extraOptions, "--ammonite", ammArgs).call(cwd = root)
+      val res =
+        os.proc(TestUtil.cli, "--power", "repl", extraOptions, "--ammonite", ammArgs).call(cwd =
+          root
+        )
       val output = res.out.trim()
       expect(output == s"Hello from Scala $versionNumberString")
     }
@@ -70,6 +73,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
       val errorRes = os.proc(
         TestUtil.cli,
+        "--power",
         "repl",
         extraOptions,
         "--ammonite",
@@ -87,6 +91,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "repl",
         extraOptions,
         "--ammonite",
@@ -100,7 +105,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>
-      val res   = os.proc(TestUtil.cli, "repl", extraOptions, "--help").call(cwd = root)
+      val res   = os.proc(TestUtil.cli, "--power", "repl", extraOptions, "--help").call(cwd = root)
       val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
 
       val scalaVersionHelp   = lines.find(_.contains("--scala-version")).getOrElse("")

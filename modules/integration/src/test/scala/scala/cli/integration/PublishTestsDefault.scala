@@ -50,7 +50,15 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
     }
 
     PublishTestInputs.inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "publish", "local", "Project.scala", "--ivy2-home", os.rel / "ivy2")
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "local",
+        "Project.scala",
+        "--ivy2-home",
+        os.rel / "ivy2"
+      )
         .call(cwd = root)
       val ivy2Local = root / "ivy2" / "local"
       val foundFiles = os.walk(ivy2Local)
@@ -73,6 +81,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
+          "--power",
           "publish",
           "local",
           "Project.scala",
@@ -144,7 +153,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
 
     val repoRelPath = os.rel / "test-repo"
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "publish", extraOptions, ".", "-R", repoRelPath)
+      os.proc(TestUtil.cli, "--power", "publish", extraOptions, ".", "-R", repoRelPath)
         .call(stdin = os.Inherit, stdout = os.Inherit, cwd = root)
       val repoRoot = root / repoRelPath
       val baseDir  = repoRoot / testOrg.split('.').toSeq / testName / testVersion
@@ -199,7 +208,16 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
 
     inputs.fromRoot { root =>
       val repoRoot = root / "tmp-repo"
-      os.proc(TestUtil.cli, "publish", "--python", "--publish-repo", repoRoot, "src", publishArgs)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--python",
+        "--publish-repo",
+        repoRoot,
+        "src",
+        publishArgs
+      )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
       val res = os.proc(
         TestUtil.cs,
@@ -234,7 +252,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       for (f <- os.list(root))
         os.copy.into(f, tmpDir)
       val publishRepo = root / "the-repo"
-      val res = os.proc(TestUtil.cli, "publish", "--publish-repo", publishRepo, tmpDir)
+      val res = os.proc(TestUtil.cli, "--power", "publish", "--publish-repo", publishRepo, tmpDir)
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.text()
       expect(output.contains("Missing organization"))
@@ -281,12 +299,12 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
         )
       )
     inputs.fromRoot { root =>
-      val failRes = os.proc(TestUtil.cli, "publish", "--dummy", "messages")
+      val failRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", "messages")
         .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(failRes.out.text(), hasWarnings = true)
       checkCredentialsWarning(failRes.out.text())
 
-      val okRes = os.proc(TestUtil.cli, "publish", "--dummy", ".")
+      val okRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", ".")
         .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(okRes.out.text(), hasWarnings = false)
       checkCredentialsWarning(okRes.out.text())

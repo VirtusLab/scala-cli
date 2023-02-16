@@ -264,6 +264,12 @@ Run the application in the background, automatically kill the process and restar
 
 Aliases: `--revolver`
 
+**--print-class-path**
+
+Print the resulting class path
+
+Aliases: `--print-classpath` ,`-p`
+
 **--test**
 
 Compile test scope
@@ -705,6 +711,12 @@ Dump config DB as JSON
 **--create-pgp-key**
 
 Create PGP key in config
+
+**--unset**
+
+Remove an entry from config
+
+Aliases: `--remove`
 
 </details>
 

@@ -33,27 +33,20 @@ object ScalaCli {
       case _ => argv0
     }
   }
-
-  private def checkName(name: String) = {
-    val baseProgName = if (Properties.isWin) progName.stripSuffix(".exe") else progName
-    baseProgName == name ||
-    baseProgName.endsWith(s"/$name") ||
-    baseProgName.endsWith(File.separator + name) ||
-    baseProgName.endsWith(s"${File.separator}.$name.aux") // cs install binaries under .app-name.aux
-  }
-
+  private val scalaCliBinaryName = "scala-cli"
   private var isSipScala = {
-    val isSipConfigDb = for {
+    val isSipScala = for {
       configDb   <- ConfigDb.open(Directories.directories.dbPath.toNIO).toOption
       powerEntry <- configDb.get(Keys.power).toOption
       power      <- powerEntry
     } yield !power
 
-    isSipConfigDb.getOrElse(checkName("scala") || checkName("scala-cli-sip"))
+    isSipScala.getOrElse(true)
   }
   def allowRestrictedFeatures = !isSipScala
-  def fullRunnerName          = if (isSipScala) "Scala code runner" else "Scala CLI"
-  def baseRunnerName          = if (isSipScala) "scala" else "scala-cli"
+  def fullRunnerName =
+    if (progName.contains(scalaCliBinaryName)) "Scala CLI" else "Scala code runner"
+  def baseRunnerName = if (progName.contains(scalaCliBinaryName)) scalaCliBinaryName else "scala"
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 

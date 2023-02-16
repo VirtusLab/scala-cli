@@ -20,7 +20,7 @@ class UpdateTests extends ScalaCliSuite {
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {
     // format: off
     val cmd = Seq[os.Shellable](
-      TestUtil.cli, "package", dummyScalaCliFileName, "-o", output
+      TestUtil.cli, "--power", "package", dummyScalaCliFileName, "-o", output
     )
     // format: on
     os.proc(cmd).call(

@@ -35,8 +35,8 @@ object DirectivesProcessor {
     ) =
       if (!allowRestrictedFeatures && handler.isRestricted)
         val msg =
-          """This directive is not supported with 'scala' command.
-            |Please run it with `scala-cli` command or with `--power` flag or turn on this flag globally running command `config power true`.""".stripMargin
+          """This directive is not supported.
+            |Please run it with the `--power` flag or turn this flag on globally by running `config power true`.""".stripMargin
         Left(DirectiveErrors(
           ::(msg, Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)

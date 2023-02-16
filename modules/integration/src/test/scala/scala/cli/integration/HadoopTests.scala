@@ -81,6 +81,7 @@ class HadoopTests extends munit.FunSuite {
     inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
+        "--power",
         "run",
         TestUtil.extraOptions,
         ".",

@@ -15,23 +15,17 @@ class SipScalaTests extends ScalaCliSuite {
       if (!Properties.isWin) os.perms.set(newCliPath, "rwxr-xr-x")
       newCliPath
     }
-
-    def isSip: Boolean = binaryName == "scala" || binaryName.endsWith("sip")
   }
+  def powerArgs(isRestricted: Boolean) = if (isRestricted) Nil else Seq("--power")
 
-  def testDirectoriesCommand(binaryName: String): Unit =
+  def testDirectoriesCommand(isRestricted: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
-      val binary = binaryName.prepareBinary(root)
-
-      os.proc(binary, "compile", "--help").call(cwd = root)
-      os.proc(binary, "run", "--help").call(cwd = root)
-
-      val res = os.proc(binary, "directories").call(
+      val res = os.proc(TestUtil.cli, powerArgs(isRestricted), "directories").call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
       )
-      if (binaryName.isSip) {
+      if (isRestricted) {
         expect(res.exitCode == 1)
         val output = res.out.text()
         expect(
@@ -43,7 +37,7 @@ class SipScalaTests extends ScalaCliSuite {
       else expect(res.exitCode == 0)
     }
 
-  def testPublishDirectives(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+  def testPublishDirectives(isRestricted: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
         | //> using publish.name "my-library"
@@ -53,15 +47,13 @@ class SipScalaTests extends ScalaCliSuite {
     val source = root / "A.scala"
     os.write(source, code)
 
-    val binary = binaryName.prepareBinary(root)
-
-    val res = os.proc(binary, "compile", source).call(
+    val res = os.proc(TestUtil.cli, powerArgs(isRestricted), "compile", source).call(
       cwd = root,
       check = false,
       mergeErrIntoOut = true
     )
 
-    if (binaryName.isSip) {
+    if (isRestricted) {
       expect(res.exitCode == 1)
       val output = res.out.text()
       expect(output.contains(s"directive is not supported"))
@@ -70,7 +62,7 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.exitCode == 0)
   }
 
-  def testMarkdownOptions(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
+  def testMarkdownOptions(isRestricted: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
         | println("ala")
@@ -79,14 +71,13 @@ class SipScalaTests extends ScalaCliSuite {
     val source = root / "A.sc"
     os.write(source, code)
 
-    val binary = binaryName.prepareBinary(root)
-
-    val res = os.proc(binary, "--scala", "3", "--markdown", source).call(
-      cwd = root,
-      check = false,
-      mergeErrIntoOut = true
-    )
-    if (binaryName.isSip) {
+    val res =
+      os.proc(TestUtil.cli, powerArgs(isRestricted), "--scala", "3", "--markdown", source).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+    if (isRestricted) {
       expect(res.exitCode == 1)
       val output = res.out.text()
       expect(output.contains(s"option is not supported"))
@@ -94,23 +85,6 @@ class SipScalaTests extends ScalaCliSuite {
     }
     else expect(res.exitCode == 0)
   }
-
-  def testVersionCommand(binaryName: String): Unit =
-    TestInputs.empty.fromRoot { root =>
-      val binary = binaryName.prepareBinary(root)
-      for { versionOption <- VersionTests.variants } {
-        val version = os.proc(binary, versionOption).call(check = false)
-        assert(
-          version.exitCode == 0,
-          clues(version, version.out.text(), version.err.text(), version.exitCode)
-        )
-        val expectedLauncherVersion =
-          if (binaryName.isSip) "Scala code runner version:"
-          else "Scala CLI version:"
-        expect(version.out.text().contains(expectedLauncherVersion))
-        expect(version.out.text().contains(s"Scala version (default): ${Constants.defaultScala}"))
-      }
-    }
 
   if (TestUtil.isNativeCli)
     test(s"usage instruction should point to scala when installing by cs") { // https://github.com/VirtusLab/scala-cli/issues/1662
@@ -125,46 +99,42 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
-  def testDefaultHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
-    val binary = binaryName.prepareBinary(root)
+  def testDefaultHelpOutput(isRestricted: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     for (helpOptions <- HelpTests.variants) {
-      val output                      = os.proc(binary, helpOptions).call(cwd = root).out.trim()
+      val output =
+        os.proc(TestUtil.cli, powerArgs(isRestricted), helpOptions).call(cwd = root).out.trim()
       val restrictedFeaturesMentioned = output.contains("package")
-      if (binaryName.isSip) expect(!restrictedFeaturesMentioned)
+      if (isRestricted) expect(!restrictedFeaturesMentioned)
       else expect(restrictedFeaturesMentioned)
     }
   }
 
-  def testReplHelpOutput(binaryName: String): Unit = TestInputs.empty.fromRoot { root =>
-    val binary                        = binaryName.prepareBinary(root)
-    val output                        = os.proc(binary, "repl", "-help").call(cwd = root).out.trim()
+  def testReplHelpOutput(isRestricted: Boolean): Unit = TestInputs.empty.fromRoot { root =>
+    val output =
+      os.proc(TestUtil.cli, powerArgs(isRestricted), "repl", "-help").call(cwd = root).out.trim()
     val restrictedFeaturesMentioned   = output.contains("--amm")
     val experimentalFeaturesMentioned = output.contains("--python")
-    if (binaryName.isSip) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)
+    if (isRestricted) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)
     else expect(restrictedFeaturesMentioned && experimentalFeaturesMentioned)
   }
 
-  if (TestUtil.isNativeCli)
-    for (binaryName <- Seq("scala", "scala-cli", "scala-cli-sip")) {
-      test(s"test directories command when run as $binaryName") {
-        testDirectoriesCommand(binaryName)
-      }
-      test(s"test publish directives when run as $binaryName") {
-        testPublishDirectives(binaryName)
-      }
-      test(s"test markdown options when run as $binaryName") {
-        testMarkdownOptions(binaryName)
-      }
-      test(s"test version command when run as $binaryName") {
-        testVersionCommand(binaryName)
-      }
-      test(s"test default help when run as $binaryName") {
-        testDefaultHelpOutput(binaryName)
-      }
-      test(s"test repl help when run as $binaryName") {
-        testReplHelpOutput(binaryName)
-      }
+  for (isRestricted <- Seq(false, true)) {
+    test(s"test directories command when restricted mode is enabled: $isRestricted") {
+      testDirectoriesCommand(isRestricted)
     }
+    test(s"test publish directives when restricted mode is enabled: $isRestricted") {
+      testPublishDirectives(isRestricted)
+    }
+    test(s"test markdown options when restricted mode is enabled: $isRestricted") {
+      testMarkdownOptions(isRestricted)
+    }
+    test(s"test default help when restricted mode is enabled: $isRestricted") {
+      testDefaultHelpOutput(isRestricted)
+    }
+    test(s"test repl help when restricted mode is enabled: $isRestricted") {
+      testReplHelpOutput(isRestricted)
+    }
+  }
 
   test("power config turn on power features") {
     TestInputs.empty.fromRoot { root =>

@@ -62,7 +62,7 @@ env:MY_GITHUB_TOKEN
 ```
 ```bash
 export MY_GITHUB_TOKEN=1234
-scala-cli config --password github.token
+scala-cli --power config --password github.token
 ```
 ```text
 1234

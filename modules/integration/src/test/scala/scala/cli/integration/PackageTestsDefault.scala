@@ -19,7 +19,7 @@ class PackageTestsDefault extends PackageTestDefinitions(scalaVersionOpt = None)
       val runOutput = runRes.out.trim().linesIterator.filter(!_.startsWith("[info] ")).toVector
       expect(runOutput == Seq("Hello"))
 
-      val packageRes = os.proc(TestUtil.cli, "package", "--native", ".", "-o", "hello")
+      val packageRes = os.proc(TestUtil.cli, "--power", "package", "--native", ".", "-o", "hello")
         .call(cwd = root, mergeErrIntoOut = true)
       val packageOutput    = packageRes.out.trim()
       val topPackageOutput = packageOutput.linesIterator.takeWhile(!_.startsWith("Wrote ")).toVector
