@@ -4,6 +4,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.{JsonValueCodec, WriterConfig,
 import com.github.plokhotnyuk.jsoniter_scala.macros.{CodecMakerConfig, JsonCodecMaker}
 import coursier.Dependency
 import coursier.util.Artifact
+import dependency.AnyDependency
 
 import java.nio.charset.StandardCharsets
 
@@ -16,17 +17,24 @@ final case class JsonProject(
   projectName: Option[String] = None,
   scalaVersion: Option[String] = None,
   platform: Option[String] = None,
-  scalacOptions: Seq[String] = Nil,
-  scalaCompilerPlugins: Seq[String] = Nil,
+  jvmVersion: Option[String] = None,
   scalaJsVersion: Option[String] = None,
+  jsEsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
   mainClass: Option[String] = None,
-  scopes: Seq[ScopedJsonProject] = Nil,
-  extraDecls: Seq[String] = Nil
+  scopes: Map[String, ScopedJsonProject] = Map.empty
 ) extends Project {
 
   def +(other: JsonProject): JsonProject =
     JsonProject.monoid.orElse(this, other)
+
+  def withScope(scopeName: String, scopedJsonProj: ScopedJsonProject): JsonProject =
+    if (scopedJsonProj.sources.isEmpty)
+      this
+    else
+      this.copy(
+        scopes = this.scopes + (scopeName -> scopedJsonProj)
+      )
 
   def writeTo(dir: os.Path): Unit = {
     val config = WriterConfig.withIndentionStep(1)
@@ -43,38 +51,27 @@ final case class JsonProject(
 }
 
 final case class ScopedJsonProject(
-  scopeName: Option[String] = None,
   sources: Seq[String] = Nil,
-  dependencies: Seq[String] = Nil,
+  scalacOptions: Seq[String] = Nil,
+  scalaCompilerPlugins: Seq[ExportDependencyFormat] = Nil,
+  dependencies: Seq[ExportDependencyFormat] = Nil,
   resolvers: Seq[String] = Nil,
   resourcesDirs: Seq[String] = Nil,
-  extraDecls: Seq[String] = Nil
-) extends Project {
+  customJarsDecls: Seq[String] = Nil
+) {
 
   def +(other: ScopedJsonProject): ScopedJsonProject =
     ScopedJsonProject.monoid.orElse(this, other)
 
-  def writeTo(dir: os.Path): Unit = {
-    val config = WriterConfig.withIndentionStep(1)
-
-    Using(os.write.outputStream(dir / s"${scopeName.getOrElse("")}_export.json")) {
-      outputStream =>
-        writeToStream(
-          this,
-          outputStream,
-          config
-        )
-    }
-  }
-
   def sorted(using ord: Ordering[String]): ScopedJsonProject =
     ScopedJsonProject(
-      this.scopeName,
       this.sources.sorted,
+      this.scalacOptions,
+      this.scalaCompilerPlugins.sorted,
       this.dependencies.sorted,
       this.resolvers.sorted,
       this.resourcesDirs.sorted,
-      this.extraDecls.sorted
+      this.customJarsDecls.sorted
     )
 }
 
@@ -86,4 +83,43 @@ object ScopedJsonProject {
 object JsonProject {
   implicit val monoid: ConfigMonoid[JsonProject]           = ConfigMonoid.derive
   implicit lazy val jsonCodec: JsonValueCodec[JsonProject] = JsonCodecMaker.make
+}
+
+case class ExportDependencyFormat(groupId: String, artifactId: ArtifactId, version: String)
+
+case class ArtifactId(name: String, fullName: String)
+
+object ExportDependencyFormat {
+  def apply(dep: Dependency): ExportDependencyFormat = {
+    val scalaVersionStartIndex = dep.module.name.value.lastIndexOf('_')
+    val shortDepName = if (scalaVersionStartIndex == -1)
+      dep.module.name.value
+    else
+      dep.module.name.value.take(scalaVersionStartIndex)
+    new ExportDependencyFormat(
+      dep.module.organization.value,
+      ArtifactId(shortDepName, dep.module.name.value),
+      dep.version
+    )
+  }
+
+  def apply(
+    dep: AnyDependency,
+    scalaParamsOpt: Option[dependency.ScalaParameters]
+  ): ExportDependencyFormat = {
+    import scala.build.internal.Util.*
+    dep.toCs(scalaParamsOpt)
+      .map(ExportDependencyFormat.apply)
+      .getOrElse(
+        ExportDependencyFormat(
+          dep.module.organization,
+          ArtifactId(dep.module.name, dep.module.name),
+          dep.version
+        )
+      )
+  }
+
+  implicit val ordering: Ordering[ExportDependencyFormat] =
+    Ordering.by(x => x.groupId + x.artifactId.fullName)
+  implicit lazy val jsonCodec: JsonValueCodec[ExportDependencyFormat] = JsonCodecMaker.make
 }

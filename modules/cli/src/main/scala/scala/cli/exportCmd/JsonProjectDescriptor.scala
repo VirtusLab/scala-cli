@@ -13,9 +13,16 @@ import java.nio.file.Path
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
+import scala.build.options.{
+  BuildOptions,
+  JavaOptions,
+  Platform,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  Scope
+}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Logger, Sources}
+import scala.build.{Logger, Positioned, Sources}
 import scala.cli.util.SeqHelpers.*
 
 final case class JsonProjectDescriptor(
@@ -32,47 +39,58 @@ final case class JsonProjectDescriptor(
     JsonProject(scalaVersion = Some(sv))
   }
 
-  private def scalacOptionsSettings(options: BuildOptions): JsonProject =
-    JsonProject(scalacOptions = options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
+  private def scalacOptionsSettings(options: BuildOptions): ScopedJsonProject =
+    ScopedJsonProject(scalacOptions = options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
 
   private def scalaJsSettings(options: ScalaJsOptions): JsonProject = {
 
     val scalaJsVersion = Some(options.version.getOrElse(Constants.scalaJsVersion))
 
-    val moduleKindDecls =
-      if (options.moduleKindStr.isEmpty) Nil
-      else
-        Seq(options.moduleKind(logger))
-
     JsonProject(
+      platform = Some(Platform.JS.repr),
       scalaJsVersion = scalaJsVersion,
-      extraDecls = moduleKindDecls
+      jsEsVersion = options.esVersionStr
     )
   }
 
   private def scalaNativeSettings(options: ScalaNativeOptions): JsonProject = {
     val scalaNativeVersion = Some(options.version.getOrElse(Constants.scalaNativeVersion))
-    JsonProject(scalaNativeVersion = scalaNativeVersion)
+
+    JsonProject(
+      platform = Some(Platform.Native.repr),
+      scalaNativeVersion = scalaNativeVersion
+    )
   }
 
-  private def platformSettings(options: BuildOptions): JsonProject = {
-    val platform = options.scalaOptions.platform.map(_.value.repr)
-      .orElse(Some(Platform.JVM.repr))
+  private def jvmSettings(options: JavaOptions): JsonProject =
+    JsonProject(
+      platform = Some(Platform.JVM.repr),
+      jvmVersion = options.jvmIdOpt.map(_.value)
+    )
 
-    JsonProject(platform = platform)
-  }
+  private def platformSettings(options: BuildOptions): JsonProject =
+    options.scalaOptions.platform.map(_.value) match {
+      case Some(Platform.JS) =>
+        scalaJsSettings(options.scalaJsOptions)
+      case Some(Platform.Native) =>
+        scalaNativeSettings(options.scalaNativeOptions)
+      case _ => jvmSettings(options.javaOptions)
+    }
 
   private def sourcesSettings(sources: Sources): ScopedJsonProject =
     ScopedJsonProject(sources =
       ProjectDescriptor.sources(sources, charSet).map(_._1.toNIO.toString)
     )
 
-  private def scalaCompilerPlugins(options: BuildOptions): JsonProject =
-    JsonProject(scalaCompilerPlugins = options.scalaOptions.compilerPlugins.map(_.value.render))
+  private def scalaCompilerPlugins(options: BuildOptions): ScopedJsonProject =
+    val compilerPlugins = options.scalaOptions.compilerPlugins.map(_.value)
+      .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
+
+    ScopedJsonProject(scalaCompilerPlugins = compilerPlugins)
 
   private def dependencySettings(options: BuildOptions): ScopedJsonProject = {
-    val directDeps = options.classPathOptions.extraDependencies.toSeq
-      .map(_.value.render)
+    val directDeps = options.classPathOptions.extraDependencies.toSeq.map(_.value)
+      .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
 
     ScopedJsonProject(dependencies = directDeps)
   }
@@ -84,7 +102,7 @@ final case class JsonProjectDescriptor(
       .appended(LocalRepositories.ivy2Local)
       .collect {
         case repo: MavenRepository => repo.root
-        case repo: IvyRepository   => s"ivy:${repo.pattern}"
+        case repo: IvyRepository   => s"ivy:${repo.pattern.string}"
       }
       .distinct
 
@@ -102,7 +120,7 @@ final case class JsonProjectDescriptor(
     val customJarsDecls = options.classPathOptions.extraClassPath.map(_.toNIO.toString)
 
     ScopedJsonProject(
-      extraDecls = customCompileOnlyJarsDecls ++ customJarsDecls
+      customJarsDecls = customCompileOnlyJarsDecls ++ customJarsDecls
     )
   }
 
@@ -112,52 +130,37 @@ final case class JsonProjectDescriptor(
     sourcesMain: Sources,
     sourcesTest: Sources
   ): JsonProject = {
-    val mainJsonProject = exportScope(Scope.Main, optionsMain, sourcesMain)
-    val testJsonProject = exportScope(Scope.Test, optionsTest, sourcesTest)
+    val baseJsonProject = Seq(
+      JsonProject(
+        projectName = projectName,
+        mainClass = optionsMain.mainClass
+      ),
+      scalaVersionSettings(optionsMain),
+      platformSettings(optionsMain)
+    )
+      .foldLeft(JsonProject())(_ + _)
 
-    mainJsonProject + testJsonProject
+    val mainJsonProject = exportScope(optionsMain, sourcesMain)
+    val testJsonProject = exportScope(optionsTest, sourcesTest)
+
+    baseJsonProject
+      .withScope(Scope.Main.name, mainJsonProject)
+      .withScope(Scope.Test.name, testJsonProject)
   }
 
   def exportScope(
-    scope: Scope,
     options: BuildOptions,
     sources: Sources
-  ): JsonProject = {
-    val baseSettings = JsonProject(
-      projectName = projectName,
-      mainClass = options.mainClass
-    )
-
-    val scopeSpecifics = Seq(
-      ScopedJsonProject(scopeName = Some(scope.name)),
+  ): ScopedJsonProject =
+    Seq(
+      scalaCompilerPlugins(options),
+      scalacOptionsSettings(options),
       sourcesSettings(sources),
       dependencySettings(options),
       repositorySettings(options),
       customResourcesSettings(options),
       customJarsSettings(options)
     )
-
-    val scopedJsonProject = scopeSpecifics.foldLeft(ScopedJsonProject())(_ + _)
+      .foldLeft(ScopedJsonProject())(_ + _)
       .sorted
-
-    val settings = Seq(
-      baseSettings,
-      JsonProject(scopes = Seq(scopedJsonProject)),
-      scalaVersionSettings(options)
-    ) ++
-      (if (scope == Scope.Main)
-         Seq(
-           scalaCompilerPlugins(options),
-           platformSettings(options),
-           scalacOptionsSettings(options),
-           if (options.platform.value == Platform.JS)
-             scalaJsSettings(options.scalaJsOptions)
-           else if (options.platform.value == Platform.Native)
-             scalaNativeSettings(options.scalaNativeOptions)
-           else JsonProject()
-         )
-       else Nil)
-
-    settings.foldLeft(JsonProject())(_ + _)
-  }
 }
