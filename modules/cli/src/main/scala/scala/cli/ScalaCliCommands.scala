@@ -42,7 +42,6 @@ class ScalaCliCommands(
     new HelpCmd(help),
     installcompletions.InstallCompletions,
     installhome.InstallHome,
-    metabrowse.Metabrowse,
     repl.Repl,
     package0.Package,
     pgp.PgpPull,
