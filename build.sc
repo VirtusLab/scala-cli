@@ -156,6 +156,10 @@ object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
     Deps.munit
   )
   def mainClass = Some("scala.cli.doc.GenerateReferenceDoc")
+
+  def forkEnv = super.forkEnv() ++ Seq(
+    "SCALA_CLI_POWER" -> "true"
+  )
 }
 
 object dummy extends Module {
