@@ -11,11 +11,13 @@ final case class SharedDependencyOptions(
   @Group("Dependency")
   @HelpMessage("Add dependencies")
   @Tag(tags.must)
+  @Tag(tags.important)
   @Name("dep")
     dependency: List[String] = Nil,
 
   @Group("Dependency")
   @Tag(tags.should)
+  @Tag(tags.important)
   @HelpMessage("Add repositories")
   @Name("repo")
   @Name("r")

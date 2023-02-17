@@ -11,6 +11,9 @@ object ArgHelpers {
       arg.tags.exists(_.name == tags.restricted) || arg.tags.exists(_.name == tags.experimental)
 
     def isSupported: Boolean = allowRestrictedFeatures || !arg.isExperimentalOrRestricted
+    def isImportant: Boolean = arg.tags.exists(_.name == tags.important)
+
+    def isMust: Boolean = arg.tags.exists(_.name == tags.must)
 
     def level: SpecificationLevel = arg.tags
       .flatMap(t => tags.levelFor(t.name))

@@ -10,6 +10,7 @@ final case class SharedJavaOptions(
   @HelpMessage("Set Java options, such as `-Xmx1g`")
   @ValueDescription("java-options")
   @Tag(tags.must)
+  @Tag(tags.important)
   @Name("J")
     javaOpt: List[String] = Nil,
   @Recurse

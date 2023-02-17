@@ -22,6 +22,7 @@ final case class SharedJvmOptions(
   @ValueDescription("jvm-name")
   @Tag(tags.should)
   @Name("j")
+  @Tag(tags.important)
     jvm: Option[String] = None,
   @Group("Java")
   @HelpMessage("JVM index URL")
@@ -52,6 +53,7 @@ final case class SharedJvmOptions(
   @HelpMessage("Javac options")
   @Name("javacOpt")
   @Tag(tags.should)
+  @Tag(tags.important)
   @Hidden
     javacOption: List[String] = Nil,
 

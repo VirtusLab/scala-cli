@@ -10,7 +10,7 @@ import scala.util.{Properties, Try}
 object ScalaCliHelp {
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
-      filterArgs = Some(_.isSupported),
+      filterArgs = Some(arg => arg.isSupported && (arg.isMust || arg.isImportant)),
       filterArgsWhenShowHidden = Some(_.isSupported),
       sortedGroups = Some(
         Seq(

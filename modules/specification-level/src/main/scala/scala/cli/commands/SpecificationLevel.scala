@@ -65,6 +65,9 @@ object tags {
   val must: String           = SpecificationLevel.MUST.toString
   val should: String         = SpecificationLevel.SHOULD.toString
 
+  // other tags
+  val important: String = "important"
+
   def levelFor(name: String): Option[SpecificationLevel] = name match {
     case `experimental`   => Some(SpecificationLevel.EXPERIMENTAL)
     case `restricted`     => Some(SpecificationLevel.RESTRICTED)
