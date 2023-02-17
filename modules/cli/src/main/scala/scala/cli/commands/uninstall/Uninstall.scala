@@ -49,7 +49,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       )
       // exit bloop server
       logger.debug("Stopping Bloop server...")
-      BloopExit.run(options.bloopExit, args)
+      BloopExit.runCommand(options.bloopExit, args, options.logging.logger)
       // remove scala-cli launcher
       logger.debug(s"Removing $baseRunnerName binary...")
       os.remove.all(binDirPath)
