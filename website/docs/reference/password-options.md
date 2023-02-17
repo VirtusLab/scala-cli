@@ -1,5 +1,5 @@
 ---
-title: Password options
+title: Password options ⚡️
 sidebar_position: 8
 ---
 

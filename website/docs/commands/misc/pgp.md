@@ -1,7 +1,14 @@
 ---
-title: PGP
+title: PGP ⚡️
 sidebar_position: 18
 ---
+
+:::caution
+The PGP command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
+:::
 
 The `pgp` sub-commands are low-level commands, exposing the PGP capabilities of
 Scala CLI. These capabilities are used in the `publish` and `publish setup` commands

@@ -1,6 +1,6 @@
 ---
-title: Markdown (experimental)
-sidebar_position: 21
+title: Markdown (experimental) ⚡️
+sidebar_position: 60
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
