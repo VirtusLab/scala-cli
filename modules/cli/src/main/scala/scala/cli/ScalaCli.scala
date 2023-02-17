@@ -35,13 +35,14 @@ object ScalaCli {
   }
   private val scalaCliBinaryName = "scala-cli"
   private var isSipScala = {
-    val isSipScala = for {
+    lazy val isPowerConfigDb = for {
       configDb   <- ConfigDb.open(Directories.directories.dbPath.toNIO).toOption
       powerEntry <- configDb.get(Keys.power).toOption
       power      <- powerEntry
-    } yield !power
-
-    isSipScala.getOrElse(true)
+    } yield power
+    val isPowerEnv = Option(System.getenv("SCALA_CLI_POWER")).flatMap(_.toBooleanOption)
+    val isPower    = isPowerEnv.orElse(isPowerConfigDb).getOrElse(false)
+    !isPower
   }
   def allowRestrictedFeatures = !isSipScala
   def fullRunnerName =
