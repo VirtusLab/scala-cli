@@ -21,7 +21,7 @@ The configuration options and syntax in `.scala` (and `.sc`) files is likely to 
 Pass `--help` to any sub-command of `scala-cli` to list its options:
 ```bash
 scala-cli --help
-scala-cli package --help
+scala-cli --power package --help
 ```
 
 As an example of command line configuration, one thing you can do with `scala-cli` command line options is to specify the Scala version:

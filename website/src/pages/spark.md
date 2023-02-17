@@ -31,7 +31,7 @@ object SparkJob {
 ```
 
 ```bash
-scala-cli package --spark SparkJob.scala -o spark-job.jar
+scala-cli --power package --spark SparkJob.scala -o spark-job.jar
 ```
 
 ```text

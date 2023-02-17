@@ -608,7 +608,7 @@ Added by [@lwronski](https://github.com/lwronski) in https://github.com/VirtusLa
 When running a sequence of commands such as
 ```bash ignore
 $ scala-cli run --native .
-$ scala-cli package --native . -o my-app
+$ scala-cli --power package --native . -o my-app
 ```
 Scala CLI should cache a Scala Native binary during the first command, so that the second command can just re-use it, rather than generating a binary again. This also fixes the re-use of compilation artifacts between both commands, so that the Scala CLI project isn't re-compiled during the second command either.
 
@@ -1380,7 +1380,7 @@ by [alexarchambault](https://github.com/alexarchambault).
 
 #### Don't write preambles in generated assemblies in the `package` sub-command
 
-Passing `--preamble=false` to `scala-cli package --assembly` makes it generate assemblies without a shell preamble. As a
+Passing `--preamble=false` to `scala-cli --power package --assembly` makes it generate assemblies without a shell preamble. As a
 consequence, these assemblies cannot be made executable, but these look more like "standard" JARs, which is required in
 some contexts.
 
@@ -1390,10 +1390,10 @@ by [alexarchambault](https://github.com/alexarchambault).
 #### Don't put some dependencies in generated assemblies in the `package` sub-command
 
 Some dependencies, alongside all their transitive dependencies, can be excluded from the generated assemblies.
-Pass `--provided org:name` to `scala-cli package --assembly` to remove a dependency, like
+Pass `--provided org:name` to `scala-cli --power package --assembly` to remove a dependency, like
 
 ```text
-$ scala-cli package SparkJob.scala --assembly --provided org.apache.spark::spark-sql
+$ scala-cli --power package SparkJob.scala --assembly --provided org.apache.spark::spark-sql
 ```
 
 Note that unlike "provided" dependencies in sbt, and compile-time dependencies in Mill, all transitive dependencies are
@@ -1408,7 +1408,7 @@ by [alexarchambault](https://github.com/alexarchambault).
 #### Experimental Spark capabilities
 
 The `package` sub-command now accepts a `--spark` option, to generate assemblies for Spark jobs, ready to be passed
-to `spark-submit`. This option is hidden (not printed in `scala-cli package --help`, only in `--help-full`), and should
+to `spark-submit`. This option is hidden (not printed in `scala-cli --power package --help`, only in `--help-full`), and should
 be considered experimental.
 
 See [this document](https://github.com/VirtusLab/scala-cli/blob/410f54c01ac5d9cb046461dce07beb5aa008231e/website/src/pages/spark.md)
