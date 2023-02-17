@@ -34,12 +34,6 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [compile](./cli-options.md#compile-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
-## dependency-update
-
-Update dependency directives in the project
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [dependency update](./cli-options.md#dependency-update-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
 ## doc
 
 Generate Scaladoc documentation.
@@ -53,24 +47,6 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/doc
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [doc](./cli-options.md#doc-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
-## export
-
-Export current project to an external build tool (like SBT or Mill).
-
-The whole Scala CLI project should get exported along with its dependencies configuration.
-
-Unless otherwise configured, the default export format is SBT.
-
-Multiple inputs can be passed at once.
-Paths to directories, URLs and supported file types are accepted as inputs.
-Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
-For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
-All supported types of inputs can be mixed with each other.
-
-Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [export](./cli-options.md#export-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
 ## fmt
 
@@ -127,76 +103,6 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [repl](./cli-options.md#repl-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
 
-## package
-
-Compile and package Scala code.
-
-Specific package configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
-Multiple inputs can be passed at once.
-Paths to directories, URLs and supported file types are accepted as inputs.
-Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
-For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
-All supported types of inputs can be mixed with each other.
-
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/package
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [package](./cli-options.md#package-options), [packager](./cli-options.md#packager-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish
-
-Publishes build artifacts to Maven repositories.
-
-We recommend running the `publish setup` sub-command once prior to
-running `publish` in order to set missing `using` directives for publishing.
-(but this is not mandatory)
-    scala-cli --power publish setup .
-
-Specific publish configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
-Multiple inputs can be passed at once.
-Paths to directories, URLs and supported file types are accepted as inputs.
-Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
-For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
-All supported types of inputs can be mixed with each other.
-
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish local
-
-Publishes build artifacts to the local Ivy2 repository.
-
-The local Ivy2 repository usually lives under `~/.ivy2/local`.
-It is taken into account most of the time by most Scala tools when fetching artifacts.
-
-Specific publish local configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
-Multiple inputs can be passed at once.
-Paths to directories, URLs and supported file types are accepted as inputs.
-Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
-For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
-All supported types of inputs can be mixed with each other.
-
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish-local
-
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## publish setup
-
-Configures the project for publishing.
-
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish-setup
-
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
-
 ## run
 
 Compile and run Scala code.
@@ -223,24 +129,6 @@ scala-cli run Main.scala AnotherSource.scala -- first-arg second-arg
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
-
-## github secret create
-
-Aliases: `gh secret create`
-
-Creates or updates a GitHub repository secret.
-  scala-cli --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret
-
-
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
-
-## github secret list
-
-Aliases: `gh secret list`
-
-Lists secrets for a given GitHub repository.
-
-Accepts option groups: [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## setup-ide
 
@@ -361,46 +249,41 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](
 
 ### add-path
 
-Add entries to the PATH environment variable.
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [add path](./cli-options.md#add-path-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop
 
-Interact with Bloop (the build server) or check its status.
-
-This sub-command allows to check the current status of Bloop.
-If Bloop isn't currently running, it will be started.
-
-Bloop is the build server used by Scala CLI.
-For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [bloop](./cli-options.md#bloop-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop exit
 
-Stop Bloop if an instance is running.
-
-Bloop is the build server used by Scala CLI.
-For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop output
 
-Print Bloop output.
-
-Bloop is the build server used by Scala CLI.
-For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop start
 
-Starts a Bloop instance, if none is running.
-
-Bloop is the build server used by Scala CLI.
-For more information about Bloop, refer to https://scalacenter.github.io/bloop/
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [bloop start](./cli-options.md#bloop-start-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
@@ -433,17 +316,35 @@ Accepts option groups: [config](./cli-options.md#config-options), [coursier](./c
 
 ### default-file
 
-Generates default files for a Scala CLI project (i.e. .gitignore).
-
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/default-file
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [default file](./cli-options.md#default-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
+### dependency-update
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [dependency update](./cli-options.md#dependency-update-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
+
 ### directories
 
-Prints directories used by Scala CLI.
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+
+### export
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [export](./cli-options.md#export-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
 ### install-home
 
@@ -455,17 +356,79 @@ Accepts option groups: [install home](./cli-options.md#install-home-options), [l
 
 Aliases: `metabrowse`
 
-Browse Scala code and its dependencies in the browser
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [metabrowse](./cli-options.md#metabrowse-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
+### package
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [package](./cli-options.md#package-options), [packager](./cli-options.md#packager-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
+
 ### pgp pull
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
 
 Accepts option groups: [logging](./cli-options.md#logging-options), [pgp pull](./cli-options.md#pgp-pull-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp push
 
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
 Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push](./cli-options.md#pgp-push-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
+
+### publish
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
+
+### publish local
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
+
+### publish setup
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
+
+### github secret create
+
+Aliases: `gh secret create`
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
+
+### github secret list
+
+Aliases: `gh secret list`
+
+This command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+   [1mscala-cli config power true
+
+Accepts option groups: [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp create
 
