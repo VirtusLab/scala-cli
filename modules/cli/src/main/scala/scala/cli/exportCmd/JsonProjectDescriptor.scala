@@ -39,9 +39,6 @@ final case class JsonProjectDescriptor(
     JsonProject(scalaVersion = Some(sv))
   }
 
-  private def scalacOptionsSettings(options: BuildOptions): ScopedJsonProject =
-    ScopedJsonProject(scalacOptions = options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
-
   private def scalaJsSettings(options: ScalaJsOptions): JsonProject = {
 
     val scalaJsVersion = Some(options.version.getOrElse(Constants.scalaJsVersion))
@@ -76,6 +73,9 @@ final case class JsonProjectDescriptor(
         scalaNativeSettings(options.scalaNativeOptions)
       case _ => jvmSettings(options.javaOptions)
     }
+
+  private def scalacOptionsSettings(options: BuildOptions): ScopedJsonProject =
+    ScopedJsonProject(scalacOptions = options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
 
   private def sourcesSettings(sources: Sources): ScopedJsonProject =
     ScopedJsonProject(sources =
