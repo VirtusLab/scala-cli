@@ -13,7 +13,7 @@ import scala.cli.commands.shared.*
      |We recommend running the `publish setup` sub-command once prior to
      |running `publish` in order to set missing `using` directives for publishing.
      |(but this is not mandatory)
-     |    $baseRunnerName ${HelpMessages.PowerString}publish setup .
+     |    $baseRunnerName --power publish setup .
      |
      |${HelpMessages.commandConfigurations("publish")}
      |
