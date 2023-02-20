@@ -5,12 +5,15 @@ import sttp.model.Uri
 
 import scala.build.Logger
 import scala.cli.commands.shared.LoggingOptions
+import scala.cli.commands.tags
 
 // format: off
 final case class SharedPgpPushPullOptions(
   @Group("PGP")
   @HelpMessage("Key server to push / pull keys from")
   @ValueDescription("URL")
+  @Tag(tags.restricted)
+  @Tag(tags.important)
     keyServer: List[String] = Nil
 ) {
   // format: on

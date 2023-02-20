@@ -1399,28 +1399,6 @@ Print the update to `env` variable
 
 Binary directory
 
-### Pgp scala signing options
-
-Available in commands:
-
-[`config`](./commands.md#config)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--signing-cli-version`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-### `--signing-cli-java-arg`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-### `--force-jvm-signing-cli`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Whether to run the Scala Signing CLI on the JVM or using a native executable
-
 ### Repl options
 
 Available in commands:

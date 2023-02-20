@@ -4,14 +4,21 @@ import caseapp.*
 
 import scala.build.options as bo
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions, SharedJvmOptions}
+import scala.cli.commands.tags
 
 // format: off
 final case class PgpScalaSigningOptions(
+  @Group("Signing")
+  @Tag(tags.restricted)
   @Hidden
     signingCliVersion: Option[String] = None,
+  @Group("Signing")
+  @Tag(tags.restricted)
   @ValueDescription("option")
   @Hidden
     signingCliJavaArg: List[String] = Nil,
+  @Group("Signing")
+  @Tag(tags.restricted)
   @HelpMessage("Whether to run the Scala Signing CLI on the JVM or using a native executable")
   @Hidden
     forceJvmSigningCli: Option[Boolean] = None

@@ -692,18 +692,6 @@ CPU architecture to use when looking up in the JVM index
 
 Port for BSP debugging
 
-**--signing-cli-version**
-
-
-
-**--signing-cli-java-arg**
-
-
-
-**--force-jvm-signing-cli**
-
-Whether to run the Scala Signing CLI on the JVM or using a native executable
-
 **--dump**
 
 Dump config DB as JSON

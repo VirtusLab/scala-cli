@@ -1,6 +1,7 @@
 package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
+import caseapp.core.help.HelpFormat
 import coursier.cache.ArchiveCache
 
 import java.nio.charset.StandardCharsets
@@ -18,11 +19,15 @@ import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Constants
+import scala.cli.util.ArgHelpers.*
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
   override def group                   = "Main"
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroups(Publish.primaryHelpGroups)
 
   override def names = List(
     List("publish", "setup")

@@ -63,9 +63,9 @@ import scala.util.control.NonFatal
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Publishing")
-  override def group: String          = "Main"
+  val primaryHelpGroups: Seq[String]   = Seq("Publishing", "Signing", "PGP")
+  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
+  override def group: String           = "Main"
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
