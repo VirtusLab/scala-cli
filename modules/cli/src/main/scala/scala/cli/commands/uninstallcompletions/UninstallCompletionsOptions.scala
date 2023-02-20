@@ -2,6 +2,7 @@ package scala.cli.commands.uninstallcompletions
 
 import caseapp.*
 
+import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
@@ -19,7 +20,7 @@ object UninstallCompletionsOptions {
   implicit lazy val parser: Parser[UninstallCompletionsOptions] = Parser.derive
   implicit lazy val help: Help[UninstallCompletionsOptions]     = Help.derive
 
-  private val helpHeader = "Uninstalls completions from your shell."
+  private val helpHeader = s"Uninstalls $fullRunnerName completions from your shell."
   val helpMessage: String =
     s"""$helpHeader
        |
@@ -28,5 +29,5 @@ object UninstallCompletionsOptions {
   val detailedHelpMessage: String =
     s"""$helpHeader
        |
-       |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
+       |${HelpMessages.commandDocWebsiteReference("completions")}""".stripMargin
 }
