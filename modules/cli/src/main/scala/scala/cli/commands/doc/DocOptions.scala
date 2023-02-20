@@ -8,15 +8,7 @@ import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage(
-  message =
-    s"""Generate Scaladoc documentation.
-       |
-       |${HelpMessages.acceptedInputs}
-       |
-       |${HelpMessages.commandDocWebsiteReference("doc")}""".stripMargin,
-  messageMd = s"By default, $fullRunnerName sets common `scaladoc` options and this mechanism can be disabled by using `--default-scaladoc-opts:false`."
-)
+@HelpMessage(DocOptions.helpMessage, DocOptions.messageMd, DocOptions.detailedHelpMessage)
 final case class DocOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -41,4 +33,15 @@ final case class DocOptions(
 object DocOptions {
   implicit lazy val parser: Parser[DocOptions] = Parser.derive
   implicit lazy val help: Help[DocOptions]     = Help.derive
+  val cmdName                                  = "doc"
+  private val helpHeader                       = "Generate Scaladoc documentation."
+  val helpMessage: String                      = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
+    s"""Generate Scaladoc documentation.
+       |
+       |${HelpMessages.acceptedInputs}
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+  val messageMd =
+    s"By default, $fullRunnerName sets common `scaladoc` options and this mechanism can be disabled by using `--default-scaladoc-opts:false`."
 }

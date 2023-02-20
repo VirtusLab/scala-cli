@@ -1,6 +1,7 @@
 package scala.cli.commands.doc
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import dependency.*
 
 import java.io.File
@@ -18,12 +19,15 @@ import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
+import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 
 object Doc extends ScalaCommand[DocOptions] {
   override def group = "Main"
 
   override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Doc")
 
   override def scalaSpecificationLevel = SpecificationLevel.MUST
 
