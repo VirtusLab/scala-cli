@@ -11,6 +11,7 @@ object ScalaCliHelp {
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
       filterArgs = Some(_.isSupported),
+      filterArgsWhenShowHidden = Some(_.isSupported),
       sortedGroups = Some(
         Seq(
           "Help",
