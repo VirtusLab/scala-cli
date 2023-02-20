@@ -1,6 +1,6 @@
 ---
-title: SBT and Mill
-sidebar_position: 12
+title: SBT and Mill ⚡️
+sidebar_position: 55
 ---
 
 Scala CLI lets you export your current build into sbt or Mill.

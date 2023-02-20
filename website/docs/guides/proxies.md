@@ -1,6 +1,6 @@
 ---
-title: Proxies
-sidebar_position: 8
+title: Proxies ⚡️
+sidebar_position: 50
 ---
 
 ## HTTP proxies

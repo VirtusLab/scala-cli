@@ -1,6 +1,6 @@
 ---
 title: Shebang
-sidebar_position: 30
+sidebar_position: 26
 ---
 
 This command is equivalent to `run`, but it changes the way Scala CLI parses options (used to configure the tool) and

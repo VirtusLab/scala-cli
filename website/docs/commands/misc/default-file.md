@@ -1,7 +1,14 @@
 ---
-title: Default File
+title: Default File ⚡️
 sidebar_position: 2
 ---
+
+:::caution
+The Default File is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
+:::
 
 The `default-file` sub-command provides sensible default content for files
 such as `.gitignore` or for GitHub actions workflows, for Scala CLI projects.

@@ -1,7 +1,14 @@
 ---
-title: Publish Local
+title: Publish Local ⚡️
 sidebar_position: 21
 ---
+
+:::caution
+The Publish Local command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
+:::
 
 import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
