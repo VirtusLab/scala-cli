@@ -1,6 +1,7 @@
 package scala.cli.commands.github
 
 import caseapp.core.RemainingArgs
+import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.ArchiveCache
 import sttp.client3.*
@@ -15,10 +16,12 @@ import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
+import scala.cli.util.ArgHelpers.*
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroup("Secret")
   override def names = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")

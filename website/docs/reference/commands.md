@@ -176,7 +176,6 @@ Aliases: `gh secret create`
 Creates or updates a GitHub repository secret.
   scala-cli --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret
 
-
 Accepts option groups: [coursier](./cli-options.md#coursier-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## github secret list
