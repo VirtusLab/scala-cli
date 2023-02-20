@@ -4864,16 +4864,8 @@ Binary directory
 
 Generates a BSP file that you can import into your IDE.
 
-The `setup-ide` sub-command allows to pre-configure a Scala CLI project to import to an IDE with BSP support.
-It is also ran implicitly when `compile`, `run`, `shebang` or `test` sub-commands are called.
-
-The pre-configuration should be saved in a BSP json connection file under the path:
-    {project-root}/.bsp/scala-cli.json
-
-Specific setup-ide configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
+You are currently viewing the basic help for the setup-ide sub-command. You can view the full help by running: 
+   [1mscala-cli setup-ide --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 ### MUST have options

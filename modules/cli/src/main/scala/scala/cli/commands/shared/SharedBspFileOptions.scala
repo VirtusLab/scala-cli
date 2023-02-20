@@ -6,11 +6,13 @@ import scala.cli.commands.tags
 
 // format: off
 final case class SharedBspFileOptions(
+  @Group("BSP")
   @Name("bspDir")
   @HelpMessage("Custom BSP configuration location")
   @Tag(tags.implementation)
   @Hidden
     bspDirectory: Option[String] = None,
+  @Group("BSP")
   @Name("name")
   @HelpMessage("Name of BSP")
   @Hidden

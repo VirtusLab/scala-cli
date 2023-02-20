@@ -229,16 +229,8 @@ Accepts option groups: [logging](./cli-options.md#logging-options), [secret](./c
 
 Generates a BSP file that you can import into your IDE.
 
-The `setup-ide` sub-command allows to pre-configure a Scala CLI project to import to an IDE with BSP support.
-It is also ran implicitly when `compile`, `run`, `shebang` or `test` sub-commands are called.
-
-The pre-configuration should be saved in a BSP json connection file under the path:
-    {project-root}/.bsp/scala-cli.json
-
-Specific setup-ide configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
+You are currently viewing the basic help for the setup-ide sub-command. You can view the full help by running: 
+   [1mscala-cli setup-ide --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [setup IDE](./cli-options.md#setup-ide-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
