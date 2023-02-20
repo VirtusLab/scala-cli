@@ -12,12 +12,7 @@ import scala.cli.commands.shared.{
 }
 
 // format: off
-@HelpMessage(
-  s"""Clean the workspace.
-    |
-    |Passed inputs will establish the $fullRunnerName project, for which the workspace will be cleaned.
-    |
-    |${HelpMessages.commandDocWebsiteReference("clean")}""".stripMargin)
+@HelpMessage(CleanOptions.helpMessage, "", CleanOptions.detailedHelpMessage)
 final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -31,4 +26,13 @@ final case class CleanOptions(
 object CleanOptions {
   implicit lazy val parser: Parser[CleanOptions] = Parser.derive
   implicit lazy val help: Help[CleanOptions]     = Help.derive
+  val cmdName                                    = "clean"
+  private val helpHeader                         = "Clean the workspace."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |Passed inputs will establish the $fullRunnerName project, for which the workspace will be cleaned.
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }

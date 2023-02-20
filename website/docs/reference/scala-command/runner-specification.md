@@ -4516,8 +4516,8 @@ Command-line options JSON file
 
 Clean the workspace.
 
-Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
-
+You are currently viewing the basic help for the clean sub-command. You can view the full help by running: 
+   [1mscala-cli clean --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
 <details><summary>

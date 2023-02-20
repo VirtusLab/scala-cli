@@ -133,8 +133,8 @@ Accepts option groups: [bsp](./cli-options.md#bsp-options), [compilation server]
 
 Clean the workspace.
 
-Passed inputs will establish the Scala CLI project, for which the workspace will be cleaned.
-
+You are currently viewing the basic help for the clean sub-command. You can view the full help by running: 
+   [1mscala-cli clean --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
 Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
