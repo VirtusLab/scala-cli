@@ -10,27 +10,37 @@ import scala.cli.commands.tags
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
+  @Group("Help")
   @HelpMessage("Show options for ScalaJS")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   helpJs: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for ScalaNative")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   helpNative: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scaladoc")
   @Name("scaladocHelp")
   @Name("docHelp")
   @Name("helpDoc")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   helpScaladoc: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scala REPL")
   @Name("replHelp")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   helpRepl: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scalafmt")
   @Name("scalafmtHelp")
   @Name("fmtHelp")
   @Name("helpFmt")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   helpScalafmt: Boolean = false
 ) {
 

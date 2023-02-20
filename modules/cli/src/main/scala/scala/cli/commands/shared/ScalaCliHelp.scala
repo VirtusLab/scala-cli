@@ -14,7 +14,6 @@ object ScalaCliHelp {
       filterArgsWhenShowHidden = Some(_.isSupported),
       sortedGroups = Some(
         Seq(
-          "Help",
           "Scala",
           "Java",
           "Watch",
@@ -23,7 +22,8 @@ object ScalaCliHelp {
           "Package",
           "Logging",
           "Runner",
-          "Launcher"
+          "Launcher",
+          "Help"
         )
       ),
       sortedCommandGroups = Some(
