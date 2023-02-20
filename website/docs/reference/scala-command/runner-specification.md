@@ -4008,14 +4008,10 @@ Aliases: `--java-prop`
 ## `version` command
 **SHOULD have for Scala Runner specification.**
 
-Prints the version of the Scala CLI and the default version of Scala (which can be overridden in the project).
-If network connection is available, this sub-command also checks if the installed Scala CLI is up-to-date.
+Prints the version of the Scala CLI and the default version of Scala.
 
-The version of the Scala CLI is the version of the command-line tool that runs Scala programs, which
-is distinct from the Scala version of the compiler. We recommend to specify the version of the Scala compiler
-for a project in its sources (via a using directive). Otherwise, Scala CLI falls back to the default
-Scala version defined by the runner.
-
+You are currently viewing the basic help for the version sub-command. You can view the full help by running: 
+   [1mscala-cli version --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
 <details><summary>
@@ -4033,6 +4029,12 @@ Print usage and exit
 Print help message and exit
 
 Aliases: `-h` ,`-help`
+
+**--help-full**
+
+Print help message, including hidden options, and exit
+
+Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 **--verbose**
 

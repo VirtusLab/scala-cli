@@ -6,6 +6,21 @@ object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
   val passwordOption           = "A github token used to access GitHub. Not needed in most cases."
   private val docsWebsiteUrl   = "https://scala-cli.virtuslab.org"
+  def shortHelpMessage(
+    cmdName: String,
+    helpHeader: String,
+    includeFullHelpReference: Boolean = true
+  ): String = {
+    val maybeFullHelpReference =
+      if includeFullHelpReference then
+        s"""
+           |${HelpMessages.commandFullHelpReference(cmdName)}""".stripMargin
+      else ""
+    s"""$helpHeader
+       |$maybeFullHelpReference
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+  }
+
   val docsWebsiteReference =
     s"Detailed documentation can be found on our website: $docsWebsiteUrl"
   def commandFullHelpReference(commandName: String, needsPower: Boolean = false) = {

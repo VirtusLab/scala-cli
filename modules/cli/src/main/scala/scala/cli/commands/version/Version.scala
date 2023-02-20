@@ -14,15 +14,10 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
 
   override def scalaSpecificationLevel = SpecificationLevel.SHOULD
-  override def hasFullHelp: Boolean    = false
   override def helpFormat: HelpFormat = super.helpFormat.copy(
     hiddenGroups = Some(Seq("Logging")),
-    sortedGroups = Some(
-      Seq(
-        "Version",
-        "Help"
-      )
-    )
+    hiddenGroupsWhenShowHidden = Some(Seq("Logging")),
+    sortedGroups = Some(Seq("Version"))
   )
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
