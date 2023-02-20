@@ -12,16 +12,7 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 
-@HelpMessage({
-  val cmdName = "compile"
-  s"""Compile Scala code.
-     |
-     |${HelpMessages.commandConfigurations(cmdName)}
-     |
-     |${HelpMessages.acceptedInputs}
-     |
-     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
-})
+@HelpMessage(CompileOptions.helpMessage, "", CompileOptions.detailedHelpMessage)
 // format: off
 final case class CompileOptions(
   @Recurse
@@ -31,14 +22,18 @@ final case class CompileOptions(
   @Recurse
     cross: CrossOptions = CrossOptions(),
 
+  @Group("Compilation")
   @Name("p")
   @Name("printClasspath")
   @HelpMessage("Print the resulting class path")
   @Tag(tags.should)
+  @Tag(tags.important)
     printClassPath: Boolean = false,
 
+  @Group("Compilation")
   @HelpMessage("Compile test scope")
   @Tag(tags.should)
+  @Tag(tags.important)
     test: Boolean = false
 ) extends HasSharedOptions
   // format: on
@@ -46,4 +41,15 @@ final case class CompileOptions(
 object CompileOptions {
   implicit lazy val parser: Parser[CompileOptions] = Parser.derive
   implicit lazy val help: Help[CompileOptions]     = Help.derive
+  val cmdName                                      = "compile"
+  private val helpHeader                           = "Compile Scala code."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandConfigurations(cmdName)}
+       |
+       |${HelpMessages.acceptedInputs}
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }
