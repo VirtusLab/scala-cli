@@ -37,11 +37,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Configure global settings for Scala CLI.
 
-Syntax:
-  scala-cli config key value
-For example, to globally set the interactive mode:
-  scala-cli config interactive true
-
+You are currently viewing the basic help for the config sub-command. You can view the full help by running: 
+   [1mscala-cli config --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
 Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)

@@ -156,6 +156,28 @@ Print the resulting class path
 
 Compile test scope
 
+## Config options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--dump`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Dump config DB as JSON
+
+### `--unset`
+
+Aliases: `--remove`
+
+`SHOULD have` per Scala Runner specification
+
+Remove an entry from config
+
 ## Debug options
 
 Available in commands:
@@ -1290,34 +1312,6 @@ Aliases: `--name`
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Name of BSP
-
-### Config options
-
-Available in commands:
-
-[`config`](./commands.md#config)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--dump`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Dump config DB as JSON
-
-### `--create-pgp-key`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Create PGP key in config
-
-### `--unset`
-
-Aliases: `--remove`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Remove an entry from config
 
 ### Coursier options
 

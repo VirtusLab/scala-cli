@@ -14,15 +14,7 @@ import scala.cli.commands.shared.{
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage(
-  s"""Configure global settings for $fullRunnerName.
-     |
-     |Syntax:
-     |  $progName config key value
-     |For example, to globally set the interactive mode:
-     |  $progName config interactive true
-     |
-     |${HelpMessages.commandDocWebsiteReference("misc/config")}""".stripMargin)
+@HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
 final case class ConfigOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -37,41 +29,53 @@ final case class ConfigOptions(
   @HelpMessage("Dump config DB as JSON")
   @Hidden
   @Tag(tags.implementation)
+  @Tag(tags.important)
     dump: Boolean = false,
   @Group("Config")
   @HelpMessage("Create PGP key in config")
+  @Tag(tags.important)
+  @Tag(tags.restricted)
     createPgpKey: Boolean = false,
   @Group("Config")
   @HelpMessage("Email to use to create PGP key in config")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     email: Option[String] = None,
   @Group("Config")
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     password: Boolean = false,
   @Group("Config")
   @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     passwordValue: Boolean = false,
   @Group("Config")
   @HelpMessage("Remove an entry from config")
+  @Tag(tags.important)
+  @Tag(tags.should)
   @ExtraName("remove")
     unset: Boolean = false,
   @Group("Config")
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     httpsOnly: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials automatically based on the host")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     matchHost: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials are optional")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     optional: Option[Boolean] = None,
   @Group("Config")
   @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     passOnRedirect: Option[Boolean] = None
 ) extends HasLoggingOptions
 // format: on
@@ -79,4 +83,21 @@ final case class ConfigOptions(
 object ConfigOptions {
   implicit lazy val parser: Parser[ConfigOptions] = Parser.derive
   implicit lazy val help: Help[ConfigOptions]     = Help.derive
+  private val helpHeader: String = s"Configure global settings for $fullRunnerName."
+  private val cmdName            = "config"
+  private val websiteSuffix      = s"misc/$cmdName"
+  val helpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandFullHelpReference(cmdName)}
+       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |Syntax:
+       |  $progName $cmdName key value
+       |For example, to globally set the interactive mode:
+       |  $progName $cmdName interactive true
+       |
+       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
 }

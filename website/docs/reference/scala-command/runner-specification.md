@@ -575,11 +575,8 @@ Aliases: `--toolkit`
 
 Configure global settings for Scala CLI.
 
-Syntax:
-  scala-cli config key value
-For example, to globally set the interactive mode:
-  scala-cli config interactive true
-
+You are currently viewing the basic help for the config sub-command. You can view the full help by running: 
+   [1mscala-cli config --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
 ### SHOULD have options
@@ -615,6 +612,12 @@ Javac plugin dependencies or files
 Javac options
 
 Aliases: `--javac-opt`
+
+**--unset**
+
+Remove an entry from config
+
+Aliases: `--remove`
 
 <details><summary>
 
@@ -695,16 +698,6 @@ Port for BSP debugging
 **--dump**
 
 Dump config DB as JSON
-
-**--create-pgp-key**
-
-Create PGP key in config
-
-**--unset**
-
-Remove an entry from config
-
-Aliases: `--remove`
 
 </details>
 
