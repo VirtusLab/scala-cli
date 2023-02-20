@@ -9,12 +9,13 @@ object HelpMessages {
   def shortHelpMessage(
     cmdName: String,
     helpHeader: String,
-    includeFullHelpReference: Boolean = true
+    includeFullHelpReference: Boolean = true,
+    needsPower: Boolean = false
   ): String = {
     val maybeFullHelpReference =
       if includeFullHelpReference then
         s"""
-           |${HelpMessages.commandFullHelpReference(cmdName)}""".stripMargin
+           |${HelpMessages.commandFullHelpReference(cmdName, needsPower)}""".stripMargin
       else ""
     s"""$helpHeader
        |$maybeFullHelpReference

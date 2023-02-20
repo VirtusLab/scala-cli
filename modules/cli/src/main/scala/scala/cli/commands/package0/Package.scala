@@ -2,6 +2,7 @@ package scala.cli.commands.package0
 
 import ai.kien.python.Python
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import coursier.launcher.*
 import dependency.*
 import packager.config.*
@@ -30,7 +31,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.orPythonDetectionError
 import scala.cli.commands.shared.{MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
@@ -39,11 +40,28 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, Constants, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
+import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
-  override def name                                                          = "package"
-  override def group                                                         = "Main"
+  override def name  = "package"
+  override def group = "Main"
+
+  val primaryHelpGroups: Seq[String] = Seq(
+    "Package",
+    "Scala",
+    "Java",
+    "Debian",
+    "MacOS",
+    "RedHat",
+    "Windows",
+    "Docker",
+    "Native image"
+  )
+  val hiddenHelpGroups: Seq[String] = Seq("Entrypoint", "Watch")
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(hiddenGroups = Some(hiddenHelpGroups))
+    .withPrimaryGroups(primaryHelpGroups)
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def buildOptions(options: PackageOptions): Option[BuildOptions] =
