@@ -4011,12 +4011,8 @@ Don't check for the newest available Scala CLI version upstream
 
 Start BSP server.
 
-BSP stands for Build Server Protocol.
-For more information refer to https://build-server-protocol.github.io/
-
-This sub-command is not designed to be used by a human.
-It is normally supposed to be invoked by your IDE when a Scala CLI project is imported.
-
+You are currently viewing the basic help for the bsp sub-command. You can view the full help by running: 
+   [1mscala-cli bsp --help-full[0m
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
