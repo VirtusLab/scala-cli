@@ -1,6 +1,7 @@
 package scala.cli.commands.uninstallcompletions
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 
 import java.nio.charset.Charset
 
@@ -9,10 +10,13 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.installcompletions.InstallCompletions
 import scala.cli.internal.ProfileFileUpdater
+import scala.cli.util.ArgHelpers.*
 
 object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
 
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Uninstall")
 
   override def names = List(
     List("uninstall", "completions"),

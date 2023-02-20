@@ -1,6 +1,7 @@
 package scala.cli.commands.update
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.core
@@ -12,12 +13,15 @@ import scala.cli.CurrentParams
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
+import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 import scala.util.control.NonFatal
 
 object Update extends ScalaCommand[UpdateOptions] {
 
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Update")
 
   private final case class Release(
     draft: Boolean,

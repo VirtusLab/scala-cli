@@ -6,10 +6,7 @@ import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOption
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
 // format: off
-@HelpMessage(
-  s"""Uninstalls completions from your shell
-     |
-     |${HelpMessages.commandDocWebsiteReference("completions")}""".stripMargin)
+@HelpMessage(UninstallCompletionsOptions.helpMessage, "", UninstallCompletionsOptions.detailedHelpMessage)
 final case class UninstallCompletionsOptions(
   @Recurse
     shared: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),
@@ -21,4 +18,15 @@ final case class UninstallCompletionsOptions(
 object UninstallCompletionsOptions {
   implicit lazy val parser: Parser[UninstallCompletionsOptions] = Parser.derive
   implicit lazy val help: Help[UninstallCompletionsOptions]     = Help.derive
+
+  private val helpHeader = "Uninstalls completions from your shell."
+  val helpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandFullHelpReference("uninstall completions")}
+       |${HelpMessages.commandDocWebsiteReference("completions")}""".stripMargin
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
 }

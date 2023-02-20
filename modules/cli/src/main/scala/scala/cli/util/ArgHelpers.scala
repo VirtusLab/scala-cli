@@ -1,6 +1,7 @@
 package scala.cli.util
 
 import caseapp.core.Arg
+import caseapp.core.help.HelpFormat
 
 import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.{SpecificationLevel, tags}
@@ -19,5 +20,12 @@ object ArgHelpers {
       .flatMap(t => tags.levelFor(t.name))
       .headOption
       .getOrElse(SpecificationLevel.IMPLEMENTATION)
+  }
+
+  extension (helpFormat: HelpFormat) {
+    def withPrimaryGroup(primaryGroup: String): HelpFormat = {
+      val oldSortedGroups = helpFormat.sortedGroups.getOrElse(Seq.empty)
+      helpFormat.copy(sortedGroups = Some(oldSortedGroups.prepended(primaryGroup)))
+    }
   }
 }

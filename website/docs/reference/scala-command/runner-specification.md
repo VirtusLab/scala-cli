@@ -5582,8 +5582,10 @@ Binary directory
 
 Aliases: `uninstall-completions`
 
-Uninstalls completions from your shell
+Uninstalls completions from your shell.
 
+You are currently viewing the basic help for the uninstall completions sub-command. You can view the full help by running: 
+   [1mscala-cli uninstall completions --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 <details><summary>

@@ -9,16 +9,18 @@ import scala.cli.CurrentParams
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.config.PasswordOption
+import scala.cli.util.ArgHelpers.*
 
 object Version extends ScalaCommand[VersionOptions] {
   override def group = "Miscellaneous"
 
   override def scalaSpecificationLevel = SpecificationLevel.SHOULD
-  override def helpFormat: HelpFormat = super.helpFormat.copy(
-    hiddenGroups = Some(Seq("Logging")),
-    hiddenGroupsWhenShowHidden = Some(Seq("Logging")),
-    sortedGroups = Some(Seq("Version"))
-  )
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(
+      hiddenGroups = Some(Seq("Logging")),
+      hiddenGroupsWhenShowHidden = Some(Seq("Logging"))
+    )
+    .withPrimaryGroup("Version")
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     lazy val maybeNewerScalaCliVersion: Option[String] =

@@ -53,5 +53,6 @@ object UpdateOptions {
        |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
   val detailedHelpMessage: String =
     s"""$helpHeader
+       |
        |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
 }
