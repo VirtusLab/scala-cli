@@ -1,6 +1,7 @@
 package scala.cli.commands.publish
 
 import caseapp.core.RemainingArgs
+import caseapp.core.help.HelpFormat
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Authentication, Configuration}
 import coursier.maven.MavenRepository
@@ -39,7 +40,7 @@ import scala.build.options.{
   Scope
 }
 import scala.cli.CurrentParams
-import scala.cli.commands.package0.{Package => PackageCmd}
+import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
@@ -55,13 +56,16 @@ import scala.cli.errors.{
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
+import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-  override def group: String           = "Main"
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Publishing")
+  override def group: String          = "Main"
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 

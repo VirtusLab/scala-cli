@@ -24,7 +24,7 @@ object HelpMessages {
   val docsWebsiteReference =
     s"Detailed documentation can be found on our website: $docsWebsiteUrl"
   def commandFullHelpReference(commandName: String, needsPower: Boolean = false) = {
-    val maybePowerString = if needsPower then PowerString else ""
+    val maybePowerString = if needsPower then "--power " else ""
     s"""You are currently viewing the basic help for the $commandName sub-command. You can view the full help by running: 
        |   ${Console.BOLD}${ScalaCli.progName} $maybePowerString$commandName --help-full${Console.RESET}""".stripMargin
   }
