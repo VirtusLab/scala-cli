@@ -5656,6 +5656,9 @@ Use progress bars
 Updates Scala CLI.
 Works only when installed with the installation script.
 If Scala CLI was installed with an external tool, refer to its update methods.
+
+You are currently viewing the basic help for the update sub-command. You can view the full help by running: 
+   [1mscala-cli update --help-full[0m
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
 <details><summary>

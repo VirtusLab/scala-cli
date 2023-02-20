@@ -9,10 +9,7 @@ import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
 
 // format: off
-@HelpMessage(s"""Updates $fullRunnerName.
-                |Works only when installed with the installation script.
-                |If $fullRunnerName was installed with an external tool, refer to its update methods.
-                |${HelpMessages.installationDocsWebsiteReference}""".stripMargin)
+@HelpMessage(UpdateOptions.helpMessage, "", UpdateOptions.detailedHelpMessage)
 final case class UpdateOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -29,6 +26,7 @@ final case class UpdateOptions(
   @Name("f")
   @HelpMessage(s"Force update $fullRunnerName if it is outdated")
   @Tag(tags.implementation)
+  @Tag(tags.important)
     force: Boolean = false,
   @Hidden
   @Tag(tags.implementation)
@@ -43,4 +41,17 @@ final case class UpdateOptions(
 object UpdateOptions {
   implicit lazy val parser: Parser[UpdateOptions] = Parser.derive
   implicit lazy val help: Help[UpdateOptions]     = Help.derive
+
+  private val helpHeader =
+    s"""Updates $fullRunnerName.
+       |Works only when installed with the installation script.
+       |If $fullRunnerName was installed with an external tool, refer to its update methods.""".stripMargin
+  val helpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandFullHelpReference("update")}
+       |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |${HelpMessages.installationDocsWebsiteReference}""".stripMargin
 }
