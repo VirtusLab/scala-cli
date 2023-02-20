@@ -2855,13 +2855,8 @@ Aliases: `format`, `scalafmt`
 
 Formats Scala code.
 
-`scalafmt` is used to perform the formatting under the hood.
-
-The `.scalafmt.conf` configuration file is optional.
-Default configuration values will be assumed by Scala CLI.
-
-All standard Scala CLI inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
-
+You are currently viewing the basic help for the fmt sub-command. You can view the full help by running: 
+   [1mscala-cli fmt --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 ### MUST have options
@@ -3382,7 +3377,7 @@ Saves .scalafmt.conf file if it was created or overwritten
 
 **--scalafmt-arg**
 
-Pass argument to scalafmt.
+Pass an argument to scalafmt.
 
 Aliases: `-F`
 

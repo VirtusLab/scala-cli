@@ -13,23 +13,14 @@ import scala.cli.commands.{Constants, tags}
 import scala.util.Properties
 
 // format: off
-@HelpMessage(
-  s"""Formats Scala code.
-     |
-     |`scalafmt` is used to perform the formatting under the hood.
-     |
-     |The `.scalafmt.conf` configuration file is optional.
-     |Default configuration values will be assumed by $fullRunnerName.
-     |
-     |All standard $fullRunnerName inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
-     |
-     |${HelpMessages.commandDocWebsiteReference("fmt")}""".stripMargin)
+@HelpMessage(FmtOptions.helpMessage, "", FmtOptions.detailedHelpMessage)
 final case class FmtOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
 
   @Group("Format")
   @Tag(tags.should)
+  @Tag(tags.important)
   @HelpMessage("Check if sources are well formatted")
     check: Boolean = false,
 
@@ -40,6 +31,7 @@ final case class FmtOptions(
 
   @Group("Format")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   @HelpMessage("Saves .scalafmt.conf file if it was created or overwritten")
     saveScalafmtConf: Boolean = false,
 
@@ -67,12 +59,14 @@ final case class FmtOptions(
   @Group("Format")
   @Name("F")
   @Tag(tags.implementation)
-  @HelpMessage("Pass argument to scalafmt.")
+  @HelpMessage("Pass an argument to scalafmt.")
+  @Tag(tags.important)
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")
   @HelpMessage("Custom path to the scalafmt configuration file.")
   @Tag(tags.implementation)
+  @Tag(tags.important)
   @Name("scalafmtConfig")
     scalafmtConf: Option[String] = None,
   @Group("Format")
@@ -86,11 +80,13 @@ final case class FmtOptions(
   @HelpMessage("Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file or inferred based on Scala version used.")
   @Tag(tags.implementation)
   @Name("dialect")
+  @Tag(tags.important)
     scalafmtDialect: Option[String] = None,
   @Tag(tags.implementation)
   @Group("Format")
   @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
+  @Tag(tags.important)
     scalafmtVersion: Option[String] = None
 ) extends HasSharedOptions {
   // format: on
@@ -124,4 +120,19 @@ final case class FmtOptions(
 object FmtOptions {
   implicit lazy val parser: Parser[FmtOptions] = Parser.derive
   implicit lazy val help: Help[FmtOptions]     = Help.derive
+
+  val cmdName             = "fmt"
+  private val helpHeader  = "Formats Scala code."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |`scalafmt` is used to perform the formatting under the hood.
+       |
+       |The `.scalafmt.conf` configuration file is optional.
+       |Default configuration values will be assumed by $fullRunnerName.
+       |
+       |All standard $fullRunnerName inputs are accepted, but only Scala sources will be formatted (.scala and .sc files).
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }

@@ -325,7 +325,7 @@ Saves .scalafmt.conf file if it was created or overwritten
 
 Aliases: `-F`
 
-Pass argument to scalafmt.
+Pass an argument to scalafmt.
 
 ### `--scalafmt-conf`
 

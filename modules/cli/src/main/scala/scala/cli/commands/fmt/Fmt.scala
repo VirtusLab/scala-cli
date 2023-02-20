@@ -1,6 +1,7 @@
 package scala.cli.commands.fmt
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import dependency.*
 
 import scala.build.input.{Inputs, Script, SourceScalaFile}
@@ -11,11 +12,21 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.SharedOptions
+import scala.cli.util.ArgHelpers.*
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String                                             = "Main"
   override def sharedOptions(options: FmtOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel                                   = SpecificationLevel.SHOULD
+
+  val hiddenHelpGroups: Seq[String] =
+    Seq("Scala", "Java", "Dependency", "Scala.js", "Scala Native", "Compilation server", "Debug")
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(
+      hiddenGroups = Some(hiddenHelpGroups),
+      hiddenGroupsWhenShowHidden = Some(hiddenHelpGroups)
+    )
+    .withPrimaryGroup("Format")
   override def names: List[List[String]] = List(
     List("fmt"),
     List("format"),

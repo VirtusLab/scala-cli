@@ -298,7 +298,7 @@ Aliases: `-F`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass argument to scalafmt.
+Pass an argument to scalafmt.
 
 ### `--scalafmt-conf`
 
