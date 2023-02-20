@@ -64,8 +64,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   val primaryHelpGroups: Seq[String]   = Seq("Publishing", "Signing", "PGP")
-  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
-  override def group: String           = "Main"
+  val hiddenHelpGroups: Seq[String]    = Seq("Scala", "Java", "Entrypoint", "Dependency", "Watch")
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(hiddenGroups = Some(hiddenHelpGroups))
+    .withPrimaryGroups(primaryHelpGroups)
+  override def group: String = "Main"
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 

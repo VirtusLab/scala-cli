@@ -27,7 +27,9 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
 
   override def helpFormat: HelpFormat =
-    super.helpFormat.withPrimaryGroups(Publish.primaryHelpGroups)
+    super.helpFormat
+      .copy(hiddenGroups = Some(Publish.hiddenHelpGroups))
+      .withPrimaryGroups(Publish.primaryHelpGroups)
 
   override def names = List(
     List("publish", "setup")
