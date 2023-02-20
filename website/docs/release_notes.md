@@ -7,6 +7,195 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v0.2.0](https://github.com/VirtusLab/scala-cli/releases/tag/v0.2.0)
+
+### Require the `--power` option for restricted features by default
+
+Until now, Scala CLI has been limiting some of its functionalities in its `scala` distribution.
+Starting with `v0.2.0`, those limitation will be applied to all distributions, including `scala-cli`.
+
+This was done in order to make the behaviour consistent with Scala CLI acting as the Scala runner.
+
+Restricted features can be accessed by using the `--power` launcher flag. Do note that launcher flags have to be passed **before** the sub-command.
+```bash ignore
+scala-cli --power package .
+```
+Alternatively, the `power` mode can be turned on globally by running:
+
+```bash ignore
+scala-cli config power true 
+```
+
+Please note that this change may affect your existing scripts or workflows that rely on the limited commands from ScalaCLI (such as `package`, `publish`). You can still use those commands with `power` mode enabled.
+
+When you try to use a limited command in restricted mode, you will now see a warning message with suggestions on how to enable this command:
+
+
+```bash ignore
+$ scala-cli package Hello.scala
+# This command is restricted and requires setting the `--power` option to be used.
+# You can pass it explicitly or set it globally by running:
+#    scala-cli config power true
+$ scala-cli config power true
+$ scala-cli package Hello.scala
+# Wrote Hello, run it with
+#   ./Hello
+```
+
+Added by [@lwronski](https://github.com/lwronski) in [#1835](https://github.com/VirtusLab/scala-cli/pull/1835) and [#1849](https://github.com/VirtusLab/scala-cli/pull/1849)
+
+### Allow executable Scala scripts without a file extension
+
+As of this release Scala scripts without the `*.sc` file extension will be supported for execution when using the `shebang` command.
+
+```scala title=hello
+#!/usr/bin/env -S scala-cli shebang -S 3
+
+println(args.size)
+println(args.headOption)
+```
+```bash
+chmod +x hello
+./hello Hello World
+#2
+#Some(Hello)
+ ```
+Note that files with no extension are always run as scripts even though they may contain e.g. a valid `.scala` program.
+
+Also, do note that this feature has only been added for `shebang` - the `run` sub-command (which is the default way of running inputs when a sub-command is not specified explicitly) will not support this.
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#1802](https://github.com/VirtusLab/scala-cli/pull/1802)
+
+### Export Project configuration to Json
+
+It is now possible to export configuration from Scala CLI project to Json format with the `export` sub-command.
+
+```bash ignore
+scala-cli --power export --json .
+```
+
+It is currently exporting basic information about the project and includes, for example, the following fields:
+ 
+- ScalaVersion 
+- Platform
+- Sources
+- Dependencies
+- Resolvers
+
+
+Example of generated Json output:
+```json
+{
+  "scalaVersion": "3.2.2",
+  "platform": "JVM",
+  "scopes": {
+    "main": {
+      "sources": [
+        "Hello.scala"
+      ],
+      "dependencies": [
+        {
+          "groupId": "com.lihaoyi",
+          "artifactId": {
+            "name": "pprint",
+            "fullName": "pprint_3"
+          },
+          "version": "0.6.6"
+        }
+      ],
+      ...
+    }
+  }
+}
+```
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#1840](https://github.com/VirtusLab/scala-cli/pull/1840)
+
+### Rename `using lib` to `using dep`
+
+To be more consistent with dependency command line options `--dep`, the dependency using directive is now passed by `using dep`.
+Please note that we have kept the alias of the old directive (`lib`, `libs`) for backwards compatibility.
+
+```scala compile
+ //> using dep "org.scalameta::munit:0.7.29"
+```
+Renamed by [@lwronski](https://github.com/lwronski) in [#1827](https://github.com/VirtusLab/scala-cli/pull/1827)
+
+### Other breaking changes
+
+#### Remove ammonite imports support
+The support for `$ivy` and `$dep` ammonite imports has been removed. 
+To easily convert existing `$ivy` and `$dep` imports into the `using dep` directive in your sources, you can use the provided actionable diagnostic.
+
+![convert_ivy_to_using_dep](/img/gifs/convert_ivy_to_using.gif)
+
+Removed by [@MaciejG604](https://github.com/MaciejG604) in [#1787](https://github.com/VirtusLab/scala-cli/pull/1787)
+
+#### Drop the `metabrowse` sub-command
+
+With this release, support for Metabrowse has been removed from Scala CLI. This change was made in order to limit the number of features that we need to support, especially since the `Metabrowse` project is no longer being actively worked on.
+
+Remove by [@lwronski](https://github.com/lwronski) in [#1867](https://github.com/VirtusLab/scala-cli/pull/1867)
+
+### Other changes
+
+* Add cross-platform toolkit dependency by [@bishabosha](https://github.com/bishabosha) in [#1810](https://github.com/VirtusLab/scala-cli/pull/1810)
+* Show explain message when is enabled by [@lwronski](https://github.com/lwronski) in [#1830](https://github.com/VirtusLab/scala-cli/pull/1830)
+* Read home directory from env variable instead of option from command line by [@lwronski](https://github.com/lwronski) in [#1842](https://github.com/VirtusLab/scala-cli/pull/1842)
+* Add build/taskStart and taskFinish to the exception reporting BSP mechanism by [@MaciejG604](https://github.com/MaciejG604) in [#1821](https://github.com/VirtusLab/scala-cli/pull/1821)
+* blooprifle: report exit code in exception by [@Flowdalic](https://github.com/flowdalic) in [#1844](https://github.com/VirtusLab/scala-cli/pull/1844)
+* Suppress lib update warning by [@MaciejG604](https://github.com/MaciejG604) in [#1848](https://github.com/VirtusLab/scala-cli/pull/1848)
+* Invalid subcommand arg by [@MaciejG604](https://github.com/MaciejG604) in [#1811](https://github.com/VirtusLab/scala-cli/pull/1811)
+
+
+#### SIP-related changes
+* Add a warning for the `-run` option of the legacy `scala` runner, instead of failing by [@Gedochao](https://github.com/Gedochao) in [#1801](https://github.com/VirtusLab/scala-cli/pull/1801)
+* Add warnings for the deprecated `-Yscriptrunner` legacy `scala` runner option instead of passing it to `scalac` by [@Gedochao](https://github.com/Gedochao) in [#1804](https://github.com/VirtusLab/scala-cli/pull/1804)
+* Filter out `restricted` & `experimental` options from `SIP` mode help by [@Gedochao](https://github.com/Gedochao) in [#1812](https://github.com/VirtusLab/scala-cli/pull/1812)
+* Warn in sip mode when using restricted command by [@lwronski](https://github.com/lwronski) in [#1862](https://github.com/VirtusLab/scala-cli/pull/1862)
+* Add more detail for sub-commands' help messages by [@Gedochao](https://github.com/Gedochao) in [#1852](https://github.com/VirtusLab/scala-cli/pull/1852)
+* Fix printing not supported option in restricted mode by [@lwronski](https://github.com/lwronski) in [#1861](https://github.com/VirtusLab/scala-cli/pull/1861)
+* Shorter options help by [@Gedochao](https://github.com/Gedochao) in [#1872](https://github.com/VirtusLab/scala-cli/pull/1872)
+
+#### Fixes
+
+* Fix warning about using directives in multiple files when two java files are present by [@MaciejG604](https://github.com/MaciejG604) in [#1796](https://github.com/VirtusLab/scala-cli/pull/1796)
+* Quit flag not suppresses compilation errors by [@lwronski](https://github.com/lwronski) in [#1792](https://github.com/VirtusLab/scala-cli/pull/1792)
+* Dont warn about target directives by [@MaciejG604](https://github.com/MaciejG604) in [#1803](https://github.com/VirtusLab/scala-cli/pull/1803)
+* Fix - actionable actions not suggest update to previous version by [@lwronski](https://github.com/lwronski) in [#1813](https://github.com/VirtusLab/scala-cli/pull/1813)
+* Fix actionable action when uses latest sytanx version in lib by [@lwronski](https://github.com/lwronski) in [#1817](https://github.com/VirtusLab/scala-cli/pull/1817)
+* Prevent NPE from being thrown by the `export` sub-command if `testFramework` isn't defined by [@Gedochao](https://github.com/Gedochao) in [#1814](https://github.com/VirtusLab/scala-cli/pull/1814)
+* Fix message checking in test by [@MaciejG604](https://github.com/MaciejG604) in [#1847](https://github.com/VirtusLab/scala-cli/pull/1847)
+* blooprifle: add -XX:+IgnoreUnrecognizedVMOptions to hardCodedDefaultJavaOpts by [@Flowdalic](https://github.com/flowdalic) in [#1845](https://github.com/VirtusLab/scala-cli/pull/1845)
+* Trim passwords obtained as command result by [@MaciejG604](https://github.com/MaciejG604) in [#1871](https://github.com/VirtusLab/scala-cli/pull/1871)
+
+#### Build and internal changes
+* Ignore Bloop server early exit if it signals an already running server by [@alexarchambault](https://github.com/alexarchambault) in [#1799](https://github.com/VirtusLab/scala-cli/pull/1799)
+* Build aarch64 linux launcher using m1 by [@lwronski](https://github.com/lwronski) in [#1805](https://github.com/VirtusLab/scala-cli/pull/1805)
+* Remove latest supported scala version mechanism by [@lwronski](https://github.com/lwronski) in [#1816](https://github.com/VirtusLab/scala-cli/pull/1816)
+* Switch `scala-cli-signing` to `org.virtuslab` and bump to `0.1.15` by [@Gedochao](https://github.com/Gedochao) in [#1853](https://github.com/VirtusLab/scala-cli/pull/1853)
+* Add clang to scala-cli docker image by [@lwronski](https://github.com/lwronski) in [#1846](https://github.com/VirtusLab/scala-cli/pull/1846)
+* bloop-file: show timeout value in error message by [@Flowdalic](https://github.com/flowdalic) in [#1855](https://github.com/VirtusLab/scala-cli/pull/1855)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#1860](https://github.com/VirtusLab/scala-cli/pull/1860)
+* Run generate reference doc as non sip by [@lwronski](https://github.com/lwronski) in [#1866](https://github.com/VirtusLab/scala-cli/pull/1866)
+* Bump `case-app` to `2.1.0-M23` by [@lwronski](https://github.com/lwronski) in [#1868](https://github.com/VirtusLab/scala-cli/pull/1868)
+
+#### Documentation updates
+* Update docker example command by [@MaciejG604](https://github.com/MaciejG604) in [#1798](https://github.com/VirtusLab/scala-cli/pull/1798)
+* Tweak `--watch`/`--restart` disambiguation in the help messages & docs by [@Gedochao](https://github.com/Gedochao) in [#1819](https://github.com/VirtusLab/scala-cli/pull/1819)
+* Release notes - msi malware analysis by [@lwronski](https://github.com/lwronski) in [#1832](https://github.com/VirtusLab/scala-cli/pull/1832)
+* Improve 'shebang' help message wrt program *arguments* by [@Flowdalic](https://github.com/flowdalic) in [#1829](https://github.com/VirtusLab/scala-cli/pull/1829)
+* docs: Fix Yum manual installation step by [@tgodzik](https://github.com/tgodzik) in [#1850](https://github.com/VirtusLab/scala-cli/pull/1850)
+
+#### Updates & maintenance
+* Update scala-cli.sh launcher for 0.1.20 by [@github-actions](https://github.com/github-actions) in [#1790](https://github.com/VirtusLab/scala-cli/pull/1790)
+* Bump VirtusLab/scala-cli-setup from 0.1.19 to 0.1.20 by [@dependabot](https://github.com/dependabot) in [#1806](https://github.com/VirtusLab/scala-cli/pull/1806)
+
+## New Contributors
+* [@Flowdalic](https://github.com/flowdalic) made their first contribution in [#1829](https://github.com/VirtusLab/scala-cli/pull/1829)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.1.20...v0.2.0
+
 ## [v0.1.20](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.20)
 
 ### Add support for Scala Toolkit
