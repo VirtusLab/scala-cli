@@ -11,21 +11,24 @@ import scala.cli.commands.tags
 final case class InstallHomeOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Group("InstallHome")
+  @Group("Install")
   @Tag(tags.implementation)
     scalaCliBinaryPath: String,
-  @Group("InstallHome")
+  @Group("Install")
   @Name("f")
   @Tag(tags.implementation)
   @HelpMessage("Overwrite if it exists")
     force: Boolean = false,
+  @Group("Install")
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Binary name")
     binaryName: String = baseRunnerName,
+  @Group("Install")
   @Tag(tags.implementation)
   @HelpMessage("Print the update to `env` variable")
     env: Boolean = false,
+  @Group("Install")
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Binary directory")
