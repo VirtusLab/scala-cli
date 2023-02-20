@@ -18,7 +18,6 @@ object ScalaCliHelp {
           "Java",
           "Repl",
           "Package",
-          "Metabrowse server",
           "Logging",
           "Runner",
           "Launcher"
