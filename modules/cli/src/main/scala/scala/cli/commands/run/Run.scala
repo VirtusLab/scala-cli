@@ -2,6 +2,7 @@ package scala.cli.commands.run
 
 import ai.kien.python.Python
 import caseapp.*
+import caseapp.core.help.HelpFormat
 
 import java.io.File
 import java.util.Locale
@@ -24,11 +25,14 @@ import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
+import scala.cli.util.ArgHelpers.*
 import scala.util.{Properties, Try}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
-  override def group                                                     = "Main"
-  override def scalaSpecificationLevel                                   = SpecificationLevel.MUST
+  override def group                   = "Main"
+  override def scalaSpecificationLevel = SpecificationLevel.MUST
+  val primaryHelpGroups: Seq[String]   = Seq("Run", "Entrypoint", "Watch")
+  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   private def runMode(options: RunOptions): RunMode =

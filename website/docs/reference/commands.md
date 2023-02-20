@@ -247,30 +247,8 @@ Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [compilati
 
 Like `run`, but handier for shebang scripts.
 
-This command is equivalent to the `run` sub-command, but it changes the way
-Scala CLI parses its command-line arguments in order to be compatible
-with shebang scripts.
-
-When relying on the `run` sub-command, inputs and scala-cli options can be mixed,
-while program args have to be specified after `--`
-
-```sh
-scala-cli [command] [scala-cli_options | input]... -- [program_arguments]...
-```
-
-However, for the `shebang` sub-command, only a single input file can be set, while all scala-cli options
-have to be set before the input file.
-All inputs after the first are treated as program arguments, without the need for `--`
-```sh
-scala-cli shebang [scala-cli_options]... input [program_arguments]...
-```
-
-Using this, it is possible to conveniently set up Unix shebang scripts. For example:
-```sh
-#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
-println("Hello, world")
-```
-
+You are currently viewing the basic help for the shebang sub-command. You can view the full help by running: 
+   [1mscala-cli shebang --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/shebang
 
 Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [java](./cli-options.md#java-options), [java prop](./cli-options.md#java-prop-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [run](./cli-options.md#run-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)

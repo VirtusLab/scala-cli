@@ -2328,30 +2328,8 @@ Run Java commands using a manifest-based class path (shortens command length)
 
 Like `run`, but handier for shebang scripts.
 
-This command is equivalent to the `run` sub-command, but it changes the way
-Scala CLI parses its command-line arguments in order to be compatible
-with shebang scripts.
-
-When relying on the `run` sub-command, inputs and scala-cli options can be mixed,
-while program args have to be specified after `--`
-
-```sh
-scala-cli [command] [scala-cli_options | input]... -- [program_arguments]...
-```
-
-However, for the `shebang` sub-command, only a single input file can be set, while all scala-cli options
-have to be set before the input file.
-All inputs after the first are treated as program arguments, without the need for `--`
-```sh
-scala-cli shebang [scala-cli_options]... input [program_arguments]...
-```
-
-Using this, it is possible to conveniently set up Unix shebang scripts. For example:
-```sh
-#!/usr/bin/env -S scala-cli shebang --scala-version 2.13
-println("Hello, world")
-```
-
+You are currently viewing the basic help for the shebang sub-command. You can view the full help by running: 
+   [1mscala-cli shebang --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/shebang
 
 ### MUST have options

@@ -6,35 +6,7 @@ import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}
 import scala.cli.commands.run.RunOptions
 import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
 
-@HelpMessage(
-  s"""|Like `run`, but handier for shebang scripts.
-      |
-      |This command is equivalent to the `run` sub-command, but it changes the way
-      |$fullRunnerName parses its command-line arguments in order to be compatible
-      |with shebang scripts.
-      |
-      |When relying on the `run` sub-command, inputs and $baseRunnerName options can be mixed,
-      |while program args have to be specified after `--`
-      |
-      |```sh
-      |$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...
-      |```
-      |
-      |However, for the `shebang` sub-command, only a single input file can be set, while all $baseRunnerName options
-      |have to be set before the input file.
-      |All inputs after the first are treated as program arguments, without the need for `--`
-      |```sh
-      |$progName shebang [${baseRunnerName}_options]... input [program_arguments]...
-      |```
-      |
-      |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
-      |```sh
-      |#!/usr/bin/env -S $progName shebang --scala-version 2.13
-      |println("Hello, world")
-      |```
-      |
-      |${HelpMessages.commandDocWebsiteReference("shebang")}""".stripMargin
-)
+@HelpMessage(ShebangOptions.helpMessage, "", ShebangOptions.detailedHelpMessage)
 final case class ShebangOptions(
   @Recurse
   runOptions: RunOptions = RunOptions()
@@ -45,4 +17,36 @@ final case class ShebangOptions(
 object ShebangOptions {
   implicit lazy val parser: Parser[ShebangOptions] = Parser.derive
   implicit lazy val help: Help[ShebangOptions]     = Help.derive
+
+  val cmdName             = "shebang"
+  private val helpHeader  = "Like `run`, but handier for shebang scripts."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |This command is equivalent to the `run` sub-command, but it changes the way
+       |$fullRunnerName parses its command-line arguments in order to be compatible
+       |with shebang scripts.
+       |
+       |When relying on the `run` sub-command, inputs and $baseRunnerName options can be mixed,
+       |while program args have to be specified after `--`
+       |
+       |```sh
+       |$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...
+       |```
+       |
+       |However, for the `shebang` sub-command, only a single input file can be set, while all $baseRunnerName options
+       |have to be set before the input file.
+       |All inputs after the first are treated as program arguments, without the need for `--`
+       |```sh
+       |$progName shebang [${baseRunnerName}_options]... input [program_arguments]...
+       |```
+       |
+       |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
+       |```sh
+       |#!/usr/bin/env -S $progName shebang --scala-version 2.13
+       |println("Hello, world")
+       |```
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }
