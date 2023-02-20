@@ -17,6 +17,8 @@ object ScalaCliHelp {
           "Help",
           "Scala",
           "Java",
+          "Watch",
+          "Dependency",
           "Repl",
           "Package",
           "Logging",

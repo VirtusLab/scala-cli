@@ -1,6 +1,7 @@
 package scala.cli.commands.test
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 
 import java.nio.file.Path
 
@@ -19,11 +20,14 @@ import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.util.ArgHelpers.*
 
 object Test extends ScalaCommand[TestOptions] {
   override def group                                                      = "Main"
   override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel = SpecificationLevel.SHOULD
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroups(Seq("Test", "Watch"))
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET

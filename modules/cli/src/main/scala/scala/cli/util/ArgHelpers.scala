@@ -23,9 +23,12 @@ object ArgHelpers {
   }
 
   extension (helpFormat: HelpFormat) {
-    def withPrimaryGroup(primaryGroup: String): HelpFormat = {
-      val oldSortedGroups = helpFormat.sortedGroups.getOrElse(Seq.empty)
-      helpFormat.copy(sortedGroups = Some(oldSortedGroups.prepended(primaryGroup)))
+    def withPrimaryGroup(primaryGroup: String): HelpFormat =
+      helpFormat.withPrimaryGroups(Seq(primaryGroup))
+    def withPrimaryGroups(primaryGroups: Seq[String]): HelpFormat = {
+      val oldSortedGroups         = helpFormat.sortedGroups.getOrElse(Seq.empty)
+      val filteredOldSortedGroups = oldSortedGroups.filterNot(primaryGroups.contains)
+      helpFormat.copy(sortedGroups = Some(primaryGroups ++ filteredOldSortedGroups))
     }
   }
 }
