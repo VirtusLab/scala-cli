@@ -22,6 +22,7 @@ final case class SharedReplOptions(
 
   @Group("Repl")
   @Tag(tags.restricted)
+  @Tag(tags.important)
   @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
   @Name("A")
   @Name("amm")
@@ -36,6 +37,7 @@ final case class SharedReplOptions(
   @Group("Repl")
   @Name("a")
   @Tag(tags.restricted)
+  @Tag(tags.important)
   @HelpMessage("Provide arguments for ammonite repl")
   @Hidden
     ammoniteArg: List[String] = Nil,
