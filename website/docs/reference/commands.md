@@ -149,19 +149,8 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Publishes build artifacts to the local Ivy2 repository.
 
-The local Ivy2 repository usually lives under `~/.ivy2/local`.
-It is taken into account most of the time by most Scala tools when fetching artifacts.
-
-Specific publish local configurations can be specified with both command line options and using directives defined in sources.
-Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
-Using directives can be defined in all supported input source file types.
-
-Multiple inputs can be passed at once.
-Paths to directories, URLs and supported file types are accepted as inputs.
-Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
-For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
-All supported types of inputs can be mixed with each other.
-
+You are currently viewing the basic help for the publish local sub-command. You can view the full help by running: 
+   [1mscala-cli publish local --help-full[0m
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish-local
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [cross](./cli-options.md#cross-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish](./cli-options.md#publish-options), [publish params](./cli-options.md#publish-params-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [watch](./cli-options.md#watch-options), [workspace](./cli-options.md#workspace-options)
