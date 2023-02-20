@@ -11,9 +11,10 @@ import scala.cli.commands.tags
 final case class DependencyUpdateOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
-  @Group("DependencyUpdate")
+  @Group("Dependency")
   @HelpMessage("Update all dependencies if a newer version was released")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     all: Boolean = false,
 ) extends HasSharedOptions
   // format: on
