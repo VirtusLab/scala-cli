@@ -76,7 +76,7 @@ object PasswordOption extends LowPriorityPasswordOption {
 
       import sys.process._
       val res = command.!!<
-      Secret(res) // should we trim that?
+      Secret(res.trim)
     }
     def asString: Secret[String] = {
       val json = writeToString(command.toList)(commandCodec)
