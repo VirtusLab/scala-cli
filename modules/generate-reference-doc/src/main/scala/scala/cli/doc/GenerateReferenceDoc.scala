@@ -10,10 +10,12 @@ import shapeless.tag
 
 import java.nio.charset.StandardCharsets
 import java.util
+
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
+import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}
 
@@ -204,7 +206,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
             b.section(s"`${arg.level.md}` per Scala Runner specification")
           else if (isInternal || arg.noHelp) b.append("[Internal]\n")
 
-          for (desc <- arg.helpMessage.map(_.message))
+          for (desc <- arg.helpMessage.map(_.referenceDocMessage))
             b.append(
               s"""$desc
                  |
@@ -268,7 +270,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           args.foreach { arg =>
             val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
             b.section(s"**${names.head}**")
-            b.section(arg.helpMessage.fold("")(_.message))
+            b.section(arg.helpMessage.fold("")(_.referenceDocMessage))
             if (names.tail.nonEmpty) b.section(names.tail.mkString("Aliases: `", "` ,`", "`"))
 
           }
@@ -291,7 +293,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
         if (command.names.tail.nonEmpty)
           b.section(command.names.map(_.mkString(" ")).tail.mkString("Aliases: `", "`, `", "`"))
-        for (desc <- command.messages.helpMessage.map(_.message)) b.section(desc)
+        for (desc <- command.messages.helpMessage.map(_.referenceDocMessage)) b.section(desc)
         optionsForCommand(command)
         b.section("---")
       }
@@ -331,7 +333,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       b.append(s"$headerPrefix## ${names.head}\n\n")
       if (names.tail.nonEmpty) b.append(names.tail.sorted.mkString("Aliases: `", "`, `", "`\n\n"))
 
-      for (desc <- c.messages.helpMessage.map(_.message)) b.section(desc)
+      for (desc <- c.messages.helpMessage.map(_.referenceDocMessage)) b.section(desc)
 
       if (origins.nonEmpty) {
         val links = origins.map { origin =>
