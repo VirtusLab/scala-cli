@@ -6,13 +6,7 @@ import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, HelpMessag
 import scala.cli.commands.tags
 
 // format: off
-@HelpMessage(
-  s"""Interact with Bloop (the build server) or check its status.
-     |
-     |This sub-command allows to check the current status of Bloop.
-     |If Bloop isn't currently running, it will be started.
-     |
-     |${HelpMessages.bloopInfo}""".stripMargin)
+@HelpMessage(BloopOptions.helpMessage, "", BloopOptions.detailedHelpMessage)
 final case class BloopOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
@@ -39,4 +33,12 @@ final case class BloopOptions(
 object BloopOptions {
   implicit lazy val parser: Parser[BloopOptions] = Parser.derive
   implicit lazy val help: Help[BloopOptions]   = Help.derive
+  val helpMessage: String = "Interact with Bloop (the build server) or check its status."
+  val detailedHelpMessage: String =
+    s"""$helpMessage
+       |
+       |This sub-command allows to check the current status of Bloop.
+       |If Bloop isn't currently running, it will be started.
+       |
+       |${HelpMessages.bloopInfo}""".stripMargin
 }

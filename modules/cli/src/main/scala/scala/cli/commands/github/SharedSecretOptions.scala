@@ -11,10 +11,14 @@ import scala.cli.signing.util.ArgParsers.*
 final case class SharedSecretOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Tag(tags.experimental)
+  @Group("Secret")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     token: PasswordOption = PasswordOption.Value(Secret("")),
   @ExtraName("repo")
-  @Tag(tags.experimental)
+  @Group("Secret")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     repository: String = ""
 ) extends HasLoggingOptions {
   // format: on

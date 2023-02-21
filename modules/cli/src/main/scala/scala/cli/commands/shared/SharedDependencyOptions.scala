@@ -16,6 +16,7 @@ final case class SharedDependencyOptions(
 
   @Group("Dependency")
   @Tag(tags.should)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Add repositories")
   @Name("repo")
   @Name("r")

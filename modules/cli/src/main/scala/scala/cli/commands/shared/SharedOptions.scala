@@ -139,9 +139,11 @@ final case class SharedOptions(
   @Tag(tags.must)
     resourceDirs: List[String] = Nil,
 
+  @Group("Scala")
   @HelpMessage("Specify platform")
   @ValueDescription("scala-js|scala-native|jvm")
   @Tag(tags.should)
+  @Tag(tags.inShortHelp)
     platform: Option[String] = None,
 
   @Group("Scala")
@@ -181,6 +183,7 @@ final case class SharedOptions(
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
 
+  @Group("Scala")
   @Name("output-directory")
   @Name("d")
   @Name("destination")
@@ -190,9 +193,12 @@ final case class SharedOptions(
   @ValueDescription("/example/path")
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
+  @Group("Scala")
   @HelpMessage("Add toolkit to classPath")
   @ValueDescription("version|latest")
   @Name("toolkit")
+  @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
     withToolkit: Option[String] = None
 ) extends HasLoggingOptions {
   // format: on

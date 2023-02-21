@@ -1,6 +1,7 @@
 package scala.cli.commands.export0
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.{Gson, GsonBuilder}
@@ -20,10 +21,13 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.exportCmd.*
+import scala.cli.util.ArgHelpers.*
 import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Build Tool export")
 
   private def prepareBuild(
     inputs: Inputs,

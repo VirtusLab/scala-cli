@@ -20,7 +20,7 @@ class HelpCheck extends munit.FunSuite {
 
     expect(helpMessage.contains("Version options:"))
 
-    expect(!helpMessage.contains("-help-full"))
+    expect(!helpMessage.contains("--usage"))
     expect(!helpMessage.contains("Logging options:"))
     expect(!helpMessage.contains("Other options:"))
   }

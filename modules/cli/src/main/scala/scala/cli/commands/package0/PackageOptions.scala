@@ -12,17 +12,9 @@ import scala.build.options.packaging.*
 import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
 import scala.cli.commands.shared.*
+import scala.cli.commands.tags
 
-@HelpMessage({
-  val cmdName = "package"
-  s"""Compile and package Scala code.
-     |
-     |${HelpMessages.commandConfigurations(cmdName)}
-     |
-     |${HelpMessages.acceptedInputs}
-     |
-     |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
-})
+@HelpMessage(PackageOptions.helpMessage, "", PackageOptions.detailedHelpMessage)
 // format: off
 final case class PackageOptions(
   @Recurse
@@ -39,75 +31,110 @@ final case class PackageOptions(
   @Group("Package")
   @HelpMessage("Set the destination path")
   @Name("o")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     output: Option[String] = None,
   @Group("Package")
   @HelpMessage("Overwrite the destination file, if it exists")
   @Name("f")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     force: Boolean = false,
 
   @Group("Package")
   @HelpMessage("Generate a library JAR rather than an executable JAR")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     library: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate a source JAR rather than an executable JAR")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     source: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate a scaladoc JAR rather than an executable JAR")
   @ExtraName("scaladoc")
   @ExtraName("javadoc")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     doc: Boolean = false,
   @Group("Package")
   @HelpMessage("Generate an assembly JAR")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     assembly: Boolean = false,
   @Group("Package")
   @HelpMessage("For assembly JAR, whether to add a bash / bat preamble")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     preamble: Boolean = true,
   @Group("Package")
   @Hidden
   @HelpMessage("For assembly JAR, whether to specify a main class in the JAR manifest")
+  @Tag(tags.restricted)
     mainClassInManifest: Option[Boolean] = None,
   @Group("Package")
   @Hidden
   @HelpMessage("Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)")
+  @Tag(tags.experimental)
     spark: Boolean = false,
   @Group("Package")
   @HelpMessage("Package standalone JARs")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     standalone: Option[Boolean] = None,
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
   @Group("Package")
   @HelpMessage("Build Debian package, available only on Linux")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     deb: Boolean = false,
   @Group("Package")
   @HelpMessage("Build dmg package, available only on macOS")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     dmg: Boolean = false,
   @Group("Package")
   @HelpMessage("Build rpm package, available only on Linux")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     rpm: Boolean = false,
   @Group("Package")
   @HelpMessage("Build msi package, available only on Windows")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     msi: Boolean = false,
   @Group("Package")
   @HelpMessage("Build pkg package, available only on macOS")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     pkg: Boolean = false,
   @Group("Package")
   @HelpMessage("Build Docker image")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     docker: Boolean = false,
 
   @Group("Package")
   @Hidden
   @HelpMessage("Exclude modules *and their transitive dependencies* from the JAR to be packaged")
   @ValueDescription("org:name")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     provided: List[String] = Nil,
 
   @Group("Package")
   @HelpMessage("Use default scaladoc options")
   @ExtraName("defaultScaladocOpts")
+  @Tag(tags.implementation)
     defaultScaladocOptions: Option[Boolean] = None,
 
   @Group("Package")
   @HelpMessage("Build GraalVM native image")
   @ExtraName("graal")
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
     nativeImage: Boolean = false
 ) extends HasSharedOptions {
   // format: on
@@ -235,4 +262,16 @@ final case class PackageOptions(
 object PackageOptions {
   implicit lazy val parser: Parser[PackageOptions] = Parser.derive
   implicit lazy val help: Help[PackageOptions]     = Help.derive
+
+  val cmdName             = "package"
+  private val helpHeader  = "Compile and package Scala code."
+  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader, needsPower = true)
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandConfigurations(cmdName)}
+       |
+       |${HelpMessages.acceptedInputs}
+       |
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }

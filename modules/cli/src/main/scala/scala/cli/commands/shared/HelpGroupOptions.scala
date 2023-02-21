@@ -10,34 +10,50 @@ import scala.cli.commands.tags
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
+  @Group("Help")
   @HelpMessage("Show options for ScalaJS")
   @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
   helpJs: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for ScalaNative")
   @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
   helpNative: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scaladoc")
   @Name("scaladocHelp")
   @Name("docHelp")
   @Name("helpDoc")
   @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
   helpScaladoc: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scala REPL")
   @Name("replHelp")
   @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
   helpRepl: Boolean = false,
+  @Group("Help")
   @HelpMessage("Show options for Scalafmt")
   @Name("scalafmtHelp")
   @Name("fmtHelp")
   @Name("helpFmt")
   @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
   helpScalafmt: Boolean = false
 ) {
 
   private def printHelpWithGroup(help: Help[_], helpFormat: HelpFormat, group: String): Nothing = {
-    println(help.help(helpFormat.withHiddenGroups(
-      helpFormat.hiddenGroups.map(_.filterNot(_ == group))
-    )))
+    val oldHiddenGroups = helpFormat.hiddenGroups.toSeq.flatten
+    val oldSortedGroups = helpFormat.sortedGroups.toSeq.flatten
+    val newHiddenGroups = (oldHiddenGroups ++ oldSortedGroups).filterNot(_ == group)
+    println(
+      help.help(
+        helpFormat.withHiddenGroupsWhenShowHidden(Some(newHiddenGroups)),
+        showHidden = true
+      )
+    )
     sys.exit(0)
   }
 

@@ -109,7 +109,9 @@ class SipScalaTests extends ScalaCliSuite {
 
   def testReplHelpOutput(isRestricted: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val output =
-      os.proc(TestUtil.cli, powerArgs(isRestricted), "repl", "-help").call(cwd = root).out.trim()
+      os.proc(TestUtil.cli, powerArgs(isRestricted), "repl", "--help-full").call(cwd =
+        root
+      ).out.trim()
     val restrictedFeaturesMentioned   = output.contains("--amm")
     val experimentalFeaturesMentioned = output.contains("--python")
     if (isRestricted) expect(!restrictedFeaturesMentioned && !experimentalFeaturesMentioned)

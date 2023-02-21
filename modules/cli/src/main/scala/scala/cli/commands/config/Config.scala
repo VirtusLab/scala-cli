@@ -1,6 +1,7 @@
 package scala.cli.commands.config
 
 import caseapp.core.RemainingArgs
+import caseapp.core.help.HelpFormat
 import coursier.cache.ArchiveCache
 
 import java.util.Base64
@@ -20,10 +21,13 @@ import scala.cli.config.{
   RepositoryCredentials,
   Secret
 }
-
+import scala.cli.util.ArgHelpers.*
 object Config extends ScalaCommand[ConfigOptions] {
-  override def hidden                  = true
   override def scalaSpecificationLevel = SpecificationLevel.MUST
+
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(hiddenGroups = Some(Seq("Java")))
+    .withPrimaryGroup("Config")
 
   override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
     val directories = Directories.directories

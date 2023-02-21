@@ -156,6 +156,28 @@ Print the resulting class path
 
 Compile test scope
 
+## Config options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--dump`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Dump config DB as JSON
+
+### `--unset`
+
+Aliases: `--remove`
+
+`SHOULD have` per Scala Runner specification
+
+Remove an entry from config
+
 ## Debug options
 
 Available in commands:
@@ -298,7 +320,7 @@ Aliases: `-F`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass argument to scalafmt.
+Pass an argument to scalafmt.
 
 ### `--scalafmt-conf`
 
@@ -1291,34 +1313,6 @@ Aliases: `--name`
 
 Name of BSP
 
-### Config options
-
-Available in commands:
-
-[`config`](./commands.md#config)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--dump`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Dump config DB as JSON
-
-### `--create-pgp-key`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Create PGP key in config
-
-### `--unset`
-
-Aliases: `--remove`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Remove an entry from config
-
 ### Coursier options
 
 Available in commands:
@@ -1398,28 +1392,6 @@ Print the update to `env` variable
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Binary directory
-
-### Pgp scala signing options
-
-Available in commands:
-
-[`config`](./commands.md#config)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--signing-cli-version`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-### `--signing-cli-java-arg`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-### `--force-jvm-signing-cli`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Whether to run the Scala Signing CLI on the JVM or using a native executable
 
 ### Repl options
 

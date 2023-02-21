@@ -152,6 +152,57 @@ Print the resulting class path
 
 Compile test scope
 
+## Config options
+
+Available in commands:
+
+[`config`](./commands.md#config)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--dump`
+
+[Internal]
+Dump config DB as JSON
+
+### `--create-pgp-key`
+
+Create PGP key in config
+
+### `--email`
+
+Email to use to create PGP key in config
+
+### `--password`
+
+If the entry is a password, print the password value rather than how to get the password
+
+### `--password-value`
+
+If the entry is a password, save the password value rather than how to get the password
+
+### `--unset`
+
+Aliases: `--remove`
+
+Remove an entry from config
+
+### `--https-only`
+
+For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)
+
+### `--match-host`
+
+For repository.credentials, whether to use these credentials automatically based on the host
+
+### `--optional`
+
+For repository.credentials, whether to use these credentials are optional
+
+### `--pass-on-redirect`
+
+For repository.credentials, whether to use these credentials should be passed upon redirection
+
 ## Cross options
 
 Available in commands:
@@ -325,7 +376,7 @@ Saves .scalafmt.conf file if it was created or overwritten
 
 Aliases: `-F`
 
-Pass argument to scalafmt.
+Pass an argument to scalafmt.
 
 ### `--scalafmt-conf`
 
@@ -1731,66 +1782,6 @@ Aliases: `--name`
 
 [Internal]
 Name of BSP
-
-### Config options
-
-Available in commands:
-
-[`config`](./commands.md#config)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--dump`
-
-[Internal]
-Dump config DB as JSON
-
-### `--create-pgp-key`
-
-[Internal]
-Create PGP key in config
-
-### `--email`
-
-[Internal]
-Email to use to create PGP key in config
-
-### `--password`
-
-[Internal]
-If the entry is a password, print the password value rather than how to get the password
-
-### `--password-value`
-
-[Internal]
-If the entry is a password, save the password value rather than how to get the password
-
-### `--unset`
-
-Aliases: `--remove`
-
-[Internal]
-Remove an entry from config
-
-### `--https-only`
-
-[Internal]
-For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)
-
-### `--match-host`
-
-[Internal]
-For repository.credentials, whether to use these credentials automatically based on the host
-
-### `--optional`
-
-[Internal]
-For repository.credentials, whether to use these credentials are optional
-
-### `--pass-on-redirect`
-
-[Internal]
-For repository.credentials, whether to use these credentials should be passed upon redirection
 
 ### Coursier options
 

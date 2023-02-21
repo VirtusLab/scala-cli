@@ -1,17 +1,21 @@
 package scala.cli.commands.installhome
 
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import scala.build.Logger
 import scala.cli.CurrentParams
 import scala.cli.commands.{CommandUtils, CustomWindowsEnvVarUpdater, ScalaCommand}
+import scala.cli.util.ArgHelpers.*
 import scala.io.StdIn.readLine
 import scala.util.Properties
 
 object InstallHome extends ScalaCommand[InstallHomeOptions] {
   override def hidden: Boolean         = true
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Install")
 
   private def logEqual(version: String, logger: Logger) = {
     logger.message(s"$fullRunnerName $version is already installed and up-to-date.")

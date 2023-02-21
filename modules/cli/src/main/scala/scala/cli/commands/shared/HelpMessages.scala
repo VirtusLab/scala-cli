@@ -6,8 +6,30 @@ object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
   val passwordOption           = "A github token used to access GitHub. Not needed in most cases."
   private val docsWebsiteUrl   = "https://scala-cli.virtuslab.org"
+  def shortHelpMessage(
+    cmdName: String,
+    helpHeader: String,
+    includeFullHelpReference: Boolean = true,
+    needsPower: Boolean = false
+  ): String = {
+    val maybeFullHelpReference =
+      if includeFullHelpReference then
+        s"""
+           |${HelpMessages.commandFullHelpReference(cmdName, needsPower)}""".stripMargin
+      else ""
+    s"""$helpHeader
+       |$maybeFullHelpReference
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+  }
+
   val docsWebsiteReference =
     s"Detailed documentation can be found on our website: $docsWebsiteUrl"
+  def commandFullHelpReference(commandName: String, needsPower: Boolean = false): String = {
+    val maybePowerString = if needsPower then "--power " else ""
+    s"""You are currently viewing the basic help for the $commandName sub-command. You can view the full help by running: 
+       |   ${ScalaCli.progName} $maybePowerString$commandName --help-full""".stripMargin
+  }
+
   def commandDocWebsiteReference(websiteSuffix: String): String =
     s"For detailed documentation refer to our website: $docsWebsiteUrl/docs/commands/$websiteSuffix"
   val installationDocsWebsiteReference =
@@ -28,5 +50,5 @@ object HelpMessages {
   lazy val restrictedCommandUsedInSip: String =
     s"""This command is restricted and requires setting the `--power` option to be used.
        |You can pass it explicitly or set it globally by running:
-       |   ${Console.BOLD}${ScalaCli.progName} config power true""".stripMargin
+       |   ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}""".stripMargin
 }

@@ -20,6 +20,7 @@ final case class MainClassOptions(
   @Name("listMainClass")
   @Name("listMainClasses")
   @Tag(tags.should)
+  @Tag(tags.inShortHelp)
     mainClassLs: Option[Boolean] = None
 ) {
   // format: on

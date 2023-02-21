@@ -89,7 +89,7 @@ object Deps {
     def scalaMeta          = "4.7.1"
     def scalaNative        = "0.4.9"
     def scalaPackager      = "0.1.29"
-    def signingCli         = "0.1.15"
+    def signingCli         = "0.1.16"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -100,7 +100,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M23"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M24"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.9.0"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"

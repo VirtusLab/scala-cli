@@ -2,6 +2,7 @@ package scala.cli.commands.installcompletions
 
 import caseapp.*
 import caseapp.core.complete.{Bash, Zsh}
+import caseapp.core.help.HelpFormat
 
 import java.io.File
 import java.nio.charset.Charset
@@ -11,13 +12,15 @@ import java.util
 import scala.build.{Directories, Logger}
 import scala.cli.commands.ScalaCommand
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
+import scala.cli.util.ArgHelpers.*
 import scala.cli.{CurrentParams, ScalaCli}
-
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
     List("install", "completions"),
     List("install-completions")
   )
+
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Install")
 
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
 

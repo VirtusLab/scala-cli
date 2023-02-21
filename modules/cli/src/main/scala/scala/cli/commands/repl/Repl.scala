@@ -2,6 +2,7 @@ package scala.cli.commands.repl
 
 import ai.kien.python.Python
 import caseapp.*
+import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
 import coursier.error.{FetchError, ResolutionError}
 import dependency.*
@@ -23,11 +24,15 @@ import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
   override def group                   = "Main"
   override def scalaSpecificationLevel = SpecificationLevel.MUST
+  override def helpFormat: HelpFormat = super.helpFormat
+    .copy(hiddenGroups = Some(Seq("Watch")))
+    .withPrimaryGroup("Repl")
   override def names: List[List[String]] = List(
     List("repl"),
     List("console")

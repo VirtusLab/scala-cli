@@ -10,17 +10,27 @@ import scala.util.{Properties, Try}
 object ScalaCliHelp {
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
-      filterArgs = Some(_.isSupported),
+      filterArgs = Some(arg => arg.isSupported && (arg.isMust || arg.isImportant)),
+      filterArgsWhenShowHidden = Some(_.isSupported),
       sortedGroups = Some(
         Seq(
-          "Help",
           "Scala",
           "Java",
+          "Watch",
+          "Dependency",
+          "Entrypoint",
+          "Debug",
           "Repl",
+          "Run",
           "Package",
+          "Compilation server",
           "Logging",
           "Runner",
-          "Launcher"
+          "Launcher",
+          "Legacy Scala runner",
+          "Scala.js",
+          "Scala Native",
+          "Help"
         )
       ),
       sortedCommandGroups = Some(

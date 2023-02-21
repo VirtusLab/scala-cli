@@ -3,20 +3,11 @@ package scala.cli.commands.publish
 import caseapp.*
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared._
+import scala.cli.commands.publish.PublishSetupOptions.{cmdName, docWebsiteSuffix, helpHeader}
+import scala.cli.commands.shared.*
 
 // format: off
-@HelpMessage(
-  s"""Publishes build artifacts to the local Ivy2 repository.
-     |
-     |The local Ivy2 repository usually lives under `~/.ivy2/local`.
-     |It is taken into account most of the time by most Scala tools when fetching artifacts.
-     |
-     |${HelpMessages.commandConfigurations("publish local")}
-     |
-     |${HelpMessages.acceptedInputs}
-     |
-     |${HelpMessages.commandDocWebsiteReference("publishing/publish-local")}""".stripMargin)
+@HelpMessage(PublishLocalOptions.helpMessage, "", PublishLocalOptions.detailedHelpMessage)
 final case class PublishLocalOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
@@ -38,4 +29,16 @@ final case class PublishLocalOptions(
 object PublishLocalOptions {
   implicit lazy val parser: Parser[PublishLocalOptions] = Parser.derive
   implicit lazy val help: Help[PublishLocalOptions]     = Help.derive
+  val cmdName                                           = "publish local"
+  private val helpHeader       = "Publishes build artifacts to the local Ivy2 repository."
+  private val docWebsiteSuffix = "publishing/publish-local"
+  val helpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandFullHelpReference(cmdName)}
+       |${HelpMessages.commandDocWebsiteReference(docWebsiteSuffix)}""".stripMargin
+  val detailedHelpMessage: String =
+    s"""$helpHeader
+       |
+       |${HelpMessages.commandDocWebsiteReference(docWebsiteSuffix)}""".stripMargin
 }
