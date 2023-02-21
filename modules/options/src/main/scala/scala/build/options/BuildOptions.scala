@@ -372,7 +372,6 @@ final case class BuildOptions(
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
-      addStubs = internal.addStubsDependency,
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.addJmhDependencies,

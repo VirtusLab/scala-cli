@@ -87,7 +87,6 @@ object Artifacts {
     extraCompileOnlyJars: Seq[os.Path],
     extraSourceJars: Seq[os.Path],
     fetchSources: Boolean,
-    addStubs: Boolean,
     addJvmRunner: Option[Boolean],
     addJvmTestRunner: Boolean,
     addJmhDependencies: Option[String],
