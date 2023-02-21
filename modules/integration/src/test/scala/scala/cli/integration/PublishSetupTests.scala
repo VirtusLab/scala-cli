@@ -20,14 +20,15 @@ class PublishSetupTests extends ScalaCliSuite {
 
   private def configSetup(homeDir: os.Path, root: os.Path): Unit = {
     val envs = Map("SCALA_CLI_HOME" -> homeDir.toString)
-    os.proc(TestUtil.cli, "config", "publish.user.name", devName)
+    os.proc(TestUtil.cli, "--power", "config", "publish.user.name", devName)
       .call(cwd = root, stdout = os.Inherit, env = envs)
-    os.proc(TestUtil.cli, "config", "publish.user.email", devMail)
+    os.proc(TestUtil.cli, "--power", "config", "publish.user.email", devMail)
       .call(cwd = root, stdout = os.Inherit, env = envs)
-    os.proc(TestUtil.cli, "config", "publish.user.url", devUrl)
+    os.proc(TestUtil.cli, "--power", "config", "publish.user.url", devUrl)
       .call(cwd = root, stdout = os.Inherit, env = envs)
     os.proc(
       TestUtil.cli,
+      "--power",
       "config",
       "publish.credentials",
       "s01.oss.sonatype.org",
@@ -35,7 +36,7 @@ class PublishSetupTests extends ScalaCliSuite {
       "value:1234"
     )
       .call(cwd = root, stdout = os.Inherit, env = envs)
-    os.proc(TestUtil.cli, "config", "--create-pgp-key")
+    os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key")
       .call(cwd = root, stdout = os.Inherit, env = envs)
   }
 
