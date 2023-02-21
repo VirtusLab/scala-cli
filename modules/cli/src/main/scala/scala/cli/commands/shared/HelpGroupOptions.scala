@@ -45,9 +45,15 @@ case class HelpGroupOptions(
 ) {
 
   private def printHelpWithGroup(help: Help[_], helpFormat: HelpFormat, group: String): Nothing = {
-    println(help.help(helpFormat.withHiddenGroups(
-      helpFormat.hiddenGroups.map(_.filterNot(_ == group))
-    )))
+    val oldHiddenGroups = helpFormat.hiddenGroups.toSeq.flatten
+    val oldSortedGroups = helpFormat.sortedGroups.toSeq.flatten
+    val newHiddenGroups = (oldHiddenGroups ++ oldSortedGroups).filterNot(_ == group)
+    println(
+      help.help(
+        helpFormat.withHiddenGroupsWhenShowHidden(Some(newHiddenGroups)),
+        showHidden = true
+      )
+    )
     sys.exit(0)
   }
 

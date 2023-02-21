@@ -18,11 +18,18 @@ object ScalaCliHelp {
           "Java",
           "Watch",
           "Dependency",
+          "Entrypoint",
+          "Debug",
           "Repl",
+          "Run",
           "Package",
+          "Compilation server",
           "Logging",
           "Runner",
           "Launcher",
+          "Legacy Scala runner",
+          "Scala.js",
+          "Scala Native",
           "Help"
         )
       ),
