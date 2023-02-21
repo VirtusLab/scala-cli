@@ -108,12 +108,10 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
       val res   = os.proc(TestUtil.cli, "--power", "repl", extraOptions, "--help").call(cwd = root)
       val lines = removeAnsiColors(res.out.trim()).linesIterator.toVector
 
-      val scalaVersionHelp   = lines.find(_.contains("--scala-version")).getOrElse("")
-      val scalaPyVersionHelp = lines.find(_.contains("--scalapy-version")).getOrElse("")
-      val ammVersionHelp     = lines.find(_.contains("--ammonite-ver")).getOrElse("")
+      val scalaVersionHelp = lines.find(_.contains("--scala-version")).getOrElse("")
+      val ammVersionHelp   = lines.find(_.contains("--ammonite-ver")).getOrElse("")
 
       expect(scalaVersionHelp.contains(s"(${Constants.defaultScala} by default)"))
-      expect(scalaPyVersionHelp.contains(s"(${Constants.scalaPyVersion} by default)"))
       expect(ammVersionHelp.contains(s"(${Constants.ammoniteVersion} by default)"))
     }
   }

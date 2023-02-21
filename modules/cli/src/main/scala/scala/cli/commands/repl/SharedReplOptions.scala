@@ -32,6 +32,7 @@ final case class SharedReplOptions(
   @Tag(tags.restricted)
   @HelpMessage(s"Set the Ammonite version (${Constants.ammoniteVersion} by default)")
   @Name("ammoniteVer")
+  @Tag(tags.important)
     ammoniteVersion: Option[String] = None,
 
   @Group("Repl")

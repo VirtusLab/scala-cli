@@ -136,10 +136,12 @@ final case class PackagerOptions(
   @HelpMessage(s"GraalVM Java major version to use to build GraalVM native images (${Constants.defaultGraalVMJavaVersion} by default)")
   @ValueDescription("java-major-version")
   @Tag(tags.restricted)
+  @Tag(tags.important)
     graalvmJavaVersion: Option[Int] = None,
   @Group("Native image")
   @HelpMessage(s"GraalVM version to use to build GraalVM native images (${Constants.defaultGraalVMVersion} by default)")
   @ValueDescription("version")
+  @Tag(tags.important)
     graalvmVersion: Option[String] = None,
   @Group("Native image")
   @HelpMessage("JVM id of GraalVM distribution to build GraalVM native images (like \"graalvm-java17:22.0.0\")")
