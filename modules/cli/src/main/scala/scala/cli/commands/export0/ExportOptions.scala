@@ -26,6 +26,8 @@ final case class ExportOptions(
   @HelpMessage("Sets the export format to Mill")
     mill: Option[Boolean] = None,
   @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
+  @Group("Build Tool export")
   @HelpMessage("Sets the export format to Json")
     json: Option[Boolean] = None,
 
