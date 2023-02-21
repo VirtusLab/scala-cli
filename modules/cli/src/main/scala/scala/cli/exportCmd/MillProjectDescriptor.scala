@@ -14,18 +14,18 @@ import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.util.SeqHelpers._
 
-final case class Mill(
+final case class MillProjectDescriptor(
   millVersion: String,
   projectName: Option[String] = None,
   launchers: Seq[(os.RelPath, Array[Byte])],
   logger: Logger
-) extends BuildTool {
+) extends ProjectDescriptor {
 
   private val charSet = StandardCharsets.UTF_8
 
   private def sourcesSettings(mainSources: Sources, testSources: Sources): MillProject = {
-    val mainSources0 = BuildTool.sources(mainSources, charSet)
-    val testSources0 = BuildTool.sources(testSources, charSet)
+    val mainSources0 = ProjectDescriptor.sources(mainSources, charSet)
+    val testSources0 = ProjectDescriptor.sources(testSources, charSet)
     MillProject(mainSources = mainSources0, testSources = testSources0)
   }
 

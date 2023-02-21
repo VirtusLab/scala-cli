@@ -1,19 +1,26 @@
 package scala.cli.commands.export0
 
 import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
+import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.FileCache
 import coursier.util.{Artifact, Task}
+
+import java.io.{OutputStreamWriter, PrintStream}
+import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.{BuildOptions, Platform, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.exportCmd.*
+import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
@@ -53,9 +60,17 @@ object Export extends ScalaCommand[ExportOptions] {
   }
 
   // FIXME Auto-update those
-  def sbtBuildTool(extraSettings: Seq[String], sbtVersion: String, logger: Logger): Sbt =
-    Sbt(sbtVersion, extraSettings, logger)
-  def millBuildTool(cache: FileCache[Task], projectName: Option[String], logger: Logger): Mill = {
+  def sbtProjectDescriptor(
+    extraSettings: Seq[String],
+    sbtVersion: String,
+    logger: Logger
+  ): SbtProjectDescriptor =
+    SbtProjectDescriptor(sbtVersion, extraSettings, logger)
+  def millProjectDescriptor(
+    cache: FileCache[Task],
+    projectName: Option[String],
+    logger: Logger
+  ): MillProjectDescriptor = {
     val launcherArtifacts = Seq(
       os.rel / "mill" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw",
       os.rel / "mill.bat" -> s"https://github.com/lefou/millw/raw/${Constants.lefouMillwRef}/millw.bat"
@@ -73,8 +88,11 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
     val launchers     = launchersTask.unsafeRun()(cache.ec)
-    Mill(Constants.millVersion, projectName, launchers, logger)
+    MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
   }
+
+  def jsonProjectDescriptor(projectName: Option[String], logger: Logger): JsonProjectDescriptor =
+    JsonProjectDescriptor(projectName, logger)
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
@@ -84,24 +102,29 @@ object Export extends ScalaCommand[ExportOptions] {
     val output = options.output.getOrElse("dest")
     val dest   = os.Path(output, os.pwd)
     if (os.exists(dest)) {
-      System.err.println(
+      logger.error(
         s"""Error: $dest already exists.
            |To change the destination output directory pass --output path or remove the destination directory first.""".stripMargin
       )
       sys.exit(1)
     }
 
+    val shouldExportToJson = options.json.getOrElse(false)
     val shouldExportToMill = options.mill.getOrElse(false)
     val shouldExportToSbt  = options.sbt.getOrElse(false)
     if (shouldExportToMill && shouldExportToSbt) {
-      System.err.println(
+      logger.error(
         s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
       )
       sys.exit(1)
     }
 
-    val buildToolName = if (shouldExportToMill) "mill" else "sbt"
-    System.out.println(s"Exporting to a $buildToolName project...")
+    if (!shouldExportToJson) {
+      val buildToolName = if (shouldExportToMill) "mill" else "sbt"
+      logger.message(s"Exporting to a $buildToolName project...")
+    }
+    else
+      logger.message(s"Exporting to JSON...")
 
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
@@ -131,7 +154,7 @@ object Export extends ScalaCommand[ExportOptions] {
       svMain <- optionsMain0.scalaOptions.scalaVersion
       svTest <- optionsTest0.scalaOptions.scalaVersion
     } if (svMain != svTest) {
-      System.err.println(
+      logger.error(
         s"""Detected different Scala versions in main and test scopes.
            |Please set the Scala version explicitly in the main and test scope with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
@@ -141,7 +164,7 @@ object Export extends ScalaCommand[ExportOptions] {
     if (
       optionsMain0.scalaOptions.scalaVersion.isEmpty && optionsTest0.scalaOptions.scalaVersion.nonEmpty
     ) {
-      System.err.println(
+      logger.error(
         s"""Detected that the Scala version is only set in test scope.
            |Please set the Scala version explicitly in the main and test scopes with using directives or pass -S, --scala-version as parameter""".stripMargin
       )
@@ -149,19 +172,22 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     val sbtVersion = options.sbtVersion.getOrElse("1.6.1")
-    def sbtBuildTool0 =
-      sbtBuildTool(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
-    val buildTool =
+    def sbtProjectDescriptor0 =
+      sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
+
+    val projectDescriptor =
       if (shouldExportToMill)
-        millBuildTool(options.shared.coursierCache, options.project, logger)
+        millProjectDescriptor(options.shared.coursierCache, options.project, logger)
+      else if (shouldExportToJson)
+        jsonProjectDescriptor(options.project, logger)
       else // shouldExportToSbt isn't checked, as it's treated as default
-        sbtBuildTool0
+        sbtProjectDescriptor0
 
-    val project = buildTool.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+    val project = projectDescriptor.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
 
     os.makeDir.all(dest)
     project.writeTo(dest)
-    System.out.println(s"Exported to: $dest")
+    logger.message(s"Exported to: $dest")
   }
 }
