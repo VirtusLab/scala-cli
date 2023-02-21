@@ -62,11 +62,13 @@ object tags {
   val experimental: String   = SpecificationLevel.EXPERIMENTAL.toString
   val restricted: String     = SpecificationLevel.RESTRICTED.toString
   val implementation: String = SpecificationLevel.IMPLEMENTATION.toString
-  val must: String           = SpecificationLevel.MUST.toString
+  val must: String           = SpecificationLevel.MUST.toString // included in --help by default
   val should: String         = SpecificationLevel.SHOULD.toString
 
   // other tags
-  val important: String = "important"
+  // the `inShortHelp` tag whitelists options to be included in --help
+  // this is in contrast to blacklisting options in --help with the @Hidden annotation
+  val inShortHelp: String = "inShortHelp" // included in --help by default
 
   def levelFor(name: String): Option[SpecificationLevel] = name match {
     case `experimental`   => Some(SpecificationLevel.EXPERIMENTAL)

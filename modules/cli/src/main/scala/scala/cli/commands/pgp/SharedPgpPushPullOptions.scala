@@ -13,7 +13,7 @@ final case class SharedPgpPushPullOptions(
   @HelpMessage("Key server to push / pull keys from")
   @ValueDescription("URL")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     keyServer: List[String] = Nil
 ) {
   // format: on

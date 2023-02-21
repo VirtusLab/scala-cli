@@ -14,13 +14,13 @@ final case class InstallCompletionsOptions(
   @Group("Install")
   @Name("shell")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Name of the shell, either zsh or bash")
     format: Option[String] = None,
 
   @Tag(tags.implementation)
   @Group("Install")
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell")
   rcFile: Option[String] = None,
 

@@ -12,7 +12,7 @@ object ArgHelpers {
       arg.tags.exists(_.name == tags.restricted) || arg.tags.exists(_.name == tags.experimental)
 
     def isSupported: Boolean = allowRestrictedFeatures || !arg.isExperimentalOrRestricted
-    def isImportant: Boolean = arg.tags.exists(_.name == tags.important)
+    def isImportant: Boolean = arg.tags.exists(_.name == tags.inShortHelp)
 
     def isMust: Boolean = arg.tags.exists(_.name == tags.must)
 

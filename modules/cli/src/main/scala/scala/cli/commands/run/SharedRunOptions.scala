@@ -28,7 +28,7 @@ final case class SharedRunOptions(
   @Group("Run")
   @Hidden
   @Tag(tags.experimental)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Run as a Spark job, using the spark-submit command")
   @ExtraName("spark")
     sparkSubmit: Option[Boolean] = None,
@@ -50,7 +50,7 @@ final case class SharedRunOptions(
     hadoopJar: Boolean = false,
   @Group("Run")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Print the command that would have been run (one argument per line), rather than running it")
     command: Boolean = false,
   @Group("Run")

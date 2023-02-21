@@ -14,7 +14,7 @@ final case class VersionOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @Group("Version")
   @HelpMessage(s"Show plain $fullRunnerName version only")
   @Name("cli")
@@ -22,7 +22,7 @@ final case class VersionOptions(
   @Group("Version")
   @HelpMessage("Show plain Scala version only")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @Name("scala")
     scalaVersion: Boolean = false,
   @Hidden
@@ -31,7 +31,7 @@ final case class VersionOptions(
     ghToken: Option[PasswordOption] = None,
   @Group("Version")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage(s"Don't check for the newest available $fullRunnerName version upstream")
     offline: Boolean = false
 ) extends HasLoggingOptions

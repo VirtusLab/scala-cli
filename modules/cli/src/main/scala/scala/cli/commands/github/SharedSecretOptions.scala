@@ -13,12 +13,12 @@ final case class SharedSecretOptions(
     logging: LoggingOptions = LoggingOptions(),
   @Group("Secret")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     token: PasswordOption = PasswordOption.Value(Secret("")),
   @ExtraName("repo")
   @Group("Secret")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     repository: String = ""
 ) extends HasLoggingOptions {
   // format: on

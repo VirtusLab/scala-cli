@@ -76,7 +76,6 @@ final case class SharedOptions(
   @Name("scala")
   @Name("S")
   @Tag(tags.must)
-  @Tag(tags.important)
     scalaVersion: Option[String] = None,
   @Group("Scala")
   @HelpMessage("Set the Scala binary version")
@@ -144,7 +143,7 @@ final case class SharedOptions(
   @HelpMessage("Specify platform")
   @ValueDescription("scala-js|scala-native|jvm")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     platform: Option[String] = None,
 
   @Group("Scala")
@@ -199,7 +198,7 @@ final case class SharedOptions(
   @ValueDescription("version|latest")
   @Name("toolkit")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     withToolkit: Option[String] = None
 ) extends HasLoggingOptions {
   // format: on

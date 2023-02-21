@@ -49,7 +49,7 @@ are assumed to be Scala compiler options and will be propagated to Scala Compile
 Compile Scala code.
 
 You are currently viewing the basic help for the compile sub-command. You can view the full help by running: 
-   [1mscala-cli compile --help-full[0m
+   scala-cli compile --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/compile
 
 ### MUST have options
@@ -568,7 +568,7 @@ Aliases: `--toolkit`
 Configure global settings for Scala CLI.
 
 You are currently viewing the basic help for the config sub-command. You can view the full help by running: 
-   [1mscala-cli config --help-full[0m
+   scala-cli config --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
 ### SHOULD have options
@@ -701,7 +701,7 @@ Dump config DB as JSON
 Generate Scaladoc documentation.
 
 You are currently viewing the basic help for the doc sub-command. You can view the full help by running: 
-   [1mscala-cli doc --help-full[0m
+   scala-cli doc --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/doc
 
 ### MUST have options
@@ -1218,7 +1218,7 @@ Aliases: `console`
 Fire-up a Scala REPL.
 
 You are currently viewing the basic help for the repl sub-command. You can view the full help by running: 
-   [1mscala-cli repl --help-full[0m
+   scala-cli repl --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/repl
 
 ### MUST have options
@@ -1743,7 +1743,7 @@ Don't actually run the REPL, just fetch it
 Compile and run Scala code.
 
 You are currently viewing the basic help for the run sub-command. You can view the full help by running: 
-   [1mscala-cli run --help-full[0m
+   scala-cli run --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 ### MUST have options
@@ -2288,7 +2288,7 @@ Run Java commands using a manifest-based class path (shortens command length)
 Like `run`, but handier for shebang scripts.
 
 You are currently viewing the basic help for the shebang sub-command. You can view the full help by running: 
-   [1mscala-cli shebang --help-full[0m
+   scala-cli shebang --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/shebang
 
 ### MUST have options
@@ -2837,7 +2837,7 @@ Aliases: `format`, `scalafmt`
 Formats Scala code.
 
 You are currently viewing the basic help for the fmt sub-command. You can view the full help by running: 
-   [1mscala-cli fmt --help-full[0m
+   scala-cli fmt --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 ### MUST have options
@@ -3396,7 +3396,7 @@ Aliases: `--fmt-version`
 Compile and test Scala code.
 
 You are currently viewing the basic help for the test sub-command. You can view the full help by running: 
-   [1mscala-cli test --help-full[0m
+   scala-cli test --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/test
 
 ### MUST have options
@@ -3929,7 +3929,7 @@ Aliases: `--java-prop`
 Prints the version of the Scala CLI and the default version of Scala.
 
 You are currently viewing the basic help for the version sub-command. You can view the full help by running: 
-   [1mscala-cli version --help-full[0m
+   scala-cli version --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
 <details><summary>
@@ -4012,7 +4012,7 @@ Don't check for the newest available Scala CLI version upstream
 Start BSP server.
 
 You are currently viewing the basic help for the bsp sub-command. You can view the full help by running: 
-   [1mscala-cli bsp --help-full[0m
+   scala-cli bsp --help-full
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
@@ -4513,7 +4513,7 @@ Command-line options JSON file
 Clean the workspace.
 
 You are currently viewing the basic help for the clean sub-command. You can view the full help by running: 
-   [1mscala-cli clean --help-full[0m
+   scala-cli clean --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
 <details><summary>
@@ -4649,7 +4649,7 @@ Aliases: `install-completions`
 Installs Scala CLI completions into your shell
 
 You are currently viewing the basic help for the install completions sub-command. You can view the full help by running: 
-   [1mscala-cli install completions --help-full[0m
+   scala-cli install completions --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 <details><summary>
@@ -4817,7 +4817,7 @@ Binary directory
 Generates a BSP file that you can import into your IDE.
 
 You are currently viewing the basic help for the setup-ide sub-command. You can view the full help by running: 
-   [1mscala-cli setup-ide --help-full[0m
+   scala-cli setup-ide --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 ### MUST have options
@@ -5493,7 +5493,7 @@ Aliases: `uninstall-completions`
 Uninstalls Scala CLI completions from your shell.
 
 You are currently viewing the basic help for the uninstall completions sub-command. You can view the full help by running: 
-   [1mscala-cli uninstall completions --help-full[0m
+   scala-cli uninstall completions --help-full
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
 <details><summary>
@@ -5568,7 +5568,7 @@ Works only when installed with the installation script.
 If Scala CLI was installed with an external tool, refer to its update methods.
 
 You are currently viewing the basic help for the update sub-command. You can view the full help by running: 
-   [1mscala-cli update --help-full[0m
+   scala-cli update --help-full
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
 <details><summary>

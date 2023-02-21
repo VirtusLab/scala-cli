@@ -13,12 +13,12 @@ case class HelpGroupOptions(
   @Group("Help")
   @HelpMessage("Show options for ScalaJS")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   helpJs: Boolean = false,
   @Group("Help")
   @HelpMessage("Show options for ScalaNative")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   helpNative: Boolean = false,
   @Group("Help")
   @HelpMessage("Show options for Scaladoc")
@@ -26,13 +26,13 @@ case class HelpGroupOptions(
   @Name("docHelp")
   @Name("helpDoc")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   helpScaladoc: Boolean = false,
   @Group("Help")
   @HelpMessage("Show options for Scala REPL")
   @Name("replHelp")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   helpRepl: Boolean = false,
   @Group("Help")
   @HelpMessage("Show options for Scalafmt")
@@ -40,7 +40,7 @@ case class HelpGroupOptions(
   @Name("fmtHelp")
   @Name("helpFmt")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   helpScalafmt: Boolean = false
 ) {
 

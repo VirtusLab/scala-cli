@@ -16,7 +16,6 @@ final case class JavaPropOptions(
   @HelpMessage("Set java properties")
   @ValueDescription("key=value|key")
   @Tag(tags.must)
-  @Tag(tags.important)
     javaProp: List[String] = Nil
 )                                  
 // format: on

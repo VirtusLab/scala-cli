@@ -10,7 +10,7 @@ final case class SharedPublishOptions(
   @Group("Publishing")
   @HelpMessage("Directory where temporary files for publishing should be written")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @Hidden
     workingDir: Option[String] = None,
 
@@ -30,7 +30,7 @@ final case class SharedPublishOptions(
   @Group("Publishing")
   @HelpMessage("Whether to build and publish source JARs")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     sources: Option[Boolean] = None,
 
   @Group("Publishing")
@@ -38,7 +38,7 @@ final case class SharedPublishOptions(
   @ExtraName("scaladoc")
   @ExtraName("javadoc")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     doc: Option[Boolean] = None,
 
   @Group("Publishing")
@@ -46,14 +46,14 @@ final case class SharedPublishOptions(
   @ValueDescription("key-id")
   @ExtraName("K")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     gpgKey: Option[String] = None,
 
   @Group("Publishing")
   @HelpMessage("Method to use to sign artifacts")
   @ValueDescription("gpg|bc|none")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     signer: Option[String] = None,
 
   @Group("Publishing")
@@ -62,7 +62,7 @@ final case class SharedPublishOptions(
   @ExtraName("G")
   @ExtraName("gpgOpt")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     gpgOption: List[String] = Nil,
 
   @Group("Publishing")

@@ -18,7 +18,7 @@ final case class SecretCreateOptions(
     coursier: CoursierOptions = CoursierOptions(),
   @Group("Secret")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @ExtraName("pubKey")
     publicKey: Option[String] = None,
   @Tag(tags.implementation)

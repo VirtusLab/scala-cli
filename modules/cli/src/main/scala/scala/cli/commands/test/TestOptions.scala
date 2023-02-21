@@ -29,17 +29,17 @@ final case class TestOptions(
   @HelpMessage("Name of the test framework's runner class to use while running tests")
   @ValueDescription("class-name")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     testFramework: Option[String] = None,
 
   @Group("Test")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Fail if no test suites were run")
     requireTests: Boolean = false,
   @Group("Test")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Specify a glob pattern to filter the tests suite to be run.")
     testOnly: Option[String] = None
 

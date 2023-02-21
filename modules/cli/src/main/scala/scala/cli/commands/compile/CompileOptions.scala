@@ -27,13 +27,13 @@ final case class CompileOptions(
   @Name("printClasspath")
   @HelpMessage("Print the resulting class path")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     printClassPath: Boolean = false,
 
   @Group("Compilation")
   @HelpMessage("Compile test scope")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     test: Boolean = false
 ) extends HasSharedOptions
   // format: on

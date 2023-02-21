@@ -15,28 +15,28 @@ final case class PublishRepositoryOptions(
   @ExtraName("R")
   @ExtraName("publishRepo")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     publishRepository: Option[String] = None,
 
   @Group("Publishing")
   @HelpMessage("User to use with publishing repository")
   @ValueDescription("user")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     user: Option[PasswordOption] = None,
 
   @Group("Publishing")
   @HelpMessage("Password to use with publishing repository")
   @ValueDescription("value:…")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     password: Option[PasswordOption] = None,
 
   @Group("Publishing")
   @HelpMessage("Realm to use when passing credentials to publishing repository")
   @ValueDescription("realm")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     realm: Option[String] = None
 
 )

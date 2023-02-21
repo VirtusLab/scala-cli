@@ -26,7 +26,7 @@ final case class UpdateOptions(
   @Name("f")
   @HelpMessage(s"Force update $fullRunnerName if it is outdated")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     force: Boolean = false,
   @Hidden
   @Tag(tags.implementation)

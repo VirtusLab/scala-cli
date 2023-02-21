@@ -17,12 +17,12 @@ final case class ExportOptions(
 
   @Group("Build Tool export")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to SBT")
     sbt: Option[Boolean] = None,
   @Group("Build Tool export")
   @Tag(tags.restricted)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Mill")
     mill: Option[Boolean] = None,
   @Tag(tags.restricted)

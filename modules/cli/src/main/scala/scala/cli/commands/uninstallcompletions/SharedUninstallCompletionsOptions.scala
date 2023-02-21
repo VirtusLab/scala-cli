@@ -9,7 +9,7 @@ final case class SharedUninstallCompletionsOptions(
   @Group("Uninstall")
   @HelpMessage("Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   rcFile: Option[String] = None,
   @Group("Uninstall")
   @Hidden

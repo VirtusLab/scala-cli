@@ -20,7 +20,7 @@ final case class FmtOptions(
 
   @Group("Format")
   @Tag(tags.should)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Check if sources are well formatted")
     check: Boolean = false,
 
@@ -31,7 +31,7 @@ final case class FmtOptions(
 
   @Group("Format")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Saves .scalafmt.conf file if it was created or overwritten")
     saveScalafmtConf: Boolean = false,
 
@@ -60,13 +60,13 @@ final case class FmtOptions(
   @Name("F")
   @Tag(tags.implementation)
   @HelpMessage("Pass an argument to scalafmt.")
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     scalafmtArg: List[String] = Nil,
 
   @Group("Format")
   @HelpMessage("Custom path to the scalafmt configuration file.")
   @Tag(tags.implementation)
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
   @Name("scalafmtConfig")
     scalafmtConf: Option[String] = None,
   @Group("Format")
@@ -80,13 +80,13 @@ final case class FmtOptions(
   @HelpMessage("Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file or inferred based on Scala version used.")
   @Tag(tags.implementation)
   @Name("dialect")
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     scalafmtDialect: Option[String] = None,
   @Tag(tags.implementation)
   @Group("Format")
   @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
-  @Tag(tags.important)
+  @Tag(tags.inShortHelp)
     scalafmtVersion: Option[String] = None
 ) extends HasSharedOptions {
   // format: on
