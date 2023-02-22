@@ -211,5 +211,5 @@ def setShouldPublish() = T.command {
     sys.error("GITHUB_ENV not set")
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
-  os.write.append(os.Path(envFile, os.pwd), s"SHOULD_PUBLISH=$shouldPublish$nl".getBytes(charSet))
+  os.write.append(os.Path(envFile, os.pwd), s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet))
 }
