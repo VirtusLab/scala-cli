@@ -5,6 +5,7 @@ import caseapp.core.help.Help
 
 import scala.cli.commands.shared.{
   CrossOptions,
+  HelpGroup,
   SharedJavaOptions,
   SharedPythonOptions,
   SharedWatchOptions
@@ -20,7 +21,7 @@ final case class SharedReplOptions(
   @Recurse
     compileCross: CrossOptions = CrossOptions(),
 
-  @Group("Repl")
+  @Group(HelpGroup.Repl.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Use Ammonite (instead of the default Scala REPL)")
@@ -28,14 +29,14 @@ final case class SharedReplOptions(
   @Name("amm")
     ammonite: Option[Boolean] = None,
 
-  @Group("Repl")
+  @Group(HelpGroup.Repl.toString)
   @Tag(tags.restricted)
   @HelpMessage(s"Set the Ammonite version (${Constants.ammoniteVersion} by default)")
   @Name("ammoniteVer")
   @Tag(tags.inShortHelp)
     ammoniteVersion: Option[String] = None,
 
-  @Group("Repl")
+  @Group(HelpGroup.Repl.toString)
   @Name("a")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
@@ -43,7 +44,7 @@ final case class SharedReplOptions(
   @Hidden
     ammoniteArg: List[String] = Nil,
 
-  @Group("Repl")
+  @Group(HelpGroup.Repl.toString)
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")

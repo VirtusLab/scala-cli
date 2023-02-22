@@ -7,18 +7,19 @@ import sttp.client3.*
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.ScalaCliSttpBackend
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.Secret
 import scala.cli.errors.GitHubApiError
 import scala.cli.util.ArgHelpers.*
 
 object SecretList extends ScalaCommand[SecretListOptions] {
 
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Secret")
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Secret)
   override def names = List(
     List("github", "secret", "list"),
     List("gh", "secret", "list")

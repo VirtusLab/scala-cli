@@ -12,7 +12,7 @@ import scala.cli.commands.tags
 
 // format: off
 final case class JavaPropOptions(
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Set java properties")
   @ValueDescription("key=value|key")
   @Tag(tags.must)

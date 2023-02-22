@@ -44,9 +44,15 @@ import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
-import scala.cli.commands.shared.{MainClassOptions, SharedOptions, SharedPythonOptions}
+import scala.cli.commands.shared.{
+  HelpCommandGroup,
+  HelpGroup,
+  MainClassOptions,
+  SharedOptions,
+  SharedPythonOptions
+}
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
-import scala.cli.commands.{ScalaCommand, WatchUtil}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
@@ -62,13 +68,15 @@ import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-  val primaryHelpGroups: Seq[String]   = Seq("Publishing", "Signing", "PGP")
-  val hiddenHelpGroups: Seq[String]    = Seq("Scala", "Java", "Entrypoint", "Dependency", "Watch")
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+
+  import scala.cli.commands.shared.HelpGroup.*
+  val primaryHelpGroups: Seq[HelpGroup] = Seq(Publishing, Signing, PGP)
+  val hiddenHelpGroups: Seq[HelpGroup]  = Seq(Scala, Java, Entrypoint, Dependency, Watch)
   override def helpFormat: HelpFormat = super.helpFormat
-    .copy(hiddenGroups = Some(hiddenHelpGroups))
+    .withHiddenGroups(hiddenHelpGroups)
     .withPrimaryGroups(primaryHelpGroups)
-  override def group: String = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 

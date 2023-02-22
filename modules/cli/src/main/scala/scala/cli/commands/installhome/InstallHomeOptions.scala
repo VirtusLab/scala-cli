@@ -3,7 +3,7 @@ package scala.cli.commands.installhome
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -11,24 +11,24 @@ import scala.cli.commands.tags
 final case class InstallHomeOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Tag(tags.implementation)
     scalaCliBinaryPath: String,
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Name("f")
   @Tag(tags.implementation)
   @HelpMessage("Overwrite if it exists")
     force: Boolean = false,
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Binary name")
     binaryName: String = baseRunnerName,
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Tag(tags.implementation)
   @HelpMessage("Print the update to `env` variable")
     env: Boolean = false,
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Binary directory")

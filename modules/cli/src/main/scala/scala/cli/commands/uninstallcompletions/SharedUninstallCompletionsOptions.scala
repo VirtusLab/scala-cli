@@ -2,21 +2,22 @@ package scala.cli.commands.uninstallcompletions
 
 import caseapp.*
 
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
 // format: off
 final case class SharedUninstallCompletionsOptions(
-  @Group("Uninstall")
+  @Group(HelpGroup.Uninstall.toString)
   @HelpMessage("Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   rcFile: Option[String] = None,
-  @Group("Uninstall")
+  @Group(HelpGroup.Uninstall.toString)
   @Hidden
   @HelpMessage("Custom banner in comment placed in rc file")
   @Tag(tags.implementation)
   banner: String = "{NAME} completions",
-  @Group("Uninstall")
+  @Group(HelpGroup.Uninstall.toString)
   @Hidden
   @HelpMessage("Custom completions name")
   @Tag(tags.implementation)

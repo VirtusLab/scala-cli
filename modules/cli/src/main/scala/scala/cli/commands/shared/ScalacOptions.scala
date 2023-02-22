@@ -12,7 +12,7 @@ import scala.cli.commands.tags
 
 // format: off
 final case class ScalacOptions(
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Add a scalac option")
   @ValueDescription("option")
   @Name("scala-opt")

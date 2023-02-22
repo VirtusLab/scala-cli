@@ -6,7 +6,7 @@ import scala.cli.commands.tags
 
 // format: off
 final case class MarkdownOptions(
-  @Group("Markdown")
+  @Group(HelpGroup.Markdown.toString)
   @Tag(tags.experimental)
   @HelpMessage("Enable markdown support.")
   @Name("md")

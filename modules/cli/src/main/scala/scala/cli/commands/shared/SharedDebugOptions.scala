@@ -7,15 +7,15 @@ import scala.cli.commands.tags
 
 // format: off
 final case class SharedDebugOptions(
-  @Group("Debug")
+  @Group(HelpGroup.Debug.toString)
   @HelpMessage("Turn debugging on")
   @Tag(tags.should)
     debug: Boolean = false,
-  @Group("Debug")
+  @Group(HelpGroup.Debug.toString)
   @HelpMessage("Debug port (5005 by default)")
   @Tag(tags.should)
     debugPort: Option[String] = None,
-  @Group("Debug")
+  @Group(HelpGroup.Debug.toString)
   @Tag(tags.should)
   @HelpMessage("Debug mode (attach by default)")
   @ValueDescription("attach|a|listen|l")

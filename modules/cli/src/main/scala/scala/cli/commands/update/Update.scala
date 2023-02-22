@@ -10,7 +10,8 @@ import scala.build.Logger
 import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
-import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 import scala.cli.util.ArgHelpers.*
@@ -19,9 +20,9 @@ import scala.util.control.NonFatal
 
 object Update extends ScalaCommand[UpdateOptions] {
 
-  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Update")
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Update)
 
   private final case class Release(
     draft: Boolean,

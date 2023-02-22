@@ -9,12 +9,12 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
   */
 // format: off
 final case class ScalacExtraOptions(
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
   @Name("helpScalac")
     scalacHelp: Boolean = false,
 
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Turn verbosity on for scalac. This is an alias for --scalac-option -verbose")
   @Name("verboseScalac")
     scalacVerbose: Boolean = false,

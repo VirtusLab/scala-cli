@@ -27,12 +27,12 @@ final case class PublishOptions(
   @Recurse
     signingCli: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Hidden
     ivy2LocalLike: Option[Boolean] = None,
 
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Hidden
     parallelUpload: Option[Boolean] = None

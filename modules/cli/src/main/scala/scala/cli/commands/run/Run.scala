@@ -19,20 +19,21 @@ import scala.cli.commands.package0.Package
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.setupide.SetupIde
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
-import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
 import scala.cli.util.ArgHelpers.*
 import scala.util.{Properties, Try}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
-  override def group                   = "Main"
-  override def scalaSpecificationLevel = SpecificationLevel.MUST
-  val primaryHelpGroups: Seq[String]   = Seq("Run", "Entrypoint", "Watch")
-  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
+  override def group: String                               = HelpCommandGroup.Main.toString
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
+
+  val primaryHelpGroups: Seq[HelpGroup] = Seq(HelpGroup.Run, HelpGroup.Entrypoint, HelpGroup.Watch)
+  override def helpFormat: HelpFormat   = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
   override def sharedOptions(options: RunOptions): Option[SharedOptions] = Some(options.shared)
 
   private def runMode(options: RunOptions): RunMode =

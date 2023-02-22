@@ -6,6 +6,7 @@ import caseapp.core.help.Help
 import scala.cli.commands.shared.{
   CrossOptions,
   HasSharedOptions,
+  HelpGroup,
   HelpMessages,
   SharedOptions,
   SharedWatchOptions
@@ -22,7 +23,7 @@ final case class CompileOptions(
   @Recurse
     cross: CrossOptions = CrossOptions(),
 
-  @Group("Compilation")
+  @Group(HelpGroup.Compilation.toString)
   @Name("p")
   @Name("printClasspath")
   @HelpMessage("Print the resulting class path")
@@ -30,7 +31,7 @@ final case class CompileOptions(
   @Tag(tags.inShortHelp)
     printClassPath: Boolean = false,
 
-  @Group("Compilation")
+  @Group(HelpGroup.Compilation.toString)
   @HelpMessage("Compile test scope")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)

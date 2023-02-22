@@ -3,14 +3,7 @@ package scala.cli.commands.test
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HasSharedOptions,
-  HelpMessages,
-  SharedJavaOptions,
-  SharedOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 @HelpMessage(TestOptions.helpMessage, "", TestOptions.detailedHelpMessage)
@@ -25,19 +18,19 @@ final case class TestOptions(
   @Recurse
     compileCross: CrossOptions = CrossOptions(),
 
-  @Group("Test")
+  @Group(HelpGroup.Test.toString)
   @HelpMessage("Name of the test framework's runner class to use while running tests")
   @ValueDescription("class-name")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
     testFramework: Option[String] = None,
 
-  @Group("Test")
+  @Group(HelpGroup.Test.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage("Fail if no test suites were run")
     requireTests: Boolean = false,
-  @Group("Test")
+  @Group(HelpGroup.Test.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage("Specify a glob pattern to filter the tests suite to be run.")

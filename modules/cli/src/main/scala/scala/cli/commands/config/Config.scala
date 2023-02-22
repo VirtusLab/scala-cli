@@ -11,6 +11,7 @@ import scala.build.errors.{BuildException, CompositeBuildException, MalformedCli
 import scala.build.{Directories, Logger}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{
@@ -23,11 +24,11 @@ import scala.cli.config.{
 }
 import scala.cli.util.ArgHelpers.*
 object Config extends ScalaCommand[ConfigOptions] {
-  override def scalaSpecificationLevel = SpecificationLevel.MUST
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
 
   override def helpFormat: HelpFormat = super.helpFormat
-    .copy(hiddenGroups = Some(Seq("Java")))
-    .withPrimaryGroup("Config")
+    .withHiddenGroup(HelpGroup.Java)
+    .withPrimaryGroup(HelpGroup.Config)
 
   override def runCommand(options: ConfigOptions, args: RemainingArgs, logger: Logger): Unit = {
     val directories = Directories.directories

@@ -6,7 +6,7 @@ import scala.cli.commands.tags
 
 // format: off
 final case class SharedJavaOptions(
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Set Java options, such as `-Xmx1g`")
   @ValueDescription("java-options")
   @Tag(tags.must)

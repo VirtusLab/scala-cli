@@ -18,16 +18,17 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Platform, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpGroup, SharedOptions}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.exportCmd.*
 import scala.cli.util.ArgHelpers.*
 import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Build Tool export")
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroup(HelpGroup.BuildToolExport)
 
   private def prepareBuild(
     inputs: Inputs,

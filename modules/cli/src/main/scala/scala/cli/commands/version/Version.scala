@@ -6,21 +6,21 @@ import caseapp.core.help.HelpFormat
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.cli.CurrentParams
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.update.Update
-import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.PasswordOption
 import scala.cli.util.ArgHelpers.*
 
 object Version extends ScalaCommand[VersionOptions] {
-  override def group = "Miscellaneous"
+  override def group: String = HelpCommandGroup.Miscellaneous.toString
 
-  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
-  override def helpFormat: HelpFormat = super.helpFormat
-    .copy(
-      hiddenGroups = Some(Seq("Logging")),
-      hiddenGroupsWhenShowHidden = Some(Seq("Logging"))
-    )
-    .withPrimaryGroup("Version")
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.SHOULD
+  override def helpFormat: HelpFormat =
+    super.helpFormat
+      .withHiddenGroup(HelpGroup.Logging)
+      .withHiddenGroupWhenShowHidden(HelpGroup.Logging)
+      .withPrimaryGroup(HelpGroup.Version)
 
   override def runCommand(options: VersionOptions, args: RemainingArgs, logger: Logger): Unit = {
     lazy val maybeNewerScalaCliVersion: Option[String] =

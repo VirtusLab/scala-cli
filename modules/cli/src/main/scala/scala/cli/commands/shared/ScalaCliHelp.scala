@@ -4,48 +4,37 @@ import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
 import scala.cli.ScalaCli.allowRestrictedFeatures
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.util.ArgHelpers.*
 import scala.util.{Properties, Try}
 
 object ScalaCliHelp {
+  private val sortedHelpGroups = Seq(
+    HelpGroup.Scala,
+    HelpGroup.Java,
+    HelpGroup.Watch,
+    HelpGroup.Dependency,
+    HelpGroup.Entrypoint,
+    HelpGroup.Debug,
+    HelpGroup.Repl,
+    HelpGroup.Run,
+    HelpGroup.Package,
+    HelpGroup.CompilationServer,
+    HelpGroup.Logging,
+    HelpGroup.Runner,
+    HelpGroup.Launcher,
+    HelpGroup.LegacyScalaRunner,
+    HelpGroup.ScalaJs,
+    HelpGroup.ScalaNative,
+    HelpGroup.Help
+  )
+  private val hiddenHelpGroups = Seq(HelpGroup.ScalaJs, HelpGroup.ScalaNative)
+  private val sortedCommandGroups =
+    Seq(HelpCommandGroup.Main, HelpCommandGroup.Miscellaneous, HelpCommandGroup.Undefined)
   val helpFormat: HelpFormat = HelpFormat.default()
     .copy(
       filterArgs = Some(arg => arg.isSupported && (arg.isMust || arg.isImportant)),
       filterArgsWhenShowHidden = Some(_.isSupported),
-      sortedGroups = Some(
-        Seq(
-          "Scala",
-          "Java",
-          "Watch",
-          "Dependency",
-          "Entrypoint",
-          "Debug",
-          "Repl",
-          "Run",
-          "Package",
-          "Compilation server",
-          "Logging",
-          "Runner",
-          "Launcher",
-          "Legacy Scala runner",
-          "Scala.js",
-          "Scala Native",
-          "Help"
-        )
-      ),
-      sortedCommandGroups = Some(
-        Seq(
-          "Main",
-          "Miscellaneous",
-          ""
-        )
-      ),
-      hiddenGroups = Some(
-        Seq(
-          "Scala.js",
-          "Scala Native"
-        )
-      ),
       terminalWidthOpt =
         if (Properties.isWin)
           if (coursier.paths.Util.useJni())
@@ -68,4 +57,7 @@ object ScalaCliHelp {
           // This requires writing our own minimal JNI library, that publishes '.a' files too for static linking in the executable of Scala CLI.
           None
     )
+    .withSortedCommandGroups(sortedCommandGroups)
+    .withSortedGroups(sortedHelpGroups)
+    .withHiddenGroups(hiddenHelpGroups)
 }

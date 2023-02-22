@@ -3,7 +3,7 @@ package scala.cli.commands.installcompletions
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -11,7 +11,7 @@ import scala.cli.commands.tags
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Name("shell")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
@@ -19,32 +19,32 @@ final case class InstallCompletionsOptions(
     format: Option[String] = None,
 
   @Tag(tags.implementation)
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Tag(tags.inShortHelp)
   @HelpMessage("Path to `*rc` file, defaults to `.bashrc` or `.zshrc` depending on shell")
   rcFile: Option[String] = None,
 
   @Tag(tags.implementation)
   @HelpMessage("Completions output directory")
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   @Name("o")
   output: Option[String] = None,
 
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Custom banner in comment placed in rc file")
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   banner: String = "{NAME} completions",
 
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Custom completions name")
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
   name: Option[String] = None,
 
   @Tag(tags.implementation)
   @HelpMessage("Print completions to stdout")
-  @Group("Install")
+  @Group(HelpGroup.Install.toString)
     env: Boolean = false,
 ) extends HasLoggingOptions
 // format: on

@@ -3,7 +3,7 @@ package scala.cli.commands.update
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
@@ -14,16 +14,17 @@ final case class UpdateOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Hidden
-  @Group("Update")
+  @Group(HelpGroup.Update.toString)
   @HelpMessage("Binary name")
   @Tag(tags.implementation)
     binaryName: String = baseRunnerName,
   @Hidden
-  @Group("Update")
+  @Group(HelpGroup.Update.toString)
   @HelpMessage("Binary directory")
   @Tag(tags.implementation)
     binDir: Option[String] = None,
   @Name("f")
+  @Group(HelpGroup.Update.toString)
   @HelpMessage(s"Force update $fullRunnerName if it is outdated")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)

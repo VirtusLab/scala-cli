@@ -6,11 +6,11 @@ import scala.cli.commands.tags
 
 // format: off
 final case class BenchmarkingOptions(
-  @Group("Benchmarking")
+  @Group(HelpGroup.Benchmarking.toString)
   @Tag(tags.experimental)
   @HelpMessage("Run JMH benchmarks")
     jmh: Option[Boolean] = None,
-  @Group("Benchmarking")
+  @Group(HelpGroup.Benchmarking.toString)
   @Tag(tags.experimental)
   @HelpMessage("Set JMH version")
   @ValueDescription("version")

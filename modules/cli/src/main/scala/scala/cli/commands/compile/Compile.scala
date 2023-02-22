@@ -10,21 +10,27 @@ import scala.build.{Build, BuildThreads, Builds, Logger, Os}
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.setupide.SetupIde
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers
-import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
 
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
-  override def group = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
 
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
-  override def scalaSpecificationLevel = SpecificationLevel.MUST
-  val primaryHelpGroups: Seq[String] =
-    Seq("Compilation", "Scala", "Java", "Watch", "Compilation server")
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
+  val primaryHelpGroups: Seq[HelpGroup] =
+    Seq(
+      HelpGroup.Compilation,
+      HelpGroup.Scala,
+      HelpGroup.Java,
+      HelpGroup.Watch,
+      HelpGroup.CompilationServer
+    )
 
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroups(primaryHelpGroups)
 

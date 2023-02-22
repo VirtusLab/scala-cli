@@ -11,7 +11,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
 import scala.cli.commands.shared.ScalaCliHelp.helpFormat
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.commands.version.{Version, VersionOptions}
 import scala.cli.commands.{ScalaCommand, ScalaCommandWithCustomHelp}
 import scala.cli.launcher.LauncherOptions
@@ -36,7 +36,7 @@ class Default(
 
   override def scalaSpecificationLevel = SpecificationLevel.MUST
 
-  override def group = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
 
   override def sharedOptions(options: DefaultOptions): Option[SharedOptions] = Some(options.shared)
 

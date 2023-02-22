@@ -33,7 +33,7 @@ import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.orPythonDetectionError
-import scala.cli.commands.shared.{MainClassOptions, SharedOptions}
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
@@ -44,23 +44,23 @@ import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
-  override def name  = "package"
-  override def group = "Main"
+  override def name          = "package"
+  override def group: String = HelpCommandGroup.Main.toString
 
-  val primaryHelpGroups: Seq[String] = Seq(
-    "Package",
-    "Scala",
-    "Java",
-    "Debian",
-    "MacOS",
-    "RedHat",
-    "Windows",
-    "Docker",
-    "Native image"
+  val primaryHelpGroups: Seq[HelpGroup] = Seq(
+    HelpGroup.Package,
+    HelpGroup.Scala,
+    HelpGroup.Java,
+    HelpGroup.Debian,
+    HelpGroup.MacOS,
+    HelpGroup.RedHat,
+    HelpGroup.Windows,
+    HelpGroup.Docker,
+    HelpGroup.NativeImage
   )
-  val hiddenHelpGroups: Seq[String] = Seq("Entrypoint", "Watch")
+  val hiddenHelpGroups: Seq[HelpGroup] = Seq(HelpGroup.Entrypoint, HelpGroup.Watch)
   override def helpFormat: HelpFormat = super.helpFormat
-    .copy(hiddenGroups = Some(hiddenHelpGroups))
+    .withHiddenGroups(hiddenHelpGroups)
     .withPrimaryGroups(primaryHelpGroups)
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED

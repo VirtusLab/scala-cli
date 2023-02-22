@@ -3,7 +3,7 @@ package scala.cli.commands.github
 import caseapp.*
 
 import scala.cli.ScalaCli.progName
-import scala.cli.commands.shared.{CoursierOptions, HelpMessages}
+import scala.cli.commands.shared.{CoursierOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 
 // format: off
@@ -16,7 +16,7 @@ final case class SecretCreateOptions(
     shared: SharedSecretOptions = SharedSecretOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
-  @Group("Secret")
+  @Group(HelpGroup.Secret.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @ExtraName("pubKey")
@@ -26,7 +26,7 @@ final case class SecretCreateOptions(
     dummy: Boolean = false,
   @Hidden
   @Tag(tags.implementation)
-  @Group("Secret")
+  @Group(HelpGroup.Secret.toString)
     printRequest: Boolean = false
 ) extends HasSharedSecretOptions
 // format: on

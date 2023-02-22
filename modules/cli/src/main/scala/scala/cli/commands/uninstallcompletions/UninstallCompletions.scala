@@ -7,16 +7,18 @@ import java.nio.charset.Charset
 
 import scala.build.Logger
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
 import scala.cli.commands.installcompletions.InstallCompletions
+import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.internal.ProfileFileUpdater
 import scala.cli.util.ArgHelpers.*
 
 object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
 
-  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Uninstall")
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroup(HelpGroup.Uninstall)
 
   override def names = List(
     List("uninstall", "completions"),

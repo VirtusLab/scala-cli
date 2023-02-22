@@ -5,6 +5,7 @@ import caseapp.*
 import scala.cli.commands.shared.{
   CoursierOptions,
   HasLoggingOptions,
+  HelpGroup,
   LoggingOptions,
   SharedJvmOptions
 }
@@ -22,14 +23,14 @@ final case class PgpPushOptions(
   @Recurse
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
-  @Group("PGP")
+  @Group(HelpGroup.PGP.toString)
   @HelpMessage("Try to push the key even if Scala CLI thinks it's not a public key")
   @ExtraName("f")
     force: Boolean = false,
-  @Group("PGP")
+  @Group(HelpGroup.PGP.toString)
   @HelpMessage("Whether to exit with code 0 if no key is passed")
     allowEmpty: Boolean = false,
-  @Group("PGP")
+  @Group(HelpGroup.PGP.toString)
   @Hidden
     forceSigningBinary: Boolean = false
 ) extends HasLoggingOptions

@@ -7,13 +7,13 @@ import scala.cli.commands.tags
 // format: off
 final case class SharedWatchOptions(
 
-  @Group("Watch")
+  @Group(HelpGroup.Watch.toString)
   @HelpMessage("Run the application in the background, automatically wake the thread and re-run if sources have been changed")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @Name("w")
     watch: Boolean = false,
-  @Group("Watch")
+  @Group(HelpGroup.Watch.toString)
   @HelpMessage("Run the application in the background, automatically kill the process and restart if sources have been changed")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)

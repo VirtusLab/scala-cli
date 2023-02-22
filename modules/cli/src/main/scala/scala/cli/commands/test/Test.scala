@@ -16,18 +16,19 @@ import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run
 import scala.cli.commands.setupide.SetupIde
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
-import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
 
 object Test extends ScalaCommand[TestOptions] {
-  override def group                                                      = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
   override def sharedOptions(options: TestOptions): Option[SharedOptions] = Some(options.shared)
-  override def scalaSpecificationLevel = SpecificationLevel.SHOULD
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.SHOULD
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroups(Seq("Test", "Watch"))
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroups(Seq(HelpGroup.Test, HelpGroup.Watch))
 
   private def gray  = "\u001b[90m"
   private def reset = Console.RESET

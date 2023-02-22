@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -12,17 +12,17 @@ import scala.cli.commands.tags
 final case class DocOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
-  @Group("Doc")
+  @Group(HelpGroup.Doc.toString)
   @Tag(tags.must)
   @HelpMessage("Set the destination path")
   @Name("o")
     output: Option[String] = None,
-  @Group("Doc")
+  @Group(HelpGroup.Doc.toString)
   @HelpMessage("Overwrite the destination directory, if it exists")
   @Tag(tags.must)
   @Name("f")
     force: Boolean = false,
-  @Group("Doc")
+  @Group(HelpGroup.Doc.toString)
   @HelpMessage(s"Control if $fullRunnerName should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @Tag(tags.should)
   @ExtraName("defaultScaladocOpts")
