@@ -7,12 +7,10 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Main class")
-@DirectiveExamples("//> using main-class \"helloWorld\"")
+@DirectiveExamples("//> using mainClass \"helloWorld\"")
 @DirectiveUsage(
-  "//> using main-class _main class_ | //> using mainClass _main class_",
-  """`//> using main-class `_main class_
-    |
-    |`//> using mainClass `_main class_""".stripMargin
+  "//> using mainClass _main class_",
+  "`//> using mainClass `_main class_"
 )
 @DirectiveDescription("Specify default main class")
 @DirectiveLevel(SpecificationLevel.MUST)

@@ -79,18 +79,14 @@ Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
 
 Sets Java home used to run your application or tests
 
-`//> using java-home `_path_
-
 `//> using javaHome `_path_
 
 #### Examples
-`//> using java-home "/Users/Me/jdks/11"`
+`//> using javaHome "/Users/Me/jdks/11"`
 
 ### Java options
 
 Add Java options which will be passed when running an application.
-
-`//> using java-opt `_options_
 
 `//> using javaOpt `_options_
 
@@ -111,8 +107,6 @@ Add Java properties
 
 Add Javac options which will be passed when compiling sources.
 
-`//> using javac-opt `_options_
-
 `//> using javacOpt `_options_
 
 #### Examples
@@ -122,12 +116,10 @@ Add Javac options which will be passed when compiling sources.
 
 Specify default main class
 
-`//> using main-class `_main class_
-
 `//> using mainClass `_main class_
 
 #### Examples
-`//> using main-class "helloWorld"`
+`//> using mainClass "helloWorld"`
 
 ### Packaging
 
