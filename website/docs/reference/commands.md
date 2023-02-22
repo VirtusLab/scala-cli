@@ -54,7 +54,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 ## export
 
-Export current project to an external build tool (like SBT or Mill).
+Export current project to an external build tool (like SBT or Mill) or to JSON.
 
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
