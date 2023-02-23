@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import scala.annotation.tailrec
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 
 object WatchUtil {
 
@@ -15,7 +16,7 @@ object WatchUtil {
   }
 
   private def gray(message: String): String = {
-    val gray  = "\u001b[90m"
+    val gray  = ScalaCliConsole.GRAY
     val reset = Console.RESET
     s"$gray$message$reset"
   }

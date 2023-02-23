@@ -7,9 +7,10 @@ import java.net.URI
 import java.nio.file.Paths
 
 import scala.build.errors.Severity
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class ConsoleBloopBuildClient(
   logger: Logger,
@@ -147,7 +148,7 @@ class ConsoleBloopBuildClient(
 }
 
 object ConsoleBloopBuildClient {
-  private val gray   = "\u001b[90m"
+  private val gray   = ScalaCliConsole.GRAY
   private val reset  = Console.RESET
   private val red    = Console.RED
   private val yellow = Console.YELLOW

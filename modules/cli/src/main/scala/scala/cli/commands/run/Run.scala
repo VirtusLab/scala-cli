@@ -12,6 +12,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
 import scala.cli.CurrentParams
@@ -165,7 +166,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               (retCode, allowTerminate) match {
                 case (0, true) =>
                 case (0, false) =>
-                  val gray  = "\u001b[90m"
+                  val gray  = ScalaCliConsole.GRAY
                   val reset = Console.RESET
                   System.err.println(s"${gray}Program exited with return code $retCode.$reset")
                 case (_, true) =>

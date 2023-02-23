@@ -9,6 +9,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
@@ -30,7 +31,7 @@ object Test extends ScalaCommand[TestOptions] {
   override def helpFormat: HelpFormat =
     super.helpFormat.withPrimaryGroups(Seq(HelpGroup.Test, HelpGroup.Watch))
 
-  private def gray  = "\u001b[90m"
+  private def gray  = ScalaCliConsole.GRAY
   private def reset = Console.RESET
 
   override def buildOptions(opts: TestOptions): Option[BuildOptions] = Some {
