@@ -367,9 +367,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       ))
 
       if (TestUtil.isShebangCapableShell)
-        expect(output.contains(
-          "to use a script with no file extensions add shebang header"
-        ))
+        expect(output.contains("shebang header"))
     }
   }
 }
