@@ -7,10 +7,11 @@ import scala.build.internal.Constants
 import scala.build.{Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.setupide.SetupIde
+import scala.cli.commands.shared.HelpCommandGroup
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
-  override def group = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
 
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
 

@@ -9,14 +9,15 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
-import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.util.ArgHelpers.*
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
-  override def group                   = "Main"
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
-  override def helpFormat: HelpFormat  = super.helpFormat.withPrimaryGroup("Dependency")
+  override def group: String                               = HelpCommandGroup.Main.toString
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroup(HelpGroup.Dependency)
   override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
     Some(options.shared)
   override def runCommand(

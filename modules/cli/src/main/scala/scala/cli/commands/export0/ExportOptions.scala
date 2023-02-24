@@ -3,7 +3,13 @@ package scala.cli.commands.export0
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, MainClassOptions, SharedOptions}
+import scala.cli.commands.shared.{
+  HasSharedOptions,
+  HelpGroup,
+  HelpMessages,
+  MainClassOptions,
+  SharedOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -15,37 +21,37 @@ final case class ExportOptions(
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
 
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to SBT")
     sbt: Option[Boolean] = None,
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Mill")
     mill: Option[Boolean] = None,
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @HelpMessage("Sets the export format to Json")
     json: Option[Boolean] = None,
 
   @Name("setting")
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
     sbtSetting: List[String] = Nil,
   @Name("p")
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @HelpMessage("Project name to be used on Mill build file")
     project: Option[String] = None,
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @HelpMessage("Version of SBT to be used for the export")
     sbtVersion: Option[String] = None,
   @Name("o")
-  @Group("Build Tool export")
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
     output: Option[String] = None
 ) extends HasSharedOptions

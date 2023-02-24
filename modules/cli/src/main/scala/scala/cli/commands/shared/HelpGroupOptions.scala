@@ -10,17 +10,17 @@ import scala.cli.commands.tags
 
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
-  @Group("Help")
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for ScalaJS")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpJs: Boolean = false,
-  @Group("Help")
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for ScalaNative")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpNative: Boolean = false,
-  @Group("Help")
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for Scaladoc")
   @Name("scaladocHelp")
   @Name("docHelp")
@@ -28,13 +28,13 @@ case class HelpGroupOptions(
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpScaladoc: Boolean = false,
-  @Group("Help")
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for Scala REPL")
   @Name("replHelp")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpRepl: Boolean = false,
-  @Group("Help")
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for Scalafmt")
   @Name("scalafmtHelp")
   @Name("fmtHelp")
@@ -58,8 +58,8 @@ case class HelpGroupOptions(
   }
 
   def maybePrintGroupHelp(help: Help[_], helpFormat: HelpFormat): Unit = {
-    if (helpJs) printHelpWithGroup(help, helpFormat, "Scala.js")
-    else if (helpNative) printHelpWithGroup(help, helpFormat, "Scala Native")
+    if (helpJs) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaJs.toString)
+    else if (helpNative) printHelpWithGroup(help, helpFormat, HelpGroup.ScalaNative.toString)
   }
 }
 

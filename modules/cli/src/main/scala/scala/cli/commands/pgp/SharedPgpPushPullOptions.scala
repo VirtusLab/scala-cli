@@ -4,12 +4,12 @@ import caseapp.*
 import sttp.model.Uri
 
 import scala.build.Logger
-import scala.cli.commands.shared.LoggingOptions
+import scala.cli.commands.shared.{HelpGroup, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
 final case class SharedPgpPushPullOptions(
-  @Group("PGP")
+  @Group(HelpGroup.PGP.toString)
   @HelpMessage("Key server to push / pull keys from")
   @ValueDescription("URL")
   @Tag(tags.restricted)

@@ -7,6 +7,7 @@ import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
   CoursierOptions,
   HasLoggingOptions,
+  HelpGroup,
   HelpMessages,
   LoggingOptions,
   SharedJvmOptions
@@ -25,54 +26,54 @@ final case class ConfigOptions(
   @Recurse
   @Tag(tags.restricted)
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("Dump config DB as JSON")
   @Hidden
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
     dump: Boolean = false,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("Create PGP key in config")
   @Tag(tags.inShortHelp)
   @Tag(tags.restricted)
     createPgpKey: Boolean = false,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("Email to use to create PGP key in config")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     email: Option[String] = None,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     password: Boolean = false,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     passwordValue: Boolean = false,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("Remove an entry from config")
   @Tag(tags.inShortHelp)
   @Tag(tags.should)
   @ExtraName("remove")
     unset: Boolean = false,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("For repository.credentials and publish.credentials, whether these credentials should be HTTPS only (default: true)")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     httpsOnly: Option[Boolean] = None,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("For repository.credentials, whether to use these credentials automatically based on the host")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     matchHost: Option[Boolean] = None,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("For repository.credentials, whether to use these credentials are optional")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     optional: Option[Boolean] = None,
-  @Group("Config")
+  @Group(HelpGroup.Config.toString)
   @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)

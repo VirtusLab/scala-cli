@@ -28,95 +28,95 @@ final case class PackageOptions(
   @Recurse
     mainClass: MainClassOptions = MainClassOptions(),
 
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Set the destination path")
   @Name("o")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     output: Option[String] = None,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Overwrite the destination file, if it exists")
   @Name("f")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     force: Boolean = false,
 
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a library JAR rather than an executable JAR")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     library: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a source JAR rather than an executable JAR")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     source: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a scaladoc JAR rather than an executable JAR")
   @ExtraName("scaladoc")
   @ExtraName("javadoc")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     doc: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate an assembly JAR")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     assembly: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("For assembly JAR, whether to add a bash / bat preamble")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     preamble: Boolean = true,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @Hidden
   @HelpMessage("For assembly JAR, whether to specify a main class in the JAR manifest")
   @Tag(tags.restricted)
     mainClassInManifest: Option[Boolean] = None,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @Hidden
   @HelpMessage("Generate an assembly JAR for Spark (assembly that doesn't contain Spark, nor any of its dependencies)")
   @Tag(tags.experimental)
     spark: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Package standalone JARs")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     standalone: Option[Boolean] = None,
   @Recurse
     packager: PackagerOptions = PackagerOptions(),
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build Debian package, available only on Linux")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     deb: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build dmg package, available only on macOS")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     dmg: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build rpm package, available only on Linux")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     rpm: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build msi package, available only on Windows")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     msi: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build pkg package, available only on macOS")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     pkg: Boolean = false,
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build Docker image")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     docker: Boolean = false,
 
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @Hidden
   @HelpMessage("Exclude modules *and their transitive dependencies* from the JAR to be packaged")
   @ValueDescription("org:name")
@@ -124,13 +124,13 @@ final case class PackageOptions(
   @Tag(tags.inShortHelp)
     provided: List[String] = Nil,
 
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Use default scaladoc options")
   @ExtraName("defaultScaladocOpts")
   @Tag(tags.implementation)
     defaultScaladocOptions: Option[Boolean] = None,
 
-  @Group("Package")
+  @Group(HelpGroup.Package.toString)
   @HelpMessage("Build GraalVM native image")
   @ExtraName("graal")
   @Tag(tags.restricted)

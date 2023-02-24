@@ -6,7 +6,7 @@ import java.nio.file.Path
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.bloop.BloopExitOptions
-import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
 import scala.cli.commands.tags
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
@@ -20,20 +20,23 @@ final case class UninstallOptions(
     bloopExit: BloopExitOptions = BloopExitOptions(),
   @Recurse
     sharedUninstallCompletions: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),
-  @Group("Uninstall")
+  @Group(HelpGroup.Uninstall.toString)
   @Name("f")
   @HelpMessage(s"Force $baseRunnerName uninstall")
   @Tag(tags.implementation)
     force: Boolean = false,
   @Hidden
+  @Group(HelpGroup.Uninstall.toString)
   @HelpMessage(s"Don't clear $fullRunnerName cache")
   @Tag(tags.implementation)
     skipCache: Boolean = false,
   @Hidden
+  @Group(HelpGroup.Uninstall.toString)
   @HelpMessage("Binary name")
   @Tag(tags.implementation)
     binaryName: String = baseRunnerName,
   @Hidden
+  @Group(HelpGroup.Uninstall.toString)
   @HelpMessage("Binary directory")
   @Tag(tags.implementation)
     binDir: Option[String] = None

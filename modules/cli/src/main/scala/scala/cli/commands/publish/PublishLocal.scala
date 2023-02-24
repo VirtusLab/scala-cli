@@ -7,17 +7,17 @@ import scala.build.options.BuildOptions
 import scala.build.{BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.config.ConfigDb
 import scala.cli.util.ArgHelpers.*
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
-  override def group: String           = "Main"
+  override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
   override def helpFormat: HelpFormat =
     super.helpFormat
-      .copy(hiddenGroups = Some(Publish.hiddenHelpGroups))
+      .withHiddenGroups(Publish.hiddenHelpGroups)
       .withPrimaryGroups(Publish.primaryHelpGroups)
   override def sharedOptions(options: PublishLocalOptions): Option[SharedOptions] =
     Some(options.shared)

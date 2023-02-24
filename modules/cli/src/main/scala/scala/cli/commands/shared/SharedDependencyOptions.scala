@@ -8,20 +8,20 @@ import scala.cli.commands.tags
 
 // format: off
 final case class SharedDependencyOptions(
-  @Group("Dependency")
+  @Group(HelpGroup.Dependency.toString)
   @HelpMessage("Add dependencies")
   @Tag(tags.must)
   @Name("dep")
     dependency: List[String] = Nil,
 
-  @Group("Dependency")
+  @Group(HelpGroup.Dependency.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage("Add repositories")
   @Name("repo")
   @Name("r")
     repository: List[String] = Nil,
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @Name("P")
   @Name("plugin")
   @Tag(tags.must)

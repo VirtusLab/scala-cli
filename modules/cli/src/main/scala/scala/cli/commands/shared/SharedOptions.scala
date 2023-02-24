@@ -70,14 +70,14 @@ final case class SharedOptions(
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
 
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
   @ValueDescription("version")
   @Name("scala")
   @Name("S")
   @Tag(tags.must)
     scalaVersion: Option[String] = None,
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
@@ -96,7 +96,7 @@ final case class SharedOptions(
   @Recurse
     markdown: MarkdownOptions = MarkdownOptions(),
 
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Add extra JARs and compiled classes to the class path")
   @ValueDescription("paths")
   @Name("jar")
@@ -114,7 +114,7 @@ final case class SharedOptions(
   @Tag(tags.must)
     extraJars: List[String] = Nil,
 
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.")
   @ValueDescription("paths")
   @Name("compileOnlyJar")
@@ -123,7 +123,7 @@ final case class SharedOptions(
   @Tag(tags.should)
     extraCompileOnlyJars: List[String] = Nil,
 
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Add extra source JARs")
   @ValueDescription("paths")
   @Name("sourceJar")
@@ -132,35 +132,36 @@ final case class SharedOptions(
   @Tag(tags.should)
     extraSourceJars: List[String] = Nil,
 
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Add a resource directory")
   @ValueDescription("paths")
   @Name("resourceDir")
   @Tag(tags.must)
     resourceDirs: List[String] = Nil,
 
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Specify platform")
   @ValueDescription("scala-js|scala-native|jvm")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
     platform: Option[String] = None,
 
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @Tag(tags.implementation)
   @Hidden
     scalaLibrary: Option[Boolean] = None,
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Allows to include the Scala compiler artifacts on the classpath.")
   @Tag(tags.must)
   @Name("withScalaCompiler")
   @Name("-with-compiler")
     withCompiler: Option[Boolean] = None,
-  @Group("Java")
+  @Group(HelpGroup.Java.toString)
   @HelpMessage("Do not add dependency to Scala Standard library. This is useful, when Scala CLI works with pure Java projects.")
   @Tag(tags.implementation)
   @Hidden
     java: Option[Boolean] = None,
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.")
   @Tag(tags.implementation)
   @Hidden
@@ -183,7 +184,7 @@ final case class SharedOptions(
   @Hidden
     strictBloopJsonCheck: Option[Boolean] = None,
 
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @Name("output-directory")
   @Name("d")
   @Name("destination")
@@ -193,7 +194,7 @@ final case class SharedOptions(
   @ValueDescription("/example/path")
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
-  @Group("Scala")
+  @Group(HelpGroup.Scala.toString)
   @HelpMessage("Add toolkit to classPath")
   @ValueDescription("version|latest")
   @Name("toolkit")

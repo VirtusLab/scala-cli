@@ -11,22 +11,28 @@ import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.fmt.FmtUtil.*
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.util.ArgHelpers.*
 
 object Fmt extends ScalaCommand[FmtOptions] {
-  override def group: String                                             = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
   override def sharedOptions(options: FmtOptions): Option[SharedOptions] = Some(options.shared)
   override def scalaSpecificationLevel                                   = SpecificationLevel.SHOULD
 
-  val hiddenHelpGroups: Seq[String] =
-    Seq("Scala", "Java", "Dependency", "Scala.js", "Scala Native", "Compilation server", "Debug")
-  override def helpFormat: HelpFormat = super.helpFormat
-    .copy(
-      hiddenGroups = Some(hiddenHelpGroups),
-      hiddenGroupsWhenShowHidden = Some(hiddenHelpGroups)
+  val hiddenHelpGroups: Seq[HelpGroup] =
+    Seq(
+      HelpGroup.Scala,
+      HelpGroup.Java,
+      HelpGroup.Dependency,
+      HelpGroup.ScalaJs,
+      HelpGroup.ScalaNative,
+      HelpGroup.CompilationServer,
+      HelpGroup.Debug
     )
-    .withPrimaryGroup("Format")
+  override def helpFormat: HelpFormat = super.helpFormat
+    .withHiddenGroups(hiddenHelpGroups)
+    .withHiddenGroupsWhenShowHidden(hiddenHelpGroups)
+    .withPrimaryGroup(HelpGroup.Format)
   override def names: List[List[String]] = List(
     List("fmt"),
     List("format"),

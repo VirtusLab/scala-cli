@@ -15,21 +15,21 @@ import scala.build.internal.Runner
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.cli.util.ArgHelpers.*
 import scala.util.Properties
 
 object Doc extends ScalaCommand[DocOptions] {
-  override def group = "Main"
+  override def group: String = HelpCommandGroup.Main.toString
 
   override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Doc")
+  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Doc)
 
-  override def scalaSpecificationLevel = SpecificationLevel.MUST
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
 
   override def runCommand(options: DocOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)

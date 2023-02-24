@@ -31,41 +31,41 @@ final case class PublishSetupOptions(
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
 
 
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Public key to use to verify artifacts (to be uploaded to a key server)")
     publicKey: Option[PasswordOption] = None,
 
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Check if some options for publishing are missing, and exit with non-zero return code if that's the case")
     check: Boolean = false,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("GitHub token to use to upload secrets to GitHub - password encoded")
     token: Option[PasswordOption] = None,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Generate a random key pair for publishing, with a secret key protected by a random password")
     randomSecretKey: Option[Boolean] = None,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("When generating a random key pair, the mail to associate to it")
     randomSecretKeyMail: Option[String] = None,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @HelpMessage("The option groups to check - can be \"all\", or a comma-separated list of \"core\", \"signing\", \"repo\", \"extra\"")
     checks: Option[String] = None,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)
   @HelpMessage("Whether to check if a GitHub workflow already exists (one for publishing is written if none is found)")
     checkWorkflow: Option[Boolean] = None,
-  @Group("Publishing")
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.implementation)
   @HelpMessage("Dummy mode - don't upload any secret to GitHub")
     dummy: Boolean = false

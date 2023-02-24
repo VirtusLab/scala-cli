@@ -12,12 +12,12 @@ import scala.cli.internal.CliLogger
 final case class LoggingOptions(
   @Recurse
     verbosityOptions: VerbosityOptions = VerbosityOptions(),
-  @Group("Logging")
+  @Group(HelpGroup.Logging.toString)
   @HelpMessage("Decrease logging verbosity")
   @Tag(tags.implementation)
   @Name("q")
     quiet: Boolean = false,
-  @Group("Logging")
+  @Group(HelpGroup.Logging.toString)
   @Tag(tags.implementation)
   @HelpMessage("Use progress bars")
     progress: Option[Boolean] = None

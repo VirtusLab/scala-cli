@@ -8,7 +8,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
 import scala.cli.commands.{Constants, tags}
 import scala.util.Properties
 
@@ -18,72 +18,72 @@ final case class FmtOptions(
   @Recurse
     shared: SharedOptions = SharedOptions(),
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage("Check if sources are well formatted")
     check: Boolean = false,
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @HelpMessage("Use project filters defined in the configuration. Turned on by default, use `--respect-project-filters:false` to disable it.")
     respectProjectFilters: Boolean = true,
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @HelpMessage("Saves .scalafmt.conf file if it was created or overwritten")
     saveScalafmtConf: Boolean = false,
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Hidden
     osArchSuffix: Option[String] = None,
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Hidden
     scalafmtTag: Option[String] = None,
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Hidden
     scalafmtGithubOrgName: Option[String] = None,
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Hidden
     scalafmtExtension: Option[String] = None,
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @Hidden
     scalafmtLauncher: Option[String] = None,
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Name("F")
   @Tag(tags.implementation)
   @HelpMessage("Pass an argument to scalafmt.")
   @Tag(tags.inShortHelp)
     scalafmtArg: List[String] = Nil,
 
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @HelpMessage("Custom path to the scalafmt configuration file.")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @Name("scalafmtConfig")
     scalafmtConf: Option[String] = None,
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
   @HelpMessage("Pass configuration as a string.")
   @Name("scalafmtConfigStr")
   @Name("scalafmtConfSnippet")
     scalafmtConfStr: Option[String] = None,
   @Tag(tags.implementation)
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @HelpMessage("Pass a global dialect for scalafmt. This overrides whatever value is configured in the .scalafmt.conf file or inferred based on Scala version used.")
   @Tag(tags.implementation)
   @Name("dialect")
   @Tag(tags.inShortHelp)
     scalafmtDialect: Option[String] = None,
   @Tag(tags.implementation)
-  @Group("Format")
+  @Group(HelpGroup.Format.toString)
   @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
   @Tag(tags.inShortHelp)

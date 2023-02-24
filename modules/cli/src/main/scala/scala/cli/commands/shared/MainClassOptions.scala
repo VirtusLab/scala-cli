@@ -7,14 +7,14 @@ import scala.cli.commands.tags
 
 // format: off
 final case class MainClassOptions(
-  @Group("Entrypoint")
+  @Group(HelpGroup.Entrypoint.toString)
   @HelpMessage("Specify which main class to run")
   @ValueDescription("main-class")
   @Tag(tags.must)
   @Name("M")
     mainClass: Option[String] = None,
 
-  @Group("Entrypoint")
+  @Group(HelpGroup.Entrypoint.toString)
   @HelpMessage("List main classes available in the current context")
   @Name("mainClassList")
   @Name("listMainClass")

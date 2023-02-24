@@ -9,6 +9,7 @@ import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.default.LegacyScalaOptions.*
 import scala.cli.commands.package0.Package
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.shared.HelpMessages.PowerString
 import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.tags
@@ -17,39 +18,39 @@ import scala.cli.commands.tags
   */
 // format: off
 case class LegacyScalaOptions(
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage(s"Ignored legacy option. Deprecated equivalent of running a subsequent `$PowerString${Package.name}` command.")
   @Tag(tags.must)
   @Hidden
   @Name("-save")
     save: Option[Indexed[Boolean]] = None,
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage("Ignored legacy option. Deprecated override canceling the `-nosave` option.")
   @Tag(tags.must)
   @Hidden
   @Name("-nosave")
     nosave: Option[Indexed[Boolean]] = None,
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage("Ignored legacy option. Deprecated override defining how the runner should treat the input. Use the appropriate sub-command instead.")
   @Tag(tags.must)
   @Hidden
   @ValueDescription("object|script|jar|repl|guess")
   @Name("-howtorun")
     howToRun: Option[Indexed[String]] = None,
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage("Ignored legacy option. Deprecated option allowing to preload inputs for the repl or command execution.")
   @Tag(tags.must)
   @Hidden
   @ValueDescription("file")
     I: Option[Indexed[List[String]]] = None,
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage("Ignored legacy option. Deprecated option allowing to prevent the use of the legacy fsc compilation daemon.")
   @Tag(tags.must)
   @Hidden
   @Name("-nc")
   @Name("-nocompdaemon")
     noCompilationDaemon: Option[Indexed[Boolean]] = None,
-  @Group("Legacy Scala runner")
+  @Group(HelpGroup.LegacyScalaRunner.toString)
   @HelpMessage("Ignored legacy option. Deprecated option allowing to force the `run` mode on an input.")
   @Tag(tags.must)
   @Hidden

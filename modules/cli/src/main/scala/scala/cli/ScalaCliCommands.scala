@@ -1,11 +1,11 @@
 package scala.cli
 
 import caseapp.core.app.CommandsEntryPoint
-import caseapp.core.help.{Help, RuntimeCommandsHelp}
+import caseapp.core.help.{Help, HelpFormat, RuntimeCommandsHelp}
 
 import java.nio.file.InvalidPathException
 
-import scala.cli.commands._
+import scala.cli.commands.*
 import scala.cli.commands.shared.ScalaCliHelp
 
 class ScalaCliCommands(
@@ -91,7 +91,7 @@ class ScalaCliCommands(
   override def enableCompleteCommand    = true
   override def enableCompletionsCommand = true
 
-  override def helpFormat = ScalaCliHelp.helpFormat
+  override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
   private def isShebangFile(arg: String): Boolean = {
     val pathOpt =

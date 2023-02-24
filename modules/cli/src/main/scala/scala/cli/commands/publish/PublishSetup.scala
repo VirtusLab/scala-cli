@@ -14,21 +14,21 @@ import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.commands.util.ScalaCliSttpBackend
-import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Constants
 import scala.cli.util.ArgHelpers.*
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
-  override def group                   = "Main"
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def group: String                               = HelpCommandGroup.Main.toString
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
   override def helpFormat: HelpFormat =
     super.helpFormat
-      .copy(hiddenGroups = Some(Publish.hiddenHelpGroups))
+      .withHiddenGroups(Publish.hiddenHelpGroups)
       .withPrimaryGroups(Publish.primaryHelpGroups)
 
   override def names = List(

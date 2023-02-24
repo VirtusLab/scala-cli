@@ -10,7 +10,8 @@ import java.nio.file.Paths
 import java.util
 
 import scala.build.{Directories, Logger}
-import scala.cli.commands.ScalaCommand
+import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{CurrentParams, ScalaCli}
@@ -20,9 +21,10 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     List("install-completions")
   )
 
-  override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup("Install")
+  override def helpFormat: HelpFormat =
+    super.helpFormat.withPrimaryGroup(HelpGroup.Install)
 
-  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
   override def runCommand(
     options: InstallCompletionsOptions,

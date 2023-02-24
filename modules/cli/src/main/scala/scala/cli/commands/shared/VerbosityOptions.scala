@@ -9,18 +9,18 @@ import scala.cli.commands.tags
 
 // format: off
 final case class VerbosityOptions(
-  @Group("Logging")
+  @Group(HelpGroup.Logging.toString)
   @HelpMessage("Increase verbosity (can be specified multiple times)")
   @Tag(tags.implementation)
   @Name("v")
   @Name("-verbose")
     verbose: Int @@ Counter = Tag.of(0),
-  @Group("Logging")
+  @Group(HelpGroup.Logging.toString)
   @HelpMessage("Interactive mode")
   @Name("i")
   @Tag(tags.implementation)
     interactive: Option[Boolean] = None,
-  @Group("Logging")
+  @Group(HelpGroup.Logging.toString)
   @HelpMessage("Enable actionable diagnostics")
   @Tag(tags.implementation)
     actions: Option[Boolean] = None
