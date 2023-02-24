@@ -34,10 +34,7 @@ object RunOptions {
        |${HelpMessages.acceptedInputs}
        |
        |To pass arguments to the actual application, just add them after `--`, like:
-       |
-       |```sh
-       |${ScalaCli.progName} run Main.scala AnotherSource.scala -- first-arg second-arg
-       |```
+       |  ${Console.BOLD}${ScalaCli.progName} run Main.scala AnotherSource.scala -- first-arg second-arg${Console.RESET}
        |
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }

@@ -37,7 +37,7 @@ object SetupIdeOptions {
        |It is also ran implicitly when `compile`, `run`, `shebang` or `test` sub-commands are called.
        |
        |The pre-configuration should be saved in a BSP json connection file under the path:
-       |    {project-root}/.bsp/$baseRunnerName.json
+       |    ${Console.BOLD}{project-root}/.bsp/$baseRunnerName.json${Console.RESET}
        |
        |${HelpMessages.commandConfigurations(cmdName)}
        |
