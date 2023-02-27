@@ -258,6 +258,8 @@ final case class BuildOptions(
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
       case Some(MaybeScalaVersion(None)) =>
         None
+      case Some(MaybeScalaVersion(Some(svInput))) if svInput.endsWith("!") =>
+        Some(svInput.stripSuffix("!"))
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {
