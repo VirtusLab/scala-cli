@@ -125,6 +125,12 @@ class BloopTests extends ScalaCliSuite {
 
       os.proc(TestUtil.cli, "--power", "bloop", "compile", proj)
         .call(cwd = root / Constants.workspaceDirName)
+
+      val failRes = os.proc(TestUtil.cli, "--power", "bloop", "foo")
+        .call(cwd = root / Constants.workspaceDirName, check = false, mergeErrIntoOut = true)
+      val failOutput = failRes.out.text()
+      expect(failRes.exitCode == 4)
+      expect(failOutput.contains("Command not found: foo"))
     }
   }
 
