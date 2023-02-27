@@ -276,8 +276,14 @@ object Inputs {
               if programInvokeData.subCommand == SubCommand.Default then ""
               else s" ${programInvokeData.subCommandName}"
             }"
-        val unrecognizedSourceError =
-          s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)"
+        val unrecognizedSourceErrorMsg =
+          s"$arg: unrecognized source type (expected .scala or .sc extension, or a directory)."
+        val missingShebangHeaderErrorMsg =
+          s"""$unrecognizedSourceErrorMsg
+             |If $arg is meant to be treated as a script, add a shebang header in its top line.
+             |  ${Console.BOLD}#!/usr/bin/env -S ${programInvokeData.progName} shebang${Console.RESET}
+             |When a shebang header is provided, the script can then be run with the 'shebang' sub-command, even if no file extension is present.
+             |  ${Console.BOLD}${programInvokeData.progName} shebang $arg${Console.RESET}""".stripMargin
 
         if (arg == "-.scala" || arg == "_" || arg == "_.scala") && stdinOpt0.nonEmpty then
           Right(Seq(VirtualScalaFile(stdinOpt0.get, "<stdin>-scala-file")))
@@ -315,40 +321,31 @@ object Inputs {
         else if programInvokeData.subCommand == SubCommand.Shebang && os.exists(path) then
           if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath)))
           else
-            Left(if programInvokeData.isShebangCapableShell then
-              s"""$unrecognizedSourceError,
-                 |to use a script with no file extensions add shebang header pointing to
-                 |'$fullProgramCall' to the top of the file
-                 |""".stripMargin
-            else unrecognizedSourceError)
+            Left(
+              if programInvokeData.isShebangCapableShell then missingShebangHeaderErrorMsg
+              else unrecognizedSourceErrorMsg
+            )
         else {
           val msg =
             if os.exists(path) then
               programInvokeData match {
                 case ScalaCliInvokeData(progName, _, _, true)
                     if isShebangScript(String(content)) =>
-                  s"""$arg: scripts with no file extension should be run with
-                     |'$progName shebang'
-                     |""".stripMargin
-                case ScalaCliInvokeData(progName, _, _, true) =>
-                  s"""$unrecognizedSourceError,
-                     |if it's meant to be a script add a shebang header pointing to
-                     |'$progName shebang' in the top line
-                     |and run the source with '$progName shebang'
-                     |""".stripMargin
-                case _ => unrecognizedSourceError
+                  s"""$arg: scripts with no file extension should be run with the 'shebang' sub-command.
+                     |  ${Console.BOLD}$progName shebang $arg${Console.RESET}""".stripMargin
+                case ScalaCliInvokeData(_, _, _, true) => missingShebangHeaderErrorMsg
+                case _                                 => unrecognizedSourceErrorMsg
               }
-            else if programInvokeData.subCommand == SubCommand.Default && idx == 0 && arg.forall(
-                _.isLetterOrDigit
-              )
+            else if programInvokeData.subCommand == SubCommand.Default && idx == 0 &&
+              arg.forall(_.isLetterOrDigit)
             then
-              s"""$arg is not a ${programInvokeData.progName} sub-command and it is not a valid path to an input file or directory
-                 |Try '${programInvokeData.progName} --help' to see the list of available sub-commands and options
-                 |""".stripMargin
+              s"""$arg is not a ${programInvokeData.progName} sub-command and it is not a valid path to an input file or directory.
+                 |Try viewing the relevant help to see the list of available sub-commands and options.
+                 |  ${Console.BOLD}${programInvokeData.progName} --help${Console.RESET}""".stripMargin
             else
-              s"""$arg: file not found
-                 |Try '$fullProgramCall --help' for usage information
-                 |""".stripMargin
+              s"""$arg: input file not found
+                 |Try viewing the relevant help to see the list of available sub-commands and options.
+                 |  ${Console.BOLD}$fullProgramCall --help${Console.RESET}""".stripMargin
           Left(msg)
         }
     }

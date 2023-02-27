@@ -69,13 +69,13 @@ Note that the extra `--` must be added to make it work. If it is not supplied, t
 ```
 
 ```text
-[error] Hello: file not found
-World: file not found
+[error] Hello: input file not found
+World: input file not found
 ```
 
 <!-- Expected:
-Hello: file not found
-World: file not found
+Hello: input file not found
+World: input file not found
 -->
 
 </ChainedSnippets>
@@ -164,13 +164,13 @@ scala-cli run Main.scala Hello world
 ```
 
 ```text
-[error]  Hello: file not found
-world: file not found
+[error]  Hello: input file not found
+world: input file not found
 ```
 
 <!-- Expected:
-[error]  Hello: file not found
-world: file not found
+[error]  Hello: input file not found
+world: input file not found
 -->
 
 </ChainedSnippets>
