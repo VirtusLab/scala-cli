@@ -129,4 +129,41 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
     }
   }
 
+  test("Force Scala version") {
+    val sv = "3.2.2-SNAPSHOT"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""//> using scala "$sv!"
+           |
+           |@main
+           |def hello(): Unit =
+           |  println(s"Hello from Scala $sv")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val repo = root / "repo"
+      for {
+        name <- Seq("scala3-library_3", "scala3-compiler_3", "tasty-core_3", "scala3-sbt-bridge")
+        ext  <- Seq("pom", "jar")
+      } {
+        val strPath = os.proc(
+          TestUtil.cs,
+          "get",
+          s"https://repo1.maven.org/maven2/org/scala-lang/$name/3.3.0-RC1-bin-20230120-d6cc101-NIGHTLY/$name-3.3.0-RC1-bin-20230120-d6cc101-NIGHTLY.$ext"
+        )
+          .call(cwd = root)
+          .out.trim()
+        os.copy(
+          os.Path(strPath, root),
+          repo / "org" / "scala-lang" / name / sv / s"$name-$sv.$ext",
+          createFolders = true
+        )
+      }
+      val res = os.proc(TestUtil.cli, "run", "Hello.scala", "-r", repo.toNIO.toUri.toASCIIString)
+        .call(cwd = root)
+      val output = res.out.trim()
+      expect(output == s"Hello from Scala $sv")
+    }
+  }
+
 }
