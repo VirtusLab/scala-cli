@@ -9,12 +9,10 @@ import scala.cli.commands.SpecificationLevel
 import scala.util.{Failure, Success, Try}
 
 @DirectiveGroupName("Java home")
-@DirectiveExamples("//> using java-home \"/Users/Me/jdks/11\"")
+@DirectiveExamples("//> using javaHome \"/Users/Me/jdks/11\"")
 @DirectiveUsage(
-  "//> using java-home|javaHome _path_",
-  """`//> using java-home `_path_
-    |
-    |`//> using javaHome `_path_""".stripMargin
+  "//> using javaHome _path_",
+  "`//> using javaHome `_path_"
 )
 @DirectiveDescription("Sets Java home used to run your application or tests")
 @DirectiveLevel(SpecificationLevel.SHOULD)

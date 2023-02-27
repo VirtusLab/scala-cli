@@ -9,7 +9,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Java properties")
 @DirectiveExamples("//> using javaProp \"foo1=bar\", \"foo2\"")
 @DirectiveUsage(
-  "//> using java-prop|javaProp _key=val_",
+  "//> using javaProp _key=val_",
   """`//> using javaProp `_key=value_
     |`//> using javaProp `_key_""".stripMargin
 )

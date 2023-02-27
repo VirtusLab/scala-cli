@@ -9,10 +9,8 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Java options")
 @DirectiveExamples("//> using javaOpt \"-Xmx2g\", \"-Dsomething=a\"")
 @DirectiveUsage(
-  "//> using java-opt _options_ | //> using javaOpt _options_",
-  """`//> using java-opt `_options_
-    |
-    |`//> using javaOpt `_options_""".stripMargin
+  "//> using javaOpt _options_",
+  "`//> using javaOpt `_options_"
 )
 @DirectiveDescription("Add Java options which will be passed when running an application.")
 @DirectiveLevel(SpecificationLevel.MUST)
