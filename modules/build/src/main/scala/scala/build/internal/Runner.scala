@@ -258,18 +258,24 @@ object Runner {
     }
     else {
 
+      val nodeArgs =
+        // Scala.js runs apps by piping JS to node.
+        // If we need to pass arguments, we must first make the piped input explicit
+        // with "-", and we pass the user's arguments after that.
+        if (args.isEmpty) Nil
+        else "-" :: args.toList
       val envJs =
         if (jsDom)
           new JSDOMNodeJSEnv(
             JSDOMNodeJSEnv.Config()
               .withExecutable(nodePath)
-              .withArgs(Nil)
+              .withArgs(nodeArgs)
               .withEnv(Map.empty)
           )
         else new NodeJSEnv(
           NodeJSEnv.Config()
             .withExecutable(nodePath)
-            .withArgs(Nil)
+            .withArgs(nodeArgs)
             .withEnv(Map.empty)
             .withSourceMap(sourceMap)
         )

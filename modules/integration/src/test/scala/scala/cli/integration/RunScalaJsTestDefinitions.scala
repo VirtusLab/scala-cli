@@ -31,6 +31,30 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     simpleJsTest("--js-mode", "release")
   }
 
+  test("JS arguments") {
+    val inputs = TestInputs(
+      os.rel / "simple.sc" ->
+        s"""// FIXME Ideally, 'args' should contain 'argv' here out-of-the-box.
+           |import scala.scalajs.js
+           |import scala.scalajs.js.Dynamic.global
+           |val process = global.require("process")
+           |val argv = Option(process.argv)
+           |  .filterNot(js.isUndefined)
+           |  .map(_.asInstanceOf[js.Array[String]].drop(2).toSeq)
+           |  .getOrElse(Nil)
+           |val console = global.console
+           |console.log(argv.mkString(" "))
+           |""".stripMargin
+    )
+    val messageArgs = Seq("Hello", "foo")
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".", "--js", "--", messageArgs)
+        .call(cwd = root)
+        .out.trim()
+      expect(output == messageArgs.mkString(" "))
+    }
+  }
+
   test("simple script JS command") {
     val fileName = "simple.sc"
     val message  = "Hello"
