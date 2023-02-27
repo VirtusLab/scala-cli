@@ -9,7 +9,7 @@ import scala.cli.commands.tags
 // format: off
 @HelpMessage(
   s"""Creates or updates a GitHub repository secret.
-    |  $progName --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret""".stripMargin
+    |  ${Console.BOLD}$progName --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret${Console.RESET}""".stripMargin
 )
 final case class SecretCreateOptions(
   @Recurse

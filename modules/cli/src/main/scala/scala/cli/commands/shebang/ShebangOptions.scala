@@ -2,6 +2,7 @@ package scala.cli.commands.shebang
 
 import caseapp.*
 
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}
 import scala.cli.commands.run.RunOptions
 import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
@@ -30,23 +31,16 @@ object ShebangOptions {
        |
        |When relying on the `run` sub-command, inputs and $baseRunnerName options can be mixed,
        |while program args have to be specified after `--`
-       |
-       |```sh
-       |$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...
-       |```
+       |  ${Console.BOLD}$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...${Console.RESET}
        |
        |However, for the `shebang` sub-command, only a single input file can be set, while all $baseRunnerName options
        |have to be set before the input file.
        |All inputs after the first are treated as program arguments, without the need for `--`
-       |```sh
-       |$progName shebang [${baseRunnerName}_options]... input [program_arguments]...
-       |```
+       |  ${Console.BOLD}$progName shebang [${baseRunnerName}_options]... input [program_arguments]...${Console.RESET}
        |
        |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
-       |```sh
-       |#!/usr/bin/env -S $progName shebang --scala-version 2.13
-       |println("Hello, world")
-       |```
+       |  ${ScalaCliConsole.GRAY}#!/usr/bin/env -S $progName shebang --scala-version 2.13
+       |  println("Hello, world")${Console.RESET}
        |
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }

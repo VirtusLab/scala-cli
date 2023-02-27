@@ -9,19 +9,20 @@ import munit.internal.difflib.Diff
 import shapeless.tag
 
 import java.nio.charset.StandardCharsets
-import java.util.{Arrays, Locale}
+import java.util
 
 import scala.build.options.{BuildOptions, BuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
+import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}
 
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   implicit class PBUtils(sb: StringBuilder) {
-    def section(t: String*) =
+    def section(t: String*): StringBuilder =
       sb.append(t.mkString("", "\n", "\n\n"))
   }
 
@@ -58,7 +59,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val content0 = content.getBytes(StandardCharsets.UTF_8)
     val needsUpdate = !os.exists(dest) || {
       val currentContent = os.read.bytes(dest)
-      !Arrays.equals(content0, currentContent)
+      !util.Arrays.equals(content0, currentContent)
     }
     if (needsUpdate) {
       os.write.over(dest, content0, createFolders = true)
@@ -205,7 +206,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
             b.section(s"`${arg.level.md}` per Scala Runner specification")
           else if (isInternal || arg.noHelp) b.append("[Internal]\n")
 
-          for (desc <- arg.helpMessage.map(_.message))
+          for (desc <- arg.helpMessage.map(_.referenceDocMessage))
             b.append(
               s"""$desc
                  |
@@ -222,11 +223,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   private def optionsReference(
     commands: Seq[Command[_]],
-    allArgs: Seq[Arg],
     nameFormatter: Formatter[Name]
   ): String = {
-    val argsToShow = allArgs.filterNot(_.isExperimentalOrRestricted)
-
     val b = new StringBuilder
 
     b.section(
@@ -253,7 +251,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     b.section(scalacOptionForwarding)
 
-    def optionsForCommand(command: Command[_]) = {
+    def optionsForCommand(command: Command[_]): Unit = {
       val supportedArgs = actualHelp(command).args
       val argsByLevel   = supportedArgs.groupBy(_.level)
 
@@ -272,7 +270,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           args.foreach { arg =>
             val names = (arg.name +: arg.extraNames).map(_.option(nameFormatter))
             b.section(s"**${names.head}**")
-            b.section(arg.helpMessage.fold("")(_.message))
+            b.section(arg.helpMessage.fold("")(_.referenceDocMessage))
             if (names.tail.nonEmpty) b.section(names.tail.mkString("Aliases: `", "` ,`", "`"))
 
           }
@@ -295,7 +293,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
         if (command.names.tail.nonEmpty)
           b.section(command.names.map(_.mkString(" ")).tail.mkString("Aliases: `", "`, `", "`"))
-        for (desc <- command.messages.helpMessage.map(_.message)) b.section(desc)
+        for (desc <- command.messages.helpMessage.map(_.referenceDocDetailedMessage))
+          b.section(desc)
         optionsForCommand(command)
         b.section("---")
       }
@@ -335,14 +334,14 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       b.append(s"$headerPrefix## ${names.head}\n\n")
       if (names.tail.nonEmpty) b.append(names.tail.sorted.mkString("Aliases: `", "`, `", "`\n\n"))
 
-      for (desc <- c.messages.helpMessage.map(_.message)) b.section(desc)
+      for (desc <- c.messages.helpMessage.map(_.referenceDocDetailedMessage)) b.section(desc)
 
       if (origins.nonEmpty) {
         val links = origins.map { origin =>
           val cleanedUp = formatOrigin(origin, keepCapitalization = false)
           val linkPart = cleanedUp
             .split("\\s+")
-            .map(_.toLowerCase(Locale.ROOT).filter(_ != '.'))
+            .map(_.toLowerCase(util.Locale.ROOT).filter(_ != '.'))
             .mkString("-")
           s"[$cleanedUp](./cli-options.md#$linkPart-options)"
         }
@@ -501,7 +500,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val allCommandsContent        = commandsContent(commands, onlyRestricted = false)
     val restrictedCommandsContent = commandsContent(restrictedCommands, onlyRestricted = true)
 
-    val scalaOptionsReference = optionsReference(restrictedCommands, allArgs, nameFormatter)
+    val scalaOptionsReference = optionsReference(restrictedCommands, nameFormatter)
 
     val allDirectivesContent = usingContent(
       ScalaPreprocessor.usingDirectiveHandlers,

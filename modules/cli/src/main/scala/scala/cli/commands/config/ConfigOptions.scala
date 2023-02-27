@@ -96,9 +96,9 @@ object ConfigOptions {
     s"""$helpHeader
        |
        |Syntax:
-       |  $progName $cmdName key value
+       |  ${Console.BOLD}$progName $cmdName key value${Console.RESET}
        |For example, to globally set the interactive mode:
-       |  $progName $cmdName interactive true
+       |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
        |
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
 }
