@@ -23,6 +23,7 @@ These few guides are a good starting point when learning how to use Scala CLI.
 - [`using` directives](./using-directives.md) - Scala CLI’s syntax that lets you store configuration information
   directly in source files
 - [IDE support](./ide.md) - how to import and use Scala CLI-based projects in your favorite IDE.
+- [Migrating from the old `scala` runner](./old-runner-migration.md) - an in-depth look at all the differences between Scala CLI and the old `scala` script.
 
 ## Scripting guides
 
