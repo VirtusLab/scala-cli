@@ -36,6 +36,58 @@ For example:
 org.postgresql:postgresql:42.2.8
 ```
 
+### Excluding Transitive Dependencies
+
+To exclude a transitive dependency from a Scala CLI project use the `exclude` parameter:
+
+- `exclude=org%%name` - for Scala modules
+- `exclude=org%name` - for Java modules
+
+It requires passing the organization and module name of the dependency to be excluded. For example, let's say you have
+the following Scala code:
+
+```scala title=Main.scala
+//> using dep "com.lihaoyi::pprint:0.8.1"
+object Main extends App {
+  println("Hello")
+}
+```
+
+If you want to compile it with the `pprint` library but exclude its `sourcecode` dependency, you can use
+the `exclude` parameter as follows:
+
+```scala title=Main.scala
+//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%%sourcecode"
+object Main extends App {
+  println("Hello")
+}
+```
+
+To exclude Scala modules, you can also use a single `%` but with the full name of the module name, like this:
+
+```scala title=Main.scala
+//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%sourcecode_3"
+object Main extends App {
+  println("Hello")
+}
+```
+
+
+### Dependency classifiers
+
+To specify a classifier of a dependency in a Scala CLI project, use the `classifier` parameter:
+
+- `classifier={classifier_name}`
+
+If you want to use the `pytorch` dependency with the classifier `linux-x86_64`, use the `classifier` parameter as follows:
+
+```scala title=Main.scala
+//> using dep "org.bytedeco:pytorch:1.12.1-1.5.8,classifier=linux-x86_64"
+object Main extends App {
+  println("Hello")
+}
+```
+
 ## Specifying dependencies from the command line
 
 You can add dependencies on the command line, with the `--dependency` option:
@@ -73,48 +125,3 @@ Lastly, you can also add simple JAR files as dependencies with `--jar`:
 ```bash ignore
 scala-cli compile Sample.sc --jar /path/to/library.jar
 ```
-
-## Updating dependencies
-
-To check if dependencies in using directives are up-to-date, use `dependency-update` command:
-
-```scala title=Hello.scala
-//> using dep "com.lihaoyi::os-lib:0.7.8"
-//> using dep "com.lihaoyi::utest:0.7.10"
-
-object Hello extends App {
-  println("Hello World")
-}
-```
-
-<ChainedSnippets>
-
-```bash
-scala-cli --power dependency-update Hello.scala
-```
-
-```text
-Updates
-   * com.lihaoyi::os-lib:0.7.8 -> 0.8.1
-   * com.lihaoyi::utest:0.7.10 -> 0.8.0
-To update all dependencies run: 
-    scala-cli dependency-update --all
-```
-
-</ChainedSnippets>
-
-Passing `--all` to the `dependency-update` sub-command updates all dependencies in your sources.
-
-<ChainedSnippets>
-
-```bash
-scala-cli --power dependency-update Hello.scala --all
-```
-
-```text
-Updated dependency to: com.lihaoyi::os-lib:0.8.1
-Updated dependency to: com.lihaoyi::utest:0.8.0
-```
-
-</ChainedSnippets>
-
