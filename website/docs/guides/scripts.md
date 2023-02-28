@@ -7,7 +7,7 @@ import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 # Scripts
 
-`scala-cli` accepts Scala scripts as files that end in `.sc`.
+Scala CLI accepts Scala scripts as files that end in `.sc`.
 Unlike `.scala` files, in scripts, any kind of statement is accepted at the top-level:
 
 ```scala title=hello.sc
@@ -15,7 +15,7 @@ val message = "Hello from Scala script"
 println(message)
 ```
 
-A script is run with the `scala-cli` command:
+A script is run with the Scala CLI command:
 
 <ChainedSnippets>
 
@@ -112,7 +112,7 @@ stdin_sc script_sc main2 main1
 ### Self executable Scala Script
 
 You can define a file with the “shebang” header to be self-executable. Please remember to use `scala-cli shebang`
-command, which makes `scala-cli` compatible with Unix shebang interpreter directive. For example, given this script:
+command, which makes Scala CLI compatible with Unix shebang interpreter directive. For example, given this script:
 
 ```scala title=HelloScript.sc
 #!/usr/bin/env -S scala-cli shebang
@@ -134,7 +134,7 @@ Hello world
 
 </ChainedSnippets>
 
-It is also possible to set `scala-cli` command-line options in the shebang line, for example
+It is also possible to set Scala CLI command-line options in the shebang line, for example
 
 ```scala title=Shebang213.sc
 #!/usr/bin/env -S scala-cli shebang --scala-version 2.13
@@ -182,7 +182,7 @@ object Utils {
 }
 ```
 
-`scala-cli` takes into account and compiles `Utils.scala`.
+Scala CLI takes into account and compiles `Utils.scala`.
 
 <ChainedSnippets>
 
@@ -204,14 +204,14 @@ Hello World
 
 [Ammonite](http://ammonite.io) is a popular REPL for Scala that can also compile and run `.sc` files.
 
-`scala-cli` and Ammonite are similar, but differ significantly when your code is split in multiple scripts:
+Scala CLI and Ammonite are similar, but differ significantly when your code is split in multiple scripts:
 
 - In Ammonite, a script needs to use `import $file` directives to use values defined in another script
-- With `scala-cli`, all scripts passed can reference each other without such directives
+- With Scala CLI, all scripts passed can reference each other without such directives
 
 On the other hand:
 
 - You can pass a single "entry point" script as input to Ammonite, and Ammonite finds the scripts it depends on via
   the `import $file` directives
-- `scala-cli` requires all scripts to be passed beforehand, either one-by-one, or by putting them in a directory, and
-  passing the directory to `scala-cli`
+- Scala CLI requires all scripts to be passed beforehand, either one-by-one, or by putting them in a directory, and
+  passing the directory to Scala CLI

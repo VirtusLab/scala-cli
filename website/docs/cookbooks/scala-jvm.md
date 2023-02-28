@@ -20,7 +20,7 @@ object Main extends App {
 }
 ```
 
-To use Java 11 to run this application, pass the following `--jvm` option to the `scala-cli` command:
+To use Java 11 to run this application, pass the following `--jvm` option to the Scala CLI command:
 
 ```bash ignore
 scala-cli --jvm adopt:11 Main.scala

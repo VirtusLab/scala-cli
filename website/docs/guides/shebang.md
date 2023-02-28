@@ -9,7 +9,7 @@ parses its arguments.
 
 ### `shebang` script headers
 
-Before proceeding, let's discuss how `scala-cli` works in a script without the `shebang` command.
+Before proceeding, let's discuss how Scala CLI works in a script without the `shebang` command.
 Here is a simple `hello.sc` script with a `shebang` header:
 
 ```scala title=hello.sc

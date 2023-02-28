@@ -26,7 +26,7 @@ That BSP connection then allows Scala CLI to ask Bloop to compile sources, and g
 
 ### `.scala-build` directory
 
-In the directory where you run your `scala-cli` commands, Scala CLI creates a subdirectory named `.scala-build`, where it writes:
+In the directory where you run your Scala CLI commands, Scala CLI creates a subdirectory named `.scala-build`, where it writes:
 - [Bloop project files](#bloop)
 - [generated sources](#preprocessing)
 - byte code and TASTy files that result from compiling the user sources
@@ -65,7 +65,7 @@ In particular, `.scala-build/.bloop` contains Bloop project files and Bloop's ow
 
 ## Home directory for scala-cli
 
-By default, the `scala-cli` uses the home directory to store Coursier caches, the config database, the working directory
+By default, Scala CLI uses the home directory to store Coursier caches, the config database, the working directory
 for Bloop, and other internal files. To change this default behavior, set the `SCALA_CLI_HOME` environment variable to point
 to an existing directory.
 

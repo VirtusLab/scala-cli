@@ -315,7 +315,7 @@ Hello
 ## OS-specific packages
 
 Scala CLI also lets you package Scala code as OS-specific packages.
-This feature is somewhat experimental, and supports the following formats, provided they're compatible with the operating system you're running `scala-cli` on:
+This feature is somewhat experimental, and supports the following formats, provided they're compatible with the operating system you're running Scala CLI on:
 
 - [DEB](#debian) (Linux)
 - [RPM](#redhat) (Linux)

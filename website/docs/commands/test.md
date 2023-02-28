@@ -51,7 +51,7 @@ Given that directory structure, let's analyze what file(s) will be treated as te
 - `a.test.scala`, since it ends with `.test.scala`
 - `src/test/scala/b.scala`, since the path to that directory contains a directory named `test`
 
-Note that `e.scala` is not treated as a test source since it lacks a parent directory in its relative path that is exactly named `test` (the name`test_unit` starts with `test`, but `scala-cli` only looks for parent directories on the relative path with the exact name `test`).
+Note that `e.scala` is not treated as a test source since it lacks a parent directory in its relative path that is exactly named `test` (the name`test_unit` starts with `test`, but Scala CLI only looks for parent directories on the relative path with the exact name `test`).
 
 `scala-cli example/src` results in `src/test/scala/b.scala` being treated as a test file since its relative path (`test/scala/b.scala`) contains a directory named `test`.
 

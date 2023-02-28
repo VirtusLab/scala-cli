@@ -10,7 +10,7 @@ The command `shebang` also allows script files to be executed even if they have 
 provided they start with the [`shebang` header](../guides/shebang.md#shebang-script-headers).
 Note that those files are always run as scripts even though they may contain e.g. valid `.scala` program.
 
-Normally, inputs and `scala-cli` options can be mixed. Program arguments (to be passed to your app) have to be specified
+Normally, inputs and Scala CLI options can be mixed. Program arguments (to be passed to your app) have to be specified
 after `--` (double dash) separator.
 
 ```bash ignore

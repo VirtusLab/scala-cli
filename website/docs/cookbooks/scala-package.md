@@ -46,7 +46,7 @@ The lightweight JAR that was just built on macOS can also run on Linux:
 # os: Linux
 ```
 
-`scala-cli` supports building Lightweight JARs in the macOS, Linux, and Windows environments.
+Scala CLI supports building Lightweight JARs in the macOS, Linux, and Windows environments.
 JARs built on macOS and Linux are portable between these two operating systems.
 Lightweight JARs built on Windows can only be run on Windows.
 

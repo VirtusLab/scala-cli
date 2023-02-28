@@ -30,7 +30,7 @@ in which case it defaults to one of the sub-commands based on context:
 
 ## Input formats
 
-The `scala-cli` CLI commands accept input in a number of ways, most notably:
+The Scala CLI commands accept input in a number of ways, most notably:
 
 - as source files
 - as one or several directories that contain source files
@@ -61,7 +61,7 @@ object Hello {
 }
 ```
 
-Then run it by passing it to `scala-cli`:
+Then run it by passing it to Scala CLI:
 
 <ChainedSnippets>
 
@@ -90,7 +90,7 @@ object Hello {
 }
 ```
 
-and the run them with `scala-cli`:
+and the run them with Scala CLI:
 
 <ChainedSnippets>
 
@@ -112,7 +112,7 @@ For example, if we provide only one of the files above:
 scala-cli Hello.scala
 ```
 
-compilation will fail. `scala-cli` compiles only the files it’s given.
+compilation will fail. Scala CLI compiles only the files it’s given.
 :::
 
 While this is *very* convenient for projects with just a few files, passing many files this way can be cumbersome and
@@ -121,7 +121,7 @@ In the case of larger projects, passing whole directories can help.
 
 ## Directories
 
-`scala-cli` accepts whole directories as input.
+Scala CLI accepts whole directories as input.
 
 This is convenient when you have many `.scala` files, and passing them all one-by-one on the command line isn't
 practical:
@@ -171,7 +171,7 @@ since Scala CLI does not provide any sandboxing at this moment.
 Make sure that you trust the code that you are about to run.
 :::
 
-`scala-cli` accepts input via URLs pointing at `.scala` files.
+Scala CLI accepts input via URLs pointing at `.scala` files.
 It downloads their content, and runs them:
 
 <ChainedSnippet>
@@ -188,7 +188,7 @@ Hello from Scala GitHub Gist
 
 ### GitHub Gist
 
-`scala-cli` accepts input via Github Gist’s urls.
+Scala CLI accepts input via Github Gist’s urls.
 It downloads the gist zip archive and runs it:
 
 <ChainedSnippets>
@@ -207,7 +207,7 @@ More details in the [GitHub gists cookbook](/docs/cookbooks/gists.md).
 
 ### Zip archive
 
-`scala-cli` accepts inputs via a `zip` archive path.
+Scala CLI accepts inputs via a `zip` archive path.
 It unpacks the archive and runs it:
 
 ```scala titleHello.scala
@@ -243,7 +243,7 @@ Hello
 
 ## Piping
 
-You can also pipe code to `scala-cli` for execution:
+You can also pipe code to Scala CLI for execution:
 
 - scripts
 
@@ -308,7 +308,7 @@ More details in the [Piping guide](/docs/guides/piping.md).
 
 ## Scala CLI version
 
-`scala-cli` can also run another Scala CLI version, which can be helpful to test unreleased Scala CLI functionalities.
+Scala CLI can also run another launcher version, which can be helpful to test unreleased Scala CLI functionalities.
 :::warning
 Running another Scala CLI version might be slower because it uses JVM-based Scala CLI launcher.
 :::
@@ -351,7 +351,7 @@ Scala version (default): 3.2.1
 
 ## Process substitution
 
-Lastly, `scala-cli` also accepts input via shell process substitution:
+Lastly, Scala CLI also accepts input via shell process substitution:
 
 <ChainedSnippets>
 

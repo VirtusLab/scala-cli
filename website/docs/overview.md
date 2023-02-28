@@ -3,7 +3,7 @@ title: Overview
 sidebar_position: 1
 ---
 
-The `scala-cli` CLI makes it easier to compile, run, test, and package Scala code.
+The Scala CLI makes it easier to compile, run, test, and package Scala code.
 
 It can:
 - [compile](./commands/compile.md) Scala code

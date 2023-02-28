@@ -5,7 +5,7 @@ sidebar_position: 8
 
 import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownComponents.js";
 
-`scala-cli` allows to easly compile and run Scala Scripts.
+Scala CLI allows to easly compile and run Scala Scripts.
 It also allows for straightforward compilation with Scala Native. 
 Scala Native is an ahead-of-time compiler to native binary allowing 
 for instant startup times, meaning that along with scala-cli, it should 

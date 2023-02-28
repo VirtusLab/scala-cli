@@ -65,7 +65,7 @@ Test frameworks may have their own specific API for specifying the test cases to
 
 ### Munit
 
-To run a specific test case inside a test suite pass `*test-name*` as an argument to `scala-cli`:
+To run a specific test case inside a test suite pass `*test-name*` as an argument to Scala CLI:
 
 <!-- clear -->
 

@@ -8,7 +8,7 @@ Scala Native works with Scala `3.1.x`, `2.13.x` and `2.12.x`. Scripts are unavai
 Scala Native requires the LLVM toolchain - see requirements on Scala Native website.
 ## Configuration
 
-Enable Scala Native support by passing `--native` to `scala-cli`, such as:
+Enable Scala Native support by passing `--native` to Scala CLI, such as:
 
 ```scala
 scala-cli Test.scala --native

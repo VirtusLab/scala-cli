@@ -228,7 +228,7 @@ Seeing that output, you may wonder, why do we have an additional `.scala` file u
 
 ## Packaging
 
-We could stop here and call `scala-cli` on our set of sources every time. Scala CLI uses caches aggressively, so rollup runs are reasonably fast — less than 1,500 milliseconds on tested machine — but sometimes this isn't fast enough, or shipping sources and compiling them may be not convenient.
+We could stop here and call Scala CLI on our set of sources every time. Scala CLI uses caches aggressively, so rollup runs are reasonably fast — less than 1,500 milliseconds on tested machine — but sometimes this isn't fast enough, or shipping sources and compiling them may be not convenient.
 
 For these use cases, Scala CLI offers means to package your project. For example, we can run this command to generate a thin, executable jar file, with the compiled code inside:
 

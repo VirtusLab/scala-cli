@@ -110,7 +110,7 @@ You can also add java options with the using directive `//> using javaOpt`:
 //> using javaOpt "-Xmx1g", "-Dfoo=bar"
 ```
 
-Additionally, java properties can be passed to `scala-cli` without `--java-prop`:
+Additionally, java properties can be passed to Scala CLI without `--java-prop`:
 
 ```bash
 scala-cli Hello.scala -Dfoo=bar
@@ -118,7 +118,7 @@ scala-cli Hello.scala -Dfoo=bar
 
 ### JAR
 
-`scala-cli` lets you run JAR files just like any other input.
+Scala CLI lets you run JAR files just like any other input.
 
 ```bash ignore
 scala-cli Hello.jar
@@ -128,7 +128,7 @@ scala-cli Hello.jar
 Hello World
 ```
 
-When you provide a JAR file as input to `scala-cli`, it will be added to the `classPath`.
+When you provide a JAR file as input to Scala CLI, it will be added to the `classPath`.
 
 ## Define source files in using directives
 
@@ -148,7 +148,7 @@ object Utils {
 }
 ```
 
-`scala-cli` takes it into account and compiles `Utils.scala`.
+Scala CLI takes it into account and compiles `Utils.scala`.
 
 <ChainedSnippets>
 
@@ -302,7 +302,7 @@ Our [scripts guide](/docs/guides/scripts.md) provides many more details.
 ## Scala CLI from docker
 
 Scala applications can also be compiled and run using a [docker](https://docs.docker.com/get-started/) image
-with `scala-cli`, without needing to install Scala CLI manually:
+with Scala CLI, without needing to install Scala CLI manually:
 
 ```bash
 docker run virtuslab/scala-cli:latest version

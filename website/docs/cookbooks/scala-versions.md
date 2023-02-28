@@ -1,9 +1,9 @@
 ---
-title: Picking the Scala version with scala-cli
+title: Picking the Scala version with Scala CLI
 sidebar_position: 2
 ---
 
-By default, `scala-cli` runs the latest supported scala version by Scala CLI. See our list of [Supported Scala Versions](/docs/reference/scala-versions) in Scala CLI.
+By default, Scala CLI runs the latest supported scala version. See our list of [Supported Scala Versions](/docs/reference/scala-versions) in Scala CLI.
 
 To demonstrate how this works, here’s a universal piece of code that detects the Scala version at runtime.
 The code is a bit complicated, so we suggest that you skip reading the whole file, and just focus on what it prints:
@@ -60,7 +60,7 @@ Scala: 2\.13\.5
 -->
 
 In many cases you won't care for a precise Scala version and will want "any Scala 2" or "any 2.13 release."
-For this situation, `scala-cli` accepts version prefixes like this:
+For this situation, Scala CLI accepts version prefixes like this:
 
 ```bash
 scala-cli -S 2 ScalaVersion.scala
@@ -84,7 +84,7 @@ In the second example, the application picks up the latest stable release of `2.
 You can also pin the version of the language within a `.scala` file with `using` directives.
 
 :::info
-The `using` directives syntax is still experimental, and may change in future versions of `scala-cli`.
+The `using` directives syntax is still experimental, and may change in future versions of Scala CLI.
 :::
 
 Here’s an example of a source code file named `version.scala` that contains a `using` directive:
@@ -108,7 +108,7 @@ Scala: 2\.12\.17
 
 The output at the time of this writing is "`2.12.17`".
 
-The `scala-cli` philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
+The Scala CLI philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 
 ```bash
 scala-cli -S 2.13.10 ScalaVersion.scala version.scala

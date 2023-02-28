@@ -1,5 +1,5 @@
 ---
-title: Using scala-cli to run Scala Scripts
+title: Using Scala CLI to run Scala Scripts
 sidebar_position: 3
 ---
 
@@ -7,7 +7,7 @@ sidebar_position: 3
 
 Scala scripts are files that contain Scala code without a main method.
 These source code files don't require build-tool configurations.
-To run Scala scripts very quickly without waiting the need for build tools, use `scala-cli`.
+To run Scala scripts very quickly without waiting the need for build tools, use Scala CLI.
 
 ### Run
 
@@ -20,7 +20,7 @@ val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version"
 println(message)
 ```
 
-You can run it directly with `scala-cli` — there's no need for a build tool or additional configuration:
+You can run it directly with Scala CLI — there's no need for a build tool or additional configuration:
 
 ```bash
 scala-cli run HelloScript.sc
@@ -30,7 +30,7 @@ scala-cli run HelloScript.sc
 Hello from Scala .*, Java .*
 -->
 
-Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with `scala-cli`. For example, given this script with a header that invokes `scala-cli`:
+Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with Scala CLI. For example, given this script with a header that invokes Scala CLI:
 
 ```scala title=HelloScriptSheBang.sc
 #!/usr/bin/env -S scala-cli shebang
@@ -95,7 +95,7 @@ Hello from Scala .*, Java .*
 
 ### Watch mode
 
-As another example, pass `--watch` to `scala-cli` to watch all source files for changes, and then re-run them when there is a change:
+As another example, pass `--watch` to Scala CLI to watch all source files for changes, and then re-run them when there is a change:
 
 ```bash ignore
 scala-cli --watch HelloScript.sc
