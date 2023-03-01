@@ -1,6 +1,6 @@
 ---
 title: Setup a Scala CLI project in IntelliJ alongside your existing SBT project
-sidebar_position: 7
+sidebar_position: 12
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

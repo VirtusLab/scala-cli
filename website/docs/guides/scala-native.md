@@ -1,6 +1,6 @@
 ---
 title: Scala Native
-sidebar_position: 22
+sidebar_position: 40
 ---
 
 Scala Native works with Scala `3.1.x`, `2.13.x` and `2.12.x`. Scripts are unavailable for Scala `2.12.x`.

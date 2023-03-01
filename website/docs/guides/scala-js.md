@@ -1,6 +1,6 @@
 ---
 title: Scala.js
-sidebar_position: 21
+sidebar_position: 40
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

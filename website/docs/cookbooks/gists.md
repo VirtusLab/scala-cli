@@ -1,6 +1,6 @@
 ---
 title: Sharing and testing code with GitHub gists
-sidebar_position: 6
+sidebar_position: 8
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

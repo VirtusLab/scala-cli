@@ -1,6 +1,6 @@
 ---
 title: Updating dependencies
-sidebar_position: 9
+sidebar_position: 4
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

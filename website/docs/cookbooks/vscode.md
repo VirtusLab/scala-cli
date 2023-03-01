@@ -1,6 +1,6 @@
 ---
 title: Setup a Scala CLI project in VSCode
-sidebar_position: 7
+sidebar_position: 10
 ---
 
 Scala CLI can generate the files that are necessary for providing IDE support in Visual Studio Code.

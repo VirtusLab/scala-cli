@@ -1,6 +1,6 @@
 ---
 title: Scala Scripts with instant startup
-sidebar_position: 8
+sidebar_position: 7
 ---
 
 import {ChainedSnippets, GiflikeVideo} from "../../src/components/MarkdownComponents.js";

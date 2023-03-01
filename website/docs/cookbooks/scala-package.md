@@ -1,6 +1,6 @@
 ---
 title: Packaging Scala applications as executable files
-sidebar_position: 2
+sidebar_position: 14
 ---
 
 Scala CLI lets you package your application into a lightweight JAR file that can be easily run.

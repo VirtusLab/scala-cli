@@ -18,7 +18,7 @@ These few guides are a good starting point when learning how to use Scala CLI.
 - [Configuration](./configuration.md) - learn how to configure various options, and what configuration styles are best
   for each use case
 - [Dependencies](./dependencies.md) - learn how to define dependencies within a Scala CLI project.
-- [Updating dependencies](./dependencies.md) - learn about how to keep your dependencies up-to-date automatically with
+- [Updating dependencies](./update-dependencies.md) - learn about how to keep your dependencies up-to-date automatically with
   Scala CLI.
 - [`using` directives](./using-directives.md) - Scala CLI’s syntax that lets you store configuration information
   directly in source files

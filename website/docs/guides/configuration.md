@@ -1,6 +1,6 @@
 ---
 title: Configuration
-sidebar_position: 7
+sidebar_position: 2
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

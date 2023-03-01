@@ -1,6 +1,6 @@
 ---
 title: Filter the test suites to run
-sidebar_position: 11
+sidebar_position: 5
 ---
 
 The `--test-only` option is useful for when you only want to run a specific subset of tests.

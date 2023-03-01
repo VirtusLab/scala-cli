@@ -1,6 +1,6 @@
 ---
 title: Scripts
-sidebar_position: 19
+sidebar_position: 30
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

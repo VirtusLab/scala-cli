@@ -1,6 +1,6 @@
 ---
 title: Packaging Scala applications as Docker images
-sidebar_position: 5
+sidebar_position: 15
 ---
 
 Scala CLI can create an executable application and package it into a Docker image.

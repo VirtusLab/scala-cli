@@ -1,6 +1,6 @@
 ---
 title: Testing your code with different Java versions
-sidebar_position: 4
+sidebar_position: 3
 ---
 
 You can use Scala CLI to test your code compatibility with various versions of `java`, with a key point being that manual installation of a JDK/SDK is not required(!).
