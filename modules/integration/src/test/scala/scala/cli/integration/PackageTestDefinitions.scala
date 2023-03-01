@@ -963,4 +963,48 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == "Hello from Python")
     }
   }
+
+  test("fat jar") {
+    val inputs = TestInputs(
+      os.rel / "OsLibFatJar.scala" -> s"""//> using dep "com.lihaoyi::os-lib:0.9.0" """,
+      os.rel / "Hello.scala" ->
+        s"""object Main extends App {
+           |  println(os.pwd)
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val fatJarPath = root / "OsLibFatJar.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "OsLibFatJar.scala",
+        "-o",
+        fatJarPath,
+        "--assembly",
+        "--preamble=false",
+        extraOptions
+      ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val outputName = if (Properties.isWin) "hello.bat" else "hello"
+      val launcher   = root / outputName
+      // format: off
+      val packageCmds = Seq[os.Shellable](
+        TestUtil.cli, "--power", "package", "Hello.scala",
+        "-M", "Main", "--jar", fatJarPath, "-o", launcher, extraOptions
+      )
+      // format: on
+
+      // bootstrap
+      os.proc(packageCmds).call(cwd = root).out.trim()
+      val output = maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      expect(output == root.toString)
+
+      // assembly
+      os.proc(packageCmds, "--assembly", "-f").call(cwd = root).out.trim()
+      val outputAssembly = maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      expect(outputAssembly == root.toString)
+    }
+  }
 }

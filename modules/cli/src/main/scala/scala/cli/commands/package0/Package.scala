@@ -729,8 +729,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             ClassPathEntry.Url(url)
       }
     val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
+    val extraClassPath = build.options.classPathOptions.extraClassPath.map { classPath =>
+      ClassPathEntry.Resource(classPath.last, os.mtime(classPath), os.read.bytes(classPath))
+    }
 
-    val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries
+    val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries ++ extraClassPath
     val loaderContent = coursier.launcher.ClassLoaderContent(allEntries)
     val preamble = Preamble()
       .withOsKind(Properties.isWin)
@@ -850,7 +853,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
 
     val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
-    val allFiles = build.artifacts.artifacts.map(_._2)
+    val allFiles =
+      build.artifacts.artifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
     val files =
       if (provided.isEmpty) allFiles
       else {
