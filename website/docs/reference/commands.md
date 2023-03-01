@@ -73,7 +73,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 ## export
 
-Export current project to an external build tool (like SBT or Mill).
+Export current project to an external build tool (like SBT or Mill) or to JSON.
 
 The whole Scala CLI project should get exported along with its dependencies configuration.
 

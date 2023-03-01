@@ -60,7 +60,8 @@ object ExportOptions {
   implicit lazy val parser: Parser[ExportOptions] = Parser.derive
   implicit lazy val help: Help[ExportOptions]     = Help.derive
 
-  private val helpHeader = "Export current project to an external build tool (like SBT or Mill)."
+  private val helpHeader =
+    "Export current project to an external build tool (like SBT or Mill) or to JSON."
   val helpMessage: String =
     s"""$helpHeader
        |
