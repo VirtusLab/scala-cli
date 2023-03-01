@@ -1,6 +1,6 @@
 ---
 title: Debugging with Scala CLI
-sidebar_position: 10
+sidebar_position: 4
 ---
 
 Debugging with Scala CLI is very simple. All one needs to do is to pass the `--debug` option, which is available for the `run` and `test` sub-commands.
@@ -142,7 +142,7 @@ Run one of the following commands depending on which file you would like to debu
 - run `scala-cli test MyTests.test.scala --debug-mode listen` if you would like to debug `MyTests.test.scala` file
 
 :::info
-`attach` is the default mode for debugging with scala-cli. You can always change it by passing `--debug-mode` option. Available modes are: `attach` and `listen`.
+`attach` is the default mode for debugging with Scala CLI. You can always change it by passing `--debug-mode` option. Available modes are: `attach` and `listen`.
 :::
 
 After all these steps the debugger should stop at the first breakpoint and you can proceed to **debug** your code using all features delivered by IntelliJ IDEA. For more information check [this guide](https://www.jetbrains.com/help/idea/debugging-your-first-java-application.html#analyzing-state).

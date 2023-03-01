@@ -1,6 +1,6 @@
 ---
 title: Setup a Scala CLI project in IDEA IntelliJ
-sidebar_position: 7
+sidebar_position: 11
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

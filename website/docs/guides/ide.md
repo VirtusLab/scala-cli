@@ -1,6 +1,6 @@
 ---
 title: IDE support
-sidebar_position: 10
+sidebar_position: 6
 ---
 
 Scala CLI currently integrates a build server using the [BSP protocol](https://build-server-protocol.github.io/).

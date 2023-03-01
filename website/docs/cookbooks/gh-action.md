@@ -5,7 +5,7 @@ sidebar_position: 9
 
 ## Preparing simple aplication
 
-`scala-cli` lets you run, test, and package Scala code in various environments, including GitHub CI. 
+Scala CLI lets you run, test, and package Scala code in various environments, including GitHub CI. 
 To use Scala CLI features in a simple way you can use the GitHub Actions [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) that installs everything necessary to run your Scala CLI application and more.
 
 For example, here's a simple `ls` application printing the files in a given directory:
@@ -51,7 +51,7 @@ class TestsLs extends munit.FunSuite {
 
 ## Run tests in Github CI
 
-The following configuration of `ci.yml` contains a definition of job that runs tests using `scala-cli` for every platform defined in `matrix.OS`.
+The following configuration of `ci.yml` contains a definition of job that runs tests using Scala CLI for every platform defined in `matrix.OS`.
 
 ```yaml
 jobs:

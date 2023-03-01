@@ -11,9 +11,9 @@ Scala CLI supports formatting your code using [Scalafmt](https://scalameta.org/s
 scala-cli fmt
 ```
 
-Under the hood, `scala-cli` downloads and runs Scalafmt on your code.
+Under the hood, Scala CLI downloads and runs Scalafmt on your code.
 
-If you’re setting up a continuous integration (CI) server, `scala-cli` also has you covered.
+If you’re setting up a continuous integration (CI) server, Scala CLI also has you covered.
 You can check formatting correctness using a `--check` flag:
 
 ```bash

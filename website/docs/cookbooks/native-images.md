@@ -1,6 +1,6 @@
 ---
 title: Packaging Scala applications as GraalVM native images
-sidebar_position: 7
+sidebar_position: 16
 ---
 
 Scala CLI lets you package your applications as native executables

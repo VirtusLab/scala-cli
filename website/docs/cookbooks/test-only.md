@@ -1,6 +1,6 @@
 ---
 title: Filter the test suites to run
-sidebar_position: 11
+sidebar_position: 5
 ---
 
 The `--test-only` option is useful for when you only want to run a specific subset of tests.
@@ -65,7 +65,7 @@ Test frameworks may have their own specific API for specifying the test cases to
 
 ### Munit
 
-To run a specific test case inside a test suite pass `*test-name*` as an argument to `scala-cli`:
+To run a specific test case inside a test suite pass `*test-name*` as an argument to Scala CLI:
 
 <!-- clear -->
 

@@ -28,7 +28,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 
 ## Test scope
 
-`--test` makes `scala-cli` compile main and test scopes:
+`--test` makes Scala CLI compile main and test scopes:
 
 ```scala title=Sample.test.scala
 //> using dep "org.scalameta::munit:0.7.29"
@@ -45,7 +45,7 @@ scala-cli compile --test Sample.test.scala
 
 ## Watch mode
 
-`--watch` makes `scala-cli` watch your code for changes, and re-compiles it upon any change:
+`--watch` makes Scala CLI watch your code for changes, and re-compiles it upon any change:
 
 <ChainedSnippets>
 
@@ -66,7 +66,7 @@ Watching sources, press Ctrl+C to exit.
 
 ## Scala version
 
-Scala CLI uses the latest stable version of Scala which was tested in `scala-cli` (see our list
+Scala CLI uses the latest stable version of Scala which was tested in Scala CLI (see our list
 of [Supported Scala Versions](/docs/reference/scala-versions)). You can specify the Scala version you'd like to use
 with `--scala`:
 
@@ -74,7 +74,7 @@ with `--scala`:
 scala-cli compile --scala 2.13.6 Hello.scala
 ```
 
-`scala-cli` works with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
+Scala CLI works with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
 
 `--scala` also accepts "short" Scala versions, such as `2.12`, `2`, or `3`. In this
 case, it picks the highest corresponding stable Scala version:
@@ -153,7 +153,7 @@ See the [Dependency management](/docs/guides/dependencies.md) guide for more det
 
 ### Passing compiler options with `-O`
 
-All [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed to `scala-cli`
+All [Scala compiler options](https://docs.scala-lang.org/overviews/compiler-options) can be passed to Scala CLI
 with `-O`:
 
 <ChainedSnippets>
@@ -211,7 +211,7 @@ There's a separate directive for passing multiple options at one time:
 
 ### Compiler options recognised even when passed without `-O`
 
-For ease of use many compiler options can be passed as-is to `scala-cli`, without the need of passing after `-O`:
+For ease of use many compiler options can be passed as-is to Scala CLI, without the need of passing after `-O`:
 
 <ChainedSnippets>
 
@@ -252,7 +252,7 @@ Those include:
     - `-new-syntax`
     - `-indent`
     - `-no-indent`
-- the following options which accept values (which can be passed similarly to any regular `scala-cli` option values)
+- the following options which accept values (which can be passed similarly to any regular Scala CLI option values)
     - `-encoding`
     - `-release`
     - `-color`
@@ -271,10 +271,10 @@ In such a case, refer to the `--scalac-help` output while passing the appropriat
 
 ### Compiler options redirected to Scala CLI alternatives
 
-In a few cases, certain compiler options are being auto-redirected to a corresponding `scala-cli`-specific option for
+In a few cases, certain compiler options are being auto-redirected to a corresponding Scala CLI-specific option for
 better integration with other functionalities of the tool.
 The redirection happens even when the options are passed with `-O`, making them effectively aliases for their
-`scala-cli` counterparts.
+Scala CLI counterparts.
 
 Those include:
 
@@ -335,7 +335,7 @@ scala-cli -S 2.12.17 -Xshow-phases
 
 You can also view the Scala compiler help for a particular Scala version with `--scalac-help`, which is just an alias
 for `-O -help`.
-Please note that `-help` passed without `-O` will show the `scala-cli` help instead.
+Please note that `-help` passed without `-O` will show the Scala CLI help instead.
 
 <ChainedSnippets>
 
@@ -435,7 +435,7 @@ Hello
 </ChainedSnippets>
 
 Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
-The class path obtained this way is only meant for scenarios where `scala-cli` doesn't offer a more convenient option.
+The class path obtained this way is only meant for scenarios where Scala CLI doesn't offer a more convenient option.
 
 ### JVM options
 

@@ -1,6 +1,6 @@
 ---
 title: Setup multiple Scala CLI projects in IDEA IntelliJ as separate modules
-sidebar_position: 7
+sidebar_position: 13
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

@@ -1,6 +1,6 @@
 ---
 title: Snippets
-sidebar_position: 23
+sidebar_position: 43
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";

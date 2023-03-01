@@ -1,14 +1,14 @@
 ---
 title: Sharing and testing code with GitHub gists
-sidebar_position: 6
+sidebar_position: 8
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 ## Running code from gists
 
-`scala-cli` lets you run Scala code straight from GitHub gists, without the need to manually download them first.
-This is done by passing the link to a gist as an argument to `scala-cli`:
+Scala CLI lets you run Scala code straight from GitHub gists, without the need to manually download them first.
+This is done by passing the link to a gist as an argument to Scala CLI:
 
 For example, given the gist `https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec`, which contains these two files:
 ```scala title=Messages.scala
@@ -20,7 +20,7 @@ object Messages {
 println(Messages.hello)
 ```
 
-You can run them with `scala-cli` like this:
+You can run them with Scala CLI like this:
 ```bash
 scala-cli https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec
 ```
@@ -32,9 +32,9 @@ This example prints `Hello` to the standard output.
 
 :::note
 As shown in this example, the gist isn't limited to just one file.
-`scala-cli` downloads the gist's archive and unzips it, so the gist can contain multiple files that depend on each other.
+Scala CLI downloads the gist's archive and unzips it, so the gist can contain multiple files that depend on each other.
 
-`scala-cli` also caches the project sources using Coursier's cache.
+Scala CLI also caches the project sources using Coursier's cache.
 :::
 
 ## Sharing code snippets
@@ -46,7 +46,7 @@ If you want to share a code file named `file.scala`, just run this command to cr
 gh gist create file.scala
 ```
 
-Then you (and others) can run it quickly, using the `scala-cli` approach shown above.
+Then you (and others) can run it quickly, using the Scala CLI approach shown above.
 
 
 ## Resources from gists

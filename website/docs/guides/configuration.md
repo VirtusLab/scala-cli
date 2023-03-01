@@ -1,11 +1,11 @@
 ---
 title: Configuration
-sidebar_position: 7
+sidebar_position: 2
 ---
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
-`scala-cli` can be configured in two ways:
+Scala CLI can be configured in two ways:
 - on the command-line
 - directly in `.scala` and `.sc` files
 
@@ -18,13 +18,13 @@ The configuration options and syntax in `.scala` (and `.sc`) files is likely to 
 
 ## Command-line
 
-Pass `--help` to any sub-command of `scala-cli` to list its options:
+Pass `--help` to any sub-command of Scala CLI to list its options:
 ```bash
 scala-cli --help
 scala-cli --power package --help
 ```
 
-As an example of command line configuration, one thing you can do with `scala-cli` command line options is to specify the Scala version:
+As an example of command line configuration, one thing you can do with Scala CLI command line options is to specify the Scala version:
 ```scala title=Test.scala
 @main def test = println("test")
 ```
