@@ -311,7 +311,7 @@ Add Scala.js options
 
 Set the test framework
 
-`//> using testFramework `_class_name_ | ``//> using `test-framework` ``_class_name_
+`//> using testFramework ` _class_name_
 
 #### Examples
 `//> using testFramework "utest.runner.Framework"`
