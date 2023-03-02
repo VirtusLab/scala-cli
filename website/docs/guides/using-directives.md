@@ -112,10 +112,10 @@ Below is a list of the most important `using` directives that Scala CLI supports
 - `//> using dep "org::name:version"` - defines dependency to a given library [more in dedicated guide](/docs/guides/dependencies.md)
 - `//> using dep "org:name:version"`  - defines dependency to a given **java** library, note the `:` instead of `::`
 - `//> using dep "org::name:version,url=url"` - defines dependency to a given library with a fallback to its jar url
-- `//> using resourceDir "<dir>"` - marks directory as source of resources. Resources accessible at runtime and packaged together with compiled code.
-- ``//> using `java-opt` "<opt>"`` - use given java options when running application or tests
-- `//> using target ["test"|"main"]` used to marked or unmarked given source as test
-- ``//> using `test-framework` <framework> `` - select test framework to use
+- `//> using resourceDir "dir"` - marks directory as source of resources. Resources accessible at runtime and packaged together with compiled code.
+- `//> using javaOpt "opt"` - use given java options when running application or tests
+- `//> using target.scope "test"` used to marked or unmarked given source as test
+- `//> using testFramework "framework"` - select test framework to use
 
 There are several reasons that we believe `using` directives are a good solution:
 
