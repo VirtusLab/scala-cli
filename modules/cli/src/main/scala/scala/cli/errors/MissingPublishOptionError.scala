@@ -18,9 +18,12 @@ final class MissingPublishOptionError(
           if (configKeys.isEmpty) ""
           else
             s" or by setting ${configKeys.mkString(", ")} in the Scala CLI configuration"
+        val extraPart =
+          if (extraMessage.isEmpty) "" else s", ${extraMessage.dropWhile(_.isWhitespace)}"
+
         s"Missing $name for publishing, specify one with $optionName" +
           directivePart +
           configPart +
-          extraMessage
+          extraPart
       }
     )

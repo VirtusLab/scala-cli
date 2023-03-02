@@ -46,27 +46,29 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 
-  test("simple") {
-    val baseExpectedArtifacts = Seq(
-      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
-      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
-      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
-      s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-sources.jar"
-    )
-    val expectedArtifacts = baseExpectedArtifacts
-      .flatMap { n =>
-        Seq(n, n + ".asc")
-      }
-      .flatMap { n =>
-        Seq("", ".md5", ".sha1").map(n + _)
-      }
-      .map(os.rel / _)
-      .toSet
+  val baseExpectedArtifacts = Seq(
+    s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
+    s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
+    s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
+    s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-sources.jar"
+  )
 
-    val expectedSourceEntries = Set(
-      "foo/Hello.scala",
-      "foo/Messages.scala"
-    )
+  val expectedArtifacts = baseExpectedArtifacts
+    .flatMap { n =>
+      Seq(n, n + ".asc")
+    }
+    .flatMap { n =>
+      Seq("", ".md5", ".sha1").map(n + _)
+    }
+    .map(os.rel / _)
+    .toSet
+
+  val expectedSourceEntries = Set(
+    "foo/Hello.scala",
+    "foo/Messages.scala"
+  )
+
+  test("simple") {
 
     val publicKey = {
       val uri = Thread.currentThread().getContextClassLoader
@@ -271,4 +273,212 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
     }
   }
+
+  test("missing secret key password") {
+    // format: off
+    val signingOptions = Seq(
+      "--secret-key", s"file:key.skr",
+      "--signer", "bc"
+    )
+    // format: on
+
+    TestCase.testInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.secret-key"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.secret-key-password"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.public-key"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "some_email",
+        "--password",
+        "value:"
+      ).call(cwd = root)
+
+      val publicKey = os.Path("key.pub", root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        signingOptions,
+        "project",
+        "-R",
+        "test-repo"
+      ).call(cwd = root)
+
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo"))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+      expect(notInDir.isEmpty)
+
+      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+      expect((files0 -- expectedArtifacts).isEmpty)
+      expect((expectedArtifacts -- files0).isEmpty)
+      expect(files0 == expectedArtifacts) // just in case…
+
+      val repoArgs =
+        Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
+      val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+      val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
+      val output = res.out.trim()
+      expect(output == "Hello")
+
+      val sourceJarViaCsStr =
+        os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+          .call(cwd = root)
+          .out.trim()
+      val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+      val zf             = new ZipFile(sourceJarViaCs.toIO)
+      val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+      expect(entries == expectedSourceEntries)
+
+      val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+      assert(signatures.nonEmpty)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "verify",
+        "--key",
+        publicKey,
+        signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+      ).call(cwd = root)
+    }
+  }
+
+  test("secret keys in config") {
+
+    TestCase.testInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.secret-key"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.secret-key-password"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--remove",
+        "pgp.public-key"
+      ).call(cwd = root)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--create-pgp-key"
+      ).call(cwd = root)
+
+      TestCase.testInputs.fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          "--signer",
+          "bc",
+          "project",
+          "-R",
+          "test-repo"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+
+        val files = os.walk(root / "test-repo")
+          .filter(os.isFile(_))
+          .map(_.relativeTo(root / "test-repo"))
+        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+        expect(notInDir.isEmpty)
+
+        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+        expect((files0 -- expectedArtifacts).isEmpty)
+        expect((expectedArtifacts -- files0).isEmpty)
+        expect(files0 == expectedArtifacts) // just in case…
+
+        val repoArgs =
+          Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
+        val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+        val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == "Hello")
+
+        val sourceJarViaCsStr =
+          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+            .call(cwd = root)
+            .out.trim()
+        val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+        val zf             = new ZipFile(sourceJarViaCs.toIO)
+        val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+        expect(entries == expectedSourceEntries)
+
+        val publicKey = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "pgp.public-key"
+        ).call(cwd = root)
+          .out.trim()
+          .stripPrefix("value:")
+
+        os.write(os.Path("key.pub", root), publicKey)
+
+        println(os.list(root))
+
+        val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+        assert(signatures.nonEmpty)
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "verify",
+          "--key",
+          s"key.pub",
+          signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+        )
+          .call(cwd = root)
+      }
+    }
+  }
+
 }

@@ -53,7 +53,7 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys, PublishCredentials}
+import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
   MalformedChecksumsError,
@@ -844,97 +844,117 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
-    val signerOpt = publishOptions.contextual(isCi).signer.orElse {
-      if (repoParams.supportsSig)
-        if (publishOptions.contextual(isCi).secretKey.isDefined) Some(PSigner.BouncyCastle)
-        else if (publishOptions.contextual(isCi).gpgSignatureId.isDefined) Some(PSigner.Gpg)
-        else if (repoParams.shouldSign) Some(PSigner.BouncyCastle)
-        else None
-      else None
+    def getBouncyCastleSigner(
+      secretKey: PasswordOption,
+      secretKeyPasswordOpt: Option[PasswordOption]
+    ) = {
+      val getLauncher: Supplier[Array[String]] = { () =>
+        val buildOptions = builds.headOption.map(_.options)
+        val archiveCache = buildOptions.map(_.archiveCache)
+          .getOrElse(ArchiveCache())
+        val fileCache = buildOptions.map(_.finalCache).getOrElse(FileCache())
+        PgpExternalCommand.launcher(
+          fileCache,
+          archiveCache,
+          logger,
+          () => builds.head.options.javaHome().value.javaCommand,
+          publishOptions.signingCli
+        ) match {
+          case Left(e)              => throw new Exception(e)
+          case Right(binaryCommand) => binaryCommand.toArray
+        }
+      }
+
+      if (forceSigningBinary)
+        (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
+          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
+          secretKey.toCliSigning,
+          getLauncher,
+          logger
+        )
+      else
+        (new BouncycastleSignerMaker).get(
+          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
+          secretKey.toCliSigning,
+          getLauncher,
+          logger
+        )
     }
-    val signer: Signer = signerOpt match {
-      case Some(PSigner.Gpg) =>
-        publishOptions.contextual(isCi).gpgSignatureId match {
-          case Some(gpgSignatureId) =>
-            GpgSigner(
-              GpgSigner.Key.Id(gpgSignatureId),
-              extraOptions = publishOptions.contextual(isCi).gpgOptions
+
+    val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {
+      if (!repoParams.supportsSig)
+        PSigner.Nop
+      else if (publishOptions.contextual(isCi).gpgSignatureId.isDefined)
+        PSigner.Gpg
+      else if (repoParams.shouldSign)
+        PSigner.BouncyCastle
+      else
+        PSigner.Nop
+    }
+
+    def getSecretKeyPasswordOpt: Option[PasswordOption] = {
+      val maybeSecretKeyPass = if (publishOptions.contextual(isCi).secretKeyPassword.isDefined)
+        for {
+          secretKeyPassConfigOpt <- publishOptions.contextual(isCi).secretKeyPassword
+          secretKeyPass          <- secretKeyPassConfigOpt.get(configDb()).toOption
+        } yield secretKeyPass
+      else
+        for {
+          secretKeyPassOpt <- configDb().get(Keys.pgpSecretKeyPassword).toOption
+          secretKeyPass    <- secretKeyPassOpt
+        } yield secretKeyPass
+
+      maybeSecretKeyPass
+    }
+
+    val signer: Either[BuildException, Signer] = signerKind match {
+      // user specified --signer=gpg or --gpgKey=...
+      case PSigner.Gpg =>
+        publishOptions.contextual(isCi).gpgSignatureId.map { gpgSignatureId =>
+          GpgSigner(
+            GpgSigner.Key.Id(gpgSignatureId),
+            extraOptions = publishOptions.contextual(isCi).gpgOptions
+          )
+        }.toRight(new MissingPublishOptionError(
+          "ID of the GPG key",
+          "--gpgKey",
+          directiveName = ""
+        ))
+
+      // user specified --signer=bc or --secret-key=... or target repository requires signing
+      // --secret-key-password is possibly specified (not mandatory)
+      case PSigner.Nop | PSigner.BouncyCastle
+          if publishOptions.contextual(isCi).secretKey.isDefined =>
+        val secretKeyConfigOpt = publishOptions.contextual(isCi).secretKey.get
+        for {
+          secretKey <- secretKeyConfigOpt.get(configDb())
+        } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
+
+      // user specified --signer=bc or target repository requires signing
+      // --secret-key-password is possibly specified (not mandatory)
+      case PSigner.BouncyCastle =>
+        val shouldSignMsg =
+          if (repoParams.shouldSign) "signing is required for chosen repository" else ""
+        for {
+          secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException
+          secretKey <- secretKeyOpt.toRight(
+            new MissingPublishOptionError(
+              "secret key",
+              "--secret-key",
+              directiveName = "",
+              configKeys = Seq("pgp.secret-key"),
+              extraMessage = shouldSignMsg
             )
-          case None => NopSigner
-        }
-      case Some(PSigner.BouncyCastle) =>
-        val getLauncher: Supplier[Array[String]] = { () =>
-          val buildOptions = builds.headOption.map(_.options)
-          val archiveCache = buildOptions.map(_.archiveCache)
-            .getOrElse(ArchiveCache())
-          val fileCache = buildOptions.map(_.finalCache).getOrElse(FileCache())
-          PgpExternalCommand.launcher(
-            fileCache,
-            archiveCache,
-            logger,
-            () => builds.head.options.javaHome().value.javaCommand,
-            publishOptions.signingCli
-          ) match {
-            case Left(e)              => throw new Exception(e)
-            case Right(binaryCommand) => binaryCommand.toArray
-          }
-        }
-        val secretKeyDetailsOpt = publishOptions.contextual(isCi).secretKey match {
-          case Some(secretKey0) =>
-            val secretKey = secretKey0.get(configDb()).orExit(logger).toCliSigning
-            val secretKeyPassword = publishOptions
-              .contextual(isCi)
-              .secretKeyPassword
-              .orNull
-              .get(configDb())
-              .orExit(logger)
-              .toCliSigning
-            Some((secretKey, secretKeyPassword))
-          case None =>
-            configDb().get(Keys.pgpSecretKey).wrapConfigException.orExit(logger) match {
-              case Some(secretKey) =>
-                val secretKeyPassword =
-                  configDb().get(Keys.pgpSecretKeyPassword).wrapConfigException
-                    .flatMap {
-                      case None =>
-                        Left(new MissingConfigEntryError(Keys.pgpSecretKeyPassword.fullName))
-                      case Some(p) => Right(p)
-                    }
-                    .orExit(logger)
-                Some((secretKey.toCliSigning, secretKeyPassword.toCliSigning))
-              case None =>
-                None
-            }
-        }
-        secretKeyDetailsOpt match {
-          case Some((secretKey, secretKeyPassword)) =>
-            if (forceSigningBinary)
-              (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
-                secretKeyPassword,
-                secretKey,
-                getLauncher,
-                logger
-              )
-            else
-              (new BouncycastleSignerMaker).get(
-                secretKeyPassword,
-                secretKey,
-                getLauncher,
-                logger
-              )
-          case None =>
-            if (repoParams.shouldSign)
-              logger.diagnostic(
-                "PGP signatures are disabled, while these are recommended for this repository."
-              )
-            NopSigner
-        }
-      case Some(PSigner.Nop) => NopSigner
-      case None              => NopSigner
+          )
+        } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
+      case _ =>
+        logger.diagnostic("Not signing files as it's not needed nor has it been specified")
+        Right(NopSigner)
     }
+
     val signerLogger =
       new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val signRes = signer.signatures(
+    val signRes = value(signer).signatures(
       fileSet0,
       now,
       ChecksumType.all.map(_.extension).toSet,
