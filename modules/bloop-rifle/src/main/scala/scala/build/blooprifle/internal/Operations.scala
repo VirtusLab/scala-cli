@@ -473,7 +473,7 @@ object Operations {
     val nailgunClient0 = nailgunClient(address)
     val streams        = Streams(None, out, err)
 
-    timeout(30.seconds, scheduler, logger) {
+    timeout(30.seconds + BloopRifleConfig.extraTimeout, scheduler, logger) {
       nailgunClient0.run(
         "about",
         Array.empty,

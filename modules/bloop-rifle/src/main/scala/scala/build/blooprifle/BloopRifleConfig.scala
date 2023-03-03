@@ -119,6 +119,10 @@ object BloopRifleConfig {
       .orElse(fromProps)
       .getOrElse(hardCodedDefaultScalaVersion)
   }
+  lazy val extraTimeout: FiniteDuration = Option(System.getenv("SCALA_CLI_EXTRA_TIMEOUT"))
+    .map(Duration(_))
+    .collect { case d: FiniteDuration => d }
+    .getOrElse(Duration.Zero)
 
   def default(
     address: Address,
@@ -136,10 +140,10 @@ object BloopRifleConfig {
       bspStdout = None,
       bspStderr = None,
       period = 100.milliseconds,
-      timeout = 10.seconds,
+      timeout = 10.seconds + extraTimeout,
       startCheckPeriod = 100.millis,
-      startCheckTimeout = 1.minute,
-      initTimeout = 30.seconds,
+      startCheckTimeout = 1.minute + extraTimeout,
+      initTimeout = 30.seconds + extraTimeout,
       minimumBloopJvm = 8,
       retainedBloopVersion = AtLeast(BloopVersion(Constants.bloopVersion))
     )
