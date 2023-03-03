@@ -1060,6 +1060,10 @@ The option groups to check - can be "all", or a comma-separated list of "core", 
 
 Whether to check if a GitHub workflow already exists (one for publishing is written if none is found)
 
+### `--check-gitignore`
+
+Whether to check if a .gitignore file already exists (one is written if none is found)
+
 ### `--dummy`
 
 Dummy mode - don't upload any secret to GitHub

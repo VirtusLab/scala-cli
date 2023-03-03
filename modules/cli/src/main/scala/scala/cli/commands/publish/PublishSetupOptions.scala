@@ -66,6 +66,10 @@ final case class PublishSetupOptions(
   @HelpMessage("Whether to check if a GitHub workflow already exists (one for publishing is written if none is found)")
     checkWorkflow: Option[Boolean] = None,
   @Group(HelpGroup.Publishing.toString)
+  @Tag(tags.restricted)
+  @HelpMessage("Whether to check if a .gitignore file already exists (one is written if none is found)")
+    checkGitignore: Option[Boolean] = None,
+  @Group(HelpGroup.Publishing.toString)
   @Tag(tags.implementation)
   @HelpMessage("Dummy mode - don't upload any secret to GitHub")
     dummy: Boolean = false
