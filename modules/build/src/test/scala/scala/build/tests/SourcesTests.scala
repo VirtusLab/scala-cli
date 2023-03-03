@@ -33,42 +33,48 @@ class SourcesTests extends munit.FunSuite {
     () => sys.error("shouldn't be used")
   )
 
-  test("dependencies in .scala - using") {
-    val testInputs = TestInputs(
-      os.rel / "something.scala" ->
-        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
-          |import scala.collection.mutable
-          |
-          |object Something {
-          |  def a = 1
-          |}
-          |""".stripMargin
-    )
-    val expectedDeps = Seq(
-      dep"org3:::name3:3.3",
-      dep"org1:name1:1.1",
-      dep"org2::name2:2.2"
-    )
-    testInputs.withInputs { (_, inputs) =>
-      val (crossSources, _) =
-        CrossSources.forInputs(
-          inputs,
-          preprocessors,
-          TestLogger(),
-          suppressDirectivesInMultipleFilesWarning = None
-        ).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+  for (
+    (singularAlias, pluralAlias) <-
+      List(("lib", "libs"), ("dep", "deps"), ("dependency", "dependencies"))
+  )
+    test(s"dependencies in .scala - using aliases: $pluralAlias and $singularAlias") {
+      val testInputs = TestInputs(
+        os.rel / "something.scala" ->
+          s"""//> using $pluralAlias "org1:name1:1.1", "org2::name2:2.2"
+             |//> using $singularAlias "org3:::name3:3.3"
+             |import scala.collection.mutable
+             |
+             |object Something {
+             |  def a = 1
+             |}
+             |""".stripMargin
+      )
+      val expectedDeps = Seq(
+        dep"org1:name1:1.1",
+        dep"org2::name2:2.2",
+        dep"org3:::name3:3.3"
+      )
+      testInputs.withInputs { (_, inputs) =>
+        val (crossSources, _) =
+          CrossSources.forInputs(
+            inputs,
+            preprocessors,
+            TestLogger(),
+            suppressDirectivesInMultipleFilesWarning = None
+          ).orThrow
+        val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+        val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
-      expect(sources.buildOptions.classPathOptions.extraDependencies.toSeq.toSeq.map(
-        _.value
-      ) == expectedDeps)
-      expect(sources.paths.length == 1)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
-      expect(sources.inMemory.isEmpty)
+        val obtainedDeps = sources.buildOptions.classPathOptions.extraDependencies.toSeq.toSeq.map(
+          _.value
+        )
+
+        expect(obtainedDeps.sortBy(_.version) == expectedDeps.sortBy(_.version))
+        expect(sources.paths.length == 1)
+        expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
+        expect(sources.inMemory.isEmpty)
+      }
     }
-  }
 
   test("dependencies in .scala - using witin tests") {
     val testInputs = TestInputs(

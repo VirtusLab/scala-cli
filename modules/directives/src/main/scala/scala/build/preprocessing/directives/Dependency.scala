@@ -25,11 +25,13 @@ import scala.cli.commands.SpecificationLevel
 final case class Dependency(
   @DirectiveName("lib")
   @DirectiveName("libs")
+  @DirectiveName("dep")
   @DirectiveName("deps")
-  dep: List[Positioned[String]] = Nil
+  @DirectiveName("dependencies")
+  dependency: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
-    val maybeDependencies = dep
+    val maybeDependencies = dependency
       .map { posStr =>
         posStr
           .map { str =>
