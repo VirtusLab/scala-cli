@@ -85,11 +85,12 @@ scala-cli --power config --password github.token
 
 </ChainedSnippets>
 
-Use `--create-key` to create a PGP key pair, protected by a randomly-generated password, to
+Use `--create-pgp-key` to create a PGP key pair, protected by a randomly-generated password, to
 be used by the `publish setup` sub-command:
 ```sh
-scala-cli config --create-key
+scala-cli --power config --create-pgp-key --email "some_email"
 ```
+The `--email` option or `publish.user.email` has to be specified for this subcommand to work properly.
 
 Configuration values are stored in a directory under your home directory, with restricted permissions:
 - on macOS: `~/Library/Application Support/ScalaCli/secrets/config.json`
