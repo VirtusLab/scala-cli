@@ -13,6 +13,7 @@ import scala.cli.commands.shared.{
   SharedJvmOptions
 }
 import scala.cli.commands.tags
+import scala.cli.config.Keys
 
 // format: off
 @HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
@@ -92,6 +93,7 @@ object ConfigOptions {
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+  private val configKeysBulletPoints: Seq[String] = Keys.map.keys.toSeq.sorted.map("- " + _)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |
@@ -99,6 +101,9 @@ object ConfigOptions {
        |  ${Console.BOLD}$progName $cmdName key value${Console.RESET}
        |For example, to globally set the interactive mode:
        |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
+       |  
+       |Available keys:
+       |  ${configKeysBulletPoints.mkString(s"${System.lineSeparator}  ")}
        |
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
 }

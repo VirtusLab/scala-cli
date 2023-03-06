@@ -583,6 +583,27 @@ For example, to globally set the interactive mode:
 ```sh
   scala-cli config interactive true
 ```
+  
+Available keys:
+  - actions
+  - github.token
+  - httpProxy.address
+  - httpProxy.password
+  - httpProxy.user
+  - interactive
+  - interactive-was-suggested
+  - pgp.public-key
+  - pgp.secret-key
+  - pgp.secret-key-password
+  - power
+  - publish.credentials
+  - publish.user.email
+  - publish.user.name
+  - publish.user.url
+  - repositories.credentials
+  - repositories.default
+  - repositories.mirrors
+  - suppress-warning.directives-in-multiple-files
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 
