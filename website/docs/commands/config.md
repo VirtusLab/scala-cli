@@ -1,21 +1,29 @@
 ---
-title: Config ⚡️
-sidebar_position: 1
+title: Config
+sidebar_position: 17
 ---
 
-:::caution
-The Config command is restricted and requires setting the `--power` option to be used.
-You can pass it explicitly or set it globally by running:
-
-    scala-cli config power true
-:::
-
-import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 The `config` sub-command makes it possible to get and set various configuration values, used by
 other Scala CLI sub-commands.
 
+The full list of the available configuration keys is available in [the reference docs](../reference/commands.md#config).
+
 Examples of use:
+<ChainedSnippets>
+
+```bash ignore
+scala-cli config power true
+scala-cli config power
+```
+
+```text
+true
+```
+
+</ChainedSnippets>
+
 <ChainedSnippets>
 
 ```bash

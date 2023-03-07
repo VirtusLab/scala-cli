@@ -68,7 +68,7 @@ Available keys:
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
 
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
 Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
 

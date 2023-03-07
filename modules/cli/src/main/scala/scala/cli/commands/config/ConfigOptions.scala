@@ -88,7 +88,6 @@ object ConfigOptions {
   implicit lazy val help: Help[ConfigOptions]     = Help.derive
   private val helpHeader: String = s"Configure global settings for $fullRunnerName."
   private val cmdName            = "config"
-  private val websiteSuffix      = s"misc/$cmdName"
   val helpMessage: String =
     s"""$helpHeader
        |
@@ -96,7 +95,7 @@ object ConfigOptions {
        |  ${configKeyMessages(includeHidden = false).mkString(s"${System.lineSeparator}  ")}
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}
-       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
   private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
     val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
     val keys: Seq[Key[_]]    = if includeHidden then allKeys else allKeys.filterNot(_.hidden)
@@ -122,5 +121,5 @@ object ConfigOptions {
        |Available keys:
        |  ${configKeyMessages(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
        |
-       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }
