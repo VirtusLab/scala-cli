@@ -6,6 +6,7 @@ import java.nio.file.Paths
 import java.util.zip.ZipFile
 
 import scala.jdk.CollectionConverters.*
+import scala.util.Properties
 
 abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
@@ -282,29 +283,15 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     // format: on
 
     TestCase.testInputs.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--remove",
-        "pgp.secret-key"
-      ).call(cwd = root)
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
 
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--remove",
-        "pgp.secret-key-password"
-      ).call(cwd = root)
+      os.write(confFile, "{}", createFolders = true)
 
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--remove",
-        "pgp.public-key"
-      ).call(cwd = root)
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
       os.proc(
         TestUtil.cli,
@@ -315,7 +302,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "some_email",
         "--password",
         "value:"
-      ).call(cwd = root)
+      ).call(cwd = root, env = extraEnv)
 
       val publicKey = os.Path("key.pub", root)
 
@@ -328,7 +315,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "project",
         "-R",
         "test-repo"
-      ).call(cwd = root)
+      ).call(cwd = root, env = extraEnv)
 
       val files = os.walk(root / "test-repo")
         .filter(os.isFile(_))
@@ -368,43 +355,31 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "--key",
         publicKey,
         signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
-      ).call(cwd = root)
+      ).call(cwd = root, env = extraEnv)
     }
   }
 
   test("secret keys in config") {
 
     TestCase.testInputs.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--remove",
-        "pgp.secret-key"
-      ).call(cwd = root)
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+
+      os.write(confFile, "{}", createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
       os.proc(
         TestUtil.cli,
         "--power",
         "config",
-        "--remove",
-        "pgp.secret-key-password"
-      ).call(cwd = root)
-
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--remove",
-        "pgp.public-key"
-      ).call(cwd = root)
-
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "--create-pgp-key"
-      ).call(cwd = root)
+        "--create-pgp-key",
+        "--email",
+        "some_email"
+      ).call(cwd = root, env = extraEnv)
 
       TestCase.testInputs.fromRoot { root =>
         os.proc(
@@ -420,7 +395,8 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         ).call(
           cwd = root,
           stdin = os.Inherit,
-          stdout = os.Inherit
+          stdout = os.Inherit,
+          env = extraEnv
         )
 
         val files = os.walk(root / "test-repo")
@@ -456,13 +432,11 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "--power",
           "config",
           "pgp.public-key"
-        ).call(cwd = root)
+        ).call(cwd = root, env = extraEnv)
           .out.trim()
           .stripPrefix("value:")
 
         os.write(os.Path("key.pub", root), publicKey)
-
-        println(os.list(root))
 
         val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
         assert(signatures.nonEmpty)
@@ -475,7 +449,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           s"key.pub",
           signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
         )
-          .call(cwd = root)
+          .call(cwd = root, env = extraEnv)
       }
     }
   }
