@@ -4,32 +4,45 @@ import caseapp.HelpMessage
 
 import java.util.stream.IntStream
 
+import scala.annotation.tailrec
 import scala.build.internal.util.ConsoleUtils.*
 
 object ReferenceDocUtils {
   extension (s: String) {
-    def consoleToFence: String =
-      s
-        .linesIterator
-        .fold("") { (acc, line) =>
-          val maybeOpenFence =
-            if line.contains(Console.BOLD) then
-              """```sh
-                |""".stripMargin
-            else if line.contains(ScalaCliConsole.GRAY) then
-              """```scala
-                |""".stripMargin
-            else ""
-          val maybeCloseFence =
-            if line.contains(Console.RESET) then
-              """
-                |```""".stripMargin
-            else ""
-          val newLine = s"$maybeOpenFence${line.noConsoleKeys}$maybeCloseFence"
-          if acc.isEmpty then newLine
-          else s"""$acc
-                  |$newLine""".stripMargin
-        }
+    def consoleToFence: String = {
+      @tailrec
+      def consoleToFenceRec(
+        remainingLines: Seq[String],
+        fenceOpen: Boolean = false,
+        acc: String = ""
+      ): String =
+        remainingLines.headOption match
+          case None => acc
+          case Some(line) =>
+            val openFenceString =
+              if line.contains(Console.BOLD) then
+                """```sh
+                  |""".stripMargin
+              else if line.contains(ScalaCliConsole.GRAY) then
+                """```scala
+                  |""".stripMargin
+              else ""
+            val currentFenceOpen = fenceOpen || openFenceString.nonEmpty
+            val closeFenceString =
+              if currentFenceOpen && line.contains(Console.RESET) then
+                """
+                  |```""".stripMargin
+              else ""
+            val newFenceOpen = currentFenceOpen && closeFenceString.isEmpty
+            val newLine      = s"$openFenceString${line.noConsoleKeys}$closeFenceString"
+            val newAcc =
+              if acc.isEmpty then newLine
+              else
+                s"""$acc
+                   |$newLine""".stripMargin
+            consoleToFenceRec(remainingLines.tail, newFenceOpen, newAcc)
+      consoleToFenceRec(s.linesIterator.toSeq)
+    }
   }
   extension (helpMessage: HelpMessage) {
     def referenceDocMessage: String = helpMessage.message.consoleToFence.noConsoleKeys
