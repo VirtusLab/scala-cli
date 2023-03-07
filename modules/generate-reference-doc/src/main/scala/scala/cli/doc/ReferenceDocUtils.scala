@@ -43,14 +43,16 @@ object ReferenceDocUtils {
             consoleToFenceRec(remainingLines.tail, newFenceOpen, newAcc)
       consoleToFenceRec(s.linesIterator.toSeq)
     }
+    def filterOutHiddenStrings: String =
+      s.replace(s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} ", "")
   }
   extension (helpMessage: HelpMessage) {
-    def referenceDocMessage: String = helpMessage.message.consoleToFence.noConsoleKeys
+    def referenceDocMessage: String = helpMessage.message.filterOutHiddenStrings.consoleToFence
     def referenceDocDetailedMessage: String = {
       val msg =
         if helpMessage.detailedMessage.nonEmpty then helpMessage.detailedMessage
         else helpMessage.message
-      msg.consoleToFence
+      msg.filterOutHiddenStrings.consoleToFence
     }
   }
 

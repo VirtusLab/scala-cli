@@ -2,6 +2,7 @@ package scala.cli.commands.config
 
 import caseapp.*
 
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
@@ -91,17 +92,23 @@ object ConfigOptions {
   val helpMessage: String =
     s"""$helpHeader
        |
+       |Available keys:
+       |  ${configKeysBulletPoints(includeHidden = false).mkString(s"${System.lineSeparator}  ")}
+       |
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
-  private val configKeysBulletPoints: Seq[String] = {
-    val keys: Seq[Key[_]] = Keys.map.values.toSeq
-    val maxFullNameLength = keys.map(_.fullName.length).max
+  private def configKeysBulletPoints(includeHidden: Boolean): Seq[String] = {
+    val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
+    val keys: Seq[Key[_]]    = if includeHidden then allKeys else allKeys.filterNot(_.hidden)
+    val maxFullNameLength    = keys.map(_.fullName.length).max
     keys.sortBy(_.fullName)
       .map { key =>
         val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
         val extraSpaces =
           if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
-        s"- ${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  ${key.description}"
+        val hiddenString =
+          if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} " else ""
+        s"- ${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenString${key.description}"
       }
   }
   val detailedHelpMessage: String =
@@ -113,7 +120,7 @@ object ConfigOptions {
        |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
        |  
        |Available keys:
-       |  ${configKeysBulletPoints.mkString(s"${System.lineSeparator}  ")}
+       |  ${configKeysBulletPoints(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
        |
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
 }

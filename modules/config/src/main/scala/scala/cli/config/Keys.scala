@@ -10,39 +10,46 @@ object Keys {
   val userName = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "name",
-    description = "The 'name' user detail, used for publishing."
+    description = "The 'name' user detail, used for publishing.",
+    hidden = true
   )
   val userEmail = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "email",
-    description = "The 'email' user detail, used for publishing."
+    description = "The 'email' user detail, used for publishing.",
+    hidden = true
   )
   val userUrl = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "url",
-    description = "The 'url' user detail, used for publishing."
+    description = "The 'url' user detail, used for publishing.",
+    hidden = true
   )
 
   val ghToken = new Key.PasswordEntry(
     prefix = Seq("github"),
     name = "token",
-    description = "GitHub token."
+    description = "GitHub token.",
+    hidden = true
   )
 
   val pgpSecretKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key",
-    description = "The PGP secret key, used for signing."
+    description = "The PGP secret key, used for signing.",
+    hidden = true
   )
   val pgpSecretKeyPassword = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key-password",
-    description = "The PGP secret key password, used for signing."
+    description = "The PGP secret key password, used for signing.",
+    hidden = true
   )
   val pgpPublicKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "public-key",
-    description = "The PGP public key, used for signing."
+    description = "The PGP public key, used for signing.",
+    hidden = true
   )
 
   val actions = new Key.BooleanEntry(
@@ -78,30 +85,35 @@ object Keys {
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
     name = "address",
-    description = "HTTP proxy address."
+    description = "HTTP proxy address.",
+    hidden = true
   )
   val proxyUser = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "user",
-    description = "HTTP proxy user (used for authentication)."
+    description = "HTTP proxy user (used for authentication).",
+    hidden = true
   )
   val proxyPassword = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "password",
-    description = "HTTP proxy password (used for authentication)."
+    description = "HTTP proxy password (used for authentication).",
+    hidden = true
   )
 
   val repositoryMirrors = new Key.StringListEntry(
     prefix = Seq("repositories"),
     name = "mirrors",
     description =
-      s"Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven"
+      s"Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven",
+    hidden = true
   )
   val defaultRepositories = new Key.StringListEntry(
     prefix = Seq("repositories"),
     name = "default",
     description =
-      "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com"
+      "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com",
+    hidden = true
   )
 
   // Kept for binary compatibility
@@ -111,7 +123,8 @@ object Keys {
   val globalInteractiveWasSuggested = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive-was-suggested",
-    description = "Setting indicating if the global interactive mode was already suggested."
+    description = "Setting indicating if the global interactive mode was already suggested.",
+    hidden = true
   )
 
   def all: Seq[Key[_]] = Seq[Key[_]](
@@ -196,6 +209,7 @@ object Keys {
   val repositoryCredentials: Key[List[RepositoryCredentials]] =
     new Key[List[RepositoryCredentials]] {
       override val description: String = "Repository credentials, syntax: value:user value:password"
+      override val hidden: Boolean     = true
 
       private def asJson(credentials: RepositoryCredentials): RepositoryCredentialsAsJson =
         RepositoryCredentialsAsJson(
@@ -320,6 +334,7 @@ object Keys {
   val publishCredentials: Key[List[PublishCredentials]] = new Key[List[PublishCredentials]] {
     override val description: String =
       "Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password"
+    override val hidden: Boolean = true
 
     private def asJson(credentials: PublishCredentials): PublishCredentialsAsJson =
       PublishCredentialsAsJson(

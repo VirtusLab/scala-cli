@@ -41,6 +41,9 @@ abstract class Key[T] {
   /** A short description of a particular key's purpose and syntax for its values. */
   def description: String
 
+  /** A flag indicating whether the key should by default be hidden in help outputs or not. */
+  def hidden: Boolean = false
+
   /** Whether this key corresponds to a password (see [[Key.PasswordEntry]]) */
   def isPasswordOption: Boolean = false
 }
@@ -80,7 +83,8 @@ object Key {
   final class StringEntry(
     val prefix: Seq[String],
     val name: String,
-    val description: String = ""
+    val description: String = "",
+    override val hidden: Boolean = false
   ) extends Key[String] {
     def parse(json: Array[Byte]): Either[EntryError, String] =
       try Right(readFromArray(json)(stringCodec))
@@ -102,7 +106,8 @@ object Key {
   final class BooleanEntry(
     val prefix: Seq[String],
     val name: String,
-    val description: String = ""
+    val description: String = "",
+    override val hidden: Boolean = false
   ) extends Key[Boolean] {
     def parse(json: Array[Byte]): Either[EntryError, Boolean] =
       try Right(readFromArray(json)(booleanCodec))
@@ -124,7 +129,8 @@ object Key {
   final class PasswordEntry(
     val prefix: Seq[String],
     val name: String,
-    val description: String = ""
+    val description: String = "",
+    override val hidden: Boolean = false
   ) extends Key[PasswordOption] {
     def parse(json: Array[Byte]): Either[EntryError, PasswordOption] =
       try {
@@ -157,7 +163,8 @@ object Key {
   final class StringListEntry(
     val prefix: Seq[String],
     val name: String,
-    val description: String = ""
+    val description: String = "",
+    override val hidden: Boolean = false
   ) extends Key[List[String]] {
     def parse(json: Array[Byte]): Either[EntryError, List[String]] =
       try Right(readFromArray(json)(stringListCodec))
