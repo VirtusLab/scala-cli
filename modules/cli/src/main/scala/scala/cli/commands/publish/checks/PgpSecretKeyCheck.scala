@@ -35,8 +35,15 @@ final case class PgpSecretKeyCheck(
 
   def check(pubOpt: BPublishOptions): Boolean = {
     val opt0 = pubOpt.retained(options.publishParams.setupCi)
+
+    lazy val configSecretKey = for {
+      secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException.toOption
+      secretKey    <- secretKeyOpt
+    } yield secretKey
+
     opt0.repository.orElse(options.publishRepo.publishRepository).contains("github") ||
-    opt0.secretKey.isDefined
+    opt0.secretKey.isDefined ||
+    (options.publishParams.ci.contains(false) && configSecretKey.isDefined)
   }
 
   private val base64Chars = (('A' to 'Z') ++ ('a' to 'z') ++ ('0' to '9') ++ Seq('+', '/', '='))
