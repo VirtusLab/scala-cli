@@ -101,7 +101,7 @@ object ConfigOptions {
         val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
         val extraSpaces =
           if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
-        s"- ${key.fullName}$extraSpaces  ${key.description}"
+        s"- ${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  ${key.description}"
       }
   }
   val detailedHelpMessage: String =
