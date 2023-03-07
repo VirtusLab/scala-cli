@@ -948,7 +948,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )
         } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
       case _ =>
-        logger.message("Artifacts not signed as it's not required nor has it been specified")
+        if (!publishOptions.contextual(isCi).signer.contains(PSigner.Nop))
+          logger.message(
+            "\ud83d\udd13 Artifacts NOT signed as it's not required nor has it been specified"
+          )
         Right(NopSigner)
     }
 
