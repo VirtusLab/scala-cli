@@ -13,7 +13,7 @@ import scala.cli.commands.shared.{
   SharedJvmOptions
 }
 import scala.cli.commands.tags
-import scala.cli.config.Keys
+import scala.cli.config.{Key, Keys}
 
 // format: off
 @HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
@@ -93,7 +93,17 @@ object ConfigOptions {
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
-  private val configKeysBulletPoints: Seq[String] = Keys.map.keys.toSeq.sorted.map("- " + _)
+  private val configKeysBulletPoints: Seq[String] = {
+    val keys: Seq[Key[_]] = Keys.map.values.toSeq
+    val maxFullNameLength = keys.map(_.fullName.length).max
+    keys.sortBy(_.fullName)
+      .map { key =>
+        val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
+        val extraSpaces =
+          if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
+        s"- ${key.fullName}$extraSpaces  ${key.description}"
+      }
+  }
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

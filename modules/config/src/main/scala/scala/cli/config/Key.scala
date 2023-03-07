@@ -36,7 +36,10 @@ abstract class Key[T] {
   def fromString(values: Seq[String]): Either[Key.MalformedValue, T]
 
   /** The fully qualified name of this key */
-  final def fullName = (prefix :+ name).mkString(".")
+  final def fullName: String = (prefix :+ name).mkString(".")
+
+  /** A short description of a particular key's purpose and syntax for its values. */
+  def description: String
 
   /** Whether this key corresponds to a password (see [[Key.PasswordEntry]]) */
   def isPasswordOption: Boolean = false
@@ -76,7 +79,8 @@ object Key {
 
   final class StringEntry(
     val prefix: Seq[String],
-    val name: String
+    val name: String,
+    val description: String = ""
   ) extends Key[String] {
     def parse(json: Array[Byte]): Either[EntryError, String] =
       try Right(readFromArray(json)(stringCodec))
@@ -97,7 +101,8 @@ object Key {
 
   final class BooleanEntry(
     val prefix: Seq[String],
-    val name: String
+    val name: String,
+    val description: String = ""
   ) extends Key[Boolean] {
     def parse(json: Array[Byte]): Either[EntryError, Boolean] =
       try Right(readFromArray(json)(booleanCodec))
@@ -118,7 +123,8 @@ object Key {
 
   final class PasswordEntry(
     val prefix: Seq[String],
-    val name: String
+    val name: String,
+    val description: String = ""
   ) extends Key[PasswordOption] {
     def parse(json: Array[Byte]): Either[EntryError, PasswordOption] =
       try {
@@ -150,7 +156,8 @@ object Key {
 
   final class StringListEntry(
     val prefix: Seq[String],
-    val name: String
+    val name: String,
+    val description: String = ""
   ) extends Key[List[String]] {
     def parse(json: Array[Byte]): Either[EntryError, List[String]] =
       try Right(readFromArray(json)(stringListCodec))
