@@ -91,7 +91,7 @@ final case class PgpSecretKeyCheck(
                 options.randomSecretKeyMail
                   .toRight(
                     new MissingPublishOptionError(
-                      "random secret key mail",
+                      "the e-mail address to associate to the random key pair",
                       "--random-secret-key-mail",
                       ""
                     )

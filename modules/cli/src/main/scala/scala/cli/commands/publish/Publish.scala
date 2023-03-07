@@ -948,7 +948,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )
         } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
       case _ =>
-        logger.diagnostic("Not signing files as it's not needed nor has it been specified")
+        logger.message("Artifacts not signed as it's not required nor has it been specified")
         Right(NopSigner)
     }
 
@@ -1074,7 +1074,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                 Seq(mod.organization.value, mod.name.value, version)
               else
                 mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
-            elems.map("/" + _).mkString + "/"
+            elems.mkString("/", "/", "/")
           }
           val path = {
             val url = checkRepo.root.stripSuffix("/") + relPath
