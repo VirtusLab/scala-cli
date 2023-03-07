@@ -66,6 +66,7 @@ Available keys:
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
+  - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
 

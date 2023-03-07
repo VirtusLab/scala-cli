@@ -134,6 +134,7 @@ object Keys {
     globalInteractiveWasSuggested,
     interactive,
     suppressDirectivesInMultipleFilesWarning,
+    suppressOutdatedDependenciessWarning,
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,
