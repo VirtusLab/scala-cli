@@ -93,11 +93,11 @@ object ConfigOptions {
     s"""$helpHeader
        |
        |Available keys:
-       |  ${configKeysBulletPoints(includeHidden = false).mkString(s"${System.lineSeparator}  ")}
+       |  ${configKeyMessages(includeHidden = false).mkString(s"${System.lineSeparator}  ")}
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
-  private def configKeysBulletPoints(includeHidden: Boolean): Seq[String] = {
+  private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
     val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
     val keys: Seq[Key[_]]    = if includeHidden then allKeys else allKeys.filterNot(_.hidden)
     val maxFullNameLength    = keys.map(_.fullName.length).max
@@ -108,7 +108,7 @@ object ConfigOptions {
           if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
         val hiddenString =
           if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} " else ""
-        s"- ${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenString${key.description}"
+        s"${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenString${key.description}"
       }
   }
   val detailedHelpMessage: String =
@@ -120,7 +120,7 @@ object ConfigOptions {
        |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
        |  
        |Available keys:
-       |  ${configKeysBulletPoints(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
+       |  ${configKeyMessages(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
        |
        |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
 }

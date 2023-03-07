@@ -45,14 +45,16 @@ object ReferenceDocUtils {
     }
     def filterOutHiddenStrings: String =
       s.replace(s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} ", "")
+    def consoleYellowToMdBullets: String = s.replace(Console.YELLOW, "- ")
+    def consoleToMarkdown: String = s.filterOutHiddenStrings.consoleYellowToMdBullets.consoleToFence
   }
   extension (helpMessage: HelpMessage) {
-    def referenceDocMessage: String = helpMessage.message.filterOutHiddenStrings.consoleToFence
+    def referenceDocMessage: String = helpMessage.message.consoleToMarkdown
     def referenceDocDetailedMessage: String = {
       val msg =
         if helpMessage.detailedMessage.nonEmpty then helpMessage.detailedMessage
         else helpMessage.message
-      msg.filterOutHiddenStrings.consoleToFence
+      msg.consoleToMarkdown
     }
   }
 
