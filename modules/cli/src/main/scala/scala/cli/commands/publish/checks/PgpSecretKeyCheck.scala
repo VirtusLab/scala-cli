@@ -143,7 +143,7 @@ final case class PgpSecretKeyCheck(
                         "publish.secretKey",
                         configKeys = Seq(Keys.pgpSecretKey.fullName),
                         extraMessage =
-                          ", and specify publish.secretKeyPassword / --secret-key-password if needed." +
+                          "also specify publish.secretKeyPassword / --secret-key-password if needed." +
                             (if (options.publishParams.setupCi)
                                " Alternatively, pass --random-secret-key"
                              else "")

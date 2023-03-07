@@ -17,7 +17,7 @@ final class MissingPublishOptionError(
         val configPart =
           if (configKeys.isEmpty) ""
           else
-            s" or by setting ${configKeys.mkString(", ")} in the Scala CLI configuration"
+            s" or by setting ${configKeys.mkString(", ")} in the configuration"
         val extraPart =
           if (extraMessage.isEmpty) "" else s", ${extraMessage.dropWhile(_.isWhitespace)}"
 
