@@ -942,7 +942,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               "secret key",
               "--secret-key",
               directiveName = "",
-              configKeys = Seq("pgp.secret-key"),
+              configKeys = Seq(Keys.pgpSecretKey.fullName),
               extraMessage = shouldSignMsg
             )
           )
