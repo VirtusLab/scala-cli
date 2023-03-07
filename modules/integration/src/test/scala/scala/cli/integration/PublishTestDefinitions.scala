@@ -46,7 +46,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 
-  val baseExpectedArtifacts = Seq(
+  val baseExpectedArtifacts = Set(
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
@@ -61,7 +61,6 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       Seq("", ".md5", ".sha1").map(n + _)
     }
     .map(os.rel / _)
-    .toSet
 
   val expectedSourceEntries = Set(
     "foo/Hello.scala",
