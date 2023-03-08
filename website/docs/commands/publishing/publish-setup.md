@@ -86,7 +86,7 @@ in Scala CLI (via the `publish.credentials` config key in both cases).
 
 These can be written in the Scala CLI configuration the following way:
 ```sh
-SONATYPE_USER=me SONATYPE_PASSWORD=1234 scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD --password-value
+scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD --password-value
 ```
 
 Note that both user and password arguments are assumed to be secrets, and

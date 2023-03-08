@@ -84,14 +84,14 @@ To override this default value, set the `publish.computeVersion` directive, like
 ## Repository settings
 
 A repository is required for the `publish` command, and might need other settings to work fine
-(to pass credentials for example).
+(to pass credentials for example). See [Repositories](#repositories) for more information.
 
 When publishing from you CI, we recommend letting `scala-cli publish setup`
 setting those settings via using directives. When publishing from your local machine to Maven Central,
 we recommend setting the repository via a `publish.repository` directive, and keeping your
 Sonatype credentials in the Scala CLI settings, via commands such as
 ```bash
-SONATYPE_USER=… SONATYPE_PASSWORD=… scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
+scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
 <!-- TODO Automatically generate that? -->
@@ -125,6 +125,9 @@ handled by either
 - the [Bouncy Castle library](https://www.bouncycastle.org) (default, recommended)
 - the local `gpg` binary on your machine
 
+A signing mechanism will be chosen based on options and directives specified,
+it can also be overriden with `--signer` with one of those values: `bc`, `gpg` or `none`.
+
 #### Bouncy Castle
 
 A benefit of using Bouncy Castle to sign artifacts is that it has no external dependencies.
@@ -136,16 +139,26 @@ pass it like `--secret-key-password env:MY_KEY_PASSWORD`.
 
 Scala CLI can generate and keep a secret key for you. For that, create the key with
 ```sh
-scala-cli config --create-key
+scala-cli --power config --create-gpg-key
 ```
 
-You can then ask publish to use the key kept in the Scala CLI config with
-```sh
-scala-cli publish \
-  --secret-key config:pgp.secret-key \
-  --secret-key-password config:pgp.secret-key-password \
-  …
-```
+This generated key kept in config will be used by default unless specified otherwise, e.g.:
+- with directives:
+    ```bash
+    //> using publish.secretKey env:PGP_SECRET
+    //> using publish.secretKeyPassword command:get_my_password
+    ```
+
+- with options:
+    ```sh
+    scala-cli publish \
+      --secret-key env:PGP_SECRET \
+      --secret-key-password file:pgp_password.txt \
+      …
+    ```
+
+Since these values should be kept secret the options and directives accept the format documented [here](/docs/reference/password-options.md).
+Furthermore command line options accept an extra format - `config:…` for using config entries.
 
 #### GPG
 
@@ -153,8 +166,10 @@ Using GPG to sign artifacts requires the `gpg` binary to be installed on your sy
 A benefit of using `gpg` to sign artifacts over Bouncy Castle is: you can use keys from
 your GPG key ring, or from external devices that GPG may support.
 
-To enable signing with GPG, pass `--gpg-key *key_id*` on the command line. If needed,
-you can specify arguments meant to be passed to `gpg`, with `--gpg-option`, like
+To enable signing with GPG, pass `--gpg-key *key_id*` on the command line
+or specify it by `//>using publish.gpgKey "key_id"`.
+If needed, you can specify arguments meant to be passed to `gpg`,
+with `--gpg-option` or `//>using publish.gpgOptions "--opt1" "--opt2"`, like
 ```text
 --gpg-key 1234567890ABCDEF --gpg-option --foo --gpg-option --bar
 ```
@@ -200,9 +215,13 @@ used if it's there. Else the main directive is used.
 
 ### Maven Central
 
+The easiest way right now to publish to Maven Central Repository is to use
+Sonatype repositories - `s01.oss.sonatype.org` or `oss.sonatype.org`
+Since 25.02.2021 `s01` is the default server for new users, if your account is older than that
+you probably need to use the legacy `oss.sonatype.org`. More about this [here](https://central.sonatype.org/news/20210223_new-users-on-s01/#question).
+
 Use `central` as repository to push artifacts to Maven Central via `oss.sonatype.org`.
-To push to it via `s01.oss.sonatype.org` (the default for newly created repositories),
-use `central-s01`.
+To push to it via `s01.oss.sonatype.org`, use `central-s01`.
 
 When using `central` or `central-s01` as repository, artifacts are pushed
 either to `https://oss.sonatype.org/content/repositories/snapshots` (versions
@@ -247,13 +266,14 @@ and the [CI overrides](#ci-overrides).
 ## Publishing
 
 Once all the necessary settings are set, publish a Scala CLI project with a command
-such as this one (`.` is for the Scala CLI project in the current directory):
+such as this one:
 
 <ChainedSnippets>
 
 ```sh
 scala-cli publish .
 ```
+(`.` is for the Scala CLI project in the current directory)
 
 ```text
 Publishing io.github.scala-cli:hello-scala-cli_3:0.1.0-SNAPSHOT
