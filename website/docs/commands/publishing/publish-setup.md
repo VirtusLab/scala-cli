@@ -36,7 +36,7 @@ In particular, one can configure:
 - Sonatype credentials (to upload artifacts to Maven Central)
 - a GitHub token (to upload repository secrets to GitHub, and artifacts to Maven repositories of GitHub Packages)
 
-User-wide configuration in Scala CLI is handled by the [`config` command](/docs/commands/misc/config.md), and
+User-wide configuration in Scala CLI is handled by the [`config` command](/docs/commands/config.md), and
 the sections below show how to use it to configure things for `publish setup`.
 
 ### User details

@@ -46,8 +46,30 @@ For example, to globally set the interactive mode:
 ```sh
   scala-cli config interactive true
 ```
+  
+Available keys:
+  - actions                                        Globally enables actionable diagnostics. Enabled by default.
+  - github.token                                   GitHub token.
+  - httpProxy.address                              HTTP proxy address.
+  - httpProxy.password                             HTTP proxy password (used for authentication).
+  - httpProxy.user                                 HTTP proxy user (used for authentication).
+  - interactive                                    Globally enables interactive mode (the '--interactive' flag).
+  - interactive-was-suggested                      Setting indicating if the global interactive mode was already suggested.
+  - pgp.public-key                                 The PGP public key, used for signing.
+  - pgp.secret-key                                 The PGP secret key, used for signing.
+  - pgp.secret-key-password                        The PGP secret key password, used for signing.
+  - power                                          Globally enables power mode (the '--power' launcher flag).
+  - publish.credentials                            Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password
+  - publish.user.email                             The 'email' user detail, used for publishing.
+  - publish.user.name                              The 'name' user detail, used for publishing.
+  - publish.user.url                               The 'url' user detail, used for publishing.
+  - repositories.credentials                       Repository credentials, syntax: value:user value:password
+  - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
+  - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
+  - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
+  - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
 
-For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
 Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
 

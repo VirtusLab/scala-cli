@@ -2,6 +2,7 @@ package scala.cli.commands.config
 
 import caseapp.*
 
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.shared.{
@@ -13,6 +14,7 @@ import scala.cli.commands.shared.{
   SharedJvmOptions
 }
 import scala.cli.commands.tags
+import scala.cli.config.{Key, Keys}
 
 // format: off
 @HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
@@ -86,12 +88,28 @@ object ConfigOptions {
   implicit lazy val help: Help[ConfigOptions]     = Help.derive
   private val helpHeader: String = s"Configure global settings for $fullRunnerName."
   private val cmdName            = "config"
-  private val websiteSuffix      = s"misc/$cmdName"
   val helpMessage: String =
     s"""$helpHeader
        |
+       |Available keys:
+       |  ${configKeyMessages(includeHidden = false).mkString(s"${System.lineSeparator}  ")}
+       |
        |${HelpMessages.commandFullHelpReference(cmdName)}
-       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
+  private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
+    val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
+    val keys: Seq[Key[_]]    = if includeHidden then allKeys else allKeys.filterNot(_.hidden)
+    val maxFullNameLength    = keys.map(_.fullName.length).max
+    keys.sortBy(_.fullName)
+      .map { key =>
+        val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
+        val extraSpaces =
+          if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
+        val hiddenString =
+          if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} " else ""
+        s"${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenString${key.description}"
+      }
+  }
   val detailedHelpMessage: String =
     s"""$helpHeader
        |
@@ -99,6 +117,9 @@ object ConfigOptions {
        |  ${Console.BOLD}$progName $cmdName key value${Console.RESET}
        |For example, to globally set the interactive mode:
        |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
+       |  
+       |Available keys:
+       |  ${configKeyMessages(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
        |
-       |${HelpMessages.commandDocWebsiteReference(websiteSuffix)}""".stripMargin
+       |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
 }
