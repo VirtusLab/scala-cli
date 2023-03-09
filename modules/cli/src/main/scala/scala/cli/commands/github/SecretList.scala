@@ -17,7 +17,7 @@ import scala.cli.util.ArgHelpers.*
 
 object SecretList extends ScalaCommand[SecretListOptions] {
 
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Secret)
   override def names = List(

@@ -12,7 +12,7 @@ abstract class PgpCommand[T](implicit myParser: Parser[T], help: Help[T])
     extends Command()(myParser, help)
     with CommandHelpers with RestrictableCommand[T] {
 
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   override def hidden = true
 }

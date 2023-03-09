@@ -1,6 +1,7 @@
 package scala.cli.commands.shared
 
 import scala.cli.ScalaCli
+import scala.cli.commands.SpecificationLevel
 
 object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
@@ -47,8 +48,11 @@ object HelpMessages {
     s"""Specific $cmdName configurations can be specified with both command line options and using directives defined in sources.
        |Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
        |Using directives can be defined in all supported input source file types.""".stripMargin
-  lazy val restrictedCommandUsedInSip: String =
-    s"""This command is restricted and requires setting the `--power` option to be used.
+  def powerCommandUsedInSip(specificationLevel: SpecificationLevel): String = {
+    val powerCommandType =
+      if specificationLevel == SpecificationLevel.EXPERIMENTAL then "experimental" else "restricted"
+    s"""This command is $powerCommandType and requires setting the '--power' launcher option to be used.
        |You can pass it explicitly or set it globally by running:
        |   ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}""".stripMargin
+  }
 }

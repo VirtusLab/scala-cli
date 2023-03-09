@@ -489,7 +489,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     )
     val commands = scalaCli.commands
     val restrictedCommands =
-      commands.iterator.collect { case s: ScalaCommand[_] if !s.isRestricted => s }.toSeq
+      commands.iterator.collect {
+        case s: ScalaCommand[_] if !s.isRestricted && !s.isExperimental => s
+      }.toSeq
     val allArgs       = commands.flatMap(actualHelp(_).args)
     val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter
 

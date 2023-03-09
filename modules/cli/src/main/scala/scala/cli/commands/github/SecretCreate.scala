@@ -21,7 +21,7 @@ import scala.cli.util.ArgHelpers.*
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Secret)
   override def names = List(
     List("github", "secret", "create"),

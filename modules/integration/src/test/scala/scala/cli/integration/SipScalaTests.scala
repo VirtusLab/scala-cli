@@ -29,7 +29,7 @@ class SipScalaTests extends ScalaCliSuite {
         expect(res.exitCode == 1)
         val output = res.out.text()
         expect(output.contains(
-          """This command is restricted and requires setting the `--power` option to be used"""
+          """This command is restricted and requires setting the '--power' launcher option to be used"""
         ))
       }
       else expect(res.exitCode == 0)
@@ -136,29 +136,30 @@ class SipScalaTests extends ScalaCliSuite {
     }
   }
 
-  test("power config turn on power features") {
-    TestInputs.empty.fromRoot { root =>
-      val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
-      // disable power features
-      os.proc(TestUtil.cli, "config", "power", "false").call(cwd = root, env = homeEnv).out.trim()
-      val output = os.proc(TestUtil.cli, "package").call(
-        cwd = root,
-        check = false,
-        mergeErrIntoOut = true,
-        env = homeEnv
-      ).out.text().trim
-      expect(output.contains(
-        """This command is restricted and requires setting the `--power` option to be used"""
-      ))
-      // enable power features
-      os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
-      val powerOutput = os.proc(TestUtil.cli, "package").call(
-        cwd = root,
-        check = false,
-        mergeErrIntoOut = true,
-        env = homeEnv
-      ).out.text().trim
-      expect(powerOutput.contains("No inputs provided"))
+  for ((restrictionType, subCommand) <- Seq("restricted" -> "package", "experimental" -> "export"))
+    test(s"power config enables $restrictionType sub-command: $subCommand") {
+      TestInputs.empty.fromRoot { root =>
+        val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
+        // disable power features
+        os.proc(TestUtil.cli, "config", "power", "false").call(cwd = root, env = homeEnv).out.trim()
+        val output = os.proc(TestUtil.cli, subCommand).call(
+          cwd = root,
+          check = false,
+          mergeErrIntoOut = true,
+          env = homeEnv
+        ).out.text().trim
+        expect(output.contains(
+          s"""This command is $restrictionType and requires setting the '--power' launcher option to be used"""
+        ))
+        // enable power features
+        os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
+        val powerOutput = os.proc(TestUtil.cli, subCommand).call(
+          cwd = root,
+          check = false,
+          mergeErrIntoOut = true,
+          env = homeEnv
+        ).out.text().trim
+        expect(powerOutput.contains("No inputs provided"))
+      }
     }
-  }
 }
