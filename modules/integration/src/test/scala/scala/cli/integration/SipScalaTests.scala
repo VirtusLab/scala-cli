@@ -144,16 +144,21 @@ class SipScalaTests extends ScalaCliSuite {
       TestInputs.empty.fromRoot { root =>
         val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
         // disable power features
-        os.proc(TestUtil.cli, "config", "power", "false").call(cwd = root, env = homeEnv).out.trim()
-        val output = os.proc(TestUtil.cli, subCommand).call(
-          cwd = root,
-          check = false,
-          mergeErrIntoOut = true,
-          env = homeEnv
-        ).out.text().trim
-        expect(output.contains(
-          s"""This command is $restrictionType and requires setting the '--power' launcher option to be used"""
-        ))
+        for (disablePowerSetting <- Seq("false", "--unset")) {
+          os.proc(TestUtil.cli, "config", "power", disablePowerSetting).call(
+            cwd = root,
+            env = homeEnv
+          ).out.trim()
+          val output = os.proc(TestUtil.cli, subCommand).call(
+            cwd = root,
+            check = false,
+            mergeErrIntoOut = true,
+            env = homeEnv
+          ).out.text().trim
+          expect(output.contains(
+            s"""This command is $restrictionType and requires setting the '--power' launcher option to be used"""
+          ))
+        }
         // enable power features
         os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
         val powerOutput = os.proc(TestUtil.cli, subCommand).call(
