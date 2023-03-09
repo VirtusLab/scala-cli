@@ -164,10 +164,11 @@ class CliLogger(
             ex.printStackTrace(out)
         }
       def error(msg: => String, ex: Throwable) = {
-        logger.log(s"Error: $msg ($ex)")
+        logger.error(s"Error: $msg ($ex)")
         if (verbosity >= 1 && ex != null)
           ex.printStackTrace(out)
       }
+      def error(msg: => String) = logger.error(msg)
       def bloopBspStdout =
         if (verbosity >= 2) Some(out)
         else None

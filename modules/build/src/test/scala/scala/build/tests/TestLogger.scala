@@ -60,6 +60,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
           System.err.println(msg)
           if (ex != null) ex.printStackTrace(System.err)
         }
+        def error(msg: => String): Unit = System.err.println(msg)
         def info(msg: => String): Unit =
           System.err.println(msg)
       }
