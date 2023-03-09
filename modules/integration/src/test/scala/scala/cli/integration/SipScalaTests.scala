@@ -138,7 +138,7 @@ class SipScalaTests extends ScalaCliSuite {
 
   test("power config turn on power features") {
     TestInputs.empty.fromRoot { root =>
-      val homeEnv = Map("SCALA_CLI_HOME" -> root.toString())
+      val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
       // disable power features
       os.proc(TestUtil.cli, "config", "power", "false").call(cwd = root, env = homeEnv).out.trim()
       val output = os.proc(TestUtil.cli, "package").call(
