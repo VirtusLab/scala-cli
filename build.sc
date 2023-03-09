@@ -112,9 +112,14 @@ object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests 
     Deps.osLib,
     Deps.pprint
   )
-
+  def tmpDirBase = T.persistent {
+    PathRef(T.dest / "working-dir")
+  }
   def extraEnv = T {
-    Seq("SCLICHECK_SCALA_CLI" -> cli.standaloneLauncher().path.toString)
+    Seq(
+      "SCLICHECK_SCALA_CLI" -> cli.standaloneLauncher().path.toString,
+      "SCALA_CLI_CONFIG"    -> (tmpDirBase().path / "config" / "config.json").toString
+    )
   }
   def forkEnv = super.forkEnv() ++ extraEnv()
 
@@ -869,7 +874,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     )
     def forkEnv = super.forkEnv() ++ Seq(
       "SCALA_CLI_TMP"                -> tmpDirBase().path.toString,
-      "SCALA_CLI_PRINT_STACK_TRACES" -> "1"
+      "SCALA_CLI_PRINT_STACK_TRACES" -> "1",
+      "SCALA_CLI_CONFIG"             -> (tmpDirBase().path / "config" / "config.json").toString
     )
     private def updateRef(name: String, ref: PathRef): PathRef = {
       val rawPath = ref.path.toString.replace(
