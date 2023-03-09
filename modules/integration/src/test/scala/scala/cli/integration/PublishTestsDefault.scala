@@ -299,12 +299,13 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
         )
       )
     inputs.fromRoot { root =>
-      val failRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", "messages")
-        .call(cwd = root, mergeErrIntoOut = true)
+      val failRes =
+        os.proc(TestUtil.cli, "--power", "publish", "--dummy", "--signer", "none", "messages")
+          .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(failRes.out.text(), hasWarnings = true)
       checkCredentialsWarning(failRes.out.text())
 
-      val okRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", ".")
+      val okRes = os.proc(TestUtil.cli, "--power", "publish", "--dummy", "--signer", "none", ".")
         .call(cwd = root, mergeErrIntoOut = true)
       checkWarnings(okRes.out.text(), hasWarnings = false)
       checkCredentialsWarning(okRes.out.text())

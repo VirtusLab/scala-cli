@@ -35,8 +35,15 @@ final case class PgpSecretKeyCheck(
 
   def check(pubOpt: BPublishOptions): Boolean = {
     val opt0 = pubOpt.retained(options.publishParams.setupCi)
+
+    lazy val configSecretKey = for {
+      secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException.toOption
+      secretKey    <- secretKeyOpt
+    } yield secretKey
+
     opt0.repository.orElse(options.publishRepo.publishRepository).contains("github") ||
-    opt0.secretKey.isDefined
+    opt0.secretKey.isDefined ||
+    (options.publishParams.ci.contains(false) && configSecretKey.isDefined)
   }
 
   private val base64Chars = (('A' to 'Z') ++ ('a' to 'z') ++ ('0' to '9') ++ Seq('+', '/', '='))
@@ -91,7 +98,7 @@ final case class PgpSecretKeyCheck(
                 options.randomSecretKeyMail
                   .toRight(
                     new MissingPublishOptionError(
-                      "random secret key mail",
+                      "the e-mail address to associate to the random key pair",
                       "--random-secret-key-mail",
                       ""
                     )
@@ -136,7 +143,7 @@ final case class PgpSecretKeyCheck(
                         "publish.secretKey",
                         configKeys = Seq(Keys.pgpSecretKey.fullName),
                         extraMessage =
-                          ", and specify publish.secretKeyPassword / --secret-key-password if needed." +
+                          "also specify publish.secretKeyPassword / --secret-key-password if needed." +
                             (if (options.publishParams.setupCi)
                                " Alternatively, pass --random-secret-key"
                              else "")
