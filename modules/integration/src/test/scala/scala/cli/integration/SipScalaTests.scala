@@ -78,7 +78,7 @@ class SipScalaTests extends ScalaCliSuite {
     if (isRestricted) {
       expect(res.exitCode == 1)
       val output = res.out.text()
-      expect(output.contains(s"option is not supported"))
+      expect(output.contains(s"option is experimental"))
       expect(output.contains("--markdown"))
     }
     else expect(res.exitCode == 0)

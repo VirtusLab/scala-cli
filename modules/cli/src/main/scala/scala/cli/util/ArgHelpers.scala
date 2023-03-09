@@ -9,13 +9,16 @@ import scala.cli.commands.{SpecificationLevel, tags}
 
 object ArgHelpers {
   extension (arg: Arg) {
-    def isExperimentalOrRestricted: Boolean =
-      arg.tags.exists(_.name == tags.restricted) || arg.tags.exists(_.name == tags.experimental)
+    private def hasTag(tag: String): Boolean = arg.tags.exists(_.name == tag)
+    def isExperimental: Boolean              = arg.hasTag(tags.experimental)
+    def isRestricted: Boolean                = arg.hasTag(tags.restricted)
+
+    def isExperimentalOrRestricted: Boolean = arg.isRestricted || arg.isExperimental
 
     def isSupported: Boolean = allowRestrictedFeatures || !arg.isExperimentalOrRestricted
-    def isImportant: Boolean = arg.tags.exists(_.name == tags.inShortHelp)
+    def isImportant: Boolean = arg.hasTag(tags.inShortHelp)
 
-    def isMust: Boolean = arg.tags.exists(_.name == tags.must)
+    def isMust: Boolean = arg.hasTag(tags.must)
 
     def level: SpecificationLevel = arg.tags
       .flatMap(t => tags.levelFor(t.name))
