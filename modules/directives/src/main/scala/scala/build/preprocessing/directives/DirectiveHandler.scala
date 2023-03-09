@@ -34,7 +34,8 @@ trait DirectiveHandler[+T] { self =>
   def scalaSpecificationLevel: SpecificationLevel
   protected def SpecificationLevel = scala.cli.commands.SpecificationLevel
 
-  final def isRestricted: Boolean = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
+  final def isRestricted: Boolean   = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
+  final def isExperimental: Boolean = scalaSpecificationLevel == SpecificationLevel.EXPERIMENTAL
 
   def keys: Seq[String]
 

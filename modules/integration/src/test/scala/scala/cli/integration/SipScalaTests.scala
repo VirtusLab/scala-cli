@@ -54,7 +54,7 @@ class SipScalaTests extends ScalaCliSuite {
     if (isRestricted) {
       expect(res.exitCode == 1)
       val output = res.out.text()
-      expect(output.contains(s"directive is not supported"))
+      expect(output.contains(s"directive is experimental"))
     }
     else
       expect(res.exitCode == 0)

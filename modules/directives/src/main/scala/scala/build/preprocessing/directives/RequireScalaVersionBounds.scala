@@ -14,7 +14,7 @@ import scala.cli.commands.SpecificationLevel
   "//> using target.scala.>= _version_",
   "`//> using target.scala.>= `_version_"
 )
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class RequireScalaVersionBounds(
   `==`: Option[DirectiveValueParser.MaybeNumericalString] = None,
   `>=`: Option[DirectiveValueParser.MaybeNumericalString] = None,

@@ -17,7 +17,7 @@ import scala.cli.commands.SpecificationLevel
   "//> using target.platform _platform_",
   "`//> using target.platform `_platform_"
 )
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 // format: off
 final case class RequirePlatform(
   @DirectiveName("platform")

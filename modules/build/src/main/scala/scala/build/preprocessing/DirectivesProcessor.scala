@@ -33,10 +33,11 @@ object DirectivesProcessor {
       scopedDirective: ScopedDirective,
       logger: Logger
     ) =
-      if (!allowRestrictedFeatures && handler.isRestricted)
+      if (!allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental))
+        val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
         val msg =
-          """This directive is not supported.
-            |Please run it with the `--power` flag or turn this flag on globally by running `config power true`.""".stripMargin
+          s"""This directive is $powerDirectiveType.
+             |Please run it with the '--power' flag or turn this flag on globally by running 'config power true'""".stripMargin
         Left(DirectiveErrors(
           ::(msg, Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)

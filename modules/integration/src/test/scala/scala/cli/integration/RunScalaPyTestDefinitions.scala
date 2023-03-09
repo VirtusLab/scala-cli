@@ -108,7 +108,7 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
     inputs.fromRoot { root =>
 
       // Script dir shouldn't be added to PYTHONPATH if PYTHONSAFEPATH is non-empty
-      val errorRes = os.proc(TestUtil.cli, "run", extraOptions, nativeOpt, "src")
+      val errorRes = os.proc(TestUtil.cli, "--power", "run", extraOptions, nativeOpt, "src")
         .call(
           cwd = root,
           env = Map("PYTHONSAFEPATH" -> "foo"),
@@ -119,7 +119,7 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
       val errorOutput = errorRes.out.text()
       expect(errorOutput.contains("No module named 'helpers'"))
 
-      val res = os.proc(TestUtil.cli, "run", extraOptions, nativeOpt, "src")
+      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, nativeOpt, "src")
         .call(cwd = root)
       val output = res.out.trim()
       if (native)
