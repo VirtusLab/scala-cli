@@ -899,7 +899,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         PSigner.Nop
       else if (publishOptions.contextual(isCi).gpgSignatureId.isDefined)
         PSigner.Gpg
-      else if (repoParams.shouldSign)
+      else if (repoParams.shouldSign || publishOptions.contextual(isCi).secretKey.isDefined)
         PSigner.BouncyCastle
       else
         PSigner.Nop
@@ -936,7 +936,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
       // user specified --signer=bc or --secret-key=... or target repository requires signing
       // --secret-key-password is possibly specified (not mandatory)
-      case PSigner.Nop | PSigner.BouncyCastle
+      case PSigner.BouncyCastle
           if publishOptions.contextual(isCi).secretKey.isDefined =>
         val secretKeyConfigOpt = publishOptions.contextual(isCi).secretKey.get
         for {
