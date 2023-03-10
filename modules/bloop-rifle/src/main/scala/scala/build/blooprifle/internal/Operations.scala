@@ -339,7 +339,7 @@ object Operations {
     }
     val runnable: Runnable = logger.runnable(threadName) { () =>
       val maybeRetCode = Try {
-        nailgunClient0.run(
+        val retCode = nailgunClient0.run(
           "bsp",
           protocolArgs,
           workingDir,
@@ -349,6 +349,12 @@ object Operations {
           stop0,
           interactiveSession = false
         )
+        if (retCode != 0)
+          logger.error(
+            s"""Bloop 'bsp' command exited with code $retCode. Something may be wrong with the current configuration.
+               |Running the ${Console.BOLD}clean${Console.RESET} sub-command to clear the working directory and remove caches might help.
+               |If the error persists, please report the issue as a bug and attach a log with increased verbosity by passing ${Console.BOLD}-v -v -v${Console.RESET}.""".stripMargin)
+        retCode
       }
       try promise.complete(maybeRetCode)
       catch { case _: IllegalStateException => }
