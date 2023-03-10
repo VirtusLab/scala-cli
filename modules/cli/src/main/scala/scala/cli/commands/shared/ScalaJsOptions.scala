@@ -80,7 +80,7 @@ final case class ScalaJsOptions(
   @Hidden
     jsLinkerPath: Option[String] = None,
   @Group(HelpGroup.ScalaJs.toString)
-  @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsCliVersion} by default).")
+  @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsVersion} by default).")
   @ValueDescription("version")
   @Tag(tags.implementation)
   @Hidden

@@ -193,10 +193,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
       val fileContents = readJson(root / "dest" / "export.json")
 
       expect(fileContents ==
-        """{
+        s"""{
           |"scalaVersion": "3.1.3",
           |"platform": "JS",
-          |"scalaJsVersion": "1.12.0",
+          |"scalaJsVersion": "${Constants.scalaJsVersion}",
           |"jsEsVersion":"es2015",
           |"scopes": {
           | "main": {

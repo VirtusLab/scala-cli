@@ -369,8 +369,6 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def scalajsEnvJsdomNodejsVersion = "${Deps.scalaJsEnvJsdomNodejs.dep.version}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |
-         |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"
-         |
          |  def testRunnerOrganization = "$testRunnerOrganization"
          |  def testRunnerModuleName = "${`test-runner`(Scala.runnerScala3).artifactName()}"
          |  def testRunnerVersion = "${`test-runner`(Scala.runnerScala3).publishVersion()}"
@@ -709,7 +707,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def scalaJsVersion = "${Scala.scalaJs}"
-         |  def scalaJsCliVersion = "${InternalDeps.Versions.scalaJsCli}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
