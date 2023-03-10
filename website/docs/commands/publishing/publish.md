@@ -90,7 +90,7 @@ When publishing from you CI, we recommend letting `scala-cli publish setup`
 setting those settings via using directives. When publishing from your local machine to Maven Central,
 we recommend setting the repository via a `publish.repository` directive, and keeping your
 Sonatype credentials in the Scala CLI settings, via commands such as
-```bash
+```bash ignore
 scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
@@ -126,39 +126,45 @@ handled by either
 - the local `gpg` binary on your machine
 
 A signing mechanism will be chosen based on options and directives specified,
-it can also be overriden with `--signer` with one of those values: `bc`, `gpg` or `none`.
+it can also be overriden with `--signer` with one of the values:
+- `bc` - Bouncy Castle library will be used for signing, PGP secret key is required
+- `gpg` - a local `gpg` binary will be used for singing, GPG key ID is required
+- `none` - NO singing will take place
 
 #### Bouncy Castle
 
-A benefit of using Bouncy Castle to sign artifacts is that it has no external dependencies.
+Bouncy Castle library is the recommended way of singing artifacts with Scala CLI. 
+A benefit of using it is that it has no external dependencies,
 Scala CLI is able to sign things with Bouncy Castle without further setup on your side.
 
-To enable signing with Bouncy Castle (recommended), pass a secret key with
-`--secret-key file:/path/to/secret-key`. If the key is protected by a password,
-pass it like `--secret-key-password env:MY_KEY_PASSWORD`.
+When the `--signer` option is not specified Bouncy Castle library will be used for signing
+if one of these conditions occur:
+- the `--secret-key` option has been passed
+- target repository requires signing (e.g. `central`)
 
-Scala CLI can generate and keep a secret key for you. For that, create the key with
-```sh
-scala-cli --power config --create-gpg-key
+To succesfully use PGP signing with Bouncy Castle a secret key, possibly protected by a password is required.
+Scala CLI can generate and keep PGP keys for you by using:
+```bash ignore
+scala-cli --power config --create-pgp-key
 ```
 
-This generated key kept in config will be used by default unless specified otherwise, e.g.:
+This generates a public key and password protected private key, all values are kept in config
+and will be used by default unless specified otherwise:
 - with directives:
-    ```bash
+    ```scala
     //> using publish.secretKey env:PGP_SECRET
     //> using publish.secretKeyPassword command:get_my_password
     ```
 
 - with options:
-    ```sh
-    scala-cli publish \
+    ```bash ignore
+    scala-cli --power publish \
       --secret-key env:PGP_SECRET \
       --secret-key-password file:pgp_password.txt \
       …
     ```
 
-Since these values should be kept secret the options and directives accept the format documented [here](/docs/reference/password-options.md).
-Furthermore command line options accept an extra format - `config:…` for using config entries.
+Since these values should be kept secret, the options and directives accept the format documented [here](/docs/reference/password-options.md).
 
 #### GPG
 
@@ -167,7 +173,7 @@ A benefit of using `gpg` to sign artifacts over Bouncy Castle is: you can use ke
 your GPG key ring, or from external devices that GPG may support.
 
 To enable signing with GPG, pass `--gpg-key *key_id*` on the command line
-or specify it by `//>using publish.gpgKey "key_id"`.
+or specify it with a `using` directive: `//>using publish.gpgKey "key_id"`.
 If needed, you can specify arguments meant to be passed to `gpg`,
 with `--gpg-option` or `//>using publish.gpgOptions "--opt1" "--opt2"`, like
 ```text
@@ -215,7 +221,7 @@ used if it's there. Else the main directive is used.
 
 ### Maven Central
 
-The easiest way right now to publish to Maven Central Repository is to use
+Right now the easiest way to publish to Maven Central Repository is to use
 Sonatype repositories - `s01.oss.sonatype.org` or `oss.sonatype.org`
 Since 25.02.2021 `s01` is the default server for new users, if your account is older than that
 you probably need to use the legacy `oss.sonatype.org`. More about this [here](https://central.sonatype.org/news/20210223_new-users-on-s01/#question).
@@ -270,8 +276,8 @@ such as this one:
 
 <ChainedSnippets>
 
-```sh
-scala-cli publish .
+```bash ignore
+scala-cli --power publish .
 ```
 (`.` is for the Scala CLI project in the current directory)
 

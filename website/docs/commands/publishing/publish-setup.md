@@ -50,26 +50,26 @@ the sections below show how to use it to configure things for `publish setup`.
 ### User details
 
 Set details with
-```sh
+```bash ignore
 scala-cli config publish.user.name "Alex Me"
 scala-cli config publish.user.email "alex@alex.me"
 scala-cli config publish.user.url "https://alex.me"
 ```
 
 The email can be left empty if you'd rather not put your email in POM files:
-```sh
+```bash ignore
 scala-cli config publish.user.email ""
 ```
 
 ### PGP key pair
 
 Generate a PGP key pair for publishing with
-```sh
+```bash ignore
 scala-cli config --create-pgp-key
 ```
 
 This sets 3 entries in the Scala CLI configuration, that you can print with
-```sh
+```bash ignore
 scala-cli config pgp.public-key
 scala-cli config pgp.secret-key
 scala-cli config pgp.secret-key-password
@@ -85,7 +85,7 @@ to create an account there. Either your real Sonatype username and password, or 
 in Scala CLI (via the `publish.credentials` config key in both cases).
 
 These can be written in the Scala CLI configuration the following way:
-```sh
+```bash ignore
 scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD --password-value
 ```
 
@@ -100,7 +100,7 @@ ask the `config` sub-command to read environment variables and persist the passw
 
 If you'd rather persist the environment variable names in the Scala CLI configuration, rather than
 their values, you can do
-```sh
+```bash ignore
 scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
@@ -120,7 +120,7 @@ repository secrets, and the "write:packages" scope is required to upload artifac
 to GitHub packages.
 
 Once created, copy the token in your clipboard, and run
-```sh
+```bash ignore
 # macOS
 scala-cli config github.token command:pbpaste --password-value
 # Linux
@@ -134,7 +134,7 @@ It also uploads repository secrets there, when setting up publishing on GitHub a
 
 To create a new repository from a project, head to <https://repo.new>, pick a name
 for your project and create the repository. Note its URL, and do
-```sh
+```bash ignore
 scala-cli default-file .gitignore --write # if you don't have a .gitignore already
 git init # if git isn't set up already
 git remote add origin https://github.com/org/name # replace org/name with your freshly created repository values
@@ -146,7 +146,7 @@ To setup publishing in order to publish from your local machine, you can run
 
 <ChainedSnippets>
 
-```sh
+```bash ignore
 scala-cli publish setup .
 ```
 
@@ -183,7 +183,7 @@ You can then publish your project from your local machine with
 
 <ChainedSnippets>
 
-```sh
+```bash ignore
 scala-cli publish .
 ```
 
@@ -204,7 +204,7 @@ To setup publishing from GitHub actions, you can run
 
 <ChainedSnippets>
 
-```sh
+```bash ignore
 scala-cli publish setup . --ci
 ```
 
@@ -258,6 +258,6 @@ prefix), or create a release with a tag with the same name from the GitHub UI.
 
 In order to setup publishing to GitHub packages, pass `--publish-repository github` to the
 `publish setup` commands above, like
-```sh
+```bash ignore
 scala-cli publish setup . --publish-repository github
 ```
