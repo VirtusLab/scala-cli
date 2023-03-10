@@ -18,8 +18,8 @@ class PublishSetupTests extends ScalaCliSuite {
   private def devMail    = "alex@alex.me"
   private def devUrl     = "https://alex.me"
 
-  private def configSetup(homeDir: os.Path, root: os.Path): Unit = {
-    val envs = Map("SCALA_CLI_HOME" -> homeDir.toString)
+  private def configSetup(configFile: os.Path, root: os.Path): Unit = {
+    val envs = Map("SCALA_CLI_CONFIG" -> configFile.toString)
     os.proc(TestUtil.cli, "--power", "config", "publish.user.name", devName)
       .call(cwd = root, stdout = os.Inherit, env = envs)
     os.proc(TestUtil.cli, "--power", "config", "publish.user.email", devMail)
@@ -46,8 +46,8 @@ class PublishSetupTests extends ScalaCliSuite {
       """object Foo
         |""".stripMargin
   )
-  private val homeDir = os.rel / "home"
-  private val envs    = Map("SCALA_CLI_HOME" -> homeDir.toString)
+  private val configFile = os.rel / "config" / "config.json"
+  private val envs       = Map("SCALA_CLI_CONFIG" -> configFile.toString)
 
   private def gitInit(dir: os.Path): Git = {
     val git = Git.init().setDirectory(dir.toIO).call()
@@ -99,7 +99,7 @@ class PublishSetupTests extends ScalaCliSuite {
     )
     val expectedGhSecrets = Set.empty[String]
     testInputs.fromRoot { root =>
-      configSetup(root / homeDir, root)
+      configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res = os.proc(TestUtil.cli, "--power", "publish", "setup", projDir).call(
         cwd = root,
@@ -136,7 +136,7 @@ class PublishSetupTests extends ScalaCliSuite {
     val expectedGhSecrets =
       Set("PUBLISH_USER", "PUBLISH_PASSWORD", "PUBLISH_SECRET_KEY", "PUBLISH_SECRET_KEY_PASSWORD")
     testInputs.fromRoot { root =>
-      configSetup(root / homeDir, root)
+      configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res =
         os.proc(TestUtil.cli, "--power", "publish", "setup", "--ci", "--dummy", projDir).call(
@@ -169,7 +169,7 @@ class PublishSetupTests extends ScalaCliSuite {
     )
     val expectedGhSecrets = Set.empty[String]
     testInputs.fromRoot { root =>
-      configSetup(root / homeDir, root)
+      configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,
@@ -211,7 +211,7 @@ class PublishSetupTests extends ScalaCliSuite {
     )
     val expectedGhSecrets = Set("PUBLISH_USER", "PUBLISH_PASSWORD")
     testInputs.fromRoot { root =>
-      configSetup(root / homeDir, root)
+      configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res = os.proc(
         TestUtil.cli,

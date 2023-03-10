@@ -9,67 +9,68 @@ class ConfigTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {
-    val homeDir = os.rel / "home"
-    val homeEnv = Map("SCALA_CLI_HOME" -> homeDir.toString())
-    val name    = "Alex"
+    val configFile = os.rel / "config" / "config.json"
+    val configEnv  = Map("SCALA_CLI_CONFIG" -> configFile.toString())
+    val name       = "Alex"
     TestInputs.empty.fromRoot { root =>
       val before =
-        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
+        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
       expect(before.out.trim().isEmpty)
 
-      os.proc(TestUtil.cli, "config", "publish.user.name", name).call(cwd = root, env = homeEnv)
-      val res = os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
+      os.proc(TestUtil.cli, "config", "publish.user.name", name).call(cwd = root, env = configEnv)
+      val res =
+        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
       expect(res.out.trim() == name)
 
       os.proc(TestUtil.cli, "config", "publish.user.name", "--unset").call(
         cwd = root,
-        env = homeEnv
+        env = configEnv
       )
       val after =
-        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = homeEnv)
+        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
       expect(after.out.trim().isEmpty)
     }
   }
 
   test("password") {
-    val homeDir  = os.rel / "home"
-    val homeEnv  = Map("SCALA_CLI_HOME" -> homeDir.toString)
-    val password = "1234"
-    val key      = "httpProxy.password"
+    val configFile = os.rel / "config" / "config.json"
+    val configEnv  = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+    val password   = "1234"
+    val key        = "httpProxy.password"
     TestInputs.empty.fromRoot { root =>
 
       def emptyCheck(): Unit = {
         val value = os.proc(TestUtil.cli, "config", key)
-          .call(cwd = root, env = homeEnv)
+          .call(cwd = root, env = configEnv)
         expect(value.out.trim().isEmpty)
       }
 
       def unset(): Unit =
         os.proc(TestUtil.cli, "config", key, "--unset")
-          .call(cwd = root, env = homeEnv)
+          .call(cwd = root, env = configEnv)
 
       def read(): String = {
         val res = os.proc(TestUtil.cli, "config", key)
-          .call(cwd = root, env = homeEnv)
+          .call(cwd = root, env = configEnv)
         res.out.trim()
       }
       def readDecoded(env: Map[String, String] = Map.empty): String = {
         val res = os.proc(TestUtil.cli, "--power", "config", key, "--password")
-          .call(cwd = root, env = homeEnv ++ env)
+          .call(cwd = root, env = configEnv ++ env)
         res.out.trim()
       }
 
       emptyCheck()
 
       os.proc(TestUtil.cli, "config", key, s"value:$password")
-        .call(cwd = root, env = homeEnv)
+        .call(cwd = root, env = configEnv)
       expect(read() == s"value:$password")
       expect(readDecoded() == password)
       unset()
       emptyCheck()
 
       os.proc(TestUtil.cli, "config", key, "env:MY_PASSWORD")
-        .call(cwd = root, env = homeEnv)
+        .call(cwd = root, env = configEnv)
       expect(read() == "env:MY_PASSWORD")
       expect(readDecoded(env = Map("MY_PASSWORD" -> password)) == password)
       unset()
@@ -83,7 +84,7 @@ class ConfigTests extends ScalaCliSuite {
         "env:MY_PASSWORD",
         "--password-value"
       )
-        .call(cwd = root, env = Map("MY_PASSWORD" -> password) ++ homeEnv)
+        .call(cwd = root, env = Map("MY_PASSWORD" -> password) ++ configEnv)
       expect(read() == s"value:$password")
       expect(readDecoded() == password)
       unset()
