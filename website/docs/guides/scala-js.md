@@ -179,11 +179,12 @@ In the future, the Scala CLI will be able to support any version of Scala.js ind
 
 The table below lists the last supported version of Scala.js in Scala CLI. If you want to use newer Scala.js, update scala-cli.
 
-| Scala CLI versions   |      Scala.js      |
-|----------------------|:------------------:|
-| 0.0.9                |   1.7.1            |
-| 0.1.0 - 0.1.2        |   1.8.0            |
-| 0.1.3                |   1.9.0            |
-| 0.1.4 - 0.1.8        |   1.10.0           |
-| 0.1.9 - 0.1.17       |   1.10.1           |
-| 0.1.18 - current     |   1.12.0           |
+| Scala CLI versions | Scala.js |
+|--------------------|:--------:|
+| 0.0.9              |  1.7.1   |
+| 0.1.0 - 0.1.2      |  1.8.0   |
+| 0.1.3              |  1.9.0   |
+| 0.1.4 - 0.1.8      |  1.10.0  |
+| 0.1.9 - 0.1.17     |  1.10.1  |
+| 0.1.18 - 0.2.0     |  1.12.0  |
+| 0.2.1 - current    |  1.13.0  |

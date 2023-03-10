@@ -232,6 +232,7 @@ final case class SharedOptions(
       linkerPath = jsLinkerPath
         .filter(_.trim.nonEmpty)
         .map(os.Path(_, Os.pwd)),
+      scalaJsVersion = jsVersion.map(_.trim).filter(_.nonEmpty),
       scalaJsCliVersion = jsCliVersion.map(_.trim).filter(_.nonEmpty),
       javaArgs = jsCliJavaArg,
       useJvm = jsCliOnJvm.map {

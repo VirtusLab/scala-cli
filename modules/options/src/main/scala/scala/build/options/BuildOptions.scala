@@ -344,7 +344,9 @@ final case class BuildOptions(
           scalaJsVersion =
             if (platform.value == Platform.JS) Some(scalaJsOptions.finalVersion) else None,
           scalaJsCliVersion =
-            if (platform.value == Platform.JS) Some(Constants.scalaJsCliVersion) else None,
+            if (platform.value == Platform.JS)
+              Some(notForBloopOptions.scalaJsLinkerOptions.finalScalaJsCliVersion)
+            else None,
           scalaNativeCliVersion =
             if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
           addScalapy =

@@ -169,18 +169,13 @@ object Artifacts {
           fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) => os.Path(f, Os.pwd) }
 
         val scalaJsCliDependency =
-          scalaArtifactsParams.scalaJsCliVersion.map { version =>
-            val scalaJsVersion =
-              scalaArtifactsParams.scalaJsVersion.getOrElse(Constants.scalaJsVersion)
-            val mod =
-              if (version.contains("-sc"))
-                Module(
-                  Organization("io.github.alexarchambault.tmp"),
-                  ModuleName(s"scalajscli-${scalaJsVersion}_2.13"),
-                  Map.empty
-                )
-              else cmod"org.scala-js:scalajs-cli_2.13"
-            Seq(coursier.Dependency(mod, version))
+          scalaArtifactsParams.scalaJsCliVersion.map { scalaJsCliVersion =>
+            val mod = Module(
+              Organization("org.virtuslab.scala-cli"),
+              ModuleName(s"scalajscli_2.13"),
+              Map.empty
+            )
+            Seq(coursier.Dependency(mod, s"$scalaJsCliVersion+"))
           }
 
         val fetchedScalaJsCli = scalaJsCliDependency match {

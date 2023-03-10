@@ -36,15 +36,8 @@ object ScalaJsLinker {
       case None =>
         val scalaJsCliVersion = options.finalScalaJsCliVersion
         val scalaJsCliDep = {
-          val mod =
-            if (scalaJsCliVersion.contains("-sc"))
-              if (Version(scalaJsCliVersion) < Version("1.1.2-sc1"))
-                mod"io.github.alexarchambault.tmp:scalajs-cli_2.13"
-              else
-                mod"io.github.alexarchambault.tmp:scalajscli-${scalaJsVersion}_2.13"
-            else
-              mod"org.scala-js:scalajs-cli_2.13"
-          dependency.Dependency(mod, scalaJsCliVersion)
+          val mod = mod"org.virtuslab.scala-cli:scalajscli_2.13"
+          dependency.Dependency(mod, s"$scalaJsCliVersion+")
         }
 
         val forcedVersions = Seq(
@@ -82,11 +75,11 @@ object ScalaJsLinker {
             command.flatMap(_.value)
 
           case Left(osArch) =>
-            val useLatest = scalaJsCliVersion == "latest"
+            val useLatest = scalaJsVersion == "latest"
             val ext       = if (Properties.isWin) ".zip" else ".gz"
             val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
             val url =
-              s"https://github.com/scala-cli/scala-js-cli-native-image/releases/download/$tag/scala-js-ld-$scalaJsVersion-$osArch$ext"
+              s"https://github.com/virtusLab/scala-js-cli/releases/download/$tag/scala-js-ld-$osArch$ext"
             val params = ExternalBinaryParams(
               url,
               useLatest,
