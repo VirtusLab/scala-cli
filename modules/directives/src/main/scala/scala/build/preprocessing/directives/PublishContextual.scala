@@ -99,7 +99,7 @@ object PublishContextual {
       |""".stripMargin
   )
   @DirectiveDescription("Set contextual parameters for publishing")
-  @DirectiveLevel(SpecificationLevel.RESTRICTED)
+  @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
   // format: off
   final case class Local(
     computeVersion: Option[Positioned[String]] = None,

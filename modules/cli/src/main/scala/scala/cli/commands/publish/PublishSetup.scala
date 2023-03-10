@@ -24,7 +24,7 @@ import scala.cli.util.ArgHelpers.*
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
   override def group: String                               = HelpCommandGroup.Main.toString
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   override def helpFormat: HelpFormat =
     super.helpFormat

@@ -22,7 +22,7 @@ import scala.cli.commands.SpecificationLevel
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for publishing")
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 // format: off
 final case class Publish(
   organization: Option[Positioned[String]] = None,

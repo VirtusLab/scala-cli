@@ -10,6 +10,8 @@ trait RestrictableCommand[T](implicit myParser: Parser[T]) {
 
   final def isRestricted: Boolean = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
 
+  final def isExperimental: Boolean = scalaSpecificationLevel == SpecificationLevel.EXPERIMENTAL
+
   /** Is that command a MUST / SHOULD / NICE TO have for the Scala runner specification? */
   def scalaSpecificationLevel: SpecificationLevel
   // To reduce imports...

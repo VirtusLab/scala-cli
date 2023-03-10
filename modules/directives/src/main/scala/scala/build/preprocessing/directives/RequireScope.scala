@@ -16,7 +16,7 @@ import scala.cli.commands.SpecificationLevel
   "//> using target.scope _scope_",
   "`//> using target.scope `_scope_"
 )
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class RequireScope(
   scope: Option[Positioned[String]] = None
 ) extends HasBuildRequirements {

@@ -69,7 +69,7 @@ import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   import scala.cli.commands.shared.HelpGroup.*
   val primaryHelpGroups: Seq[HelpGroup] = Seq(Publishing, Signing, PGP)

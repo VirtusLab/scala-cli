@@ -38,10 +38,11 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
-  override def hasFullHelp       = true
-  override def hidden            = shouldExcludeInSip
-  protected var argvOpt          = Option.empty[Array[String]]
-  private val shouldExcludeInSip = isRestricted && !ScalaCli.allowRestrictedFeatures
+  override def hasFullHelp = true
+  override def hidden      = shouldExcludeInSip
+  protected var argvOpt    = Option.empty[Array[String]]
+  private val shouldExcludeInSip =
+    (isRestricted || isExperimental) && !ScalaCli.allowRestrictedFeatures
   override def setArgv(argv: Array[String]): Unit = {
     argvOpt = Some(argv)
   }
@@ -275,7 +276,9 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   override val messages: Help[T] =
     if (shouldExcludeInSip)
-      Help[T](helpMessage = Some(HelpMessage(HelpMessages.restrictedCommandUsedInSip)))
+      Help[T](helpMessage =
+        Some(HelpMessage(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel)))
+      )
     else help
 
   /** @param options
@@ -307,7 +310,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     if (shouldExcludeInSip)
-      System.err.println(HelpMessages.restrictedCommandUsedInSip)
+      System.err.println(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
       sys.exit(1)
     CurrentParams.verbosity = options.logging.verbosity
     maybePrintWarnings(options)

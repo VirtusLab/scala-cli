@@ -14,7 +14,7 @@ import scala.cli.util.ArgHelpers.*
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
   override def group: String           = HelpCommandGroup.Main.toString
-  override def scalaSpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
   override def helpFormat: HelpFormat =
     super.helpFormat
       .withHiddenGroups(Publish.hiddenHelpGroups)

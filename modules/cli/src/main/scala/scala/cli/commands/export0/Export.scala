@@ -25,7 +25,7 @@ import scala.cli.util.ArgHelpers.*
 import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   override def helpFormat: HelpFormat =
     super.helpFormat.withPrimaryGroup(HelpGroup.BuildToolExport)
