@@ -926,6 +926,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
+           |  def projectFileName = "$projectFileName"
            |  def workspaceDirName = "$workspaceDirName"
            |  def libsodiumVersion = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage = "${TestDeps.archLinuxImage}"
