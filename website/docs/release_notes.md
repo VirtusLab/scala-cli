@@ -7,6 +7,128 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v0.2.1](https://github.com/VirtusLab/scala-cli/releases/tag/v0.2.1)
+
+### Add a guide for migrating from the old `scala` runner to Scala CLI
+
+As of [SIP-46](https://github.com/scala/improvement-proposals/pull/46), Scala CLI has been accepted as the new `scala`
+command. To make the transition smooth we added a [guide](docs/guides/old-runner-migration.md) highlighting
+the differences between the two runners.
+
+Added by [@Gedochao](https://github.com/Gedochao)  in [#1900](https://github.com/VirtusLab/scala-cli/pull/1900)
+
+### Improve the `publish` and `publish setup` sub-commands' user experience
+
+We're currently focusing on improving the experimental `publish` feature of Scala CLI and making `publish setup` + `publish`
+more stable and user-friendly.
+
+Using pgp keys created by `config --create-pgp-key` subcommand is now supported as a default option,
+no additional user input is needed.
+
+Addressed by [@alexarchambault](https://github.com/alexarchambault) in [#1432](https://github.com/VirtusLab/scala-cli/pull/1432)
+and by [@MaciejG604](https://github.com/MaciejG604) in [#1898](https://github.com/VirtusLab/scala-cli/pull/1898)
+
+### Remove unsupported kebab-case style in using directives
+
+All using directives names are now using camelCase, kebab-case is no longer available.
+
+Added by [@lwronski](https://github.com/lwronski) in [#1878](https://github.com/VirtusLab/scala-cli/pull/1878)
+
+### Add a reference for available config keys in help & docs
+
+You can now view the available config keys using `config --help`:
+```bash
+scala-cli config -h
+# Usage: scala-cli config [options]
+# Configure global settings for Scala CLI.
+# 
+# Available keys:
+#   actions                                        Globally enables actionable diagnostics. Enabled by default.
+#   interactive                                    Globally enables interactive mode (the '--interactive' flag).
+#   power                                          Globally enables power mode (the '--power' launcher flag).
+#   suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
+#   suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
+# 
+# You are currently viewing the basic help for the config sub-command. You can view the full help by running: 
+#    scala-cli config --help-full
+# For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/config
+# 
+# Config options:
+#   --unset, --remove  Remove an entry from config
+```
+Also, `config --full-help` will show the list of all keys.
+
+Added by [@Gedochao](https://github.com/Gedochao)  in [#1910](https://github.com/VirtusLab/scala-cli/pull/1910)
+
+### Pass user arguments to JS runner
+
+It's now possible to pass user arguments to a JS application:
+
+```scala title=ScalaJsArgs.sc
+import scala.scalajs.js
+import scala.scalajs.js.Dynamic.global
+
+val process = global.require("process")
+val argv = Option(process.argv)
+  .filterNot(js.isUndefined)
+  .map(_.asInstanceOf[js.Array[String]].drop(2).toSeq)
+  .getOrElse(Nil)
+val console = global.console
+console.log(argv.mkString(" "))
+```
+
+<ChainedSnippets>
+```bash
+scala-cli ScalaJsArgs.sc --js -- Hello World
+```
+```text
+Hello World
+```
+</ChainedSnippets>
+
+Added by [@alexarchambault](https://github.com/alexarchambault) in [#1826](https://github.com/VirtusLab/scala-cli/pull/1826)
+
+
+### Other changes
+* Tweak error messages for running scripts without file extensions by [@Gedochao](https://github.com/Gedochao)  in [#1886](https://github.com/VirtusLab/scala-cli/pull/1886)
+* Exit with Bloop command return code if it's non-zero by [@alexarchambault](https://github.com/alexarchambault) in [#1837](https://github.com/VirtusLab/scala-cli/pull/1837)
+* bloop-rifle: increase timeout values by [@Flowdalic](https://github.com/Flowdalic) in [#1865](https://github.com/VirtusLab/scala-cli/pull/1865)
+* Suggest users to clean working directory when Nailgun server failed by [@lwronski](https://github.com/lwronski) in [#1916](https://github.com/VirtusLab/scala-cli/pull/1916)
+* fix: encode videos in yuv420p to support Firefox by [@danielleontiev](https://github.com/danielleontiev) in [#1904](https://github.com/VirtusLab/scala-cli/pull/1904)
+* Fix reading passwords from commands by [@alexarchambault](https://github.com/alexarchambault) in [#1775](https://github.com/VirtusLab/scala-cli/pull/1775)
+* Add extra class path to generated bootstrap launcher by [@lwronski](https://github.com/lwronski) in [#1897](https://github.com/VirtusLab/scala-cli/pull/1897)
+
+
+#### SIP-related changes
+* Add 'dependency' and 'dependencies' alias for using directive by [@MaciejG604](https://github.com/MaciejG604) in [#1903](https://github.com/VirtusLab/scala-cli/pull/1903)
+
+
+#### Documentation updates
+* Ensure no console-syntax in reference docs and no `md` fenced blocks in `--help` by [@Gedochao](https://github.com/Gedochao)  in [#1874](https://github.com/VirtusLab/scala-cli/pull/1874)
+* Document export subcommand by [@MaciejG604](https://github.com/MaciejG604) in [#1875](https://github.com/VirtusLab/scala-cli/pull/1875)
+* Tweak guides' and cookbooks' pages by [@Gedochao](https://github.com/Gedochao)  in [#1894](https://github.com/VirtusLab/scala-cli/pull/1894)
+* Fix pgp creation option name by [@MaciejG604](https://github.com/MaciejG604) in [#1909](https://github.com/VirtusLab/scala-cli/pull/1909)
+* Fix using directive docs by [@lwronski](https://github.com/lwronski) in [#1901](https://github.com/VirtusLab/scala-cli/pull/1901)
+* Add docs to classifiers and exclude dependency by [@lwronski](https://github.com/lwronski) in [#1892](https://github.com/VirtusLab/scala-cli/pull/1892)
+
+
+#### Internal changes
+* Fix handling for `experimental` features by [@Gedochao](https://github.com/Gedochao)  in [#1915](https://github.com/VirtusLab/scala-cli/pull/1915)
+* Change default home directory for tests integration and docs-test modules to avoid overriding global user config by [@lwronski](https://github.com/lwronski) in [#1917](https://github.com/VirtusLab/scala-cli/pull/1917)
+* NIT Use enums for help groups and help command groups by [@Gedochao](https://github.com/Gedochao)  in [#1880](https://github.com/VirtusLab/scala-cli/pull/1880)
+
+
+#### Updates & maintenance
+* Bump dns-packet from 5.3.1 to 5.4.0 in /website by [@dependabot](https://github.com/dependabot) in [#1906](https://github.com/VirtusLab/scala-cli/pull/1906)
+* Bump VirtusLab/scala-cli-setup from 0.1.20 to 0.2.0 by [@dependabot](https://github.com/dependabot) in [#1890](https://github.com/VirtusLab/scala-cli/pull/1890)
+* Dump docusaurus to 2.3.1 and other docs deps by [@lwronski](https://github.com/lwronski) in [#1907](https://github.com/VirtusLab/scala-cli/pull/1907)
+* Update scala-cli.sh launcher for 0.2.0 by @github-actions in [#1881](https://github.com/VirtusLab/scala-cli/pull/1881)
+* Back port of documentation changes to main by @github-actions in [#1911](https://github.com/VirtusLab/scala-cli/pull/1911)
+
+
+## New Contributors
+* [@danielleontiev](https://github.com/danielleontiev) made their first contribution in [#1904](https://github.com/VirtusLab/scala-cli/pull/1904)
+
 ## [v0.2.0](https://github.com/VirtusLab/scala-cli/releases/tag/v0.2.0)
 
 ### Require the `--power` option for restricted features by default
