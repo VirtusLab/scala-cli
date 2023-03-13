@@ -53,6 +53,23 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.exitCode == 1)
     }
 
+  def testExportCommandHelp(isPowerMode: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export", "-h").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = res.out.trim()
+      if (!isPowerMode)
+        expect(output.contains(
+          "This command is experimental and requires setting the '--power' launcher option to be used"
+        ))
+      else
+        expect(output.contains(
+          "The 'export' sub-command is an experimental feature"
+        ))
+    }
+
   def testPublishDirectives(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
@@ -164,6 +181,9 @@ class SipScalaTests extends ScalaCliSuite {
     }
     test(s"test export command when power mode is $powerModeString") {
       testExportCommand(isPowerMode)
+    }
+    test(s"test export command help output when power mode is $powerModeString") {
+      testExportCommandHelp(isPowerMode)
     }
   }
 

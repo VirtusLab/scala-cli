@@ -276,9 +276,26 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
   override val messages: Help[T] =
-    if (shouldExcludeInSip)
+    if shouldExcludeInSip then
       Help[T](helpMessage =
         Some(HelpMessage(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel)))
+      )
+    else if isExperimental then
+      help.copy(helpMessage =
+        help.helpMessage.map(hm =>
+          hm.copy(
+            message =
+              s"""${hm.message}
+                 |
+                 |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin,
+            detailedMessage =
+              if hm.detailedMessage.nonEmpty then
+                s"""${hm.detailedMessage}
+                   |
+                   |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin
+              else hm.detailedMessage
+          )
+        )
       )
     else help
 
