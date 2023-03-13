@@ -35,6 +35,24 @@ class SipScalaTests extends ScalaCliSuite {
       else expect(res.exitCode == 0)
     }
 
+  def testExportCommand(isPowerMode: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export").call(
+        cwd = root,
+        check = false,
+        stderr = os.Pipe
+      )
+      val errOutput = res.err.trim()
+      if (!isPowerMode)
+        expect(errOutput.contains(
+          "This command is experimental and requires setting the '--power' launcher option to be used"
+        ))
+      else expect(errOutput.contains(
+        "The 'export' sub-command is an experimental feature"
+      ))
+      expect(res.exitCode == 1)
+    }
+
   def testPublishDirectives(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
     val code =
       """
@@ -48,16 +66,20 @@ class SipScalaTests extends ScalaCliSuite {
     val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "compile", source).call(
       cwd = root,
       check = false,
-      mergeErrIntoOut = true
+      stderr = os.Pipe
     )
 
+    val errOutput = res.err.trim()
     if (!isPowerMode) {
       expect(res.exitCode == 1)
-      val output = res.out.text()
-      expect(output.contains(s"directive is experimental"))
+      expect(errOutput.contains(s"directive is experimental"))
     }
-    else
+    else {
       expect(res.exitCode == 0)
+      expect(errOutput.contains(
+        """The '//> using publish.name "my-library"' directive is an experimental feature"""
+      ))
+    }
   }
 
   def testMarkdownOptions(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
@@ -73,15 +95,18 @@ class SipScalaTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, powerArgs(isPowerMode), "--scala", "3", "--markdown", source).call(
         cwd = root,
         check = false,
-        mergeErrIntoOut = true
+        stderr = os.Pipe
       )
+    val errOutput = res.err.trim()
     if (!isPowerMode) {
       expect(res.exitCode == 1)
-      val output = res.out.text()
-      expect(output.contains(s"option is experimental"))
-      expect(output.contains("--markdown"))
+      expect(errOutput.contains(s"option is experimental"))
+      expect(errOutput.contains("--markdown"))
     }
-    else expect(res.exitCode == 0)
+    else {
+      expect(res.exitCode == 0)
+      expect(errOutput.contains("The '--markdown' option is an experimental feature"))
+    }
   }
 
   if (TestUtil.isNativeCli)
@@ -136,6 +161,9 @@ class SipScalaTests extends ScalaCliSuite {
     }
     test(s"test repl help when power mode is $powerModeString") {
       testReplHelpOutput(isPowerMode)
+    }
+    test(s"test export command when power mode is $powerModeString") {
+      testExportCommand(isPowerMode)
     }
   }
 

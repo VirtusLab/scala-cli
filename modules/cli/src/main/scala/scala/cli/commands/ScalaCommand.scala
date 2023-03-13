@@ -15,6 +15,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
@@ -309,10 +310,12 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    if (shouldExcludeInSip)
-      System.err.println(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
-      sys.exit(1)
     CurrentParams.verbosity = options.logging.verbosity
+    val logger = options.logging.logger
+    if shouldExcludeInSip then
+      logger.error(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
+      sys.exit(1)
+    else if isExperimental then logger.message(WarningMessages.experimentalSubcommandUsed(name))
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>

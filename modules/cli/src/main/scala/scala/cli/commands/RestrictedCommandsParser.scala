@@ -6,6 +6,7 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
+import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli
 import scala.cli.util.ArgHelpers.*
 
@@ -45,6 +46,9 @@ object RestrictedCommandsParser {
             arg,
             Nil
           ))
+        case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _) if arg.isExperimental =>
+          System.err.println(WarningMessages.experimentalOptionUsed(passedOption))
+          r
         case (other, _) =>
           other
       }
