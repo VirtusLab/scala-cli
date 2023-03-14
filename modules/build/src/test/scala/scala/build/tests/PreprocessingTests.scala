@@ -1,10 +1,11 @@
 package scala.build.tests
 
-import scala.build.preprocessing.{ScalaPreprocessor, ScriptPreprocessor, MarkdownPreprocessor}
+import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, ScriptPreprocessor}
 import com.eed3si9n.expecty.Expecty.expect
-import scala.build.input.{Inputs, SourceScalaFile, MarkdownFile, Script}
 
+import scala.build.input.{Inputs, MarkdownFile, Script, SourceScalaFile}
 import scala.build.internal.CustomCodeWrapper
+import scala.build.options.SuppressWarningOptions
 
 class PreprocessingTests extends munit.FunSuite {
 
@@ -12,7 +13,12 @@ class PreprocessingTests extends munit.FunSuite {
     val logger    = TestLogger()
     val scalaFile = SourceScalaFile(os.temp.dir(), os.SubPath("NotExists.scala"))
 
-    val res = ScalaPreprocessor.preprocess(scalaFile, logger, allowRestrictedFeatures = false)
+    val res = ScalaPreprocessor.preprocess(
+      scalaFile,
+      logger,
+      allowRestrictedFeatures = false,
+      suppressWarningOptions = SuppressWarningOptions()
+    )
     val expectedMessage = s"File not found: ${scalaFile.path}"
 
     assert(res.nonEmpty)
@@ -27,7 +33,8 @@ class PreprocessingTests extends munit.FunSuite {
     val res = ScriptPreprocessor(CustomCodeWrapper).preprocess(
       scalaScript,
       logger,
-      allowRestrictedFeatures = false
+      allowRestrictedFeatures = false,
+      suppressWarningOptions = SuppressWarningOptions()
     )
     val expectedMessage = s"File not found: ${scalaScript.path}"
 
@@ -40,7 +47,12 @@ class PreprocessingTests extends munit.FunSuite {
     val logger       = TestLogger()
     val markdownFile = MarkdownFile(os.temp.dir(), os.SubPath("NotExists.md"))
 
-    val res = MarkdownPreprocessor.preprocess(markdownFile, logger, allowRestrictedFeatures = false)
+    val res = MarkdownPreprocessor.preprocess(
+      markdownFile,
+      logger,
+      allowRestrictedFeatures = false,
+      suppressWarningOptions = SuppressWarningOptions()
+    )
     val expectedMessage = s"File not found: ${markdownFile.path}"
 
     assert(res.nonEmpty)

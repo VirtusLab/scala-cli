@@ -3,7 +3,13 @@ package scala.cli.commands.installcompletions
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  HelpMessages,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -11,6 +17,8 @@ import scala.cli.commands.tags
 final case class InstallCompletionsOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Group(HelpGroup.Install.toString)
   @Name("shell")
   @Tag(tags.implementation)
@@ -46,7 +54,7 @@ final case class InstallCompletionsOptions(
   @HelpMessage("Print completions to stdout")
   @Group(HelpGroup.Install.toString)
     env: Boolean = false,
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object InstallCompletionsOptions {

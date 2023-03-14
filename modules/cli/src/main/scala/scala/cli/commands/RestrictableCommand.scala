@@ -6,7 +6,9 @@ import caseapp.core.parser.Parser
 trait RestrictableCommand[T](implicit myParser: Parser[T]) {
   self: Command[T] =>
 
-  override def parser: Parser[T] = RestrictedCommandsParser(myParser)
+  def shouldSuppressExperimentalFeatureWarnings: Boolean
+  override def parser: Parser[T] =
+    RestrictedCommandsParser(myParser, shouldSuppressExperimentalFeatureWarnings)
 
   final def isRestricted: Boolean = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
 

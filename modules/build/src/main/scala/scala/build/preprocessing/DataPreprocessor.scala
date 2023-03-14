@@ -6,7 +6,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, SingleElement, VirtualData}
-import scala.build.options.BuildRequirements
+import scala.build.options.{BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 
 case object DataPreprocessor extends Preprocessor {
@@ -14,7 +14,8 @@ case object DataPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case file: VirtualData =>
@@ -27,7 +28,8 @@ case object DataPreprocessor extends Preprocessor {
               Left(file.subPath.toString),
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
 

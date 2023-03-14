@@ -233,7 +233,7 @@ object Build {
           () => options.javaHome().value.javaCommand
         ),
         logger,
-        options.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
+        options.suppressWarningOptions
       )
     }
     val sharedOptions = crossSources.sharedOptions(options)

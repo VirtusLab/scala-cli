@@ -3,7 +3,13 @@ package scala.cli.commands.default
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  HelpMessages,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -14,6 +20,8 @@ import scala.cli.commands.tags
 final case class DefaultFileOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Group(HelpGroup.Default.toString)
   @HelpMessage("Write result to files rather than to stdout")
   @Tag(tags.restricted)
@@ -31,7 +39,7 @@ final case class DefaultFileOptions(
   @ExtraName("f")
   @Tag(tags.restricted)
     force: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object DefaultFileOptions {

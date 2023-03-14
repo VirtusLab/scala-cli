@@ -3,7 +3,7 @@ import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
-import scala.build.options.ConfigMonoid
+import scala.build.options.{ConfigMonoid, SuppressWarningOptions}
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,
@@ -26,9 +26,12 @@ object DirectivesProcessor {
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, DirectivesProcessorOutput[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
+    val shouldSuppressExperimentalFeatures =
+      suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
 
     def handleValues(handler: DirectiveHandler[T])(
       scopedDirective: ScopedDirective,
@@ -44,7 +47,7 @@ object DirectivesProcessor {
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else
-        if handler.isExperimental then
+        if handler.isExperimental && !shouldSuppressExperimentalFeatures then
           logger.message(experimentalDirectiveUsed(scopedDirective.directive.toString))
         handler.handleValues(scopedDirective, logger)
 

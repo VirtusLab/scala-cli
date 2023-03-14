@@ -12,7 +12,13 @@ import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
-import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  ClassPathOptions,
+  ShadowingSeq,
+  SuppressWarningOptions
+}
 import scala.build.preprocessing.directives
 import scala.build.preprocessing.directives.{DirectiveHandler, DirectiveUtil, ScopedDirective}
 import scala.build.{Logger, Position, Positioned}
@@ -86,7 +92,8 @@ case object ScalaPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: ScalaFile =>
@@ -101,7 +108,8 @@ case object ScalaPreprocessor extends Preprocessor {
                 scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                allowRestrictedFeatures
+                allowRestrictedFeatures,
+                suppressWarningOptions
               )
             ) match {
               case None =>
@@ -160,7 +168,8 @@ case object ScalaPreprocessor extends Preprocessor {
                 v.scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                allowRestrictedFeatures
+                allowRestrictedFeatures,
+                suppressWarningOptions
               )
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent, dirsPositions) =>
@@ -192,7 +201,8 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
     val extractedDirectives = value(ExtractedDirectives.from(
@@ -210,7 +220,8 @@ case object ScalaPreprocessor extends Preprocessor {
       scopeRoot,
       logger,
       maybeRecoverOnError,
-      allowRestrictedFeatures
+      allowRestrictedFeatures,
+      suppressWarningOptions
     ))
   }
 
@@ -221,7 +232,8 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
@@ -231,7 +243,8 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         scopeRoot,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       ))
 
     value {
@@ -332,7 +345,8 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
 
@@ -345,7 +359,8 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       )
     }
 
@@ -358,7 +373,8 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       )
     }
 

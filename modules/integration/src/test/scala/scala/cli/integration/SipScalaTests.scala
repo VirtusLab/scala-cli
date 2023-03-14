@@ -17,6 +17,8 @@ class SipScalaTests extends ScalaCliSuite {
     }
   }
   def powerArgs(isPowerMode: Boolean): Seq[String] = if (isPowerMode) Seq("--power") else Nil
+  def suppressExperimentalWarningArgs(areWarningsSuppressed: Boolean): Seq[String] =
+    if (areWarningsSuppressed) Seq("--suppress-experimental-feature-warning") else Nil
 
   def testDirectoriesCommand(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
@@ -35,22 +37,34 @@ class SipScalaTests extends ScalaCliSuite {
       else expect(res.exitCode == 0)
     }
 
-  def testExportCommand(isPowerMode: Boolean): Unit =
+  def testExportCommand(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export").call(
+      val res = os.proc(
+        TestUtil.cli,
+        powerArgs(isPowerMode),
+        "export",
+        suppressExperimentalWarningArgs(areWarningsSuppressed)
+      ).call(
         cwd = root,
         check = false,
         stderr = os.Pipe
       )
       val errOutput = res.err.trim()
-      if (!isPowerMode)
-        expect(errOutput.contains(
-          "This command is experimental and requires setting the '--power' launcher option to be used"
-        ))
-      else expect(errOutput.contains(
-        "The 'export' sub-command is an experimental feature"
-      ))
       expect(res.exitCode == 1)
+      isPowerMode -> areWarningsSuppressed match {
+        case (false, _) =>
+          expect(errOutput.contains(
+            "This command is experimental and requires setting the '--power' launcher option to be used"
+          ))
+        case (true, false) =>
+          expect(errOutput.contains(
+            "The 'export' sub-command is an experimental feature"
+          ))
+        case (true, true) =>
+          expect(!errOutput.contains(
+            "The 'export' sub-command is an experimental feature"
+          ))
+      }
     }
 
   def testExportCommandHelp(isPowerMode: Boolean): Unit =
@@ -70,61 +84,85 @@ class SipScalaTests extends ScalaCliSuite {
         ))
     }
 
-  def testPublishDirectives(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
-    val code =
-      """
-        | //> using publish.name "my-library"
-        | class A
-        |""".stripMargin
+  def testPublishDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val code =
+        """
+          | //> using publish.name "my-library"
+          | class A
+          |""".stripMargin
 
-    val source = root / "A.scala"
-    os.write(source, code)
+      val source = root / "A.scala"
+      os.write(source, code)
 
-    val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "compile", source).call(
-      cwd = root,
-      check = false,
-      stderr = os.Pipe
-    )
-
-    val errOutput = res.err.trim()
-    if (!isPowerMode) {
-      expect(res.exitCode == 1)
-      expect(errOutput.contains(s"directive is experimental"))
-    }
-    else {
-      expect(res.exitCode == 0)
-      expect(errOutput.contains(
-        """The '//> using publish.name "my-library"' directive is an experimental feature"""
-      ))
-    }
-  }
-
-  def testMarkdownOptions(isPowerMode: Boolean): Unit = TestInputs.empty.fromRoot { root =>
-    val code =
-      """
-        | println("ala")
-        |""".stripMargin
-
-    val source = root / "A.sc"
-    os.write(source, code)
-
-    val res =
-      os.proc(TestUtil.cli, powerArgs(isPowerMode), "--scala", "3", "--markdown", source).call(
+      val res = os.proc(
+        TestUtil.cli,
+        powerArgs(isPowerMode),
+        "compile",
+        suppressExperimentalWarningArgs(areWarningsSuppressed),
+        source
+      ).call(
         cwd = root,
         check = false,
         stderr = os.Pipe
       )
-    val errOutput = res.err.trim()
-    if (!isPowerMode) {
-      expect(res.exitCode == 1)
-      expect(errOutput.contains(s"option is experimental"))
-      expect(errOutput.contains("--markdown"))
+
+      val errOutput = res.err.trim()
+      isPowerMode -> areWarningsSuppressed match {
+        case (false, _) =>
+          expect(res.exitCode == 1)
+          expect(errOutput.contains(s"directive is experimental"))
+        case (true, false) =>
+          expect(res.exitCode == 0)
+          expect(errOutput.contains(
+            """The '//> using publish.name "my-library"' directive is an experimental feature"""
+          ))
+        case (true, true) =>
+          expect(res.exitCode == 0)
+          expect(!errOutput.contains(
+            """The '//> using publish.name "my-library"' directive is an experimental feature"""
+          ))
+      }
     }
-    else {
-      expect(res.exitCode == 0)
-      expect(errOutput.contains("The '--markdown' option is an experimental feature"))
+
+  def testMarkdownOptions(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val code =
+        """
+          | println("ala")
+          |""".stripMargin
+
+      val source = root / "A.sc"
+      os.write(source, code)
+
+      val res =
+        os.proc(
+          TestUtil.cli,
+          powerArgs(isPowerMode),
+          suppressExperimentalWarningArgs(areWarningsSuppressed),
+          "--scala",
+          "3",
+          "--markdown",
+          source
+        ).call(
+          cwd = root,
+          check = false,
+          stderr = os.Pipe
+        )
+      val errOutput = res.err.trim()
+      isPowerMode -> areWarningsSuppressed match {
+        case (false, _) =>
+          expect(res.exitCode == 1)
+          expect(errOutput.contains(s"option is experimental"))
+          expect(errOutput.contains("--markdown"))
+        case (true, false) =>
+          expect(res.exitCode == 0)
+          expect(errOutput.contains("The '--markdown' option is an experimental feature"))
+        case (true, true) =>
+          expect(res.exitCode == 0)
+          expect(!errOutput.contains("The '--markdown' option is an experimental feature"))
+      }
     }
-  }
 
   if (TestUtil.isNativeCli)
     test(s"usage instruction should point to scala when installing by cs") { // https://github.com/VirtusLab/scala-cli/issues/1662
@@ -167,20 +205,31 @@ class SipScalaTests extends ScalaCliSuite {
     test(s"test directories command when power mode is $powerModeString") {
       testDirectoriesCommand(isPowerMode)
     }
-    test(s"test publish directives when power mode is $powerModeString") {
-      testPublishDirectives(isPowerMode)
-    }
-    test(s"test markdown options when power mode is $powerModeString") {
-      testMarkdownOptions(isPowerMode)
-    }
     test(s"test default help when power mode is $powerModeString") {
       testDefaultHelpOutput(isPowerMode)
     }
     test(s"test repl help when power mode is $powerModeString") {
       testReplHelpOutput(isPowerMode)
     }
-    test(s"test export command when power mode is $powerModeString") {
-      testExportCommand(isPowerMode)
+    for {
+      warningsSuppressed <- Seq(true, false)
+      warningsSuppressedString = if (warningsSuppressed) "suppressed" else "not suppressed"
+    } {
+      test(
+        s"test publish directives when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+      ) {
+        testPublishDirectives(isPowerMode, warningsSuppressed)
+      }
+      test(
+        s"test markdown options when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+      ) {
+        testMarkdownOptions(isPowerMode, warningsSuppressed)
+      }
+      test(
+        s"test export command when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+      ) {
+        testExportCommand(isPowerMode, warningsSuppressed)
+      }
     }
     test(s"test export command help output when power mode is $powerModeString") {
       testExportCommandHelp(isPowerMode)

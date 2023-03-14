@@ -50,7 +50,7 @@ object Export extends ScalaCommand[ExportOptions] {
           () => buildOptions.javaHome().value.javaCommand
         ),
         logger,
-        buildOptions.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
+        buildOptions.suppressWarningOptions
       )
     }
     val scopedSources = value(crossSources.scopedSources(buildOptions))

@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 // format: off
@@ -10,6 +10,8 @@ import scala.cli.commands.tags
 final case class BloopOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
@@ -21,7 +23,7 @@ final case class BloopOptions(
   @ExtraName("dir")
   @Tag(tags.restricted)
     workingDirectory: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
 
   def workDirOpt: Option[os.Path] =

@@ -7,7 +7,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, Script, SingleElement, VirtualScript}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
-import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocessor {
@@ -15,7 +15,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case script: Script =>
@@ -30,7 +31,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               ScopePath.fromPath(script.path),
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           preprocessed
@@ -50,7 +52,8 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               script.scopePath,
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           preprocessed
@@ -72,7 +75,8 @@ object ScriptPreprocessor {
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
@@ -86,7 +90,8 @@ object ScriptPreprocessor {
         scopePath / os.up,
         logger,
         maybeRecoverOnError,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       ))
         .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
 

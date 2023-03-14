@@ -7,10 +7,10 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, FileNotFoundException}
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, SuppressWarningOptions}
 import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
 import scala.build.preprocessing.ExtractedDirectives.from
-import scala.build.preprocessing.ScalaPreprocessor._
+import scala.build.preprocessing.ScalaPreprocessor.*
 
 object PreprocessingUtil {
 
@@ -26,7 +26,8 @@ object PreprocessingUtil {
     path: Either[String, os.Path],
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[
     BuildException,
     (DirectivesProcessorOutput[BuildOptions], Option[DirectivesPositions])
@@ -46,7 +47,8 @@ object PreprocessingUtil {
       path,
       scopePath,
       logger,
-      allowRestrictedFeatures
+      allowRestrictedFeatures,
+      suppressWarningOptions
     ))
     (updatedOptions, directivesPositions)
   }

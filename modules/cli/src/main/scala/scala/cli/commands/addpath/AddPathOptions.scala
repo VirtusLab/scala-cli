@@ -2,7 +2,7 @@ package scala.cli.commands.addpath
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.commands.shared.{GlobalSuppressWarningOptions, HasGlobalOptions, LoggingOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -10,9 +10,11 @@ import scala.cli.commands.tags
 final case class AddPathOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Tag(tags.restricted)
     title: String = ""
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object AddPathOptions {

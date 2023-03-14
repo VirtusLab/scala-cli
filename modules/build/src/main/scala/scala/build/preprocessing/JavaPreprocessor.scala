@@ -11,7 +11,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, JavaFile, SingleElement, VirtualJavaFile}
 import scala.build.internal.JavaParserProxyMaker
-import scala.build.options.BuildRequirements
+import scala.build.options.{BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 import scala.build.preprocessing.ScalaPreprocessor.*
@@ -37,7 +37,8 @@ final case class JavaPreprocessor(
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: JavaFile => Some(either {
@@ -50,7 +51,8 @@ final case class JavaPreprocessor(
               Right(j.path),
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           Seq(PreprocessedSource.OnDisk(
@@ -90,7 +92,8 @@ final case class JavaPreprocessor(
               Left(relPath.toString),
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           val s = PreprocessedSource.InMemory(

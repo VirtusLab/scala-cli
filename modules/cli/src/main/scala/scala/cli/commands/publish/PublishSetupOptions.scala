@@ -14,6 +14,8 @@ final case class PublishSetupOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+  @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
@@ -73,7 +75,7 @@ final case class PublishSetupOptions(
   @Tag(tags.implementation)
   @HelpMessage("Dummy mode - don't upload any secret to GitHub")
     dummy: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object PublishSetupOptions {

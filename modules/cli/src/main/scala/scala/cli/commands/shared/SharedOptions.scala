@@ -30,7 +30,7 @@ import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{
-  HasLoggingOptions,
+  HasGlobalOptions,
   ScalaJsOptions,
   ScalaNativeOptions,
   SharedOptions,
@@ -201,10 +201,12 @@ final case class SharedOptions(
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
     withToolkit: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
 
   def logger: Logger = logging.logger
+
+  override def globalSuppressWarning: GlobalSuppressWarningOptions = suppress.global
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._
@@ -293,14 +295,16 @@ final case class SharedOptions(
     bo.BuildOptions(
       suppressWarningOptions =
         bo.SuppressWarningOptions(
-          getOptionOrFromConfig(
+          suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
             suppress.suppressDirectivesInMultipleFilesWarning,
             Keys.suppressDirectivesInMultipleFilesWarning
           ),
-          getOptionOrFromConfig(
+          suppressOutdatedDependencyWarning = getOptionOrFromConfig(
             suppress.suppressOutdatedDependencyWarning,
             Keys.suppressOutdatedDependenciessWarning
-          )
+          ),
+          suppressExperimentalFeatureWarning =
+            Some(suppress.global.suppressExperimentalFeatureWarning)
         ),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion

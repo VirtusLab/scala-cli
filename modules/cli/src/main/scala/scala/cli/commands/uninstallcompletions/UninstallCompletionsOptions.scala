@@ -3,7 +3,12 @@ package scala.cli.commands.uninstallcompletions
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpMessages,
+  LoggingOptions
+}
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
 // format: off
@@ -12,8 +17,10 @@ final case class UninstallCompletionsOptions(
   @Recurse
     shared: SharedUninstallCompletionsOptions = SharedUninstallCompletionsOptions(),
   @Recurse
-    logging: LoggingOptions = LoggingOptions()
-) extends HasLoggingOptions
+    logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions()
+) extends HasGlobalOptions
 // format: on
 
 object UninstallCompletionsOptions {

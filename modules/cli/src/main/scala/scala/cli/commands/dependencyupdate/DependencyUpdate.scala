@@ -40,7 +40,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
           () => buildOptions.javaHome().value.javaCommand
         ),
         logger,
-        buildOptions.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
+        buildOptions.suppressWarningOptions
       ).orExit(logger)
 
     val scopedSources = crossSources.scopedSources(buildOptions).orExit(logger)

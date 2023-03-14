@@ -10,6 +10,8 @@ import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
 import dependency.*
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
@@ -21,7 +23,8 @@ import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.{
-  HasLoggingOptions,
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
   HelpMessages,
   ScalaCliHelp,
   ScalacOptions,
@@ -33,7 +36,7 @@ import scala.cli.internal.ProcUtil
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T], help: Help[T])
+abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], help: Help[T])
     extends Command()(myParser, help)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
@@ -314,6 +317,16 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
       sys.exit(1)
     }
 
+  private val shouldSuppressExperimentalFeatureWarningsAtomic: AtomicBoolean =
+    new AtomicBoolean(false)
+  override def shouldSuppressExperimentalFeatureWarnings: Boolean =
+    shouldSuppressExperimentalFeatureWarningsAtomic.get()
+  final override def main(progName: String, args: Array[String]): Unit = {
+    shouldSuppressExperimentalFeatureWarningsAtomic
+      .set(GlobalSuppressWarningOptions.shouldSuppressExperimentalFeatureWarning(args.toList))
+    super.main(progName, args)
+  }
+
   /** This should be overridden instead of [[run]] when extending [[ScalaCommand]].
     *
     * @param options
@@ -329,10 +342,13 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
     val logger = options.logging.logger
+    val shouldSuppressExperimentalWarning =
+      options.globalSuppressWarning.suppressExperimentalFeatureWarning
     if shouldExcludeInSip then
       logger.error(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
       sys.exit(1)
-    else if isExperimental then logger.message(WarningMessages.experimentalSubcommandUsed(name))
+    else if isExperimental && !shouldSuppressExperimentalWarning then
+      logger.message(WarningMessages.experimentalSubcommandUsed(name))
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>

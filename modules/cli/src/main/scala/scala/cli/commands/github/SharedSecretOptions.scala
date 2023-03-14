@@ -2,7 +2,12 @@ package scala.cli.commands.github
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.{PasswordOption, Secret}
 import scala.cli.signing.util.ArgParsers.*
@@ -11,6 +16,8 @@ import scala.cli.signing.util.ArgParsers.*
 final case class SharedSecretOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Group(HelpGroup.Secret.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
@@ -20,7 +27,7 @@ final case class SharedSecretOptions(
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     repository: String = ""
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
 
   lazy val (repoOrg, repoName) =

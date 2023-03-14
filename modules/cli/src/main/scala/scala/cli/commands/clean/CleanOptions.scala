@@ -4,7 +4,8 @@ import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{
-  HasLoggingOptions,
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
   HelpMessages,
   LoggingOptions,
   SharedBspFileOptions,
@@ -17,10 +18,12 @@ final case class CleanOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
   @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+  @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions()
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object CleanOptions {

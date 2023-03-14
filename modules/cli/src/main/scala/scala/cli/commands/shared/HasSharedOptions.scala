@@ -1,6 +1,7 @@
 package scala.cli.commands.shared
 
-trait HasSharedOptions extends HasLoggingOptions {
+trait HasSharedOptions extends HasGlobalOptions {
   def shared: SharedOptions
-  override def logging: LoggingOptions = shared.logging
+  override def logging: LoggingOptions                             = shared.logging
+  override def globalSuppressWarning: GlobalSuppressWarningOptions = shared.suppress.global
 }

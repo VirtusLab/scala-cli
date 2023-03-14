@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
 import scala.build.internal.CustomCodeWrapper
-import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.options.{BuildOptions, InternalOptions, Scope, SuppressWarningOptions}
 import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
@@ -91,7 +91,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           () => cliBuildOptions.javaHome().value.javaCommand
         ),
         logger,
-        suppressDirectivesInMultipleFilesWarning = None
+        cliBuildOptions.suppressWarningOptions
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)

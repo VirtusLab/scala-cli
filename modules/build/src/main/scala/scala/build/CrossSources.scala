@@ -12,6 +12,7 @@ import scala.build.options.{
   BuildRequirements,
   MaybeScalaVersion,
   Scope,
+  SuppressWarningOptions,
   WithBuildRequirements
 }
 import scala.build.preprocessing.*
@@ -126,7 +127,7 @@ object CrossSources {
     inputs: Inputs,
     preprocessors: Seq[Preprocessor],
     logger: Logger,
-    suppressDirectivesInMultipleFilesWarning: Option[Boolean],
+    suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (CrossSources, Inputs)] = either {
 
@@ -141,7 +142,8 @@ object CrossSources {
                 elem,
                 logger,
                 maybeRecoverOnError,
-                inputs.allowRestrictedFeatures
+                inputs.allowRestrictedFeatures,
+                suppressWarningOptions
               ).iterator
             )
             .take(1)
@@ -169,11 +171,9 @@ object CrossSources {
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
 
     val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
-    if (
-      preprocessedWithUsingDirs.length > 1 && !suppressDirectivesInMultipleFilesWarning.getOrElse(
-        false
-      )
-    ) {
+    if preprocessedWithUsingDirs.length > 1 &&
+      !suppressWarningOptions.suppressDirectivesInMultipleFilesWarning.getOrElse(false)
+    then {
       val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
         case Some(s) => s.path
         case _       => inputs.workspace / Constants.projectFileName

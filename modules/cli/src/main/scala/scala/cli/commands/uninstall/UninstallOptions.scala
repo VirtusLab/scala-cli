@@ -6,7 +6,13 @@ import java.nio.file.Path
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.bloop.BloopExitOptions
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  HelpMessages,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
@@ -40,8 +46,9 @@ final case class UninstallOptions(
   @HelpMessage("Binary directory")
   @Tag(tags.implementation)
     binDir: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   override def logging: LoggingOptions = bloopExit.logging
+  override def globalSuppressWarning: GlobalSuppressWarningOptions = bloopExit.globalSuppressWarning
   // format: on
   lazy val binDirPath: Option[os.Path] = binDir.map(os.Path(_, os.pwd))
 }

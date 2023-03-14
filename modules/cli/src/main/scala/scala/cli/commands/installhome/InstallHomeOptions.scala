@@ -3,7 +3,12 @@ package scala.cli.commands.installhome
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -11,6 +16,8 @@ import scala.cli.commands.tags
 final case class InstallHomeOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Group(HelpGroup.Install.toString)
   @Tag(tags.implementation)
     scalaCliBinaryPath: String,
@@ -33,7 +40,7 @@ final case class InstallHomeOptions(
   @Tag(tags.implementation)
   @HelpMessage("Binary directory")
     binDir: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
 }

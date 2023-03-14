@@ -4,7 +4,8 @@ import caseapp.*
 
 import scala.cli.commands.shared.{
   CoursierOptions,
-  HasLoggingOptions,
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
   HelpGroup,
   LoggingOptions,
   SharedJvmOptions
@@ -14,6 +15,8 @@ import scala.cli.commands.shared.{
 final case class PgpPushOptions(
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
   @Recurse
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Recurse
@@ -33,7 +36,7 @@ final case class PgpPushOptions(
   @Group(HelpGroup.PGP.toString)
   @Hidden
     forceSigningBinary: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object PgpPushOptions {

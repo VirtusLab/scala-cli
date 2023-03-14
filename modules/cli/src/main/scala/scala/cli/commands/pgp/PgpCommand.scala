@@ -14,5 +14,8 @@ abstract class PgpCommand[T](implicit myParser: Parser[T], help: Help[T])
 
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
+  override def shouldSuppressExperimentalFeatureWarnings: Boolean =
+    false // TODO add handling for scala-cli-signing
+
   override def hidden = true
 }

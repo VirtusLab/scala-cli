@@ -99,16 +99,16 @@ final class BspImpl(
     // allInputs contains elements from using directives
     val (crossSources, allInputs) = value {
       CrossSources.forInputs(
-        inputs,
-        Sources.defaultPreprocessors(
+        inputs = inputs,
+        preprocessors = Sources.defaultPreprocessors(
           buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand
         ),
-        persistentLogger,
-        suppressDirectivesInMultipleFilesWarning = None,
-        maybeRecoverOnError(Scope.Main)
+        logger = persistentLogger,
+        suppressWarningOptions = buildOptions.suppressWarningOptions,
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Main)
       ).left.map((_, Scope.Main))
     }
 
