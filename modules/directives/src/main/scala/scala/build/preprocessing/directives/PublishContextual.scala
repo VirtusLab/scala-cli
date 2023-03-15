@@ -24,6 +24,7 @@ trait PublishContextual {
   def gpgOptions: List[String]
   def secretKey: Option[Positioned[String]]
   def secretKeyPassword: Option[Positioned[String]]
+  def publicKey: Option[Positioned[String]]
   def user: Option[Positioned[String]]
   def password: Option[Positioned[String]]
   def realm: Option[String]
@@ -46,6 +47,12 @@ trait PublishContextual {
           .map(ConfigPasswordOption.ActualOption(_))
       }
       .sequence
+    val maybePublicKey = publicKey
+      .map { input =>
+        PublishContextual.parsePasswordOption(input)
+          .map(ConfigPasswordOption.ActualOption(_))
+      }
+      .sequence
 
     val maybeUser = user
       .map(PublishContextual.parsePasswordOption)
@@ -54,8 +61,22 @@ trait PublishContextual {
       .map(PublishContextual.parsePasswordOption)
       .sequence
 
-    val (computeVersionOpt, secretKeyOpt, secretKeyPasswordOpt, userOpt, passwordOpt) = value {
-      (maybeComputeVersion, maybeSecretKey, maybeSecretKeyPassword, maybeUser, maybePassword)
+    val (
+      computeVersionOpt,
+      secretKeyOpt,
+      secretKeyPasswordOpt,
+      publicKeyOpt,
+      userOpt,
+      passwordOpt
+    ) = value {
+      (
+        maybeComputeVersion,
+        maybeSecretKey,
+        maybeSecretKeyPassword,
+        maybePublicKey,
+        maybeUser,
+        maybePassword
+      )
         .traverseN
         .left.map(CompositeBuildException(_))
     }
@@ -67,6 +88,7 @@ trait PublishContextual {
       gpgOptions = gpgOptions,
       secretKey = secretKeyOpt,
       secretKeyPassword = secretKeyPasswordOpt,
+      publicKey = publicKeyOpt,
       repoUser = userOpt,
       repoPassword = passwordOpt,
       repoRealm = realm
@@ -108,6 +130,7 @@ object PublishContextual {
     gpgOptions: List[String] = Nil,
     secretKey: Option[Positioned[String]] = None,
     secretKeyPassword: Option[Positioned[String]] = None,
+    publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
     realm: Option[String] = None
@@ -143,6 +166,7 @@ object PublishContextual {
     gpgOptions: List[String] = Nil,
     secretKey: Option[Positioned[String]] = None,
     secretKeyPassword: Option[Positioned[String]] = None,
+    publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
     realm: Option[String] = None
