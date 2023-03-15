@@ -259,16 +259,18 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           inputs.workspace / s"publish-conf$ext"
         }
         val nl = System.lineSeparator() // FIXME Get from dest if it exists?
+
+        def extraDirectivesLines(extraDirectives: Seq[(String, String)]) =
+          extraDirectives.map {
+            case (k, v) =>
+              s"""//> using $k "$v"""" + nl
+          }.mkString
+
         val extraLines = missingFieldsWithDefaultsAndValues.map {
-          case (_, _, None) => ""
+          case (_, default, None) => extraDirectivesLines(default.extraDirectives)
           case (check, default, Some(value)) =>
             s"""//> using ${check.directivePath} "$value"""" + nl +
-              default.extraDirectives
-                .map {
-                  case (k, v) =>
-                    s"""//> using $k "$v"""" + nl
-                }
-                .mkString
+              extraDirectivesLines(default.extraDirectives)
         }
 
         val currentContent =
