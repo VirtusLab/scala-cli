@@ -29,7 +29,7 @@ class GifTests extends munit.FunSuite {
   lazy val ttyOpts = if (hasTty) Seq("-it") else Nil
 
   def buildImages      = true
-  def forceBuildImages = false
+  def forceBuildImages = true
 
   def columns = 70
   def rows    = 20
