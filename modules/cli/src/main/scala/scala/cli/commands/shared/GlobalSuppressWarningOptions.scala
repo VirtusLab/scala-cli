@@ -9,16 +9,16 @@ final case class GlobalSuppressWarningOptions(
   @Tag(tags.implementation)
   @HelpMessage("Suppress warnings about using experimental features")
   @Name("suppressExperimentalWarning")
-  suppressExperimentalFeatureWarning: Boolean = false
+  suppressExperimentalFeatureWarning: Option[Boolean] = None
 )
 
 object GlobalSuppressWarningOptions {
   implicit lazy val parser: Parser[GlobalSuppressWarningOptions] = Parser.derive
   implicit lazy val help: Help[GlobalSuppressWarningOptions]     = Help.derive
 
-  def shouldSuppressExperimentalFeatureWarning(args: List[String]): Boolean =
+  def shouldSuppressExperimentalFeatureWarning(args: List[String]): Option[Boolean] =
     parser
       .detailedParse(args, stopAtFirstUnrecognized = false, ignoreUnrecognized = true)
-      .map(_._1.suppressExperimentalFeatureWarning.self)
-      .getOrElse(false)
+      .toOption
+      .flatMap(_._1.suppressExperimentalFeatureWarning)
 }

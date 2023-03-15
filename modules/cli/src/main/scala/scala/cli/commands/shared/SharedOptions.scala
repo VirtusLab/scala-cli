@@ -303,8 +303,10 @@ final case class SharedOptions(
             suppress.suppressOutdatedDependencyWarning,
             Keys.suppressOutdatedDependenciessWarning
           ),
-          suppressExperimentalFeatureWarning =
-            Some(suppress.global.suppressExperimentalFeatureWarning)
+          suppressExperimentalFeatureWarning = getOptionOrFromConfig(
+            suppress.global.suppressExperimentalFeatureWarning,
+            Keys.suppressExperimentalFeatureWarning
+          )
         ),
       scalaOptions = bo.ScalaOptions(
         scalaVersion = scalaVersion

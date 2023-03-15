@@ -20,7 +20,7 @@ import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
-import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
+import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
 import scala.cli.commands.shared.{
   GlobalSuppressWarningOptions,
@@ -32,7 +32,9 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
+import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
@@ -323,7 +325,14 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     shouldSuppressExperimentalFeatureWarningsAtomic.get()
   final override def main(progName: String, args: Array[String]): Unit = {
     shouldSuppressExperimentalFeatureWarningsAtomic
-      .set(GlobalSuppressWarningOptions.shouldSuppressExperimentalFeatureWarning(args.toList))
+      .set {
+        GlobalSuppressWarningOptions.shouldSuppressExperimentalFeatureWarning(args.toList)
+          .orElse {
+            configDb.toOption
+              .flatMap(_.getOpt(Keys.suppressExperimentalFeatureWarning))
+          }
+          .getOrElse(false)
+      }
     super.main(progName, args)
   }
 
@@ -342,12 +351,10 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.logging.verbosity
     val logger = options.logging.logger
-    val shouldSuppressExperimentalWarning =
-      options.globalSuppressWarning.suppressExperimentalFeatureWarning
     if shouldExcludeInSip then
       logger.error(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
       sys.exit(1)
-    else if isExperimental && !shouldSuppressExperimentalWarning then
+    else if isExperimental && !shouldSuppressExperimentalFeatureWarnings then
       logger.message(WarningMessages.experimentalSubcommandUsed(name))
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)

@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.CommandResult
 
 import scala.util.Properties
 
@@ -19,6 +20,23 @@ class SipScalaTests extends ScalaCliSuite {
   def powerArgs(isPowerMode: Boolean): Seq[String] = if (isPowerMode) Seq("--power") else Nil
   def suppressExperimentalWarningArgs(areWarningsSuppressed: Boolean): Seq[String] =
     if (areWarningsSuppressed) Seq("--suppress-experimental-feature-warning") else Nil
+
+  def testWithGlobalConfig(
+    configKey: String,
+    testWhenDisabled: (os.Path, Map[String, String]) => Any,
+    testWhenEnabled: (os.Path, Map[String, String]) => Any
+  ): Any =
+    TestInputs.empty.fromRoot { root =>
+      val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
+      for (disableSetting <- Seq("false", "--unset")) {
+        os.proc(TestUtil.cli, "config", configKey, disableSetting)
+          .call(cwd = root, env = homeEnv)
+        testWhenDisabled(root, homeEnv)
+        os.proc(TestUtil.cli, "config", configKey, "true")
+          .call(cwd = root, env = homeEnv)
+        testWhenEnabled(root, homeEnv)
+      }
+    }
 
   def testDirectoriesCommand(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
@@ -198,6 +216,26 @@ class SipScalaTests extends ScalaCliSuite {
     else expect(restrictedFeaturesMentioned && experimentalFeaturesMentioned)
   }
 
+  def testConfigSuppressingExperimentalFeatureWarnings(featureType: String)(
+    callExperimentalFeature: (
+      os.Path,
+      Map[String, String]
+    ) => CommandResult
+  ): Unit = {
+    testWithGlobalConfig(
+      "suppress-warning.experimental-features",
+      testWhenDisabled =
+        (root, homeEnv) => {
+          val errOutput = callExperimentalFeature(root, homeEnv).err.trim()
+          expect(errOutput.contains(s"$featureType is an experimental feature"))
+        },
+      testWhenEnabled = (root, homeEnv) => {
+        val errOutput = callExperimentalFeature(root, homeEnv).err.trim()
+        expect(!errOutput.contains(s"$featureType is an experimental feature"))
+      }
+    )
+  }
+
   for {
     isPowerMode <- Seq(false, true)
     powerModeString = if (isPowerMode) "enabled" else "disabled"
@@ -233,6 +271,31 @@ class SipScalaTests extends ScalaCliSuite {
     }
     test(s"test export command help output when power mode is $powerModeString") {
       testExportCommandHelp(isPowerMode)
+    }
+  }
+
+  test("test global config suppressing warnings for an experimental sub-command") {
+    testConfigSuppressingExperimentalFeatureWarnings("sub-command") {
+      (root: os.Path, homeEnv: Map[String, String]) =>
+        val res = os.proc(TestUtil.cli, "--power", "export")
+          .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
+        expect(res.exitCode == 1)
+        res
+    }
+  }
+  test("test global config suppressing warnings for an experimental option") {
+    testConfigSuppressingExperimentalFeatureWarnings("option") {
+      (root: os.Path, homeEnv: Map[String, String]) =>
+        os.proc(TestUtil.cli, "--power", "-e", "println()", "--md")
+          .call(cwd = root, env = homeEnv, stderr = os.Pipe)
+    }
+  }
+  test("test global config suppressing warnings for an experimental directive") {
+    testConfigSuppressingExperimentalFeatureWarnings("directive") {
+      (root: os.Path, homeEnv: Map[String, String]) =>
+        val quote = TestUtil.argQuotationMark
+        os.proc(TestUtil.cli, "--power", "-e", s"//> using publish.name ${quote}my-library$quote")
+          .call(cwd = root, env = homeEnv, stderr = os.Pipe)
     }
   }
 
