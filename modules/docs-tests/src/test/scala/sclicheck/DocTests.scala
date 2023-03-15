@@ -12,7 +12,7 @@ class DocTests extends munit.FunSuite {
     DocTestEntry("reference", docsRootPath / "reference")
   )
 
-  val options: Options = Options(scalaCliCommand = Seq(TestUtil.scalaCliPath))
+  val options: Options = Options(scalaCliCommand = Seq(TestUtil.scalaCliPath.toString))
 
   private def lineContainsAnyChecks(l: String): Boolean =
     l.startsWith("```md") || l.startsWith("```bash") ||

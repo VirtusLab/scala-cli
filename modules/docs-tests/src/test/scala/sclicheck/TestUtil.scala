@@ -15,8 +15,9 @@ object TestUtil {
         System.err.println(s"Could not remove $f ($ex), ignoring it.")
     }
 
-  lazy val scalaCliPath = Option(System.getenv("SCLICHECK_SCALA_CLI")).getOrElse {
-    sys.error("SCLICHECK_SCALA_CLI not set")
-  }
+  lazy val scalaCliPath =
+    Option(System.getenv("SCLICHECK_SCALA_CLI")).map(os.Path(_, os.pwd)).getOrElse {
+      sys.error("SCLICHECK_SCALA_CLI not set")
+    }
 
 }

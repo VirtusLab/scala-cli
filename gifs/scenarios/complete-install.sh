@@ -10,7 +10,8 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
-  apt-get purge -y scala-cli || true
+  rm /usr/bin/scala-cli || true # remove scala-cliu from PATH
+  rm /usr/bin/java || true # remove java from PATH
   # or do other preparation (e.g. create code)
 else
   . $SCRIPT_DIR/../demo-magic.sh
