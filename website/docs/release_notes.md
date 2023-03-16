@@ -15,7 +15,7 @@ As of [SIP-46](https://github.com/scala/improvement-proposals/pull/46), Scala CL
 command. To make the transition smooth we added a [guide](docs/guides/old-runner-migration.md) highlighting
 the differences between the two runners.
 
-Added by [@Gedochao](https://github.com/Gedochao)  in [#1900](https://github.com/VirtusLab/scala-cli/pull/1900)
+Added by [@Gedochao](https://github.com/Gedochao) in [#1900](https://github.com/VirtusLab/scala-cli/pull/1900)
 
 ### Improve the `publish` and `publish setup` sub-commands' user experience
 
@@ -58,7 +58,7 @@ scala-cli config -h
 ```
 Also, `config --full-help` will show the list of all keys.
 
-Added by [@Gedochao](https://github.com/Gedochao)  in [#1910](https://github.com/VirtusLab/scala-cli/pull/1910)
+Added by [@Gedochao](https://github.com/Gedochao) in [#1910](https://github.com/VirtusLab/scala-cli/pull/1910)
 
 ### Pass user arguments to JS runner
 
@@ -88,7 +88,7 @@ Added by [@alexarchambault](https://github.com/alexarchambault) in [#1826](https
 
 
 ### Other changes
-* Tweak error messages for running scripts without file extensions by [@Gedochao](https://github.com/Gedochao)  in [#1886](https://github.com/VirtusLab/scala-cli/pull/1886)
+* Tweak error messages for running scripts without file extensions by [@Gedochao](https://github.com/Gedochao) in [#1886](https://github.com/VirtusLab/scala-cli/pull/1886)
 * Exit with Bloop command return code if it's non-zero by [@alexarchambault](https://github.com/alexarchambault) in [#1837](https://github.com/VirtusLab/scala-cli/pull/1837)
 * bloop-rifle: increase timeout values by [@Flowdalic](https://github.com/Flowdalic) in [#1865](https://github.com/VirtusLab/scala-cli/pull/1865)
 * Suggest users to clean working directory when Nailgun server failed by [@lwronski](https://github.com/lwronski) in [#1916](https://github.com/VirtusLab/scala-cli/pull/1916)
@@ -102,18 +102,18 @@ Added by [@alexarchambault](https://github.com/alexarchambault) in [#1826](https
 
 
 #### Documentation updates
-* Ensure no console-syntax in reference docs and no `md` fenced blocks in `--help` by [@Gedochao](https://github.com/Gedochao)  in [#1874](https://github.com/VirtusLab/scala-cli/pull/1874)
+* Ensure no console-syntax in reference docs and no `md` fenced blocks in `--help` by [@Gedochao](https://github.com/Gedochao) in [#1874](https://github.com/VirtusLab/scala-cli/pull/1874)
 * Document export subcommand by [@MaciejG604](https://github.com/MaciejG604) in [#1875](https://github.com/VirtusLab/scala-cli/pull/1875)
-* Tweak guides' and cookbooks' pages by [@Gedochao](https://github.com/Gedochao)  in [#1894](https://github.com/VirtusLab/scala-cli/pull/1894)
+* Tweak guides' and cookbooks' pages by [@Gedochao](https://github.com/Gedochao) in [#1894](https://github.com/VirtusLab/scala-cli/pull/1894)
 * Fix pgp creation option name by [@MaciejG604](https://github.com/MaciejG604) in [#1909](https://github.com/VirtusLab/scala-cli/pull/1909)
 * Fix using directive docs by [@lwronski](https://github.com/lwronski) in [#1901](https://github.com/VirtusLab/scala-cli/pull/1901)
 * Add docs to classifiers and exclude dependency by [@lwronski](https://github.com/lwronski) in [#1892](https://github.com/VirtusLab/scala-cli/pull/1892)
 
 
 #### Internal changes
-* Fix handling for `experimental` features by [@Gedochao](https://github.com/Gedochao)  in [#1915](https://github.com/VirtusLab/scala-cli/pull/1915)
+* Fix handling for `experimental` features by [@Gedochao](https://github.com/Gedochao) in [#1915](https://github.com/VirtusLab/scala-cli/pull/1915)
 * Change default home directory for tests integration and docs-test modules to avoid overriding global user config by [@lwronski](https://github.com/lwronski) in [#1917](https://github.com/VirtusLab/scala-cli/pull/1917)
-* NIT Use enums for help groups and help command groups by [@Gedochao](https://github.com/Gedochao)  in [#1880](https://github.com/VirtusLab/scala-cli/pull/1880)
+* NIT Use enums for help groups and help command groups by [@Gedochao](https://github.com/Gedochao) in [#1880](https://github.com/VirtusLab/scala-cli/pull/1880)
 
 
 #### Updates & maintenance
