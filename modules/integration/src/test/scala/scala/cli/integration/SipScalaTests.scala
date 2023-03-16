@@ -301,33 +301,22 @@ class SipScalaTests extends ScalaCliSuite {
 
   for ((restrictionType, subCommand) <- Seq("restricted" -> "package", "experimental" -> "export"))
     test(s"power config enables $restrictionType sub-command: $subCommand") {
-      TestInputs.empty.fromRoot { root =>
-        val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
-        // disable power features
-        for (disablePowerSetting <- Seq("false", "--unset")) {
-          os.proc(TestUtil.cli, "config", "power", disablePowerSetting).call(
-            cwd = root,
-            env = homeEnv
-          ).out.trim()
-          val output = os.proc(TestUtil.cli, subCommand).call(
-            cwd = root,
-            check = false,
-            mergeErrIntoOut = true,
-            env = homeEnv
-          ).out.text().trim
-          expect(output.contains(
+      testWithGlobalConfig(
+        configKey = "power",
+        testWhenDisabled = { (root, homeEnv) =>
+          val res = os.proc(TestUtil.cli, subCommand)
+            .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
+          expect(res.exitCode == 1)
+          expect(res.err.text().trim().contains(
             s"""This command is $restrictionType and requires setting the '--power' launcher option to be used"""
           ))
+        },
+        testWhenEnabled = { (root, homeEnv) =>
+          val res = os.proc(TestUtil.cli, subCommand)
+            .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
+          expect(res.exitCode == 1)
+          expect(res.err.text().trim().contains("No inputs provided"))
         }
-        // enable power features
-        os.proc(TestUtil.cli, "config", "power", "true").call(cwd = root, env = homeEnv).out.trim()
-        val powerOutput = os.proc(TestUtil.cli, subCommand).call(
-          cwd = root,
-          check = false,
-          mergeErrIntoOut = true,
-          env = homeEnv
-        ).out.text().trim
-        expect(powerOutput.contains("No inputs provided"))
-      }
+      )
     }
 }
