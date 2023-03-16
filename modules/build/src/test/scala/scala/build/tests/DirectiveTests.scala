@@ -101,7 +101,7 @@ class DirectiveTests extends munit.FunSuite {
         assert(dep.nonEmpty)
 
         val toolkitDep = dep.get.value
-        expect(toolkitDep.organization == "org.virtuslab")
+        expect(toolkitDep.organization == "org.scala-lang")
         expect(toolkitDep.name == "toolkit")
         expect(toolkitDep.version == "latest.release")
     }
