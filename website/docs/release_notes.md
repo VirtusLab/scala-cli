@@ -77,14 +77,12 @@ val console = global.console
 console.log(argv.mkString(" "))
 ```
 
-<ChainedSnippets>
 ```bash
 scala-cli ScalaJsArgs.sc --js -- Hello World
 ```
 ```text
 Hello World
 ```
-</ChainedSnippets>
 
 Added by [@alexarchambault](https://github.com/alexarchambault) in [#1826](https://github.com/VirtusLab/scala-cli/pull/1826)
 
