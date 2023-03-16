@@ -209,7 +209,6 @@ case object ScalaPreprocessor extends Preprocessor {
       contentWithNoShebang.toCharArray,
       path,
       logger,
-      UsingDirectiveKind.values(),
       scopeRoot,
       maybeRecoverOnError
     ))
@@ -350,7 +349,7 @@ case object ScalaPreprocessor extends Preprocessor {
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
 
-    val ExtractedDirectives(codeOffset, directives0, directivesPositions) = extractedDirectives
+    val ExtractedDirectives(directives0, directivesPositions) = extractedDirectives
 
     val updatedOptions = value {
       DirectivesProcessor.process(
@@ -380,20 +379,6 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val unusedDirectives = updatedRequirements.unused
 
-    val updatedContentOpt =
-      if (codeOffset > 0) {
-        val headerBytes = contentChars
-          .iterator
-          .take(codeOffset)
-          .map(c => if (c.isControl) c else ' ')
-          .toArray
-        val mainBytes      = contentChars.drop(codeOffset)
-        val updatedContent = new String(headerBytes ++ mainBytes)
-        if (updatedContent == content) None
-        else Some(updatedContent)
-      }
-      else None
-
     value {
       unusedDirectives match {
         case Seq() =>
@@ -401,7 +386,7 @@ case object ScalaPreprocessor extends Preprocessor {
             updatedRequirements.global,
             updatedOptions.global,
             updatedRequirements.scoped,
-            updatedContentOpt,
+            strippedContent = None,
             directivesPositions
           ))
         case Seq(h, t*) =>
@@ -425,9 +410,6 @@ case object ScalaPreprocessor extends Preprocessor {
       values.flatMap(_.positions)
     )
   }
-
-  val changeToSpecialCommentMsg =
-    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
     DependencyParser.parse(str) match {

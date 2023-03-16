@@ -61,7 +61,6 @@ class DirectiveParsingTest extends munit.FunSuite {
       code,
       Right(path),
       persistentLogger,
-      UsingDirectiveKind.values(),
       ScopePath.fromPath(path),
       maybeRecoverOnError = e => Some(e)
     )
@@ -111,20 +110,18 @@ class DirectiveParsingTest extends munit.FunSuite {
   }
 
   test("Test warnings about mixing syntax") {
-    testDiagnostics(directive, specialCommentDirective)(Warn("ignored", 1, 0))
-    testDiagnostics(directive, commentDirective)(Warn("ignored", 1, 0))
+    testDiagnostics(directive, specialCommentDirective)(Warn("ignored", 0, 0))
+    testDiagnostics(directive, commentDirective)(Warn("ignored", 0, 0))
     testDiagnostics(specialCommentDirective, commentDirective)(Warn("ignored", 1, 0))
     testDiagnostics(commentDirective, specialCommentDirective)(Warn("deprecated", 0, 0))
   }
 
-  test("Plain comment only result in no ignored warning") {
-    testDiagnostics(commentDirective)(NoWarn("ignored"))
+  test("Plain comment result in ignored warning") {
+    testDiagnostics(commentDirective)(Warn("ignored", 0, 0))
   }
 
   test("@using is deprecated") {
     def addAt(s: String) = s.replace("using ", "@using ")
-    testDiagnostics(addAt(commentDirective))(Warn("syntax", 0, 3), Warn("keyword", 0, 3))
-    testDiagnostics(addAt(directive))(Warn("syntax", 0, 0), Warn("keyword", 0, 0))
     testDiagnostics(addAt(specialCommentDirective))(Warn("syntax", 0, 4), Warn("keyword", 0, 4))
   }
 

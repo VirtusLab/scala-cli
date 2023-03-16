@@ -32,12 +32,11 @@ object PreprocessingUtil {
     BuildException,
     (DirectivesProcessorOutput[BuildOptions], Option[DirectivesPositions])
   ] = either {
-    val ExtractedDirectives(_, directives0, directivesPositions) =
+    val ExtractedDirectives(directives0, directivesPositions) =
       value(from(
         content.toCharArray,
         path,
         logger,
-        Array(UsingDirectiveKind.PlainComment, UsingDirectiveKind.SpecialComment),
         scopePath,
         maybeRecoverOnError
       ))
