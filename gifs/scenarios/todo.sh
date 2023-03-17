@@ -18,7 +18,7 @@ else
 
   # Put your stuff here
 
-  pe "scala-cli about"
+  pe "scala-cli version"
   pe "echo 'println(\"TODO\")' | scala-cli -"
 
   # Wait a bit to read output of last command
