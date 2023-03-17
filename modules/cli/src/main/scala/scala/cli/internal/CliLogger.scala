@@ -206,3 +206,7 @@ class CliLogger(
   // Allow to disable that?
   def compilerOutputStream = out
 }
+
+object CliLogger {
+  def default: CliLogger = new CliLogger(0, false, None, System.err)
+}

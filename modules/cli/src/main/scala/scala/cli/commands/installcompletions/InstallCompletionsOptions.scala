@@ -3,22 +3,14 @@ package scala.cli.commands.installcompletions
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  HelpMessages,
-  LoggingOptions
-}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 
 // format: off
 @HelpMessage(InstallCompletionsOptions.helpMessage, "", InstallCompletionsOptions.detailedHelpMessage)
 final case class InstallCompletionsOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Group(HelpGroup.Install.toString)
   @Name("shell")
   @Tag(tags.implementation)

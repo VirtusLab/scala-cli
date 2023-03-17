@@ -3,13 +3,7 @@ package scala.cli.commands.default
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  HelpMessages,
-  LoggingOptions
-}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 
 // format: off
@@ -19,9 +13,7 @@ import scala.cli.commands.tags
      |${HelpMessages.commandDocWebsiteReference("misc/default-file")}""".stripMargin)
 final case class DefaultFileOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Group(HelpGroup.Default.toString)
   @HelpMessage("Write result to files rather than to stdout")
   @Tag(tags.restricted)

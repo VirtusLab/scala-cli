@@ -31,7 +31,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
-    val interactive = options.logging.verbosityOptions.interactiveInstance()
+    val interactive = options.global.logging.verbosityOptions.interactiveInstance()
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
@@ -92,7 +92,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         Charset.defaultCharset()
       )
 
-      if (options.logging.verbosity >= 0)
+      if (options.global.logging.verbosity >= 0)
         if (updated) {
           System.err.println(s"Updated $rcFile")
           System.err.println(

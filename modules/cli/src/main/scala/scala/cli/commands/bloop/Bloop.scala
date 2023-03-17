@@ -28,12 +28,12 @@ object Bloop extends ScalaCommand[BloopOptions] {
     // directly.
 
     val sharedOptions = SharedOptions(
-      logging = opts.logging,
+      logging = opts.global.logging,
       compilationServer = opts.compilationServer,
       jvm = opts.jvm,
       coursier = opts.coursier
     )
-    val options = sharedOptions.buildOptions(false, None).orExit(opts.logging.logger)
+    val options = sharedOptions.buildOptions(false, None).orExit(opts.global.logging.logger)
     lazy val defaultJvmCmd =
       sharedOptions.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
     val javaCmd = opts.compilationServer.bloopJvm
@@ -48,9 +48,9 @@ object Bloop extends ScalaCommand[BloopOptions] {
       .getOrElse(defaultJvmCmd)
 
     opts.compilationServer.bloopRifleConfig(
-      opts.logging.logger,
+      opts.global.logging.logger,
       sharedOptions.coursierCache,
-      opts.logging.verbosity,
+      opts.global.logging.verbosity,
       javaCmd,
       Directories.directories,
       Some(17)

@@ -48,7 +48,7 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
         Charset.defaultCharset()
       )
 
-      if (options.logging.verbosity >= 0)
+      if (options.global.logging.verbosity >= 0)
         if (updated) {
           logger.message(s"Updated $rcFile")
           logger.message(s"$baseRunnerName completions uninstalled successfully")

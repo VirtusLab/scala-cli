@@ -12,9 +12,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(PublishSetupOptions.helpMessage, "", PublishSetupOptions.detailedHelpMessage)
 final case class PublishSetupOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse

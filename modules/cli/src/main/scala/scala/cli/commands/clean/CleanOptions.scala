@@ -3,22 +3,13 @@ package scala.cli.commands.clean
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpMessages,
-  LoggingOptions,
-  SharedBspFileOptions,
-  SharedWorkspaceOptions
-}
+import scala.cli.commands.shared._
 
 // format: off
 @HelpMessage(CleanOptions.helpMessage, "", CleanOptions.detailedHelpMessage)
 final case class CleanOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Recurse

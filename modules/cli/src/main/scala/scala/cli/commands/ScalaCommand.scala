@@ -10,7 +10,7 @@ import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
 import dependency.*
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
@@ -22,14 +22,7 @@ import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpMessages,
-  ScalaCliHelp,
-  ScalacOptions,
-  SharedOptions
-}
+import scala.cli.commands.shared._
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
@@ -167,7 +160,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   private def maybePrintWarnings(options: T): Unit = {
     import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
-    val logger = options.logging.logger
+    val logger = options.global.logging.logger
     sharedOptions(options).foreach { so =>
       val scalacOpts = so.scalac.scalacOption.toScalacOptShadowingSeq
       if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
@@ -319,20 +312,25 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       sys.exit(1)
     }
 
-  private val shouldSuppressExperimentalFeatureWarningsAtomic: AtomicBoolean =
-    new AtomicBoolean(false)
+  private val globalOptionsAtomic: AtomicReference[Option[GlobalOptions]] =
+    new AtomicReference(None)
+  private def globalOptions: GlobalOptions = globalOptionsAtomic.get() match
+    case Some(opts) => opts
+    case None => // should never happen
+      System.err.println("Failed to initialize the global options.")
+      sys.exit(1)
   override def shouldSuppressExperimentalFeatureWarnings: Boolean =
-    shouldSuppressExperimentalFeatureWarningsAtomic.get()
-  final override def main(progName: String, args: Array[String]): Unit = {
-    shouldSuppressExperimentalFeatureWarningsAtomic
-      .set {
-        GlobalSuppressWarningOptions.shouldSuppressExperimentalFeatureWarning(args.toList)
-          .orElse {
-            configDb.toOption
-              .flatMap(_.getOpt(Keys.suppressExperimentalFeatureWarning))
-          }
-          .getOrElse(false)
+    globalOptions.globalSuppress.suppressExperimentalFeatureWarning
+      .orElse {
+        configDb.toOption
+          .flatMap(_.getOpt(Keys.suppressExperimentalFeatureWarning))
       }
+      .getOrElse(false)
+
+  override def logger: Logger = globalOptions.logging.logger
+
+  final override def main(progName: String, args: Array[String]): Unit = {
+    globalOptionsAtomic.set(GlobalOptions.get(args.toList))
     super.main(progName, args)
   }
 
@@ -349,8 +347,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    CurrentParams.verbosity = options.logging.verbosity
-    val logger = options.logging.logger
+    CurrentParams.verbosity = options.global.logging.verbosity
     if shouldExcludeInSip then
       logger.error(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
       sys.exit(1)
@@ -362,6 +359,6 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
-    runCommand(options, remainingArgs, options.logging.logger)
+    runCommand(options, remainingArgs, options.global.logging.logger)
   }
 }

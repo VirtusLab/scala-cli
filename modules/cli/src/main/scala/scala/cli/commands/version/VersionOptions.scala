@@ -4,6 +4,7 @@ import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{
+  GlobalOptions,
   GlobalSuppressWarningOptions,
   HasGlobalOptions,
   HelpGroup,
@@ -18,9 +19,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(VersionOptions.helpMessage, "", VersionOptions.detailedHelpMessage)
 final case class VersionOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @Group(HelpGroup.Version.toString)

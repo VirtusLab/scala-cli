@@ -4,6 +4,7 @@ import caseapp.*
 
 import scala.cli.commands.shared.{
   CoursierOptions,
+  GlobalOptions,
   GlobalSuppressWarningOptions,
   HasGlobalOptions,
   LoggingOptions,
@@ -13,9 +14,7 @@ import scala.cli.commands.shared.{
 // format: off
 final case class PgpExternalOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse

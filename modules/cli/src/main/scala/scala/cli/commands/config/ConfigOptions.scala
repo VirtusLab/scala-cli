@@ -13,9 +13,7 @@ import scala.cli.config.{Key, Keys}
 @HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
 final case class ConfigOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse

@@ -15,7 +15,7 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
 
   override def runCommand(options: UninstallOptions, args: RemainingArgs, logger: Logger): Unit = {
     val interactive =
-      options.bloopExit.logging.verbosityOptions.interactiveInstance(forceEnable = true)
+      options.bloopExit.global.logging.verbosityOptions.interactiveInstance(forceEnable = true)
 
     val binDirPath =
       options.binDirPath.getOrElse(
@@ -44,12 +44,12 @@ object Uninstall extends ScalaCommand[UninstallOptions] {
       // uninstall completions
       logger.debug("Uninstalling completions...")
       UninstallCompletions.run(
-        UninstallCompletionsOptions(options.sharedUninstallCompletions, options.bloopExit.logging),
+        UninstallCompletionsOptions(options.sharedUninstallCompletions, options.bloopExit.global),
         args
       )
       // exit bloop server
       logger.debug("Stopping Bloop server...")
-      BloopExit.runCommand(options.bloopExit, args, options.logging.logger)
+      BloopExit.runCommand(options.bloopExit, args, options.global.logging.logger)
       // remove scala-cli launcher
       logger.debug(s"Removing $baseRunnerName binary...")
       os.remove.all(binDirPath)

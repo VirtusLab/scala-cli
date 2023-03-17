@@ -2,21 +2,12 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.cli.commands.shared.{
-  CoursierOptions,
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  LoggingOptions,
-  SharedJvmOptions
-}
+import scala.cli.commands.shared._
 
 // format: off
 final case class PgpPushOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Recurse

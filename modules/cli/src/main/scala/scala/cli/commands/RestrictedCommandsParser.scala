@@ -6,12 +6,17 @@ import caseapp.core.parser.Parser
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
+import scala.build.Logger
 import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli
 import scala.cli.util.ArgHelpers.*
 
 object RestrictedCommandsParser {
-  def apply[T](parser: Parser[T], shouldSuppressExperimentalWarnings: Boolean): Parser[T] =
+  def apply[T](
+    parser: Parser[T],
+    logger: Logger,
+    shouldSuppressExperimentalWarnings: Boolean
+  ): Parser[T] =
     new Parser[T] {
 
       type D = parser.D
@@ -29,6 +34,7 @@ object RestrictedCommandsParser {
       def withDefaultOrigin(origin: String): caseapp.core.parser.Parser[T] =
         RestrictedCommandsParser(
           parser.withDefaultOrigin(origin),
+          logger,
           shouldSuppressExperimentalWarnings
         )
 
@@ -52,7 +58,7 @@ object RestrictedCommandsParser {
             ))
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isExperimental && !shouldSuppressExperimentalWarnings =>
-            System.err.println(WarningMessages.experimentalOptionUsed(passedOption))
+            logger.message(WarningMessages.experimentalOptionUsed(passedOption))
             r
           case (other, _) =>
             other

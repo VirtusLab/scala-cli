@@ -12,9 +12,7 @@ import scala.cli.commands.tags
      |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopStartOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse

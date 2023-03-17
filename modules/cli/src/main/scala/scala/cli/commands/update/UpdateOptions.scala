@@ -3,13 +3,7 @@ package scala.cli.commands.update
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  HelpMessages,
-  LoggingOptions
-}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
@@ -18,9 +12,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(UpdateOptions.helpMessage, "", UpdateOptions.detailedHelpMessage)
 final case class UpdateOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Hidden
   @Group(HelpGroup.Update.toString)
   @HelpMessage("Binary name")

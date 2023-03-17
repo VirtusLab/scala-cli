@@ -3,21 +3,14 @@ package scala.cli.commands.installhome
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  LoggingOptions
-}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}
 import scala.cli.commands.tags
 
 // format: off
 @HelpMessage(s"Install $fullRunnerName in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Group(HelpGroup.Install.toString)
   @Tag(tags.implementation)
     scalaCliBinaryPath: String,

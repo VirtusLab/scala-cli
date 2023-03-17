@@ -205,8 +205,8 @@ final case class SharedOptions(
   // format: on
 
   def logger: Logger = logging.logger
-
-  override def globalSuppressWarning: GlobalSuppressWarningOptions = suppress.global
+  override def global: GlobalOptions =
+    GlobalOptions(logging = logging, globalSuppress = suppress.global)
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._

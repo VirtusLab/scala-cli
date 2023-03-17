@@ -3,6 +3,7 @@ package scala.cli.commands.pgp
 import caseapp.*
 
 import scala.cli.commands.shared.{
+  GlobalOptions,
   GlobalSuppressWarningOptions,
   HasGlobalOptions,
   HelpGroup,
@@ -12,9 +13,7 @@ import scala.cli.commands.shared.{
 // format: off
 final case class PgpPullOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Group(HelpGroup.PGP.toString)

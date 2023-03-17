@@ -9,9 +9,7 @@ import scala.cli.commands.tags
 @HelpMessage(BloopOptions.helpMessage, "", BloopOptions.detailedHelpMessage)
 final case class BloopOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
-  @Recurse
-    globalSuppressWarning: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse

@@ -15,10 +15,4 @@ final case class GlobalSuppressWarningOptions(
 object GlobalSuppressWarningOptions {
   implicit lazy val parser: Parser[GlobalSuppressWarningOptions] = Parser.derive
   implicit lazy val help: Help[GlobalSuppressWarningOptions]     = Help.derive
-
-  def shouldSuppressExperimentalFeatureWarning(args: List[String]): Option[Boolean] =
-    parser
-      .detailedParse(args, stopAtFirstUnrecognized = false, ignoreUnrecognized = true)
-      .toOption
-      .flatMap(_._1.suppressExperimentalFeatureWarning)
 }
