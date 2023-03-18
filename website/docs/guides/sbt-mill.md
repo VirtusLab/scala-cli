@@ -3,6 +3,14 @@ title: SBT and Mill ⚡️
 sidebar_position: 50
 ---
 
+:::caution
+The `export` sub-command is an experimental feature.
+
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team
+on [GitHub](https://github.com/VirtusLab/scala-cli).
+:::
+
 Scala CLI lets you export your current build into sbt or Mill.
 This means that if your project needs something that Scala CLI doesn’t provide — such as a second module — you can export your project to your build tool of choice.
 

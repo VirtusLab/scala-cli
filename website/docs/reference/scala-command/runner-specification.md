@@ -306,6 +306,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -604,6 +610,7 @@ Available keys:
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
+  - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
@@ -695,6 +702,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--ttl**
 
@@ -986,6 +999,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -1513,6 +1532,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -2070,6 +2095,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -2637,6 +2668,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3160,6 +3197,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -3760,6 +3803,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4091,6 +4140,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--cli-version**
 
 Show plain Scala CLI version only
@@ -4353,6 +4408,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -4679,6 +4740,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--bsp-directory**
 
 Custom BSP configuration location
@@ -4752,6 +4819,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 </details>
 
 ---
@@ -4812,6 +4885,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--format**
 
@@ -4897,6 +4976,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--scala-cli-binary-path**
 
@@ -5166,6 +5251,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 **--suppress-outdated-dependency-warning**
 
 Suppress warnings about outdated dependencies in project
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--verbose**
 
@@ -5502,6 +5593,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--bloop-bsp-protocol**
 
 Protocol to use to open a BSP connection with Bloop
@@ -5677,6 +5774,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 </details>
 
 ---
@@ -5737,6 +5840,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--binary-name**
 

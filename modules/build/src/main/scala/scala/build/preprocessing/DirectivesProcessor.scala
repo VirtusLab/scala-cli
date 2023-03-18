@@ -1,8 +1,9 @@
 package scala.build.preprocessing
 import scala.build.Logger
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
-import scala.build.options.ConfigMonoid
+import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
+import scala.build.options.{ConfigMonoid, SuppressWarningOptions}
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,
@@ -25,15 +26,18 @@ object DirectivesProcessor {
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, DirectivesProcessorOutput[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
+    val shouldSuppressExperimentalFeatures =
+      suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
 
     def handleValues(handler: DirectiveHandler[T])(
       scopedDirective: ScopedDirective,
       logger: Logger
     ) =
-      if (!allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental))
+      if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
         val msg =
           s"""This directive is $powerDirectiveType.
@@ -42,7 +46,10 @@ object DirectivesProcessor {
           ::(msg, Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
-      else handler.handleValues(scopedDirective, logger)
+      else
+        if handler.isExperimental && !shouldSuppressExperimentalFeatures then
+          logger.message(experimentalDirectiveUsed(scopedDirective.directive.toString))
+        handler.handleValues(scopedDirective, logger)
 
     val handlersMap = handlers
       .flatMap { handler =>

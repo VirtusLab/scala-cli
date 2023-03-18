@@ -1,8 +1,9 @@
 package scala.cli.commands.github
 
-import scala.cli.commands.shared.{HasLoggingOptions, LoggingOptions}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions}
 
-trait HasSharedSecretOptions extends HasLoggingOptions {
+trait HasSharedSecretOptions extends HasGlobalOptions {
   def shared: SharedSecretOptions
-  override def logging: LoggingOptions = shared.logging
+
+  override def global: GlobalOptions = shared.global
 }

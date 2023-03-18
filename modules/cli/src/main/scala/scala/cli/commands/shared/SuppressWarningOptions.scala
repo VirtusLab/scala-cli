@@ -6,14 +6,17 @@ import scala.cli.commands.tags
 
 // format: off
 final case class SuppressWarningOptions(
+  @Group(HelpGroup.SuppressWarnings.toString)
   @Tag(tags.implementation)
   @HelpMessage("Suppress warnings about using directives in multiple files")
   @Name("suppressWarningDirectivesInMultipleFiles")
     suppressDirectivesInMultipleFilesWarning: Option[Boolean] = None,
-
+  @Group(HelpGroup.SuppressWarnings.toString)
   @Tag(tags.implementation)
   @HelpMessage("Suppress warnings about outdated dependencies in project")
-    suppressOutdatedDependencyWarning: Option[Boolean]= None
+    suppressOutdatedDependencyWarning: Option[Boolean] = None,
+  @Recurse
+    global: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions()
 )
 // format: on
 

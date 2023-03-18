@@ -10,29 +10,28 @@ import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
 import dependency.*
 
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.SimpleScalaCompiler
 import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
-import scala.build.{Artifacts, Logger, Positioned, ReplArtifacts}
+import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.{
-  HasLoggingOptions,
-  HelpMessages,
-  ScalaCliHelp,
-  ScalacOptions,
-  SharedOptions
-}
+import scala.cli.commands.shared._
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
+import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T], help: Help[T])
+abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], help: Help[T])
     extends Command()(myParser, help)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
@@ -161,7 +160,7 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
 
   private def maybePrintWarnings(options: T): Unit = {
     import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
-    val logger = options.logging.logger
+    val logger = options.global.logging.logger
     sharedOptions(options).foreach { so =>
       val scalacOpts = so.scalac.scalacOption.toScalacOptShadowingSeq
       if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
@@ -275,9 +274,26 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
   override val messages: Help[T] =
-    if (shouldExcludeInSip)
+    if shouldExcludeInSip then
       Help[T](helpMessage =
         Some(HelpMessage(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel)))
+      )
+    else if isExperimental then
+      help.copy(helpMessage =
+        help.helpMessage.map(hm =>
+          hm.copy(
+            message =
+              s"""${hm.message}
+                 |
+                 |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin,
+            detailedMessage =
+              if hm.detailedMessage.nonEmpty then
+                s"""${hm.detailedMessage}
+                   |
+                   |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin
+              else hm.detailedMessage
+          )
+        )
       )
     else help
 
@@ -296,6 +312,28 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
       sys.exit(1)
     }
 
+  private val globalOptionsAtomic: AtomicReference[Option[GlobalOptions]] =
+    new AtomicReference(None)
+  private def globalOptions: GlobalOptions = globalOptionsAtomic.get() match
+    case Some(opts) => opts
+    case None => // should never happen
+      System.err.println("Failed to initialize the global options.")
+      sys.exit(1)
+  override def shouldSuppressExperimentalFeatureWarnings: Boolean =
+    globalOptions.globalSuppress.suppressExperimentalFeatureWarning
+      .orElse {
+        configDb.toOption
+          .flatMap(_.getOpt(Keys.suppressExperimentalFeatureWarning))
+      }
+      .getOrElse(false)
+
+  override def logger: Logger = globalOptions.logging.logger
+
+  final override def main(progName: String, args: Array[String]): Unit = {
+    globalOptionsAtomic.set(GlobalOptions.get(args.toList))
+    super.main(progName, args)
+  }
+
   /** This should be overridden instead of [[run]] when extending [[ScalaCommand]].
     *
     * @param options
@@ -309,16 +347,18 @@ abstract class ScalaCommand[T <: HasLoggingOptions](implicit myParser: Parser[T]
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    if (shouldExcludeInSip)
-      System.err.println(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
+    CurrentParams.verbosity = options.global.logging.verbosity
+    if shouldExcludeInSip then
+      logger.error(HelpMessages.powerCommandUsedInSip(scalaSpecificationLevel))
       sys.exit(1)
-    CurrentParams.verbosity = options.logging.verbosity
+    else if isExperimental && !shouldSuppressExperimentalFeatureWarnings then
+      logger.message(WarningMessages.experimentalSubcommandUsed(name))
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
-    runCommand(options, remainingArgs, options.logging.logger)
+    runCommand(options, remainingArgs, options.global.logging.logger)
   }
 }

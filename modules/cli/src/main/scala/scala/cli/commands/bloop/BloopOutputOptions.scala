@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions}
+import scala.cli.commands.shared.{GlobalOptions, GlobalSuppressWarningOptions, HasGlobalOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions}
 
 // format: off
 @HelpMessage(
@@ -11,10 +11,10 @@ import scala.cli.commands.shared.{HasLoggingOptions, HelpMessages, LoggingOption
      |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopOutputOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object BloopOutputOptions {

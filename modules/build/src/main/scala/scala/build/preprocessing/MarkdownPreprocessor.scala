@@ -8,7 +8,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{Inputs, MarkdownFile, SingleElement, VirtualMarkdownFile}
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
-import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 case object MarkdownPreprocessor extends Preprocessor {
@@ -16,7 +16,8 @@ case object MarkdownPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case markdown: MarkdownFile =>
@@ -30,7 +31,8 @@ case object MarkdownPreprocessor extends Preprocessor {
               ScopePath.fromPath(markdown.path),
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           preprocessed
@@ -47,7 +49,8 @@ case object MarkdownPreprocessor extends Preprocessor {
               markdown.scopePath,
               logger,
               maybeRecoverOnError,
-              allowRestrictedFeatures
+              allowRestrictedFeatures,
+              suppressWarningOptions
             )
           }
           preprocessed
@@ -64,7 +67,8 @@ case object MarkdownPreprocessor extends Preprocessor {
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
     def preprocessSnippets(
       maybeWrapper: Option[MarkdownCodeWrapper.WrappedMarkdownCode],
@@ -82,7 +86,8 @@ case object MarkdownPreprocessor extends Preprocessor {
                   scopeRoot = scopePath / os.up,
                   logger = logger,
                   maybeRecoverOnError = maybeRecoverOnError,
-                  allowRestrictedFeatures = allowRestrictedFeatures
+                  allowRestrictedFeatures = allowRestrictedFeatures,
+                  suppressWarningOptions = suppressWarningOptions
                 )
               }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
             val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)

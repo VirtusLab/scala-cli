@@ -6,6 +6,10 @@ case class StrictDirective(
   key: String,
   values: Seq[Value[_]]
 ) {
+  override def toString: String = {
+    val suffix = if values.isEmpty then "" else s" \"${values.mkString("\",  \"")}\""
+    s"//> using $key$suffix"
+  }
   def numericalOrStringValuesCount: Int =
     values.count {
       case _: NumericValue => true

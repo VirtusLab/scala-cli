@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared.{CoursierOptions, HasLoggingOptions, HelpMessages, LoggingOptions, SharedCompilationServerOptions, SharedJvmOptions}
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 // format: off
@@ -12,7 +12,7 @@ import scala.cli.commands.tags
      |${HelpMessages.bloopInfo}""".stripMargin)
 final case class BloopStartOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     compilationServer: SharedCompilationServerOptions = SharedCompilationServerOptions(),
   @Recurse
@@ -22,7 +22,7 @@ final case class BloopStartOptions(
   @Name("f")
   @Tag(tags.restricted)
     force: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object BloopStartOptions {

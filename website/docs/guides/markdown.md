@@ -1,7 +1,15 @@
 ---
-title: Markdown (experimental) ⚡️
+title: Markdown ⚡️
 sidebar_position: 60
 ---
+
+:::caution
+Markdown support is an experimental feature.
+
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team
+on [GitHub](https://github.com/VirtusLab/scala-cli).
+:::
 
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 

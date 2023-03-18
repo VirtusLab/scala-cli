@@ -14,7 +14,7 @@ enum HelpGroup:
     NativeImage,
     Package, PGP, Publishing,
     RedHat, Repl, Run, Runner,
-    Scala, ScalaJs, ScalaNative, Secret, Signing,
+    Scala, ScalaJs, ScalaNative, Secret, Signing, SuppressWarnings,
     Test,
     Uninstall, Update,
     Watch, Windows,
@@ -27,6 +27,7 @@ enum HelpGroup:
     case NativeImage       => "Native image"
     case ScalaJs           => "Scala.js"
     case ScalaNative       => "Scala Native"
+    case SuppressWarnings  => "Suppress warnings"
     case e                 => e.productPrefix
 
 enum HelpCommandGroup:

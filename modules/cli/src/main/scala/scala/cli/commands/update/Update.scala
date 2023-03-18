@@ -67,7 +67,8 @@ object Update extends ScalaCommand[UpdateOptions] {
     )
 
   private def updateScalaCli(options: UpdateOptions, newVersion: String, logger: Logger): Unit = {
-    val interactive = options.logging.verbosityOptions.interactiveInstance(forceEnable = true)
+    val interactive =
+      options.global.logging.verbosityOptions.interactiveInstance(forceEnable = true)
     if (!options.force) {
       val fallbackAction = () => {
         logger.error(s"To update $baseRunnerName to $newVersion pass -f or --force")

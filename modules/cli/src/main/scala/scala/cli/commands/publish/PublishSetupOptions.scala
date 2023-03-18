@@ -12,7 +12,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(PublishSetupOptions.helpMessage, "", PublishSetupOptions.detailedHelpMessage)
 final case class PublishSetupOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
@@ -73,7 +73,7 @@ final case class PublishSetupOptions(
   @Tag(tags.implementation)
   @HelpMessage("Dummy mode - don't upload any secret to GitHub")
     dummy: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object PublishSetupOptions {

@@ -81,6 +81,12 @@ object Keys {
       name = "outdated-dependencies-files",
       description = "Globally suppresses warnings about outdated dependencies."
     )
+  val suppressExperimentalFeatureWarning =
+    new Key.BooleanEntry(
+      prefix = Seq("suppress-warning"),
+      name = "experimental-features",
+      description = "Globally suppresses warnings about experimental features."
+    )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
@@ -135,6 +141,7 @@ object Keys {
     interactive,
     suppressDirectivesInMultipleFilesWarning,
     suppressOutdatedDependenciessWarning,
+    suppressExperimentalFeatureWarning,
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,

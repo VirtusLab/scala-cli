@@ -5,14 +5,7 @@ import caseapp.*
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared.{
-  CoursierOptions,
-  HasLoggingOptions,
-  HelpGroup,
-  HelpMessages,
-  LoggingOptions,
-  SharedJvmOptions
-}
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 import scala.cli.config.{Key, Keys}
 
@@ -20,7 +13,7 @@ import scala.cli.config.{Key, Keys}
 @HelpMessage(ConfigOptions.helpMessage, "", ConfigOptions.detailedHelpMessage)
 final case class ConfigOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
@@ -80,7 +73,7 @@ final case class ConfigOptions(
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     passOnRedirect: Option[Boolean] = None
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object ConfigOptions {

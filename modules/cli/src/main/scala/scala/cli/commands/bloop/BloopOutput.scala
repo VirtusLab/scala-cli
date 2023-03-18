@@ -21,7 +21,7 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
     val bloopRifleConfig = options.compilationServer.bloopRifleConfig(
       logger,
       CoursierOptions().coursierCache(logger.coursierLogger("Downloading Bloop")), // unused here
-      options.logging.verbosity,
+      options.global.logging.verbosity,
       "unused-java", // unused here
       Directories.directories
     )
@@ -31,14 +31,14 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
         logger.debug(s"Bloop server output path: ${s.outputPath}")
         os.Path(s.outputPath, os.pwd)
       case tcp: BloopRifleConfig.Address.Tcp =>
-        if (options.logging.verbosity >= 0)
+        if (options.global.logging.verbosity >= 0)
           System.err.println(
             s"Error: Bloop server is listening on TCP at ${tcp.render}, output not available."
           )
         sys.exit(1)
     }
     if (!os.isFile(outputFile)) {
-      if (options.logging.verbosity >= 0)
+      if (options.global.logging.verbosity >= 0)
         System.err.println(s"Error: $outputFile not found")
       sys.exit(1)
     }

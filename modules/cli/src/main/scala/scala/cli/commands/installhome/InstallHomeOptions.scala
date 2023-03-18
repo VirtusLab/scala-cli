@@ -3,14 +3,14 @@ package scala.cli.commands.installhome
 import caseapp.*
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, LoggingOptions}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}
 import scala.cli.commands.tags
 
 // format: off
 @HelpMessage(s"Install $fullRunnerName in a sub-directory of the home directory")
 final case class InstallHomeOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Group(HelpGroup.Install.toString)
   @Tag(tags.implementation)
     scalaCliBinaryPath: String,
@@ -33,7 +33,7 @@ final case class InstallHomeOptions(
   @Tag(tags.implementation)
   @HelpMessage("Binary directory")
     binDir: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
   lazy val binDirPath = binDir.map(os.Path(_, os.pwd))
 }
