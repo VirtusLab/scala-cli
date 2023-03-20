@@ -79,13 +79,12 @@ case object MarkdownPreprocessor extends Preprocessor {
           .map { wrappedMarkdown =>
             val processingOutput: ProcessingOutput =
               value {
-                ScalaPreprocessor.process(
+                ScalaPreprocessor.processSources(
                   content = wrappedMarkdown.code,
                   extractedDirectives = wrappedMarkdown.directives,
                   path = reportingPath,
                   scopeRoot = scopePath / os.up,
                   logger = logger,
-                  maybeRecoverOnError = maybeRecoverOnError,
                   allowRestrictedFeatures = allowRestrictedFeatures,
                   suppressWarningOptions = suppressWarningOptions
                 )

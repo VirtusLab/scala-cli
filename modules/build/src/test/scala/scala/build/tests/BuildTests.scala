@@ -250,32 +250,6 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       simpleNativeTest()
     }
 
-  test("should fail for ammonite imports - $ivy") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """import $ivy.`com.lihaoyi::geny:0.6.5`
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |println(g.mkString)
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      expect(maybeBuild.isLeft)
-    }
-  }
-  test("should fail for ammonite imports - $dep") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """import $dep.`com.lihaoyi::geny:0.6.5`
-          |import geny.Generator
-          |val g = Generator("Hel", "lo")
-          |println(g.mkString)
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      expect(maybeBuild.isLeft)
-    }
-  }
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->

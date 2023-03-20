@@ -245,27 +245,6 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("should fail for ammonite imports in .sc - $ivy") {
-    val testInputs = TestInputs(
-      os.rel / "something.sc" ->
-        """import $ivy.`org1:name1:1.1`
-          |import $ivy.`org2::name2:2.2`
-          |import $ivy.`org3:::name3:3.3`
-          |import scala.collection.mutable
-          |
-          |def a = 1
-          |""".stripMargin
-    )
-    testInputs.withInputs { (_, inputs) =>
-      expect(CrossSources.forInputs(
-        inputs,
-        preprocessors,
-        TestLogger(),
-        SuppressWarningOptions()
-      ).isLeft)
-    }
-  }
-
   test("should skip SheBang in .sc and .scala") {
     val testInputs = TestInputs(
       os.rel / "something1.sc" ->
