@@ -352,7 +352,9 @@ object Repl extends ScalaCommand[ReplOptions] {
           scope = scope,
           sources = Sources(Nil, Nil, None, Nil, options),
           artifacts = artifacts,
-          project = value(Build.buildProject(inputs, sources, Nil, options, None, scope, logger)),
+          project = value(
+            Build.buildProject(inputs, sources, Nil, options, None, scope, logger, artifacts)
+          ),
           output = classDir.getOrElse(ws),
           diagnostics = None,
           generatedSources = Nil,
