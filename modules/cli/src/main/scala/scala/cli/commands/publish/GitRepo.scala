@@ -92,14 +92,15 @@ object GitRepo {
       }
     }
 
-  def maybeGhOrgName(uri: String): Option[(String, String)] =
-    if (uri.startsWith("https://github.com/")) {
-      val pathPart = uri.stripPrefix("https://github.com/").stripSuffix(".git")
-      pathPart.split("/") match {
-        case Array(org, name) => Some((org, name))
-        case _                => None
-      }
+  def maybeGhOrgName(uri: String): Option[(String, String)] = {
+    val httpsPattern = "https://github.com/(.+)/(.+).git".r
+    val sshPattern   = "git@github.com:(.+)/(.+).git".r
+
+    uri match {
+      case httpsPattern(org, name) => Some((org, name))
+      case sshPattern(org, name)   => Some((org, name))
+      case _                       => None
     }
-    else
-      None
+  }
+
 }
