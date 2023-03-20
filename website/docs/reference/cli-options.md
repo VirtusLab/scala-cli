@@ -1465,11 +1465,6 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 [Internal]
 Generate SemanticDBs
 
-### `--add-stubs`
-
-[Internal]
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 ### `--strict-bloop-json-check`
 
 [Internal]

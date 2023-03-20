@@ -171,10 +171,6 @@ final case class SharedOptions(
   @Tag(tags.should)
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
-  @Hidden
-  @Tag(tags.implementation)
-  @HelpMessage("Add dependency for stubs needed to make $ivy and $dep imports to work.")
-    addStubs: Option[Boolean] = None,
 
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
@@ -359,8 +355,7 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
-        interactive = Some(() => interactive),
-        addStubsDependencyOpt = addStubs
+        interactive = Some(() => interactive)
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),

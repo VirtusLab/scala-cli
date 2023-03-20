@@ -982,12 +982,6 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 Generate SemanticDBs
 
-### `--add-stubs`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 ### `--strict-bloop-json-check`
 
 `IMPLEMENTATION specific` per Scala Runner specification

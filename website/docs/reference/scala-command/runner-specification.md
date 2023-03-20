@@ -524,10 +524,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -1218,10 +1214,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -1750,10 +1742,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -2313,10 +2301,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -2886,10 +2870,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -3415,10 +3395,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -4021,10 +3997,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -4626,10 +4598,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -5469,10 +5437,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
