@@ -279,6 +279,10 @@ final case class PgpSecretKeyCheck(
 
         if (keysFromOptions.secretKeyOpt.isDefined)
           (keysFromOptions, false)
+        else if (
+          keysFromOptions.publicKeyOpt.isDefined || keysFromOptions.secretKeyPasswordOpt.isDefined
+        )
+          throw missingSecretKeyError
         else if (randomSecretKey && options.publishParams.setupCi)
           (getRandomPGPKeys.orThrow, false)
         else {
