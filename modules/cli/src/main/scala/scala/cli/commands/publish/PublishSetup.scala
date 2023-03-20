@@ -277,12 +277,14 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           if (os.isFile(dest)) os.read.bytes(dest)
           else if (os.exists(dest)) sys.error(s"Error: $dest already exists and is not a file")
           else Array.emptyByteArray
-        val updatedContent = currentContent ++
-          extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
-        os.write.over(dest, updatedContent)
-        logger.message("") // printing an empty line, for readability
-        logger.message(s"Wrote ${CommandUtils.printablePath(dest)}")
-        written = written :+ dest
+        if (extraLines.nonEmpty) {
+          val updatedContent = currentContent ++
+            extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
+          os.write.over(dest, updatedContent)
+          logger.message("") // printing an empty line, for readability
+          logger.message(s"Wrote ${CommandUtils.printablePath(dest)}")
+          written = written :+ dest
+        }
       }
 
       if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {
