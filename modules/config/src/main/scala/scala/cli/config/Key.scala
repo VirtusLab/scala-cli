@@ -52,6 +52,9 @@ abstract class Key[T] {
     * [[SpecificationLevel.EXPERIMENTAL]] keys are only available in `power` mode.
     */
   def specificationLevel: SpecificationLevel
+
+  def isExperimental: Boolean = specificationLevel == SpecificationLevel.EXPERIMENTAL
+  def isRestricted: Boolean   = specificationLevel == SpecificationLevel.RESTRICTED
 }
 
 object Key {

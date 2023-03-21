@@ -102,6 +102,26 @@ class SipScalaTests extends ScalaCliSuite {
         ))
     }
 
+  def testConfigCommandHelp(isPowerMode: Boolean, isFullHelp: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val helpParams = if (isFullHelp) Seq("--full-help") else Seq("-h")
+      val helpOutput = os.proc(TestUtil.cli, powerArgs(isPowerMode), "config", helpParams)
+        .call(cwd = root, stderr = os.Pipe)
+        .out.trim()
+      if (isPowerMode) {
+        expect(helpOutput.contains("(power)"))
+        expect(helpOutput.contains("repositories.mirrors"))
+      }
+      if (isFullHelp) {
+        expect(helpOutput.contains("(hidden)"))
+        expect(helpOutput.contains("interactive-was-suggested"))
+      }
+      if (isPowerMode && isFullHelp) {
+        expect(helpOutput.contains("(experimental)"))
+        expect(helpOutput.contains("publish.user.name"))
+      }
+    }
+
   def testPublishDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val code =
@@ -272,6 +292,13 @@ class SipScalaTests extends ScalaCliSuite {
     test(s"test export command help output when power mode is $powerModeString") {
       testExportCommandHelp(isPowerMode)
     }
+    for {
+      isFullHelp <- Seq(true, false)
+      helpTypeString = if (isFullHelp) "full help" else "short help"
+    }
+      test(s"test config command $helpTypeString output when power mode is $powerModeString") {
+        testConfigCommandHelp(isPowerMode, isFullHelp)
+      }
   }
 
   test("test global config suppressing warnings for an experimental sub-command") {

@@ -12,45 +12,39 @@ object Keys {
     prefix = Seq("publish", "user"),
     name = "name",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "The 'name' user detail, used for publishing.",
-    hidden = true
+    description = "The 'name' user detail, used for publishing."
   )
   val userEmail = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "email",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "The 'email' user detail, used for publishing.",
-    hidden = true
+    description = "The 'email' user detail, used for publishing."
   )
   val userUrl = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "url",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "The 'url' user detail, used for publishing.",
-    hidden = true
+    description = "The 'url' user detail, used for publishing."
   )
 
   val ghToken = new Key.PasswordEntry(
     prefix = Seq("github"),
     name = "token",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "GitHub token.",
-    hidden = true
+    description = "GitHub token."
   )
 
   val pgpSecretKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "The PGP secret key, used for signing.",
-    hidden = true
+    description = "The PGP secret key, used for signing."
   )
   val pgpSecretKeyPassword = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key-password",
     specificationLevel = SpecificationLevel.EXPERIMENTAL,
-    description = "The PGP secret key password, used for signing.",
-    hidden = true
+    description = "The PGP secret key password, used for signing."
   )
   val pgpPublicKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
@@ -106,22 +100,19 @@ object Keys {
     prefix = Seq("httpProxy"),
     name = "address",
     specificationLevel = SpecificationLevel.RESTRICTED,
-    description = "HTTP proxy address.",
-    hidden = true
+    description = "HTTP proxy address."
   )
   val proxyUser = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "user",
     specificationLevel = SpecificationLevel.RESTRICTED,
-    description = "HTTP proxy user (used for authentication).",
-    hidden = true
+    description = "HTTP proxy user (used for authentication)."
   )
   val proxyPassword = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "password",
     specificationLevel = SpecificationLevel.RESTRICTED,
-    description = "HTTP proxy password (used for authentication).",
-    hidden = true
+    description = "HTTP proxy password (used for authentication)."
   )
 
   val repositoryMirrors = new Key.StringListEntry(
@@ -129,16 +120,14 @@ object Keys {
     name = "mirrors",
     description =
       s"Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven",
-    specificationLevel = SpecificationLevel.RESTRICTED,
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED
   )
   val defaultRepositories = new Key.StringListEntry(
     prefix = Seq("repositories"),
     name = "default",
     description =
       "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com",
-    specificationLevel = SpecificationLevel.RESTRICTED,
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED
   )
 
   // Kept for binary compatibility
@@ -238,7 +227,6 @@ object Keys {
     new Key[List[RepositoryCredentials]] {
       override val description: String =
         "Repository credentials, syntax: repositoryAddress value:user value:password [realm]"
-      override val hidden: Boolean = true
 
       override def specificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
@@ -365,7 +353,6 @@ object Keys {
   val publishCredentials: Key[List[PublishCredentials]] = new Key[List[PublishCredentials]] {
     override val description: String =
       "Publishing credentials, syntax: repositoryAddress value:user value:password [realm]"
-    override val hidden: Boolean = true
 
     override def specificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 

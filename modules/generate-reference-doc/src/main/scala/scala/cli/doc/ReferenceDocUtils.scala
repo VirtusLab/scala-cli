@@ -44,7 +44,10 @@ object ReferenceDocUtils {
       consoleToFenceRec(s.linesIterator.toSeq)
     }
     def filterOutHiddenStrings: String =
-      s.replace(s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} ", "")
+      s
+        .replace(s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} ", "")
+        .replace(s"${ScalaCliConsole.GRAY}(experimental)${Console.RESET} ", "")
+        .replace(s"${ScalaCliConsole.GRAY}(power)${Console.RESET} ", "")
     def consoleYellowToMdBullets: String = s.replace(Console.YELLOW, "- ")
     def consoleToMarkdown: String = s.filterOutHiddenStrings.consoleYellowToMdBullets.consoleToFence
   }
