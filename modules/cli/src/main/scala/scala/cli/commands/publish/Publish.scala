@@ -250,6 +250,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     )
   }
 
+  /** Build artifacts
+    */
   def doRun(
     inputs: Inputs,
     logger: Logger,
@@ -367,6 +369,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   def defaultVersion: Either[BuildException, String] =
     Left(defaultVersionError)
 
+  /** Check if all builds are successful and proceed with preparing files to be uploaded OR print
+    * main classes if the option is specified
+    */
   private def maybePublish(
     builds: Builds,
     workingDir: os.Path,
@@ -403,7 +408,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         builds.main match {
           case s: Build.Successful if mainClassOptions.mainClassLs.contains(true) =>
             mainClassOptions.maybePrintMainClasses(s.foundMainClasses(), shouldExit = allowExit)
-          case _ => doPublish(
+          case _ => prepareFilesAndUpload(
               builds0,
               docBuilds0,
               workingDir,
@@ -430,6 +435,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
   }
 
+  /** Get organization, project name and version from options and directives or try to compute
+    * defaults
+    */
   private def orgNameVersion(
     publishOptions: scala.build.options.PublishOptions,
     workspace: os.Path,
@@ -704,7 +712,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     (fileSet, (mod, ver))
   }
 
-  private def doPublish(
+  /** Sign and checksum files, then upload everything to the target repository
+    */
+  private def prepareFilesAndUpload(
     builds: Seq[Build.Successful],
     docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
@@ -889,7 +899,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         PSigner.Nop
       else if (publishOptions.contextual(isCi).gpgSignatureId.isDefined)
         PSigner.Gpg
-      else if (repoParams.shouldSign)
+      else if (repoParams.shouldSign || publishOptions.contextual(isCi).secretKey.isDefined)
         PSigner.BouncyCastle
       else
         PSigner.Nop
@@ -926,7 +936,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
       // user specified --signer=bc or --secret-key=... or target repository requires signing
       // --secret-key-password is possibly specified (not mandatory)
-      case PSigner.Nop | PSigner.BouncyCastle
+      case PSigner.BouncyCastle
           if publishOptions.contextual(isCi).secretKey.isDefined =>
         val secretKeyConfigOpt = publishOptions.contextual(isCi).secretKey.get
         for {
@@ -953,7 +963,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case _ =>
         if (!publishOptions.contextual(isCi).signer.contains(PSigner.Nop))
           logger.message(
-            "\ud83d\udd13 Artifacts NOT signed as it's not required nor has it been specified"
+            " \ud83d\udd13 Artifacts NOT signed as it's not required nor has it been specified"
           )
         Right(NopSigner)
     }

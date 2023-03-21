@@ -461,4 +461,62 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
+  test("signer=none overrides other options") {
+
+    TestCase.testInputs.fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+
+      os.write(confFile, "{}", createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--create-pgp-key",
+        "--email",
+        "some_email"
+      ).call(cwd = root, env = extraEnv)
+
+      TestCase.testInputs.fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          "--secret-key",
+          "value:INCORRECT_KEY",
+          "--signer",
+          "none",
+          "project",
+          "-R",
+          "test-repo"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          env = extraEnv
+        )
+
+        val files = os.walk(root / "test-repo")
+          .filter(os.isFile(_))
+          .map(_.relativeTo(root / "test-repo"))
+        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+        expect(notInDir.isEmpty)
+
+        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+        val expectedArtifactsNotSigned = expectedArtifacts.filterNot(_.last.contains(".asc"))
+
+        expect((files0 -- expectedArtifactsNotSigned).isEmpty)
+        expect((expectedArtifactsNotSigned -- files0).isEmpty)
+        expect(files0 == expectedArtifactsNotSigned) // just in case…
+      }
+    }
+  }
 }
