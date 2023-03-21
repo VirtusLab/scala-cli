@@ -498,6 +498,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
 class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def moduleDeps = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)

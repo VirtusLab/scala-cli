@@ -3,6 +3,7 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import scala.cli.commands.SpecificationLevel
 import scala.cli.config.Util._ // only used in 2.12, unused import in 2.13
 
 /** A configuration key
@@ -46,6 +47,11 @@ abstract class Key[T] {
 
   /** Whether this key corresponds to a password (see [[Key.PasswordEntry]]) */
   def isPasswordOption: Boolean = false
+
+  /** The [[SpecificationLevel]] of the key. [[SpecificationLevel.RESTRICTED]] &&
+    * [[SpecificationLevel.EXPERIMENTAL]] keys are only available in `power` mode.
+    */
+  def specificationLevel: SpecificationLevel
 }
 
 object Key {
@@ -83,6 +89,7 @@ object Key {
   final class StringEntry(
     val prefix: Seq[String],
     val name: String,
+    override val specificationLevel: SpecificationLevel,
     val description: String = "",
     override val hidden: Boolean = false
   ) extends Key[String] {
@@ -106,6 +113,7 @@ object Key {
   final class BooleanEntry(
     val prefix: Seq[String],
     val name: String,
+    override val specificationLevel: SpecificationLevel,
     val description: String = "",
     override val hidden: Boolean = false
   ) extends Key[Boolean] {
@@ -129,6 +137,7 @@ object Key {
   final class PasswordEntry(
     val prefix: Seq[String],
     val name: String,
+    override val specificationLevel: SpecificationLevel,
     val description: String = "",
     override val hidden: Boolean = false
   ) extends Key[PasswordOption] {
@@ -163,6 +172,7 @@ object Key {
   final class StringListEntry(
     val prefix: Seq[String],
     val name: String,
+    override val specificationLevel: SpecificationLevel,
     val description: String = "",
     override val hidden: Boolean = false
   ) extends Key[List[String]] {

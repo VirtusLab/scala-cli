@@ -3,6 +3,7 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import scala.cli.commands.SpecificationLevel
 import scala.collection.mutable.ListBuffer
 
 object Keys {
@@ -10,18 +11,21 @@ object Keys {
   val userName = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "name",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The 'name' user detail, used for publishing.",
     hidden = true
   )
   val userEmail = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "email",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The 'email' user detail, used for publishing.",
     hidden = true
   )
   val userUrl = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "url",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The 'url' user detail, used for publishing.",
     hidden = true
   )
@@ -29,6 +33,7 @@ object Keys {
   val ghToken = new Key.PasswordEntry(
     prefix = Seq("github"),
     name = "token",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "GitHub token.",
     hidden = true
   )
@@ -36,18 +41,21 @@ object Keys {
   val pgpSecretKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The PGP secret key, used for signing.",
     hidden = true
   )
   val pgpSecretKeyPassword = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key-password",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The PGP secret key password, used for signing.",
     hidden = true
   )
   val pgpPublicKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "public-key",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The PGP public key, used for signing.",
     hidden = true
   )
@@ -55,16 +63,19 @@ object Keys {
   val actions = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "actions",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Globally enables actionable diagnostics. Enabled by default."
   )
   val interactive = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Globally enables interactive mode (the '--interactive' flag)."
   )
   val power = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "power",
+    specificationLevel = SpecificationLevel.MUST,
     description = "Globally enables power mode (the '--power' launcher flag)."
   )
 
@@ -72,6 +83,7 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "directives-in-multiple-files",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description =
         "Globally suppresses warnings about directives declared in multiple source files."
     )
@@ -79,30 +91,35 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "outdated-dependencies-files",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about outdated dependencies."
     )
   val suppressExperimentalFeatureWarning =
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "experimental-features",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about experimental features."
     )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
     name = "address",
+    specificationLevel = SpecificationLevel.RESTRICTED,
     description = "HTTP proxy address.",
     hidden = true
   )
   val proxyUser = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "user",
+    specificationLevel = SpecificationLevel.RESTRICTED,
     description = "HTTP proxy user (used for authentication).",
     hidden = true
   )
   val proxyPassword = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "password",
+    specificationLevel = SpecificationLevel.RESTRICTED,
     description = "HTTP proxy password (used for authentication).",
     hidden = true
   )
@@ -112,6 +129,7 @@ object Keys {
     name = "mirrors",
     description =
       s"Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven",
+    specificationLevel = SpecificationLevel.RESTRICTED,
     hidden = true
   )
   val defaultRepositories = new Key.StringListEntry(
@@ -119,6 +137,7 @@ object Keys {
     name = "default",
     description =
       "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com",
+    specificationLevel = SpecificationLevel.RESTRICTED,
     hidden = true
   )
 
@@ -129,6 +148,7 @@ object Keys {
   val globalInteractiveWasSuggested = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive-was-suggested",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Setting indicating if the global interactive mode was already suggested.",
     hidden = true
   )
@@ -219,6 +239,8 @@ object Keys {
       override val description: String =
         "Repository credentials, syntax: repositoryAddress value:user value:password [realm]"
       override val hidden: Boolean = true
+
+      override def specificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
       private def asJson(credentials: RepositoryCredentials): RepositoryCredentialsAsJson =
         RepositoryCredentialsAsJson(
@@ -344,6 +366,8 @@ object Keys {
     override val description: String =
       "Publishing credentials, syntax: repositoryAddress value:user value:password [realm]"
     override val hidden: Boolean = true
+
+    override def specificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
     private def asJson(credentials: PublishCredentials): PublishCredentialsAsJson =
       PublishCredentialsAsJson(
