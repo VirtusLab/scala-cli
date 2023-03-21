@@ -19,7 +19,6 @@ final case class ConfigOptions(
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
-  @Tag(tags.restricted)
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Dump config DB as JSON")
@@ -29,13 +28,11 @@ final case class ConfigOptions(
     dump: Boolean = false,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Create PGP key in config")
-  @Tag(tags.inShortHelp)
-  @Tag(tags.restricted)
+  @Tag(tags.experimental)
     createPgpKey: Boolean = false,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Email to use to create PGP key in config")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
+  @Tag(tags.experimental)
     email: Option[String] = None,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
