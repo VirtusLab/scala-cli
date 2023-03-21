@@ -216,8 +216,9 @@ object Keys {
 
   val repositoryCredentials: Key[List[RepositoryCredentials]] =
     new Key[List[RepositoryCredentials]] {
-      override val description: String = "Repository credentials, syntax: value:user value:password"
-      override val hidden: Boolean     = true
+      override val description: String =
+        "Repository credentials, syntax: repositoryAddress value:user value:password [realm]"
+      override val hidden: Boolean = true
 
       private def asJson(credentials: RepositoryCredentials): RepositoryCredentialsAsJson =
         RepositoryCredentialsAsJson(
@@ -341,7 +342,7 @@ object Keys {
 
   val publishCredentials: Key[List[PublishCredentials]] = new Key[List[PublishCredentials]] {
     override val description: String =
-      "Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password"
+      "Publishing credentials, syntax: repositoryAddress value:user value:password [realm]"
     override val hidden: Boolean = true
 
     private def asJson(credentials: PublishCredentials): PublishCredentialsAsJson =

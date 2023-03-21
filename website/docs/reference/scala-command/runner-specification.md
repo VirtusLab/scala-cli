@@ -598,11 +598,11 @@ Available keys:
   - pgp.secret-key                                 The PGP secret key, used for signing.
   - pgp.secret-key-password                        The PGP secret key password, used for signing.
   - power                                          Globally enables power mode (the '--power' launcher flag).
-  - publish.credentials                            Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password
+  - publish.credentials                            Publishing credentials, syntax: repositoryAddress value:user value:password [realm]
   - publish.user.email                             The 'email' user detail, used for publishing.
   - publish.user.name                              The 'name' user detail, used for publishing.
   - publish.user.url                               The 'url' user detail, used for publishing.
-  - repositories.credentials                       Repository credentials, syntax: value:user value:password
+  - repositories.credentials                       Repository credentials, syntax: repositoryAddress value:user value:password [realm]
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
