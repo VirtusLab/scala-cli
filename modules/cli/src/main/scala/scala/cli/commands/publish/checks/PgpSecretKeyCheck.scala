@@ -199,10 +199,10 @@ final case class PgpSecretKeyCheck(
     either {
       keyIdOpt match
         case None =>
-          logger.message("") // printing an empty line, for readability
           logger.message(
-            "Warning: no public key passed, not checking if the key needs to be uploaded to a key server."
-          )
+            """
+              |Warning: no public key passed, not checking if the key needs to be uploaded to a key server.""".stripMargin
+          ) // printing an empty line, for readability
         case Some(pubKeyConfigPasswordOption) =>
           val publicKeyString = pubKeyConfigPasswordOption.get(configDb())
             .orThrow
@@ -222,8 +222,10 @@ final case class PgpSecretKeyCheck(
           value(keyServers)
             .map { keyServer =>
               if (options.dummy) {
-                logger.message("") // printing an empty line, for readability
-                logger.message(s"Would upload key 0x${keyId.stripPrefix("0x")} to $keyServer")
+                logger.message(
+                  s"""
+                     |Would upload key 0x${keyId.stripPrefix("0x")} to $keyServer""".stripMargin
+                ) // printing an empty line, for readability
                 Right(())
               }
               else {
@@ -248,8 +250,10 @@ final case class PgpSecretKeyCheck(
                         )
                     }
                     logger.debug(s"Key server upload response: $resp")
-                    logger.message("") // printing an empty line, for readability
-                    logger.message(s"Uploaded key 0x${keyId.stripPrefix("0x")} to $keyServer")
+                    logger.message(
+                      s"""
+                         |Uploaded key 0x${keyId.stripPrefix("0x")} to $keyServer""".stripMargin
+                    ) // printing an empty line, for readability
                   }
                 }
                 e

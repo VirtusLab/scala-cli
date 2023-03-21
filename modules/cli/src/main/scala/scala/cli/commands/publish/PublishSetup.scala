@@ -281,8 +281,10 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           val updatedContent = currentContent ++
             extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
           os.write.over(dest, updatedContent)
-          logger.message("") // printing an empty line, for readability
-          logger.message(s"Wrote ${CommandUtils.printablePath(dest)}")
+          logger.message(
+            s"""
+               |Wrote ${CommandUtils.printablePath(dest)}""".stripMargin
+          ) // printing an empty line, for readability
           written = written :+ dest
         }
       }
