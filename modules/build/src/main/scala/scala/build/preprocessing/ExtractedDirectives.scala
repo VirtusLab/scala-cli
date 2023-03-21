@@ -18,13 +18,12 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
 case class ExtractedDirectives(
-  offset: Int,
   directives: Seq[StrictDirective],
   positions: Option[DirectivesPositions]
 ) {
   @targetName("append")
   def ++(other: ExtractedDirectives): ExtractedDirectives =
-    ExtractedDirectives(offset, directives ++ other.directives, positions)
+    ExtractedDirectives(directives ++ other.directives, positions)
 }
 
 case class DirectivesPositions(
@@ -35,16 +34,15 @@ case class DirectivesPositions(
 
 object ExtractedDirectives {
 
-  def empty: ExtractedDirectives = ExtractedDirectives(0, Seq.empty, None)
+  def empty: ExtractedDirectives = ExtractedDirectives(Seq.empty, None)
 
   val changeToSpecialCommentMsg =
-    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
+    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...'"
 
   def from(
     contentChars: Array[Char],
     path: Either[String, os.Path],
     logger: Logger,
-    supportedDirectives: Array[UsingDirectiveKind],
     cwd: ScopePath,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
@@ -101,31 +99,24 @@ object ExtractedDirectives {
           logger.diagnostic(msg, positions = Seq(position))
         }
 
-      val usedDirectives =
-        if (codeDirectives.nonEmpty) {
-          val msg =
-            "This using directive is ignored. File contains directives outside comments and those have higher precedence."
-          reportWarning(
-            msg,
-            getDirectives(plainCommentDirectives) ++ getDirectives(specialCommentDirectives)
-          )
-          codeDirectives
-        }
-        else if (specialCommentDirectives.nonEmpty) {
-          val msg =
-            s"This using directive is ignored. $changeToSpecialCommentMsg"
-          reportWarning(msg, getDirectives(plainCommentDirectives))
-          specialCommentDirectives
-        }
-        else {
-          reportWarning(changeToSpecialCommentMsg, getDirectives(plainCommentDirectives))
-          plainCommentDirectives
-        }
+      if (codeDirectives.nonEmpty) {
+        val msg =
+          "This using directive is ignored. Only using directives starting with //> are supported."
+        reportWarning(msg, getDirectives(codeDirectives))
+      }
+
+      if (plainCommentDirectives.nonEmpty) {
+        val msg =
+          s"This using directive is ignored. $changeToSpecialCommentMsg"
+        reportWarning(msg, getDirectives(plainCommentDirectives))
+      }
+
+      val usedDirectives = specialCommentDirectives
 
       // All using directives should use just `using` keyword, no @using or require
       reportWarning(
         "Deprecated using directive syntax, please use keyword `using`.",
-        getDirectives(usedDirectives).filter(_.getSyntax != UsingDirectiveSyntax.Using),
+        getDirectives(specialCommentDirectives).filter(_.getSyntax != UsingDirectiveSyntax.Using),
         before = false
       )
 
@@ -136,28 +127,7 @@ object ExtractedDirectives {
             StrictDirective(k.getPath.asScala.mkString("."), l.asScala.toSeq)
         }
 
-      val offset =
-        if (usedDirectives.getKind != UsingDirectiveKind.Code) 0
-        else usedDirectives.getCodeOffset
-      if (supportedDirectives.contains(usedDirectives.getKind))
-        Right(ExtractedDirectives(offset, strictDirectives, directivesPositionsOpt))
-      else {
-        val directiveVales =
-          usedDirectives.getFlattenedMap.values().asScala.toList.flatMap(_.asScala)
-        val values = DirectiveUtil.concatAllValues(ScopedDirective(
-          StrictDirective("", directiveVales),
-          path,
-          cwd
-        ))
-        val directiveErrors = new DirectiveErrors(
-          ::(s"Directive '${usedDirectives.getKind}' is not supported in the given context'", Nil),
-          values.flatMap(_.positions)
-        )
-        maybeRecoverOnError(directiveErrors) match {
-          case Some(e) => Left(e)
-          case None    => Right(ExtractedDirectives.empty)
-        }
-      }
+      Right(ExtractedDirectives(strictDirectives, directivesPositionsOpt))
     }
     else
       maybeCompositeMalformedDirectiveError match {
@@ -165,4 +135,5 @@ object ExtractedDirectives {
         case None    => Right(ExtractedDirectives.empty)
       }
   }
+
 }

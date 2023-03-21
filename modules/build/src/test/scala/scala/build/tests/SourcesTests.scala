@@ -245,27 +245,6 @@ class SourcesTests extends munit.FunSuite {
     }
   }
 
-  test("should fail dependencies in .java  with using keyword") {
-    val testInputs = TestInputs(
-      os.rel / "Something.java" ->
-        """using dep "org3:::name3:3.3"
-          |
-          |public class Something {
-          |  public Int a = 1;
-          |}
-          |""".stripMargin
-    )
-    testInputs.withInputs { (_, inputs) =>
-      val crossSources = CrossSources.forInputs(
-        inputs,
-        preprocessors,
-        TestLogger(),
-        SuppressWarningOptions()
-      )
-      expect(crossSources.isLeft)
-    }
-  }
-
   test("should fail for ammonite imports in .sc - $ivy") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->

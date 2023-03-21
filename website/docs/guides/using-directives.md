@@ -9,33 +9,13 @@ sidebar_position: 5
 
 The `using` directives mechanism lets you define configuration information within `.scala` source code files, eliminating the need for build tools to define a dedicated configuration syntax.
 
-`using` directives are basically key-value pairs that let you provide multiple values to a single key. For instance, this command:
+`using` directives are basically key-value pairs that let you provide multiple values to a single key. These directives need to be put in comments with a special syntax. For instance, this command:
 
 ```scala
-using foo "bar", "baz"
+//> using foo "bar", "baz"
 ```
 
-will be interpreted as assigning `bar` and `baz` to the key `foo`.
-
-As shown, `using` directives can be defined using the special keyword `using`. However, this may break existing tools outside of Scala CLI. Therefore, `using` directives can be put in comments with a special syntax:
-
-```scala
-//> using scala "2"
-
-/*> using options "-Xfatal-warnings" */
-```
-
-:::info
-For now we recommend using the special comment (`//> using scala "3.0.2"`), and we will use that syntax in this guide.
-
-Until `using` directives becomes a part of the Scala specification, this is the only way that guarantees that your code will work well with IDEs, code formatters, and other tools.
-:::
-
-Within one file, only one flavor of using directives can be used. The keyword-based syntax (`using scala "3"`) has precedence over special comments (`//> using scala "3"`). The deprecated, plain comments (`// using scala "3"`) have lowest priority.
-
-For now `using` and `@using` can be mixed within a given syntax however we strongly suggest not to use deprecated `@using`.
-
-Scala CLI reports warnings for each using directive that does not contribute to the build.
+Scala CLI reports warnings for each using directive that does not contribute to the build, which includes all removed alternatives to special comment using directives.
 
 With following snippet:
 
@@ -45,19 +25,20 @@ using scala "3.1"
 //> using scala "2.12.11"
 ```
 
-Scala `3.1` will be used and following warnings would be reported:
+Scala `2.12.11` will be used and following warnings would be reported:
 
 ```
-[warn] ./.pg/a.scala:2:1: This using directive is ignored. File contains directives outside comments and those has higher precedence.
-[warn] // using scala "2.13.8"
+[warn] ./.pg/a.scala:1:1: This using directive is ignored. Only using directives starting with //> are supported.
+[warn] using scala "3.1"
 [warn] ^^^
-[warn] ./.pg/a.scala:3:1: This using directive is ignored. File contains directives outside comments and those has higher precedence.
-[warn] //> using scala "2.12.11"
+[warn] ./.pg/a.scala:2:1: Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...'.
+[warn] // using scala "2.13.8"
 [warn] ^^^^
 ```
+
 ## Deprecated syntax
 
-As a part of `0.0.x` series we experimented with different syntaxes for using directives. Based on feedback and discussions with the Scala compiler team, we decided to deprecate `@using` (using annotations) and `// using` (using within plain comment). Those syntaxes will keep working in the `0.1.x` series and will result in an error starting from `0.2.x`.
+As a part of `0.0.x` series we experimented with different syntaxes for using directives. Based on feedback and discussions with the Scala compiler team, we decided to remove `@using` (using annotations), `// using` (using within plain comment) and `using` code directives. Those syntaxes will keep working in the `0.1.x` series and will result in an error starting from `1.0.x`.
 
 Scala CLI produces warnings if any of the syntaxes above is used:
 
@@ -91,17 +72,6 @@ This means that a library or compiler option defined in one file applies to the 
 The only exceptions are `using target` directives, which only apply to the given file.
 `using target` is a marker to assign a given file to a given target (e.g., test or main sources).
 
-`using` directives also support indentation and braces syntax similar to the syntax of Scala:
-```scala
-//> using:
-//>   scala "2.13"
-//>   options "-Xasync"
-//>   target {
-//>     scope "test"
-//>     platform "jvm"
-//>   }
-```
-
 **We believe that syntax similar to `using` directives should become a part of Scala in the future.**
 
 ## `using` directives in the Scala CLI
@@ -121,14 +91,14 @@ There are several reasons that we believe `using` directives are a good solution
 
 - One of the main Scala CLI use cases is prototyping, and the ability to ship one or more source code files with a complete configuration is a game-changer for this use case.
 - Defining dependencies and other settings is common in Ammonite scripts as well.
-- From a teaching perspective, the ability to provide pre-configured pieces of code that fit into one slide is also benefical.
-- Having configuration close to the code is benefical, since often — especially in small programs — the given depencencies are only used within one source file.
+- From a teaching perspective, the ability to provide pre-configured pieces of code that fit into one slide is also beneficial.
+- Having configuration close to the code is beneficial, since often — especially in small programs — the given dependencies are only used within one source file.
 
 We acknowledge that configuration distributed across many source files may be hard to maintain in the long term. Therefore, in the near feature we will introduce a set of lints to ensure that above a given project size or complexity, all configuration details will be centralized.
 
 How can configuration that’s contained in source files be centralized?
 `using` directives can be placed in any `.scala` file, so it’s possible to create a `.scala` file that contains only configuration information.
-Therefore, when your project needs to centralize its configuration, we recommend creating a `conf.scala` file, and placing the configuration there.
+Therefore, when your project needs to centralize its configuration, we recommend creating a `project.scala` file, and placing the configuration there.
 We plan to add ways to Scala CLI to migrate these settings into a centralized location with one command or click.
 
 We are aware that `using` directives may be a controversial topic, so we’ve created a [dedicated space for discussing `using` directives](https://github.com/VirtusLab/scala-cli/discussions/categories/using-directives-and-cmd-configuration-options).
@@ -136,9 +106,9 @@ We are aware that `using` directives may be a controversial topic, so we’ve cr
 
 ## How to comment out using directives?
 
-Using directives are part of the code so similarly, developers should be able to comment them out. Until 0.2.x when plain comment syntax will be removed commenting out using directives requires special care.
+Using directives are part of the code so similarly, developers should be able to comment them out. 
 
-Paradoxically, commenting out comment-based directives does not cause any problems. Below, some examples how to do it:
+Commenting out comment-based directives does not cause any problems. Below, some examples how to do it:
 
 ```scala compile
 // //> using dep "no::lib:123"
@@ -148,29 +118,3 @@ Paradoxically, commenting out comment-based directives does not cause any proble
 // // using dep "no::lib:123"
 ```
 
-Until plain using directives in plain comments are supported, commenting keyword base syntax require some attention. Let' assume that we have a following code:
-
-```scala fail
-using scala "3.1.1"
-using dep "no::lib:123"
-```
-
-and we want to comment out broken using directive: `lib "no::lib:123"` when we simply comment it out we will actually turn it into a using directive that is using a plain comment syntax!
-
-```scala compile
-using scala "3.1.1"
-// using dep "no::lib:123"
-```
-
-In cases where there are other uncommented directives, scala-cli will ignore that directives, producing a warning. In cases that this is the only directive in the file, the commented directive will be still used to configure build.
-
-In such cases we suggest to use triple `/` for single line comments, or use `//` withing multiline comments:
-
-```scala compile
-/// using dep "in::single-line-comments:123"
-/*
-// using dep "in::multiline-line-comments:123"
-*/
-```
-
-Generally, our recommendation is to not use keyword based directives until scala-cli will stop supporting plain comments-based directives.

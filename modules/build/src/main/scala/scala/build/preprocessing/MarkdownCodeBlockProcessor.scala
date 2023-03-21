@@ -26,7 +26,6 @@ object MarkdownCodeBlockProcessor {
               contentChars = cb.body.toCharArray,
               path = reportingPath,
               logger = logger,
-              supportedDirectives = UsingDirectiveKind.values(),
               cwd = scopePath / os.up,
               maybeRecoverOnError = maybeRecoverOnError
             )
