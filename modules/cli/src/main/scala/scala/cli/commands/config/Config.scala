@@ -186,16 +186,29 @@ object Config extends ScalaCommand[ConfigOptions] {
                         .traverseN
                         .left.map(CompositeBuildException(_))
                         .orExit(logger)
-                      val credentials = RepositoryCredentials(
-                        host,
-                        userOpt,
-                        passwordOpt,
-                        realm = realmOpt,
-                        optional = options.optional,
-                        matchHost = options.matchHost.orElse(Some(true)),
-                        httpsOnly = options.httpsOnly,
-                        passOnRedirect = options.passOnRedirect
-                      )
+                      val credentials =
+                        if (options.passwordValue)
+                          RepositoryCredentials(
+                            host,
+                            userOpt.map(user => PasswordOption.Value(user.get())),
+                            passwordOpt.map(password => PasswordOption.Value(password.get())),
+                            realm = realmOpt,
+                            optional = options.optional,
+                            matchHost = options.matchHost.orElse(Some(true)),
+                            httpsOnly = options.httpsOnly,
+                            passOnRedirect = options.passOnRedirect
+                          )
+                        else
+                          RepositoryCredentials(
+                            host,
+                            userOpt,
+                            passwordOpt,
+                            realm = realmOpt,
+                            optional = options.optional,
+                            matchHost = options.matchHost.orElse(Some(true)),
+                            httpsOnly = options.httpsOnly,
+                            passOnRedirect = options.passOnRedirect
+                          )
                       val previousValueOpt =
                         db.get(Keys.repositoryCredentials).wrapConfigException.orExit(logger)
                       val newValue = credentials :: previousValueOpt.getOrElse(Nil)
@@ -221,7 +234,15 @@ object Config extends ScalaCommand[ConfigOptions] {
                       .left.map(CompositeBuildException(_))
                       .orExit(logger)
                     val credentials =
-                      PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
+                      if (options.passwordValue)
+                        PublishCredentials(
+                          host,
+                          userOpt.map(user => PasswordOption.Value(user.get())),
+                          passwordOpt.map(password => PasswordOption.Value(password.get())),
+                          realm = realmOpt
+                        )
+                      else
+                        PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
                     val previousValueOpt =
                       db.get(Keys.publishCredentials).wrapConfigException.orExit(logger)
                     val newValue = credentials :: previousValueOpt.getOrElse(Nil)

@@ -290,4 +290,39 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  test("password-value in credentials") {
+    val configFile         = os.rel / "config" / "config.json"
+    val passwordEnvVarName = "REPO_PASSWORD"
+    val userEnvVarName     = "REPO_USER"
+    val password           = "1234"
+    val user               = "user"
+    val envVars = Map(
+      userEnvVarName     -> user,
+      passwordEnvVarName -> password
+    )
+    val configEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+
+    val keys = List("repositories.credentials", "publish.credentials")
+    TestInputs.empty.fromRoot { root =>
+      for (key <- keys) {
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          key,
+          "s1.oss.sonatype.org",
+          s"env:$userEnvVarName",
+          s"env:$passwordEnvVarName",
+          "--password-value"
+        )
+          .call(cwd = root, env = configEnv ++ envVars)
+        val credsFromConfig = os.proc(TestUtil.cli, "config", key)
+          .call(cwd = root, env = configEnv)
+          .out.trim()
+        expect(credsFromConfig.contains(password))
+        expect(credsFromConfig.contains(user))
+      }
+    }
+  }
+
 }
