@@ -25,6 +25,24 @@ import scala.cli.signing.shared.PasswordOption
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.cli.util.MaybeConfigPasswordOption
 
+/** Checks if:
+  *   - keys for signing files are present in using directives (either PGP or GPG)
+  *   - public key is uploaded to specified keyservers (if keys present are PGP)
+  *
+  * If any of the above fails then try the following to find missing keys:
+  *   - if secretKey using directive is already present then fill any missing from CLI options
+  *   - if secretKey is specified in options use only keys from options
+  *   - if --random-secret-key is specified and it's CI use new generated keys
+  *   - default to keys in config if this fails throw
+  *
+  * After previous step figures out which values should be used in setup do:
+  *   - if it's CI then upload github secrets and write using directives as 'using ci.key
+  *     env:GITHUB_SECRET_VAR'
+  *   - otherwise write down the key values to publish.conf file in the same form as they were
+  *     passed to options, if the values come from config don't write them to file
+  *
+  * Finally upload the public key to the keyservers that are specified
+  */
 final case class PgpSecretKeyCheck(
   options: PublishSetupOptions,
   coursierCache: FileCache[Task],
@@ -87,6 +105,8 @@ final case class PgpSecretKeyCheck(
         .left.map(CompositeBuildException(_))
   }
 
+  /** Check if the public PGP key is uploaded to all keyservers that were specified
+    */
   private def isKeyUploaded(pubKeyOpt: Option[PasswordOption]): Either[BuildException, Boolean] =
     either {
       pubKeyOpt match {
@@ -267,6 +287,8 @@ final case class PgpSecretKeyCheck(
   def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] =
     either {
       val retainedOptions = pubOpt.retained(options.publishParams.setupCi)
+
+      // obtain PGP keys that should be written to publish-conf file
       val (setupKeys, areConfigDefaults) = if (retainedOptions.secretKey.isDefined) {
         val publicKeySetup = if (retainedOptions.publicKey.isEmpty)
           keysFromOptions.publicKeyOpt
@@ -283,7 +305,7 @@ final case class PgpSecretKeyCheck(
 
         if (keysFromOptions.secretKeyOpt.isDefined)
           (keysFromOptions, false)
-        else if (
+        else if ( // any PGP key option is specified, but there's no secretKey then notify the user
           keysFromOptions.publicKeyOpt.isDefined || keysFromOptions.secretKeyPasswordOpt.isDefined
         )
           throw missingSecretKeyError
@@ -296,6 +318,7 @@ final case class PgpSecretKeyCheck(
             logger.message("  found keys in config")
           else
             throw missingSecretKeyError
+
           if (keysFromConfig.publicKeyOpt.isEmpty)
             logger.message("  warning: no PGP public key found in config")
           if (keysFromConfig.secretKeyPasswordOpt.isEmpty)
@@ -307,6 +330,7 @@ final case class PgpSecretKeyCheck(
 
       val publicKeyOpt = retainedOptions.publicKey.orElse(setupKeys.publicKeyOpt)
 
+      // if we setup for CI set GitHub secrets together with directives
       if (options.publishParams.setupCi) {
         val (passwordSetSecret, passwordDirectives) = setupKeys.secretKeyPasswordOpt
           .map { p =>
@@ -355,6 +379,9 @@ final case class PgpSecretKeyCheck(
           Nil
         )
       else {
+
+        /** Obtain the text under the ConfigPasswordOption, e.g. "env:...", "file:...", "value:..."
+          */
         def getDirectiveValue(configPasswordOpt: Option[ConfigPasswordOption]): Option[String] =
           configPasswordOpt.collect {
             case ActualOption(passwordOption) =>
