@@ -1,8 +1,11 @@
 package scala.cli.commands.shared
 
+import caseapp.core.Arg
+
 import scala.cli.ScalaCli
-import scala.cli.commands.SpecificationLevel
+import scala.cli.commands.{SpecificationLevel, tags}
 import scala.cli.config.Key
+import scala.cli.util.ArgHelpers.*
 
 object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
@@ -61,12 +64,18 @@ object HelpMessages {
        |You can run it with the '--power' flag or turn power mode on globally by running:
        |  ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}.""".stripMargin
   }
-  def powerCommandUsedInSip(specificationLevel: SpecificationLevel): String = {
-    val powerCommandType =
-      if specificationLevel == SpecificationLevel.EXPERIMENTAL then "experimental" else "restricted"
-    s"""This command is $powerCommandType and requires setting the '--power' launcher option to be used.
-       |You can pass it explicitly or set it globally by running:
-       |   ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}""".stripMargin
+  def powerCommandUsedInSip(commandName: String, specificationLevel: SpecificationLevel): String =
+    powerFeatureUsedInSip(commandName, "sub-command", specificationLevel)
+  def powerOptionUsedInSip(optionName: String, arg: Arg): String = {
+    val specificationLevel =
+      if arg.isExperimental then SpecificationLevel.EXPERIMENTAL
+      else if arg.isRestricted then SpecificationLevel.RESTRICTED
+      else
+        arg.tags
+          .flatMap(t => tags.levelFor(t.name))
+          .headOption
+          .getOrElse(SpecificationLevel.EXPERIMENTAL)
+    powerFeatureUsedInSip(optionName, "option", specificationLevel)
   }
 
   def powerConfigKeyUsedInSip(key: Key[_]): String =

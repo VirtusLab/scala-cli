@@ -9,6 +9,7 @@ import caseapp.core.{Arg, Error}
 import scala.build.Logger
 import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli
+import scala.cli.commands.shared.HelpMessages
 import scala.cli.util.ArgHelpers.*
 
 object RestrictedCommandsParser {
@@ -46,13 +47,8 @@ object RestrictedCommandsParser {
       ): Either[(Error, Arg, List[String]), Option[(D, Arg, List[String])]] =
         (parser.step(args, index, d, nameFormatter), args) match {
           case (Right(Some(_, arg: Arg, _)), passedOption :: _) if !arg.isSupported =>
-            val powerOptionType = if arg.isExperimental then "experimental" else "restricted"
             Left((
-              Error.UnrecognizedArgument(
-                s"""The '$passedOption' option is $powerOptionType.
-                   |You can run it with the '--power' flag or turn the power mode on globally by running:
-                   |  ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}.""".stripMargin
-              ),
+              Error.UnrecognizedArgument(HelpMessages.powerOptionUsedInSip(passedOption, arg)),
               arg,
               Nil
             ))

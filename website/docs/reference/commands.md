@@ -110,7 +110,7 @@ All supported types of inputs can be mixed with each other.
 
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
-The 'export' sub-command is an experimental feature.
+The 'export' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
@@ -210,7 +210,7 @@ All supported types of inputs can be mixed with each other.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish
 
-The 'publish' sub-command is an experimental feature.
+The 'publish' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
@@ -222,7 +222,7 @@ Publishes build artifacts to the local Ivy2 repository.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish-local
 
-The 'publish-local' sub-command is an experimental feature.
+The 'publish-local' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
@@ -234,7 +234,7 @@ Configures the project for publishing.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/publishing/publish-setup
 
-The 'publish-setup' sub-command is an experimental feature.
+The 'publish-setup' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
@@ -275,7 +275,7 @@ Creates or updates a GitHub repository secret.
   scala-cli --power github secret create --repo repo-org/repo-name SECRET_VALUE=value:secret
 ```
 
-The 'secret-create' sub-command is an experimental feature.
+The 'secret-create' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
@@ -287,7 +287,7 @@ Aliases: `gh secret list`
 
 Lists secrets for a given GitHub repository.
 
-The 'secret-list' sub-command is an experimental feature.
+The 'secret-list' sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
