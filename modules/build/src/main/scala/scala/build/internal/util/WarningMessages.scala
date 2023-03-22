@@ -16,4 +16,7 @@ object WarningMessages {
 
   def experimentalOptionUsed(name: String): String =
     experimentalFeatureUsed(s"The '$name' option")
+
+  def experimentalConfigKeyUsed(name: String): String =
+    experimentalFeatureUsed(s"The '$name' configuration key")
 }

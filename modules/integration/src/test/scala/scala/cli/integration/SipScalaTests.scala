@@ -85,6 +85,54 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
+  def testConfigCommand(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
+    TestInputs.empty.fromRoot { root =>
+      val homeEnv = Map("SCALA_CLI_CONFIG" -> (root / "config" / "config.json").toString())
+      def callConfig(key: String, value: String): CommandResult =
+        os.proc(
+          TestUtil.cli,
+          powerArgs(isPowerMode),
+          "config",
+          suppressExperimentalWarningArgs(areWarningsSuppressed),
+          key,
+          value
+        ).call(cwd = root, check = false, stderr = os.Pipe, env = homeEnv)
+
+      val configProxyResult    = callConfig("repositories.default", "https://example.address/maven")
+      val configProxyErrOutput = configProxyResult.err.trim()
+      val configPublishUserResult    = callConfig("publish.user.name", "exampleUser")
+      val configPublishUserErrOutput = configPublishUserResult.err.trim()
+      isPowerMode -> areWarningsSuppressed match {
+        case (false, _) =>
+          expect(configProxyResult.exitCode == 1)
+          expect(configProxyErrOutput.contains(
+            "The 'repositories.default' configuration key is restricted."
+          ))
+          expect(configPublishUserResult.exitCode == 1)
+          expect(configPublishUserErrOutput.contains(
+            "The 'publish.user.name' configuration key is experimental."
+          ))
+        case (true, false) =>
+          expect(configProxyResult.exitCode == 0)
+          expect(!configProxyErrOutput.contains(
+            "The 'repositories.default' configuration key is restricted."
+          ))
+          expect(configPublishUserResult.exitCode == 0)
+          expect(configPublishUserErrOutput.contains(
+            "The 'publish.user.name' configuration key is an experimental feature."
+          ))
+        case (true, true) =>
+          expect(configProxyResult.exitCode == 0)
+          expect(!configProxyErrOutput.contains(
+            "The 'repositories.default' configuration key is restricted."
+          ))
+          expect(configPublishUserResult.exitCode == 0)
+          expect(!configPublishUserErrOutput.contains(
+            "The 'publish.user.name' configuration key is an experimental feature."
+          ))
+      }
+    }
+
   def testExportCommandHelp(isPowerMode: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val res = os.proc(TestUtil.cli, powerArgs(isPowerMode), "export", "-h").call(
@@ -288,6 +336,11 @@ class SipScalaTests extends ScalaCliSuite {
       ) {
         testExportCommand(isPowerMode, warningsSuppressed)
       }
+      test(
+        s"test config command when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+      ) {
+        testConfigCommand(isPowerMode, warningsSuppressed)
+      }
     }
     test(s"test export command help output when power mode is $powerModeString") {
       testExportCommandHelp(isPowerMode)
@@ -322,6 +375,13 @@ class SipScalaTests extends ScalaCliSuite {
       (root: os.Path, homeEnv: Map[String, String]) =>
         val quote = TestUtil.argQuotationMark
         os.proc(TestUtil.cli, "--power", "-e", s"//> using publish.name ${quote}my-library$quote")
+          .call(cwd = root, env = homeEnv, stderr = os.Pipe)
+    }
+  }
+  test("test global config suppressing warnings for an experimental configuration key") {
+    testConfigSuppressingExperimentalFeatureWarnings("configuration key") {
+      (root: os.Path, homeEnv: Map[String, String]) =>
+        os.proc(TestUtil.cli, "--power", "config", "publish.user.name")
           .call(cwd = root, env = homeEnv, stderr = os.Pipe)
     }
   }
