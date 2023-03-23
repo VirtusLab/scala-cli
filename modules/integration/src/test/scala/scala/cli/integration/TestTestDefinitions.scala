@@ -151,7 +151,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   val successfulWeaverInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using deps "com.disneystreaming::weaver-cats:0.7.6", "com.eed3si9n.expecty::expecty:0.15.4+5-f1d8927e-SNAPSHOT"
+      """//> using deps "com.disneystreaming::weaver-cats:0.8.1", "com.eed3si9n.expecty::expecty:0.16.0"
         |import weaver._
         |import cats.effect.IO
         |
@@ -472,9 +472,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           TestUtil.cli,
           "test",
           extraOptions,
-          ".",
-          "-r",
-          "sonatype:snapshots"
+          "."
         ).call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
