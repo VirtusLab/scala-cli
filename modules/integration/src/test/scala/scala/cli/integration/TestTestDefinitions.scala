@@ -151,7 +151,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   val successfulWeaverInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using deps "com.disneystreaming::weaver-cats:0.8.1", "com.eed3si9n.expecty::expecty:0.16.0"
+      """//> using deps "com.disneystreaming::weaver-cats:0.8.2"
         |import weaver._
         |import cats.effect.IO
         |
