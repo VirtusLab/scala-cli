@@ -32,7 +32,7 @@ object Vcs {
           )
       }
     else
-      input.value.split("|", 3) match {
+      input.value.split('|') match {
         case Array(url, conn, devConn) =>
           val vcs = Vcs(url, conn, devConn)
           Right(vcs)
