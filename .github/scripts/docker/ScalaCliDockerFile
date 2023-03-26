@@ -1,8 +1,11 @@
-FROM alpine:3.14.2
-RUN apk update && apk add gcompat clang build-base
+FROM debian:stable-slim
+RUN apt update && apt install build-essential libz-dev clang -y
 ADD scala-cli /usr/bin/
 RUN \
- echo "println(1)" | scala-cli -S 3 - -v -v -v -v && \
- echo "println(1)" | scala-cli -S 2.13 - -v -v -v -v && \
- echo "println(1)" | scala-cli -S 2.12 - -v -v -v -v
+ echo "println(1)" | scala-cli -S 3 - -v -v -v && \
+ echo "println(1)" | scala-cli -S 2.13 - -v -v -v && \
+ echo "println(1)" | scala-cli -S 2.12 - -v -v -v \
+RUN \
+ echo "println(1)" | scala-cli --power package --native _.sc --force && \
+ echo "println(1)" | scala-cli --power package --native-image _.sc --force
 ENTRYPOINT ["scala-cli"]

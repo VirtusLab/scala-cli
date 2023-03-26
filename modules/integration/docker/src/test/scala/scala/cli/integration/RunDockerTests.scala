@@ -44,7 +44,7 @@ class RunDockerTests extends munit.FunSuite {
     }
   }
 
-  if (!imageName.contains(slimScalaCliImage))
+  if (!imageName.contains(slimScalaCliImage)) {
     test("package simple app with native in docker") {
       val fileName = "simple.sc"
       val inputs = TestInputs(
@@ -61,4 +61,21 @@ class RunDockerTests extends munit.FunSuite {
         expect(procPackage.exitCode == 0)
       }
     }
+    test("package simple app with graalVM in docker") {
+      val fileName = "simple.sc"
+      val inputs = TestInputs(
+        os.rel / fileName -> """println("Hello")"""
+      )
+      inputs.fromRoot { root =>
+        val cmdPackage = Seq[os.Shellable](
+          // format: off
+          "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
+          imageName, "--power", "package", "--native-image", fileName, "-o", "Hello"
+          // format: on
+        )
+        val procPackage = os.proc(cmdPackage).call(cwd = root, check = false)
+        expect(procPackage.exitCode == 0)
+      }
+    }
+  }
 }
