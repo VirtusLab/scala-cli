@@ -111,7 +111,8 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit =
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
            |    Zone { implicit z =>
-           |      stdio.printf(toCString(message))
+           |      val io = StdioHelpers(stdio)
+           |      io.printf(c"%s", toCString(message))
            |    }
            |""".stripMargin
       else
@@ -125,7 +126,8 @@ object ExportTestProjects {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
            |    Zone { implicit z =>
-           |      stdio.printf(toCString(message))
+           |      val io = StdioHelpers(stdio)
+           |      io.printf(c"%s", toCString(message))
            |    }
            |  }
            |}

@@ -400,7 +400,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString("$message$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", c"$message")
            |}
            |""".stripMargin
     )

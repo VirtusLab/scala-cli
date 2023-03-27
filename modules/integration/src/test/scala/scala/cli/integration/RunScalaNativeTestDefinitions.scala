@@ -15,7 +15,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString("$message$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", c"$message")
            |}
            |""".stripMargin
     )
@@ -41,7 +42,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString("$message$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", c"$message")
            |}
            |""".stripMargin
     )
@@ -179,7 +181,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", toCString(messages.msg))
            |}
            |""".stripMargin
     )
@@ -207,7 +210,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", toCString(messages.msg))
            |}
            |""".stripMargin
     )
