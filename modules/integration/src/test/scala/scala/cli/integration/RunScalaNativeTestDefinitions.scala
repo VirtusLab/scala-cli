@@ -33,6 +33,29 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     simpleNativeTests()
   }
 
+  def scalaNativeLtoTests(): Unit = {
+    val fileName = "hello.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""//> using nativeLto "thin"
+           |println("$message")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, fileName, "--native")
+          .call(cwd = root)
+          .out.trim()
+      expect(output == message)
+    }
+  }
+
+  if (!Properties.isMac)
+    test("scala native with lto optimisation") {
+      scalaNativeLtoTests()
+    }
+
   test("simple script native command") {
     val fileName = "simple.sc"
     val message  = "Hello"

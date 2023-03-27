@@ -802,6 +802,12 @@ Set the Scala Native version (0.4.12 by default).
 
 Set Scala Native compilation mode
 
+### `--native-lto`
+
+`SHOULD have` per Scala Runner specification
+
+Link-time optimisation mode
+
 ### `--native-gc`
 
 `SHOULD have` per Scala Runner specification

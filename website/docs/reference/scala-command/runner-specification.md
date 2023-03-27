@@ -164,6 +164,10 @@ Set the Scala Native version (0.4.12 by default).
 
 Set Scala Native compilation mode
 
+**--native-lto**
+
+Link-time optimisation mode
+
 **--native-gc**
 
 Set the Scala Native garbage collector
@@ -870,6 +874,10 @@ Set the Scala Native version (0.4.12 by default).
 
 Set Scala Native compilation mode
 
+**--native-lto**
+
+Link-time optimisation mode
+
 **--native-gc**
 
 Set the Scala Native garbage collector
@@ -1392,6 +1400,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 
@@ -1941,6 +1953,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 
@@ -2510,6 +2526,10 @@ Set the Scala Native version (0.4.12 by default).
 
 Set Scala Native compilation mode
 
+**--native-lto**
+
+Link-time optimisation mode
+
 **--native-gc**
 
 Set the Scala Native garbage collector
@@ -3053,6 +3073,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 
@@ -3634,6 +3658,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 
@@ -4260,6 +4288,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 
@@ -5099,6 +5131,10 @@ Set the Scala Native version (0.4.12 by default).
 **--native-mode**
 
 Set Scala Native compilation mode
+
+**--native-lto**
+
+Link-time optimisation mode
 
 **--native-gc**
 

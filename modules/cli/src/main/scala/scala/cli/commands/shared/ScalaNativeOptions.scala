@@ -23,6 +23,10 @@ final case class ScalaNativeOptions(
   @Tag(tags.should)
     nativeMode: Option[String] = None,
   @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("Link-time optimisation mode")
+  @Tag(tags.should)
+    nativeLto: Option[String] = None,
+  @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Set the Scala Native garbage collector")
   @Tag(tags.should)
     nativeGc: Option[String] = None,
