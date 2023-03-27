@@ -86,7 +86,7 @@ object Deps {
     def jsoniterScala      = "2.20.3"
     def jsoniterScalaJava8 = "2.13.5.2"
     def scalaMeta          = "4.7.1"
-    def scalaNative        = "0.4.9"
+    def scalaNative        = "0.4.12"
     def scalaPackager      = "0.1.29"
     def signingCli         = "0.1.16"
   }
