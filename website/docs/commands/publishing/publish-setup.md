@@ -47,32 +47,42 @@ In particular, one can configure:
 User-wide configuration in Scala CLI is handled by the [`config` command](/docs/commands/config.md), and
 the sections below show how to use it to configure things for `publish setup`.
 
+:::caution
+Even though the `config` command is not restricted, some available configuration keys may be, and thus may
+require setting the `--power` option to be used.
+That includes configuration keys tied to publishing, like `publish.user.name` and others.
+You can pass the `--power` option explicitly or set it globally by running:
+```bash ignore
+scala-cli config power true
+```
+:::
+
 ### User details
 
 Set details with
-```bash ignore
-scala-cli config publish.user.name "Alex Me"
-scala-cli config publish.user.email "alex@alex.me"
-scala-cli config publish.user.url "https://alex.me"
+```bash
+scala-cli --power config publish.user.name "Alex Me"
+scala-cli --power config publish.user.email "alex@alex.me"
+scala-cli --power config publish.user.url "https://alex.me"
 ```
 
 The email can be left empty if you'd rather not put your email in POM files:
-```bash ignore
-scala-cli config publish.user.email ""
+```bash
+scala-cli --power config publish.user.email ""
 ```
 
 ### PGP key pair
 
 Generate a PGP key pair for publishing with
-```bash ignore
-scala-cli config --create-pgp-key
+```bash
+scala-cli --power config --create-pgp-key
 ```
 
 This sets 3 entries in the Scala CLI configuration, that you can print with
-```bash ignore
-scala-cli config pgp.public-key
-scala-cli config pgp.secret-key
-scala-cli config pgp.secret-key-password
+```bash
+scala-cli --power config pgp.public-key
+scala-cli --power config pgp.secret-key
+scala-cli --power config pgp.secret-key-password
 ```
 
 ### Sonatype credentials
@@ -101,7 +111,7 @@ ask the `config` sub-command to read environment variables and persist the passw
 If you'd rather persist the environment variable names in the Scala CLI configuration, rather than
 their values, you can do
 ```bash ignore
-scala-cli config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
+scala-cli --power config publish.credentials s01.oss.sonatype.org env:SONATYPE_USER env:SONATYPE_PASSWORD
 ```
 
 Note that in this case, both `SONATYPE_USER` and `SONATYPE_PASSWORD` will need to be available
@@ -259,5 +269,5 @@ prefix), or create a release with a tag with the same name from the GitHub UI.
 In order to setup publishing to GitHub packages, pass `--publish-repository github` to the
 `publish setup` commands above, like
 ```bash ignore
-scala-cli publish setup . --publish-repository github
+scala-cli --power publish setup . --publish-repository github
 ```

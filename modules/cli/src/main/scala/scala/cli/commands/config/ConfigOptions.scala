@@ -3,9 +3,9 @@ package scala.cli.commands.config
 import caseapp.*
 
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
-import scala.cli.ScalaCli.{fullRunnerName, progName}
+import scala.cli.ScalaCli.{allowRestrictedFeatures, fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 import scala.cli.config.{Key, Keys}
 
@@ -19,7 +19,6 @@ final case class ConfigOptions(
   @Recurse
     jvm: SharedJvmOptions = SharedJvmOptions(),
   @Recurse
-  @Tag(tags.restricted)
     scalaSigning: PgpScalaSigningOptions = PgpScalaSigningOptions(),
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Dump config DB as JSON")
@@ -29,13 +28,11 @@ final case class ConfigOptions(
     dump: Boolean = false,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Create PGP key in config")
-  @Tag(tags.inShortHelp)
-  @Tag(tags.restricted)
+  @Tag(tags.experimental)
     createPgpKey: Boolean = false,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Email to use to create PGP key in config")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
+  @Tag(tags.experimental)
     email: Option[String] = None,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
@@ -91,16 +88,24 @@ object ConfigOptions {
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
   private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
     val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
-    val keys: Seq[Key[_]]    = if includeHidden then allKeys else allKeys.filterNot(_.hidden)
-    val maxFullNameLength    = keys.map(_.fullName.length).max
+    val allowedKeys: Seq[Key[_]] =
+      if allowRestrictedFeatures then allKeys
+      else allKeys.filterNot(k => k.isRestricted || k.isExperimental)
+    val keys: Seq[Key[_]] =
+      if includeHidden then allowedKeys
+      else allowedKeys.filterNot(k => k.hidden || k.isExperimental)
+    val maxFullNameLength = keys.map(_.fullName.length).max
     keys.sortBy(_.fullName)
       .map { key =>
         val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
         val extraSpaces =
           if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
-        val hiddenString =
-          if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} " else ""
-        s"${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenString${key.description}"
+        val hiddenOrExperimentalString =
+          if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} "
+          else if key.isRestricted then s"${ScalaCliConsole.GRAY}(power)${Console.RESET} "
+          else if key.isExperimental then s"${ScalaCliConsole.GRAY}(experimental)${Console.RESET} "
+          else ""
+        s"${Console.YELLOW}${key.fullName}${Console.RESET}$extraSpaces  $hiddenOrExperimentalString${key.description}"
       }
   }
   val detailedHelpMessage: String =

@@ -39,9 +39,10 @@ object DirectivesProcessor {
     ) =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
-        val msg =
-          s"""This directive is $powerDirectiveType.
-             |Please run it with the '--power' flag or turn this flag on globally by running 'config power true'""".stripMargin
+        val msg = // TODO pass the called progName here to print the full config command
+          s"""The '${scopedDirective.directive.toString}' directive is $powerDirectiveType.
+             |Please run it with the '--power' flag or turn or turn power mode on globally by running:
+             |  ${Console.BOLD}config power true${Console.RESET}""".stripMargin
         Left(DirectiveErrors(
           ::(msg, Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)

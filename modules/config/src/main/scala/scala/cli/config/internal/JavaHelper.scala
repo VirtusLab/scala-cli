@@ -3,6 +3,7 @@ package scala.cli.config.internal
 import java.lang.{Boolean => JBoolean}
 import java.nio.file.Path
 
+import scala.cli.commands.SpecificationLevel
 import scala.cli.config._
 
 object JavaHelper {
@@ -30,7 +31,7 @@ object JavaHelper {
   def getString(key: String): String = {
     val db             = dbOpt.getOrElse(sys.error("DB not open"))
     val (prefix, name) = split(key)
-    val key0           = new Key.StringEntry(prefix, name)
+    val key0           = new Key.StringEntry(prefix, name, SpecificationLevel.IMPLEMENTATION)
     db.get(key0) match {
       case Left(ex)         => throw new Exception(ex)
       case Right(None)      => null
@@ -41,7 +42,7 @@ object JavaHelper {
   def getBoolean(key: String): JBoolean = {
     val db             = dbOpt.getOrElse(sys.error("DB not open"))
     val (prefix, name) = split(key)
-    val key0           = new Key.BooleanEntry(prefix, name)
+    val key0           = new Key.BooleanEntry(prefix, name, SpecificationLevel.IMPLEMENTATION)
     db.get(key0) match {
       case Left(ex)           => throw new Exception(ex)
       case Right(None)        => null
@@ -52,7 +53,7 @@ object JavaHelper {
   def getStringList(key: String): Array[String] = {
     val db             = dbOpt.getOrElse(sys.error("DB not open"))
     val (prefix, name) = split(key)
-    val key0           = new Key.StringListEntry(prefix, name)
+    val key0           = new Key.StringListEntry(prefix, name, SpecificationLevel.IMPLEMENTATION)
     db.get(key0) match {
       case Left(ex)           => throw new Exception(ex)
       case Right(None)        => null
@@ -63,7 +64,7 @@ object JavaHelper {
   def getPassword(key: String): String = {
     val db             = dbOpt.getOrElse(sys.error("DB not open"))
     val (prefix, name) = split(key)
-    val key0           = new Key.PasswordEntry(prefix, name)
+    val key0           = new Key.PasswordEntry(prefix, name, SpecificationLevel.IMPLEMENTATION)
     db.get(key0) match {
       case Left(ex)         => throw new Exception(ex)
       case Right(None)      => null
@@ -74,7 +75,7 @@ object JavaHelper {
   def getPasswordBytes(key: String): Array[Byte] = {
     val db             = dbOpt.getOrElse(sys.error("DB not open"))
     val (prefix, name) = split(key)
-    val key0           = new Key.PasswordEntry(prefix, name)
+    val key0           = new Key.PasswordEntry(prefix, name, SpecificationLevel.IMPLEMENTATION)
     db.get(key0) match {
       case Left(ex)         => throw new Exception(ex)
       case Right(None)      => null

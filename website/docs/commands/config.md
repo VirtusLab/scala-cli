@@ -24,11 +24,20 @@ true
 
 </ChainedSnippets>
 
+:::caution
+Even though the `config` command is not restricted, some available configuration keys may be, and thus may
+require setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+```bash ignore
+scala-cli config power true
+```
+:::
+
 <ChainedSnippets>
 
 ```bash
-scala-cli config publish.user.name "Alex Me"
-scala-cli config publish.user.name
+scala-cli --power config publish.user.name "Alex Me"
+scala-cli --power config publish.user.name
 ```
 
 ```text
@@ -43,6 +52,7 @@ The `--dump` option allows to print all config entries in JSON format:
 ```bash
 scala-cli config --dump | jq .
 ```
+
 ```json
 {
   "github": {
@@ -69,16 +79,19 @@ Use `--password` to get the value of a password entry:
 
 ```bash
 export MY_GITHUB_TOKEN=1234
-scala-cli config github.token "env:MY_GITHUB_TOKEN"
-scala-cli config github.token
+scala-cli --power config github.token "env:MY_GITHUB_TOKEN"
+scala-cli --power config github.token
 ```
+
 ```text
 env:MY_GITHUB_TOKEN
 ```
+
 ```bash
 export MY_GITHUB_TOKEN=1234
 scala-cli --power config --password github.token
 ```
+
 ```text
 1234
 ```
@@ -87,12 +100,16 @@ scala-cli --power config --password github.token
 
 Use `--create-pgp-key` to create a PGP key pair, protected by a randomly-generated password, to
 be used by the `publish setup` sub-command:
+
 ```sh
 scala-cli --power config --create-pgp-key --email "some_email"
 ```
+
 The `--email` option or `publish.user.email` has to be specified for this subcommand to work properly.
 
 Configuration values are stored in a directory under your home directory, with restricted permissions:
+
 - on macOS: `~/Library/Application Support/ScalaCli/secrets/config.json`
 - on Linux: `~/.config/scala-cli/secrets/config.json`
-- on Windows: `%LOCALAPPDATA%\ScalaCli\secrets\config.json` (typically `C:\Users\username\AppData\Local\ScalaCli\secrets\config.json`)
+- on Windows: `%LOCALAPPDATA%\ScalaCli\secrets\config.json` (
+  typically `C:\Users\username\AppData\Local\ScalaCli\secrets\config.json`)
