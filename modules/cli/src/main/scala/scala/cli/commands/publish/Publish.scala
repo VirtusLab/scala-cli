@@ -64,6 +64,7 @@ import scala.cli.errors.{
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
 import scala.util.control.NonFatal
 
@@ -214,7 +215,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val cross = options.compileCross.cross.getOrElse(false)
 
-    lazy val configDb = options.shared.configDb.orExit(logger)
+    lazy val configDb = ConfigDbUtils.configDb.orExit(logger)
 
     lazy val workingDir = options.sharedPublish.workingDir
       .filter(_.trim.nonEmpty)

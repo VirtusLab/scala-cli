@@ -41,6 +41,7 @@ import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, Constants, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
@@ -78,7 +79,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
     val cross    = options.compileCross.cross.getOrElse(false)
-    val configDb = options.shared.configDb.orExit(logger)
+    val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

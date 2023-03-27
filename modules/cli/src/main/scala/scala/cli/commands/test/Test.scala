@@ -22,6 +22,7 @@ import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 
 object Test extends ScalaCommand[TestOptions] {
   override def group: String = HelpCommandGroup.Main.toString
@@ -73,7 +74,7 @@ object Test extends ScalaCommand[TestOptions] {
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     val cross    = options.compileCross.cross.getOrElse(false)
-    val configDb = options.shared.configDb.orExit(logger)
+    val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

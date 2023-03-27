@@ -20,6 +20,7 @@ import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Constants
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
@@ -45,9 +46,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
     val directories   = Directories.directories
 
-    lazy val configDb = ConfigDb.open(directories.dbPath.toNIO)
-      .wrapConfigException
-      .orExit(logger)
+    lazy val configDb = ConfigDbUtils.configDb.orExit(logger)
 
     val inputArgs = args.all
 
