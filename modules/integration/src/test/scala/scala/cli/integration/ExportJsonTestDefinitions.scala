@@ -98,10 +98,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
         )
 
       expect(fileContents ==
-        """{
+        s"""{
           |"scalaVersion":"3.2.2",
           |"platform":"Native",
-          |"scalaNativeVersion":"0.4.9",
+          |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
           |"scopes": {
           | "main": {
           |   "sources": ["Main.scala"],
