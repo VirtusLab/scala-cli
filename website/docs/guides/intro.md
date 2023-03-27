@@ -39,6 +39,7 @@ Less introductory guides on specific topics.
 - [Scala.js](./scala-js.md) and [Scala Native](./scala-native.md) - learn how Scala CLI supports these non-JVM platforms
 - [Piping](./piping.md) - covers how Scala CLI allows to work with piped sources.
 - [Snippets](./snippets.md) - learn how to use command line snippets with Scala CLI.
+- [Verbosity](./verbosity.md) - learn how to control logs verbosity in Scala CLI.
 - [Internals](./internals.md) - learn about how Scala CLI works under the hood.
 
 ## ⚡️ `--power` mode guides

@@ -252,7 +252,7 @@ You can also pipe code to Scala CLI for execution:
   ```bash
   echo 'println("Hello")' | scala-cli _.sc
   ```
-  
+
   ```text
   Hello
   ```
@@ -266,7 +266,7 @@ You can also pipe code to Scala CLI for execution:
   ```bash
   echo '@main def hello() = println("Hello")' | scala-cli _.scala
   ```
-  
+
   ```text
   Hello
   ```
@@ -280,7 +280,7 @@ You can also pipe code to Scala CLI for execution:
   ```bash
   echo 'class Hello { public static void main(String args[]) { System.out.println("Hello"); } }' | scala-cli _.java
   ```
-  
+
   ```text
   Hello
   ```
@@ -297,7 +297,7 @@ You can also pipe code to Scala CLI for execution:
   println("Hello")
   ```' | scala-cli _.md
   ```
-  
+
   ```text
   Hello
   ```
@@ -369,9 +369,10 @@ Hello
 Hello
 -->
 
-### Logging
+## Logging
 
-To turn off logging in the application, pass the `-q` flag once. This will suppress all logging output except for errors:
+To turn off logging in the application, pass the `-q` flag once. This will suppress all logging output except for
+errors:
 
 ```scala title=Hello.scala
 object Hello extends App {
@@ -401,3 +402,9 @@ Compilation failed
 
 Note that this will also suppress any logging related to tasks such as downloading dependencies, logs
 about the start of compilation, and so on.
+
+## Warning suppression
+
+Some particular warning logs can be suppressed, either for a particular command by passing an option or with a global
+config.
+More details can be found in the [verbosity guide](../guides/verbosity.md)
