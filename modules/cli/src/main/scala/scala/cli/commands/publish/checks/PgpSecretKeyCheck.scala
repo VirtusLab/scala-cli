@@ -90,7 +90,7 @@ final case class PgpSecretKeyCheck(
 
   private lazy val keyServers: Either[BuildException, Seq[Uri]] = {
     val rawKeyServers = options.sharedPgp.keyServer.filter(_.trim.nonEmpty)
-    if (rawKeyServers.filter(_.trim.nonEmpty).isEmpty)
+    if (rawKeyServers.isEmpty)
       Right(KeyServer.allDefaults)
     else
       rawKeyServers
@@ -133,7 +133,7 @@ final case class PgpSecretKeyCheck(
                 )
                 false
               case Left(err) =>
-                logger.debug(s"Error checking $keyId at $keyServer: $err")
+                logger.error(s"Error checking $keyId at $keyServer: $err")
                 false
           }
         case None => false
