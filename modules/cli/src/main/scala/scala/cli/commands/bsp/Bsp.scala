@@ -77,7 +77,6 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions
 

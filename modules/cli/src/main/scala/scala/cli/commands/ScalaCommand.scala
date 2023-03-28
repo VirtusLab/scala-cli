@@ -206,11 +206,11 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   def maybePrintToolsHelp(options: T, buildOptions: BuildOptions): Unit =
     for {
       shared <- sharedOptions(options)
+      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl || shared.helpGroups.helpScalafmt
       logger = shared.logger
       artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt
       scalaParams = scalaArtifacts.params
-      if shared.helpGroups.helpScaladoc || shared.helpGroups.helpRepl || shared.helpGroups.helpScalafmt
     } {
       val exitCode: Either[BuildException, Int] = either {
         val (classPath: Seq[os.Path], mainClass: String) =

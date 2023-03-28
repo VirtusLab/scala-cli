@@ -84,46 +84,6 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     }
   }
 
-  test("error on ammonite imports") {
-    val dependencyOsLib      = "com.lihaoyi::os-lib:0.7.8"
-    val dependencyUpickleLib = "com.lihaoyi::upickle:1.4.0"
-    val ivyImport            = s"import $$ivy.`$dependencyOsLib`"
-    val depImport            = s"import $$dep.`$dependencyUpickleLib`"
-    val testInputs = TestInputs(
-      os.rel / "Foo.scala" ->
-        s"""$ivyImport
-           |$depImport
-           |
-           |object Hello extends App {
-           |  println("Hello")
-           |}
-           |""".stripMargin
-    )
-    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
-      (_, _, maybeBuild) =>
-        expect(maybeBuild.isLeft)
-        val exceptions = maybeBuild match {
-          case Left(c: CompositeBuildException) => c.exceptions
-          case _                                => Seq()
-        }
-
-        expect(exceptions.length == 2)
-        expect(exceptions.forall(_.isInstanceOf[UnsupportedAmmoniteImportError]))
-
-        expect(exceptions.head.textEdit.get.newText == s"//> using dep \"$dependencyOsLib\"")
-        expect(
-          exceptions.tail.head.textEdit.get.newText == s"//> using dep \"$dependencyUpickleLib\""
-        )
-
-        val filePositions = exceptions.flatMap(_.positions.collect {
-          case File(_, startPos, endPos) => (startPos, endPos)
-        })
-
-        expect(filePositions.head == ((0, 0), (0, ivyImport.length)))
-        expect(filePositions.tail.head == ((1, 0), (1, depImport.length)))
-    }
-  }
-
   test("actionable actions suggest update only to stable version") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->

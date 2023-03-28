@@ -1,9 +1,9 @@
 package scala.cli.util
 
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, ConfigDbException}
 import scala.build.{Directories, Logger}
 import scala.cli.commands.publish.ConfigUtil.wrapConfigException
-import scala.cli.config.{ConfigDb, ConfigDbException, Key}
+import scala.cli.config.{ConfigDb, Key}
 
 object ConfigDbUtils {
   lazy val configDb: Either[ConfigDbException, ConfigDb] =

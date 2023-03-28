@@ -205,32 +205,30 @@ case object ScalaPreprocessor extends Preprocessor {
     suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
-    val extractedDirectives = value(ExtractedDirectives.from(
+    val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentWithNoShebang.toCharArray,
       path,
       logger,
       scopeRoot,
       maybeRecoverOnError
     ))
-    value(process(
+    value(processSources(
       content,
       extractedDirectives,
       path,
       scopeRoot,
       logger,
-      maybeRecoverOnError,
       allowRestrictedFeatures,
       suppressWarningOptions
     ))
   }
 
-  def process(
+  def processSources(
     content: String,
     extractedDirectives: ExtractedDirectives,
     path: Either[String, os.Path],
     scopeRoot: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
@@ -245,13 +243,6 @@ case object ScalaPreprocessor extends Preprocessor {
         allowRestrictedFeatures,
         suppressWarningOptions
       ))
-
-    value {
-      checkForAmmoniteImports(
-        afterStrictUsing.strippedContent.getOrElse(content0),
-        path
-      )
-    }
 
     if (afterStrictUsing.isEmpty) None
     else {
@@ -272,70 +263,6 @@ case object ScalaPreprocessor extends Preprocessor {
         directivesPositions
       ))
     }
-  }
-
-  private def checkForAmmoniteImports(
-    content: String,
-    path: Either[String, os.Path]
-  ): Either[BuildException, Unit] = {
-
-    import fastparse.*
-
-    import scala.build.internal.ScalaParse.*
-
-    val res = parse(content, Header(_))
-
-    val indicesOrFailingIdx0 = res.fold((_, idx, _) => Left(idx), (value, _) => Right(value))
-
-    val indicesOrErrorMsg = indicesOrFailingIdx0 match {
-      case Left(failingIdx) =>
-        val newCode = content.take(failingIdx)
-        val res1    = parse(newCode, Header(_))
-        res1 match {
-          case f: Parsed.Failure =>
-            val msg = formatFastparseError(Util.printablePath(path), content, f)
-            Left(msg)
-          case s: Parsed.Success[Seq[(Int, Int)]] =>
-            Right(s.value)
-        }
-      case Right(ind) =>
-        Right(ind)
-    }
-
-    // TODO Report error if indicesOrErrorMsg.isLeft?
-
-    val importTrees = indicesOrErrorMsg
-      .toSeq
-      .iterator
-      .flatMap(_.iterator)
-      .flatMap {
-        case (start, end) =>
-          val code      = content.substring(start, end) // .trim // meh
-          val importRes = parse(code, ImportSplitter(_))
-          importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
-            (start, tree.copy(start = start + tree.start, end = start + tree.end))
-          }
-      }
-      .toVector
-
-    val dependencyTrees = importTrees.filter { case (_, t) =>
-      val firstSegmentOpt = t.prefix.headOption
-      (firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")) &&
-      t.prefix.lengthCompare(1) > 0
-    }
-
-    if (dependencyTrees.nonEmpty) {
-      val toFilePos = Position.Raw.filePos(path, content)
-      val exceptions = for {
-        (importStart, t) <- dependencyTrees
-        pos           = toFilePos(Position.Raw(importStart, t.end))
-        dep           = t.prefix.drop(1).mkString(".")
-        newImportText = s"//> using dep \"$dep\""
-      } yield new UnsupportedAmmoniteImportError(Seq(pos), newImportText)
-
-      Left(CompositeBuildException(exceptions))
-    }
-    else Right(())
   }
 
   private def processStrictUsing(

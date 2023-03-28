@@ -2,7 +2,9 @@ package scala.build
 
 import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
 
+import scala.build.errors.ConfigDbException
 import scala.build.internal.JniGetWinDirs
+import scala.cli.config.ConfigDb
 import scala.util.Properties
 
 trait Directories {
@@ -21,6 +23,8 @@ trait Directories {
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
       .getOrElse(secretsDir / Directories.defaultDbFileName)
+
+  lazy val configDb = ConfigDb.open(dbPath.toNIO).left.map(ConfigDbException(_))
 }
 
 object Directories {

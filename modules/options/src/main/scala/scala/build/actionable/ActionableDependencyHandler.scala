@@ -12,7 +12,7 @@ import scala.build.actionable.errors.ActionableHandlerError
 import scala.build.errors.{BuildException, RepositoryFormatError}
 import scala.build.internal.Util._
 import scala.build.options.BuildOptions
-import scala.build.options.ScalaVersionUtil.versionsWithTtl0
+import scala.build.options.ScalaVersionUtil.versions
 import scala.concurrent.duration.DurationInt
 
 case object ActionableDependencyHandler
@@ -66,7 +66,7 @@ case object ActionableDependencyHandler
     val repositories = value(buildOptions.finalRepositories)
 
     value {
-      cache.versionsWithTtl0(csModule, repositories).versions.latest(
+      cache.versions(csModule, repositories).versions.latest(
         coursier.core.Latest.Stable
       ).toRight {
         new ActionableHandlerError(s"No latest version found for ${dependency.render}")

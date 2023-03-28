@@ -801,6 +801,7 @@ object Build {
     compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger,
+    artifacts: Artifacts,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Project] = either {
 
@@ -808,8 +809,6 @@ object Build {
 
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
     val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
-
-    val artifacts = value(options.artifacts(logger, scope, maybeRecoverOnError))
 
     val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
 
@@ -1007,6 +1006,7 @@ object Build {
           compilerJvmVersionOpt,
           scope,
           logger,
+          artifacts,
           maybeRecoverOnError
         )
       }

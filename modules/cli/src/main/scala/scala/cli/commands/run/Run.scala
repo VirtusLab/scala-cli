@@ -27,6 +27,7 @@ import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, Watch
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 import scala.util.{Properties, Try}
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
@@ -203,7 +204,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     if (CommandUtils.shouldCheckUpdate)
       Update.checkUpdateSafe(logger)
 
-    val configDb = options.shared.configDb.orExit(logger)
+    val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

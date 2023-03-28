@@ -25,6 +25,7 @@ import scala.cli.config.{
   Secret
 }
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 object Config extends ScalaCommand[ConfigOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
 
@@ -40,9 +41,7 @@ object Config extends ScalaCommand[ConfigOptions] {
       System.out.write(content)
     }
     else {
-      val db = ConfigDb.open(directories.dbPath.toNIO)
-        .wrapConfigException
-        .orExit(logger)
+      val db = ConfigDbUtils.configDb.orExit(logger)
 
       def unrecognizedKey(key: String): Nothing = {
         System.err.println(s"Error: unrecognized key $key")

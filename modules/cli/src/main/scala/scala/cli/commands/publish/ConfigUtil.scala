@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import scala.cli.config.ConfigDbException
+import scala.build.errors.ConfigDbException
 
 object ConfigUtil {
 
