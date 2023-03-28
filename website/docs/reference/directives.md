@@ -242,6 +242,8 @@ Add Scala Native options
 
 `//> using nativeMode` _value_
 
+`//> using nativeLto` _value_
+
 `//> using nativeVersion` _value_
 
 `//> using nativeCompile` _value1_, _value2_

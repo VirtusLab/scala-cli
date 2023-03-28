@@ -6,11 +6,13 @@ import dependency._
 import java.nio.file.Paths
 
 import scala.build.internal.Constants
+import scala.scalanative.build.LTO
 import scala.scalanative.{build => sn}
 
 final case class ScalaNativeOptions(
   version: Option[String] = None,
   modeStr: Option[String] = None,
+  ltoStr: Option[String] = None,
   gcStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
@@ -65,7 +67,10 @@ final case class ScalaNativeOptions(
 
   private def compileCliOptions(): List[String] =
     finalCompileOptions().flatMap(option => List("--compile-option", option))
-
+  private def ltoOptions(): List[String] =
+    ltoStr.map(_.trim).filter(_.nonEmpty)
+      .map(lto => LTO.apply(lto))
+      .map(lto => List("--lto", lto.name)).getOrElse(Nil)
   private def resourcesCliOptions(resourcesExist: Boolean): List[String] =
     if (embedResources.getOrElse(true))
       (numeralVersion, resourcesExist) match {
@@ -113,6 +118,7 @@ final case class ScalaNativeOptions(
   def configCliOptions(resourcesExist: Boolean): List[String] =
     gcCliOption() ++
       modeCliOption() ++
+      ltoOptions() ++
       clangCliOption() ++
       clangppCliOption() ++
       linkingCliOptions() ++

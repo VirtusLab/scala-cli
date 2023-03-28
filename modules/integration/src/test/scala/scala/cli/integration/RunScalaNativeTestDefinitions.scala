@@ -15,7 +15,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString("$message$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", c"$message")
            |}
            |""".stripMargin
     )
@@ -32,6 +33,29 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     simpleNativeTests()
   }
 
+  def scalaNativeLtoTests(): Unit = {
+    val fileName = "hello.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""//> using nativeLto "thin"
+           |println("$message")
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, extraOptions, fileName, "--native")
+          .call(cwd = root)
+          .out.trim()
+      expect(output == message)
+    }
+  }
+
+  if (!Properties.isMac)
+    test("scala native with lto optimisation") {
+      scalaNativeLtoTests()
+    }
+
   test("simple script native command") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -41,7 +65,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString("$message$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", c"$message")
            |}
            |""".stripMargin
     )
@@ -179,7 +204,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", toCString(messages.msg))
            |}
            |""".stripMargin
     )
@@ -207,7 +233,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
            |import scala.scalanative.unsafe._
            |
            |Zone { implicit z =>
-           |  stdio.printf(toCString(messages.msg + "$platformNl"))
+           |   val io = StdioHelpers(stdio)
+           |   io.printf(c"%s$platformNl", toCString(messages.msg))
            |}
            |""".stripMargin
     )

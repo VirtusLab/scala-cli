@@ -246,6 +246,7 @@ final case class SharedOptions(
     options.ScalaNativeOptions(
       nativeVersion,
       nativeMode,
+      nativeLto,
       nativeGc,
       nativeClang,
       nativeClangpp,

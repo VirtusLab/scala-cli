@@ -14,6 +14,8 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using nativeMode` _value_
     |
+    |`//> using nativeLto` _value_
+    |
     |`//> using nativeVersion` _value_
     |
     |`//> using nativeCompile` _value1_, _value2_
@@ -32,6 +34,7 @@ import scala.cli.commands.SpecificationLevel
 final case class ScalaNative(
   nativeGc: Option[String] = None,
   nativeMode: Option[String] = None,
+  nativeLto: Option[String] = None,
   nativeVersion: Option[String] = None,
   nativeCompile: List[String] = Nil,
   nativeLinking: List[String] = Nil,
@@ -45,6 +48,7 @@ final case class ScalaNative(
     val nativeOptions = ScalaNativeOptions(
       gcStr = nativeGc,
       modeStr = nativeMode,
+      ltoStr = nativeLto,
       version = nativeVersion,
       compileOptions = nativeCompile,
       linkingOptions = nativeLinking,

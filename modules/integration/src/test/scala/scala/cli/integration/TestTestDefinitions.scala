@@ -85,7 +85,8 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |    test("foo") {
         |      assert(2 + 2 == 4)
         |      Zone { implicit z =>
-        |        stdio.printf(toCString("Hello from " + "tests\n"))
+        |       val io = StdioHelpers(stdio)
+        |       io.printf(c"%s %s\n", c"Hello from", c"tests")
         |      }
         |    }
         |  }
