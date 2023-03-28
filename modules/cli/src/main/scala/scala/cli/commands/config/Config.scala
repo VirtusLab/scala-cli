@@ -51,10 +51,15 @@ object Config extends ScalaCommand[ConfigOptions] {
       args.all match {
         case Seq() =>
           if (options.createPgpKey) {
-            val coursierCache       = options.coursier.coursierCache(logger.coursierLogger(""))
-            val secKeyEntry         = Keys.pgpSecretKey
-            val secKeyPasswordEntry = Keys.pgpSecretKeyPassword
-            val pubKeyEntry         = Keys.pgpPublicKey
+            if (options.pgpPassword.isEmpty) {
+              logger.error(
+                s"--pgp-password not specified, use 'none' to create an unprotected keychain or 'random' to generate a pssword"
+              )
+              sys.exit(1)
+            }
+            val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+            val secKeyEntry   = Keys.pgpSecretKey
+            val pubKeyEntry   = Keys.pgpPublicKey
 
             val mail = options.email
               .filter(_.trim.nonEmpty)
@@ -64,17 +69,23 @@ object Config extends ScalaCommand[ConfigOptions] {
                   .orExit(logger)
               }
               .getOrElse {
-                System.err.println(
-                  s"Error: --email ... not specified, and ${Keys.userEmail.fullName} not set (either is required to generate a PGP key)"
+                logger.error(
+                  s"--email ... not specified, and ${Keys.userEmail.fullName} not set (either is required to generate a PGP key)"
                 )
                 sys.exit(1)
               }
 
-            val password = ThrowawayPgpSecret.pgpPassPhrase()
+            val passwordOpt = if (options.pgpPassword.contains("none"))
+              None
+            else if (options.pgpPassword.contains("random"))
+              Some(ThrowawayPgpSecret.pgpPassPhrase())
+            else
+              options.pgpPassword.map(scala.cli.signing.shared.Secret.apply)
+
             val (pgpPublic, pgpSecret0) =
               ThrowawayPgpSecret.pgpSecret(
                 mail,
-                password,
+                passwordOpt,
                 logger,
                 coursierCache,
                 () =>
@@ -88,11 +99,19 @@ object Config extends ScalaCommand[ConfigOptions] {
             val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 
             db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64.toConfig))
-            db.set(secKeyPasswordEntry, PasswordOption.Value(password.toConfig))
             db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))
             db.save(directories.dbPath.toNIO)
               .wrapConfigException
               .orExit(logger)
+
+            logger.message("PGP keychains written to config")
+            passwordOpt.foreach { password =>
+              logger.message(
+                s"""Password: ${password.value}
+                   |Don't lose it!
+                   |""".stripMargin
+              )
+            }
           }
           else {
             System.err.println("No argument passed")

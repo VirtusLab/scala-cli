@@ -27,9 +27,17 @@ final case class ConfigOptions(
   @Tag(tags.inShortHelp)
     dump: Boolean = false,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("Create PGP key in config")
+  @HelpMessage("Create PGP keychain in config")
+  @Tag(tags.inShortHelp)
   @Tag(tags.experimental)
     createPgpKey: Boolean = false,
+  @Group(HelpGroup.Config.toString)
+  @HelpMessage("A password used to encode the private PGP keychain")
+  @Tag(tags.inShortHelp)
+  @Tag(tags.restricted)
+  @ValueDescription("YOUR_PASSWORD|random|none")
+  @ExtraName("passphrase")
+  pgpPassword: Option[String] = None,
   @Group(HelpGroup.Config.toString)
   @HelpMessage("Email to use to create PGP key in config")
   @Tag(tags.experimental)

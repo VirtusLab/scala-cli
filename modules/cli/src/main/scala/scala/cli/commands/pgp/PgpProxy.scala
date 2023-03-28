@@ -15,12 +15,20 @@ class PgpProxy {
     secKey: String,
     mail: String,
     quiet: Boolean,
-    password: String,
+    passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
     javaCommand: () => String,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
+
+    val (passwordOption, extraEnv) = passwordOpt match
+      case Some(value) =>
+        (
+          Seq("--password", s"env:SCALA_CLI_RANDOM_KEY_PASSWORD"),
+          Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> value)
+        )
+      case None => (Nil, Map.empty)
     val quietOptions = Nil
     (new PgpCreateExternal).tryRun(
       cache,
@@ -28,15 +36,13 @@ class PgpProxy {
         "pgp",
         "create",
         "--pub-dest",
-        pubKey.toString,
+        pubKey,
         "--secret-dest",
-        secKey.toString,
+        secKey,
         "--email",
-        mail,
-        "--password",
-        s"env:SCALA_CLI_RANDOM_KEY_PASSWORD"
-      ) ++ quietOptions,
-      Map("SCALA_CLI_RANDOM_KEY_PASSWORD" -> password),
+        mail
+      ) ++ passwordOption ++ quietOptions,
+      extraEnv,
       logger,
       allowExecve = false,
       javaCommand,

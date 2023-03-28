@@ -300,9 +300,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "pgp",
           "create",
           "--email",
-          "some_email",
-          "--password",
-          "value:"
+          "some_email"
         ).call(cwd = root, env = extraEnv)
 
         val publicKey = os.Path("key.pub", root)
@@ -380,7 +378,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "config",
           "--create-pgp-key",
           "--email",
-          "some_email"
+          "some_email",
+          "--pgp-password",
+          "none"
         ).call(cwd = root, env = extraEnv)
 
         TestCase.testInputs.fromRoot { root =>
@@ -480,7 +480,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "config",
         "--create-pgp-key",
         "--email",
-        "some_email"
+        "some_email",
+        "--pgp-password",
+        "random"
       ).call(cwd = root, env = extraEnv)
 
       TestCase.testInputs.fromRoot { root =>
