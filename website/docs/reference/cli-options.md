@@ -167,7 +167,13 @@ Dump config DB as JSON
 
 ### `--create-pgp-key`
 
-Create PGP key in config
+Create PGP keychain in config
+
+### `--pgp-password`
+
+Aliases: `--passphrase`
+
+A password used to encode the private PGP keychain
 
 ### `--email`
 

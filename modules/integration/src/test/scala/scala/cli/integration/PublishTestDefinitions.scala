@@ -381,7 +381,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "config",
           "--create-pgp-key",
           "--email",
-          "some_email"
+          "some_email",
+          "--pgp-password",
+          "none"
         ).call(cwd = root, env = extraEnv)
 
         os.proc(
@@ -481,7 +483,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "config",
         "--create-pgp-key",
         "--email",
-        "some_email"
+        "some_email",
+        "--pgp-password",
+        "random"
       ).call(cwd = root, env = extraEnv)
 
       os.proc(
