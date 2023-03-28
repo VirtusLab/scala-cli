@@ -5,11 +5,11 @@ import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
 import caseapp.core.parser.Parser
 
 import scala.cli.commands.default.{DefaultOptions, LegacyScalaOptions}
-import scala.cli.commands.shared.{HasLoggingOptions, ScalaCliHelp}
+import scala.cli.commands.shared.{HasGlobalOptions, ScalaCliHelp}
 import scala.cli.commands.util.HelpUtils.*
 import scala.cli.launcher.LauncherOptions
 
-abstract class ScalaCommandWithCustomHelp[T <: HasLoggingOptions](
+abstract class ScalaCommandWithCustomHelp[T <: HasGlobalOptions](
   actualHelp: => RuntimeCommandsHelp
 )(
   implicit

@@ -1,4 +1,4 @@
-package scala.cli.config
+package scala.build.errors
 
 import scala.build.errors.BuildException
 

@@ -23,16 +23,16 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
   private def mkBloopRifleConfig(opts: BloopStartOptions): BloopRifleConfig = {
     import opts.*
     val buildOptions = BuildOptions(
-      javaOptions = JvmUtils.javaOptions(jvm).orExit(logging.logger),
+      javaOptions = JvmUtils.javaOptions(jvm).orExit(global.logging.logger),
       internal = InternalOptions(
-        cache = Some(coursier.coursierCache(logging.logger.coursierLogger("")))
+        cache = Some(coursier.coursierCache(global.logging.logger.coursierLogger("")))
       )
     )
 
     compilationServer.bloopRifleConfig(
-      logging.logger,
-      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
-      logging.verbosity,
+      global.logging.logger,
+      coursier.coursierCache(global.logging.logger.coursierLogger("Downloading Bloop")),
+      global.logging.verbosity,
       buildOptions.javaHome().value.javaCommand,
       Directories.directories
     )
@@ -51,7 +51,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
       if (ret == 0)
         logger.message("Stopped Bloop server.")
       else {
-        if (options.logging.verbosity >= 0)
+        if (options.global.logging.verbosity >= 0)
           System.err.println(s"Error running bloop exit command (return code $ret)")
         sys.exit(1)
       }

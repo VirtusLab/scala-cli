@@ -17,9 +17,9 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
   private def mkBloopRifleConfig(opts: BloopExitOptions): BloopRifleConfig = {
     import opts.*
     compilationServer.bloopRifleConfig(
-      logging.logger,
-      coursier.coursierCache(logging.logger.coursierLogger("Downloading Bloop")),
-      logging.verbosity,
+      global.logging.logger,
+      coursier.coursierCache(global.logging.logger.coursierLogger("Downloading Bloop")),
+      global.logging.verbosity,
       "java", // shouldn't be used…
       Directories.directories
     )
@@ -36,7 +36,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
       if (ret == 0)
         logger.message("Stopped Bloop server.")
       else {
-        if (options.logging.verbosity >= 0)
+        if (options.global.logging.verbosity >= 0)
           System.err.println(s"Error running bloop exit command (return code $ret)")
         sys.exit(1)
       }

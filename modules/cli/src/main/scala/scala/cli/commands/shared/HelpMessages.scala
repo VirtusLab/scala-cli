@@ -1,7 +1,11 @@
 package scala.cli.commands.shared
 
+import caseapp.core.Arg
+
 import scala.cli.ScalaCli
-import scala.cli.commands.SpecificationLevel
+import scala.cli.commands.{SpecificationLevel, tags}
+import scala.cli.config.Key
+import scala.cli.util.ArgHelpers.*
 
 object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "
@@ -48,11 +52,32 @@ object HelpMessages {
     s"""Specific $cmdName configurations can be specified with both command line options and using directives defined in sources.
        |Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
        |Using directives can be defined in all supported input source file types.""".stripMargin
-  def powerCommandUsedInSip(specificationLevel: SpecificationLevel): String = {
-    val powerCommandType =
+
+  private def powerFeatureUsedInSip(
+    featureName: String,
+    featureType: String,
+    specificationLevel: SpecificationLevel
+  ): String = {
+    val powerType =
       if specificationLevel == SpecificationLevel.EXPERIMENTAL then "experimental" else "restricted"
-    s"""This command is $powerCommandType and requires setting the '--power' launcher option to be used.
-       |You can pass it explicitly or set it globally by running:
-       |   ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}""".stripMargin
+    s"""The '$featureName' $featureType is $powerType.
+       |You can run it with the '--power' flag or turn power mode on globally by running:
+       |  ${Console.BOLD}${ScalaCli.progName} config power true${Console.RESET}.""".stripMargin
   }
+  def powerCommandUsedInSip(commandName: String, specificationLevel: SpecificationLevel): String =
+    powerFeatureUsedInSip(commandName, "sub-command", specificationLevel)
+  def powerOptionUsedInSip(optionName: String, arg: Arg): String = {
+    val specificationLevel =
+      if arg.isExperimental then SpecificationLevel.EXPERIMENTAL
+      else if arg.isRestricted then SpecificationLevel.RESTRICTED
+      else
+        arg.tags
+          .flatMap(t => tags.levelFor(t.name))
+          .headOption
+          .getOrElse(SpecificationLevel.EXPERIMENTAL)
+    powerFeatureUsedInSip(optionName, "option", specificationLevel)
+  }
+
+  def powerConfigKeyUsedInSip(key: Key[_]): String =
+    powerFeatureUsedInSip(key.fullName, "configuration key", key.specificationLevel)
 }

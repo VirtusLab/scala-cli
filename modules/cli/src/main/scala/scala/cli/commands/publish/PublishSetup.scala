@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
 import scala.build.internal.CustomCodeWrapper
-import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.options.{BuildOptions, InternalOptions, Scope, SuppressWarningOptions}
 import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
@@ -20,6 +20,7 @@ import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Constants
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 
 object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
@@ -45,9 +46,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
     val directories   = Directories.directories
 
-    lazy val configDb = ConfigDb.open(directories.dbPath.toNIO)
-      .wrapConfigException
-      .orExit(logger)
+    lazy val configDb = ConfigDbUtils.configDb.orExit(logger)
 
     val inputArgs = args.all
 
@@ -91,7 +90,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           () => cliBuildOptions.javaHome().value.javaCommand
         ),
         logger,
-        suppressDirectivesInMultipleFilesWarning = None
+        cliBuildOptions.suppressWarningOptions
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
@@ -259,28 +258,34 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           inputs.workspace / s"publish-conf$ext"
         }
         val nl = System.lineSeparator() // FIXME Get from dest if it exists?
+
+        def extraDirectivesLines(extraDirectives: Seq[(String, String)]) =
+          extraDirectives.map {
+            case (k, v) =>
+              s"""//> using $k "$v"""" + nl
+          }.mkString
+
         val extraLines = missingFieldsWithDefaultsAndValues.map {
-          case (_, _, None) => ""
+          case (_, default, None) => extraDirectivesLines(default.extraDirectives)
           case (check, default, Some(value)) =>
             s"""//> using ${check.directivePath} "$value"""" + nl +
-              default.extraDirectives
-                .map {
-                  case (k, v) =>
-                    s"""//> using $k "$v"""" + nl
-                }
-                .mkString
+              extraDirectivesLines(default.extraDirectives)
         }
 
         val currentContent =
           if (os.isFile(dest)) os.read.bytes(dest)
           else if (os.exists(dest)) sys.error(s"Error: $dest already exists and is not a file")
           else Array.emptyByteArray
-        val updatedContent = currentContent ++
-          extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
-        os.write.over(dest, updatedContent)
-        logger.message("") // printing an empty line, for readability
-        logger.message(s"Wrote ${CommandUtils.printablePath(dest)}")
-        written = written :+ dest
+        if (extraLines.nonEmpty) {
+          val updatedContent = currentContent ++
+            extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
+          os.write.over(dest, updatedContent)
+          logger.message(
+            s"""
+               |Wrote ${CommandUtils.printablePath(dest)}""".stripMargin
+          ) // printing an empty line, for readability
+          written = written :+ dest
+        }
       }
 
       if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {

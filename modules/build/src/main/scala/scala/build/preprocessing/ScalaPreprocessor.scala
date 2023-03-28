@@ -12,7 +12,13 @@ import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
-import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions, ShadowingSeq}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  ClassPathOptions,
+  ShadowingSeq,
+  SuppressWarningOptions
+}
 import scala.build.preprocessing.directives
 import scala.build.preprocessing.directives.{DirectiveHandler, DirectiveUtil, ScopedDirective}
 import scala.build.{Logger, Position, Positioned}
@@ -86,7 +92,8 @@ case object ScalaPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: ScalaFile =>
@@ -101,7 +108,8 @@ case object ScalaPreprocessor extends Preprocessor {
                 scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                allowRestrictedFeatures
+                allowRestrictedFeatures,
+                suppressWarningOptions
               )
             ) match {
               case None =>
@@ -160,7 +168,8 @@ case object ScalaPreprocessor extends Preprocessor {
                 v.scopePath / os.up,
                 logger,
                 maybeRecoverOnError,
-                allowRestrictedFeatures
+                allowRestrictedFeatures,
+                suppressWarningOptions
               )
             ).map {
               case ProcessingOutput(reqs, scopedReqs, opts, updatedContent, dirsPositions) =>
@@ -192,36 +201,36 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
-    val extractedDirectives = value(ExtractedDirectives.from(
+    val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentWithNoShebang.toCharArray,
       path,
       logger,
-      UsingDirectiveKind.values(),
       scopeRoot,
       maybeRecoverOnError
     ))
-    value(process(
+    value(processSources(
       content,
       extractedDirectives,
       path,
       scopeRoot,
       logger,
-      maybeRecoverOnError,
-      allowRestrictedFeatures
+      allowRestrictedFeatures,
+      suppressWarningOptions
     ))
   }
 
-  def process(
+  def processSources(
     content: String,
     extractedDirectives: ExtractedDirectives,
     path: Either[String, os.Path],
     scopeRoot: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException],
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val afterStrictUsing: StrictDirectivesProcessingOutput =
@@ -231,15 +240,9 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         scopeRoot,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       ))
-
-    value {
-      checkForAmmoniteImports(
-        afterStrictUsing.strippedContent.getOrElse(content0),
-        path
-      )
-    }
 
     if (afterStrictUsing.isEmpty) None
     else {
@@ -262,81 +265,18 @@ case object ScalaPreprocessor extends Preprocessor {
     }
   }
 
-  private def checkForAmmoniteImports(
-    content: String,
-    path: Either[String, os.Path]
-  ): Either[BuildException, Unit] = {
-
-    import fastparse.*
-
-    import scala.build.internal.ScalaParse.*
-
-    val res = parse(content, Header(_))
-
-    val indicesOrFailingIdx0 = res.fold((_, idx, _) => Left(idx), (value, _) => Right(value))
-
-    val indicesOrErrorMsg = indicesOrFailingIdx0 match {
-      case Left(failingIdx) =>
-        val newCode = content.take(failingIdx)
-        val res1    = parse(newCode, Header(_))
-        res1 match {
-          case f: Parsed.Failure =>
-            val msg = formatFastparseError(Util.printablePath(path), content, f)
-            Left(msg)
-          case s: Parsed.Success[Seq[(Int, Int)]] =>
-            Right(s.value)
-        }
-      case Right(ind) =>
-        Right(ind)
-    }
-
-    // TODO Report error if indicesOrErrorMsg.isLeft?
-
-    val importTrees = indicesOrErrorMsg
-      .toSeq
-      .iterator
-      .flatMap(_.iterator)
-      .flatMap {
-        case (start, end) =>
-          val code      = content.substring(start, end) // .trim // meh
-          val importRes = parse(code, ImportSplitter(_))
-          importRes.fold((_, _, _) => Iterator.empty, (trees, _) => trees.iterator).map { tree =>
-            (start, tree.copy(start = start + tree.start, end = start + tree.end))
-          }
-      }
-      .toVector
-
-    val dependencyTrees = importTrees.filter { case (_, t) =>
-      val firstSegmentOpt = t.prefix.headOption
-      (firstSegmentOpt.contains("$ivy") || firstSegmentOpt.contains("$dep")) &&
-      t.prefix.lengthCompare(1) > 0
-    }
-
-    if (dependencyTrees.nonEmpty) {
-      val toFilePos = Position.Raw.filePos(path, content)
-      val exceptions = for {
-        (importStart, t) <- dependencyTrees
-        pos           = toFilePos(Position.Raw(importStart, t.end))
-        dep           = t.prefix.drop(1).mkString(".")
-        newImportText = s"//> using dep \"$dep\""
-      } yield new UnsupportedAmmoniteImportError(Seq(pos), newImportText)
-
-      Left(CompositeBuildException(exceptions))
-    }
-    else Right(())
-  }
-
   private def processStrictUsing(
     content: String,
     extractedDirectives: ExtractedDirectives,
     path: Either[String, os.Path],
     cwd: ScopePath,
     logger: Logger,
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
     val contentChars = content.toCharArray
 
-    val ExtractedDirectives(codeOffset, directives0, directivesPositions) = extractedDirectives
+    val ExtractedDirectives(directives0, directivesPositions) = extractedDirectives
 
     val updatedOptions = value {
       DirectivesProcessor.process(
@@ -345,7 +285,8 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       )
     }
 
@@ -358,25 +299,12 @@ case object ScalaPreprocessor extends Preprocessor {
         path,
         cwd,
         logger,
-        allowRestrictedFeatures
+        allowRestrictedFeatures,
+        suppressWarningOptions
       )
     }
 
     val unusedDirectives = updatedRequirements.unused
-
-    val updatedContentOpt =
-      if (codeOffset > 0) {
-        val headerBytes = contentChars
-          .iterator
-          .take(codeOffset)
-          .map(c => if (c.isControl) c else ' ')
-          .toArray
-        val mainBytes      = contentChars.drop(codeOffset)
-        val updatedContent = new String(headerBytes ++ mainBytes)
-        if (updatedContent == content) None
-        else Some(updatedContent)
-      }
-      else None
 
     value {
       unusedDirectives match {
@@ -385,7 +313,7 @@ case object ScalaPreprocessor extends Preprocessor {
             updatedRequirements.global,
             updatedOptions.global,
             updatedRequirements.scoped,
-            updatedContentOpt,
+            strippedContent = None,
             directivesPositions
           ))
         case Seq(h, t*) =>
@@ -409,9 +337,6 @@ case object ScalaPreprocessor extends Preprocessor {
       values.flatMap(_.positions)
     )
   }
-
-  val changeToSpecialCommentMsg =
-    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...' or '/*> ... */'"
 
   private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
     DependencyParser.parse(str) match {

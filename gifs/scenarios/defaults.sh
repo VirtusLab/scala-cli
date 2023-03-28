@@ -27,7 +27,7 @@ EOF
   pe 'scala-cli fmt .'
   p "cat Main.scala"
   rougify --theme tulip Main.scala
-  pe 'scala-cli package .'
+  pe 'scala-cli --power package .'
   doSleep 4
   echo " " && echo "ok" > status.txt
 fi

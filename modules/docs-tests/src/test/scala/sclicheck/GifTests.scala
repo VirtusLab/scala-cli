@@ -29,7 +29,7 @@ class GifTests extends munit.FunSuite {
   lazy val ttyOpts = if (hasTty) Seq("-it") else Nil
 
   def buildImages      = true
-  def forceBuildImages = false
+  def forceBuildImages = true
 
   def columns = 70
   def rows    = 20
@@ -44,8 +44,11 @@ class GifTests extends munit.FunSuite {
         res.out.trim().nonEmpty
       }
       if (forceBuildImages || !hasImage("gif-renderer"))
+        val scalaCliJvmPath = gifRenderedDockerDir / "scala-cli-jvm"
+        os.copy.over(TestUtil.scalaCliPath, scalaCliJvmPath)
         os.proc("docker", "build", gifRenderedDockerDir, "--tag", "gif-renderer")
           .call(stdin = os.Inherit, stdout = os.Inherit)
+        os.remove(scalaCliJvmPath)
       if (forceBuildImages || !hasImage("svg_rendrer"))
         os.proc("docker", "build", svgRenderedDockerDir, "--tag", "svg_rendrer")
           .call(stdin = os.Inherit, stdout = os.Inherit)

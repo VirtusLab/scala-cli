@@ -20,6 +20,7 @@ import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object Doc extends ScalaCommand[DocOptions] {
@@ -41,7 +42,7 @@ object Doc extends ScalaCommand[DocOptions] {
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 
-    val configDb = options.shared.configDb.orExit(logger)
+    val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

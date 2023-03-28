@@ -2,18 +2,24 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalOptions,
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  LoggingOptions
+}
 
 // format: off
 final case class PgpPullOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Group(HelpGroup.PGP.toString)
   @HelpMessage("Whether to exit with code 0 if no key is passed")
     allowEmpty: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object PgpPullOptions {

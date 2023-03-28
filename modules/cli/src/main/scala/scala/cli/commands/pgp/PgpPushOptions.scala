@@ -2,18 +2,12 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.cli.commands.shared.{
-  CoursierOptions,
-  HasLoggingOptions,
-  HelpGroup,
-  LoggingOptions,
-  SharedJvmOptions
-}
+import scala.cli.commands.shared._
 
 // format: off
 final case class PgpPushOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     shared: SharedPgpPushPullOptions = SharedPgpPushPullOptions(),
   @Recurse
@@ -33,7 +27,7 @@ final case class PgpPushOptions(
   @Group(HelpGroup.PGP.toString)
   @Hidden
     forceSigningBinary: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object PgpPushOptions {

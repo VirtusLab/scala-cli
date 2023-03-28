@@ -96,7 +96,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
         case Right((options0, remainingArgs0)) => (options0, remainingArgs0)
       }
 
-    val logger = options.logging.logger
+    val logger = options.global.logging.logger
 
     val cache = options.coursier.coursierCache(logger.coursierLogger(""))
     val retCode = tryRun(

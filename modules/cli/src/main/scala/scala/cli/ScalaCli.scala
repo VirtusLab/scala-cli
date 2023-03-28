@@ -14,6 +14,7 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.cli.publish.BouncycastleSignerMaker
+import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object ScalaCli {
@@ -36,7 +37,7 @@ object ScalaCli {
   private val scalaCliBinaryName = "scala-cli"
   private var isSipScala = {
     lazy val isPowerConfigDb = for {
-      configDb   <- ConfigDb.open(Directories.directories.dbPath.toNIO).toOption
+      configDb   <- ConfigDbUtils.configDb.toOption
       powerEntry <- configDb.get(Keys.power).toOption
       power      <- powerEntry
     } yield power

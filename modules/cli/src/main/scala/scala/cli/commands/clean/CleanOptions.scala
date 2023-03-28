@@ -3,24 +3,18 @@ package scala.cli.commands.clean
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{
-  HasLoggingOptions,
-  HelpMessages,
-  LoggingOptions,
-  SharedBspFileOptions,
-  SharedWorkspaceOptions
-}
+import scala.cli.commands.shared._
 
 // format: off
 @HelpMessage(CleanOptions.helpMessage, "", CleanOptions.detailedHelpMessage)
 final case class CleanOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Recurse
     bspFile: SharedBspFileOptions = SharedBspFileOptions(),
   @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions()
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object CleanOptions {

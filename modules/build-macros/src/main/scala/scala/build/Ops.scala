@@ -144,4 +144,47 @@ object Ops {
           Left(errors0)
       }
   }
+
+  implicit class EitherMap6[
+    Ex <: Throwable,
+    ExA <: Ex,
+    ExB <: Ex,
+    ExC <: Ex,
+    ExD <: Ex,
+    ExE <: Ex,
+    ExF <: Ex,
+    A,
+    B,
+    C,
+    D,
+    E,
+    F
+  ](
+    private val eithers: (
+      Either[ExA, A],
+      Either[ExB, B],
+      Either[ExC, C],
+      Either[ExD, D],
+      Either[ExE, E],
+      Either[ExF, F]
+    )
+  ) extends AnyVal {
+    def traverseN: Either[::[Ex], (A, B, C, D, E, F)] =
+      eithers match {
+        case (Right(a), Right(b), Right(c), Right(d), Right(e), Right(f)) =>
+          Right((a, b, c, d, e, f))
+        case _ =>
+          val errors = eithers._1.left.toOption.toSeq ++
+            eithers._2.left.toOption.toSeq ++
+            eithers._3.left.toOption.toSeq ++
+            eithers._4.left.toOption.toSeq ++
+            eithers._5.left.toOption.toSeq ++
+            eithers._6.left.toOption.toSeq
+          val errors0 = errors.toList match {
+            case Nil    => sys.error("Cannot happen")
+            case h :: t => ::(h, t)
+          }
+          Left(errors0)
+      }
+  }
 }

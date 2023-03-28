@@ -3,7 +3,14 @@ package scala.cli.commands.version
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasLoggingOptions, HelpGroup, HelpMessages, LoggingOptions}
+import scala.cli.commands.shared.{
+  GlobalOptions,
+  GlobalSuppressWarningOptions,
+  HasGlobalOptions,
+  HelpGroup,
+  HelpMessages,
+  LoggingOptions
+}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
@@ -12,7 +19,7 @@ import scala.cli.signing.util.ArgParsers.*
 @HelpMessage(VersionOptions.helpMessage, "", VersionOptions.detailedHelpMessage)
 final case class VersionOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions(),
+    global: GlobalOptions = GlobalOptions(),
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   @Group(HelpGroup.Version.toString)
@@ -34,7 +41,7 @@ final case class VersionOptions(
   @Tag(tags.inShortHelp)
   @HelpMessage(s"Don't check for the newest available $fullRunnerName version upstream")
     offline: Boolean = false
-) extends HasLoggingOptions
+) extends HasGlobalOptions
 // format: on
 
 object VersionOptions {

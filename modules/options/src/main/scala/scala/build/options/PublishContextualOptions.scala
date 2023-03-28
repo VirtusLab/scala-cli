@@ -14,6 +14,7 @@ final case class PublishContextualOptions(
   signer: Option[Signer] = None,
   secretKey: Option[ConfigPasswordOption] = None,
   secretKeyPassword: Option[ConfigPasswordOption] = None,
+  publicKey: Option[ConfigPasswordOption] = None,
   repoUser: Option[PasswordOption] = None,
   repoPassword: Option[PasswordOption] = None,
   repoRealm: Option[String] = None,

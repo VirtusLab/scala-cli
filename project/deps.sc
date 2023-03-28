@@ -106,7 +106,7 @@ object Deps {
   def coursierJvm        = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher   = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.3"
+  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.4"
   def dependency         = ivy"io.get-coursier::dependency:0.2.2"
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
@@ -182,7 +182,7 @@ object Deps {
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
   def toolkit         = ivy"org.scala-lang:toolkit:0.1.6"
-  def usingDirectives = ivy"org.virtuslab:using_directives:0.0.10"
+  def usingDirectives = ivy"org.virtuslab:using_directives:0.1.0"
   // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround

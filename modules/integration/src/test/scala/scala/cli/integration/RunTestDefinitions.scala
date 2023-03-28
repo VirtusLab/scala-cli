@@ -854,11 +854,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       user: String,
       password: String
     ): Unit = {
-      os.proc(TestUtil.cli, "config", "httpProxy.address", s"http://$host:$port")
+      os.proc(TestUtil.cli, "--power", "config", "httpProxy.address", s"http://$host:$port")
         .call(cwd = cwd, env = env)
-      os.proc(TestUtil.cli, "config", "httpProxy.user", s"value:$user")
+      os.proc(TestUtil.cli, "--power", "config", "httpProxy.user", s"value:$user")
         .call(cwd = cwd, env = env)
-      os.proc(TestUtil.cli, "config", "httpProxy.password", s"value:$password")
+      os.proc(TestUtil.cli, "--power", "config", "httpProxy.password", s"value:$password")
         .call(cwd = cwd, env = env)
     }
     val image = Constants.authProxyTestImage

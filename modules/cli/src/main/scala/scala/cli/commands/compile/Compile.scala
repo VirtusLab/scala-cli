@@ -16,7 +16,7 @@ import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
-
+import scala.cli.util.ConfigDbUtils
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def group: String = HelpCommandGroup.Main.toString
 
@@ -92,7 +92,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
     val threads = BuildThreads.create()
 
     val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
-    val configDb      = options.shared.configDb.orExit(logger)
+    val configDb      = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

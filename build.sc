@@ -40,7 +40,7 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli extends Cli
 
-object `specification-level` extends SpecificationLevel
+object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
 object `build-macros`        extends BuildMacros
 object config                extends Cross[Config](Scala.all: _*)
 object options               extends Options
@@ -439,7 +439,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     options,
     core,
     `build-macros`,
-    `specification-level`
+    `specification-level`(Scala.scala3)
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -498,6 +498,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
 class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def moduleDeps = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
@@ -662,16 +663,15 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-trait SpecificationLevel extends SbtModule with ScalaCliPublishModule {
+class SpecificationLevel(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule {
   def scalacOptions = T {
-    val sv         = scalaVersion()
-    val isScala213 = sv.startsWith("2.13.")
+    val isScala213 = crossScalaVersion.startsWith("2.13.")
     val extraOptions =
       if (isScala213) Seq("-Xsource:3")
       else Nil
-    super.scalacOptions() ++ extraOptions
+    super.scalacOptions() ++ extraOptions ++ Seq("-release", "8")
   }
-  def scalaVersion = Scala.defaultInternal
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
@@ -766,7 +766,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     `build-module`,
     config(Scala.scala3),
     `scala3-graal`(Scala.scala3),
-    `specification-level`
+    `specification-level`(Scala.scala3)
   )
 
   def repositories = super.repositories ++ customRepositories

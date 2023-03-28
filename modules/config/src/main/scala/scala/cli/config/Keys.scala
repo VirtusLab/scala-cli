@@ -3,6 +3,7 @@ package scala.cli.config
 import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _, _}
 import com.github.plokhotnyuk.jsoniter_scala.macros._
 
+import scala.cli.commands.SpecificationLevel
 import scala.collection.mutable.ListBuffer
 
 object Keys {
@@ -10,44 +11,45 @@ object Keys {
   val userName = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "name",
-    description = "The 'name' user detail, used for publishing.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "The 'name' user detail, used for publishing."
   )
   val userEmail = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "email",
-    description = "The 'email' user detail, used for publishing.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "The 'email' user detail, used for publishing."
   )
   val userUrl = new Key.StringEntry(
     prefix = Seq("publish", "user"),
     name = "url",
-    description = "The 'url' user detail, used for publishing.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "The 'url' user detail, used for publishing."
   )
 
   val ghToken = new Key.PasswordEntry(
     prefix = Seq("github"),
     name = "token",
-    description = "GitHub token.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "GitHub token."
   )
 
   val pgpSecretKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key",
-    description = "The PGP secret key, used for signing.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "The PGP secret key, used for signing."
   )
   val pgpSecretKeyPassword = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "secret-key-password",
-    description = "The PGP secret key password, used for signing.",
-    hidden = true
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "The PGP secret key password, used for signing."
   )
   val pgpPublicKey = new Key.PasswordEntry(
     prefix = Seq("pgp"),
     name = "public-key",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
     description = "The PGP public key, used for signing.",
     hidden = true
   )
@@ -55,16 +57,19 @@ object Keys {
   val actions = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "actions",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Globally enables actionable diagnostics. Enabled by default."
   )
   val interactive = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Globally enables interactive mode (the '--interactive' flag)."
   )
   val power = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "power",
+    specificationLevel = SpecificationLevel.MUST,
     description = "Globally enables power mode (the '--power' launcher flag)."
   )
 
@@ -72,6 +77,7 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "directives-in-multiple-files",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description =
         "Globally suppresses warnings about directives declared in multiple source files."
     )
@@ -79,26 +85,34 @@ object Keys {
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
       name = "outdated-dependencies-files",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about outdated dependencies."
+    )
+  val suppressExperimentalFeatureWarning =
+    new Key.BooleanEntry(
+      prefix = Seq("suppress-warning"),
+      name = "experimental-features",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
+      description = "Globally suppresses warnings about experimental features."
     )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
     name = "address",
-    description = "HTTP proxy address.",
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED,
+    description = "HTTP proxy address."
   )
   val proxyUser = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "user",
-    description = "HTTP proxy user (used for authentication).",
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED,
+    description = "HTTP proxy user (used for authentication)."
   )
   val proxyPassword = new Key.PasswordEntry(
     prefix = Seq("httpProxy"),
     name = "password",
-    description = "HTTP proxy password (used for authentication).",
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED,
+    description = "HTTP proxy password (used for authentication)."
   )
 
   val repositoryMirrors = new Key.StringListEntry(
@@ -106,14 +120,14 @@ object Keys {
     name = "mirrors",
     description =
       s"Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven",
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED
   )
   val defaultRepositories = new Key.StringListEntry(
     prefix = Seq("repositories"),
     name = "default",
     description =
       "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com",
-    hidden = true
+    specificationLevel = SpecificationLevel.RESTRICTED
   )
 
   // Kept for binary compatibility
@@ -123,6 +137,7 @@ object Keys {
   val globalInteractiveWasSuggested = new Key.BooleanEntry(
     prefix = Seq.empty,
     name = "interactive-was-suggested",
+    specificationLevel = SpecificationLevel.IMPLEMENTATION,
     description = "Setting indicating if the global interactive mode was already suggested.",
     hidden = true
   )
@@ -135,6 +150,7 @@ object Keys {
     interactive,
     suppressDirectivesInMultipleFilesWarning,
     suppressOutdatedDependenciessWarning,
+    suppressExperimentalFeatureWarning,
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,
@@ -209,8 +225,10 @@ object Keys {
 
   val repositoryCredentials: Key[List[RepositoryCredentials]] =
     new Key[List[RepositoryCredentials]] {
-      override val description: String = "Repository credentials, syntax: value:user value:password"
-      override val hidden: Boolean     = true
+      override val description: String =
+        "Repository credentials, syntax: repositoryAddress value:user value:password [realm]"
+
+      override def specificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
 
       private def asJson(credentials: RepositoryCredentials): RepositoryCredentialsAsJson =
         RepositoryCredentialsAsJson(
@@ -334,8 +352,9 @@ object Keys {
 
   val publishCredentials: Key[List[PublishCredentials]] = new Key[List[PublishCredentials]] {
     override val description: String =
-      "Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password"
-    override val hidden: Boolean = true
+      "Publishing credentials, syntax: repositoryAddress value:user value:password [realm]"
+
+    override def specificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
     private def asJson(credentials: PublishCredentials): PublishCredentialsAsJson =
       PublishCredentialsAsJson(

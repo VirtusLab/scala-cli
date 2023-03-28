@@ -14,20 +14,32 @@ class ConfigTests extends ScalaCliSuite {
     val name       = "Alex"
     TestInputs.empty.fromRoot { root =>
       val before =
-        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
+        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+          cwd = root,
+          env = configEnv
+        )
       expect(before.out.trim().isEmpty)
 
-      os.proc(TestUtil.cli, "config", "publish.user.name", name).call(cwd = root, env = configEnv)
+      os.proc(TestUtil.cli, "--power", "config", "publish.user.name", name).call(
+        cwd = root,
+        env = configEnv
+      )
       val res =
-        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
+        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+          cwd = root,
+          env = configEnv
+        )
       expect(res.out.trim() == name)
 
-      os.proc(TestUtil.cli, "config", "publish.user.name", "--unset").call(
+      os.proc(TestUtil.cli, "--power", "config", "publish.user.name", "--unset").call(
         cwd = root,
         env = configEnv
       )
       val after =
-        os.proc(TestUtil.cli, "config", "publish.user.name").call(cwd = root, env = configEnv)
+        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+          cwd = root,
+          env = configEnv
+        )
       expect(after.out.trim().isEmpty)
     }
   }
@@ -40,17 +52,17 @@ class ConfigTests extends ScalaCliSuite {
     TestInputs.empty.fromRoot { root =>
 
       def emptyCheck(): Unit = {
-        val value = os.proc(TestUtil.cli, "config", key)
+        val value = os.proc(TestUtil.cli, "--power", "config", key)
           .call(cwd = root, env = configEnv)
         expect(value.out.trim().isEmpty)
       }
 
       def unset(): Unit =
-        os.proc(TestUtil.cli, "config", key, "--unset")
+        os.proc(TestUtil.cli, "--power", "config", key, "--unset")
           .call(cwd = root, env = configEnv)
 
       def read(): String = {
-        val res = os.proc(TestUtil.cli, "config", key)
+        val res = os.proc(TestUtil.cli, "--power", "config", key)
           .call(cwd = root, env = configEnv)
         res.out.trim()
       }
@@ -62,14 +74,14 @@ class ConfigTests extends ScalaCliSuite {
 
       emptyCheck()
 
-      os.proc(TestUtil.cli, "config", key, s"value:$password")
+      os.proc(TestUtil.cli, "--power", "config", key, s"value:$password")
         .call(cwd = root, env = configEnv)
       expect(read() == s"value:$password")
       expect(readDecoded() == password)
       unset()
       emptyCheck()
 
-      os.proc(TestUtil.cli, "config", key, "env:MY_PASSWORD")
+      os.proc(TestUtil.cli, "--power", "config", key, "env:MY_PASSWORD")
         .call(cwd = root, env = configEnv)
       expect(read() == "env:MY_PASSWORD")
       expect(readDecoded(env = Map("MY_PASSWORD" -> password)) == password)
@@ -111,7 +123,7 @@ class ConfigTests extends ScalaCliSuite {
         Map("SCALA_CLI_CONFIG" -> confFile.toString) ++
           TestUtil.putCsInPathViaEnv(root / "bin")
 
-      val res = os.proc(TestUtil.cli, "config", "httpProxy.address")
+      val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address")
         .call(cwd = root, env = extraEnv)
       val value = res.out.trim()
       expect(value == proxyAddr)
@@ -146,7 +158,7 @@ class ConfigTests extends ScalaCliSuite {
       val confFile = confDir / "test-config.json"
       val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
-      val res = os.proc(TestUtil.cli, "config", "httpProxy.address", proxyAddr)
+      val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address", proxyAddr)
         .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
       val output = res.out.trim()
       expect(output.contains(" has wrong permissions"))
@@ -174,10 +186,10 @@ class ConfigTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--email", "alex@alex.me")
         .call(cwd = root, env = extraEnv, stdin = os.Inherit, stdout = os.Inherit)
 
-      val password = os.proc(TestUtil.cli, "config", "pgp.secret-key-password")
+      val password = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
         .call(cwd = root, env = extraEnv)
         .out.trim()
-      val secretKey = os.proc(TestUtil.cli, "config", "pgp.secret-key")
+      val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
         .call(cwd = root, env = extraEnv)
         .out.trim()
       val rawPublicKey = os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password")
@@ -266,6 +278,7 @@ class ConfigTests extends ScalaCliSuite {
       TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
         os.proc(
           TestUtil.cli,
+          "--power",
           "config",
           "repositories.credentials",
           host,
@@ -286,6 +299,41 @@ class ConfigTests extends ScalaCliSuite {
           .call(cwd = root, env = extraEnv)
         val output = res.out.trim()
         expect(output == "Hello TestUser")
+      }
+    }
+  }
+
+  test("password-value in credentials") {
+    val configFile         = os.rel / "config" / "config.json"
+    val passwordEnvVarName = "REPO_PASSWORD"
+    val userEnvVarName     = "REPO_USER"
+    val password           = "1234"
+    val user               = "user"
+    val envVars = Map(
+      userEnvVarName     -> user,
+      passwordEnvVarName -> password
+    )
+    val configEnv = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+
+    val keys = List("repositories.credentials", "publish.credentials")
+    TestInputs.empty.fromRoot { root =>
+      for (key <- keys) {
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          key,
+          "s1.oss.sonatype.org",
+          s"env:$userEnvVarName",
+          s"env:$passwordEnvVarName",
+          "--password-value"
+        )
+          .call(cwd = root, env = configEnv ++ envVars)
+        val credsFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
+          .call(cwd = root, env = configEnv)
+          .out.trim()
+        expect(credsFromConfig.contains(password))
+        expect(credsFromConfig.contains(user))
       }
     }
   }

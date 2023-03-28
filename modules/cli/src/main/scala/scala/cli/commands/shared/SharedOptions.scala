@@ -17,7 +17,7 @@ import scala.build.*
 import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
-import scala.build.errors.{AmbiguousPlatformError, BuildException}
+import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
@@ -30,7 +30,7 @@ import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{
-  HasLoggingOptions,
+  HasGlobalOptions,
   ScalaJsOptions,
   ScalaNativeOptions,
   SharedOptions,
@@ -39,7 +39,8 @@ import scala.cli.commands.shared.{
 import scala.cli.commands.tags
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.Key.BooleanEntry
-import scala.cli.config.{ConfigDb, ConfigDbException, Keys}
+import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.util.ConfigDbUtils
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
@@ -171,10 +172,6 @@ final case class SharedOptions(
   @Tag(tags.should)
   @HelpMessage("Generate SemanticDBs")
     semanticDb: Option[Boolean] = None,
-  @Hidden
-  @Tag(tags.implementation)
-  @HelpMessage("Add dependency for stubs needed to make $ivy and $dep imports to work.")
-    addStubs: Option[Boolean] = None,
 
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
@@ -201,10 +198,12 @@ final case class SharedOptions(
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
     withToolkit: Option[String] = None
-) extends HasLoggingOptions {
+) extends HasGlobalOptions {
   // format: on
 
   def logger: Logger = logging.logger
+  override def global: GlobalOptions =
+    GlobalOptions(logging = logging, globalSuppress = suppress.global)
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._
@@ -293,13 +292,17 @@ final case class SharedOptions(
     bo.BuildOptions(
       suppressWarningOptions =
         bo.SuppressWarningOptions(
-          getOptionOrFromConfig(
+          suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
             suppress.suppressDirectivesInMultipleFilesWarning,
             Keys.suppressDirectivesInMultipleFilesWarning
           ),
-          getOptionOrFromConfig(
+          suppressOutdatedDependencyWarning = getOptionOrFromConfig(
             suppress.suppressOutdatedDependencyWarning,
             Keys.suppressOutdatedDependenciessWarning
+          ),
+          suppressExperimentalFeatureWarning = getOptionOrFromConfig(
+            suppress.global.suppressExperimentalFeatureWarning,
+            Keys.suppressExperimentalFeatureWarning
           )
         ),
       scalaOptions = bo.ScalaOptions(
@@ -353,8 +356,7 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
-        interactive = Some(() => interactive),
-        addStubsDependencyOpt = addStubs
+        interactive = Some(() => interactive)
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
@@ -390,7 +392,7 @@ final case class SharedOptions(
   def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
 
   def globalInteractiveWasSuggested: Either[BuildException, Option[Boolean]] = either {
-    value(configDb).get(Keys.globalInteractiveWasSuggested) match {
+    value(ConfigDbUtils.configDb).get(Keys.globalInteractiveWasSuggested) match {
       case Right(opt) => opt
       case Left(ex) =>
         logger.debug(ConfigDbException(ex))
@@ -401,7 +403,7 @@ final case class SharedOptions(
   def interactive: Either[BuildException, Interactive] = either {
     (
       logging.verbosityOptions.interactive,
-      value(configDb).get(Keys.interactive) match {
+      value(ConfigDbUtils.configDb).get(Keys.interactive) match {
         case Right(opt) => opt
         case Left(ex) =>
           logger.debug(ConfigDbException(ex))
@@ -419,7 +421,7 @@ final case class SharedOptions(
           answers
         ) match {
           case Some(answer) if answer == yesAnswer =>
-            val configDb0 = value(configDb)
+            val configDb0 = value(ConfigDbUtils.configDb)
             value {
               configDb0
                 .set(Keys.interactive, true)
@@ -434,7 +436,7 @@ final case class SharedOptions(
               s"If you want to turn this setting off at any point, just run `${ScalaCli.baseRunnerName} config interactive false`."
             )
           case _ =>
-            val configDb0 = value(configDb)
+            val configDb0 = value(ConfigDbUtils.configDb)
             value {
               configDb0
                 .set(Keys.globalInteractiveWasSuggested, true)
@@ -452,7 +454,7 @@ final case class SharedOptions(
 
   def getOptionOrFromConfig(cliOption: Option[Boolean], configDbKey: BooleanEntry) =
     cliOption.orElse(
-      configDb.map(_.get(configDbKey))
+      ConfigDbUtils.configDb.map(_.get(configDbKey))
         .map {
           case Right(opt) => opt
           case Left(ex) =>
@@ -461,10 +463,6 @@ final case class SharedOptions(
         }
         .getOrElse(None)
     )
-
-  def configDb: Either[BuildException, ConfigDb] =
-    ConfigDb.open(Directories.directories.dbPath.toNIO)
-      .wrapConfigException
 
   def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
     implicit val ec: ExecutionContextExecutorService = options.finalCache.ec

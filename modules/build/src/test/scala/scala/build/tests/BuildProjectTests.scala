@@ -84,9 +84,10 @@ class BuildProjectTests extends munit.FunSuite {
       )
     )
 
-    val inputs  = Inputs.empty("project")
-    val sources = Sources(Nil, Nil, None, Nil, options)
-    val logger  = new LoggerMock()
+    val inputs    = Inputs.empty("project")
+    val sources   = Sources(Nil, Nil, None, Nil, options)
+    val logger    = new LoggerMock()
+    val artifacts = options.artifacts(logger, Scope.Test).orThrow
     val res = Build.buildProject(
       inputs,
       sources,
@@ -94,7 +95,8 @@ class BuildProjectTests extends munit.FunSuite {
       options,
       Some(Positioned(bloopJavaPath, bloopJvmVersion)),
       Scope.Test,
-      logger
+      logger,
+      artifacts
     )
 
     val scalaCompilerOptions = res.fold(throw _, identity)
@@ -169,12 +171,13 @@ class BuildProjectTests extends munit.FunSuite {
         LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
       )
     )
-    val inputs  = Inputs.empty("project")
-    val sources = Sources(Nil, Nil, None, Nil, options)
-    val logger  = new LoggerMock()
+    val inputs    = Inputs.empty("project")
+    val sources   = Sources(Nil, Nil, None, Nil, options)
+    val logger    = new LoggerMock()
+    val artifacts = options.artifacts(logger, Scope.Test).orThrow
 
     val project =
-      Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger).orThrow
+      Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger, artifacts).orThrow
 
     expect(project.workspace == inputs.workspace)
   }

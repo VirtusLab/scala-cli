@@ -17,6 +17,14 @@ You can pass it explicitly or set it globally by running:
 scala-cli config power true
 :::
 
+:::caution
+The `export` sub-command is an experimental feature.
+
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team
+on [GitHub](https://github.com/VirtusLab/scala-cli).
+:::
+
 The project configuration is read both from information specified in source files
 as well as options passed to the `export` sub-command.
 

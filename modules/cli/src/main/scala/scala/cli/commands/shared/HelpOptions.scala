@@ -6,8 +6,8 @@ import caseapp.*
 @HelpMessage("Print help message")
 case class HelpOptions(
   @Recurse
-    logging: LoggingOptions = LoggingOptions()
-) extends HasLoggingOptions
+     global: GlobalOptions = GlobalOptions(),
+) extends HasGlobalOptions
 // format: on
 
 object HelpOptions {

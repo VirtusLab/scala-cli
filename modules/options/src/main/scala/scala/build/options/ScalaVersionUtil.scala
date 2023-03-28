@@ -20,7 +20,7 @@ import scala.build.errors.{
 }
 import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.internal.{Constants, Util}
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -45,17 +45,23 @@ object ScalaVersionUtil {
         }
       }
 
-    def versionsWithTtl0(
+    def versions(
       module: Module,
-      repositories: Seq[Repository] = Seq.empty
+      repositories: Seq[Repository] = Seq.empty,
+      ttl: Option[Duration] = None
     ): Versions.Result =
-      cache.withTtl(0.seconds).logger.use {
-        Versions(cache)
+      val cacheWithTtl = ttl.map(cache.withTtl).getOrElse(cache)
+      cacheWithTtl.logger.use {
+        Versions(cacheWithTtl)
           .withModule(module)
           .addRepositories(repositories: _*)
           .result()
-          .unsafeRun()(cache.ec)
+          .unsafeRun()(cacheWithTtl.ec)
       }
+    def versionsWithTtl0(
+      module: Module,
+      repositories: Seq[Repository] = Seq.empty
+    ): Versions.Result = versions(module, repositories, Some(0.seconds))
   }
 
   extension (versionsResult: Versions.Result) {

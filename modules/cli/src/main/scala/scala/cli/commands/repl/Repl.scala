@@ -25,6 +25,7 @@ import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -165,7 +166,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       )
 
     val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
-    val configDb = options.shared.configDb.orExit(logger)
+    val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -351,7 +352,9 @@ object Repl extends ScalaCommand[ReplOptions] {
           scope = scope,
           sources = Sources(Nil, Nil, None, Nil, options),
           artifacts = artifacts,
-          project = value(Build.buildProject(inputs, sources, Nil, options, None, scope, logger)),
+          project = value(
+            Build.buildProject(inputs, sources, Nil, options, None, scope, logger, artifacts)
+          ),
           output = classDir.getOrElse(ws),
           diagnostics = None,
           generatedSources = Nil,

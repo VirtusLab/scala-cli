@@ -8,10 +8,12 @@ import java.util.Base64
 
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
+import scala.build.internal.util.WarningMessages
 import scala.build.{Directories, Logger}
+import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.shared.{HelpGroup, HelpMessages}
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{
@@ -23,6 +25,7 @@ import scala.cli.config.{
   Secret
 }
 import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ConfigDbUtils
 object Config extends ScalaCommand[ConfigOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
 
@@ -38,9 +41,7 @@ object Config extends ScalaCommand[ConfigOptions] {
       System.out.write(content)
     }
     else {
-      val db = ConfigDb.open(directories.dbPath.toNIO)
-        .wrapConfigException
-        .orExit(logger)
+      val db = ConfigDbUtils.configDb.orExit(logger)
 
       def unrecognizedKey(key: String): Nothing = {
         System.err.println(s"Error: unrecognized key $key")
@@ -100,7 +101,13 @@ object Config extends ScalaCommand[ConfigOptions] {
         case Seq(name, values @ _*) =>
           Keys.map.get(name) match {
             case None => unrecognizedKey(name)
+            case Some(powerEntry)
+                if (powerEntry.isRestricted || powerEntry.isExperimental) && !allowRestrictedFeatures =>
+              logger.error(HelpMessages.powerConfigKeyUsedInSip(powerEntry))
+              sys.exit(1)
             case Some(entry) =>
+              if entry.isExperimental && !shouldSuppressExperimentalFeatureWarnings then
+                logger.message(WarningMessages.experimentalConfigKeyUsed(entry.fullName))
               if (values.isEmpty)
                 if (options.unset) {
                   db.remove(entry)
@@ -186,16 +193,29 @@ object Config extends ScalaCommand[ConfigOptions] {
                         .traverseN
                         .left.map(CompositeBuildException(_))
                         .orExit(logger)
-                      val credentials = RepositoryCredentials(
-                        host,
-                        userOpt,
-                        passwordOpt,
-                        realm = realmOpt,
-                        optional = options.optional,
-                        matchHost = options.matchHost.orElse(Some(true)),
-                        httpsOnly = options.httpsOnly,
-                        passOnRedirect = options.passOnRedirect
-                      )
+                      val credentials =
+                        if (options.passwordValue)
+                          RepositoryCredentials(
+                            host,
+                            userOpt.map(user => PasswordOption.Value(user.get())),
+                            passwordOpt.map(password => PasswordOption.Value(password.get())),
+                            realm = realmOpt,
+                            optional = options.optional,
+                            matchHost = options.matchHost.orElse(Some(true)),
+                            httpsOnly = options.httpsOnly,
+                            passOnRedirect = options.passOnRedirect
+                          )
+                        else
+                          RepositoryCredentials(
+                            host,
+                            userOpt,
+                            passwordOpt,
+                            realm = realmOpt,
+                            optional = options.optional,
+                            matchHost = options.matchHost.orElse(Some(true)),
+                            httpsOnly = options.httpsOnly,
+                            passOnRedirect = options.passOnRedirect
+                          )
                       val previousValueOpt =
                         db.get(Keys.repositoryCredentials).wrapConfigException.orExit(logger)
                       val newValue = credentials :: previousValueOpt.getOrElse(Nil)
@@ -221,7 +241,15 @@ object Config extends ScalaCommand[ConfigOptions] {
                       .left.map(CompositeBuildException(_))
                       .orExit(logger)
                     val credentials =
-                      PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
+                      if (options.passwordValue)
+                        PublishCredentials(
+                          host,
+                          userOpt.map(user => PasswordOption.Value(user.get())),
+                          passwordOpt.map(password => PasswordOption.Value(password.get())),
+                          realm = realmOpt
+                        )
+                      else
+                        PublishCredentials(host, userOpt, passwordOpt, realm = realmOpt)
                     val previousValueOpt =
                       db.get(Keys.publishCredentials).wrapConfigException.orExit(logger)
                     val newValue = credentials :: previousValueOpt.getOrElse(Nil)

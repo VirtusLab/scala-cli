@@ -306,6 +306,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -518,10 +524,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -596,14 +598,15 @@ Available keys:
   - pgp.secret-key                                 The PGP secret key, used for signing.
   - pgp.secret-key-password                        The PGP secret key password, used for signing.
   - power                                          Globally enables power mode (the '--power' launcher flag).
-  - publish.credentials                            Publishing credentials, syntax: s1.oss.sonatype.org value:user value:password
+  - publish.credentials                            Publishing credentials, syntax: repositoryAddress value:user value:password [realm]
   - publish.user.email                             The 'email' user detail, used for publishing.
   - publish.user.name                              The 'name' user detail, used for publishing.
   - publish.user.url                               The 'url' user detail, used for publishing.
-  - repositories.credentials                       Repository credentials, syntax: value:user value:password
+  - repositories.credentials                       Repository credentials, syntax: repositoryAddress value:user value:password [realm]
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
+  - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
@@ -695,6 +698,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--ttl**
 
@@ -987,6 +996,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -1198,10 +1213,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -1514,6 +1525,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -1725,10 +1742,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -2071,6 +2084,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -2282,10 +2301,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -2637,6 +2652,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -2848,10 +2869,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -3161,6 +3178,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3372,10 +3395,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 **--runner**
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 **--default-forbidden-directories**
 
@@ -3760,6 +3779,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3972,10 +3997,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -4090,6 +4111,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--cli-version**
 
@@ -4354,6 +4381,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4566,10 +4599,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -4679,6 +4708,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--bsp-directory**
 
 Custom BSP configuration location
@@ -4752,6 +4787,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 </details>
 
 ---
@@ -4812,6 +4853,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--format**
 
@@ -4897,6 +4944,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--scala-cli-binary-path**
 
@@ -5167,6 +5220,12 @@ Aliases: `--suppress-warning-directives-in-multiple-files`
 
 Suppress warnings about outdated dependencies in project
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -5379,10 +5438,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-**--add-stubs**
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
-
 **--default-forbidden-directories**
 
 
@@ -5501,6 +5556,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--bloop-bsp-protocol**
 
@@ -5677,6 +5738,12 @@ Aliases: `-q`
 
 Use progress bars
 
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
 </details>
 
 ---
@@ -5737,6 +5804,12 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
 
 **--binary-name**
 

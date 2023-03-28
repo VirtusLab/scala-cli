@@ -6,7 +6,12 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, JarFile, SingleElement}
-import scala.build.options.{BuildOptions, BuildRequirements, ClassPathOptions}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  ClassPathOptions,
+  SuppressWarningOptions
+}
 import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 
 case object JarPreprocessor extends Preprocessor {
@@ -14,7 +19,8 @@ case object JarPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
-    allowRestrictedFeatures: Boolean
+    allowRestrictedFeatures: Boolean,
+    suppressWarningOptions: SuppressWarningOptions
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case jar: JarFile => Some(either {

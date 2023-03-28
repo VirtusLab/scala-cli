@@ -354,6 +354,22 @@ Aliases: `--fmt-version`
 
 Pass scalafmt version before running it (3.6.1 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
+## Global suppress warning options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--suppress-experimental-feature-warning`
+
+Aliases: `--suppress-experimental-warning`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Suppress warnings about using experimental features
+
 ## Help options
 
 Available in commands:
@@ -965,12 +981,6 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 `SHOULD have` per Scala Runner specification
 
 Generate SemanticDBs
-
-### `--add-stubs`
-
-`IMPLEMENTATION specific` per Scala Runner specification
-
-Add dependency for stubs needed to make $ivy and $dep imports to work.
 
 ### `--strict-bloop-json-check`
 

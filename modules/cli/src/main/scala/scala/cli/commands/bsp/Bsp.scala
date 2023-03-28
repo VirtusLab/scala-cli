@@ -59,7 +59,7 @@ object Bsp extends ScalaCommand[BspOptions] {
                 () => buildOptions0.javaHome().value.javaCommand
               ),
               persistentLogger,
-              buildOptions0.suppressWarningOptions.suppressDirectivesInMultipleFilesWarning
+              buildOptions0.suppressWarningOptions
             ).map(_._2).getOrElse(initialInputs)
 
           Build.updateInputs(allInputs, buildOptions(sharedOptions))
@@ -77,7 +77,6 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val inputs = argsToInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
-    val configDb = options.shared.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions
 
