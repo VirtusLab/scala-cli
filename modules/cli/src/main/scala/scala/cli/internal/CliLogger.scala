@@ -9,7 +9,7 @@ import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, Scal
 
 import java.io.PrintStream
 
-import scala.build.bsp.protocol.TextEdit
+import scala.build.bsp.protocol.*
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
@@ -83,9 +83,15 @@ class CliLogger(
         diag.setSeverity(severity.toBsp4j)
         diag.setSource("scala-cli")
 
-        for (textEdit <- textEditOpt) {
-          val bTextEdit = TextEdit(range, textEdit.newText)
-          diag.setData(bTextEdit.toJsonTree())
+        (textEditOpt, f.path) match {
+          case (Some(textEdit), Right(path)) =>
+            val bTextEdit = TextEdit(range, textEdit.newText)
+            val workspaceEdit = WorkspaceEdit(changes =
+              Map(path.toNIO.toUri().toString() -> Array(bTextEdit))
+            )
+            val data = DiagnosticData(edits = Array(workspaceEdit))
+            diag.setData(data.toJsonTree())
+          case _ => ()
         }
 
         for (file <- f.path) {

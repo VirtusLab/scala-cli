@@ -8,7 +8,7 @@ import java.nio.file.Paths
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.build.Position.File
-import scala.build.bsp.protocol.TextEdit
+import scala.build.bsp.protocol.*
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.postprocessing.LineConversion
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
@@ -223,7 +223,10 @@ class BspClient(
 
         diag.textEdit.foreach { textEdit =>
           val bTextEdit = TextEdit(range, textEdit.newText)
-          bDiag.setData(bTextEdit.toJsonTree())
+          val workspaceEdit =
+            WorkspaceEdit(changes = Map(path.toNIO.toUri().toString() -> Array(bTextEdit)))
+          val data = DiagnosticData(edits = Array(workspaceEdit))
+          bDiag.setData(data.toJsonTree())
         }
         bDiag.setSeverity(diag.severity.toBsp4j)
         bDiag.setSource("scala-cli")
