@@ -339,7 +339,7 @@ scala-cli . --with-toolkit latest
 There's also an appropriate `using` directive.
 
 ```scala compile
-//> using toolkit "0.1.4"
+//> using toolkit "0.1.6"
 ```
 
 Added by [@lwronski](https://github.com/lwronski) in [#1768](https://github.com/VirtusLab/scala-cli/pull/1768)
