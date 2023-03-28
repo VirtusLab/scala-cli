@@ -8,7 +8,8 @@ import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
+import scala.util.matching.Regex
 
 class PublishSetupTests extends ScalaCliSuite {
 
@@ -17,6 +18,7 @@ class PublishSetupTests extends ScalaCliSuite {
   private def devName    = "Alex Test"
   private def devMail    = "alex@alex.me"
   private def devUrl     = "https://alex.me"
+  private def password   = "password"
 
   private def configSetup(configFile: os.Path, root: os.Path): Unit = {
     val envs = Map("SCALA_CLI_CONFIG" -> configFile.toString)
@@ -101,12 +103,12 @@ class PublishSetupTests extends ScalaCliSuite {
     testInputs.fromRoot { root =>
       configSetup(root / configFile, root)
       gitInit(root / projDir)
-      val res = os.proc(TestUtil.cli, "--power", "publish", "setup", projDir).call(
+      val res = os.proc(TestUtil.cli, "--power", "publish", "setup", "--dummy", projDir).call(
         cwd = root,
         mergeErrIntoOut = true,
         env = envs
       )
-      System.err.write(res.out.bytes)
+
       val ghSecrets = res.out.text()
         .linesIterator
         .filter(_.startsWith("Would have set GitHub secret "))
@@ -115,6 +117,7 @@ class PublishSetupTests extends ScalaCliSuite {
       val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
       expect(directives0 == expectedDirectives)
       expect(ghSecrets == expectedGhSecrets)
+      expect(res.out.text().contains("found keys in config"))
     }
   }
 
@@ -130,11 +133,18 @@ class PublishSetupTests extends ScalaCliSuite {
       "publish.ci.user"              -> List("env:PUBLISH_USER"),
       "publish.ci.password"          -> List("env:PUBLISH_PASSWORD"),
       "publish.ci.secretKeyPassword" -> List("env:PUBLISH_SECRET_KEY_PASSWORD"),
+      "publish.ci.publicKey"         -> List("env:PUBLISH_PUBLIC_KEY"),
       "publish.ci.repository"        -> List("central-s01"),
       "publish.ci.computeVersion"    -> List("git:tag")
     )
     val expectedGhSecrets =
-      Set("PUBLISH_USER", "PUBLISH_PASSWORD", "PUBLISH_SECRET_KEY", "PUBLISH_SECRET_KEY_PASSWORD")
+      Set(
+        "PUBLISH_USER",
+        "PUBLISH_PASSWORD",
+        "PUBLISH_SECRET_KEY",
+        "PUBLISH_PUBLIC_KEY",
+        "PUBLISH_SECRET_KEY_PASSWORD"
+      )
     testInputs.fromRoot { root =>
       configSetup(root / configFile, root)
       gitInit(root / projDir)
@@ -144,7 +154,7 @@ class PublishSetupTests extends ScalaCliSuite {
           mergeErrIntoOut = true,
           env = envs
         )
-      System.err.write(res.out.bytes)
+
       val ghSecrets = res.out.text()
         .linesIterator
         .filter(_.startsWith("Would have set GitHub secret "))
@@ -176,6 +186,7 @@ class PublishSetupTests extends ScalaCliSuite {
         "--power",
         "publish",
         "setup",
+        "--dummy",
         "--publish-repository",
         "github",
         projDir
@@ -184,7 +195,7 @@ class PublishSetupTests extends ScalaCliSuite {
         mergeErrIntoOut = true,
         env = envs
       )
-      System.err.write(res.out.bytes)
+
       val ghSecrets = res.out.text()
         .linesIterator
         .filter(_.startsWith("Would have set GitHub secret "))
@@ -228,7 +239,7 @@ class PublishSetupTests extends ScalaCliSuite {
         mergeErrIntoOut = true,
         env = envs
       )
-      System.err.write(res.out.bytes)
+
       val ghSecrets = res.out.text()
         .linesIterator
         .filter(_.startsWith("Would have set GitHub secret "))
@@ -237,6 +248,222 @@ class PublishSetupTests extends ScalaCliSuite {
       val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
       expect(directives0 == expectedDirectives)
       expect(ghSecrets == expectedGhSecrets)
+    }
+  }
+
+  test("local upload key") {
+    val expectedDirectives = Map(
+      "publish.versionControl"    -> Seq(s"github:$ghUserName/tests"),
+      "publish.organization"      -> Seq(s"io.github.$ghUserName"),
+      "publish.developer"         -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.repository"        -> Seq("central-s01"),
+      "publish.url"               -> Seq(s"https://github.com/$ghUserName/tests"),
+      "publish.name"              -> Seq(projName),
+      "publish.computeVersion"    -> Seq("git:tag"),
+      "publish.license"           -> Seq("Apache-2.0"),
+      "publish.secretKey"         -> Seq("file:key.skr"),
+      "publish.secretKeyPassword" -> Seq("file:whatever_not_checked"),
+      "publish.publicKey"         -> Seq("file:key.pub")
+    )
+    val expectedGhSecrets = Set.empty[String]
+    testInputs.fromRoot { root =>
+      configSetup(root / configFile, root)
+      gitInit(root / projDir)
+
+      val pgpCreateOutput = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        devMail,
+        "--password",
+        s"value:$password"
+      )
+        .call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          env = envs
+        )
+
+      val publicKeyRegex: Regex = "Wrote public key (\\w+) .*".r
+
+      val publicKeyIdOpt = pgpCreateOutput.out.text()
+        .linesIterator
+        .toSeq
+        .collect {
+          case publicKeyRegex(publicKeyId) => publicKeyId
+        }
+        .headOption
+
+      expect(publicKeyIdOpt.isDefined)
+
+      val publicKeyId: String = publicKeyIdOpt.get
+
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "--secret-key",
+        "file:key.skr",
+        "--secret-key-password",
+        s"file:whatever_not_checked",
+        "--public-key",
+        "file:key.pub",
+        projDir
+      ).call(
+        cwd = root,
+        mergeErrIntoOut = true,
+        env = envs
+      ).out.text()
+
+      val ghSecrets = res
+        .linesIterator
+        .filter(_.startsWith("Would have set GitHub secret "))
+        .map(_.stripPrefix("Would have set GitHub secret "))
+        .toSet
+      val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
+      expect(directives0 == expectedDirectives)
+      expect(ghSecrets == expectedGhSecrets)
+      expect(!res.contains("found keys in config"))
+      expect(res.contains(s"Would upload key 0x$publicKeyId"))
+    }
+  }
+
+  test("local add public key and password") {
+    val expectedDirectives = Map(
+      "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
+      "publish.organization"   -> Seq(s"io.github.$ghUserName"),
+      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.repository"     -> Seq("central-s01"),
+      "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
+      "publish.name"           -> Seq(projName),
+      "publish.computeVersion" -> Seq("git:tag"),
+      "publish.license"        -> Seq("Apache-2.0"),
+      "publish.secretKey"      -> Seq("file:key.skr")
+    )
+    val expectedGhSecrets = Set.empty[String]
+    testInputs.fromRoot { root =>
+      configSetup(root / configFile, root)
+      gitInit(root / projDir)
+
+      val pgpCreateOutput = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        devMail,
+        "--password",
+        s"value:$password"
+      )
+        .call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          env = envs
+        )
+
+      val publicKeyRegex: Regex = "Wrote public key (\\w+) .*".r
+
+      val publicKeyIdOpt = pgpCreateOutput.out.text()
+        .linesIterator
+        .toSeq
+        .collect {
+          case publicKeyRegex(publicKeyId) => publicKeyId
+        }
+        .headOption
+
+      expect(publicKeyIdOpt.isDefined)
+
+      val publicKeyId: String = publicKeyIdOpt.get
+
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "--secret-key",
+        "file:key.skr",
+        projDir
+      ).call(
+        cwd = root,
+        mergeErrIntoOut = true,
+        env = envs
+      ).out.text()
+
+      val ghSecrets = res
+        .linesIterator
+        .filter(_.startsWith("Would have set GitHub secret "))
+        .map(_.stripPrefix("Would have set GitHub secret "))
+        .toSet
+      val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
+      expect(directives0 == expectedDirectives)
+      expect(ghSecrets == expectedGhSecrets)
+      expect(!res.contains("found keys in config"))
+      expect(res.contains("Warning: no public key passed, not checking"))
+
+      val res2 = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "--secret-key-password",
+        s"file:whatever_not_checked",
+        "--public-key",
+        "file:key.pub",
+        projDir
+      ).call(
+        cwd = root,
+        mergeErrIntoOut = true,
+        env = envs
+      )
+
+      System.err.write(res2.out.bytes)
+      val ghSecrets2 = res2.out.text()
+        .linesIterator
+        .filter(_.startsWith("Would have set GitHub secret "))
+        .map(_.stripPrefix("Would have set GitHub secret "))
+        .toSet
+      val directives2 = directives(os.read(root / projDir / "publish-conf.scala"))
+      val expectedDirectivesAdded = Map(
+        "publish.secretKeyPassword" -> Seq("file:whatever_not_checked"),
+        "publish.publicKey"         -> Seq("file:key.pub")
+      )
+
+      expect(directives2 == (expectedDirectives ++ expectedDirectivesAdded))
+      expect(ghSecrets2 == expectedGhSecrets)
+      expect(!res2.out.text().contains("found keys in config"))
+      expect(res2.out.text().contains(s"Would upload key 0x$publicKeyId"))
+    }
+  }
+
+  test("local secret value written") {
+    testInputs.fromRoot { root =>
+      configSetup(root / configFile, root)
+      gitInit(root / projDir)
+
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "--secret-key",
+        "value:whatever",
+        projDir
+      ).call(
+        cwd = root,
+        mergeErrIntoOut = true,
+        env = envs
+      )
+
+      expect(res.out.text().contains(
+        "The secret value of PGP private key will be written to a potentially public file!"
+      ))
     }
   }
 

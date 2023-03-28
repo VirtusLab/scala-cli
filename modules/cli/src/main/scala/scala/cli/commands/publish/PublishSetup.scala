@@ -258,28 +258,34 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           inputs.workspace / s"publish-conf$ext"
         }
         val nl = System.lineSeparator() // FIXME Get from dest if it exists?
+
+        def extraDirectivesLines(extraDirectives: Seq[(String, String)]) =
+          extraDirectives.map {
+            case (k, v) =>
+              s"""//> using $k "$v"""" + nl
+          }.mkString
+
         val extraLines = missingFieldsWithDefaultsAndValues.map {
-          case (_, _, None) => ""
+          case (_, default, None) => extraDirectivesLines(default.extraDirectives)
           case (check, default, Some(value)) =>
             s"""//> using ${check.directivePath} "$value"""" + nl +
-              default.extraDirectives
-                .map {
-                  case (k, v) =>
-                    s"""//> using $k "$v"""" + nl
-                }
-                .mkString
+              extraDirectivesLines(default.extraDirectives)
         }
 
         val currentContent =
           if (os.isFile(dest)) os.read.bytes(dest)
           else if (os.exists(dest)) sys.error(s"Error: $dest already exists and is not a file")
           else Array.emptyByteArray
-        val updatedContent = currentContent ++
-          extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
-        os.write.over(dest, updatedContent)
-        logger.message("") // printing an empty line, for readability
-        logger.message(s"Wrote ${CommandUtils.printablePath(dest)}")
-        written = written :+ dest
+        if (extraLines.nonEmpty) {
+          val updatedContent = currentContent ++
+            extraLines.toArray.flatMap(_.getBytes(StandardCharsets.UTF_8))
+          os.write.over(dest, updatedContent)
+          logger.message(
+            s"""
+               |Wrote ${CommandUtils.printablePath(dest)}""".stripMargin
+          ) // printing an empty line, for readability
+          written = written :+ dest
+        }
       }
 
       if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {
