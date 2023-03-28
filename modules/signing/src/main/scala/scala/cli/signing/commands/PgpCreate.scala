@@ -24,9 +24,9 @@ object PgpCreate extends Command[PgpCreateOptions] {
 
   def tryRun(options: PgpCreateOptions, args: RemainingArgs): Unit = {
 
-    val pass       = options.password.get().value.toCharArray
-    val keyRingGen = PgpHelper.generateKeyRingGenerator(options.email, pass)
-    val pubKeyRing = keyRingGen.generatePublicKeyRing()
+    val maybePassword = options.password.map(_.get().value.toCharArray)
+    val keyRingGen    = PgpHelper.generateKeyRingGenerator(options.email, maybePassword)
+    val pubKeyRing    = keyRingGen.generatePublicKeyRing()
 
     val pubKeyContent = {
       val baos = new ByteArrayOutputStream

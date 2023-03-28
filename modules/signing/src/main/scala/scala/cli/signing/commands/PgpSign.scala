@@ -16,10 +16,11 @@ object PgpSign extends Command[PgpSignOptions] {
 
   def run(options: PgpSignOptions, args: RemainingArgs): Unit = {
 
-    val privateKey = BouncycastleSigner.readSecretKey {
+    // This key is potentially private (not secret) - may have no password
+    val secretKey = BouncycastleSigner.readSecretKey {
       new ByteArrayInputStream(Util.maybeDecodeBase64(options.secretKey.getBytes().value))
     }
-    val signer = BouncycastleSigner(privateKey, options.password.get())
+    val signer = BouncycastleSigner(secretKey, options.password.map(_.get()))
 
     val allArgs = args.all
 
