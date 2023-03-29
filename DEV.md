@@ -19,8 +19,17 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 
 #### Run unit tests
 
+This command runs the unit tests from the `build-module` module.
+
 ```bash
 ./mill 'build-module.test'
+```
+
+If you want to run unit tests for another module, set `module_name` to the name of the module from which you want to run
+the unit tests:
+
+```bash
+./mill 'module_name.test'
 ```
 
 To can filter unit test suites:
