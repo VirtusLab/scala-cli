@@ -30,7 +30,7 @@ class VcsParseTest extends munit.FunSuite {
     val actual = Vcs.parse(Positioned.none("github:github.com/VirtusLab/scala-cli"))
     val expected = Left(new MalformedInputError(
       "github-vcs",
-      "github.com/VirtusLab/scala-cli",
+      "github:github.com/VirtusLab/scala-cli",
       "github:org/project",
       Nil
     ))
