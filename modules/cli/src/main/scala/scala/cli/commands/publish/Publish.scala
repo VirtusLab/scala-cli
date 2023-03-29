@@ -22,7 +22,6 @@ import java.nio.file.Paths
 import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.*
@@ -31,36 +30,18 @@ import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassF
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
-import scala.build.options.{
-  BuildOptions,
-  ConfigMonoid,
-  PublishContextualOptions,
-  ScalaSigningCliOptions,
-  Scope
-}
+import scala.build.options.publish.{ComputeVersion, Developer, License, Vcs, Signer as PSigner}
+import scala.build.options.{BuildOptions, ConfigMonoid, PublishContextualOptions, ScalaSigningCliOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
-import scala.cli.commands.shared.{
-  HelpCommandGroup,
-  HelpGroup,
-  MainClassOptions,
-  SharedOptions,
-  SharedPythonOptions
-}
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions, SharedPythonOptions}
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
-import scala.cli.errors.{
-  FailedToSignFileError,
-  MalformedChecksumsError,
-  MissingConfigEntryError,
-  MissingPublishOptionError,
-  UploadError
-}
+import scala.cli.errors.{FailedToSignFileError, MalformedChecksumsError, MissingConfigEntryError, MissingPublishOptionError, UploadError}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ArgHelpers.*
@@ -968,7 +949,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val signerLogger =
       new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val signRes = value(signer).signatures(
+    val signRes: Either[(Path, Content, String), FileSet] = value(signer).signatures(
       fileSet0,
       now,
       ChecksumType.all.map(_.extension).toSet,
