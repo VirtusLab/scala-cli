@@ -876,9 +876,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
       }
 
-      if (secretKeyPasswordOpt.isEmpty)
-        logger.diagnostic("PGP signing with no password is not recommended since it's not stable")
-
       if (forceSigningBinary)
         (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
           secretKeyPasswordOpt.fold(null)(_.toCliSigning),
