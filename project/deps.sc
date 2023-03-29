@@ -88,7 +88,7 @@ object Deps {
     def scalaMeta          = "4.7.1"
     def scalaNative        = "0.4.9"
     def scalaPackager      = "0.1.29"
-    def signingCli         = "0.1.16"
+    def signingCli         = "0.0.1-SNAPSHOT"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
