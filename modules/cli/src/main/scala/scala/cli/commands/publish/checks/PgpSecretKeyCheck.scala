@@ -198,7 +198,7 @@ final case class PgpSecretKeyCheck(
     val (pgpPublic, pgpSecret0) = value {
       ThrowawayPgpSecret.pgpSecret(
         value(maybeMail),
-        passwordSecret,
+        Some(passwordSecret),
         logger,
         coursierCache,
         value(javaCommand),

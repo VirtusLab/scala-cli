@@ -137,7 +137,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
       val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
       assert(signatures.nonEmpty)
-      os.proc(
+      val verifyProc = os.proc(
         TestUtil.cli,
         "--power",
         "pgp",
@@ -146,7 +146,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         publicKey,
         signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
       )
-        .call(cwd = root)
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      expect(!verifyProc.out.text().contains(s"invalid signature"))
     }
   }
 
@@ -348,7 +350,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
         val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
         assert(signatures.nonEmpty)
-        os.proc(
+        val verifyProc = os.proc(
           TestUtil.cli,
           "--power",
           "pgp",
@@ -356,7 +358,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "--key",
           publicKey,
           signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
-        ).call(cwd = root, env = extraEnv)
+        ).call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+        expect(!verifyProc.out.text().contains(s"invalid signature"))
       }
     }
 
@@ -447,7 +451,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
           val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
           assert(signatures.nonEmpty)
-          os.proc(
+          val verifyProc = os.proc(
             TestUtil.cli,
             "--power",
             "pgp",
@@ -456,7 +460,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
             s"key.pub",
             signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
           )
-            .call(cwd = root, env = extraEnv)
+            .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+          expect(!verifyProc.out.text().contains(s"invalid signature"))
         }
       }
     }

@@ -74,7 +74,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             val (pgpPublic, pgpSecret0) =
               ThrowawayPgpSecret.pgpSecret(
                 mail,
-                password,
+                Some(password),
                 logger,
                 coursierCache,
                 () =>

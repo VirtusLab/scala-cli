@@ -19,7 +19,7 @@ class BouncycastleSignerMaker {
   ): Signer =
     BouncycastleSigner(
       secretKey.getBytes(),
-      Option(passwordOrNull).fold(Secret(""))(_.get())
+      Option(passwordOrNull).map(_.get())
     )
   def maybeInit(): Unit =
     Security.addProvider(new BouncyCastleProvider)

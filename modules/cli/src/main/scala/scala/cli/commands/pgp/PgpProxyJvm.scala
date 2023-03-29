@@ -18,17 +18,19 @@ class PgpProxyJvm extends PgpProxy {
     secKey: String,
     mail: String,
     quiet: Boolean,
-    password: String,
+    passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
     javaCommand: () => String,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
+    val password = passwordOpt.map(password => PasswordOption.Value(Secret(password)))
+
     PgpCreate.tryRun(
       PgpCreateOptions(
         email = mail,
-        password = PasswordOption.Value(Secret(password)),
+        password = password,
         pubDest = Some(pubKey),
         secretDest = Some(secKey),
         quiet = quiet
