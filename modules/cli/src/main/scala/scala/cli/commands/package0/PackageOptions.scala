@@ -213,6 +213,7 @@ final case class PackageOptions(
             imageRegistry = packager.dockerImageRegistry,
             imageRepository = packager.dockerImageRepository,
             imageTag = packager.dockerImageTag,
+            cmd = packager.dockerCmd,
             isDockerEnabled = Some(docker)
           ),
           nativeImageOptions = NativeImageOptions(

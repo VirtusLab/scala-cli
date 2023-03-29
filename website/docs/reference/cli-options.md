@@ -853,6 +853,10 @@ The image repository
 
 The image tag; the default tag is `latest`
 
+### `--docker-cmd`
+
+Allows to override the executable used to run the application in docker, otherwise it defaults to sh for the JVM platform and node for the JS platform
+
 ### `--graalvm-java-version`
 
 GraalVM Java major version to use to build GraalVM native images (17 by default)

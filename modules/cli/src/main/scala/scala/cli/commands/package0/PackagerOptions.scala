@@ -132,6 +132,12 @@ final case class PackagerOptions(
   )
   @Tag(tags.restricted)
   dockerImageTag: Option[String] = None,
+  @Group(HelpGroup.Docker.toString)
+  @HelpMessage(
+    "Allows to override the executable used to run the application in docker, otherwise it defaults to sh for the JVM platform and node for the JS platform"
+  )
+  @Tag(tags.restricted)
+  dockerCmd: Option[String] = None,
 
   @Group(HelpGroup.NativeImage.toString)
   @HelpMessage(s"GraalVM Java major version to use to build GraalVM native images (${Constants.defaultGraalVMJavaVersion} by default)")
