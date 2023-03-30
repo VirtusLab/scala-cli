@@ -11,8 +11,7 @@ eval "$(cs java --env --jvm 11 --jvm-index https://github.com/coursier/jvm-index
 
 git config --global --add safe.directory "$(pwd)"
 
-./mill -i "cli.base-image.writeNativeImageScript" generate.sh ""
-./generate.sh
+./mill -i show cli.nativeImage
 ./mill -i copyDefaultLauncher ./artifacts
 if "true" == $(./mill -i ci.shouldPublish); then
   .github/scripts/generate-os-packages.sh
