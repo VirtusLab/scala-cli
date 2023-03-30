@@ -17,7 +17,14 @@ case class ScalaCliInvokeData(
   subCommandName: String,
   subCommand: SubCommand,
   isShebangCapableShell: Boolean
-)
+) {
+
+  /** [[progName]] with [[subCommandName]] if any */
+  def invocationString: String =
+    subCommand match
+      case SubCommand.Default => progName
+      case _                  => s"$progName $subCommandName"
+}
 
 enum SubCommand:
   case Default extends SubCommand
