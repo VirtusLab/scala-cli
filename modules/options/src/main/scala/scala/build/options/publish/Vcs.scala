@@ -13,7 +13,7 @@ object Vcs {
 
   def parse(input: Positioned[String]): Either[BuildException, Vcs] =
     if (input.value.startsWith("github:"))
-      input.value.stripPrefix("github:").split("/", 2) match {
+      input.value.stripPrefix("github:").split('/') match {
         case Array(org, project) =>
           val vcs = Vcs(
             s"https://github.com/$org/$project.git",
@@ -32,7 +32,7 @@ object Vcs {
           )
       }
     else
-      input.value.split("|", 3) match {
+      input.value.split('|') match {
         case Array(url, conn, devConn) =>
           val vcs = Vcs(url, conn, devConn)
           Right(vcs)
