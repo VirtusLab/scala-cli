@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters._
 
 final case class BouncycastleSigner(
   pgpSecretKey: PGPSecretKey,
-  password: Secret[String]
+  passwordOpt: Option[Secret[String]]
 ) extends Signer {
   def sign(content: Content): Either[String, String] =
     sign { f =>
@@ -40,11 +40,12 @@ final case class BouncycastleSigner(
     val encOut = new ByteArrayOutputStream
     val out    = new ArmoredOutputStream(encOut)
 
-    val pgpPrivKey = pgpSecretKey.extractPrivateKey(
-      new JcePBESecretKeyDecryptorBuilder()
-        .setProvider("BC")
-        .build(password.value.toCharArray)
-    )
+    val pgpPrivKey =
+      pgpSecretKey.extractPrivateKey(
+        new JcePBESecretKeyDecryptorBuilder()
+          .setProvider("BC")
+          .build(passwordOpt.map(_.value.toCharArray).getOrElse(Array.empty))
+      )
 
     val sGen = new PGPSignatureGenerator(
       new JcaPGPContentSignerBuilder(
@@ -187,10 +188,10 @@ object BouncycastleSigner {
 
   def apply(
     secretKey: Secret[Array[Byte]],
-    password: Secret[String]
+    passwordOpt: Option[Secret[String]]
   ): BouncycastleSigner = {
     val is         = new ByteArrayInputStream(Util.maybeDecodeBase64(secretKey.value))
     val secretKey0 = readSecretKey(is)
-    BouncycastleSigner(secretKey0, password)
+    BouncycastleSigner(secretKey0, passwordOpt)
   }
 }

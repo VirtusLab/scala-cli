@@ -21,9 +21,9 @@ import java.util.Date
 object PgpHelper {
   def generateKeyRingGenerator(
     id: String,
-    pass: Array[Char]
+    maybePassword: Option[Array[Char]]
   ): PGPKeyRingGenerator =
-    generateKeyRingGenerator(id, pass, 0xc0)
+    generateKeyRingGenerator(id, maybePassword, 0xc0)
 
   // Note: s2kcount is a number between 0 and 0xff that controls the number of times to iterate the password hash before use. More
   // iterations are useful against offline attacks, as it takes more time to check each password. The actual number of iterations is
@@ -33,7 +33,7 @@ object PgpHelper {
   // 0xff, or about 2 million iterations.  I'll use 0xc0 as a default -- about 130,000 iterations.
   def generateKeyRingGenerator(
     id: String,
-    pass: Array[Char],
+    maybePassword: Option[Array[Char]],
     s2kcount: Int
   ): PGPKeyRingGenerator = {
     // This object generates individual key-pairs.
@@ -100,11 +100,13 @@ object PgpHelper {
     val sha256Calc =
       (new BcPGPDigestCalculatorProvider).get(HashAlgorithmTags.SHA256)
     // bcpg 1.48 exposes this API that includes s2kcount. Earlier versions use a default of 0x60.
-    val pske = new BcPBESecretKeyEncryptorBuilder(
-      SymmetricKeyAlgorithmTags.AES_256,
-      sha256Calc,
-      s2kcount
-    ).build(pass)
+    val secretKeyEncryptor =
+      new BcPBESecretKeyEncryptorBuilder(
+        maybePassword.fold(SymmetricKeyAlgorithmTags.NULL)(_ => SymmetricKeyAlgorithmTags.AES_256),
+        sha256Calc,
+        s2kcount
+      ).build(maybePassword.orNull)
+
     // Finally, create the keyring itself. The constructor takes parameters that allow it to generate the self signature.
     val keyRingGen =
       new PGPKeyRingGenerator(
@@ -118,7 +120,7 @@ object PgpHelper {
           rsakpSign.getPublicKey.getAlgorithm,
           HashAlgorithmTags.SHA1
         ),
-        pske
+        secretKeyEncryptor
       )
     keyRingGen.addSubKey(rsakpEnc, encHashGen.generate(), null)
     keyRingGen

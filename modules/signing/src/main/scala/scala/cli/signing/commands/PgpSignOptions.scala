@@ -8,7 +8,7 @@ import scala.cli.signing.util.ArgParsers._
 // format: off
 @HelpMessage("Sign files with PGP")
 final case class PgpSignOptions(
-  password: PasswordOption,
+  password: Option[PasswordOption] = None,
   secretKey: PasswordOption,
   @ExtraName("f")
     force: Boolean = false,

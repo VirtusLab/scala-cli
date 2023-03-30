@@ -8,7 +8,7 @@ import scala.cli.signing.util.ArgParsers._
 @HelpMessage("Create PGP key pair")
 final case class PgpCreateOptions(
   email: String,
-  password: PasswordOption,
+  password: Option[PasswordOption] = None,
   dest: Option[String] = None,
   pubDest: Option[String] = None,
   secretDest: Option[String] = None,
