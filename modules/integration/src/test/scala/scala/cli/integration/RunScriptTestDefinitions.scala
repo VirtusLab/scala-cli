@@ -172,7 +172,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:24)
+             |${tab}at throws_sc$$.main(throws.sc:23)
              |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<init>(throws.sc:6)
@@ -185,7 +185,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
              |$tab... 3 more""".stripMargin.linesIterator.toVector
         else
           s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:24)
+             |${tab}at throws_sc$$.main(throws.sc:23)
              |${tab}at throws_sc.main(throws.sc)
              |Caused by: java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.<clinit>(throws.sc:6)
@@ -244,7 +244,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val tab = "\t"
       val expectedLines =
         s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-           |${tab}at throws_sc$$.main(throws.sc:26)
+           |${tab}at throws_sc$$.main(throws.sc:25)
            |${tab}at throws_sc.main(throws.sc)
            |Caused by: java.lang.Exception: Caught exception during processing
            |${tab}at throws$$.<clinit>(throws.sc:8)

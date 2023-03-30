@@ -52,10 +52,10 @@ $packageDirective
 
 
 object ${indexedWrapperName.backticked} {
+def args = $name.args$$
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
-def args = $name.args$$
-  $extraCode
+$extraCode
 }
 $aliasObject
 $mainObjectCode
