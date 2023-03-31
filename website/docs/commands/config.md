@@ -106,8 +106,8 @@ scala-cli --power config --create-pgp-key --pgp-password MY_CHOSEN_PASSWORD --em
 ```
 
 It's not mandatory, although recomended, to use a password to encrypt your keychains.
-To store the private keychain in an unencrypted form use `--pgp-password none`, use
-`--pgp-password random` for Scala CLI to randomly generate a password for you.
+To store the private keychain in an unencrypted form use `--pgp-password none`.
+To randomly generate a pasword, use `--pgp-password random` instead.
 Also, the `--email` option or `publish.user.email` has to be specified for this subcommand to work properly.
 
 Configuration values are stored in a directory under your home directory, with restricted permissions:

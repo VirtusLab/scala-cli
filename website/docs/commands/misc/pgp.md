@@ -27,6 +27,8 @@ to be handled using `gpg`.
 
 ## Create key pairs
 
+It's not mandatory, although recomended, to use a password to encrypt your keychains.
+
 ```text
 $ scala-cli pgp create --email alex@alex.me --password env:MY_PASSWORD
 Wrote public key e259e7e8a23475b3 to key.pub

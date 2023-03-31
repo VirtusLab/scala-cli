@@ -128,28 +128,32 @@ handled by either
 A signing mechanism will be chosen based on options and directives specified,
 it can also be overriden with `--signer` with one of the values:
 - `bc` - Bouncy Castle library will be used for signing, PGP secret key is required
-- `gpg` - a local `gpg` binary will be used for singing, GPG key ID is required
-- `none` - NO singing will take place
+- `gpg` - a local `gpg` binary will be used for signing, GPG key ID is required
+- `none` - NO signing will take place
 
 #### Bouncy Castle
 
-Bouncy Castle library is the recommended way of singing artifacts with Scala CLI. 
+Bouncy Castle library is the quickest way of signing artifacts with Scala CLI. 
 A benefit of using it is that it has no external dependencies,
 Scala CLI is able to sign things with Bouncy Castle without further setup on your side.
+However, it does not provide a complex PGP handling functionality as e.g. GPG does.
 
 When the `--signer` option is not specified Bouncy Castle library will be used for signing
 if one of these conditions occur:
 - the `--secret-key` option has been passed
 - target repository requires signing (e.g. `central`)
 
-To succesfully use PGP signing with Bouncy Castle a secret key, possibly protected by a password is required.
+To succesfully use PGP signing with Bouncy Castle a PGP key pair is required.
 Scala CLI can generate and keep PGP keys for you by using:
 ```bash ignore
-scala-cli --power config --create-pgp-key
+scala-cli --power config --create-pgp-key --pgp-password MY_CHOSEN_PASSWORD
 ```
 
-This generates a public key and password protected private key, all values are kept in config
-and will be used by default unless specified otherwise:
+It's not mandatory, although recomended, to use a password to encrypt your keychains.
+To store the private keychain in an unencrypted form use `--pgp-password none`.
+To randomly generate a pasword, use `--pgp-password random` instead.
+
+The generated values are kept in the `config` and will be used by default unless specified otherwise:
 - with directives:
     ```scala
     //> using publish.secretKey env:PGP_SECRET
@@ -171,6 +175,9 @@ Since these values should be kept secret, the options and directives accept the 
 Using GPG to sign artifacts requires the `gpg` binary to be installed on your system.
 A benefit of using `gpg` to sign artifacts over Bouncy Castle is: you can use keys from
 your GPG key ring, or from external devices that GPG may support.
+
+To get started, consult the [documentation on the library's website](https://gnupg.org/documentation/guides.html) and be sure to read about
+[Protecting code integrity with PGP guide from the Linux Foundation](https://github.com/lfit/itpol/blob/master/protecting-code-integrity.md#target-audience).
 
 To enable signing with GPG, pass `--gpg-key *key_id*` on the command line
 or specify it with a `using` directive: `//>using publish.gpgKey "key_id"`.
