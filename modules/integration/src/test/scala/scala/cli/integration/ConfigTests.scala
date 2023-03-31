@@ -67,7 +67,7 @@ class ConfigTests extends ScalaCliSuite {
         res.out.trim()
       }
       def readDecoded(env: Map[String, String] = Map.empty): String = {
-        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password")
+        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password-value")
           .call(cwd = root, env = configEnv ++ env)
         res.out.trim()
       }
@@ -228,9 +228,10 @@ class ConfigTests extends ScalaCliSuite {
       val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
         .call(cwd = root, env = extraEnv, stderr = os.Pipe)
         .out.trim()
-      val rawPublicKey = os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password")
-        .call(cwd = root, env = extraEnv, stderr = os.Pipe)
-        .out.trim()
+      val rawPublicKey =
+        os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+          .out.trim()
 
       val tmpFile    = root / "test-file"
       val tmpFileAsc = root / "test-file.asc"

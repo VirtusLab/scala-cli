@@ -142,7 +142,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                   valueOpt match {
                     case Some(value) =>
                       for (v <- value)
-                        if (options.password && entry.isPasswordOption)
+                        if (options.passwordValue && entry.isPasswordOption)
                           PasswordOption.parse(v) match {
                             case Left(err) =>
                               System.err.println(err)

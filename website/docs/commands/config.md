@@ -73,7 +73,7 @@ scala-cli config --dump | jq .
 
 </ChainedSnippets>
 
-Use `--password` to get the value of a password entry:
+Use `--password-value` to get the value of a password entry:
 
 <ChainedSnippets>
 
@@ -89,7 +89,7 @@ env:MY_GITHUB_TOKEN
 
 ```bash
 export MY_GITHUB_TOKEN=1234
-scala-cli --power config --password github.token
+scala-cli --power config --password-value github.token
 ```
 
 ```text
@@ -102,10 +102,13 @@ Use `--create-pgp-key` to create a PGP key pair, protected by a randomly-generat
 be used by the `publish setup` sub-command:
 
 ```sh
-scala-cli --power config --create-pgp-key --email "some_email"
+scala-cli --power config --create-pgp-key --pgp-password MY_CHOSEN_PASSWORD --email "some_email"
 ```
 
-The `--email` option or `publish.user.email` has to be specified for this subcommand to work properly.
+It's not mandatory, although recomended, to use a password to encrypt your keychains.
+To store the private keychain in an unencrypted form use `--pgp-password none`, use
+`--pgp-password random` for Scala CLI to randomly generate a password for you.
+Also, the `--email` option or `publish.user.email` has to be specified for this subcommand to work properly.
 
 Configuration values are stored in a directory under your home directory, with restricted permissions:
 

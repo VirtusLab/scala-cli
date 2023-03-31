@@ -42,12 +42,11 @@ final case class ConfigOptions(
   @Tag(tags.experimental)
     email: Option[String] = None,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
-    password: Boolean = false,
-  @Group(HelpGroup.Config.toString)
-  @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
+  @HelpMessage(
+    """When accessing config's content print the password value rather than how to get the password
+      |When saving an entry in config save the password value rather than how to get the password
+      |e.g. print/save the value of environment variable ENV_VAR rather than "env:ENV_VAR"
+      |""".stripMargin)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     passwordValue: Boolean = false,
