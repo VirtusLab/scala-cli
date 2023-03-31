@@ -626,10 +626,12 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       sys.exit(1)
     }
 
-    val exec = build.options.platform.value match {
-      case Platform.JVM    => Some("sh")
-      case Platform.JS     => Some("node")
-      case Platform.Native => None
+    val exec = packageOptions.dockerOptions.cmd.orElse {
+      build.options.platform.value match {
+        case Platform.JVM    => Some("sh")
+        case Platform.JS     => Some("node")
+        case Platform.Native => None
+      }
     }
     val from = packageOptions.dockerOptions.from.getOrElse {
       build.options.platform.value match {

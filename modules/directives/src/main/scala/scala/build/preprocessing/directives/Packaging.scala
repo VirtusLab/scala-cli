@@ -57,7 +57,8 @@ final case class Packaging(
   dockerFrom: Option[String] = None,
   dockerImageTag: Option[String] = None,
   dockerImageRegistry: Option[String] = None,
-  dockerImageRepository: Option[String] = None
+  dockerImageRepository: Option[String] = None,
+  dockerCmd: Option[String] = None
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
@@ -108,7 +109,8 @@ final case class Packaging(
             from = dockerFrom,
             imageRegistry = dockerImageRegistry,
             imageRepository = dockerImageRepository,
-            imageTag = dockerImageTag
+            imageTag = dockerImageTag,
+            cmd = dockerCmd
           ),
           nativeImageOptions = NativeImageOptions(
             graalvmArgs = graalvmArgs
