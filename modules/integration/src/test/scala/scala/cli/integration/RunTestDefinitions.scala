@@ -1129,6 +1129,31 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test(s"print error if workspace path contains a ${File.pathSeparator}") {
+    val msg     = "Hello"
+    val relPath = os.rel / s"weird${File.pathSeparator}directory" / "Hello.scala"
+    TestInputs(
+      relPath ->
+        s"""object Hello extends App {
+           |  println("$msg")
+           |}
+           |""".stripMargin
+    )
+      .fromRoot { root =>
+        val resWithColon =
+          os.proc(TestUtil.cli, "run", relPath.toString, extraOptions)
+            .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(resWithColon.exitCode == 1)
+        expect(resWithColon.err.trim().contains(
+          "you can force your workspace with the '--workspace' option:"
+        ))
+        val resFixedWorkspace = // should run fine for a forced workspace with no classpath separator on path
+          os.proc(TestUtil.cli, "run", relPath.toString, "--workspace", ".", extraOptions)
+            .call(cwd = root)
+        expect(resFixedWorkspace.out.trim() == msg)
+      }
+  }
+
   val commands = Seq("", "run", "compile")
 
   for (command <- commands) {

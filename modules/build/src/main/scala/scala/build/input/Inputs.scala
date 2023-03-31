@@ -1,13 +1,13 @@
 package scala.build.input
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, File}
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.annotation.tailrec
 import scala.build.Directories
-import scala.build.errors.{BuildException, InputsException}
+import scala.build.errors.{BuildException, InputsException, WorkspaceError}
 import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
@@ -125,53 +125,14 @@ object Inputs {
   private def forValidatedElems(
     validElems: Seq[Element],
     baseProjectName: String,
-    forcedWorkspace: Option[os.Path],
+    workspace: os.Path,
+    needsHash: Boolean,
+    workspaceOrigin: WorkspaceOrigin,
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean
   ): Inputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
-    val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
-      val settingsFiles = validElems.projectSettingsFiles
-      val dirsAndFiles = validElems.collect {
-        case d: Directory  => d
-        case f: SourceFile => f
-      }
-      settingsFiles.headOption.map { s =>
-        if (settingsFiles.length > 1)
-          System.err.println(
-            s"Warning: more than one ${Constants.projectFileName} file has been found. Setting ${s.base} as the project root directory for this run."
-          )
-        (s.base, true, WorkspaceOrigin.SourcePaths)
-      }.orElse {
-        dirsAndFiles.collectFirst {
-          case d: Directory =>
-            if (dirsAndFiles.length > 1)
-              System.err.println(
-                s"Warning: setting ${d.path} as the project root directory for this run."
-              )
-            (d.path, true, WorkspaceOrigin.SourcePaths)
-          case f: SourceFile =>
-            if (dirsAndFiles.length > 1)
-              System.err.println(
-                s"Warning: setting ${f.path / os.up} as the project root directory for this run."
-              )
-            (f.path / os.up, true, WorkspaceOrigin.SourcePaths)
-        }
-      }.orElse {
-        validElems.collectFirst {
-          case _: Virtual =>
-            (os.temp.dir(), true, WorkspaceOrigin.VirtualForced)
-        }
-      }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
-    }
-
-    val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
-      case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
-      case Some(forcedWorkspace0) =>
-        val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
-        (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)
-    }
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
       case f: SourceFile =>
@@ -189,7 +150,7 @@ object Inputs {
       workspace,
       baseProjectName,
       mayAppendHash = needsHash,
-      workspaceOrigin = Some(workspaceOrigin0),
+      workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = allowRestrictedFeatures
     )
@@ -365,7 +326,7 @@ object Inputs {
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean
-  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
+  )(using invokeData: ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(
         args,
@@ -386,15 +347,70 @@ object Inputs {
         case Right(elem) => elem
       }.flatten
       assert(extraClasspathWasPassed || validElems.nonEmpty)
+      val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
+        val settingsFiles = validElems.projectSettingsFiles
+        val dirsAndFiles = validElems.collect {
+          case d: Directory  => d
+          case f: SourceFile => f
+        }
+        settingsFiles.headOption.map { s =>
+          if (settingsFiles.length > 1)
+            System.err.println(
+              s"Warning: more than one ${Constants.projectFileName} file has been found. Setting ${s.base} as the project root directory for this run."
+            )
+          (s.base, true, WorkspaceOrigin.SourcePaths)
+        }.orElse {
+          dirsAndFiles.collectFirst {
+            case d: Directory =>
+              if (dirsAndFiles.length > 1)
+                System.err.println(
+                  s"Warning: setting ${d.path} as the project root directory for this run."
+                )
+              (d.path, true, WorkspaceOrigin.SourcePaths)
+            case f: SourceFile =>
+              if (dirsAndFiles.length > 1)
+                System.err.println(
+                  s"Warning: setting ${f.path / os.up} as the project root directory for this run."
+                )
+              (f.path / os.up, true, WorkspaceOrigin.SourcePaths)
+          }
+        }.orElse {
+          validElems.collectFirst {
+            case _: Virtual =>
+              (os.temp.dir(), true, WorkspaceOrigin.VirtualForced)
+          }
+        }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
+      }
 
-      Right(forValidatedElems(
-        validElems,
-        baseProjectName,
-        forcedWorkspace,
-        enableMarkdown,
-        allowRestrictedFeatures,
-        extraClasspathWasPassed
-      ))
+      val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
+        case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
+        case Some(forcedWorkspace0) =>
+          val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
+          (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)
+      }
+
+      if workspace.toString.contains(File.pathSeparator) then
+        val prog       = invokeData.invocationString
+        val argsString = args.mkString(" ")
+        Left(new WorkspaceError(
+          s"""Invalid workspace path: ${Console.BOLD}$workspace${Console.RESET}
+             |Workspace path cannot contain a ${Console.BOLD}${File.pathSeparator}${Console.RESET}.
+             |Consider moving your project to a different path.
+             |Alternatively, you can force your workspace with the '--workspace' option:
+             |    ${Console.BOLD}$prog --workspace <alternative-workspace-path> $argsString${Console.RESET}"""
+            .stripMargin
+        ))
+      else
+        Right(forValidatedElems(
+          validElems,
+          baseProjectName,
+          workspace,
+          needsHash,
+          workspaceOrigin0,
+          enableMarkdown,
+          allowRestrictedFeatures,
+          extraClasspathWasPassed
+        ))
     }
     else
       Left(new InputsException(invalid.mkString(System.lineSeparator())))
