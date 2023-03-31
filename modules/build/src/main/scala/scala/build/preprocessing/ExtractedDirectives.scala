@@ -30,7 +30,10 @@ case class DirectivesPositions(
   codeDirectives: Position.File,
   specialCommentDirectives: Position.File,
   plainCommentDirectives: Position.File
-)
+) {
+  def all: Seq[Position.File] =
+    Seq(codeDirectives, specialCommentDirectives, plainCommentDirectives)
+}
 
 object ExtractedDirectives {
 
