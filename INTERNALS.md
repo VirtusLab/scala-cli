@@ -19,7 +19,6 @@ The other modules are either:
 ## Utility modules
 
 These are:
-- `bloop-rifle`: starts a Bloop server if needed, connects to it via nailgun, opens a BSP server to it, …
 - `runner`: simple app that starts a main class, catches any exception it throws and pretty-prints it.
 - `test-runner`: finds test frameworks, test suites, and runs them
 - `tasty-lib`: edits file names in `.tasty` files

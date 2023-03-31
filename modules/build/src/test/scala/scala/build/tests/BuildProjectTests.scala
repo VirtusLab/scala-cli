@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleLogger
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.CacheLogger
 import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
@@ -7,7 +8,6 @@ import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
 import java.io.PrintStream
 
 import scala.build.Ops._
-import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.build.input.Inputs
 import scala.build.options.{

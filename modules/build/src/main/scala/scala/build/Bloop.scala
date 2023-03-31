@@ -1,5 +1,6 @@
 package scala.build
 
+import bloop.rifle.{BloopRifleConfig, BuildServer}
 import ch.epfl.scala.bsp4j
 import coursier.cache.FileCache
 import coursier.util.Task
@@ -10,8 +11,6 @@ import java.io.{File, IOException}
 
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
-import scala.build.bloop.BuildServer
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.errors.{BuildException, ModuleFormatError}
 import scala.build.internal.CsLoggerUtil._
 import scala.concurrent.duration.FiniteDuration

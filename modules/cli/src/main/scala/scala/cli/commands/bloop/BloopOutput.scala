@@ -1,8 +1,8 @@
 package scala.cli.commands.bloop
 
+import bloop.rifle.BloopRifleConfig
 import caseapp.core.RemainingArgs
 
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand

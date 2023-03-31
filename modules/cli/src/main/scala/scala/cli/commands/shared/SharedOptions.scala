@@ -1,5 +1,6 @@
 package scala.cli.commands.shared
 
+import bloop.rifle.BloopRifleConfig
 import caseapp.*
 import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -14,7 +15,6 @@ import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}

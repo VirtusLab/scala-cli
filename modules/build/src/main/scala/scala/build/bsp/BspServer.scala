@@ -167,7 +167,7 @@ class BspServer(
     val res = new b.InitializeBuildResult(
       "scala-cli",
       Constants.version,
-      scala.build.blooprifle.internal.Constants.bspVersion,
+      bloop.rifle.internal.Constants.bspVersion,
       capabilities
     )
     val buildComesFromIntelliJ = params.getDisplayName.toLowerCase.contains("intellij")

@@ -1,10 +1,10 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleLogger
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
 
-import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.BuildException
 import scala.build.Logger
 import scala.scalanative.{build => sn}

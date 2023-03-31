@@ -1,7 +1,8 @@
 package scala.build.bsp
 
+import bloop.rifle.BloopRifleConfig
+
 import scala.build.Logger
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.options.BuildOptions
 
 /** The options and configurations that may be picked up on a bsp workspace/reload request.

@@ -148,7 +148,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       bspName,
       bspArgs.asJava,
       Constants.version,
-      scala.build.blooprifle.internal.Constants.bspVersion,
+      bloop.rifle.internal.Constants.bspVersion,
       List("scala", "java").asJava
     )
 

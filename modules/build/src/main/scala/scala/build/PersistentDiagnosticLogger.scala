@@ -1,10 +1,10 @@
 package scala.build
 
+import bloop.rifle.BloopRifleLogger
 import org.scalajs.logging.{Logger => ScalaJsLogger}
 
 import java.io.PrintStream
 
-import scala.build.blooprifle.BloopRifleLogger
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.scalanative.{build => sn}
 
