@@ -244,7 +244,7 @@ trait BuildMacros extends ScalaCliSbtModule
         )
       )
 
-      val cpsSource = base / "main" / "scala-3.1" / "scala" / "build" / "EitherCps.scala"
+      val cpsSource = base / "main" / "scala" / "scala" / "build" / "EitherCps.scala"
       assert(os.exists(cpsSource))
 
       val sv = scalaVersion()
