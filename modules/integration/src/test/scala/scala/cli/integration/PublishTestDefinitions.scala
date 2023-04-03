@@ -386,6 +386,17 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "none"
         ).call(cwd = root, env = extraEnv)
 
+        val secretKeyConfig = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "pgp.secret-key"
+        ).call(cwd = root, env = extraEnv)
+          .out.text()
+
+        expect(secretKeyConfig.contains("value:-----BEGIN PGP PRIVATE KEY BLOCK-----"))
+        expect(secretKeyConfig.contains("-----END PGP PRIVATE KEY BLOCK-----"))
+
         os.proc(
           TestUtil.cli,
           "--power",

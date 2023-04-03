@@ -69,17 +69,6 @@ final case class PgpSecretKeyCheck(
     opt0.gpgSignatureId.isDefined
   }
 
-  private val base64Chars = (('A' to 'Z') ++ ('a' to 'z') ++ ('0' to '9') ++ Seq('+', '/', '='))
-    .map(_.toByte)
-    .toSet
-
-  // kind of meh, ideally we should know beforehand whether we are handed base64 or not
-  private def maybeEncodeBase64(input: Array[Byte]): String =
-    if (input.nonEmpty && input.forall(base64Chars.contains))
-      new String(input.map(_.toChar))
-    else
-      Base64.getEncoder().encodeToString(input)
-
   def javaCommand: Either[BuildException, () => String] = either {
     () =>
       value(JvmUtils.javaOptions(options.sharedJvm)).javaHome(
@@ -196,7 +185,7 @@ final case class PgpSecretKeyCheck(
       }
       .getOrElse(ThrowawayPgpSecret.pgpPassPhrase())
 
-    val (pgpPublic, pgpSecret0) = value {
+    val (pgpPublic, pgpSecret) = value {
       ThrowawayPgpSecret.pgpSecret(
         value(maybeMail),
         Some(passwordSecret),
@@ -207,10 +196,8 @@ final case class PgpSecretKeyCheck(
       )
     }
 
-    val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
-
     PGPKeys(
-      Some(ConfigPasswordOption.ActualOption(PasswordOption.Value(pgpSecretBase64))),
+      Some(ConfigPasswordOption.ActualOption(PasswordOption.Value(pgpSecret))),
       Some(ConfigPasswordOption.ActualOption(PasswordOption.Value(passwordSecret))),
       Some(ConfigPasswordOption.ActualOption(PasswordOption.Value(pgpPublic)))
     )
@@ -344,11 +331,11 @@ final case class PgpSecretKeyCheck(
           case Some(configPasswordOption) =>
             val secret = configPasswordOption.get(configDb())
               .orThrow
-              .getBytes()
+              .get()
 
             Seq(SetSecret(
               "PUBLISH_SECRET_KEY",
-              secret.map(maybeEncodeBase64),
+              secret,
               force = true
             ))
           case _ => Nil

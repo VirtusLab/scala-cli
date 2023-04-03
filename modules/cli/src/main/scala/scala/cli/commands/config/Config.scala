@@ -82,7 +82,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             else
               options.pgpPassword.map(scala.cli.signing.shared.Secret.apply)
 
-            val (pgpPublic, pgpSecret0) =
+            val (pgpPublic, pgpSecret) =
               ThrowawayPgpSecret.pgpSecret(
                 mail,
                 passwordOpt,
@@ -96,9 +96,8 @@ object Config extends ScalaCommand[ConfigOptions] {
                   ).value.javaCommand,
                 options.scalaSigning.cliOptions()
               ).orExit(logger)
-            val pgpSecretBase64 = pgpSecret0.map(Base64.getEncoder.encodeToString)
 
-            db.set(secKeyEntry, PasswordOption.Value(pgpSecretBase64.toConfig))
+            db.set(secKeyEntry, PasswordOption.Value(pgpSecret.toConfig))
             db.set(pubKeyEntry, PasswordOption.Value(pgpPublic.toConfig))
             db.save(directories.dbPath.toNIO)
               .wrapConfigException
