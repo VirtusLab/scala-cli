@@ -1274,7 +1274,10 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 
 def unitTests() = T.command {
   `build-module`.test.test()()
+  `build-macros`.test.test()()
   cli.test.test()()
+  directives.test.test()()
+  options.test.test()()
 }
 
 def scala(args: String*) = T.command {
