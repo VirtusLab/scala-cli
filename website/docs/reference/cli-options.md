@@ -177,7 +177,7 @@ A password used to encode the private PGP keychain
 
 ### `--email`
 
-Email to use to create PGP key in config
+Email used to create the PGP keychains in config
 
 ### `--password-value`
 

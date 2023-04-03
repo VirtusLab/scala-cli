@@ -38,7 +38,7 @@ final case class ConfigOptions(
   @ExtraName("passphrase")
   pgpPassword: Option[String] = None,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("Email to use to create PGP key in config")
+  @HelpMessage("Email used to create the PGP keychains in config")
   @Tag(tags.experimental)
     email: Option[String] = None,
   @Group(HelpGroup.Config.toString)
