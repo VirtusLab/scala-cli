@@ -19,4 +19,14 @@ object WarningMessages {
 
   def experimentalConfigKeyUsed(name: String): String =
     experimentalFeatureUsed(s"The '$name' configuration key")
+
+  def rawValueNotWrittenToPublishFile(
+    rawValue: String,
+    valueName: String,
+    directiveName: String
+  ): String =
+    s"""The value of $valueName ${Console.BOLD}will not${Console.RESET} be written to a potentially public file!
+       |Provide it as an option to the publish subcommand with:
+       | $directiveName value:$rawValue
+       |""".stripMargin
 }

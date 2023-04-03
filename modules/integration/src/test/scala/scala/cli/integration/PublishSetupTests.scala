@@ -439,7 +439,19 @@ class PublishSetupTests extends ScalaCliSuite {
     }
   }
 
-  test("local secret value written") {
+  test("local secret value NOT written") {
+    val expectedDirectives = Map(
+      "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
+      "publish.organization"   -> Seq(s"io.github.$ghUserName"),
+      "publish.developer"      -> Seq(s"$devName|$devMail|$devUrl"),
+      "publish.repository"     -> Seq("central-s01"),
+      "publish.url"            -> Seq(s"https://github.com/$ghUserName/tests"),
+      "publish.name"           -> Seq(projName),
+      "publish.computeVersion" -> Seq("git:tag"),
+      "publish.license"        -> Seq("Apache-2.0")
+      // SHOULD NOT BE HERE "publish.secretKey"      -> Seq("value:whatever")
+    )
+
     testInputs.fromRoot { root =>
       configSetup(root / configFile, root)
       gitInit(root / projDir)
@@ -457,11 +469,22 @@ class PublishSetupTests extends ScalaCliSuite {
         cwd = root,
         mergeErrIntoOut = true,
         env = envs
-      )
+      ).out.text()
 
-      expect(res.out.text().contains(
-        "The secret value of PGP private key will be written to a potentially public file!"
+      expect(res.contains(
+        s"The value of PGP secret key ${Console.BOLD}will not${Console.RESET} be written to a potentially public file!"
       ))
+
+      val ghSecrets = res
+        .linesIterator
+        .filter(_.startsWith("Would have set GitHub secret "))
+        .map(_.stripPrefix("Would have set GitHub secret "))
+        .toSet
+      val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
+      expect(directives0 == expectedDirectives)
+      expect(ghSecrets.isEmpty)
+      expect(!res.contains("found keys in config"))
+      expect(res.contains("Warning: no public key passed, not checking"))
     }
   }
 
