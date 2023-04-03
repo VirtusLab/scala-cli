@@ -7,6 +7,171 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.0-RC1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.0-RC1)
+
+### Official `scala` runner release candidate
+
+`v1.0.0-RC1` is the first release candidate version of Scala CLI.
+
+Either this or a future release candidate is meant to become the new official `scala` runner to accompany
+the Scala compiler (`scalac`) and other scripts, replacing the old `scala` command. 
+
+To learn more about Scala CLI as the new `scala` runner, check out our recent blogpost: 
+https://virtuslab.com/blog/scala-cli-the-new-scala-runner/
+
+### Scala CLI should now have better performance
+
+With a number of newly added performance tweaks, you can expect Scala CLI to run considerably faster.
+Added by  [@lwronski](https://github.com/lwronski) in [#1939](https://github.com/VirtusLab/scala-cli/pull/1939)
+
+### Print appropriate warnings when experimental features are used
+
+Using experimental features will now cause Scala CLI to print an appropriate warning.
+
+```bash
+scala-cli --power -e '//> using publish.name "my-library"'
+# The '//> publish.name "my-library"' directive is an experimental feature.
+# Please bear in mind that non-ideal user experience should be expected.
+# If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+```
+
+The warning can be suppressed with the `--suppress-experimental-warning` option, or alternatively with the
+`suppress-warning.experimental-features` global config key.
+```bash
+scala-cli config suppress-warning.experimental-features true
+```
+
+Added by  [@Gedochao](https://github.com/Gedochao) in [#1920](https://github.com/VirtusLab/scala-cli/pull/1920)
+
+### Experimental and restricted configuration keys will now require to be accessed in `--power` mode
+
+Some configuration keys available with the `config` sub-command have been tagged as experimental or restricted and will 
+only be available in `--power` mode.
+
+```bash ignore
+scala-cli config httpProxy.address
+# The 'httpProxy.address' configuration key is restricted.
+# You can run it with the '--power' flag or turn power mode on globally by running:
+#   scala-cli config power true.
+```
+
+Added by  [@Gedochao](https://github.com/Gedochao) in [#1953](https://github.com/VirtusLab/scala-cli/pull/1953)
+
+
+### Dropped deprecated `using` directive syntax 
+
+The following syntax for `using` directives have been dropped:
+- skipping `//>`
+- multiline directives
+- directives in `/*> ... */` comments
+- directives in plain `//` comments
+- `@using`
+
+Added by  [@tgodzik](https://github.com/tgodzik) in [#1932](https://github.com/VirtusLab/scala-cli/pull/1932)
+
+### Added support for packaging native images from Docker
+
+It is now possible to package a GraalVM native image with Scala CLI from docker.
+
+```bash ignore
+docker run -v $(pwd)/Hello.scala:/Hello.scala virtuslab/scala-cli package --native-image /Hello.scala
+```
+
+Added by  [@lwronski](https://github.com/lwronski) in [#1961](https://github.com/VirtusLab/scala-cli/pull/1961)
+
+### Added support for Scala Native's `LTO`
+It is now possible to set the Link Time Optimization (LTO) when using Scala CLI with Scala Native.
+The available options are "thin", "full" and "none".
+You can do it with the `--native-lto` option from the command line:
+
+```bash
+scala-cli -e 'println("Hello")' --native --native-lto thin
+```
+
+Or with a `using` directive:
+
+```scala compile
+//> using platform "scala-native"
+//> using nativeLto "thin"
+@main def main(): Unit = println("Hello")
+```
+
+Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/VirtusLab/scala-cli/pull/1964)
+
+### Other changes
+
+#### Publishing changes
+* Make credential entries respect the --password-value option by [@MaciejG604](https://github.com/MaciejG604)
+  in [#1949](https://github.com/VirtusLab/scala-cli/pull/1949)
+* Write PGP keys to publish-conf when doing publish setup by [@MaciejG604](https://github.com/MaciejG604)
+  in [#1940](https://github.com/VirtusLab/scala-cli/pull/1940)
+* Comply with optional password in `scala-cli-signing` by [@MaciejG604](https://github.com/MaciejG604)
+  in [#1982](https://github.com/VirtusLab/scala-cli/pull/1982)
+* Support ssh in GitHub repo org&name extraction by [@KuceraMartin](https://github.com/KuceraMartin) 
+  in [#1938](https://github.com/VirtusLab/scala-cli/pull/1938)
+
+#### Fixes
+* Print an informative error if the project workspace path contains `File.pathSeparator` by [@Gedochao](https://github.com/Gedochao)
+  in [#1985](https://github.com/VirtusLab/scala-cli/pull/1985)
+* Enable to pass custom docker-cmd to execute application in docker by [@lwronski](https://github.com/lwronski) 
+  in [#1980](https://github.com/VirtusLab/scala-cli/pull/1980)
+* Fix - uses show cli.nativeImage command to generate native image by [@lwronski](https://github.com/lwronski)
+  in [#1975](https://github.com/VirtusLab/scala-cli/pull/1975)
+* Vcs.parse fix by [@KuceraMartin](https://github.com/KuceraMartin)
+  in [#1963](https://github.com/VirtusLab/scala-cli/pull/1963)
+* move args definition to the top of the script  by [@bishabosha](https://github.com/bishabosha)
+  in [#1983](https://github.com/VirtusLab/scala-cli/pull/1983)
+
+#### Documentation changes
+
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) 
+  in [#1935](https://github.com/VirtusLab/scala-cli/pull/1935)
+* Remove ChainedSnippets by  [@MaciejG604](https://github.com/MaciejG604) 
+  in [#1928](https://github.com/VirtusLab/scala-cli/pull/1928)
+* Further document publish command by  [@MaciejG604](https://github.com/MaciejG604) 
+  in [#1914](https://github.com/VirtusLab/scala-cli/pull/1914)
+* Add a verbosity guide by  [@Gedochao](https://github.com/Gedochao) 
+  in [#1936](https://github.com/VirtusLab/scala-cli/pull/1936)
+* Docs - how to run unit tests in Scala CLI by [@lwronski](https://github.com/lwronski)
+  in [#1977](https://github.com/VirtusLab/scala-cli/pull/1977)
+
+#### Build and internal changes
+
+* Use locally build jvm launcher of scala-cli in gifs generator by  [@lwronski](https://github.com/lwronski)
+  in [#1921](https://github.com/VirtusLab/scala-cli/pull/1921)
+* Clean up after ammonite imports removal by  [@MaciejG604](https://github.com/MaciejG604) 
+  in [#1934](https://github.com/VirtusLab/scala-cli/pull/1934)
+* Temporarily disable `PublishTests.secret keys in config` on Windows by  [@Gedochao](https://github.com/Gedochao)
+  in [#1948](https://github.com/VirtusLab/scala-cli/pull/1948)
+* Move toolkit to scalalang org by [@szymon-rd](https://github.com/szymon-rd) 
+  in [#1930](https://github.com/VirtusLab/scala-cli/pull/1930)
+
+#### Updates and maintenance
+
+* Update scala-cli.sh launcher for 0.2.1 by [@github-actions](https://github.com/github-actions) 
+  in [#1931](https://github.com/VirtusLab/scala-cli/pull/1931)
+* Bump VirtusLab/scala-cli-setup from 0.2.0 to 0.2.1 by [@dependabot](https://github.com/dependabot) 
+  in [#1947](https://github.com/VirtusLab/scala-cli/pull/1947)
+* Bump coursier/publish version to 0.1.4 by  [@MaciejG604](https://github.com/MaciejG604) 
+  in [#1950](https://github.com/VirtusLab/scala-cli/pull/1950)
+* Bump to the latest weaver & remove expecty by [@lenguyenthanh](https://github.com/lenguyenthanh) 
+  in [#1955](https://github.com/VirtusLab/scala-cli/pull/1955)
+* Bump webfactory/ssh-agent from 0.7.0 to 0.8.0 by [@dependabot](https://github.com/dependabot) 
+  in [#1967](https://github.com/VirtusLab/scala-cli/pull/1967)
+* chore(dep): bump mill from 0.10.10 to 0.10.12 by [@ckipp01](https://github.com/ckipp01) 
+  in [#1970](https://github.com/VirtusLab/scala-cli/pull/1970)
+* Bump Bleep to `1.5.6-sc-4`by [@Gedochao](https://github.com/Gedochao) 
+  in [#1973](https://github.com/VirtusLab/scala-cli/pull/1973)
+
+### New Contributors
+
+* [@KuceraMartin](https://github.com/KuceraMartin) made their first contribution 
+  in [#1938](https://github.com/VirtusLab/scala-cli/pull/1938)
+* [@lenguyenthanh](https://github.com/lenguyenthanh) made their first contribution 
+  in [#1955](https://github.com/VirtusLab/scala-cli/pull/1955)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v0.2.1...v1.0.0-RC1
+
 ## [v0.2.1](https://github.com/VirtusLab/scala-cli/releases/tag/v0.2.1)
 
 ### Add a guide for migrating from the old `scala` runner to Scala CLI
