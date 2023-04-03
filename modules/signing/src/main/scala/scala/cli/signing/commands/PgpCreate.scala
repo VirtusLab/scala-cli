@@ -38,7 +38,7 @@ object PgpCreate extends Command[PgpCreateOptions] {
     val secretKeyContent = {
       val baos   = new ByteArrayOutputStream
       val skr    = keyRingGen.generateSecretKeyRing()
-      val secout = new BufferedOutputStream(baos)
+      val secout = new ArmoredOutputStream(baos)
       skr.encode(secout)
       secout.close()
       baos.toByteArray
