@@ -35,7 +35,7 @@ object ThrowawayPgpSecret {
     cache: FileCache[Task],
     javaCommand: () => String,
     signingCliOptions: bo.ScalaSigningCliOptions
-  ): Either[BuildException, (Secret[String], Secret[Array[Byte]])] = either {
+  ): Either[BuildException, (Secret[String], Secret[String])] = either {
 
     val dir    = os.temp.dir(perms = if (Properties.isWin) null else "rwx------")
     val pubKey = dir / "pub"
@@ -58,7 +58,7 @@ object ThrowawayPgpSecret {
       os.remove.all(dir)
 
     if (retCode == 0)
-      try (Secret(os.read(pubKey)), Secret(os.read.bytes(secKey)))
+      try (Secret(os.read(pubKey)), Secret(os.read(secKey)))
       finally cleanUp()
     else {
       cleanUp()
