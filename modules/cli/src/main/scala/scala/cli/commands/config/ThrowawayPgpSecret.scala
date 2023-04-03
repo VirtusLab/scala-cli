@@ -30,7 +30,7 @@ object ThrowawayPgpSecret {
   }
   def pgpSecret(
     mail: String,
-    password: Secret[String],
+    password: Option[Secret[String]],
     logger: Logger,
     cache: FileCache[Task],
     javaCommand: () => String,
@@ -46,7 +46,7 @@ object ThrowawayPgpSecret {
         secKey.toString,
         mail,
         logger.verbosity <= 0,
-        password.value,
+        password.map(_.value),
         cache,
         logger,
         javaCommand,

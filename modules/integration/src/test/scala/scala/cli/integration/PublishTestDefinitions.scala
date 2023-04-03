@@ -137,7 +137,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
 
       val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
       assert(signatures.nonEmpty)
-      os.proc(
+      val verifyProc = os.proc(
         TestUtil.cli,
         "--power",
         "pgp",
@@ -146,7 +146,9 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         publicKey,
         signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
       )
-        .call(cwd = root)
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      expect(!verifyProc.out.text().contains(s"invalid signature"))
     }
   }
 
@@ -274,91 +276,90 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!TestUtil.isNativeCli)
-    test("missing secret key password") {
-      // format: off
-      val signingOptions = Seq(
-        "--secret-key", s"file:key.skr",
-        "--signer", "bc"
-      )
-      // format: on
+  test("no secret key password") {
+    // format: off
+    val signingOptions = Seq(
+      "--secret-key", s"file:key.skr",
+      "--signer", "bc"
+    )
+    // format: on
 
-      TestCase.testInputs.fromRoot { root =>
-        val confDir  = root / "config"
-        val confFile = confDir / "test-config.json"
+    TestCase.testInputs.fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
 
-        os.write(confFile, "{}", createFolders = true)
+      os.write(confFile, "{}", createFolders = true)
 
-        if (!Properties.isWin)
-          os.perms.set(confDir, "rwx------")
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
 
-        val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
 
-        os.proc(
-          TestUtil.cli,
-          "--power",
-          "pgp",
-          "create",
-          "--email",
-          "some_email",
-          "--password",
-          "value:"
-        ).call(cwd = root, env = extraEnv)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "some_email"
+      ).call(cwd = root, env = extraEnv)
 
-        val publicKey = os.Path("key.pub", root)
+      val publicKey = os.Path("key.pub", root)
 
-        os.proc(
-          TestUtil.cli,
-          "--power",
-          "publish",
-          extraOptions,
-          signingOptions,
-          "project",
-          "-R",
-          "test-repo"
-        ).call(cwd = root, env = extraEnv)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        signingOptions,
+        "project",
+        "-R",
+        "test-repo"
+      ).call(cwd = root, env = extraEnv)
 
-        val files = os.walk(root / "test-repo")
-          .filter(os.isFile(_))
-          .map(_.relativeTo(root / "test-repo"))
-        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
-        expect(notInDir.isEmpty)
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo"))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+      expect(notInDir.isEmpty)
 
-        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
 
-        expect((files0 -- expectedArtifacts).isEmpty)
-        expect((expectedArtifacts -- files0).isEmpty)
-        expect(files0 == expectedArtifacts) // just in case…
+      expect((files0 -- expectedArtifacts).isEmpty)
+      expect((expectedArtifacts -- files0).isEmpty)
+      expect(files0 == expectedArtifacts) // just in case…
 
-        val repoArgs =
-          Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
-        val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-        val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-        val output = res.out.trim()
-        expect(output == "Hello")
+      val repoArgs =
+        Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
+      val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+      val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
+      val output = res.out.trim()
+      expect(output == "Hello")
 
-        val sourceJarViaCsStr =
-          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-            .call(cwd = root)
-            .out.trim()
-        val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
-        val zf             = new ZipFile(sourceJarViaCs.toIO)
-        val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-        expect(entries == expectedSourceEntries)
+      val sourceJarViaCsStr =
+        os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+          .call(cwd = root)
+          .out.trim()
+      val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+      val zf             = new ZipFile(sourceJarViaCs.toIO)
+      val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+      expect(entries == expectedSourceEntries)
 
-        val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
-        assert(signatures.nonEmpty)
-        os.proc(
-          TestUtil.cli,
-          "--power",
-          "pgp",
-          "verify",
-          "--key",
-          publicKey,
-          signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
-        ).call(cwd = root, env = extraEnv)
-      }
+      val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+      assert(signatures.nonEmpty)
+      val verifyProc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "verify",
+        "--key",
+        publicKey,
+        signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+      ).call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+      expect(!verifyProc.out.text().contains(s"invalid signature"))
     }
+  }
 
   if (!Properties.isWin) // TODO: fix intermittent failures on Windows
     test("secret keys in config") {
@@ -383,81 +384,81 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
           "some_email"
         ).call(cwd = root, env = extraEnv)
 
-        TestCase.testInputs.fromRoot { root =>
-          os.proc(
-            TestUtil.cli,
-            "--power",
-            "publish",
-            extraOptions,
-            "--signer",
-            "bc",
-            "project",
-            "-R",
-            "test-repo"
-          ).call(
-            cwd = root,
-            stdin = os.Inherit,
-            stdout = os.Inherit,
-            env = extraEnv
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          "--signer",
+          "bc",
+          "project",
+          "-R",
+          "test-repo"
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          env = extraEnv
+        )
+
+        val files = os.walk(root / "test-repo")
+          .filter(os.isFile(_))
+          .map(_.relativeTo(root / "test-repo"))
+        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+        expect(notInDir.isEmpty)
+
+        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+        expect((files0 -- expectedArtifacts).isEmpty)
+        expect((expectedArtifacts -- files0).isEmpty)
+        expect(files0 == expectedArtifacts) // just in case…
+
+        val repoArgs =
+          Seq[os.Shellable](
+            "-r",
+            "!central",
+            "-r",
+            (root / "test-repo").toNIO.toUri.toASCIIString
           )
+        val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+        val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == "Hello")
 
-          val files = os.walk(root / "test-repo")
-            .filter(os.isFile(_))
-            .map(_.relativeTo(root / "test-repo"))
-          val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
-          expect(notInDir.isEmpty)
-
-          val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
-
-          expect((files0 -- expectedArtifacts).isEmpty)
-          expect((expectedArtifacts -- files0).isEmpty)
-          expect(files0 == expectedArtifacts) // just in case…
-
-          val repoArgs =
-            Seq[os.Shellable](
-              "-r",
-              "!central",
-              "-r",
-              (root / "test-repo").toNIO.toUri.toASCIIString
-            )
-          val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-          val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-          val output = res.out.trim()
-          expect(output == "Hello")
-
-          val sourceJarViaCsStr =
-            os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-              .call(cwd = root)
-              .out.trim()
-          val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
-          val zf             = new ZipFile(sourceJarViaCs.toIO)
-          val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-          expect(entries == expectedSourceEntries)
-
-          val publicKey = os.proc(
-            TestUtil.cli,
-            "--power",
-            "config",
-            "pgp.public-key"
-          ).call(cwd = root, env = extraEnv)
+        val sourceJarViaCsStr =
+          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+            .call(cwd = root)
             .out.trim()
-            .stripPrefix("value:")
+        val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+        val zf             = new ZipFile(sourceJarViaCs.toIO)
+        val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+        expect(entries == expectedSourceEntries)
 
-          os.write(os.Path("key.pub", root), publicKey)
+        val publicKey = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "pgp.public-key"
+        ).call(cwd = root, env = extraEnv)
+          .out.trim()
+          .stripPrefix("value:")
 
-          val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
-          assert(signatures.nonEmpty)
-          os.proc(
-            TestUtil.cli,
-            "--power",
-            "pgp",
-            "verify",
-            "--key",
-            s"key.pub",
-            signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
-          )
-            .call(cwd = root, env = extraEnv)
-        }
+        os.write(os.Path("key.pub", root), publicKey)
+
+        val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+        assert(signatures.nonEmpty)
+        val verifyProc = os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "verify",
+          "--key",
+          s"key.pub",
+          signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+        )
+          .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+        expect(!verifyProc.out.text().contains(s"invalid signature"))
       }
     }
 
@@ -483,40 +484,38 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
         "some_email"
       ).call(cwd = root, env = extraEnv)
 
-      TestCase.testInputs.fromRoot { root =>
-        os.proc(
-          TestUtil.cli,
-          "--power",
-          "publish",
-          extraOptions,
-          "--secret-key",
-          "value:INCORRECT_KEY",
-          "--signer",
-          "none",
-          "project",
-          "-R",
-          "test-repo"
-        ).call(
-          cwd = root,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          env = extraEnv
-        )
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        "--secret-key",
+        "value:INCORRECT_KEY",
+        "--signer",
+        "none",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        env = extraEnv
+      )
 
-        val files = os.walk(root / "test-repo")
-          .filter(os.isFile(_))
-          .map(_.relativeTo(root / "test-repo"))
-        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
-        expect(notInDir.isEmpty)
+      val files = os.walk(root / "test-repo")
+        .filter(os.isFile(_))
+        .map(_.relativeTo(root / "test-repo"))
+      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+      expect(notInDir.isEmpty)
 
-        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
 
-        val expectedArtifactsNotSigned = expectedArtifacts.filterNot(_.last.contains(".asc"))
+      val expectedArtifactsNotSigned = expectedArtifacts.filterNot(_.last.contains(".asc"))
 
-        expect((files0 -- expectedArtifactsNotSigned).isEmpty)
-        expect((expectedArtifactsNotSigned -- files0).isEmpty)
-        expect(files0 == expectedArtifactsNotSigned) // just in case…
-      }
+      expect((files0 -- expectedArtifactsNotSigned).isEmpty)
+      expect((expectedArtifactsNotSigned -- files0).isEmpty)
+      expect(files0 == expectedArtifactsNotSigned) // just in case…
     }
   }
 }

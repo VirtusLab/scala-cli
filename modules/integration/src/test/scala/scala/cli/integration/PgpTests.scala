@@ -94,4 +94,82 @@ class PgpTests extends ScalaCliSuite {
       }
     }
 
+  test("pgp create") {
+    pubKeyInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "test@test.com",
+        "--password",
+        "value:1234",
+        "--dest",
+        "new_key"
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val tmpFile    = root / "test-file"
+      val tmpFileAsc = root / "test-file.asc"
+      os.write(tmpFile, "Hello")
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "sign",
+        "--password",
+        "value:1234",
+        "--secret-key",
+        "file:new_key.skr",
+        tmpFile
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val verifyProc =
+        os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", "new_key.pub", tmpFileAsc)
+          .call(cwd = root, mergeErrIntoOut = true)
+
+      expect(verifyProc.out.text().contains(s"$tmpFileAsc: valid signature"))
+    }
+  }
+
+  test("pgp create no password") {
+    pubKeyInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "test@test.com",
+        "--dest",
+        "new_key"
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val tmpFile    = root / "test-file"
+      val tmpFileAsc = root / "test-file.asc"
+      os.write(tmpFile, "Hello")
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "sign",
+        "--secret-key",
+        "file:new_key.skr",
+        tmpFile
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val verifyProc =
+        os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", "new_key.pub", tmpFileAsc)
+          .call(cwd = root, mergeErrIntoOut = true)
+
+      expect(verifyProc.out.text().contains(s"$tmpFileAsc: valid signature"))
+    }
+  }
+
 }
