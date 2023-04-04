@@ -7,7 +7,8 @@ import org.bouncycastle.bcpg.{
   ArmoredOutputStream,
   BCPGOutputStream,
   CompressionAlgorithmTags,
-  HashAlgorithmTags
+  HashAlgorithmTags,
+  SymmetricKeyAlgorithmTags
 }
 import org.bouncycastle.openpgp.{Util => _, _}
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
@@ -18,11 +19,12 @@ import org.bouncycastle.openpgp.operator.jcajce.{
   JcaPGPContentVerifierBuilderProvider,
   JcePBESecretKeyDecryptorBuilder
 }
+import org.codehaus.plexus.util.cli.CommandLineUtils.StringStreamConsumer
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
-
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintWriter, StringWriter}
 import scala.cli.signing.shared.Secret
 import scala.jdk.CollectionConverters._
+import scala.util.Try
 
 final case class BouncycastleSigner(
   pgpSecretKey: PGPSecretKey,
@@ -33,6 +35,7 @@ final case class BouncycastleSigner(
       val b = content.content()
       f(b, 0, b.length)
     }
+
   def sign(withContent: ((Array[Byte], Int, Int) => Unit) => Unit): Either[String, String] = {
 
     // originally adapted from https://github.com/jordanbaucke/PGP-Sign-and-Encrypt/blob/472d8932df303d6861ec494a3e942ea268eaf25f/src/SignAndEncrypt.java#L144-L199
@@ -40,47 +43,65 @@ final case class BouncycastleSigner(
     val encOut = new ByteArrayOutputStream
     val out    = new ArmoredOutputStream(encOut)
 
-    val pgpPrivKey =
+    val maybePgpPrivKey = Try {
       pgpSecretKey.extractPrivateKey(
         new JcePBESecretKeyDecryptorBuilder()
           .setProvider("BC")
           .build(passwordOpt.map(_.value.toCharArray).getOrElse(Array.empty))
       )
-
-    val sGen = new PGPSignatureGenerator(
-      new JcaPGPContentSignerBuilder(
-        pgpSecretKey.getPublicKey
-          .getAlgorithm,
-        HashAlgorithmTags.SHA1
-      ).setProvider("BC")
-    )
-
-    sGen.init(PGPSignature.BINARY_DOCUMENT, pgpPrivKey)
-
-    val it = pgpSecretKey.getPublicKey.getUserIDs
-    if (it.hasNext()) {
-      val spGen = new PGPSignatureSubpacketGenerator
-      spGen.setSignerUserID(false, it.next().asInstanceOf[String])
-      sGen.setHashedSubpackets(spGen.generate())
+    }.toEither.left.map {
+      case pgpExc: PGPException
+          if pgpExc.getMessage.contains("checksum mismatch at in checksum of") =>
+        passwordOpt match {
+          case Some(_) =>
+            "Failed to decrypt the PGP secret key, make sure the provided password is correct!"
+          case None if pgpSecretKey.getKeyEncryptionAlgorithm != SymmetricKeyAlgorithmTags.NULL =>
+            "Failed to decrypt the PGP secret key, provide a password!"
+          case None => pgpExc.toString
+        }
+      case exc: Throwable =>
+        val sw = new StringWriter
+        val pw = new PrintWriter(sw)
+        exc.printStackTrace(pw)
+        sw.toString
     }
 
-    val comData = new PGPCompressedDataGenerator(
-      CompressionAlgorithmTags.ZLIB
-    )
+    maybePgpPrivKey.map { pgpPrivKey =>
+      val sGen = new PGPSignatureGenerator(
+        new JcaPGPContentSignerBuilder(
+          pgpSecretKey.getPublicKey
+            .getAlgorithm,
+          HashAlgorithmTags.SHA1
+        ).setProvider("BC")
+      )
 
-    val bOut = new BCPGOutputStream(comData.open(out))
+      sGen.init(PGPSignature.BINARY_DOCUMENT, pgpPrivKey)
 
-    withContent { (b, off, len) =>
-      sGen.update(b, off, len)
+      val it = pgpSecretKey.getPublicKey.getUserIDs
+      if (it.hasNext()) {
+        val spGen = new PGPSignatureSubpacketGenerator
+        spGen.setSignerUserID(false, it.next().asInstanceOf[String])
+        sGen.setHashedSubpackets(spGen.generate())
+      }
+
+      val comData = new PGPCompressedDataGenerator(
+        CompressionAlgorithmTags.ZLIB
+      )
+
+      val bOut = new BCPGOutputStream(comData.open(out))
+
+      withContent { (b, off, len) =>
+        sGen.update(b, off, len)
+      }
+
+      sGen.generate().encode(bOut)
+
+      comData.close()
+
+      out.close()
+
+      encOut.toString()
     }
-
-    sGen.generate().encode(bOut)
-
-    comData.close()
-
-    out.close()
-
-    Right(encOut.toString())
   }
 }
 
