@@ -17,7 +17,7 @@ abstract class CodeWrapper {
     val (topWrapper, bottomWrapper, userCodeNestingLevel) =
       apply(code, pkgName, indexedWrapperName, extraCode0)
     val (topWrapper0, bottomWrapper0) =
-      (topWrapper + "/*<script>*/", "/*</script>*/ /*<generated>*/" + bottomWrapper)
+      (topWrapper + "/*<script>*/\n", "/*</script>*/ /*<generated>*/" + bottomWrapper)
     val importsLen = topWrapper0.length
 
     (topWrapper0 + code + bottomWrapper0, importsLen, userCodeNestingLevel)
