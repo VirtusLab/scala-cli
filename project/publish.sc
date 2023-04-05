@@ -129,7 +129,11 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
     licenses = Seq(License.`Apache-2.0`),
     versionControl = VersionControl.github(ghOrg, ghName),
     developers = Seq(
-      Developer("alexarchambault", "Alex Archambault", "https://github.com/alexarchambault")
+      Developer("alexarchambault", "Alex Archambault", "https://github.com/alexarchambault"),
+      Developer("lwronski", "Łukasz Wroński", "https://github.com/lwronski"),
+      Developer("romanowski", "Krzysztof Romanowski", "https://github.com/romanowski"),
+      Developer("Gedochao", "Piotr Chabelski", "https://github.com/Gedochao"),
+      Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
   def publishVersion =
