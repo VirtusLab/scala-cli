@@ -6,6 +6,7 @@ import coursier.Dependency
 import coursier.util.Artifact
 import dependency.AnyDependency
 
+import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
@@ -47,6 +48,16 @@ final case class JsonProject(
           config
         )
     }
+  }
+
+  def print(printStream: PrintStream): Unit = {
+    val config = WriterConfig.withIndentionStep(1)
+
+    writeToStream(
+      this,
+      printStream,
+      config
+    )
   }
 }
 

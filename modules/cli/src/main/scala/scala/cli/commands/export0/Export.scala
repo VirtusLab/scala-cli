@@ -104,9 +104,12 @@ object Export extends ScalaCommand[ExportOptions] {
   override def runCommand(options: ExportOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
 
-    val output = options.output.getOrElse("dest")
-    val dest   = os.Path(output, os.pwd)
-    if (os.exists(dest)) {
+    val output                   = options.output.getOrElse("dest")
+    val dest                     = os.Path(output, os.pwd)
+    val shouldExportToJson       = options.json.getOrElse(false)
+    val shouldExportJsonToStdout = shouldExportToJson && options.output.isEmpty
+
+    if (!shouldExportJsonToStdout && os.exists(dest)) {
       logger.error(
         s"""Error: $dest already exists.
            |To change the destination output directory pass --output path or remove the destination directory first.""".stripMargin
@@ -114,7 +117,6 @@ object Export extends ScalaCommand[ExportOptions] {
       sys.exit(1)
     }
 
-    val shouldExportToJson = options.json.getOrElse(false)
     val shouldExportToMill = options.mill.getOrElse(false)
     val shouldExportToSbt  = options.sbt.getOrElse(false)
     if (shouldExportToMill && shouldExportToSbt) {
@@ -128,7 +130,7 @@ object Export extends ScalaCommand[ExportOptions] {
       val buildToolName = if (shouldExportToMill) "mill" else "sbt"
       logger.message(s"Exporting to a $buildToolName project...")
     }
-    else
+    else if (!shouldExportJsonToStdout)
       logger.message(s"Exporting to JSON...")
 
     val inputs = options.shared.inputs(args.all).orExit(logger)
@@ -176,23 +178,31 @@ object Export extends ScalaCommand[ExportOptions] {
       sys.exit(1)
     }
 
-    val sbtVersion = options.sbtVersion.getOrElse("1.6.1")
+    if (shouldExportJsonToStdout) {
+      val project = jsonProjectDescriptor(options.project, logger)
+        .`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
 
-    def sbtProjectDescriptor0 =
-      sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
+      project.print(System.out)
+    }
+    else {
+      val sbtVersion = options.sbtVersion.getOrElse("1.6.1")
 
-    val projectDescriptor =
-      if (shouldExportToMill)
-        millProjectDescriptor(options.shared.coursierCache, options.project, logger)
-      else if (shouldExportToJson)
-        jsonProjectDescriptor(options.project, logger)
-      else // shouldExportToSbt isn't checked, as it's treated as default
-        sbtProjectDescriptor0
+      def sbtProjectDescriptor0 =
+        sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
 
-    val project = projectDescriptor.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+      val projectDescriptor =
+        if (shouldExportToMill)
+          millProjectDescriptor(options.shared.coursierCache, options.project, logger)
+        else if (shouldExportToJson)
+          jsonProjectDescriptor(options.project, logger)
+        else // shouldExportToSbt isn't checked, as it's treated as default
+          sbtProjectDescriptor0
 
-    os.makeDir.all(dest)
-    project.writeTo(dest)
-    logger.message(s"Exported to: $dest")
+      val project = projectDescriptor.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+
+      os.makeDir.all(dest)
+      project.writeTo(dest)
+      logger.message(s"Exported to: $dest")
+    }
   }
 }

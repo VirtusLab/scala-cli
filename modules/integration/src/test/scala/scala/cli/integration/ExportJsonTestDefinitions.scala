@@ -5,7 +5,10 @@ import com.eed3si9n.expecty.Expecty.expect
 abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
   private def readJson(path: os.ReadablePath): String =
-    os.read(path)
+    readJson(os.read(path))
+
+  private def readJson(json: String): String =
+    json
       .replaceAll("\\s", "")
       .replaceAll(
         "ivy:file:[^\"]*(scalacli|ScalaCli)[^\"]*/local-repo[^\"]*",
@@ -29,12 +32,13 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "adopt:11")
-        .call(cwd = root)
+      val exportJsonProc =
+        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "adopt:11")
+          .call(cwd = root)
 
-      val fileContents = readJson(root / "dest" / "export.json")
+      val jsonContents = readJson(exportJsonProc.out.text())
 
-      expect(fileContents ==
+      expect(jsonContents ==
         """{
           |"scalaVersion":"3.2.2",
           |"platform":"JVM",
@@ -84,10 +88,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
+      val exportJsonProc = os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--native")
         .call(cwd = root)
 
-      val fileContents = readJson(root / "dest" / "export.json")
+      val jsonContents = readJson(exportJsonProc.out.text())
         .replaceAll(
           "\"resourcesDirs\":\\[\"[^\"]*resources\"\\]",
           "\"resourcesDirs\":[\"./resources\"]"
@@ -97,7 +101,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           "\"customJarsDecls\":[\"./TEST.jar\"]"
         )
 
-      expect(fileContents ==
+      expect(jsonContents ==
         s"""{
           |"scalaVersion":"3.2.2",
           |"platform":"Native",
@@ -187,10 +191,22 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--js-es-version", "es2015")
+      val exportJsonProc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "export",
+        "--json",
+        "--output",
+        "json_dir",
+        ".",
+        "--js-es-version",
+        "es2015"
+      )
         .call(cwd = root)
 
-      val fileContents = readJson(root / "dest" / "export.json")
+      expect(exportJsonProc.out.text().isEmpty)
+
+      val fileContents = readJson(root / "json_dir" / "export.json")
 
       expect(fileContents ==
         s"""{
@@ -231,6 +247,24 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |}
           |}
           |""".replaceAll("\\s|\\|", ""))
+
+      val exportToExistingProc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "export",
+        "--json",
+        "--output",
+        "json_dir",
+        ".",
+        "--js-es-version",
+        "es2015"
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+
+      expect(exportToExistingProc.exitCode != 0)
+      expect(
+        exportToExistingProc.out.text().contains(s"Error: ${root / "json_dir"} already exists.")
+      )
     }
   }
 
