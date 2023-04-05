@@ -170,31 +170,6 @@ object CrossSources {
     val preprocessedSources =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
 
-    val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
-    if preprocessedWithUsingDirs.length > 1 &&
-      !suppressWarningOptions.suppressDirectivesInMultipleFilesWarning.getOrElse(false)
-    then {
-      val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
-        case Some(s) => s.path
-        case _       => inputs.workspace / Constants.projectFileName
-      preprocessedWithUsingDirs
-        .filter(_.scopePath != ScopePath.fromPath(projectFilePath))
-        .foreach { source =>
-          source.directivesPositions match
-            case Some(positions) =>
-              val pos = Seq(
-                positions.codeDirectives,
-                positions.specialCommentDirectives,
-                positions.plainCommentDirectives
-              ).maxBy(p => p.endPos._1)
-              logger.diagnostic(
-                s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
-                positions = Seq(pos)
-              )
-            case _ => ()
-        }
-    }
-
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
     def baseReqs(path: ScopePath): BuildRequirements = {
@@ -234,22 +209,26 @@ object CrossSources {
       mainClass          <- processedMainClass.mainClassOpt
     } yield mainClass
 
-    val paths = preprocessedSources.collect {
-      case d: PreprocessedSource.OnDisk =>
-        val baseReqs0 = baseReqs(d.scopePath)
-        WithBuildRequirements(
-          d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-          (d.path, d.path.relativeTo(allInputs.workspace))
-        )
-    }
-    val inMemory = preprocessedSources.collect {
-      case m: PreprocessedSource.InMemory =>
-        val baseReqs0 = baseReqs(m.scopePath)
-        WithBuildRequirements(
-          m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-          Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
-        )
-    }
+    val pathsWithDirectivePositions
+      : Seq[(WithBuildRequirements[(os.Path, os.RelPath)], Option[DirectivesPositions])] =
+      preprocessedSources.collect {
+        case d: PreprocessedSource.OnDisk =>
+          val baseReqs0 = baseReqs(d.scopePath)
+          WithBuildRequirements(
+            d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            (d.path, d.path.relativeTo(allInputs.workspace))
+          ) -> d.directivesPositions
+      }
+    val inMemoryWithDirectivePositions
+      : Seq[(WithBuildRequirements[Sources.InMemory], Option[DirectivesPositions])] =
+      preprocessedSources.collect {
+        case m: PreprocessedSource.InMemory =>
+          val baseReqs0 = baseReqs(m.scopePath)
+          WithBuildRequirements(
+            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
+          ) -> m.directivesPositions
+      }
 
     val resourceDirs = allInputs.elements.collect {
       case r: ResourceDirectory =>
@@ -258,6 +237,44 @@ object CrossSources {
       WithBuildRequirements(BuildRequirements(), _)
     )
 
+    lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, DirectivesPositions)]] =
+      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions)
+        .flatMap { (withBuildRequirements, directivesPositions) =>
+          val scope = withBuildRequirements.scopedValue(Scope.Main).scope
+          val path: os.Path = withBuildRequirements.value match
+            case im: Sources.InMemory =>
+              im.originalPath match
+                case Right((_, p: os.Path)) => p
+                case _                      => inputs.workspace / im.generatedRelPath
+            case (p: os.Path, _) => p
+          directivesPositions.map((path, scope, _))
+        }
+        .groupBy((_, scope, _) => scope)
+        .view
+        .mapValues(_.map((path, _, directivesPositions) => path -> directivesPositions))
+        .toMap
+    lazy val anyScopeHasMultipleSourcesWithDirectives =
+      Scope.all.exists(allPathsWithDirectivesByScope.get(_).map(_.length).getOrElse(0) > 1)
+    val shouldSuppressWarning =
+      suppressWarningOptions.suppressDirectivesInMultipleFilesWarning.getOrElse(false)
+    if !shouldSuppressWarning && anyScopeHasMultipleSourcesWithDirectives then {
+      val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
+        case Some(s) => s.path
+        case _       => inputs.workspace / Constants.projectFileName
+      allPathsWithDirectivesByScope
+        .values
+        .flatten
+        .filter((path, _) => ScopePath.fromPath(path) != ScopePath.fromPath(projectFilePath))
+        .foreach { (_, directivesPositions) =>
+          logger.diagnostic(
+            s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
+            positions = Seq(directivesPositions.all.maxBy(_.endPos._1))
+          )
+        }
+    }
+
+    val paths    = pathsWithDirectivePositions.map(_._1)
+    val inMemory = inMemoryWithDirectivePositions.map(_._1)
     (CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions), allInputs)
   }
 

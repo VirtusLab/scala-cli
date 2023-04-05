@@ -77,6 +77,63 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("with one file per scope, no warning about spread directives should be printed") {
+    TestInputs(
+      os.rel / "Bar.scala" ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |
+          |object Bar extends App {
+          |  println(os.pwd)
+          |}
+          |""".stripMargin,
+      os.rel / "Foo.test.scala" ->
+        """//> using dep "org.scalameta::munit:0.7.29"
+          |
+          |class Foo extends munit.FunSuite {
+          |  test("Hello") {
+          |    assert(true)
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val warningMessage = "Using directives detected in multiple files"
+      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+        .call(cwd = root, stderr = os.Pipe).err.trim()
+      expect(!output.contains(warningMessage))
+    }
+  }
+
+  test("with >1 file per scope, the warning about spread directives should be printed") {
+    TestInputs(
+      os.rel / "Bar.scala" ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |
+          |object Bar extends App {
+          |  pprint.pprintln(Foo(os.pwd.toString).value)
+          |}
+          |""".stripMargin,
+      os.rel / "Foo.scala" ->
+        """//> using dep "com.lihaoyi::pprint:0.8.1"
+          |
+          |case class Foo(value: String)
+          |""".stripMargin,
+      os.rel / "Foo.test.scala" ->
+        """//> using dep "org.scalameta::munit:0.7.29"
+          |
+          |class FooTest extends munit.FunSuite {
+          |  test("Hello") {
+          |    assert(true)
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val warningMessage = "Using directives detected in multiple files"
+      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+        .call(cwd = root, stderr = os.Pipe).err.trim()
+      expect(output.contains(warningMessage))
+    }
+  }
+
   test(
     "target directives in files should not produce warnings about using directives in multiple files"
   ) {
