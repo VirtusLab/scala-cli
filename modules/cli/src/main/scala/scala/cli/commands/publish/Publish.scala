@@ -12,7 +12,7 @@ import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
 import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.upload.logger.InteractiveUploadLogger
-import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload}
+import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
 import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 
 import java.io.{File, OutputStreamWriter}
@@ -56,13 +56,7 @@ import scala.cli.commands.shared.{
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
-import scala.cli.errors.{
-  FailedToSignFileError,
-  MalformedChecksumsError,
-  MissingConfigEntryError,
-  MissingPublishOptionError,
-  UploadError
-}
+import scala.cli.errors._
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ArgHelpers.*
@@ -1040,10 +1034,29 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val hooksDataOpt = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
+        case NonFatal(e)
+            if "Failed to get .*/staging/profiles \\(http status: 403,".r.unanchored.matches(
+              e.getMessage
+            ) =>
+          logger.exit(new WrongSonatypeServerError)
+        case NonFatal(e)
+            if "Failed to get .*/staging/profiles \\(http status: 401,".r.unanchored.matches(
+              e.getMessage
+            ) =>
+          logger.exit(new InvalidPublishCredentials)
         case NonFatal(e) =>
           throw new Exception(e)
       }
     }
+
+    val isHttps = {
+      val uri = new URI(repoParams.repo.repo(isSnapshot0).root)
+      uri.getScheme == "https"
+    }
+    val hostOpt = Option.when(isHttps)(new URI(repoParams.repo.repo(isSnapshot0).root).getHost)
+
+    val isSonatype =
+      hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
 
     val retainedRepo = hooksDataOpt match {
       case None => // dummy mode
@@ -1087,6 +1100,35 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       }
 
     errors.toList match {
+      case (h @ (_, _, e: Upload.Error.HttpError)) :: _
+          if isSonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
+        val httpCodeRegex = "HTTP (\\d+)\n.*".r
+        e.getMessage() match {
+          case httpCodeRegex("403") =>
+            logger.error(
+              s"""
+                 |Uploading files failed!
+                 |Possible causes:
+                 |- no rights to push to under this organization or organization name is misspelled
+                 | -> have you registered your organisation yet?
+                 |""".stripMargin
+            )
+          case _ => throw new UploadError(::(h, Nil))
+        }
+      case _ :: _ if isSonatype && errors.forall {
+            case (_, _, _: Upload.Error.Unauthorized) => true
+            case _                                    => false
+          } =>
+        logger.error(
+          s"""
+             |Uploading files failed!
+             |Possible causes:
+             |- incorrect Sonatype credentials
+             |- your Sonatype password or username may contain unsupported characters
+             |- incorrect Sonatype server was used (legacy or s01)
+             | -> consult publish subcommand documentation
+             |""".stripMargin
+        )
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
