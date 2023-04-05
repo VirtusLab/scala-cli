@@ -11,6 +11,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
+import scala.build.internal.util.WarningMessages
 import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption.*
 import scala.build.options.PublishOptions as BPublishOptions
@@ -321,8 +322,6 @@ final case class PgpSecretKeyCheck(
 
           if (keysFromConfig.publicKeyOpt.isEmpty)
             logger.message("  warning: no PGP public key found in config")
-          if (keysFromConfig.secretKeyPasswordOpt.isEmpty)
-            logger.message("  warning: no PGP secret key password found in config")
 
           (keysFromConfig, true)
         }
@@ -392,33 +391,49 @@ final case class PgpSecretKeyCheck(
                 scala.util.Try(path.relativeTo(os.pwd))
                   .map(p => s"file:${p.toString}")
                   .getOrElse(optionValue)
-
               }
               else optionValue
             case ConfigOption(fullName) => s"config:$fullName"
           }
 
-        val passwordDirectives = getDirectiveValue(setupKeys.secretKeyPasswordOpt).map {
-          "publish.secretKeyPassword" -> _
-        }.toSeq
+        val rawValueRegex = "^value:(.*)".r
 
-        val secretKeyDirValue = getDirectiveValue(setupKeys.secretKeyOpt)
+        // Prevent potential leakage of a secret value
+        val passwordDirectives = getDirectiveValue(setupKeys.secretKeyPasswordOpt)
+          .flatMap {
+            case rawValueRegex(rawValue) =>
+              logger.diagnostic(
+                WarningMessages.rawValueNotWrittenToPublishFile(
+                  rawValue,
+                  "PGP password",
+                  "--secret-key-password"
+                )
+              )
+              None
+            case secretOption => Some("publish.secretKeyPassword" -> secretOption)
+          }
+          .toSeq
 
+        // Prevent potential leakage of a secret value
+        val secretKeyDirValue = getDirectiveValue(setupKeys.secretKeyOpt).flatMap {
+          case rawValueRegex(rawValue) =>
+            logger.diagnostic(
+              WarningMessages.rawValueNotWrittenToPublishFile(
+                rawValue,
+                "PGP secret key",
+                "--secret-key"
+              )
+            )
+            None
+          case secretOption => Some(secretOption)
+        }
+
+        // This is safe to be publicly available
         val publicKeyDirective = getDirectiveValue(setupKeys.publicKeyOpt).map {
           "publish.publicKey" -> _
         }.toSeq
 
         val extraDirectives = passwordDirectives ++ publicKeyDirective
-
-        if (passwordDirectives.exists(_._2.startsWith("value:")))
-          logger.diagnostic(
-            "The secret value of PGP private key password will be written to a potentially public file!"
-          )
-
-        if (secretKeyDirValue.exists(_.startsWith("value:")))
-          logger.diagnostic(
-            "The secret value of PGP private key will be written to a potentially public file!"
-          )
 
         OptionCheck.DefaultValue(
           () => uploadKey(publicKeyOpt).map(_ => secretKeyDirValue),

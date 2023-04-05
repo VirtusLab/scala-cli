@@ -167,19 +167,23 @@ Dump config DB as JSON
 
 ### `--create-pgp-key`
 
-Create PGP key in config
+Create PGP keychain in config
+
+### `--pgp-password`
+
+Aliases: `--passphrase`
+
+A password used to encode the private PGP keychain
 
 ### `--email`
 
-Email to use to create PGP key in config
-
-### `--password`
-
-If the entry is a password, print the password value rather than how to get the password
+Email used to create the PGP keychains in config
 
 ### `--password-value`
 
-If the entry is a password, save the password value rather than how to get the password
+When accessing config's content print the password value rather than how to get the password
+When saving an entry in config save the password value rather than how to get the password
+e.g. print/save the value of environment variable ENV_VAR rather than "env:ENV_VAR"
 
 ### `--unset`
 

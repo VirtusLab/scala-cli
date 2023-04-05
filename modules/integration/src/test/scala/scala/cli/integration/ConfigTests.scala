@@ -67,7 +67,7 @@ class ConfigTests extends ScalaCliSuite {
         res.out.trim()
       }
       def readDecoded(env: Map[String, String] = Map.empty): String = {
-        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password")
+        val res = os.proc(TestUtil.cli, "--power", "config", key, "--password-value")
           .call(cwd = root, env = configEnv ++ env)
         res.out.trim()
       }
@@ -166,10 +166,12 @@ class ConfigTests extends ScalaCliSuite {
   }
 
   if (!TestUtil.isCI || !Properties.isWin)
-    test("Create a default PGP key") {
-      createDefaultPgpKeyTest()
-    }
-  def createDefaultPgpKeyTest(): Unit = {
+    for (pgpPasswordOption <- List("none", "random", "MY_CHOSEN_PASSWORD"))
+      test(s"Create a default PGP key, password: $pgpPasswordOption") {
+        createDefaultPgpKeyTest(pgpPasswordOption)
+      }
+
+  def createDefaultPgpKeyTest(pgpPasswordOption: String): Unit = {
     TestInputs().fromRoot { root =>
       val configFile = {
         val dir = root / "config"
@@ -179,22 +181,57 @@ class ConfigTests extends ScalaCliSuite {
       val extraEnv = Map(
         "SCALA_CLI_CONFIG" -> configFile.toString
       )
-      val checkRes = os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key")
+      val checkPassword = os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key")
         .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
-      expect(checkRes.exitCode != 0)
-      expect(checkRes.out.text().contains("--email"))
-      os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--email", "alex@alex.me")
-        .call(cwd = root, env = extraEnv, stdin = os.Inherit, stdout = os.Inherit)
+      expect(checkPassword.exitCode != 0)
+      expect(checkPassword.out.text().contains("--pgp-password"))
 
-      val password = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
-        .call(cwd = root, env = extraEnv)
-        .out.trim()
+      val checkEmail = os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--create-pgp-key",
+        "--pgp-password",
+        pgpPasswordOption
+      )
+        .call(cwd = root, env = extraEnv, check = false, mergeErrIntoOut = true)
+      expect(checkEmail.exitCode != 0)
+      expect(checkEmail.out.text().contains("--email"))
+
+      val pgpCreated = os.proc(
+        TestUtil.cli,
+        "--power",
+        "config",
+        "--create-pgp-key",
+        "--email",
+        "alex@alex.me",
+        "--pgp-password",
+        pgpPasswordOption
+      )
+        .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+      val pgpPasswordOpt: Option[String] = pgpCreated.out.text()
+        .linesIterator
+        .toSeq
+        .find(_.startsWith("Password"))
+        .map(_.stripPrefix("Password:").trim())
+
+      if (pgpPasswordOption != "random")
+        expect(pgpPasswordOpt.isEmpty)
+      else
+        expect(pgpPasswordOpt.isDefined)
+
+      val passwordInConfig = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
+        .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+      expect(passwordInConfig.out.text().isEmpty())
+
       val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
-        .call(cwd = root, env = extraEnv)
+        .call(cwd = root, env = extraEnv, stderr = os.Pipe)
         .out.trim()
-      val rawPublicKey = os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password")
-        .call(cwd = root, env = extraEnv)
-        .out.trim()
+      val rawPublicKey =
+        os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+          .out.trim()
 
       val tmpFile    = root / "test-file"
       val tmpFileAsc = root / "test-file.asc"
@@ -204,23 +241,37 @@ class ConfigTests extends ScalaCliSuite {
       def maybeEscape(arg: String): String =
         if (Properties.isWin) q + arg + q
         else arg
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "pgp",
-        "sign",
-        "--password",
-        maybeEscape(password),
-        "--secret-key",
-        maybeEscape(secretKey),
-        tmpFile
-      )
-        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+      val signProcess = if (pgpPasswordOption != "none")
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "sign",
+          "--password",
+          s"value:${maybeEscape(pgpPasswordOpt.getOrElse("MY_CHOSEN_PASSWORD"))}",
+          "--secret-key",
+          maybeEscape(secretKey),
+          tmpFile
+        )
+      else
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "sign",
+          "--secret-key",
+          maybeEscape(secretKey),
+          tmpFile
+        )
+      signProcess.call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
       val pubKeyFile = root / "key.pub"
       os.write(pubKeyFile, rawPublicKey)
-      os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
-        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+      val verifyResult =
+        os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+          .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+      expect(verifyResult.out.text().contains("valid signature"))
     }
   }
 

@@ -27,20 +27,26 @@ final case class ConfigOptions(
   @Tag(tags.inShortHelp)
     dump: Boolean = false,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("Create PGP key in config")
+  @HelpMessage("Create PGP keychain in config")
+  @Tag(tags.inShortHelp)
   @Tag(tags.experimental)
     createPgpKey: Boolean = false,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("Email to use to create PGP key in config")
+  @HelpMessage("A password used to encode the private PGP keychain")
+  @Tag(tags.experimental)
+  @ValueDescription("YOUR_PASSWORD|random|none")
+  @ExtraName("passphrase")
+  pgpPassword: Option[String] = None,
+  @Group(HelpGroup.Config.toString)
+  @HelpMessage("Email used to create the PGP keychains in config")
   @Tag(tags.experimental)
     email: Option[String] = None,
   @Group(HelpGroup.Config.toString)
-  @HelpMessage("If the entry is a password, print the password value rather than how to get the password")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
-    password: Boolean = false,
-  @Group(HelpGroup.Config.toString)
-  @HelpMessage("If the entry is a password, save the password value rather than how to get the password")
+  @HelpMessage(
+    """When accessing config's content print the password value rather than how to get the password
+      |When saving an entry in config save the password value rather than how to get the password
+      |e.g. print/save the value of environment variable ENV_VAR rather than "env:ENV_VAR"
+      |""".stripMargin)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     passwordValue: Boolean = false,
