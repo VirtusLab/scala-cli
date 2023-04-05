@@ -1,10 +1,9 @@
 package scala.cli.commands.bloop
 
+import bloop.rifle.internal.Constants
+import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.*
 
-import scala.build.bloop.BloopThreads
-import scala.build.blooprifle.internal.Constants
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.{Directories, Logger, Os}
 import scala.cli.CurrentParams

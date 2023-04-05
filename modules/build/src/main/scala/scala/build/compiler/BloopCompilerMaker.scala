@@ -1,10 +1,9 @@
 package scala.build.compiler
 
+import bloop.rifle.{BloopRifleConfig, BloopServer, BloopThreads}
 import ch.epfl.scala.bsp4j.BuildClient
 
 import scala.build.Logger
-import scala.build.bloop.{BloopServer, BloopThreads}
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.internal.Constants
 import scala.concurrent.duration.DurationInt
 

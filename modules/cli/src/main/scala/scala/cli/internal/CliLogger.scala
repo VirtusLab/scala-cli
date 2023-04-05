@@ -1,5 +1,6 @@
 package scala.cli.internal
 
+import bloop.rifle.BloopRifleLogger
 import ch.epfl.scala.bsp4j.Location
 import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
@@ -8,7 +9,6 @@ import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, Scal
 
 import java.io.PrintStream
 
-import scala.build.blooprifle.BloopRifleLogger
 import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.CustomProgressBarRefreshDisplay

@@ -1,9 +1,9 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.Build
-import scala.build.blooprifle.BloopRifleConfig
 import scala.build.input.Inputs
 import scala.build.input.ElementsUtils.*
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}

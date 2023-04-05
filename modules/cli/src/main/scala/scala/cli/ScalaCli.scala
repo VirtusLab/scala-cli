@@ -1,5 +1,6 @@
 package scala.cli
 
+import bloop.rifle.FailedToStartServerException
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
@@ -8,7 +9,6 @@ import java.nio.file.Paths
 import java.util.Locale
 
 import scala.build.Directories
-import scala.build.blooprifle.FailedToStartServerException
 import scala.build.internal.Constants
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0

@@ -1,12 +1,12 @@
 package scala.build.internal
 
+import bloop.rifle.VersionUtil.parseJavaVersion
 import coursier.jvm.{JavaHome, JvmIndex}
 
 import java.io.IOException
 import java.nio.charset.Charset
 
 import scala.build.Os
-import scala.build.blooprifle.VersionUtil.parseJavaVersion
 import scala.util.{Properties, Try}
 
 object OsLibc {

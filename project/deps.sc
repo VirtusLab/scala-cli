@@ -95,9 +95,9 @@ object Deps {
   // that Scala CLI supports.
   def ammonite = ivy"com.lihaoyi:::ammonite:2.5.6-1-f8bff243"
   def asm      = ivy"org.ow2.asm:asm:9.4"
-  def bloop    = ivy"io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.6-sc-4"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
+  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.6-sc-6"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M24"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.9.0"
@@ -127,7 +127,6 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def libdaemonjvm  = ivy"io.github.alexarchambault.libdaemon::libdaemon:0.0.11"
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
@@ -172,11 +171,7 @@ object Deps {
     ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
-  def slf4jNop = ivy"org.slf4j:slf4j-nop:2.0.6"
-  // Force using of 2.13 - is there a better way?
-  def snailgun(force213: Boolean = false) =
-    if (force213) ivy"io.github.alexarchambault.scala-cli.snailgun:snailgun-core_2.13:0.4.1-sc2"
-    else ivy"io.github.alexarchambault.scala-cli.snailgun::snailgun-core:0.4.1-sc2"
+  def slf4jNop        = ivy"org.slf4j:slf4j-nop:2.0.6"
   def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.8"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"

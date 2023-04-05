@@ -1,5 +1,7 @@
 package scala.cli.commands.shared
 
+import bloop.rifle.internal.Constants
+import bloop.rifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
 import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -11,8 +13,6 @@ import java.io.File
 import java.nio.file.{AtomicMoveNotSupportedException, FileAlreadyExistsException, Files, Paths}
 import java.util.Random
 
-import scala.build.blooprifle.internal.Constants
-import scala.build.blooprifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
 import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.commands.bloop.BloopJson
@@ -228,7 +228,7 @@ final case class SharedCompilationServerOptions(
 
     val portOpt = bloopPort.filter(_ != 0) match {
       case Some(n) if n < 0 =>
-        Some(scala.build.blooprifle.internal.Util.randomPort())
+        Some(_root_.bloop.rifle.internal.Util.randomPort())
       case other => other
     }
     val address =

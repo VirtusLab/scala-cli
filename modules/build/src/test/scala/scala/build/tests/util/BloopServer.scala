@@ -1,9 +1,9 @@
 package scala.build.tests.util
 
+import bloop.rifle.BloopRifleConfig
 import coursier.cache.FileCache
 
 import scala.build.{Bloop, Logger}
-import scala.build.blooprifle.BloopRifleConfig
 import scala.util.Properties
 
 object BloopServer {

@@ -1,17 +1,19 @@
 package scala.build.compiler
 
+import ch.epfl.scala.bsp4j
+
 import scala.annotation.tailrec
-import scala.build.{Bloop, Logger, Position, Positioned, Project, bloop}
+import scala.build.{Bloop, Logger, Position, Positioned, Project}
 import scala.concurrent.duration.FiniteDuration
 
 final class BloopCompiler(
-  createServer: () => bloop.BloopServer,
+  createServer: () => bloop.rifle.BloopServer,
   buildTargetsTimeout: FiniteDuration,
   strictBloopJsonCheck: Boolean
 ) extends ScalaCompiler {
-  private var currentBloopServer: bloop.BloopServer =
+  private var currentBloopServer: bloop.rifle.BloopServer =
     createServer()
-  def bloopServer: bloop.BloopServer =
+  def bloopServer: bloop.rifle.BloopServer =
     currentBloopServer
 
   def jvmVersion: Option[Positioned[Int]] =

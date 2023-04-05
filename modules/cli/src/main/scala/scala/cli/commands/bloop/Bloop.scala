@@ -1,10 +1,9 @@
 package scala.cli.commands.bloop
 
+import bloop.rifle.internal.{Constants, Operations}
+import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.core.RemainingArgs
 
-import scala.build.bloop.BloopThreads
-import scala.build.blooprifle.internal.{Constants, Operations}
-import scala.build.blooprifle.{BloopRifle, BloopRifleConfig}
 import scala.build.internal.OsLibc
 import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams

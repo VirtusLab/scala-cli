@@ -1,7 +1,9 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
+
 import java.nio.charset.StandardCharsets
-import scala.build.blooprifle.BloopRifleConfig
+
 import scala.build.{Build, BuildThreads, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
