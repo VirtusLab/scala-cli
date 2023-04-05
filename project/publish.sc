@@ -70,7 +70,11 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
           if (simple) {
             val idx = tag.lastIndexOf(".")
             if (idx >= 0)
-              Some(tag.take(idx + 1) + (tag.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT")
+              Some(
+                tag.take(idx + 1) +
+                  (tag.drop(idx + 1).replaceAll("-RC.", "").toInt + 1).toString +
+                  "-SNAPSHOT"
+              )
             else
               None
           }
