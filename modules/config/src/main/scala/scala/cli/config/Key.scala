@@ -73,8 +73,13 @@ object Key {
     messageOrExpectedShape: Either[String, String],
     cause: Option[Throwable] = None
   ) extends EntryError(
-        s"Malformed values ${input.mkString(", ")} for ${entry.fullName}, " +
-          messageOrExpectedShape.fold(shape => s"expected $shape", identity),
+        {
+          val valueWord    = if (input.length > 1) "values" else "value"
+          val valuesString = input.map(s => s"'$s'").mkString(", ")
+          val errorMessage = messageOrExpectedShape
+            .fold(shape => s", expected $shape", errorMessage => s". $errorMessage")
+          s"Malformed $valueWord $valuesString for the '${entry.fullName}' entry$errorMessage"
+        },
         cause
       )
 
@@ -109,7 +114,7 @@ object Key {
     def fromString(values: Seq[String]): Either[MalformedValue, String] =
       values match {
         case Seq(value) => Right(value)
-        case _          => Left(new MalformedValue(this, values, Left("value")))
+        case _          => Left(new MalformedValue(this, values, Left("a single string value.")))
       }
   }
 
@@ -133,7 +138,12 @@ object Key {
     def fromString(values: Seq[String]): Either[MalformedValue, Boolean] =
       values match {
         case Seq(value) if value.toBooleanOption.isDefined => Right(value.toBoolean)
-        case _ => Left(new MalformedValue(this, values, Left("value")))
+        case _ =>
+          Left(new MalformedValue(
+            this,
+            values,
+            Left("a single boolean value ('true' or 'false').")
+          ))
       }
   }
 
@@ -164,7 +174,11 @@ object Key {
           PasswordOption.parse(value).left.map { err =>
             new MalformedValue(this, values, Right(err))
           }
-        case _ => Left(new MalformedValue(this, values, Left("value")))
+        case _ => Left(new MalformedValue(
+            this,
+            values,
+            Left("a single password value (format: 'value:password').")
+          ))
       }
 
     override def isPasswordOption: Boolean = true

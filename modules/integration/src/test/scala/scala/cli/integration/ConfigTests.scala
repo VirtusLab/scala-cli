@@ -389,4 +389,36 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  for (
+    (entryType, key, valuesPlural, invalidValue) <- Seq(
+      ("boolean", "power", Seq("true", "false", "true"), "true."),
+      ("string", "publish.user.name", Seq("abc", "def", "xyz"), ""),
+      ("password", "httpProxy.password", Seq("value:pass1", "value:pass2", "value:pass3"), "pass")
+    )
+  ) {
+    test(s"print a meaningful error when multiple values are passed for a $entryType key: $key") {
+      val configFile = os.rel / "config" / "config.json"
+      val env        = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+      TestInputs.empty.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "--power", "config", key, valuesPlural)
+          .call(cwd = root, env = env, stderr = os.Pipe, check = false)
+        expect(res.exitCode == 1)
+        expect(res.err.trim().contains(s"expected a single $entryType value"))
+      }
+    }
+
+    if (entryType != "string")
+      test(s"print a meaningful error when an invalid value is passed for a $entryType key: $key") {
+        val configFile = os.rel / "config" / "config.json"
+        val env        = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+        TestInputs.empty.fromRoot { root =>
+          val res = os.proc(TestUtil.cli, "--power", "config", key, invalidValue)
+            .call(cwd = root, env = env, stderr = os.Pipe, check = false)
+          expect(res.exitCode == 1)
+          expect(res.err.trim().contains("Malformed"))
+          expect(res.err.trim().contains(invalidValue))
+        }
+      }
+  }
+
 }

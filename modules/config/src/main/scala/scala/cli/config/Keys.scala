@@ -290,11 +290,7 @@ object Keys {
               lines.map(_ + System.lineSeparator()).mkString
           }
       def fromString(values: Seq[String]): Either[Key.MalformedValue, List[RepositoryCredentials]] =
-        Left(new Key.MalformedValue(
-          this,
-          values,
-          Right("Inline credentials not accepted, please manually edit the config file")
-        ))
+        Left(new Key.MalformedValue(this, values, Right(ErrorMessages.inlineCredentialsError)))
     }
 
   private final case class PublishCredentialsAsJson(
@@ -408,11 +404,7 @@ object Keys {
         prefix + credentialsPart + cred.host
       }
     def fromString(values: Seq[String]): Either[Key.MalformedValue, List[PublishCredentials]] =
-      Left(new Key.MalformedValue(
-        this,
-        values,
-        Right("Inline credentials not accepted, please manually edit the config file")
-      ))
+      Left(new Key.MalformedValue(this, values, Right(ErrorMessages.inlineCredentialsError)))
   }
 
 }
