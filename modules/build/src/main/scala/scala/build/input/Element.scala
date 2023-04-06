@@ -69,7 +69,7 @@ sealed trait ScalaFile extends AnyScalaFile {
   def path: os.Path = base / subPath
 }
 
-final case class Script(base: os.Path, subPath: os.SubPath)
+final case class Script(base: os.Path, subPath: os.SubPath, inputArg: Option[String])
     extends OnDisk with SourceFile with AnyScalaFile with AnyScript {
   lazy val path: os.Path = base / subPath
 }

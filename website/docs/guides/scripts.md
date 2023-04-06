@@ -167,6 +167,29 @@ world
 
 </ChainedSnippets>
 
+### The name of script
+
+You can access the name of the running script inside the script itself using the special `scriptPath` variable:
+
+```scala title=script.sc
+#!/usr/bin/env -S scala-cli shebang
+
+println(scriptPath)
+```
+
+<ChainedSnippets>
+
+```bash
+chmod +x script.sc
+./script.sc
+```
+
+```text
+script.sc
+```
+
+</ChainedSnippets>
+
 ### Define source files in using directives
 
 You can also add source files with the using directive `//> using file` in Scala scripts:
@@ -176,6 +199,7 @@ You can also add source files with the using directive `//> using file` in Scala
 
 println(Utils.message)
 ```
+
 ```scala title=Utils.scala
 object Utils {
   val message = "Hello World"

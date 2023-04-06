@@ -9,7 +9,8 @@ case object CustomCodeWrapper extends CodeWrapper {
     code: String,
     pkgName: Seq[Name],
     indexedWrapperName: Name,
-    extraCode: String
+    extraCode: String,
+    scriptPath: String
   ) = {
     val name               = mainClassObject(indexedWrapperName).backticked
     val aliasedWrapperName = name + "$$alias"
@@ -53,6 +54,7 @@ $packageDirective
 
 object ${indexedWrapperName.backticked} {
 def args = $name.args$$
+def scriptPath = \"\"\"$scriptPath\"\"\"
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
 $extraCode

@@ -288,7 +288,7 @@ object CrossSources {
       else if (sourcePath == os.sub / Constants.projectFileName)
         Right(Seq(ProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
-      else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath)))
+      else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath, None)))
       else if (sourcePath.ext == "java") Right(Seq(JavaFile(dir, subPath)))
       else if (sourcePath.ext == "jar") Right(Seq(JarFile(dir, subPath)))
       else if (sourcePath.ext == "md") Right(Seq(MarkdownFile(dir, subPath)))
