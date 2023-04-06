@@ -13,6 +13,8 @@ object GlobalOptions {
   implicit lazy val parser: Parser[GlobalOptions] = Parser.derive
   implicit lazy val help: Help[GlobalOptions]     = Help.derive
 
+  lazy val default: GlobalOptions = GlobalOptions()
+
   def get(args: List[String]): Option[GlobalOptions] =
     parser
       .detailedParse(args, stopAtFirstUnrecognized = false, ignoreUnrecognized = true)

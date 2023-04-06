@@ -315,13 +315,9 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       sys.exit(1)
     }
 
-  private val globalOptionsAtomic: AtomicReference[Option[GlobalOptions]] =
-    new AtomicReference(None)
-  private def globalOptions: GlobalOptions = globalOptionsAtomic.get() match
-    case Some(opts) => opts
-    case None => // should never happen
-      System.err.println("Failed to initialize the global options.")
-      sys.exit(1)
+  private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
+    new AtomicReference(GlobalOptions.default)
+  private def globalOptions: GlobalOptions = globalOptionsAtomic.get()
   override def shouldSuppressExperimentalFeatureWarnings: Boolean =
     globalOptions.globalSuppress.suppressExperimentalFeatureWarning
       .orElse {
@@ -333,7 +329,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   override def logger: Logger = globalOptions.logging.logger
 
   final override def main(progName: String, args: Array[String]): Unit = {
-    globalOptionsAtomic.set(GlobalOptions.get(args.toList))
+    globalOptionsAtomic.set(GlobalOptions.get(args.toList).getOrElse(GlobalOptions.default))
     super.main(progName, args)
   }
 
