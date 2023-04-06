@@ -156,8 +156,6 @@ object Deps {
   def scalametaTrees   = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
   def scalaPackager    = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
-  // Force using of 2.13 - is there a better way?
-  def scalaparse               = ivy"com.lihaoyi:scalaparse_2.13:2.3.3"
   def scalaPy                  = ivy"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"

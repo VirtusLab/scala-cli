@@ -57,7 +57,6 @@ object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
 object `build-macros`        extends BuildMacros
 object config                extends Cross[Config](Scala.all: _*)
 object options               extends Options
-object scalaparse            extends ScalaParse
 object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
@@ -460,7 +459,6 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     Deps.jsoniterCore213,
     Deps.pprint,
     Deps.scalametaTrees,
-    Deps.scalaparse,
     Deps.usingDirectives
   )
 
@@ -559,11 +557,6 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-trait ScalaParse extends SbtModule with ScalaCliPublishModule {
-  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
-  def scalaVersion = Scala.scala213
-}
-
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
@@ -602,7 +595,6 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def millSourcePath   = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
     options,
-    scalaparse,
     directives,
     `scala-cli-bsp`,
     `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
