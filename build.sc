@@ -42,7 +42,15 @@ object cli extends Cli
 
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
-  override def jar = cli.assembly()
+  override def unmanagedClasspath = T { cli.nativeImageClassPath() }
+  override def jar = assembly()
+  
+  import mill.modules.Assembly
+
+  override def assemblyRules = Seq(
+    Assembly.Rule.ExcludePattern(".*\\.tasty"),
+    Assembly.Rule.ExcludePattern(".*\\.semanticdb")
+  ) ++ super.assemblyRules
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
