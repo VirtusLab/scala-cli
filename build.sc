@@ -40,6 +40,11 @@ implicit def millModuleBasePath: define.BasePath =
 
 object cli extends Cli
 
+// Publish a bootstrapped, executable jar for a restricted environments
+object cliBootstrapped extends ScalaCliPublishModule {
+  override def jar = cli.assembly()
+}
+
 object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
 object `build-macros`        extends BuildMacros
 object config                extends Cross[Config](Scala.all: _*)
