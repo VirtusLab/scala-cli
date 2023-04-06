@@ -338,6 +338,20 @@ class ConfigTests extends ScalaCliSuite {
           realm
         )
           .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+        val credentialsAsStringRes = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "repositories.credentials"
+        ).call(cwd = root, env = extraEnv)
+        val linePrefix = "configRepo0"
+        val expectedCredentialsAsString =
+          s"""$linePrefix.host=$host
+             |$linePrefix.username=value:$user
+             |$linePrefix.password=value:$password
+             |$linePrefix.realm=$realm
+             |$linePrefix.auto=true""".stripMargin
+        expect(credentialsAsStringRes.out.trim() == expectedCredentialsAsString)
         val res = os.proc(
           TestUtil.cli,
           "run",
