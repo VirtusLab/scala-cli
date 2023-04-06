@@ -689,25 +689,6 @@ trait LocalRepo extends Module {
 
 }
 
-trait HasMacroAnnotations extends ScalaModule {
-  def scalacOptions = T {
-    val sv = scalaVersion()
-    val extra =
-      if (sv.startsWith("2."))
-        if (sv.startsWith("2.13.")) Seq("-Ymacro-annotations")
-        else Nil
-      else Nil
-    super.scalacOptions() ++ extra
-  }
-  def scalacPluginIvyDeps = T {
-    val sv = scalaVersion()
-    val extra =
-      if (sv.startsWith("2.") && !sv.startsWith("2.13.")) Agg(Deps.macroParadise)
-      else Agg.empty[Dep]
-    super.scalacPluginIvyDeps() ++ extra
-  }
-}
-
 private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path] = {
   val sortByName = Set("jni-config.json", "reflect-config.json")
   val files = Seq(

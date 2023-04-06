@@ -6,7 +6,6 @@ import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, org
 import $file.project.settings, settings.{
   CliLaunchers,
   FormatNativeImageConf,
-  HasMacroAnnotations,
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
@@ -42,9 +41,9 @@ object cli extends Cli
 
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
-  override def unmanagedClasspath = T { cli.nativeImageClassPath() }
-  override def jar = assembly()
-  
+  override def unmanagedClasspath = T(cli.nativeImageClassPath())
+  override def jar                = assembly()
+
   import mill.modules.Assembly
 
   override def assemblyRules = Seq(
@@ -456,9 +455,8 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def ivyDeps = super.ivyDeps() ++ Agg(
     // Deps.asm,
     Deps.bloopConfig,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
     Deps.pprint,
-    Deps.scalametaTrees,
     Deps.usingDirectives
   )
 
@@ -612,16 +610,16 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.asm,
     Deps.collectionCompat,
     Deps.javaClassName,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
+    Deps.scalametaTrees,
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsTestAdapter,
-    Deps.scalametaTrees,
     Deps.swoval,
     Deps.zipInputStream
-  ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
+  )
 
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
@@ -672,7 +670,7 @@ class SpecificationLevel(val crossScalaVersion: String) extends ScalaCliCrossSbt
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
-    with HasMacroAnnotations with FormatNativeImageConf {
+    with FormatNativeImageConf {
 
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
@@ -775,7 +773,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierPublish.exclude((organization, "config_2.13")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
@@ -856,7 +854,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.coursier
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
-      Deps.jsoniterCore213,
+      Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
