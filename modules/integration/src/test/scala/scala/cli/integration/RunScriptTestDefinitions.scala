@@ -311,6 +311,20 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       expect(p.out.trim() == "16")
     }
   }
+  test("print the name of script") {
+    val inputs = TestInputs(os.rel / "hello.sc" -> "println(scriptPath)")
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "hello.sc").call(cwd = root)
+      expect(p.out.trim() == "hello.sc")
+    }
+  }
+  test("print the name of nested script") {
+    val inputs = TestInputs(os.rel / "dir" / "hello.sc" -> "println(scriptPath)")
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "dir/hello.sc").call(cwd = root)
+      expect(p.out.trim() == "dir/hello.sc")
+    }
+  }
 
   if (!Properties.isWin)
     test("CLI args passed to shebang script") {

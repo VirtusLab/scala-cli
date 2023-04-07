@@ -21,7 +21,7 @@ object ElementsUtils {
           case p if p.last.endsWith(".scala") =>
             SourceScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".sc") =>
-            Script(d.path, p.subRelativeTo(d.path))
+            Script(d.path, p.subRelativeTo(d.path), None)
           case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
             CFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".md") && enableMarkdown =>

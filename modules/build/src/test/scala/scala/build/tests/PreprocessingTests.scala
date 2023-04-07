@@ -28,7 +28,7 @@ class PreprocessingTests extends munit.FunSuite {
 
   test("Report error if scala script not exists") {
     val logger      = TestLogger()
-    val scalaScript = Script(os.temp.dir(), os.SubPath("NotExists.sc"))
+    val scalaScript = Script(os.temp.dir(), os.SubPath("NotExists.sc"), None)
 
     val res = ScriptPreprocessor(CustomCodeWrapper).preprocess(
       scalaScript,

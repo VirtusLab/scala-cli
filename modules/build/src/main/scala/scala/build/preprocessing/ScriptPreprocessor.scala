@@ -28,6 +28,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               content,
               codeWrapper,
               script.subPath,
+              script.inputArg,
               ScopePath.fromPath(script.path),
               logger,
               maybeRecoverOnError,
@@ -49,6 +50,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
               content,
               codeWrapper,
               script.wrapperPath,
+              None,
               script.scopePath,
               logger,
               maybeRecoverOnError,
@@ -72,6 +74,7 @@ object ScriptPreprocessor {
     content: String,
     codeWrapper: CodeWrapper,
     subPath: os.SubPath,
+    inputArgPath: Option[String],
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
@@ -98,7 +101,8 @@ object ScriptPreprocessor {
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
       wrapper,
-      processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
+      processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines),
+      inputArgPath.getOrElse(subPath.last)
     )
 
     val className = (pkg :+ wrapper).map(_.raw).mkString(".")
