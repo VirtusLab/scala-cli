@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData}
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
@@ -117,7 +117,19 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     logger: Logger,
     invokeData: ScalaCliInvokeData
   ): Unit = {
-    val initialBuildOptions = buildOptionsOrExit(options)
+    val initialBuildOptions = {
+      val buildOptions = buildOptionsOrExit(options)
+      if (invokeData.subCommand == SubCommand.Shebang) {
+        val suppressDepUpdateOptions = buildOptions.suppressWarningOptions.copy(
+          suppressOutdatedDependencyWarning = Some(true)
+        )
+
+        buildOptions.copy(
+          suppressWarningOptions = suppressDepUpdateOptions
+        )
+      }
+      else buildOptions
+    }
 
     val inputs = options.shared.inputs(
       inputArgs,

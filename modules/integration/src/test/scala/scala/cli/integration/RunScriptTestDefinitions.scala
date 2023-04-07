@@ -384,4 +384,22 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         expect(output.contains("shebang header"))
     }
   }
+
+  test("shebang run does not produce update-dependency warnings") {
+    val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
+
+    val inputs = TestInputs(
+      os.rel / "script.sc" ->
+        s"""//> using scala "$actualScalaVersion"
+           |//> using dep "$dependencyOsLib"
+           |
+           |println(args.toList)""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val proc = os.proc(TestUtil.cli, "shebang", "script.sc", "1", "2", "3", "-v")
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      expect(!proc.out.text.contains("[hint] \"os-lib is outdated"))
+    }
+  }
 }
