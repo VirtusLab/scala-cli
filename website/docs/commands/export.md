@@ -8,8 +8,10 @@ to switch to a build tool such as SBT or Mill.
 The `export` sub-command allows to do that by converting a Scala CLI project into an SBT or Mill configuration.
 Additionally the sub-command supports the JSON format for custom analysis of projects.
 
-Results of running the sub-command are, by default, put in `./dest/`,
+Results of running the with `--mill` or `--sbt` sub-command are, by default, put in `./dest/`,
 that behaviour can be modified by specifying a path with the `--output` option.
+
+The default behaviour of exporting with the `--json` option is printing to standard output.
 
 :::caution
 The `export` sub-command is restricted and requires setting the `--power` option to be used.
@@ -125,6 +127,8 @@ To change the build tool version used override the contents of `dest_mill/.mill-
 # Exporting to JSON:
 
 To export project information in a human-comprehensible format, use the `--json` flag.
+The default behaviour of export with `--json` provided is pritning to the standard output, this can be changed
+with `--output` by specifying a directory where to create the `export.json` file.
 
 ```bash
 scala-cli --power export Hello.scala --json --output=dest_json
