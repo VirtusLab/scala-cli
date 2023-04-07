@@ -39,9 +39,17 @@ final case class Toolkit(
 }
 
 object Toolkit {
-  def resolveDependency(toolkitVersion: Positioned[String]) = toolkitVersion.map(version =>
-    val v = if version == "latest" then "latest.release" else version
-    dep"${Constants.toolkitOrganization}::${Constants.toolkitName}::$v,toolkit"
+  def resolveDependency(toolkitCoord: Positioned[String]) = toolkitCoord.map(coord =>
+    val tokens  = coord.split(':')
+    val version = tokens.last
+    val v       = if version == "latest" then "latest.release" else version
+    val flavor  = tokens.dropRight(1).headOption
+    val org = flavor match {
+      case Some("typelevel") => Constants.typelevelOrganization
+      case Some(org)         => org
+      case None              => Constants.toolkitOrganization
+    }
+    dep"$org::${Constants.toolkitName}::$v,toolkit"
   )
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
 }

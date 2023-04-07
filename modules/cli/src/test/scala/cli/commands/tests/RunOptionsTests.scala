@@ -36,4 +36,20 @@ class RunOptionsTests extends munit.FunSuite {
     expect(toolkitDep.version == "latest.release")
   }
 
+  test("resolve typelevel toolkit dependency") {
+    val runOptions = RunOptions(
+      shared = SharedOptions(
+        withToolkit = Some("typelevel:latest")
+      )
+    )
+    val buildOptions = Run.buildOptions(runOptions).value
+    val dep          = buildOptions.classPathOptions.extraDependencies.toSeq.headOption
+    assert(dep.nonEmpty)
+
+    val toolkitDep = dep.get.value
+    expect(toolkitDep.organization == "org.typelevel")
+    expect(toolkitDep.name == "toolkit")
+    expect(toolkitDep.version == "latest.release")
+  }
+
 }

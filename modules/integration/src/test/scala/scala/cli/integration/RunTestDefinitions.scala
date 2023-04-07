@@ -1129,6 +1129,26 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("should add typelevel toolkit to classpath") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""|import cats.effect.*
+            |import fs2.io.file.Files
+            |object Hello extends IOApp.Simple {
+            |  // IO should be added to classpath by typelevel toolkit
+            |  def run = Files[IO].currentWorkingDirectory.flatMap { cwd =>
+            |    IO.println(cwd.toString)
+            |  }
+            |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, ".", "--toolkit", "typelevel:0.0.1")
+        .call(cwd = root).out.trim()
+
+      expect(output == root.toString())
+    }
+  }
+
   test(s"print error if workspace path contains a ${File.pathSeparator}") {
     val msg     = "Hello"
     val relPath = os.rel / s"weird${File.pathSeparator}directory" / "Hello.scala"
