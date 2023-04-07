@@ -69,7 +69,7 @@ Some of the most popular test frameworks in Scala are:
 - [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.7.10`
 - [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.9`
 - [JUnit 4](https://junit.org/junit4), which can be used via a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.2`
-- [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.2`. You may need to specify test framework `//> using testFramework "weaver.framework.CatsEffect"`. If you had other test framework in your dependencies.
+- [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.2`. You may need to specify weaver's test framework with `//> using testFramework "weaver.framework.CatsEffect"` if you had other test framework in your dependencies.
 
 The following example shows how to run an munit-based test suite:
 
