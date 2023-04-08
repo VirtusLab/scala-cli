@@ -49,6 +49,10 @@ object HasHashData:
   given option[T](using hasher: HashedType[T]): HasHashData[Option[T]] =
     (name, opt, update) => opt.foreach(t => update(s"$name=${hasher.hashedValue(t)}"))
 
+  given boolean: HasHashData[Boolean] =
+    (name, bool, update) =>
+      if bool then update(s"$name=true")
+
   given set[T](using hasher: HashedType[T], ordering: Ordering[T]): HasHashData[Set[T]] =
     (name, opt, update) =>
       opt.toVector.sorted(ordering)
