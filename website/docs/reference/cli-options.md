@@ -347,7 +347,15 @@ Available in commands:
 
 ### `--migrate-directives`
 
-Move all using directives to the project.scala file
+Move all using directives to the project file
+
+### `--main-scope`
+
+Perform fixes on main scope
+
+### `--test-scope`
+
+Perform fixes on test scope
 
 ## Fmt options
 

@@ -16,8 +16,10 @@ object ElementsUtils {
         .collect {
           case p if p.last.endsWith(".java") =>
             JavaFile(d.path, p.subRelativeTo(d.path))
-          case p if p.last == Constants.projectFileName =>
-            ProjectScalaFile(d.path, p.subRelativeTo(d.path))
+          case p if p.last == Constants.mainProjectFileName =>
+            MainProjectScalaFile(d.path, p.subRelativeTo(d.path))
+          case p if p.last == Constants.testProjectFileName =>
+            TestProjectScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".scala") =>
             SourceScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".sc") =>
@@ -32,8 +34,10 @@ object ElementsUtils {
     }
 
     def configFile: Seq[ProjectScalaFile] =
-      if (os.exists(d.path / Constants.projectFileName))
-        Seq(ProjectScalaFile(d.path, os.sub / Constants.projectFileName))
+      if (os.exists(d.path / Constants.mainProjectFileName))
+        Seq(MainProjectScalaFile(d.path, os.sub / Constants.mainProjectFileName))
+      else if (os.exists(d.path / Constants.testProjectFileName))
+        Seq(TestProjectScalaFile(d.path, os.sub / Constants.testProjectFileName))
       else Nil
   }
 
@@ -44,6 +48,12 @@ object ElementsUtils {
         case d: Directory        => d.configFile
         case _                   => Nil
       }.distinct
+
+    def mainProjectSettingsFiles: Seq[MainProjectScalaFile] =
+      projectSettingsFiles.collect { case a: MainProjectScalaFile => a }
+
+    def testProjectSettingsFiles: Seq[TestProjectScalaFile] =
+      projectSettingsFiles.collect { case a: TestProjectScalaFile => a }
 
     def inputsHash: String = {
       def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)

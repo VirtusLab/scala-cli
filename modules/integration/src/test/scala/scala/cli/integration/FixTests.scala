@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class FixTests extends ScalaCliSuite {
-  val projectFileName = Constants.projectFileName
+  val projectFileName = Constants.mainProjectFileName
 
   val fooInput = os.rel / "files" / "Foo.scala" ->
     """//> using dep "com.lihaoyi::os-lib::0.8.1"
@@ -44,11 +44,7 @@ class FixTests extends ScalaCliSuite {
       val expectedProjectFileContent =
         """//> using scala "3.2.0"
           |//> using options "-Xasync"
-          |
-          |
           |//> using dep "com.lihaoyi::os-lib::0.8.1"
-          |
-          |
           |""".stripMargin
 
       expect(output.contains("Using directives found in 3 files"))
@@ -71,10 +67,7 @@ class FixTests extends ScalaCliSuite {
       val barFileContent     = noCrLf(os.read(root / "files" / "Bar.scala"))
       val expectedProjectFileContent =
         """//> using options "-Xasync"
-          |
-          |
           |//> using dep "com.lihaoyi::os-lib::0.8.1"
-          |
           |""".stripMargin
 
       expect(output.contains("Using directives found in 2 files"))

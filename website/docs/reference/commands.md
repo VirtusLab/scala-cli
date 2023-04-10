@@ -91,7 +91,24 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 ## fix
 
-Run fixes for a Scala CLI project
+Perform fixes on a Scala CLI project.
+
+Specific fix configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+To pass arguments to the actual application, just add them after `--`, like:
+```sh
+  scala-cli fix --migrate-directives Main.scala project.scala
+```
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fix
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [fix](./cli-options.md#fix-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 

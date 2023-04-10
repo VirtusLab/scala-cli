@@ -41,7 +41,7 @@ class InputsTests extends munit.FunSuite {
   }
 
   test("project file") {
-    val projectFileName = Constants.projectFileName
+    val projectFileName = Constants.mainProjectFileName
     val testInputs = TestInputs(
       files = Seq(
         os.rel / "custom-dir" / projectFileName -> "",
@@ -89,7 +89,7 @@ class InputsTests extends munit.FunSuite {
   }
 
   test("passing project file and its parent directory") {
-    val projectFileName = Constants.projectFileName
+    val projectFileName = Constants.mainProjectFileName
     val testInputs = TestInputs(
       files = Seq(
         os.rel / "foo.scala" ->

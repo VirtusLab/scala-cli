@@ -119,6 +119,9 @@ object CrossSources {
       }
     }
 
+  def isTestSource(path: ScopePath, inputs: Inputs): Boolean =
+    path.subPath.last.endsWith(".test.scala") || withinTestSubDirectory(path, inputs)
+
   /** @return
     *   Inputs which contain elements processed from using directives and preprocessed sources
     *   extracted from given Inputs
@@ -202,13 +205,13 @@ object CrossSources {
 
     val preprocessedWithUsingDirs = preprocessedSources.filter(_.directivesPositions.isDefined)
     if (
-      preprocessedWithUsingDirs.length > 1 && !suppressDirectivesInMultipleFilesWarning.getOrElse(
-        false
-      )
+      preprocessedWithUsingDirs.length > 1 &&
+      !suppressDirectivesInMultipleFilesWarning.getOrElse(false)
     ) {
-      val projectFilePath = inputs.elements.projectSettingsFiles.headOption match
+      val projectFilePath = inputs.elements.mainProjectSettingsFiles.headOption match
         case Some(s) => s.path
-        case _       => inputs.workspace / Constants.projectFileName
+        case _       => inputs.workspace / Constants.mainProjectFileName
+
       preprocessedWithUsingDirs
         .filter(_.scopePath != ScopePath.fromPath(projectFilePath))
         .foreach { source =>
@@ -234,10 +237,7 @@ object CrossSources {
       // Scala CLI treats all `.test.scala` files tests as well as
       // files from within `test` subdirectory from provided input directories
       // If file has `using target <scope>` directive this take precendeces.
-      if (
-        fromDirectives.scope.isEmpty &&
-        (path.subPath.last.endsWith(".test.scala") || withinTestSubDirectory(path, allInputs))
-      )
+      if (fromDirectives.scope.isEmpty && isTestSource(path, allInputs))
         fromDirectives.copy(scope = Some(BuildRequirements.ScopeRequirement(Scope.Test)))
       else fromDirectives
     }
@@ -295,8 +295,10 @@ object CrossSources {
       lazy val subPath = sourcePath.subRelativeTo(dir)
       if (os.isDir(sourcePath))
         Right(Directory(sourcePath).singleFilesFromDirectory(enableMarkdown))
-      else if (sourcePath == os.sub / Constants.projectFileName)
-        Right(Seq(ProjectScalaFile(dir, subPath)))
+      else if (sourcePath == os.sub / Constants.mainProjectFileName)
+        Right(Seq(MainProjectScalaFile(dir, subPath)))
+      else if (sourcePath == os.sub / Constants.testProjectFileName)
+        Right(Seq(TestProjectScalaFile(dir, subPath)))
       else if (sourcePath.ext == "scala") Right(Seq(SourceScalaFile(dir, subPath)))
       else if (sourcePath.ext == "sc") Right(Seq(Script(dir, subPath)))
       else if (sourcePath.ext == "java") Right(Seq(JavaFile(dir, subPath)))

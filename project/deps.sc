@@ -195,6 +195,9 @@ object BuildDeps {
   def scalaCliVersion = "0.1.9"
 }
 
+def mainProjectFileName = "project.scala"
+def testProjectFileName = "project.test.scala"
+
 def graalVmVersion     = "22.3.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"

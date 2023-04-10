@@ -77,8 +77,9 @@ final case class Script(base: os.Path, subPath: os.SubPath)
 final case class SourceScalaFile(base: os.Path, subPath: os.SubPath)
     extends OnDisk with SourceFile with ScalaFile
 
-final case class ProjectScalaFile(base: os.Path, subPath: os.SubPath)
-    extends OnDisk with SourceFile with ScalaFile
+sealed trait ProjectScalaFile extends OnDisk with SourceFile with ScalaFile
+final case class MainProjectScalaFile(base: os.Path, subPath: os.SubPath) extends ProjectScalaFile
+final case class TestProjectScalaFile(base: os.Path, subPath: os.SubPath) extends ProjectScalaFile
 
 final case class JavaFile(base: os.Path, subPath: os.SubPath)
     extends OnDisk with SourceFile with AnyJavaFile {

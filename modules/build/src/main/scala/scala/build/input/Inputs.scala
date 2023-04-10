@@ -132,7 +132,7 @@ object Inputs {
   ): Inputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
     val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
-      val settingsFiles = validElems.projectSettingsFiles
+      val settingsFiles = validElems.mainProjectSettingsFiles
       val dirsAndFiles = validElems.collect {
         case d: Directory  => d
         case f: SourceFile => f
@@ -140,7 +140,7 @@ object Inputs {
       settingsFiles.headOption.map { s =>
         if (settingsFiles.length > 1)
           System.err.println(
-            s"Warning: more than one ${Constants.projectFileName} file has been found. Setting ${s.base} as the project root directory for this run."
+            s"Warning: more than one ${Constants.mainProjectFileName} file has been found. Setting ${s.base} as the project root directory for this run."
           )
         (s.base, true, WorkspaceOrigin.SourcePaths)
       }.orElse {
@@ -307,8 +307,10 @@ object Inputs {
             else List(Virtual(url, urlContent))
           }
         }
-        else if path.last == Constants.projectFileName then
-          Right(Seq(ProjectScalaFile(dir, subPath)))
+        else if path.last == Constants.mainProjectFileName then
+          Right(Seq(MainProjectScalaFile(dir, subPath)))
+        else if path.last == Constants.testProjectFileName then
+          Right(Seq(TestProjectScalaFile(dir, subPath)))
         else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath)))
         else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))

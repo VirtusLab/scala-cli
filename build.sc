@@ -16,8 +16,7 @@ import $file.project.settings, settings.{
   ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
-  workspaceDirName,
-  projectFileName
+  workspaceDirName
 }
 import $file.project.deps, deps.customRepositories
 import $file.project.website
@@ -404,7 +403,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def defaultScala213Version = "${Scala.scala213}"
          |
          |  def workspaceDirName = "$workspaceDirName"
-         |  def projectFileName = "$projectFileName"
+         |  def mainProjectFileName = "${deps.mainProjectFileName}"
+         |  def testProjectFileName = "${deps.testProjectFileName}"
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
@@ -926,7 +926,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def authProxyTestImage = "${Docker.authProxyTestImage}"
            |  def mostlyStaticDockerfile = "${mostlyStaticDockerfile.toString.replace("\\", "\\\\")}"
            |  def cs = "${settings.cs().replace("\\", "\\\\")}"
-           |  def projectFileName = "$projectFileName"
+           |  def mainProjectFileName = "${deps.mainProjectFileName}"
+           |  def testProjectFileName = "${deps.testProjectFileName}"
            |  def workspaceDirName = "$workspaceDirName"
            |  def libsodiumVersion = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage = "${TestDeps.archLinuxImage}"
