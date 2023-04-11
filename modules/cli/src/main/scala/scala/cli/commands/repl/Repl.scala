@@ -339,29 +339,6 @@ object Repl extends ScalaCommand[ReplOptions] {
           " These will not be accessible from the REPL."
       )
 
-    def actualBuild: Build.Successful =
-      buildOpt.getOrElse {
-        val ws      = os.temp.dir()
-        val inputs  = Inputs.empty(ws, enableMarkdown = false)
-        val sources = Sources(Nil, Nil, None, Nil, options)
-        val scope   = Scope.Main
-        Build.Successful(
-          inputs = inputs,
-          options = options,
-          scalaParams = Some(scalaParams),
-          scope = scope,
-          sources = Sources(Nil, Nil, None, Nil, options),
-          artifacts = artifacts,
-          project = value(
-            Build.buildProject(inputs, sources, Nil, options, None, scope, logger, artifacts)
-          ),
-          output = classDir.getOrElse(ws),
-          diagnostics = None,
-          generatedSources = Nil,
-          isPartial = false
-        )
-      }
-
     def maybeRunRepl(
       replArtifacts: ReplArtifacts,
       replArgs: Seq[String],
