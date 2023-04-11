@@ -127,8 +127,8 @@ To change the build tool version used override the contents of `dest_mill/.mill-
 # Exporting to JSON:
 
 To export project information in a human-comprehensible format, use the `--json` flag.
-The default behaviour of export with `--json` provided is pritning to the standard output, this can be changed
-with `--output` by specifying a directory where to create the `export.json` file.
+By default, exporting with the `--json` option prints to standard output, this can be changed
+with `--output` parameter by specifying a directory where to create the `export.json` file.
 
 ```bash
 scala-cli --power export Hello.scala --json --output=dest_json
