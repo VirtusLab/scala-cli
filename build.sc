@@ -6,7 +6,6 @@ import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, org
 import $file.project.settings, settings.{
   CliLaunchers,
   FormatNativeImageConf,
-  HasMacroAnnotations,
   HasTests,
   LocalRepo,
   PublishLocalNoFluff,
@@ -42,14 +41,21 @@ object cli extends Cli
 
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
-  override def jar = cli.assembly()
+  override def unmanagedClasspath = T(cli.nativeImageClassPath())
+  override def jar                = assembly()
+
+  import mill.modules.Assembly
+
+  override def assemblyRules = Seq(
+    Assembly.Rule.ExcludePattern(".*\\.tasty"),
+    Assembly.Rule.ExcludePattern(".*\\.semanticdb")
+  ) ++ super.assemblyRules
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
 object `build-macros`        extends BuildMacros
 object config                extends Cross[Config](Scala.all: _*)
 object options               extends Options
-object scalaparse            extends ScalaParse
 object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
@@ -449,10 +455,8 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def ivyDeps = super.ivyDeps() ++ Agg(
     // Deps.asm,
     Deps.bloopConfig,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
     Deps.pprint,
-    Deps.scalametaTrees,
-    Deps.scalaparse,
     Deps.usingDirectives
   )
 
@@ -551,11 +555,6 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-trait ScalaParse extends SbtModule with ScalaCliPublishModule {
-  def ivyDeps      = super.ivyDeps() ++ Agg(Deps.scalaparse)
-  def scalaVersion = Scala.scala213
-}
-
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def ivyDeps      = super.ivyDeps()
   def scalaVersion = Scala.scala3
@@ -594,7 +593,6 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def millSourcePath   = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
     options,
-    scalaparse,
     directives,
     `scala-cli-bsp`,
     `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
@@ -612,16 +610,16 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     Deps.asm,
     Deps.collectionCompat,
     Deps.javaClassName,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
+    Deps.scalametaTrees,
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
     Deps.scalaJsEnvNodeJs,
     Deps.scalaJsTestAdapter,
-    Deps.scalametaTrees,
     Deps.swoval,
     Deps.zipInputStream
-  ) ++ (if (scalaVersion().startsWith("3")) Agg() else Agg(Deps.shapeless))
+  )
 
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
@@ -672,7 +670,7 @@ class SpecificationLevel(val crossScalaVersion: String) extends ScalaCliCrossSbt
 }
 
 trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
-    with HasMacroAnnotations with FormatNativeImageConf {
+    with FormatNativeImageConf {
 
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
@@ -775,7 +773,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierPublish.exclude((organization, "config_2.13")),
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
-    Deps.jsoniterCore213,
+    Deps.jsoniterCore,
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
@@ -856,7 +854,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.coursier
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
-      Deps.jsoniterCore213,
+      Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
       Deps.scalaAsync,
