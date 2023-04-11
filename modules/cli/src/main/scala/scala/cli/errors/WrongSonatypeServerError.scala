@@ -2,7 +2,7 @@ package scala.cli.errors
 
 import scala.build.errors.BuildException
 
-final class WrongSonatypeServerError
+final class WrongSonatypeServerError(legacyChosen: Boolean)
     extends BuildException(
-      "Make sure you're publishing to the right Sonatype server: legacy 'central' or new 'central-s01'"
+      s"Wrong Sonatype server, try with ${if legacyChosen then "'central-s01'" else "'central'"}",
     )

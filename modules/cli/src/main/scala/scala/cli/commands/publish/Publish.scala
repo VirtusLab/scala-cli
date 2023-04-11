@@ -751,51 +751,50 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val ec = builds.head.options.finalCache.ec
 
-    def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
-      val isHttps = {
-        val uri = new URI(repo)
-        uri.getScheme == "https"
-      }
-      val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
-      val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
-        case None => Right(None)
-        case Some(host) =>
-          configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
-            credListOpt.flatMap { credList =>
-              credList.find { cred =>
-                cred.host == host &&
-                (isHttps || cred.httpsOnly.contains(false))
+    def authOpt(repo: String, isSonatype: Boolean): Either[BuildException, Option[Authentication]] =
+      either {
+        val isHttps = {
+          val uri = new URI(repo)
+          uri.getScheme == "https"
+        }
+        val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
+        val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
+          case None => Right(None)
+          case Some(host) =>
+            configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
+              credListOpt.flatMap { credList =>
+                credList.find { cred =>
+                  cred.host == host &&
+                  (isHttps || cred.httpsOnly.contains(false))
+                }
               }
             }
-          }
+        }
+        val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
+          case None  => value(maybeCredentials).flatMap(_.password)
+          case other => other.map(_.toConfig)
+        }
+        passwordOpt.map(_.get()) match {
+          case None => None
+          case Some(password) =>
+            val userOpt = publishOptions.contextual(isCi).repoUser match {
+              case None  => value(maybeCredentials).flatMap(_.user)
+              case other => other.map(_.toConfig)
+            }
+            val realmOpt = publishOptions.contextual(isCi).repoRealm match {
+              case None =>
+                value(maybeCredentials)
+                  .flatMap(_.realm)
+                  .orElse {
+                    if (isSonatype) Some("Sonatype Nexus Repository Manager")
+                    else None
+                  }
+              case other => other
+            }
+            val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
+            Some(realmOpt.fold(auth)(auth.withRealm))
+        }
       }
-      val isSonatype =
-        hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
-      val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
-        case None  => value(maybeCredentials).flatMap(_.password)
-        case other => other.map(_.toConfig)
-      }
-      passwordOpt.map(_.get()) match {
-        case None => None
-        case Some(password) =>
-          val userOpt = publishOptions.contextual(isCi).repoUser match {
-            case None  => value(maybeCredentials).flatMap(_.user)
-            case other => other.map(_.toConfig)
-          }
-          val realmOpt = publishOptions.contextual(isCi).repoRealm match {
-            case None =>
-              value(maybeCredentials)
-                .flatMap(_.realm)
-                .orElse {
-                  if (isSonatype) Some("Sonatype Nexus Repository Manager")
-                  else None
-                }
-            case other => other
-          }
-          val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
-          Some(realmOpt.fold(auth)(auth.withRealm))
-      }
-    }
 
     val repoParams = {
 
@@ -831,6 +830,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
+    val isSonatype: Boolean = {
+      val uri     = new URI(repoParams.repo.snapshotRepo.root)
+      val hostOpt = Option.when(uri.getScheme == "https")(uri.getHost)
+
+      hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
+    }
+
     val now = Instant.now()
     val (fileSet0, modVersionOpt) = value {
       it
@@ -838,17 +844,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         .filter(_._1.scope != Scope.Test)
         .map {
           case (build, docBuildOpt) =>
-            val isSonatype = {
-              val hostOpt = {
-                val repo = repoParams.repo.snapshotRepo.root
-                val uri  = new URI(repo)
-                if (uri.getScheme == "https") Some(uri.getHost)
-                else None
-              }
-              hostOpt.exists(host =>
-                host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org")
-              )
-            }
             buildFileSet(
               build,
               docBuildOpt,
@@ -856,7 +851,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
-              isSonatype = isSonatype,
+              isSonatype,
               logger
             )
         }
@@ -1024,23 +1019,24 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root))
+    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root, isSonatype))
     if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
       logger.diagnostic(
         "Publishing to a repository that needs authentication, but no credentials are available.",
         Severity.Warning
       )
-    val repoParams0 = repoParams.withAuth(authOpt0)
+    val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
     val hooksDataOpt = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
         case NonFatal(e)
-            if "Failed to get .*/staging/profiles \\(http status: 403,".r.unanchored.matches(
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r.unanchored.matches(
               e.getMessage
             ) =>
-          logger.exit(new WrongSonatypeServerError)
+          logger.exit(new WrongSonatypeServerError(
+            repoParams0.repo.releaseRepo.root.contains("s01")))
         case NonFatal(e)
-            if "Failed to get .*/staging/profiles \\(http status: 401,".r.unanchored.matches(
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r.unanchored.matches(
               e.getMessage
             ) =>
           logger.exit(new InvalidPublishCredentials)
@@ -1048,15 +1044,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           throw new Exception(e)
       }
     }
-
-    val isHttps = {
-      val uri = new URI(repoParams.repo.repo(isSnapshot0).root)
-      uri.getScheme == "https"
-    }
-    val hostOpt = Option.when(isHttps)(new URI(repoParams.repo.repo(isSnapshot0).root).getHost)
-
-    val isSonatype =
-      hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
 
     val retainedRepo = hooksDataOpt match {
       case None => // dummy mode
