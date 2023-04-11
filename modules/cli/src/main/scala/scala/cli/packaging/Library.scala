@@ -1,41 +1,48 @@
 package scala.cli.packaging
 
-import java.io.{ByteArrayOutputStream, OutputStream}
+import java.io.OutputStream
 import java.nio.file.attribute.FileTime
 import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.Build
+import scala.cli.internal.CachedBinary
 
 object Library {
 
-  def withLibraryJar[T](
-    build: Build.Successful,
-    fileName: String = "library",
-    scratchDirOpt: Option[os.Path] = None
-  )(f: os.Path => T): T = {
-    val mainJarContent = libraryJar(build)
-    scratchDirOpt.foreach(os.makeDir.all(_))
-    val mainJar = os.temp(
-      mainJarContent,
-      dir = scratchDirOpt.orNull,
-      prefix = fileName.stripSuffix(".jar"),
-      suffix = ".jar",
-      deleteOnExit = scratchDirOpt.isEmpty
-    )
-    try f(mainJar)
-    finally if (scratchDirOpt.isEmpty) os.remove(mainJar)
-  }
-
   def libraryJar(
     build: Build.Successful,
-    mainClassOpt: Option[String] = None,
-    hasActualManifest: Boolean = true,
-    contentDirOverride: Option[os.Path] = None
-  ): Array[Byte] = {
-    val baos = new ByteArrayOutputStream
-    writeLibraryJarTo(baos, build, mainClassOpt, hasActualManifest, contentDirOverride)
-    baos.toByteArray
+    mainClassOpt: Option[String] = None
+  ): os.Path = {
+
+    val workDir = build.inputs.libraryJarWorkDir
+    val dest    = workDir / "library.jar"
+    val cacheData =
+      CachedBinary.getCacheData(
+        build,
+        mainClassOpt.toList.flatMap(c => List("--main-class", c)),
+        dest,
+        workDir
+      )
+
+    if (cacheData.changed) {
+      var outputStream: OutputStream = null
+      try {
+        outputStream = os.write.outputStream(dest, createFolders = true)
+        writeLibraryJarTo(
+          outputStream,
+          build,
+          mainClassOpt
+        )
+      }
+      finally
+        if (outputStream != null)
+          outputStream.close()
+
+      CachedBinary.updateProjectAndOutputSha(dest, workDir, cacheData.projectSha)
+    }
+
+    dest
   }
 
   def writeLibraryJarTo(

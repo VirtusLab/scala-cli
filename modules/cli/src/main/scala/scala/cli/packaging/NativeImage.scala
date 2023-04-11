@@ -186,10 +186,10 @@ object NativeImage {
       nativeImageWorkDir
     )
 
-    if (cacheData.changed)
-      Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-
+    if (cacheData.changed) {
+      val mainJar           = Library.libraryJar(build)
       val originalClassPath = mainJar +: build.dependencyClassPath
+
       ManifestJar.maybeWithManifestClassPath(
         createManifest = Properties.isWin,
         classPath = originalClassPath,
@@ -266,7 +266,7 @@ object NativeImage {
         }
         finally util.Try(toClean.foreach(os.remove.all))
       }
-      }
+    }
     else
       logger.message("Found cached native image binary.")
   }

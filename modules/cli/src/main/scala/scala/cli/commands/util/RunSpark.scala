@@ -43,13 +43,7 @@ object RunSpark {
       else Seq("--jars", depCp.mkString(","))
 
     scratchDirOpt.foreach(os.makeDir.all(_))
-    val library = os.temp(
-      Library.libraryJar(build),
-      dir = scratchDirOpt.orNull,
-      deleteOnExit = scratchDirOpt.isEmpty,
-      prefix = "spark-job",
-      suffix = ".jar"
-    )
+    val library = Library.libraryJar(build)
 
     val finalCommand =
       Seq(submitCommand, "--class", mainClass) ++
@@ -91,13 +85,7 @@ object RunSpark {
     val sparkClassPath  = value(PackageCmd.providedFiles(build, providedModules, logger))
 
     scratchDirOpt.foreach(os.makeDir.all(_))
-    val library = os.temp(
-      Library.libraryJar(build),
-      dir = scratchDirOpt.orNull,
-      deleteOnExit = scratchDirOpt.isEmpty,
-      prefix = "spark-job",
-      suffix = ".jar"
-    )
+    val library = Library.libraryJar(build)
 
     val finalMainClass = "org.apache.spark.deploy.SparkSubmit"
     val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet)

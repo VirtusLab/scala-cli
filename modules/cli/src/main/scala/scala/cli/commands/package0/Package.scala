@@ -323,10 +323,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           value(bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
           destPath
         case PackageType.LibraryJar =>
-          val content = Library.libraryJar(build)
+          val libraryJar = Library.libraryJar(build)
           value(alreadyExistsCheck())
-          if (force) os.write.over(destPath, content)
-          else os.write(destPath, content, createFolders = true)
+          if (force) os.copy.over(libraryJar, destPath, createFolders = true)
+          else os.copy(libraryJar, destPath, createFolders = true)
           destPath
         case PackageType.SourceJar =>
           val now     = System.currentTimeMillis()
@@ -910,8 +910,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     noOpt: Boolean,
     logger: Logger,
     scratchDirOpt: Option[os.Path] = None
-  ): Either[BuildException, os.Path] =
-    Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
+  ): Either[BuildException, os.Path] = {
+    val mainJar   = Library.libraryJar(build)
     val classPath = mainJar +: build.artifacts.classPath
     val delete    = scratchDirOpt.isEmpty
     scratchDirOpt.foreach(os.makeDir.all(_))
@@ -947,8 +947,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       if (os.exists(mainJs))
         if (
           os.walk.stream(linkingDir)
-            .filter(_ != mainJs).filter(_ != sourceMapJs)
-            .headOption.nonEmpty
+            .filter(_ != mainJs)
+            .filter(_ != sourceMapJs)
+            .headOption
+            .nonEmpty
         ) {
           // copy linking dir to dest
           os.copy(
@@ -982,7 +984,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         value(Left(new ScalaJsLinkingError(relMainJs, found)))
       }
     }
-    }
+  }
 
   def buildNative(
     build: Build.Successful,
@@ -1024,8 +1026,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     if (cacheData.changed) {
       NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
-      Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-
+      val mainJar   = Library.libraryJar(build)
       val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
       val args =
         allCliOptions ++
@@ -1056,7 +1057,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         CachedBinary.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
       else
         throw new ScalaNativeBuildError
-      }
     }
 
     dest
