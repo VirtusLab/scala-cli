@@ -1449,6 +1449,11 @@ Aliases: `--resource-dir`
 
 Add a resource directory
 
+### `--as-jar`
+
+[Internal]
+Put project in class paths as a JAR rather than as a byte code directory
+
 ### `--platform`
 
 Specify platform

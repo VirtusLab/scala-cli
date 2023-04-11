@@ -140,6 +140,12 @@ final case class SharedOptions(
   @Tag(tags.must)
     resourceDirs: List[String] = Nil,
 
+  @Hidden
+  @Group(HelpGroup.Java.toString)
+  @HelpMessage("Put project in class paths as a JAR rather than as a byte code directory")
+  @Tag(tags.experimental)
+    asJar: Boolean = false,
+
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Specify platform")
   @ValueDescription("scala-js|scala-native|jvm")

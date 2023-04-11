@@ -26,6 +26,7 @@ import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
+import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.util.{Properties, Try}
@@ -167,7 +168,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             potentialMainClasses,
             runMode,
             showCommand,
-            scratchDirOpt
+            scratchDirOpt,
+            asJar = options.shared.asJar
           )
         }
 
@@ -335,7 +337,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     potentialMainClasses: Seq[String],
     runMode: RunMode,
     showCommand: Boolean,
-    scratchDirOpt: Option[os.Path]
+    scratchDirOpt: Option[os.Path],
+    asJar: Boolean
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
@@ -360,7 +363,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       allowExecve,
       runMode,
       showCommand,
-      scratchDirOpt
+      scratchDirOpt,
+      asJar
     )
     value(res)
   }
@@ -394,7 +398,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     allowExecve: Boolean,
     runMode: RunMode,
     showCommand: Boolean,
-    scratchDirOpt: Option[os.Path]
+    scratchDirOpt: Option[os.Path],
+    asJar: Boolean
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     build.options.platform.value match {
@@ -539,7 +544,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val command = Runner.jvmCommand(
                 build.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPath,
+                build.fullClassPathMaybeAsJar(asJar),
                 mainClass,
                 args,
                 extraEnv = pythonExtraEnv,
@@ -552,7 +557,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val proc = Runner.runJvm(
                 build.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPath,
+                build.fullClassPathMaybeAsJar(asJar),
                 mainClass,
                 args,
                 logger,

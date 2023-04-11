@@ -82,4 +82,11 @@ object Library {
     finally if (zos != null) zos.close()
   }
 
+  extension (build: Build.Successful) {
+    def fullClassPathAsJar: Seq[os.Path] =
+      Seq(libraryJar(build)) ++ build.dependencyClassPath
+    def fullClassPathMaybeAsJar(asJar: Boolean): Seq[os.Path] =
+      if (asJar) fullClassPathAsJar else build.fullClassPath
+  }
+
 }

@@ -21,6 +21,7 @@ import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 
@@ -109,7 +110,8 @@ object Test extends ScalaCommand[TestOptions] {
               options.requireTests,
               args.unparsed,
               logger,
-              allowExecve = allowExit && buildsLen <= 1
+              allowExecve = allowExit && buildsLen <= 1,
+              asJar = options.shared.asJar
             )
             if (printBeforeAfterMessages && idx < buildsLen - 1)
               System.err.println()
@@ -180,6 +182,7 @@ object Test extends ScalaCommand[TestOptions] {
     requireTests: Boolean,
     args: Seq[String],
     logger: Logger,
+    asJar: Boolean,
     allowExecve: Boolean
   ): Either[BuildException, Int] = either {
 
@@ -231,7 +234,7 @@ object Test extends ScalaCommand[TestOptions] {
           }.flatten
         }
       case Platform.JVM =>
-        val classPath = build.fullClassPath
+        val classPath = build.fullClassPathMaybeAsJar(asJar)
 
         val testFrameworkOpt0 = testFrameworkOpt.orElse {
           findTestFramework(classPath.map(_.toNIO), logger)

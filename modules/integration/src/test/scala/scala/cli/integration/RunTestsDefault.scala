@@ -129,4 +129,30 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
     }
   }
 
+  test("as jar") {
+    val inputs = TestInputs(
+      os.rel / "CheckCp.scala" ->
+        """//> using lib "com.lihaoyi::os-lib:0.9.1"
+          |object CheckCp {
+          |  def main(args: Array[String]): Unit = {
+          |    val cp = sys.props("java.class.path")
+          |      .split(java.io.File.pathSeparator)
+          |      .toVector
+          |      .map(os.Path(_, os.pwd))
+          |    assert(cp.forall(os.isFile(_)), "Not only files")
+          |  }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, ".")
+        .call(cwd = root, mergeErrIntoOut = true, check = false)
+      expect(res.exitCode != 0)
+      val output = res.out.text()
+      expect(output.contains("java.lang.AssertionError: assertion failed: Not only files"))
+
+      os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
+        .call(cwd = root)
+    }
+  }
 }

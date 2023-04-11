@@ -345,3 +345,12 @@ Example debugging with scala-cli:
 ```bash ignore
 scala-cli Foo.scala --debug --debug-mode l --debug-port 5006
 ```
+
+## Inject code as JAR file in class path
+
+If your application inspects its class path, and requires only JAR files in it, use `--as-jar` to
+put the Scala CLI project in the class path as a JAR file rather than as a directory:
+
+```bash ignore
+scala-cli Foo.scala --as-jar
+```
