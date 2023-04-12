@@ -912,76 +912,76 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     scratchDirOpt: Option[os.Path] = None
   ): Either[BuildException, os.Path] =
     Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
-      val classPath = mainJar +: build.artifacts.classPath
-      val delete    = scratchDirOpt.isEmpty
-      scratchDirOpt.foreach(os.makeDir.all(_))
-      val linkingDir =
-        os.temp.dir(
-          dir = scratchDirOpt.orNull,
-          prefix = "scala-cli-js-linking",
-          deleteOnExit = delete
+    val classPath = mainJar +: build.artifacts.classPath
+    val delete    = scratchDirOpt.isEmpty
+    scratchDirOpt.foreach(os.makeDir.all(_))
+    val linkingDir =
+      os.temp.dir(
+        dir = scratchDirOpt.orNull,
+        prefix = "scala-cli-js-linking",
+        deleteOnExit = delete
+      )
+    either {
+      value {
+        ScalaJsLinker.link(
+          build.options.notForBloopOptions.scalaJsLinkerOptions,
+          build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
+          classPath,
+          mainClassOpt.orNull,
+          addTestInitializer,
+          config,
+          linkingDir,
+          fullOpt,
+          noOpt,
+          logger,
+          build.options.finalCache,
+          build.options.archiveCache,
+          build.options.scalaJsOptions.finalVersion
         )
-      either {
-        value {
-          ScalaJsLinker.link(
-            build.options.notForBloopOptions.scalaJsLinkerOptions,
-            build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
-            classPath,
-            mainClassOpt.orNull,
-            addTestInitializer,
-            config,
-            linkingDir,
-            fullOpt,
-            noOpt,
-            logger,
-            build.options.finalCache,
-            build.options.archiveCache,
-            build.options.scalaJsOptions.finalVersion
-          )
-        }
-        val relMainJs      = os.rel / "main.js"
-        val relSourceMapJs = os.rel / "main.js.map"
-        val mainJs         = linkingDir / relMainJs
-        val sourceMapJs    = linkingDir / relSourceMapJs
-
-        if (os.exists(mainJs))
-          if (
-            os.walk.stream(linkingDir)
-              .filter(_ != mainJs).filter(_ != sourceMapJs)
-              .headOption.nonEmpty
-          ) {
-            // copy linking dir to dest
-            os.copy(
-              linkingDir,
-              dest,
-              createFolders = true,
-              replaceExisting = true,
-              mergeFolders = true
-            )
-            logger.debug(
-              s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory."
-            )
-            dest / "main.js"
-          }
-          else {
-            os.copy(mainJs, dest, replaceExisting = true)
-            if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
-              val sourceMapDest =
-                build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
-              val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
-              os.write.over(dest, updatedMainJs)
-              os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
-              logger.message(s"Emitted js source maps to: $sourceMapDest")
-            }
-            if (delete)
-              os.remove.all(linkingDir)
-            dest
-          }
-        else {
-          val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
-          value(Left(new ScalaJsLinkingError(relMainJs, found)))
-        }
       }
+      val relMainJs      = os.rel / "main.js"
+      val relSourceMapJs = os.rel / "main.js.map"
+      val mainJs         = linkingDir / relMainJs
+      val sourceMapJs    = linkingDir / relSourceMapJs
+
+      if (os.exists(mainJs))
+        if (
+          os.walk.stream(linkingDir)
+            .filter(_ != mainJs).filter(_ != sourceMapJs)
+            .headOption.nonEmpty
+        ) {
+          // copy linking dir to dest
+          os.copy(
+            linkingDir,
+            dest,
+            createFolders = true,
+            replaceExisting = true,
+            mergeFolders = true
+          )
+          logger.debug(
+            s"Scala.js linker generate multiple files for js multi-modules. Copy files to $dest directory."
+          )
+          dest / "main.js"
+        }
+        else {
+          os.copy(mainJs, dest, replaceExisting = true)
+          if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
+            val sourceMapDest =
+              build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+            val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
+            os.write.over(dest, updatedMainJs)
+            os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
+            logger.message(s"Emitted js source maps to: $sourceMapDest")
+          }
+          if (delete)
+            os.remove.all(linkingDir)
+          dest
+        }
+      else {
+        val found = os.walk(linkingDir).map(_.relativeTo(linkingDir))
+        value(Left(new ScalaJsLinkingError(relMainJs, found)))
+      }
+    }
     }
 
   def buildNative(
@@ -1026,36 +1026,36 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
-        val args =
-          allCliOptions ++
-            logger.scalaNativeCliInternalLoggerOptions ++
-            List[String](
-              "--outpath",
-              dest.toString(),
-              "--workdir",
-              nativeWorkDir.toString()
-            ) ++ classpath
+      val classpath = mainJar.toString +: build.artifacts.classPath.map(_.toString)
+      val args =
+        allCliOptions ++
+          logger.scalaNativeCliInternalLoggerOptions ++
+          List[String](
+            "--outpath",
+            dest.toString(),
+            "--workdir",
+            nativeWorkDir.toString()
+          ) ++ classpath
 
-        val scalaNativeCli = build.artifacts.scalaOpt
-          .getOrElse {
-            sys.error("Expected Scala artifacts to be fetched")
-          }
-          .scalaNativeCli
+      val scalaNativeCli = build.artifacts.scalaOpt
+        .getOrElse {
+          sys.error("Expected Scala artifacts to be fetched")
+        }
+        .scalaNativeCli
 
-        val exitCode =
-          Runner.runJvm(
-            build.options.javaHome().value.javaCommand,
-            build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
-            scalaNativeCli,
-            "scala.scalanative.cli.ScalaNativeLd",
-            args,
-            logger
-          ).waitFor()
-        if (exitCode == 0)
-          CachedBinary.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
-        else
-          throw new ScalaNativeBuildError
+      val exitCode =
+        Runner.runJvm(
+          build.options.javaHome().value.javaCommand,
+          build.options.javaOptions.javaOpts.toSeq.map(_.value.value),
+          scalaNativeCli,
+          "scala.scalanative.cli.ScalaNativeLd",
+          args,
+          logger
+        ).waitFor()
+      if (exitCode == 0)
+        CachedBinary.updateProjectAndOutputSha(dest, nativeWorkDir, cacheData.projectSha)
+      else
+        throw new ScalaNativeBuildError
       }
     }
 

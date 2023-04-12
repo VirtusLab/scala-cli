@@ -189,83 +189,83 @@ object NativeImage {
     if (cacheData.changed)
       Library.withLibraryJar(build, dest.last.stripSuffix(".jar")) { mainJar =>
 
-        val originalClassPath = mainJar +: build.dependencyClassPath
-        ManifestJar.maybeWithManifestClassPath(
-          createManifest = Properties.isWin,
-          classPath = originalClassPath,
-          // seems native-image doesn't correctly parse paths in manifests - this is especially a problem on Windows
-          wrongSimplePathsInManifest = true
-        ) { processedClassPath =>
-          val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
-          val (classPath, toClean, scala3extraOptions) =
-            if (needsProcessing) {
-              val cpString         = processedClassPath.mkString(File.pathSeparator)
-              val processed        = BytecodeProcessor.processClassPath(cpString, TempCache).toSeq
-              val nativeConfigFile = os.temp(suffix = ".json")
-              os.write.over(
-                nativeConfigFile,
-                """[
-                  |  {
-                  |    "name": "sun.misc.Unsafe",
-                  |    "allDeclaredConstructors": true,
-                  |    "allPublicConstructors": true,
-                  |    "allDeclaredMethods": true,
-                  |    "allDeclaredFields": true
-                  |  }
-                  |]
-                  |""".stripMargin
-              )
-              val cp      = processed.map(_.path)
-              val options = Seq(s"-H:ReflectionConfigurationFiles=$nativeConfigFile")
+      val originalClassPath = mainJar +: build.dependencyClassPath
+      ManifestJar.maybeWithManifestClassPath(
+        createManifest = Properties.isWin,
+        classPath = originalClassPath,
+        // seems native-image doesn't correctly parse paths in manifests - this is especially a problem on Windows
+        wrongSimplePathsInManifest = true
+      ) { processedClassPath =>
+        val needsProcessing = build.scalaParams.exists(_.scalaVersion.startsWith("3."))
+        val (classPath, toClean, scala3extraOptions) =
+          if (needsProcessing) {
+            val cpString         = processedClassPath.mkString(File.pathSeparator)
+            val processed        = BytecodeProcessor.processClassPath(cpString, TempCache).toSeq
+            val nativeConfigFile = os.temp(suffix = ".json")
+            os.write.over(
+              nativeConfigFile,
+              """[
+                |  {
+                |    "name": "sun.misc.Unsafe",
+                |    "allDeclaredConstructors": true,
+                |    "allPublicConstructors": true,
+                |    "allDeclaredMethods": true,
+                |    "allDeclaredFields": true
+                |  }
+                |]
+                |""".stripMargin
+            )
+            val cp      = processed.map(_.path)
+            val options = Seq(s"-H:ReflectionConfigurationFiles=$nativeConfigFile")
 
-              (cp, nativeConfigFile +: BytecodeProcessor.toClean(processed), options)
+            (cp, nativeConfigFile +: BytecodeProcessor.toClean(processed), options)
+          }
+          else
+            (processedClassPath, Seq[os.Path](), Seq[String]())
+
+        try {
+          val args = extraOptions ++ scala3extraOptions ++ Seq(
+            s"-H:Path=${dest / os.up}",
+            s"-H:Name=${dest.last.stripSuffix(".exe")}", // FIXME Case-insensitive strip suffix?
+            "-cp",
+            classPath.map(_.toString).mkString(File.pathSeparator),
+            mainClass
+          ) ++ nativeImageArgs
+
+          maybeWithShorterGraalvmHome(javaHome.javaHome, logger) { graalVMHome =>
+
+            val nativeImageCommand = ensureHasNativeImageCommand(graalVMHome, logger)
+            val command            = nativeImageCommand.toString +: args
+
+            val exitCode =
+              if (Properties.isWin)
+                vcvarsOpt match {
+                  case Some(vcvars) =>
+                    runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
+                  case None =>
+                    Runner.run(command, logger).waitFor()
+                }
+              else
+                Runner.run(command, logger).waitFor()
+            if (exitCode == 0) {
+              val actualDest =
+                if (Properties.isWin)
+                  if (dest.last.endsWith(".exe")) dest
+                  else dest / os.up / s"${dest.last}.exe"
+                else
+                  dest
+              CachedBinary.updateProjectAndOutputSha(
+                actualDest,
+                nativeImageWorkDir,
+                cacheData.projectSha
+              )
             }
             else
-              (processedClassPath, Seq[os.Path](), Seq[String]())
-
-          try {
-            val args = extraOptions ++ scala3extraOptions ++ Seq(
-              s"-H:Path=${dest / os.up}",
-              s"-H:Name=${dest.last.stripSuffix(".exe")}", // FIXME Case-insensitive strip suffix?
-              "-cp",
-              classPath.map(_.toString).mkString(File.pathSeparator),
-              mainClass
-            ) ++ nativeImageArgs
-
-            maybeWithShorterGraalvmHome(javaHome.javaHome, logger) { graalVMHome =>
-
-              val nativeImageCommand = ensureHasNativeImageCommand(graalVMHome, logger)
-              val command            = nativeImageCommand.toString +: args
-
-              val exitCode =
-                if (Properties.isWin)
-                  vcvarsOpt match {
-                    case Some(vcvars) =>
-                      runFromVcvarsBat(command, vcvars, nativeImageWorkDir, logger)
-                    case None =>
-                      Runner.run(command, logger).waitFor()
-                  }
-                else
-                  Runner.run(command, logger).waitFor()
-              if (exitCode == 0) {
-                val actualDest =
-                  if (Properties.isWin)
-                    if (dest.last.endsWith(".exe")) dest
-                    else dest / os.up / s"${dest.last}.exe"
-                  else
-                    dest
-                CachedBinary.updateProjectAndOutputSha(
-                  actualDest,
-                  nativeImageWorkDir,
-                  cacheData.projectSha
-                )
-              }
-              else
-                throw new GraalVMNativeImageError
-            }
+              throw new GraalVMNativeImageError
           }
-          finally util.Try(toClean.foreach(os.remove.all))
         }
+        finally util.Try(toClean.foreach(os.remove.all))
+      }
       }
     else
       logger.message("Found cached native image binary.")
