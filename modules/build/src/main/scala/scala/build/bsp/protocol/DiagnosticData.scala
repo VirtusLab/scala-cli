@@ -1,7 +1,7 @@
 package scala.build.bsp.protocol
 
-import ch.epfl.scala.bsp4j as b
 import com.google.gson.{Gson, JsonElement}
+import org.eclipse.lsp4j.WorkspaceEdit
 
 /** Representation for the data field in a bsp.Diagnostic.
   *

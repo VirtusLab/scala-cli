@@ -1,6 +1,8 @@
 package scala.build.bsp
 
 import ch.epfl.scala.{bsp4j => b}
+import org.eclipse.lsp4j.WorkspaceEdit
+import org.eclipse.lsp4j as l
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
@@ -214,17 +216,22 @@ class BspClient(
   )(diag: Diagnostic): Seq[os.Path] =
     diag.positions.flatMap {
       case File(Right(path), (startLine, startC), (endL, endC)) =>
-        val id       = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
-        val startPos = new b.Position(startLine, startC)
-        val endPos   = new b.Position(endL, endC)
-        val range    = new b.Range(startPos, endPos)
+        val id        = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
+        val bstartPos = new b.Position(startLine, startC)
+        val bendPos   = new b.Position(endL, endC)
+        val brange    = new b.Range(bstartPos, bendPos)
         val bDiag =
-          new b.Diagnostic(range, diag.message)
+          new b.Diagnostic(brange, diag.message)
 
         diag.textEdit.foreach { textEdit =>
-          val bTextEdit = TextEdits.TextEdit(range, textEdit.newText)
-          val workspaceEdit =
-            WorkspaceEdit(changes = Map(path.toNIO.toUri().toString() -> Array(bTextEdit)))
+          val lstartPos     = new l.Position(startLine, startC)
+          val lendPos       = new l.Position(endL, endC)
+          val lrange        = new l.Range(lstartPos, lendPos)
+          val lTextEdit     = l.TextEdit(lrange, textEdit.newText)
+          val workspaceEdit = new WorkspaceEdit()
+          workspaceEdit.setChanges(
+            Map(path.toNIO.toUri().toString() -> List(lTextEdit).asJava).asJava
+          )
           val data = DiagnosticData(edits = Array(workspaceEdit))
           bDiag.setData(data.toJsonTree())
         }

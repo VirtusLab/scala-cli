@@ -5,6 +5,8 @@ import ch.epfl.scala.bsp4j.Location
 import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
+import org.eclipse.lsp4j.WorkspaceEdit
+import org.eclipse.lsp4j as l
 import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
 
 import java.io.PrintStream
@@ -85,9 +87,13 @@ class CliLogger(
 
         (textEditOpt, f.path) match {
           case (Some(textEdit), Right(path)) =>
-            val bTextEdit = TextEdits.TextEdit(range, textEdit.newText)
-            val workspaceEdit = WorkspaceEdit(changes =
-              Map(path.toNIO.toUri().toString() -> Array(bTextEdit))
+            val lstartPos     = new l.Position(f.startPos._1, f.startPos._2)
+            val lendPos       = new l.Position(f.endPos._1, f.endPos._2)
+            val lrange        = new l.Range(lstartPos, lendPos)
+            val bTextEdit     = l.TextEdit(lrange, textEdit.newText)
+            val workspaceEdit = new WorkspaceEdit()
+            workspaceEdit.setChanges(
+              Map(path.toNIO.toUri().toString() -> List(bTextEdit).asJava).asJava
             )
             val data = DiagnosticData(edits = Array(workspaceEdit))
             diag.setData(data.toJsonTree())

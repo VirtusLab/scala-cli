@@ -7,7 +7,9 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.{Gson, JsonElement}
+import org.eclipse.lsp4j.WorkspaceEdit
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
+import org.eclipse.lsp4j as l
 
 import java.net.URI
 import java.nio.file.Paths
@@ -1293,16 +1295,21 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             strictlyCheckMessage = false
           )
 
-          val textEdit = new Gson().fromJson[TextEdit](
+          val data = new Gson().fromJson[DiagnosticData](
             updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
-            classOf[TextEdit]
+            classOf[DiagnosticData]
           )
 
-          expect(textEdit.newText.contains("com.lihaoyi::os-lib:"))
-          expect(textEdit.range.getStart.getLine == 0)
-          expect(textEdit.range.getStart.getCharacter == 15)
-          expect(textEdit.range.getEnd.getLine == 0)
-          expect(textEdit.range.getEnd.getCharacter == 40)
+          val edits = data.edits.head.getChanges().asScala
+          expect(edits.size == 1)
+
+          val (_, textEdits)   = edits.head
+          val edit: l.TextEdit = textEdits.asScala.head
+          expect(edit.getNewText().contains("com.lihaoyi::os-lib:"))
+          expect(edit.getRange().getStart().getLine() == 0)
+          expect(edit.getRange().getStart().getCharacter() == 15)
+          expect(edit.getRange().getEnd().getLine() == 0)
+          expect(edit.getRange().getEnd().getCharacter() == 40)
         }
     }
   }
@@ -1390,4 +1397,5 @@ object BspTestDefinitions {
 
   private final case class TextEdit(range: b.Range, newText: String)
 
+  private final case class DiagnosticData(edits: Array[WorkspaceEdit])
 }

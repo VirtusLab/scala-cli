@@ -85,6 +85,7 @@ object Deps {
     def coursierM1Cli      = "2.1.0-RC4"
     def jsoniterScala      = "2.20.3"
     def jsoniterScalaJava8 = "2.13.5.2"
+    def lsp4j              = "0.20.1"
     def scalaMeta          = "4.7.1"
     def scalaNative        = "0.4.12"
     def scalaPackager      = "0.1.29"
@@ -126,6 +127,7 @@ object Deps {
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
+  def lsp4j         = ivy"org.eclipse.lsp4j:org.eclipse.lsp4j:${Versions.lsp4j}"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
