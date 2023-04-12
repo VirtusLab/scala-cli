@@ -135,7 +135,7 @@ When you provide a JAR file as input to Scala CLI, it will be added to the `clas
 You can also add source files with the using directive `//> using file`:
 
 ```scala title=Main.scala
-//> using file "Utils.scala" 
+//> using file "Utils.scala"
 
 object Main extends App {
   println(Utils.message)

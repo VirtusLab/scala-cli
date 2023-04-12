@@ -442,7 +442,7 @@ The class path obtained this way is only meant for scenarios where Scala CLI doe
 `--javac-opt` lets you add `javac` options which will be passed when compiling sources.
 
 ```bash
-scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --javac-opt 1.8 
+scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --javac-opt 1.8
 ```
 
 You can also add javac options with the using directive `//> using javacOpt`:
