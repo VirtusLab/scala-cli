@@ -85,7 +85,7 @@ class CliLogger(
 
         (textEditOpt, f.path) match {
           case (Some(textEdit), Right(path)) =>
-            val bTextEdit = TextEdit(range, textEdit.newText)
+            val bTextEdit = TextEdits.TextEdit(range, textEdit.newText)
             val workspaceEdit = WorkspaceEdit(changes =
               Map(path.toNIO.toUri().toString() -> Array(bTextEdit))
             )

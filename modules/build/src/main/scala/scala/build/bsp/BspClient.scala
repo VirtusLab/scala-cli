@@ -222,7 +222,7 @@ class BspClient(
           new b.Diagnostic(range, diag.message)
 
         diag.textEdit.foreach { textEdit =>
-          val bTextEdit = TextEdit(range, textEdit.newText)
+          val bTextEdit = TextEdits.TextEdit(range, textEdit.newText)
           val workspaceEdit =
             WorkspaceEdit(changes = Map(path.toNIO.toUri().toString() -> Array(bTextEdit)))
           val data = DiagnosticData(edits = Array(workspaceEdit))
