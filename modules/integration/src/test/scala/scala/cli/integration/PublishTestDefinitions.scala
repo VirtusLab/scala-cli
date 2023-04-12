@@ -533,4 +533,84 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       expect(files0 == expectedArtifactsNotSigned) // just in case…
     }
   }
+
+  test("incorrect or missing secret key password") {
+
+    TestCase.testInputs.fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+
+      os.write(confFile, "{}", createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val extraEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "test@test.com",
+        "--password",
+        "value:1234",
+        "--dest",
+        "new_key"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        env = extraEnv
+      )
+
+      val wrongPasswordProc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        "--secret-key",
+        "file:new_key.skr",
+        "--secret-key-password",
+        "value:WRONG_PASSWORD",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(
+        cwd = root,
+        check = false,
+        env = extraEnv,
+        mergeErrIntoOut = true
+      )
+
+      expect(wrongPasswordProc.exitCode != 0)
+      expect(wrongPasswordProc.out.text().contains(
+        "Failed to decrypt the PGP secret key, make sure the provided password is correct!"
+      ))
+
+      val noPasswordProc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        extraOptions,
+        "--secret-key",
+        "file:new_key.skr",
+        "project",
+        "-R",
+        "test-repo"
+      ).call(
+        cwd = root,
+        check = false,
+        env = extraEnv,
+        mergeErrIntoOut = true
+      )
+
+      expect(noPasswordProc.exitCode != 0)
+      expect(noPasswordProc.out.text().contains(
+        "Failed to decrypt the PGP secret key, provide a password!"
+      ))
+
+    }
+  }
 }

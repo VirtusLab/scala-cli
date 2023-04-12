@@ -172,4 +172,59 @@ class PgpTests extends ScalaCliSuite {
     }
   }
 
+  test("pgp sign wrong password") {
+    pubKeyInputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "create",
+        "--email",
+        "test@test.com",
+        "--password",
+        "value:1234",
+        "--dest",
+        "new_key"
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+
+      val tmpFile = root / "test-file"
+      root / "test-file.asc"
+      os.write(tmpFile, "Hello")
+
+      val signProcWrongPassword = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "sign",
+        "--password",
+        "value:WRONG_PASSWORD",
+        "--secret-key",
+        "file:new_key.skr",
+        tmpFile
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+
+      expect(signProcWrongPassword.exitCode != 0)
+      expect(signProcWrongPassword.out.text().contains(
+        "Failed to decrypt the PGP secret key, make sure the provided password is correct!"
+      ))
+
+      val signProcNoPassword = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "sign",
+        "--secret-key",
+        "file:new_key.skr",
+        tmpFile
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+
+      expect(signProcNoPassword.exitCode != 0)
+      expect(signProcNoPassword.out.text().contains(
+        "Failed to decrypt the PGP secret key, provide a password!"
+      ))
+    }
+  }
 }
