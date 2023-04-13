@@ -540,9 +540,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           case Right(cls) => Some(cls)
         }
       }
-      val content = Library.libraryJar(build, mainClassOpt)
-      val dest    = workingDir / org / s"$moduleName-$ver.jar"
-      os.write.over(dest, content, createFolders = true)
+      val libraryJar = Library.libraryJar(build, mainClassOpt)
+      val dest       = workingDir / org / s"$moduleName-$ver.jar"
+      os.copy.over(libraryJar, dest, createFolders = true)
       dest
     }
 

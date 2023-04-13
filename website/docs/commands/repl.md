@@ -72,3 +72,12 @@ scala> :quit
 ```
 
 </ChainedSnippets>
+
+## Inject code as JAR file in class path
+
+If your application inspects its class path, and requires only JAR files in it, use `--as-jar` to
+put the Scala CLI project in the class path as a JAR file rather than as a directory:
+
+```bash ignore
+scala-cli repl Foo.scala --as-jar
+```

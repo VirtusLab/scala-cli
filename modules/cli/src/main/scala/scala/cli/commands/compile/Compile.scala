@@ -15,6 +15,7 @@ import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
@@ -82,7 +83,9 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
           } yield s
         if (options.printClassPath)
           for (s <- successulBuildOpt) {
-            val cp = s.fullClassPath.map(_.toString).mkString(File.pathSeparator)
+            val cp = s.fullClassPathMaybeAsJar(options.shared.asJar)
+              .map(_.toString)
+              .mkString(File.pathSeparator)
             println(cp)
           }
         successulBuildOpt.foreach(_.copyOutput(options.shared))

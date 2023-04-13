@@ -437,12 +437,23 @@ Hello
 Note that you should favor the [`run`](./run.md) command to run your code, rather than running `java -cp`.
 The class path obtained this way is only meant for scenarios where Scala CLI doesn't offer a more convenient option.
 
+If you need the class path to consist only of JAR files, pass `--as-jar`. This packages the Scala CLI project
+byte code in a JAR file, rather than leaving it in a directory:
+
+```bash ignore
+scala-cli compile --print-class-path Hello.scala --as-jar
+```
+
+```text
+/work/.scala-build/project_103be31561-475e1607f5/jar/library.jar:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.2.2/scala3-library_3-3.2.2.jar:~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar
+```
+
 ### JVM options
 
 `--javac-opt` lets you add `javac` options which will be passed when compiling sources.
 
 ```bash
-scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --javac-opt 1.8 
+scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --javac-opt 1.8
 ```
 
 You can also add javac options with the using directive `//> using javacOpt`:

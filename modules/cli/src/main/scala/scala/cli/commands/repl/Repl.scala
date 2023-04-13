@@ -7,6 +7,8 @@ import coursier.cache.FileCache
 import coursier.error.{FetchError, ResolutionError}
 import dependency.*
 
+import java.util.zip.ZipFile
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
@@ -24,8 +26,10 @@ import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -127,7 +131,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def doRunRepl(
       buildOptions: BuildOptions,
       artifacts: Artifacts,
-      classDir: Option[os.Path],
+      mainJarOrClassDir: Option[os.Path],
       allowExit: Boolean,
       runMode: RunMode.HasRepl,
       buildOpt: Option[Build.Successful]
@@ -136,7 +140,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         buildOptions,
         programArgs,
         artifacts,
-        classDir,
+        mainJarOrClassDir,
         directories,
         logger,
         allowExit = allowExit,
@@ -154,12 +158,13 @@ object Repl extends ScalaCommand[ReplOptions] {
     def doRunReplFromBuild(
       build: Build.Successful,
       allowExit: Boolean,
-      runMode: RunMode.HasRepl
+      runMode: RunMode.HasRepl,
+      asJar: Boolean
     ): Unit =
       doRunRepl(
         build.options,
         build.artifacts,
-        build.outputOpt,
+        Some(if (asJar) Library.libraryJar(build) else build.output),
         allowExit,
         runMode,
         Some(build)
@@ -210,7 +215,12 @@ object Repl extends ScalaCommand[ReplOptions] {
         for (builds <- res.orReport(logger))
           builds.main match {
             case s: Build.Successful =>
-              doRunReplFromBuild(s, allowExit = false, runMode = runMode(options))
+              doRunReplFromBuild(
+                s,
+                allowExit = false,
+                runMode = runMode(options),
+                asJar = options.shared.asJar
+              )
             case _: Build.Failed    => buildFailed(allowExit = false)
             case _: Build.Cancelled => buildCancelled(allowExit = false)
           }
@@ -234,7 +244,12 @@ object Repl extends ScalaCommand[ReplOptions] {
           .orExit(logger)
       builds.main match {
         case s: Build.Successful =>
-          doRunReplFromBuild(s, allowExit = true, runMode = runMode(options))
+          doRunReplFromBuild(
+            s,
+            allowExit = true,
+            runMode = runMode(options),
+            asJar = options.shared.asJar
+          )
         case _: Build.Failed    => buildFailed(allowExit = true)
         case _: Build.Cancelled => buildCancelled(allowExit = true)
       }
@@ -254,7 +269,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     options: BuildOptions,
     programArgs: Seq[String],
     artifacts: Artifacts,
-    classDir: Option[os.Path],
+    mainJarOrClassDir: Option[os.Path],
     directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
@@ -324,13 +339,31 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    val rootClasses = classDir
-      .toSeq
-      .flatMap(os.list(_))
-      .filter(_.last.endsWith(".class"))
-      .filter(os.isFile(_)) // just in case
-      .map(_.last.stripSuffix(".class"))
-      .sorted
+    val rootClasses = mainJarOrClassDir match {
+      case None => Nil
+      case Some(dir) if os.isDir(dir) =>
+        os.list(dir)
+          .filter(_.last.endsWith(".class"))
+          .filter(os.isFile(_)) // just in case
+          .map(_.last.stripSuffix(".class"))
+          .sorted
+      case Some(jar) =>
+        var zf: ZipFile = null
+        try {
+          zf = new ZipFile(jar.toIO)
+          zf.entries()
+            .asScala
+            .map(_.getName)
+            .filter(!_.contains("/"))
+            .filter(_.endsWith(".class"))
+            .map(_.stripSuffix(".class"))
+            .toVector
+            .sorted
+        }
+        finally
+          if (zf != null)
+            zf.close()
+    }
     val warnRootClasses = rootClasses.nonEmpty &&
       options.notForBloopOptions.replOptions.useAmmoniteOpt.contains(true)
     if (warnRootClasses)
@@ -338,29 +371,6 @@ object Repl extends ScalaCommand[ReplOptions] {
         s"Warning: found classes defined in the root package (${rootClasses.mkString(", ")})." +
           " These will not be accessible from the REPL."
       )
-
-    def actualBuild: Build.Successful =
-      buildOpt.getOrElse {
-        val ws      = os.temp.dir()
-        val inputs  = Inputs.empty(ws, enableMarkdown = false)
-        val sources = Sources(Nil, Nil, None, Nil, options)
-        val scope   = Scope.Main
-        Build.Successful(
-          inputs = inputs,
-          options = options,
-          scalaParams = Some(scalaParams),
-          scope = scope,
-          sources = Sources(Nil, Nil, None, Nil, options),
-          artifacts = artifacts,
-          project = value(
-            Build.buildProject(inputs, sources, Nil, options, None, scope, logger, artifacts)
-          ),
-          output = classDir.getOrElse(ws),
-          diagnostics = None,
-          generatedSources = Nil,
-          isPartial = false
-        )
-      }
 
     def maybeRunRepl(
       replArtifacts: ReplArtifacts,
@@ -377,7 +387,7 @@ object Repl extends ScalaCommand[ReplOptions] {
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
-          classDir.toSeq ++ replArtifacts.replClassPath,
+          mainJarOrClassDir.toSeq ++ replArtifacts.replClassPath,
           replArtifacts.replMainClass,
           maybeAdaptForWindows(replArgs),
           logger,
