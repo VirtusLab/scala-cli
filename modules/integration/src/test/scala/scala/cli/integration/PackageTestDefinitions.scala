@@ -369,6 +369,47 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  def jsWithoutMainTest(): Unit = {
+    val fileName = "Hello.scala"
+    val msg      = "Hello World"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""|import scala.scalajs.js.annotation._
+            |
+            |@JSExportTopLevel("Hello")
+            |object Hello {
+            |  @JSExport
+            |  def helloWorld: String = "$msg"
+            |}
+            |""".stripMargin,
+      os.rel / "runHello.js" ->
+        s"""const { Hello } = require('./Hello.js');
+           |console.log(Hello.helloWorld);
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        fileName,
+        "--js",
+        "--js-module-kind",
+        "common"
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val runHelloWorld = root / "runHello.js"
+      val nodePath      = TestUtil.fromPath("node").getOrElse("node")
+      val output        = os.proc(nodePath, runHelloWorld.toString).call(cwd = root).out.trim()
+      expect(output == msg)
+    }
+  }
+
   if (!TestUtil.isNativeCli || !Properties.isWin) {
     test("simple JS") {
       simpleJsTest()
@@ -387,6 +428,9 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("js header in release mode") {
       jsHeaderTest()
+    }
+    test("js without main") {
+      jsWithoutMainTest()
     }
   }
 

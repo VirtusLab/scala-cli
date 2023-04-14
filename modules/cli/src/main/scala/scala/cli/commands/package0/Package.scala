@@ -390,7 +390,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           destPath
 
         case PackageType.Js =>
-          value(buildJs(build, destPath, value(mainClass), logger))
+          value(buildJs(build, destPath, mainClassOpt, logger))
 
         case PackageType.Native =>
           val cachedDest = value(buildNative(build, value(mainClass), logger))
@@ -658,7 +658,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     build.options.platform.value match {
       case Platform.JVM => value(bootstrap(build, appPath, mainClass, () => Right(()), logger))
-      case Platform.JS  => buildJs(build, appPath, mainClass, logger)
+      case Platform.JS  => buildJs(build, appPath, Some(mainClass), logger)
       case Platform.Native =>
         val dest = value(buildNative(build, mainClass, logger))
         os.copy(dest, appPath)
@@ -679,14 +679,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   private def buildJs(
     build: Build.Successful,
     destPath: os.Path,
-    mainClass: String,
+    mainClass: Option[String],
     logger: Logger
   ): Either[BuildException, os.Path] = {
     val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
     linkJs(
       build,
       destPath,
-      Some(mainClass),
+      mainClass,
       addTestInitializer = false,
       linkerConfig,
       build.options.scalaJsOptions.fullOpt,
