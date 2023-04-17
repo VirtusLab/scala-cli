@@ -39,7 +39,7 @@ abstract class LowPriorityPasswordOption {
       Right(PasswordOption.Command(command))
     }
     else
-      Left("Malformed password value (expected \"value:...\")")
+      Left("Malformed password value (expected \"value:password\")")
 
 }
 
