@@ -70,7 +70,8 @@ object Sources {
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
     generatedContent: String,
-    topWrapperLen: Int
+    topWrapperLen: Int,
+    wrapScriptFunOpt: Option[CodeWrapper => (String, Int)] = None
   )
 
   /** The default preprocessor list.
@@ -86,13 +87,12 @@ object Sources {
     * @return
     */
   def defaultPreprocessors(
-    codeWrapper: CodeWrapper,
     archiveCache: ArchiveCache[Task],
     javaClassNameVersionOpt: Option[String],
     javaCommand: () => String
   ): Seq[Preprocessor] =
     Seq(
-      ScriptPreprocessor(codeWrapper),
+      ScriptPreprocessor,
       MarkdownPreprocessor,
       JavaPreprocessor(archiveCache, javaClassNameVersionOpt, javaCommand),
       ScalaPreprocessor,

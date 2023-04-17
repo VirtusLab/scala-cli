@@ -100,9 +100,13 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory") {
-    val fileName          = "script.sc"
-    val expectedClassName = fileName.stripSuffix(".sc") + "$"
-    val scriptPath        = os.rel / "something" / fileName
+    val fileName = "script.sc"
+    val expectedClassName =
+      if (actualScalaVersion.startsWith("3."))
+        fileName.stripSuffix(".sc") + "$_"
+      else
+        fileName.stripSuffix(".sc") + "$"
+    val scriptPath = os.rel / "something" / fileName
     val inputs = TestInputs(
       scriptPath ->
         s"""println(getClass.getName)
@@ -118,9 +122,13 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory and script") {
-    val fileName          = "script.sc"
-    val expectedClassName = fileName.stripSuffix(".sc") + "$"
-    val scriptPath        = os.rel / "something" / fileName
+    val fileName = "script.sc"
+    val expectedClassName =
+      if (actualScalaVersion.startsWith("3."))
+        fileName.stripSuffix(".sc") + "$_"
+      else
+        fileName.stripSuffix(".sc") + "$"
+    val scriptPath = os.rel / "something" / fileName
     val inputs = TestInputs(
       os.rel / "dir" / "Messages.scala" ->
         s"""object Messages {
@@ -243,17 +251,16 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         .dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
       val expectedLines =
-        s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-           |${tab}at throws_sc$$.main(throws.sc:25)
+        s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+           |${tab}at throws$$_.<init>(throws.sc:8)
+           |${tab}at throws_sc$$.script(throws.sc:24)
+           |${tab}at throws_sc$$.main(throws.sc:28)
            |${tab}at throws_sc.main(throws.sc)
-           |Caused by: java.lang.Exception: Caught exception during processing
-           |${tab}at throws$$.<clinit>(throws.sc:8)
-           |$tab... 2 more
            |Caused by: java.lang.RuntimeException: nope
            |${tab}at scala.sys.package$$.error(package.scala:27)
-           |${tab}at throws$$.something(throws.sc:3)
-           |${tab}at throws$$.<clinit>(throws.sc:5)
-           |$tab... 2 more""".stripMargin.linesIterator.toVector
+           |${tab}at throws$$_.something(throws.sc:3)
+           |${tab}at throws$$_.<init>(throws.sc:5)
+           |$tab... 3 more""".stripMargin.linesIterator.toVector
       assert(
         exceptionLines.length == expectedLines.length,
         clues(output, exceptionLines.length, expectedLines.length)
@@ -399,7 +406,33 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val proc = os.proc(TestUtil.cli, "shebang", "script.sc", "1", "2", "3", "-v")
         .call(cwd = root, mergeErrIntoOut = true)
 
-      expect(!proc.out.text.contains("[hint] \"os-lib is outdated"))
+      expect(!proc.out.text().contains("[hint] \"os-lib is outdated"))
     }
   }
+
+  if (actualScalaVersion.startsWith("3."))
+    test("no deadlock when running background threads") {
+      val inputs = TestInputs(
+        os.rel / "script.sc" ->
+          s"""//> using scala "$actualScalaVersion"
+             |
+             |import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
+             |import scala.concurrent.duration._
+             |
+             |implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+             |
+             |val future =
+             |  for {
+             |    message <- Future("Hello world")
+             |    _ <- Future(println(message))
+             |  } yield ()
+             |
+             |Await.ready(future, Duration(5, SECONDS))
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "script.sc")
+          .call(cwd = root, mergeErrIntoOut = true)
+      }
+    }
 }

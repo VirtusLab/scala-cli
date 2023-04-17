@@ -115,6 +115,33 @@ final case class CrossSources(
     )
   }
 
+  /** For all unwrapped script sources contained in this object wrap them according to provided
+    * BuildOptions
+    *
+    * @param buildOptions
+    *   options used to choose the script wrapper
+    * @return
+    *   this with all the script code wrapped
+    */
+  def withWrappedScripts(buildOptions: BuildOptions): CrossSources =
+    copy(
+      inMemory = inMemory.map {
+        case WithBuildRequirements(requirements, source) if source.wrapScriptFunOpt.isDefined =>
+          val wrapScriptFun                = source.wrapScriptFunOpt.get
+          val codeWrapper                  = ScriptPreprocessor.getScriptWrapper(buildOptions)
+          val (wrappedCode, topWrapperLen) = wrapScriptFun(codeWrapper)
+
+          WithBuildRequirements(
+            requirements,
+            source.copy(
+              generatedContent = wrappedCode,
+              topWrapperLen = topWrapperLen,
+              wrapScriptFunOpt = None
+            )
+          )
+        case p => p
+      }
+    )
 }
 
 object CrossSources {
@@ -259,7 +286,7 @@ object CrossSources {
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
             m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-            Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
+            Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen, m.wrapScriptFunOpt)
           ) -> m.directivesPositions
       }
 

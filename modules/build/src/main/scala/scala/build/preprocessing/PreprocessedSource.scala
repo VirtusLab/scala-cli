@@ -1,5 +1,6 @@
 package scala.build.preprocessing
 
+import scala.build.internal.CodeWrapper
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
@@ -38,7 +39,8 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath,
-    directivesPositions: Option[DirectivesPositions]
+    directivesPositions: Option[DirectivesPositions],
+    wrapScriptFunOpt: Option[CodeWrapper => (String, Int)] = None
   ) extends PreprocessedSource {
     def reportingPath: Either[String, os.Path] =
       originalPath.map(_._2)

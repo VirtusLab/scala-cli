@@ -12,7 +12,7 @@ import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
-import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
@@ -34,7 +34,6 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         CrossSources.forInputs(
           inputs,
           Sources.defaultPreprocessors(
-            CustomCodeWrapper,
             options.archiveCache,
             options.internal.javaClassNameVersionOpt,
             () => options.javaHome().value.javaCommand

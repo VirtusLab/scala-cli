@@ -392,7 +392,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
         val compileProducts = os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
 
-        expect(compileProducts.contains(os.rel / "simple.class"))
+        if (actualScalaVersion.startsWith("3."))
+          expect(compileProducts.contains(os.rel / "simple$_.class"))
+        else
+          expect(compileProducts.contains(os.rel / "simple$.class"))
+
         expect(
           compileProducts.contains(os.rel / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
         )

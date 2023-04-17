@@ -1,6 +1,11 @@
 package scala.build.internal
 
-case object CustomCodeWrapper extends CodeWrapper {
+/** Script code wrapper that solves problem of deadlocks when using threads. The code is placed in a
+  * class instance constructor, the created object is kept in 'mainObjectCode'.script to support
+  * running interconnected scripts using Scala CLI <br> <br> Incompatible with Scala 2 - it uses
+  * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
+  */
+case object ClassCodeWrapper extends CodeWrapper {
   def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
 
@@ -12,13 +17,8 @@ case object CustomCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val name               = mainClassObject(indexedWrapperName).backticked
-    val aliasedWrapperName = name + "$$alias"
-    val funHashCodeMethod =
-      if (name == "main_sc")
-        s"$aliasedWrapperName.alias.hashCode()" // https://github.com/VirtusLab/scala-cli/issues/314
-      else s"${indexedWrapperName.backticked}.hashCode()"
-    // We need to call hashCode (or any other method so compiler does not report a warning)
+    val name             = mainClassObject(indexedWrapperName).backticked
+    val wrapperClassName = Name(indexedWrapperName.raw ++ "$_").backticked
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
                                     |  private var args$$opt0 = Option.empty[Array[String]]
@@ -29,22 +29,20 @@ case object CustomCodeWrapper extends CodeWrapper {
                                     |  def args$$: Array[String] = args$$opt.getOrElse {
                                     |    sys.error("No arguments passed to this script")
                                     |  }
+                                    |
+                                    |  lazy val script = new $wrapperClassName
+                                    |
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    $funHashCodeMethod // hasCode to clear scalac warning about pure expression in statement position
+                                    |    script.hashCode() // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
+                                    |
+                                    |export $name.script as ${indexedWrapperName.backticked}
                                     |""".stripMargin)
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
-
-    val aliasObject =
-      if (name == "main_sc")
-        s"""object $aliasedWrapperName {
-           |  val alias = ${indexedWrapperName.backticked}
-           |}""".stripMargin
-      else ""
 
     // indentation is important in the generated code, so we don't want scalafmt to touch that
     // format: off
@@ -52,14 +50,14 @@ case object CustomCodeWrapper extends CodeWrapper {
 $packageDirective
 
 
-object ${indexedWrapperName.backticked} {
+final class $wrapperClassName {
 def args = $name.args$$
 def scriptPath = \"\"\"$scriptPath\"\"\"
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
 $extraCode
 }
-$aliasObject
+
 $mainObjectCode
 """)
     // format: on

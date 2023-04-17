@@ -7,7 +7,7 @@ import dependency.*
 
 import scala.build.Ops.*
 import scala.build.Sources
-import scala.build.internal.CustomCodeWrapper
+import scala.build.internal.ObjectCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
@@ -24,7 +24,6 @@ class SourcesTests extends munit.FunSuite {
   given ScalaCliInvokeData = ScalaCliInvokeData.dummy
 
   val preprocessors = Sources.defaultPreprocessors(
-    CustomCodeWrapper,
     ArchiveCache().withCache(
       new Cache[Task] {
         def fetch                    = _ => sys.error("shouldn't be used")
@@ -302,8 +301,11 @@ class SourcesTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         ).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val scriptWrappedSources = crossSources.withWrappedScripts(BuildOptions())
+
+      val scopedSources = scriptWrappedSources.scopedSources(BuildOptions()).orThrow
+      val sources =
+        scopedSources.sources(Scope.Main, scriptWrappedSources.sharedOptions(BuildOptions()))
 
       val parsedCodes: Seq[String] = sources.inMemory.map(_.generatedContent)
 

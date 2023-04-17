@@ -6,22 +6,24 @@ import coursier.cache.ArtifactError
 import dependency.parser.DependencyParser
 
 import java.io.IOException
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.{
   DependencyFormatError,
   InvalidBinaryScalaVersionError,
   ScalaNativeCompatibilityError
 }
+import scala.build.internal.{ClassCodeWrapper, ObjectCodeWrapper}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
   JavaOpt,
   MaybeScalaVersion,
   ScalacOpt,
+  ScriptOptions,
   ShadowingSeq
 }
 import scala.build.tastylib.TastyData
-import scala.build.tests.TestUtil._
+import scala.build.tests.TestUtil.*
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo, Positioned}
 import scala.meta.internal.semanticdb.TextDocuments
@@ -56,7 +58,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
       scalaBinaryVersion = None
-    )
+    ),
+    scriptOptions = ScriptOptions(Some(ObjectCodeWrapper))
   )
 
   def sv3 = "3.0.0"
@@ -64,7 +67,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),
       scalaBinaryVersion = None
-    )
+    ),
+    scriptOptions = ScriptOptions(Some(ClassCodeWrapper))
   )
 
   def simple(checkResults: Boolean = true): Unit = {
@@ -104,12 +108,14 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     testInputs.withBuild(defaultScala3Options, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
-          "simple.class",
+          "simple$_.class",
           "simple_sc.class",
           "simple_sc.tasty",
-          "simple$.class",
-          "simple.tasty",
-          "simple_sc$.class"
+          "simple$_.tasty",
+          "simple_sc$.class",
+          "simple$package$.class",
+          "simple$package.class",
+          "simple$package.tasty"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -125,13 +131,15 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       (_, _, maybeBuild) =>
         val build = maybeBuild.orThrow
         build.assertGeneratedEquals(
-          "other$A.class",
-          "other$.class",
-          "other.tasty",
-          "other.class",
+          "other$_$A.class",
+          "other$_.tasty",
+          "other$_.class",
           "other_sc$.class",
           "other_sc.class",
-          "other_sc.tasty"
+          "other_sc.tasty",
+          "other$package$.class",
+          "other$package.class",
+          "other$package.tasty"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -183,19 +191,21 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
-        "simple.class",
+        "simple$_.class",
         "simple_sc.class",
         "simple_sc.tasty",
-        "simple$.class",
-        "simple.tasty",
+        "simple$_.tasty",
         "simple_sc$.class",
+        "simple$package$.class",
+        "simple$package.class",
+        "simple$package.tasty",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
       maybeBuild.orThrow.assertNoDiagnostics
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
-      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple.tasty")).orThrow
+      val tastyData = TastyData.read(os.read.bytes(outputDir / "simple$_.tasty")).orThrow
       val names     = tastyData.names.simpleNames
-      expect(names.exists(_ == "simple.sc"))
+      expect(names.contains("simple.sc"))
     }
   }
 

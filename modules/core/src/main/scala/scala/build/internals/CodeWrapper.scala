@@ -15,7 +15,7 @@ abstract class CodeWrapper {
     indexedWrapperName: Name,
     code: String,
     scriptPath: String
-  ) = {
+  ): (String, Int, Int) = {
 
     // we need to normalize topWrapper and bottomWrapper in order to ensure
     // the snippets always use the platform-specific newLine

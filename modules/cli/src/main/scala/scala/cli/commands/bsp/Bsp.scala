@@ -8,7 +8,6 @@ import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
-import scala.build.internal.CustomCodeWrapper
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
@@ -53,7 +52,6 @@ object Bsp extends ScalaCommand[BspOptions] {
             CrossSources.forInputs(
               initialInputs,
               Sources.defaultPreprocessors(
-                buildOptions0.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
                 buildOptions0.archiveCache,
                 buildOptions0.internal.javaClassNameVersionOpt,
                 () => buildOptions0.javaHome().value.javaCommand

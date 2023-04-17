@@ -4,7 +4,6 @@ import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, Scrip
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.input.{Inputs, MarkdownFile, ScalaCliInvokeData, Script, SourceScalaFile}
-import scala.build.internal.CustomCodeWrapper
 import scala.build.options.SuppressWarningOptions
 
 class PreprocessingTests extends munit.FunSuite {
@@ -30,7 +29,7 @@ class PreprocessingTests extends munit.FunSuite {
     val logger      = TestLogger()
     val scalaScript = Script(os.temp.dir(), os.SubPath("NotExists.sc"), None)
 
-    val res = ScriptPreprocessor(CustomCodeWrapper).preprocess(
+    val res = ScriptPreprocessor.preprocess(
       scalaScript,
       logger,
       allowRestrictedFeatures = false,

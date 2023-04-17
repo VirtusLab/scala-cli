@@ -8,7 +8,6 @@ import coursier.util.{Artifact, EitherT, Task}
 import java.io.File
 import scala.build.Ops.*
 import scala.build.Sources
-import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.errors.ExcludeDefinitionError
 import scala.build.input.ScalaCliInvokeData
@@ -19,7 +18,6 @@ import scala.concurrent.ExecutionContext
 class ExcludeTests extends munit.FunSuite {
 
   val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
-    codeWrapper = CustomCodeWrapper,
     archiveCache = ArchiveCache().withCache(
       new Cache[Task] {
         def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")

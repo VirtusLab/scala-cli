@@ -42,7 +42,7 @@ abstract class DocTestDefinitions(val scalaVersionOpt: Option[String])
           Seq(
             "index.html",
             "inkuire-db.json",
-            "_empty_/simple$.html",
+            "_empty_/simple$_.html",
             "lib/Messages$.html"
           )
       val entries =

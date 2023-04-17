@@ -5,7 +5,6 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
-import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
@@ -34,7 +33,6 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand

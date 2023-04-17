@@ -768,7 +768,10 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       val genContent    = readEntry(zf, genSourceEntryName)
       val genContentStr = new String(genContent, StandardCharsets.UTF_8)
-      expect(genContentStr.contains("object simple {"))
+      if (actualScalaVersion.startsWith("2."))
+        expect(genContentStr.contains("object simple"))
+      else
+        expect(genContentStr.contains("class simple$_"))
     }
   }
 
@@ -794,10 +797,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
           Seq(
             "index.html",
             "inkuire-db.json",
-            "_empty_/simple$.html",
+            "_empty_/simple$_.html",
             "lib/Messages$.html"
           )
       val entries = zf.entries().asScala.iterator.map(_.getName).toSet
+
       expect(expectedEntries.forall(e => entries.contains(e)))
     }
   }
