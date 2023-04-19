@@ -12,7 +12,6 @@ import scala.build.options.{
   ClassPathOptions,
   SuppressWarningOptions
 }
-import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 
 case object JarPreprocessor extends Preprocessor {
   def preprocess(
@@ -30,12 +29,13 @@ case object JarPreprocessor extends Preprocessor {
             )
           )
           Seq(PreprocessedSource.OnDisk(
-            jar.path,
-            Some(buildOptions),
-            Some(BuildRequirements()),
-            Nil,
-            None,
-            None
+            path = jar.path,
+            options = Some(buildOptions),
+            optionsWithTargetRequirements = List.empty,
+            requirements = Some(BuildRequirements()),
+            scopedRequirements = Nil,
+            mainClassOpt = None,
+            directivesPositions = None
           ))
         })
       case _ =>

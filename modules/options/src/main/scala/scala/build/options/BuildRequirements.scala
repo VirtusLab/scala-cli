@@ -22,6 +22,7 @@ final case class BuildRequirements(
     }
   def isEmpty: Boolean =
     this == BuildRequirements()
+  def nonEmpty: Boolean = !isEmpty
   def orElse(other: BuildRequirements): BuildRequirements =
     BuildRequirements.monoid.orElse(this, other)
 }

@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{BuildException, FileNotFoundException}
-import scala.build.options.{BuildOptions, SuppressWarningOptions}
+import scala.build.options.{BuildOptions, SuppressWarningOptions, WithBuildRequirements}
 import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
 import scala.build.preprocessing.ExtractedDirectives.from
 import scala.build.preprocessing.ScalaPreprocessor.*
@@ -30,7 +30,11 @@ object PreprocessingUtil {
     suppressWarningOptions: SuppressWarningOptions
   ): Either[
     BuildException,
-    (DirectivesProcessorOutput[BuildOptions], Option[DirectivesPositions])
+    (
+      BuildOptions,
+      List[WithBuildRequirements[BuildOptions]],
+      Option[DirectivesPositions]
+    )
   ] = either {
     val ExtractedDirectives(directives0, directivesPositions) =
       value(from(
@@ -40,7 +44,7 @@ object PreprocessingUtil {
         scopePath,
         maybeRecoverOnError
       ))
-    val updatedOptions = value(DirectivesProcessor.process(
+    val updatedOptions: DirectivesProcessorOutput[BuildOptions] = value(DirectivesProcessor.process(
       directives0,
       usingDirectiveHandlers,
       path,
@@ -49,6 +53,26 @@ object PreprocessingUtil {
       allowRestrictedFeatures,
       suppressWarningOptions
     ))
-    (updatedOptions, directivesPositions)
+
+    val directives1 = updatedOptions.unused
+    val optionsWithReqs: DirectivesProcessorOutput[List[WithBuildRequirements[BuildOptions]]] =
+      value(DirectivesProcessor.process(
+        directives1,
+        usingDirectiveWithReqsHandlers,
+        path,
+        scopePath,
+        logger,
+        allowRestrictedFeatures,
+        suppressWarningOptions
+      ))
+
+    val (optionsWithActualRequirements, optionsWithEmptyRequirements) =
+      optionsWithReqs.global.partition(_.requirements.nonEmpty)
+    val summedOptionsWithNoRequirements =
+      optionsWithEmptyRequirements
+        .map(_.value)
+        .foldLeft(updatedOptions.global)((acc, bo) => acc.orElse(bo))
+
+    (summedOptionsWithNoRequirements, optionsWithActualRequirements, directivesPositions)
   }
 }

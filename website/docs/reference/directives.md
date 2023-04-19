@@ -56,9 +56,11 @@ Add dependencies
 `//> using dep "`_org_`:`name`:`ver"
 
 #### Examples
-`//> using dep "org.scalatest::scalatest:3.2.10"`
+`//> using dep "com.lihaoyi::os-lib:0.9.1"`
 
-`//> using dep "org.scalameta::munit:0.7.29"`
+`//> using test.dep "org.scalatest::scalatest:3.2.10"`
+
+`//> using test.dep "org.scalameta::munit:0.7.29"`
 
 `//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 

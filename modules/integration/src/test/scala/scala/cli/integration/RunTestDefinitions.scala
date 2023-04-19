@@ -1210,4 +1210,47 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
+  test("declare test scope dependencies from main scope") {
+    val projectFile     = "project.scala"
+    val invalidMainFile = "InvalidMain.scala"
+    val validMainFile   = "ValidMain.scala"
+    val testFile        = "Tests.test.scala"
+    TestInputs(
+      os.rel / projectFile ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |//> using test.dep "com.lihaoyi::pprint:0.8.1"
+          |""".stripMargin,
+      os.rel / invalidMainFile ->
+        """object InvalidMain extends App {
+          |  pprint.pprintln("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / validMainFile ->
+        """object ValidMain extends App {
+          |  println(os.pwd)
+          |}
+          |""".stripMargin,
+      os.rel / testFile ->
+        """class Tests extends munit.FunSuite {
+          |  test("foo") {
+          |    pprint.pprintln(os.pwd)
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      // running `invalidMainFile` should fail, as it's in the main scope and depends on test scope deps
+      val res1 = os.proc(TestUtil.cli, "run", projectFile, invalidMainFile)
+        .call(cwd = root, check = false)
+      expect(res1.exitCode == 1)
+      // running `validMainFile` should succeed, since it only depends on main scope deps
+      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile)
+        .call(cwd = root)
+      expect(res2.out.trim() == root.toString())
+      // test scope should have access to both main and test deps
+      os.proc(TestUtil.cli, "test", projectFile, testFile)
+        .call(cwd = root, stderr = os.Pipe)
+    }
+  }
 }

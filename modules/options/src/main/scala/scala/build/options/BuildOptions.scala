@@ -21,6 +21,7 @@ import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
+import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.collection.immutable.Seq
@@ -486,6 +487,16 @@ final case class BuildOptions(
 
   lazy val interactive: Either[BuildException, Interactive] =
     internal.interactive.map(_()).getOrElse(Right(InteractiveNop))
+
+  def withBuildRequirements(buildRequirements: BuildRequirements)
+    : WithBuildRequirements[BuildOptions] =
+    WithBuildRequirements(buildRequirements, this)
+
+  def withEmptyRequirements: WithBuildRequirements[BuildOptions] =
+    withBuildRequirements(BuildRequirements())
+
+  def withScopeRequirement(scope: Scope): WithBuildRequirements[BuildOptions] =
+    withBuildRequirements(BuildRequirements(scope = Some(ScopeRequirement(scope = scope))))
 }
 
 object BuildOptions {

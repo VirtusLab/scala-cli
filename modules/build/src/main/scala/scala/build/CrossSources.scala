@@ -155,17 +155,19 @@ object CrossSources {
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
 
-    val preprocessedInputFromArgs = value(preprocessSources(inputs.flattened()))
+    val preprocessedInputFromArgs: Seq[PreprocessedSource] =
+      value(preprocessSources(inputs.flattened()))
 
     val sourcesFromDirectives =
       preprocessedInputFromArgs
         .flatMap(_.options)
         .flatMap(_.internal.extraSourceFiles)
         .distinct
-    val inputsElemFromDirectives =
+    val inputsElemFromDirectives: Seq[SingleFile] =
       value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
-    val preprocessedSourcesFromDirectives = value(preprocessSources(inputsElemFromDirectives))
-    val allInputs                         = inputs.add(inputsElemFromDirectives)
+    val preprocessedSourcesFromDirectives: Seq[PreprocessedSource] =
+      value(preprocessSources(inputsElemFromDirectives))
+    val allInputs = inputs.add(inputsElemFromDirectives)
 
     val preprocessedSources =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
@@ -190,19 +192,19 @@ object CrossSources {
       else fromDirectives
     }
 
-    val buildOptions = for {
-      s   <- preprocessedSources
-      opt <- s.options.toSeq
-      if opt != BuildOptions()
+    val buildOptions: Seq[WithBuildRequirements[BuildOptions]] = (for {
+      preprocessedSource <- preprocessedSources
+      opts               <- preprocessedSource.options.toSeq
+      if opts != BuildOptions()
     } yield {
-      val baseReqs0 = baseReqs(s.scopePath)
-      WithBuildRequirements(
-        s.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-        opt
+      val baseReqs0 = baseReqs(preprocessedSource.scopePath)
+      preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
+        preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+        opts
       )
-    }
+    }).flatten
 
-    val defaultMainClassOpt = for {
+    val defaultMainClassOpt: Option[String] = for {
       mainClassPath <- allInputs.defaultMainClassElement
         .map(s => ScopePath.fromPath(s.path).subPath)
       processedMainClass <- preprocessedSources.find(_.scopePath.subPath == mainClassPath)
@@ -230,7 +232,7 @@ object CrossSources {
           ) -> m.directivesPositions
       }
 
-    val resourceDirs = allInputs.elements.collect {
+    val resourceDirs: Seq[WithBuildRequirements[os.Path]] = allInputs.elements.collect {
       case r: ResourceDirectory =>
         WithBuildRequirements(BuildRequirements(), r.path)
     } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(

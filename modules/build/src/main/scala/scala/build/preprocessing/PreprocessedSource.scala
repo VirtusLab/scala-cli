@@ -1,9 +1,10 @@
 package scala.build.preprocessing
 
-import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]
+  def optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]]
   def requirements: Option[BuildRequirements]
   def mainClassOpt: Option[String]
 
@@ -17,6 +18,7 @@ object PreprocessedSource {
   final case class OnDisk(
     path: os.Path,
     options: Option[BuildOptions],
+    optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
@@ -31,6 +33,7 @@ object PreprocessedSource {
     code: String,
     ignoreLen: Int,
     options: Option[BuildOptions],
+    optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
@@ -42,6 +45,7 @@ object PreprocessedSource {
   }
   final case class NoSourceCode(
     options: Option[BuildOptions],
+    optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     path: os.Path

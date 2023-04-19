@@ -8,17 +8,16 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.directives.{HasBuildOptions, HasBuildRequirements}
+import scala.build.directives.{
+  HasBuildOptions,
+  HasBuildOptionsWithRequirements,
+  HasBuildRequirements
+}
 import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
-import scala.build.options.{
-  BuildOptions,
-  BuildRequirements,
-  ClassPathOptions,
-  ShadowingSeq,
-  SuppressWarningOptions
-}
+import scala.build.options.*
+import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
 import scala.build.preprocessing.directives
 import scala.build.preprocessing.directives.{DirectiveHandler, DirectiveUtil, ScopedDirective}
 import scala.build.{Logger, Position, Positioned}
@@ -28,6 +27,7 @@ case object ScalaPreprocessor extends Preprocessor {
   private case class StrictDirectivesProcessingOutput(
     globalReqs: BuildRequirements,
     globalUsings: BuildOptions,
+    usingsWithReqs: List[WithBuildRequirements[BuildOptions]],
     scopedReqs: Seq[Scoped[BuildRequirements]],
     strippedContent: Option[String],
     directivesPositions: Option[DirectivesPositions]
@@ -48,14 +48,25 @@ case object ScalaPreprocessor extends Preprocessor {
     globalReqs: BuildRequirements,
     scopedReqs: Seq[Scoped[BuildRequirements]],
     opts: BuildOptions,
+    optsWithReqs: List[WithBuildRequirements[BuildOptions]],
     updatedContent: Option[String],
     directivesPositions: Option[DirectivesPositions]
   )
 
+  object ProcessingOutput {
+    def empty: ProcessingOutput = ProcessingOutput(
+      BuildRequirements(),
+      Nil,
+      BuildOptions(),
+      List.empty,
+      None,
+      None
+    )
+  }
+
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
     Seq[DirectiveHandler[_ <: HasBuildOptions]](
       directives.CustomJar.handler,
-      directives.Dependency.handler,
       directives.JavacOptions.handler,
       directives.JavaOptions.handler,
       directives.JavaProps.handler,
@@ -79,6 +90,12 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.Tests.handler,
       directives.Toolkit.handler
     ).map(_.mapE(_.buildOptions))
+
+  val usingDirectiveWithReqsHandlers
+    : Seq[DirectiveHandler[List[WithBuildRequirements[BuildOptions]]]] =
+    Seq[DirectiveHandler[_ <: HasBuildOptionsWithRequirements]](
+      directives.Dependency.handler
+    ).map(_.mapE(_.buildOptionsWithRequirements))
 
   val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =
     Seq[DirectiveHandler[_ <: HasBuildRequirements]](
@@ -113,40 +130,44 @@ case object ScalaPreprocessor extends Preprocessor {
               )
             ) match {
               case None =>
-                PreprocessedSource.OnDisk(f.path, None, None, Nil, None, None)
+                PreprocessedSource.OnDisk(f.path, None, List.empty, None, Nil, None, None)
               case Some(ProcessingOutput(
                     requirements,
                     scopedRequirements,
                     options,
+                    optionsWithReqs,
                     Some(updatedCode),
                     directivesPositions
                   )) =>
                 PreprocessedSource.InMemory(
-                  Right((f.subPath, f.path)),
-                  f.subPath,
-                  updatedCode,
-                  0,
-                  Some(options),
-                  Some(requirements),
-                  scopedRequirements,
-                  None,
-                  scopePath,
-                  directivesPositions
+                  originalPath = Right((f.subPath, f.path)),
+                  relPath = f.subPath,
+                  code = updatedCode,
+                  ignoreLen = 0,
+                  options = Some(options),
+                  optionsWithTargetRequirements = optionsWithReqs,
+                  requirements = Some(requirements),
+                  scopedRequirements = scopedRequirements,
+                  mainClassOpt = None,
+                  scopePath = scopePath,
+                  directivesPositions = directivesPositions
                 )
               case Some(ProcessingOutput(
                     requirements,
                     scopedRequirements,
                     options,
+                    optionsWithReqs,
                     None,
                     directivesPositions
                   )) =>
                 PreprocessedSource.OnDisk(
-                  f.path,
-                  Some(options),
-                  Some(requirements),
-                  scopedRequirements,
-                  None,
-                  directivesPositions
+                  path = f.path,
+                  options = Some(options),
+                  optionsWithTargetRequirements = optionsWithReqs,
+                  requirements = Some(requirements),
+                  scopedRequirements = scopedRequirements,
+                  mainClassOpt = None,
+                  directivesPositions = directivesPositions
                 )
             }
           Seq(source)
@@ -160,7 +181,14 @@ case object ScalaPreprocessor extends Preprocessor {
             case v                               => os.sub / v.generatedSourceFileName
           }
           val content = new String(v.content, StandardCharsets.UTF_8)
-          val (requirements, scopedRequirements, options, updatedContentOpt, directivesPositions) =
+          val (
+            requirements: BuildRequirements,
+            scopedRequirements: Seq[Scoped[BuildRequirements]],
+            options: BuildOptions,
+            optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
+            updatedContentOpt: Option[String],
+            directivesPositions: Option[DirectivesPositions]
+          ) =
             value(
               process(
                 content,
@@ -172,15 +200,30 @@ case object ScalaPreprocessor extends Preprocessor {
                 suppressWarningOptions
               )
             ).map {
-              case ProcessingOutput(reqs, scopedReqs, opts, updatedContent, dirsPositions) =>
-                (reqs, scopedReqs, opts, updatedContent, dirsPositions)
-            }.getOrElse((BuildRequirements(), Nil, BuildOptions(), None, None))
+              case ProcessingOutput(
+                    reqs,
+                    scopedReqs,
+                    opts,
+                    optsWithReqs,
+                    updatedContent,
+                    dirsPositions
+                  ) =>
+                (reqs, scopedReqs, opts, optsWithReqs, updatedContent, dirsPositions)
+            }.getOrElse((
+              BuildRequirements(),
+              Nil,
+              BuildOptions(),
+              List(WithBuildRequirements(BuildRequirements(), BuildOptions())),
+              None,
+              None
+            ))
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
             updatedContentOpt.getOrElse(content),
             ignoreLen = 0,
             options = Some(options),
+            optionsWithTargetRequirements = optionsWithTargetRequirements,
             requirements = Some(requirements),
             scopedRequirements,
             mainClassOpt = None,
@@ -259,6 +302,7 @@ case object ScalaPreprocessor extends Preprocessor {
         summedRequirements,
         scopedRequirements,
         summedOptions,
+        afterStrictUsing.usingsWithReqs,
         lastContentOpt,
         directivesPositions
       ))
@@ -278,7 +322,7 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val ExtractedDirectives(directives0, directivesPositions) = extractedDirectives
 
-    val updatedOptions = value {
+    val updatedOptions: DirectivesProcessorOutput[BuildOptions] = value {
       DirectivesProcessor.process(
         directives0,
         usingDirectiveHandlers,
@@ -292,9 +336,24 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val directives1 = updatedOptions.unused
 
-    val updatedRequirements = value {
+    val optionsWithTargetRequirements
+      : DirectivesProcessorOutput[List[WithBuildRequirements[BuildOptions]]] = value {
       DirectivesProcessor.process(
         directives1,
+        usingDirectiveWithReqsHandlers,
+        path,
+        cwd,
+        logger,
+        allowRestrictedFeatures,
+        suppressWarningOptions
+      )
+    }
+
+    val directives2 = optionsWithTargetRequirements.unused
+
+    val updatedRequirements = value {
+      DirectivesProcessor.process(
+        directives2,
         requireDirectiveHandlers,
         path,
         cwd,
@@ -306,12 +365,20 @@ case object ScalaPreprocessor extends Preprocessor {
 
     val unusedDirectives = updatedRequirements.unused
 
+    val (optionsWithActualRequirements, optionsWithEmptyRequirements) =
+      optionsWithTargetRequirements.global.partition(_.requirements.nonEmpty)
+    val summedOptionsWithNoRequirements =
+      optionsWithEmptyRequirements
+        .map(_.value)
+        .foldLeft(updatedOptions.global)((acc, bo) => acc.orElse(bo))
+
     value {
       unusedDirectives match {
         case Seq() =>
           Right(StrictDirectivesProcessingOutput(
             updatedRequirements.global,
-            updatedOptions.global,
+            summedOptionsWithNoRequirements,
+            optionsWithActualRequirements,
             updatedRequirements.scoped,
             strippedContent = None,
             directivesPositions

@@ -3,13 +3,12 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 
 import java.nio.charset.StandardCharsets
-
 import scala.build.{Build, BuildThreads, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Util
-import scala.build.options.BuildOptions
+import scala.build.options.{BuildOptions, Scope}
 import scala.util.control.NonFatal
 import scala.util.Try
 
@@ -73,7 +72,8 @@ final case class TestInputs(
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false,
     buildTests: Boolean = true,
-    actionableDiagnostics: Boolean = false
+    actionableDiagnostics: Boolean = false,
+    scope: Scope = Scope.Main
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withCustomInputs(fromDirectory, None) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
@@ -82,7 +82,7 @@ final case class TestInputs(
         case None =>
           SimpleScalaCompilerMaker("java", Nil)
       }
-      val res =
+      val builds =
         Build.build(
           inputs,
           options,
@@ -94,7 +94,10 @@ final case class TestInputs(
           partial = None,
           actionableDiagnostics = Some(actionableDiagnostics)
         )
-      f(root, inputs, res.map(_.main))
+      val res = builds.map(_.get(scope).getOrElse {
+        sys.error(s"No ${scope.name} build found")
+      })
+      f(root, inputs, res)
     }
 }
 

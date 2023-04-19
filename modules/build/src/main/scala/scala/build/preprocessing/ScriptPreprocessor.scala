@@ -86,7 +86,7 @@ object ScriptPreprocessor {
 
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
-    val processingOutput =
+    val processingOutput: ProcessingOutput =
       value(ScalaPreprocessor.process(
         contentIgnoredSheBangLines,
         reportingPath,
@@ -96,7 +96,7 @@ object ScriptPreprocessor {
         allowRestrictedFeatures,
         suppressWarningOptions
       ))
-        .getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
+        .getOrElse(ProcessingOutput.empty)
 
     val (code, topWrapperLen, _) = codeWrapper.wrapCode(
       pkg,
@@ -109,16 +109,17 @@ object ScriptPreprocessor {
     val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
     val file = PreprocessedSource.InMemory(
-      reportingPath.map((subPath, _)),
-      relPath,
-      code,
-      topWrapperLen,
-      Some(processingOutput.opts),
-      Some(processingOutput.globalReqs),
-      processingOutput.scopedReqs,
-      Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
-      scopePath,
-      processingOutput.directivesPositions
+      originalPath = reportingPath.map((subPath, _)),
+      relPath = relPath,
+      code = code,
+      ignoreLen = topWrapperLen,
+      options = Some(processingOutput.opts),
+      optionsWithTargetRequirements = processingOutput.optsWithReqs,
+      requirements = Some(processingOutput.globalReqs),
+      scopedRequirements = processingOutput.scopedReqs,
+      mainClassOpt = Some(CustomCodeWrapper.mainClassObject(Name(className)).backticked),
+      scopePath = scopePath,
+      directivesPositions = processingOutput.directivesPositions
     )
     List(file)
   }
