@@ -148,6 +148,19 @@ class DirectiveTests extends munit.FunSuite {
         expect(if isTestScope then hasTestJavacOpts else !hasTestJavacOpts)
       }
     }
+    test(s"resolve test scope javaOpts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using javaOpt "-Xmx2g"
+          |//> using test.javaOpt "-Dsomething=a"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+        expect(javaOpts.contains("-Xmx2g"))
+        val hasTestJavaOpts = javaOpts.contains("-Dsomething=a")
+        expect(if isTestScope then hasTestJavaOpts else !hasTestJavaOpts)
+      }
+    }
   }
 
   test("handling special syntax for path") {

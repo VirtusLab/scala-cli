@@ -95,6 +95,8 @@ Add Java options which will be passed when running an application.
 #### Examples
 `//> using javaOpt "-Xmx2g", "-Dsomething=a"`
 
+`//> using test.javaOpt "-Dsomething=a"`
+
 ### Java properties
 
 Add Java properties
