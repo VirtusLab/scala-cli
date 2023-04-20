@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
 import scala.build.{BuildThreads, Directories, LocalRepo, Position, Positioned}
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
+import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import scala.build.Position
@@ -104,6 +104,62 @@ class DirectiveTests extends munit.FunSuite {
         expect(toolkitDep.organization == "org.scala-lang")
         expect(toolkitDep.name == "toolkit")
         expect(toolkitDep.version == "latest.release")
+    }
+  }
+
+  test("handling special syntax for path") {
+    val filePath = os.rel / "src" / "simple.scala"
+    val testInputs = TestInputs(
+      os.rel / filePath ->
+        """//> using options "-coverage-out:${.}""""
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val scalacOptions: Option[Positioned[ScalacOpt]] =
+          build.options.scalaOptions.scalacOptions.toSeq.headOption
+        assert(scalacOptions.nonEmpty)
+
+        val scalacOpt            = scalacOptions.get.value.value
+        val expectedCoveragePath = (root / filePath / os.up).toString
+        expect(scalacOpt == s"-coverage-out:$expectedCoveragePath")
+    }
+  }
+
+  test("handling special syntax for path with more dollars before") {
+    val filePath = os.rel / "src" / "simple.scala"
+    val testInputs = TestInputs(
+      os.rel / filePath ->
+        """//> using options "-coverage-out:$$${.}""""
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val scalacOptions: Option[Positioned[ScalacOpt]] =
+          build.options.scalaOptions.scalacOptions.toSeq.headOption
+        assert(scalacOptions.nonEmpty)
+
+        val scalacOpt            = scalacOptions.get.value.value
+        val expectedCoveragePath = (root / filePath / os.up).toString
+        expect(scalacOpt == s"-coverage-out:$$$expectedCoveragePath")
+    }
+  }
+
+  test("skip handling special syntax for path when double dollar") {
+    val filePath = os.rel / "src" / "simple.scala"
+    val testInputs = TestInputs(
+      os.rel / filePath ->
+        """//> using options "-coverage-out:$${.}""""
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val scalacOptions: Option[Positioned[ScalacOpt]] =
+          build.options.scalaOptions.scalacOptions.toSeq.headOption
+        assert(scalacOptions.nonEmpty)
+
+        val scalacOpt = scalacOptions.get.value.value
+        expect(scalacOpt == """-coverage-out:${.}""")
     }
   }
 

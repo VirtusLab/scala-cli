@@ -146,7 +146,7 @@ object DirectiveValueParser {
           s"Expected a string, got '${value.getRelatedASTNode.toString}'",
           Seq(pos)
         )
-      }
+      }.map(DirectiveSpecialSyntax.handlingSpecialPathSyntax(_, path))
 
   final case class MaybeNumericalString(value: String)
 
