@@ -146,6 +146,8 @@ Add Javac options which will be passed when compiling sources.
 #### Examples
 `//> using javacOpt "source", "1.8", "target", "1.8"`
 
+`//> using test.javacOpt "source", "1.8", "target", "1.8"`
+
 ### Platform
 
 Set the default platform to Scala.js or Scala Native

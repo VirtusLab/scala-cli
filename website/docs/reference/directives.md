@@ -114,6 +114,8 @@ Add Javac options which will be passed when compiling sources.
 #### Examples
 `//> using javacOpt "source", "1.8", "target", "1.8"`
 
+`//> using test.javacOpt "source", "1.8", "target", "1.8"`
+
 ### Main class
 
 Specify default main class

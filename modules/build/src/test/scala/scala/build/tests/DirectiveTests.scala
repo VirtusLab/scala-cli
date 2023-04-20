@@ -3,11 +3,10 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
-import scala.build.{BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt, Scope}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
-import scala.build.Position
 import dependency.AnyDependency
 
 class DirectiveTests extends munit.FunSuite {
@@ -106,37 +105,50 @@ class DirectiveTests extends munit.FunSuite {
         expect(toolkitDep.version == "latest.release")
     }
   }
-  for (scope <- Scope.all)
-    test(s"resolve test scope directives correctly when building for ${scope.name} scope") {
-      val inputs = TestInputs(
-        os.rel / "project.scala" ->
-          """//> using dep "com.lihaoyi::os-lib:0.9.1"
-            |//> using test.dep "org.scalameta::munit::0.7.29"
-            |""".stripMargin,
-        os.rel / "Tests.test.scala" ->
-          """class Tests extends munit.FunSuite {
-            |  test("foo") {
-            |    println("foo")
-            |  }
-            |}
-            |""".stripMargin
-      )
-      inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = scope) {
-        (_, _, maybeBuild) =>
-          val isTestScope = scope == Scope.Test
-          val build       = maybeBuild.orThrow
-          val deps        = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
-          expect(deps.nonEmpty)
-          val hasMainDeps = deps.exists(d =>
-            d.organization == "com.lihaoyi" && d.name == "os-lib" && d.version == "0.9.1"
-          )
-          val hasTestDeps = deps.exists(d =>
-            d.organization == "org.scalameta" && d.name == "munit" && d.version == "0.7.29"
-          )
-          expect(hasMainDeps)
-          expect(if isTestScope then hasTestDeps else !hasTestDeps)
+  for (scope <- Scope.all) {
+    def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
+      os.rel / "project.scala" -> projectFileContent,
+      os.rel / "Tests.test.scala" ->
+        """class Tests extends munit.FunSuite {
+          |  test("foo") {
+          |    println("foo")
+          |  }
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = scope) { (_, _, maybeBuild) =>
+      f(maybeBuild.orThrow, scope == Scope.Test)
+    }
+
+    test(s"resolve test scope dependencies correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent = """//> using dep "com.lihaoyi::os-lib:0.9.1"
+                                             |//> using test.dep "org.scalameta::munit::0.7.29"
+                                             |""".stripMargin) { (build, isTestScope) =>
+        val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
+        expect(deps.nonEmpty)
+        val hasMainDeps = deps.exists(d =>
+          d.organization == "com.lihaoyi" && d.name == "os-lib" && d.version == "0.9.1"
+        )
+        val hasTestDeps = deps.exists(d =>
+          d.organization == "org.scalameta" && d.name == "munit" && d.version == "0.7.29"
+        )
+        expect(hasMainDeps)
+        expect(if isTestScope then hasTestDeps else !hasTestDeps)
       }
     }
+    test(s"resolve test scope javacOpts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using javacOpt "source", "1.8"
+          |//> using test.javacOpt "target", "1.8"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val javacOpts = build.options.javaOptions.javacOptions.map(_.value)
+        expect(javacOpts.contains("source"))
+        val hasTestJavacOpts = javacOpts.contains("target")
+        expect(if isTestScope then hasTestJavacOpts else !hasTestJavacOpts)
+      }
+    }
+  }
 
   test("handling special syntax for path") {
     val filePath = os.rel / "src" / "simple.scala"
