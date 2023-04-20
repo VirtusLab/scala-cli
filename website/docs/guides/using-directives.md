@@ -103,6 +103,21 @@ We plan to add ways to Scala CLI to migrate these settings into a centralized lo
 
 We are aware that `using` directives may be a controversial topic, so we’ve created a [dedicated space for discussing `using` directives](https://github.com/VirtusLab/scala-cli/discussions/categories/using-directives-and-cmd-configuration-options).
 
+### Explicit handling of paths in using directives
+
+The `${.}` pattern in directive values will be replaced by the parent directory of the file containing the
+directive. This makes it possible for example to generate coverage output files relative to the source file location.
+
+```scala
+//> using options "-coverage-out:${.}"
+```
+
+However, if you want to include the `${.}` pattern in the directive value without it being replaced, you can precede it
+with two dollar signs (`$$`), like this:
+
+```scala
+//> using options "-coverage-out:$${.}"
+```
 
 ## How to comment out using directives?
 
