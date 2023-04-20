@@ -69,6 +69,8 @@ Add Java properties
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
 
+`//> using test.javaProp "foo3=bar", "foo4"`
+
 ### Main class
 
 Specify default main class

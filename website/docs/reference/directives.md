@@ -107,6 +107,8 @@ Add Java properties
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
 
+`//> using test.javaProp "foo3=bar", "foo4"`
+
 ### Javac options
 
 Add Javac options which will be passed when compiling sources.
