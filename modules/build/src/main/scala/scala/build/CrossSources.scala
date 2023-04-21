@@ -195,7 +195,7 @@ object CrossSources {
     val buildOptions: Seq[WithBuildRequirements[BuildOptions]] = (for {
       preprocessedSource <- preprocessedSources
       opts               <- preprocessedSource.options.toSeq
-      if opts != BuildOptions()
+      if opts != BuildOptions() || preprocessedSource.optionsWithTargetRequirements.nonEmpty
     } yield {
       val baseReqs0 = baseReqs(preprocessedSource.scopePath)
       preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(

@@ -200,6 +200,19 @@ class DirectiveTests extends munit.FunSuite {
         expect(if isTestScope then hasTestResources else !hasTestResources)
       }
     }
+    test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
+      withProjectFile(
+        projectFileContent =
+          s"""//> using test.toolkit "latest"
+             |""".stripMargin
+      ) { (build, isTestScope) =>
+        val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
+        if isTestScope then expect(deps.nonEmpty)
+        val hasToolkitDep =
+          deps.exists(d => d.organization == "org.scala-lang" && d.name == "toolkit")
+        expect(if isTestScope then hasToolkitDep else !hasToolkitDep)
+      }
+    }
   }
 
   test("handling special syntax for path") {

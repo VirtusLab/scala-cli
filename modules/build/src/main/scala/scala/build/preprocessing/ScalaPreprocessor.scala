@@ -35,7 +35,8 @@ case object ScalaPreprocessor extends Preprocessor {
     def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
       globalUsings == BuildOptions.monoid.zero &&
       scopedReqs.isEmpty &&
-      strippedContent.isEmpty
+      strippedContent.isEmpty &&
+      usingsWithReqs.isEmpty
   }
 
   private case class SpecialImportsProcessingOutput(
@@ -82,8 +83,7 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.ScalaNative.handler,
       directives.ScalaVersion.handler,
       directives.Sources.handler,
-      directives.Tests.handler,
-      directives.Toolkit.handler
+      directives.Tests.handler
     ).map(_.mapE(_.buildOptions))
 
   val usingDirectiveWithReqsHandlers
@@ -94,7 +94,8 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.JavacOptions.handler,
       directives.JavaProps.handler,
       directives.Resources.handler,
-      directives.ScalacOptions.handler
+      directives.ScalacOptions.handler,
+      directives.Toolkit.handler
     ).map(_.mapE(_.buildOptionsWithRequirements))
 
   val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =

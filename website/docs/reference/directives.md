@@ -341,6 +341,8 @@ Use a toolkit as dependency
 
 `//> using toolkit "latest"`
 
+`//> using test.toolkit "latest"`
+
 
 ## target directives
 
