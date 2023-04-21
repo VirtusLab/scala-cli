@@ -174,6 +174,19 @@ class DirectiveTests extends munit.FunSuite {
         expect(if isTestScope then hasTestJavaProps else !hasTestJavaProps)
       }
     }
+    test(s"resolve test scope resourceDir correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using resourceDir "./mainResources"
+          |//> using test.resourceDir "./testResources"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val resourcesDirs = build.options.classPathOptions.resourcesDir
+        expect(resourcesDirs.exists(_.last == "mainResources"))
+        val hasTestResources = resourcesDirs.exists(_.last == "testResources")
+        expect(if isTestScope then hasTestResources else !hasTestResources)
+      }
+    }
   }
 
   test("handling special syntax for path") {

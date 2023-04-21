@@ -242,6 +242,8 @@ Manually add a resource directory to the class path
 #### Examples
 `//> using resourceDir "./resources"`
 
+`//> using test.resourceDir "./resources"`
+
 ### Scala Native options
 
 Add Scala Native options
