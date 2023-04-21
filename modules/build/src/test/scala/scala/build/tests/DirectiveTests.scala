@@ -148,6 +148,19 @@ class DirectiveTests extends munit.FunSuite {
         expect(if isTestScope then hasTestJavacOpts else !hasTestJavacOpts)
       }
     }
+    test(s"resolve test scope scalac opts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using option "--explain"
+          |//> using test.option "-deprecation"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val scalacOpts = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+        expect(scalacOpts.contains("--explain"))
+        val hasTestScalacOpts = scalacOpts.contains("-deprecation")
+        expect(if isTestScope then hasTestScalacOpts else !hasTestScalacOpts)
+      }
+    }
     test(s"resolve test scope javaOpts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
         """//> using javaOpt "-Xmx2g"

@@ -22,6 +22,8 @@ Add Scala compiler options
 #### Examples
 `//> using option "-Xasync"`
 
+`//> using test.option "-Xasync"`
+
 `//> using options "-Xasync", "-Xfatal-warnings"`
 
 ### Compiler plugins

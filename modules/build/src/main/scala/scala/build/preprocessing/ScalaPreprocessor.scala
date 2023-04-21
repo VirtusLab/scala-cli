@@ -78,7 +78,6 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.PublishContextual.CI.handler,
       directives.Python.handler,
       directives.Repository.handler,
-      directives.ScalacOptions.handler,
       directives.ScalaJs.handler,
       directives.ScalaNative.handler,
       directives.ScalaVersion.handler,
@@ -94,7 +93,8 @@ case object ScalaPreprocessor extends Preprocessor {
       directives.JavaOptions.handler,
       directives.JavacOptions.handler,
       directives.JavaProps.handler,
-      directives.Resources.handler
+      directives.Resources.handler,
+      directives.ScalacOptions.handler
     ).map(_.mapE(_.buildOptionsWithRequirements))
 
   val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =
