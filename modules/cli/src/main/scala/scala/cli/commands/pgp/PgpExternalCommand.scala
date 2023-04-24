@@ -172,7 +172,7 @@ object PgpExternalCommand {
         else ("v" + version, false)
       val ext = if (Properties.isWin) ".zip" else ".gz"
       val url =
-        s"https://github.com/scala-cli/scala-cli-signing/releases/download/$tag/scala-cli-signing-$platformSuffix$ext"
+        s"https://github.com/VirtusLab/scala-cli-signing/releases/download/$tag/scala-cli-signing-$platformSuffix$ext"
       val params = ExternalBinaryParams(
         url,
         changing,
@@ -180,7 +180,7 @@ object PgpExternalCommand {
         Seq(jvmSigningDep),
         signingMainClass
       )
-      val binary = value {
+      val binary: ExternalBinary = value {
         FetchExternalBinary.fetch(params, archiveCache, logger, javaCommand)
       }
       binary.command

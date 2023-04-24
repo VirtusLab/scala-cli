@@ -85,6 +85,24 @@ class PgpTests extends ScalaCliSuite {
     }
   }
 
+  test("ensure the scala-cli-signing artifact is downloaded correctly for pgp push") {
+    pubKeyInputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--power", "pgp", "push", "-v", "-v", "-v", "key.pub")
+        .call(cwd = root, stderr = os.Pipe)
+      val errOutput = res.err.trim()
+      expect(errOutput.contains(
+        "Getting https://github.com/VirtusLab/scala-cli-signing/releases/download/"
+      ))
+      expect(
+        !errOutput.contains("coursier.cache.ArtifactError$NotFound") ||
+        errOutput.contains(
+          """Could not fetch binary, fetching JVM dependencies:
+            |  org.virtuslab.scala-cli-signing""".stripMargin
+        )
+      )
+    }
+  }
+
   if (!TestUtil.isNativeCli)
     test("pgp push with binary") {
       pubKeyInputs.fromRoot { root =>

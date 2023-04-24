@@ -23,7 +23,7 @@ object FetchExternalBinary {
     javaCommand: () => String
   ): Either[BuildException, ExternalBinary] = either {
 
-    val binaryOpt = value {
+    val binaryOpt: Option[os.Path] = value {
       fetchLauncher(
         params.binaryUrl,
         params.changing,
@@ -35,8 +35,14 @@ object FetchExternalBinary {
 
     binaryOpt match {
       case Some(binary) =>
+        logger.debug(s"Fetched binary: $binary")
         ExternalBinary.Native(binary)
       case None =>
+        logger.debug(
+          s"""Could not fetch binary, fetching JVM dependencies:
+             |  ${params.dependencies.map(_.toString).mkString(s"${System.lineSeparator()}  ")}
+             |""".stripMargin
+        )
         val classPath = coursier.Fetch()
           .withCache(archiveCache.cache)
           .addDependencies(params.dependencies.map(_.toCs)*)
