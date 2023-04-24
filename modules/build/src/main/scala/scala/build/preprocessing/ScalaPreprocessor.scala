@@ -67,7 +67,6 @@ case object ScalaPreprocessor extends Preprocessor {
 
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
     Seq[DirectiveHandler[_ <: HasBuildOptions]](
-      directives.CustomJar.handler,
       directives.JavaHome.handler,
       directives.Jvm.handler,
       directives.MainClass.handler,
@@ -89,6 +88,7 @@ case object ScalaPreprocessor extends Preprocessor {
   val usingDirectiveWithReqsHandlers
     : Seq[DirectiveHandler[List[WithBuildRequirements[BuildOptions]]]] =
     Seq[DirectiveHandler[_ <: HasBuildOptionsWithRequirements]](
+      directives.CustomJar.handler,
       directives.Dependency.handler,
       directives.JavaOptions.handler,
       directives.JavacOptions.handler,
