@@ -2,12 +2,14 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt, ShadowingSeq}
+import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
+import scala.build.preprocessing.directives.JavaProps.buildOptions
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Java properties")
 @DirectiveExamples("//> using javaProp \"foo1=bar\", \"foo2\"")
+@DirectiveExamples("//> using test.javaProp \"foo3=bar\", \"foo4\"")
 @DirectiveUsage(
   "//> using javaProp _key=val_",
   """`//> using javaProp `_key=value_
@@ -15,14 +17,25 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Add Java properties")
 @DirectiveLevel(SpecificationLevel.MUST)
-// format: off
 final case class JavaProps(
   @DirectiveName("javaProp")
-    javaProperty: List[Positioned[String]] = Nil
-) extends HasBuildOptions {
-  // format: on
-  def buildOptions: Either[BuildException, BuildOptions] = {
-    val javaOpts = javaProperty.map { positioned =>
+  javaProperty: List[Positioned[String]] = Nil,
+  @DirectiveName("test.javaProp")
+  testJavaProperty: List[Positioned[String]] = Nil
+) extends HasBuildOptionsWithRequirements {
+  def buildOptionsWithRequirements
+    : Either[BuildException, List[WithBuildRequirements[BuildOptions]]] =
+    Right(List(
+      buildOptions(javaProperty).withEmptyRequirements,
+      buildOptions(testJavaProperty).withScopeRequirement(Scope.Test)
+    ))
+}
+
+object JavaProps {
+  val handler: DirectiveHandler[JavaProps] = DirectiveHandler.derive
+
+  def buildOptions(javaProperties: List[Positioned[String]]): BuildOptions = {
+    val javaOpts = javaProperties.map { positioned =>
       positioned.map { v =>
         v.split("=") match {
           case Array(k)    => JavaOpt(s"-D$k")
@@ -30,15 +43,10 @@ final case class JavaProps(
         }
       }
     }
-    val buildOpt = BuildOptions(
+    BuildOptions(
       javaOptions = options.JavaOptions(
         javaOpts = ShadowingSeq.from(javaOpts)
       )
     )
-    Right(buildOpt)
   }
-}
-
-object JavaProps {
-  val handler: DirectiveHandler[JavaProps] = DirectiveHandler.derive
 }

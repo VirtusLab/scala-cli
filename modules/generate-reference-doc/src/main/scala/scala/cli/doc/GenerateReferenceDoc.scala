@@ -11,7 +11,7 @@ import shapeless.tag
 import java.nio.charset.StandardCharsets
 import java.util
 
-import scala.build.options.{BuildOptions, BuildRequirements}
+import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
@@ -391,7 +391,9 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   }
 
   private def usingContent(
-    usingHandlers: Seq[DirectiveHandler[BuildOptions]],
+    allUsingHandlers: Seq[
+      DirectiveHandler[BuildOptions | List[WithBuildRequirements[BuildOptions]]]
+    ],
     requireHandlers: Seq[DirectiveHandler[BuildRequirements]],
     onlyRestricted: Boolean
   ): String = {
@@ -444,7 +446,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       )
 
       SpecificationLevel.inSpecification.foreach { level =>
-        val handlers = usingHandlers.filter(_.scalaSpecificationLevel == level)
+        val handlers = allUsingHandlers.filter(_.scalaSpecificationLevel == level)
         if (handlers.nonEmpty) {
           b.section(s"## ${level.md.capitalize} directives:")
           addHandlers(handlers)
@@ -452,7 +454,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       }
 
       val implHandlers =
-        usingHandlers.filter(_.scalaSpecificationLevel == SpecificationLevel.IMPLEMENTATION)
+        allUsingHandlers.filter(_.scalaSpecificationLevel == SpecificationLevel.IMPLEMENTATION)
 
       if (implHandlers.nonEmpty) {
         b.section("## Implementation-specific directices")
@@ -464,7 +466,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       }
     }
     else {
-      addHandlers(usingHandlers)
+      addHandlers(allUsingHandlers)
 
       b.append(
         """
@@ -504,13 +506,15 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     val scalaOptionsReference = optionsReference(restrictedCommands, nameFormatter)
 
+    val allUsingDirectiveHandlers =
+      ScalaPreprocessor.usingDirectiveHandlers ++ ScalaPreprocessor.usingDirectiveWithReqsHandlers
     val allDirectivesContent = usingContent(
-      ScalaPreprocessor.usingDirectiveHandlers,
+      allUsingDirectiveHandlers,
       ScalaPreprocessor.requireDirectiveHandlers,
       onlyRestricted = false
     )
     val restrictedDirectivesContent = usingContent(
-      ScalaPreprocessor.usingDirectiveHandlers.filterNot(_.isRestricted),
+      allUsingDirectiveHandlers.filterNot(_.isRestricted),
       ScalaPreprocessor.requireDirectiveHandlers.filterNot(_.isRestricted),
       onlyRestricted = true
     )

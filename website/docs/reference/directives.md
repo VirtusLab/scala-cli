@@ -16,6 +16,8 @@ Add Scala compiler options
 #### Examples
 `//> using option "-Xasync"`
 
+`//> using test.option "-Xasync"`
+
 `//> using options "-Xasync", "-Xfatal-warnings"`
 
 ### Compiler plugins
@@ -38,6 +40,8 @@ Manually add JAR(s) to the class path
 #### Examples
 `//> using jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
 
+`//> using test.jar "/Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"`
+
 ### Custom sources
 
 Manually add sources to the project
@@ -56,9 +60,11 @@ Add dependencies
 `//> using dep "`_org_`:`name`:`ver"
 
 #### Examples
-`//> using dep "org.scalatest::scalatest:3.2.10"`
+`//> using dep "com.lihaoyi::os-lib:0.9.1"`
 
-`//> using dep "org.scalameta::munit:0.7.29"`
+`//> using test.dep "org.scalatest::scalatest:3.2.10"`
+
+`//> using test.dep "org.scalameta::munit:0.7.29"`
 
 `//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
@@ -93,6 +99,8 @@ Add Java options which will be passed when running an application.
 #### Examples
 `//> using javaOpt "-Xmx2g", "-Dsomething=a"`
 
+`//> using test.javaOpt "-Dsomething=a"`
+
 ### Java properties
 
 Add Java properties
@@ -103,6 +111,8 @@ Add Java properties
 #### Examples
 `//> using javaProp "foo1=bar", "foo2"`
 
+`//> using test.javaProp "foo3=bar", "foo4"`
+
 ### Javac options
 
 Add Javac options which will be passed when compiling sources.
@@ -111,6 +121,8 @@ Add Javac options which will be passed when compiling sources.
 
 #### Examples
 `//> using javacOpt "source", "1.8", "target", "1.8"`
+
+`//> using test.javacOpt "source", "1.8", "target", "1.8"`
 
 ### Main class
 
@@ -234,6 +246,8 @@ Manually add a resource directory to the class path
 #### Examples
 `//> using resourceDir "./resources"`
 
+`//> using test.resourceDir "./resources"`
+
 ### Scala Native options
 
 Add Scala Native options
@@ -328,6 +342,8 @@ Use a toolkit as dependency
 `//> using toolkit "0.1.0"`
 
 `//> using toolkit "latest"`
+
+`//> using test.toolkit "latest"`
 
 
 ## target directives

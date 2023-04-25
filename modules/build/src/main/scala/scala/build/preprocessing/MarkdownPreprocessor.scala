@@ -88,7 +88,7 @@ case object MarkdownPreprocessor extends Preprocessor {
                   allowRestrictedFeatures = allowRestrictedFeatures,
                   suppressWarningOptions = suppressWarningOptions
                 )
-              }.getOrElse(ProcessingOutput(BuildRequirements(), Nil, BuildOptions(), None, None))
+              }.getOrElse(ProcessingOutput.empty)
             val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)
             PreprocessedSource.InMemory(
               originalPath = reportingPath.map(subPath -> _),
@@ -96,6 +96,7 @@ case object MarkdownPreprocessor extends Preprocessor {
               processedCode,
               ignoreLen = 0,
               options = Some(processingOutput.opts),
+              optionsWithTargetRequirements = processingOutput.optsWithReqs,
               requirements = Some(processingOutput.globalReqs),
               processingOutput.scopedReqs,
               mainClassOpt = None,

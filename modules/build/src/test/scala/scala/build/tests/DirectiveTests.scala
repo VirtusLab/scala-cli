@@ -3,11 +3,10 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
-import scala.build.{BuildThreads, Directories, LocalRepo, Position, Positioned}
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt, Scope}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
-import scala.build.Position
 import dependency.AnyDependency
 
 class DirectiveTests extends munit.FunSuite {
@@ -104,6 +103,115 @@ class DirectiveTests extends munit.FunSuite {
         expect(toolkitDep.organization == "org.scala-lang")
         expect(toolkitDep.name == "toolkit")
         expect(toolkitDep.version == "latest.release")
+    }
+  }
+  for (scope <- Scope.all) {
+    def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
+      os.rel / "project.scala" -> projectFileContent,
+      os.rel / "Tests.test.scala" ->
+        """class Tests extends munit.FunSuite {
+          |  test("foo") {
+          |    println("foo")
+          |  }
+          |}
+          |""".stripMargin
+    ).withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = scope) { (_, _, maybeBuild) =>
+      f(maybeBuild.orThrow, scope == Scope.Test)
+    }
+
+    test(s"resolve test scope dependencies correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent = """//> using dep "com.lihaoyi::os-lib:0.9.1"
+                                             |//> using test.dep "org.scalameta::munit::0.7.29"
+                                             |""".stripMargin) { (build, isTestScope) =>
+        val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
+        expect(deps.nonEmpty)
+        val hasMainDeps = deps.exists(d =>
+          d.organization == "com.lihaoyi" && d.name == "os-lib" && d.version == "0.9.1"
+        )
+        val hasTestDeps = deps.exists(d =>
+          d.organization == "org.scalameta" && d.name == "munit" && d.version == "0.7.29"
+        )
+        expect(hasMainDeps)
+        expect(if isTestScope then hasTestDeps else !hasTestDeps)
+      }
+    }
+    test(s"resolve test scope javacOpts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using javacOpt "source", "1.8"
+          |//> using test.javacOpt "target", "1.8"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val javacOpts = build.options.javaOptions.javacOptions.map(_.value)
+        expect(javacOpts.contains("source"))
+        val hasTestJavacOpts = javacOpts.contains("target")
+        expect(if isTestScope then hasTestJavacOpts else !hasTestJavacOpts)
+      }
+    }
+    test(s"resolve test scope scalac opts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using option "--explain"
+          |//> using test.option "-deprecation"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val scalacOpts = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+        expect(scalacOpts.contains("--explain"))
+        val hasTestScalacOpts = scalacOpts.contains("-deprecation")
+        expect(if isTestScope then hasTestScalacOpts else !hasTestScalacOpts)
+      }
+    }
+    test(s"resolve test scope javaOpts correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using javaOpt "-Xmx2g"
+          |//> using test.javaOpt "-Dsomething=a"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+        expect(javaOpts.contains("-Xmx2g"))
+        val hasTestJavaOpts = javaOpts.contains("-Dsomething=a")
+        expect(if isTestScope then hasTestJavaOpts else !hasTestJavaOpts)
+      }
+    }
+    test(s"resolve test scope javaProps correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using javaProp "foo=1"
+          |//> using test.javaProp "bar=2"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val javaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+        expect(javaProps.contains("-Dfoo=1"))
+        val hasTestJavaProps = javaProps.contains("-Dbar=2")
+        expect(if isTestScope then hasTestJavaProps else !hasTestJavaProps)
+      }
+    }
+    test(s"resolve test scope resourceDir correctly when building for ${scope.name} scope") {
+      withProjectFile(projectFileContent =
+        """//> using resourceDir "./mainResources"
+          |//> using test.resourceDir "./testResources"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |""".stripMargin
+      ) { (build, isTestScope) =>
+        val resourcesDirs = build.options.classPathOptions.resourcesDir
+        expect(resourcesDirs.exists(_.last == "mainResources"))
+        val hasTestResources = resourcesDirs.exists(_.last == "testResources")
+        expect(if isTestScope then hasTestResources else !hasTestResources)
+      }
+    }
+    test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
+      withProjectFile(
+        projectFileContent =
+          s"""//> using test.toolkit "latest"
+             |""".stripMargin
+      ) { (build, isTestScope) =>
+        val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
+        if isTestScope then expect(deps.nonEmpty)
+        val hasToolkitDep =
+          deps.exists(d => d.organization == "org.scala-lang" && d.name == "toolkit")
+        expect(if isTestScope then hasToolkitDep else !hasToolkitDep)
+      }
     }
   }
 

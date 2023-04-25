@@ -1210,4 +1210,121 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
+  test("declare test scope dependencies from main scope") {
+    val projectFile     = "project.scala"
+    val invalidMainFile = "InvalidMain.scala"
+    val validMainFile   = "ValidMain.scala"
+    val testFile        = "Tests.test.scala"
+    TestInputs(
+      os.rel / projectFile ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |//> using test.dep "org.scalameta::munit::0.7.29"
+          |//> using test.dep "com.lihaoyi::pprint:0.8.1"
+          |""".stripMargin,
+      os.rel / invalidMainFile ->
+        """object InvalidMain extends App {
+          |  pprint.pprintln("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / validMainFile ->
+        """object ValidMain extends App {
+          |  println(os.pwd)
+          |}
+          |""".stripMargin,
+      os.rel / testFile ->
+        """class Tests extends munit.FunSuite {
+          |  test("foo") {
+          |    pprint.pprintln(os.pwd)
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      // running `invalidMainFile` should fail, as it's in the main scope and depends on test scope deps
+      val res1 = os.proc(TestUtil.cli, "run", projectFile, invalidMainFile)
+        .call(cwd = root, check = false)
+      expect(res1.exitCode == 1)
+      // running `validMainFile` should succeed, since it only depends on main scope deps
+      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile)
+        .call(cwd = root)
+      expect(res2.out.trim() == root.toString())
+      // test scope should have access to both main and test deps
+      os.proc(TestUtil.cli, "test", projectFile, testFile)
+        .call(cwd = root, stderr = os.Pipe)
+    }
+  }
+  test("declare test scope custom jar from main scope") {
+    val projectFile      = "project.scala"
+    val testMessageFile  = "TestMessage.scala"
+    val mainMessageFile  = "MainMessage.scala"
+    val validMainFile    = "ValidMain.scala"
+    val invalidMainFile  = "InvalidMain.scala"
+    val testFile         = "Tests.test.scala"
+    val expectedMessage1 = "Hello"
+    val expectedMessage2 = " world!"
+    val jarPathsWithFiles @ Seq((mainMessageJar, _), (testMessageJar, _)) =
+      Seq(
+        os.rel / "MainMessage.jar" -> mainMessageFile,
+        os.rel / "TestMessage.jar" -> testMessageFile
+      )
+    TestInputs(
+      os.rel / projectFile ->
+        s"""//> using jar "$mainMessageJar"
+           |//> using test.jar "$testMessageJar"
+           |//> using test.dep "org.scalameta::munit::0.7.29"
+           |""".stripMargin,
+      os.rel / mainMessageFile ->
+        """case class MainMessage(value: String)
+          |""".stripMargin,
+      os.rel / testMessageFile ->
+        """case class TestMessage(value: String)
+          |""".stripMargin,
+      os.rel / invalidMainFile ->
+        s"""object InvalidMain extends App {
+           |  println(TestMessage("$expectedMessage1").value)
+           |}
+           |""".stripMargin,
+      os.rel / validMainFile ->
+        s"""object ValidMain extends App {
+           |  println(MainMessage("$expectedMessage1").value)
+           |}
+           |""".stripMargin,
+      os.rel / testFile ->
+        s"""class Tests extends munit.FunSuite {
+           |  val msg1 = MainMessage("$expectedMessage1").value
+           |  val msg2 = TestMessage("$expectedMessage2").value
+           |  val testName = msg1 + msg2
+           |  test(testName) {
+           |    assert(1 + 1 == 2)
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      // package the MainMessage and TestMessage jars
+      for ((jarPath, sourcePath) <- jarPathsWithFiles)
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          sourcePath,
+          "--library",
+          "-o",
+          jarPath,
+          extraOptions
+        )
+          .call(cwd = root)
+      // running `invalidMainFile` should fail, as it's in the main scope and depends on the test scope jar
+      val res1 = os.proc(TestUtil.cli, "run", projectFile, invalidMainFile, extraOptions)
+        .call(cwd = root, check = false)
+      expect(res1.exitCode == 1)
+      // running `validMainFile` should succeed, since it only depends on the main scope jar
+      val res2 = os.proc(TestUtil.cli, "run", projectFile, validMainFile, extraOptions)
+        .call(cwd = root)
+      expect(res2.out.trim() == expectedMessage1)
+      // test scope should have access to both main and test deps
+      val res3 = os.proc(TestUtil.cli, "test", projectFile, testFile, extraOptions)
+        .call(cwd = root, stderr = os.Pipe)
+      expect(res3.out.trim().contains(s"$expectedMessage1$expectedMessage2"))
+    }
+  }
 }

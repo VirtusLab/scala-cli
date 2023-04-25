@@ -6,7 +6,13 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, SingleElement, VirtualData}
-import scala.build.options.{BuildRequirements, SuppressWarningOptions}
+import scala.build.options.{
+  BuildOptions,
+  BuildRequirements,
+  SuppressWarningOptions,
+  WithBuildRequirements
+}
+import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
 import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
 
 case object DataPreprocessor extends Preprocessor {
@@ -21,7 +27,11 @@ case object DataPreprocessor extends Preprocessor {
       case file: VirtualData =>
         val res = either {
           val content = new String(file.content, StandardCharsets.UTF_8)
-          val (updatedOptions, directivesPositions) = value {
+          val (
+            updatedOptions: BuildOptions,
+            optsWithReqs: List[WithBuildRequirements[BuildOptions]],
+            directivesPositions: Option[DirectivesPositions]
+          ) = value {
             optionsAndPositionsFromDirectives(
               content,
               file.scopePath,
@@ -35,15 +45,16 @@ case object DataPreprocessor extends Preprocessor {
 
           val inMemory = Seq(
             PreprocessedSource.InMemory(
-              Left(file.source),
-              file.subPath,
-              content,
-              0,
-              Some(updatedOptions.global),
-              Some(BuildRequirements()),
-              Nil,
-              None,
-              file.scopePath,
+              originalPath = Left(file.source),
+              relPath = file.subPath,
+              code = content,
+              ignoreLen = 0,
+              options = Some(updatedOptions),
+              optionsWithTargetRequirements = optsWithReqs,
+              requirements = Some(BuildRequirements()),
+              scopedRequirements = Nil,
+              mainClassOpt = None,
+              scopePath = file.scopePath,
               directivesPositions
             )
           )
