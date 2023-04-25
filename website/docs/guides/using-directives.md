@@ -151,3 +151,33 @@ Commenting out comment-based directives does not cause any problems. Below, some
 // // using dep "no::lib:123"
 ```
 
+## Directives with a test scope equivalent
+
+Some directives have a test scope equivalent. For example, `using dep` has `using test.dep`, which allows to declare
+dependencies that are only used in tests outside test-specific sources.
+
+For example, this way you can declare the dependency to `munit` in `project.scala` like this:
+
+```scala title=project.scala
+//> using test.dep "org.scalameta::munit::0.7.29"
+```
+
+The dependency will then only be available in test sources.
+It's effectively an equivalent to just `using dep` inside of a test source (except you can define it anywhere):
+
+```scala title=src/test/scala/Tests.scala
+//> using dep "org.scalameta::munit::0.7.29"
+```
+
+Directives with a test scope equivalent:
+
+```scala compile
+//> using test.dep "org.scalameta::munit::0.7.29"
+//> using test.jar "path/to/jar"
+//> using test.javaOpt "-Dfoo=bar"
+//> using test.javacOpt "source", "1.8", "target", "1.8"
+//> using test.javaProp "foo1=bar1"
+//> using test.option "-Xfatal-warnings"
+//> using test.resourceDir "testResources"
+//> using test.toolkit "latest"
+```

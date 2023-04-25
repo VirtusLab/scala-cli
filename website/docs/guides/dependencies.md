@@ -89,6 +89,17 @@ object Main extends App {
 }
 ```
 
+### Test dependencies
+
+It is possible to declare dependencies limited to the test scope with the `using test.dep` directive.
+
+```scala
+//> using test.dep "org.scalameta::munit::0.7.29"
+`````
+
+More details can be found in
+the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
+
 ## Specifying dependencies from the command line
 
 You can add dependencies on the command line, with the `--dependency` option:
