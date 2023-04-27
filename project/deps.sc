@@ -180,10 +180,6 @@ object Deps {
   def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.1"
 }
 
-object BuildDeps {
-  def scalaCliVersion = "0.1.9"
-}
-
 def graalVmVersion     = "22.3.0"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
