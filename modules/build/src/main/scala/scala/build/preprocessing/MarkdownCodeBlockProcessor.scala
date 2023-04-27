@@ -26,7 +26,6 @@ object MarkdownCodeBlockProcessor {
               contentChars = cb.body.toCharArray,
               path = reportingPath,
               logger = logger,
-              cwd = scopePath / os.up,
               maybeRecoverOnError = maybeRecoverOnError
             )
           }

@@ -46,7 +46,6 @@ object ExtractedDirectives {
     contentChars: Array[Char],
     path: Either[String, os.Path],
     logger: Logger,
-    cwd: ScopePath,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]

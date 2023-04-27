@@ -61,7 +61,6 @@ class DirectiveParsingTest extends munit.FunSuite {
       code,
       Right(path),
       persistentLogger,
-      ScopePath.fromPath(path),
       maybeRecoverOnError = e => Some(e)
     )
 
