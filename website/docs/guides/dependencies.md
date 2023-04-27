@@ -32,6 +32,7 @@ org.scala-lang.modules::scala-parallel-collections:1.0.4
 
 Java and other non-scala dependencies follow the same syntax (without the `::` for implicit Scala version, of course).
 For example:
+
 ```text
 org.postgresql:postgresql:42.2.8
 ```
@@ -72,14 +73,14 @@ object Main extends App {
 }
 ```
 
-
 ### Dependency classifiers
 
 To specify a classifier of a dependency in a Scala CLI project, use the `classifier` parameter:
 
 - `classifier={classifier_name}`
 
-If you want to use the `pytorch` dependency with the classifier `linux-x86_64`, use the `classifier` parameter as follows:
+If you want to use the `pytorch` dependency with the classifier `linux-x86_64`, use the `classifier` parameter as
+follows:
 
 ```scala title=Main.scala
 //> using dep "org.bytedeco:pytorch:1.12.1-1.5.8,classifier=linux-x86_64"
@@ -87,6 +88,17 @@ object Main extends App {
   println("Hello")
 }
 ```
+
+### Test dependencies
+
+It is possible to declare dependencies limited to the test scope with the `using test.dep` directive.
+
+```scala
+//> using test.dep "org.scalameta::munit::0.7.29"
+`````
+
+More details can be found in
+the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
 
 ## Specifying dependencies from the command line
 

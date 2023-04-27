@@ -65,7 +65,8 @@ Configuration information can also be put in `.scala` and `.sc` files using spec
 ### Using directives
 
 Scala CLI can be configured inside `.scala` files.
-This is achieved by specifying `using` directives inside comments at the top of a `.scala` file, before any `package` or `import` statement:
+This is achieved by specifying `using` directives inside comments at the top of a `.scala` file, 
+before any `package` or `import` statement:
 
 ```scala compile
 //> using scala "2.13"
@@ -76,6 +77,14 @@ This is achieved by specifying `using` directives inside comments at the top of 
 ```
 
 The reference documentation lists [all available using directives](/docs/reference/directives.md#using-directives).
+
+Also, there are some directives which only target tests, like `using test.dep`. 
+Those can be useful when defining configuration specific to your test runs.
+```scala compile
+//> using test.dep "com.lihaoyi::utest:0.7.10"
+```
+
+More details can be found in the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
 
 ### Special imports
 
