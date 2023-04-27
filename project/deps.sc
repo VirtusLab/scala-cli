@@ -14,7 +14,7 @@ object Scala {
   val mainVersions = Seq(scala3, scala213)
   val runnerScalaVersions = runnerScala3 +: allScala2
 
-  def scalaJs = "1.13.0"
+  def scalaJs = "1.13.1"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
