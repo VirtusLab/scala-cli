@@ -34,6 +34,15 @@ object WarningMessages {
        | $directiveName value:$rawValue
        |""".stripMargin
 
+  /** Using @main is impossible in new [[scala.build.internal.ClassCodeWrapper]] since none of the
+    * definitions can be accessed statically, so those errors are swapped with this text
+    * @param annotationIgnored
+    *   will annotation be ignored (or will compilation fail)
+    */
+  def mainAnnotationNotSupported(annotationIgnored: Boolean): String =
+    val consequencesString = if annotationIgnored then s", it will be ignored" else ""
+    s"Annotation @main in .sc scripts is not supported$consequencesString, use .scala format instead"
+
   private def powerFeatureUsedInSip(
     featureName: String,
     featureType: String,

@@ -6,6 +6,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{AmmUtil, ClassCodeWrapper, CodeWrapper, Name, ObjectCodeWrapper}
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessedSource
@@ -93,11 +94,23 @@ case object ScriptPreprocessor extends Preprocessor {
       ))
         .getOrElse(ProcessingOutput.empty)
 
+    val scriptCode = processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
+    // try to match in multiline mode, don't match comment lines starting with '//'
+    val containsMainAnnot = "(?m)^(?!//).*@main.*".r.findFirstIn(scriptCode).isDefined
+
     val wrapScriptFun = (cw: CodeWrapper) => {
+      if (containsMainAnnot) logger.diagnostic(
+        cw match {
+          case _: ObjectCodeWrapper.type =>
+            WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
+          case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
+        }
+      )
+
       val (code, topWrapperLen, _) = cw.wrapCode(
         pkg,
         wrapper,
-        processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines),
+        scriptCode,
         inputArgPath.getOrElse(subPath.last)
       )
       (code, topWrapperLen)

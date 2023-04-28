@@ -1349,6 +1349,63 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  if (actualScalaVersion.startsWith("3"))
+    test("@main in script") {
+      val inputs = TestInputs(
+        os.rel / "test.sc" ->
+          """@main def main(args: Strings*): Unit = println("Args: " + args.mkString(" "))
+            |""".stripMargin
+      )
+
+      withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val target = {
+            val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+            expect(targets.length == 2)
+            extractMainTargets(targets)
+          }
+
+          val targetUri = TestUtil.normalizeUri(target.getUri)
+          checkTargetUri(root, targetUri)
+
+          val targets = List(target).asJava
+
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.ERROR)
+
+          val diagnosticsParams = {
+            val diagnostics = localClient.diagnostics()
+            val params      = diagnostics(2)
+            expect(params.getBuildTarget.getUri == targetUri)
+            expect(
+              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
+                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+            )
+            params
+          }
+
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
+          expect(diagnostics.length == 1)
+
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage =
+              "Annotation @main in .sc scripts is not supported, use .scala format instead",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 0,
+            expectedEndLine = 0,
+            expectedEndCharacter = 5
+          )
+        }
+      }
+    }
+
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult

@@ -22,6 +22,13 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  def normalizeConsoleOutput(text: String) =
+    text.replace(Console.RED, "")
+      .replace(Console.YELLOW, "")
+      .replace(Console.CYAN, "")
+      .replace(Console.MAGENTA, "")
+      .replace(Console.RESET, "")
+
   test("simple script") {
     simpleScriptTest()
   }
@@ -410,7 +417,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  if (actualScalaVersion.startsWith("3."))
+  if (actualScalaVersion.startsWith("3.")) {
     test("no deadlock when running background threads") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
@@ -435,4 +442,93 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           .call(cwd = root, mergeErrIntoOut = true)
       }
     }
+
+    test("user readable error when @main is used") {
+      val inputs = TestInputs(
+        os.rel / "script.sc" ->
+          """using dep "com.lihaoyi::os-lib:0.9.1"
+            |/*ignore this while regexing*/ @main def main(args: Strings*): Unit = println("Hello")
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "script.sc")
+          .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
+
+        val outputNormalized: String = normalizeConsoleOutput(res.out.text())
+
+        expect(outputNormalized.contains("Not found: type Strings"))
+        expect(outputNormalized.contains(
+          "[warn]  Annotation @main in .sc scripts is not supported, use .scala format instead"
+        ))
+
+        val snippetRes = os.proc(
+          TestUtil.cli,
+          "--script-snippet",
+          """@main def main(args: Strings*): Unit = println("Hello")"""
+        )
+          .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
+
+        val snippetOutputNormalized: String = normalizeConsoleOutput(snippetRes.out.text())
+
+        expect(snippetOutputNormalized.contains("Not found: type Strings"))
+        expect(snippetOutputNormalized.contains(
+          "[warn]  Annotation @main in .sc scripts is not supported, use .scala format instead"
+        ))
+
+        val noBloopRes = os.proc(TestUtil.cli, "--server=false", "script.sc")
+          .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
+
+        val noBloopOutputNormalized: String = normalizeConsoleOutput(noBloopRes.out.text())
+
+        expect(noBloopOutputNormalized.contains(
+          "[warn]  Annotation @main in .sc scripts is not supported"
+        ))
+
+        val scala2Res = os.proc(TestUtil.cli, "--server=false", "script.sc", "-S", "2")
+          .call(cwd = root, mergeErrIntoOut = true, check = false, stdout = os.Pipe)
+
+        val scala2OutputNormalized: String = normalizeConsoleOutput(scala2Res.out.text())
+
+        expect(scala2OutputNormalized.contains(
+          "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
+        ))
+      }
+    }
+
+    test("@main error unchanged in .scala") {
+      val inputs = TestInputs(
+        os.rel / "main.scala" ->
+          """class Main {
+            | @main def main(args: String*): Unit = println("Hello")
+            |}
+            |""".stripMargin,
+        os.rel / "script.sc" ->
+          """@main def main(args: String*): Unit = println("Hello")"""
+      )
+      inputs.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "main.scala")
+          .call(cwd = root, mergeErrIntoOut = true, check = false)
+
+        expect(!normalizeConsoleOutput(res.out.text())
+          .contains("Annotation @main in .sc scripts is not supported"))
+
+        val noBloopRes = os.proc(TestUtil.cli, "--server=false", "main.scala")
+          .call(cwd = root, mergeErrIntoOut = true, check = false)
+
+        expect(!normalizeConsoleOutput(noBloopRes.out.text())
+          .contains("Annotation @main in .sc scripts is not supported"))
+
+        val noBloopScalaSnippetRes = os.proc(
+          TestUtil.cli,
+          "--server=false",
+          "--scala-snippet",
+          "class Main { @main def main(args: Strings*): Unit = println(\"Hello\")}"
+        )
+          .call(cwd = root, mergeErrIntoOut = true, check = false)
+
+        expect(!normalizeConsoleOutput(noBloopScalaSnippetRes.out.text())
+          .contains("Annotation @main in .sc scripts is not supported"))
+      }
+    }
+  }
 }
