@@ -5,9 +5,6 @@ package scala.build.internal
   * threads from script
   */
 case object ObjectCodeWrapper extends CodeWrapper {
-  def mainClassObject(className: Name): Name =
-    Name(className.raw ++ "_sc")
-
   private val userCodeNestingLevel = 1
   def apply(
     code: String,
@@ -16,7 +13,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val name               = mainClassObject(indexedWrapperName).backticked
+    val name               = CodeWrapper.mainClassObject(indexedWrapperName).backticked
     val aliasedWrapperName = name + "$$alias"
     val funHashCodeMethod =
       if (name == "main_sc")

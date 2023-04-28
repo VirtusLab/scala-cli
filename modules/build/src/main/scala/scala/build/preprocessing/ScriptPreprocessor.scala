@@ -128,7 +128,7 @@ case object ScriptPreprocessor extends Preprocessor {
       optionsWithTargetRequirements = processingOutput.optsWithReqs,
       requirements = Some(processingOutput.globalReqs),
       scopedRequirements = processingOutput.scopedReqs,
-      mainClassOpt = Some(ClassCodeWrapper.mainClassObject(Name(className)).backticked),
+      mainClassOpt = Some(CodeWrapper.mainClassObject(Name(className)).backticked),
       scopePath = scopePath,
       directivesPositions = processingOutput.directivesPositions,
       wrapScriptFunOpt = Some(wrapScriptFun)
