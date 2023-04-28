@@ -803,6 +803,20 @@ jobs:
     - name: Run Benchmark
       run: ./gc $(realpath ./build/scala-cli)
 
+  test-hypothetical-sbt-export:
+    timeout-minutes: 120
+    runs-on: "ubuntu-20.04"
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: VirtusLab/scala-cli-setup@ae54b20650cb58733b00250aafab28f841e6d870
+      with:
+        jvm: "temurin:17"
+    - name: Try to export to SBT
+      run: scala-cli --power export --sbt .
+
   vc-redist:
     timeout-minutes: 15
     runs-on: windows-latest
