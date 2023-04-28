@@ -203,7 +203,9 @@ final case class SharedOptions(
   @Name("toolkit")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
-    withToolkit: Option[String] = None
+    withToolkit: Option[String] = None,
+  @HelpMessage("Exclude sources")
+    exclude: List[String] = Nil,
 ) extends HasGlobalOptions {
   // format: on
 
@@ -363,7 +365,8 @@ final case class SharedOptions(
         localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
-        interactive = Some(() => interactive)
+        interactive = Some(() => interactive),
+        exclude = exclude.map(Positioned.commandLine)
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),

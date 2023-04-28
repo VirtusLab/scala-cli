@@ -1,12 +1,20 @@
 package scala.build
 
+import java.io.File
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
-import scala.build.errors.{BuildException, CompositeBuildException, MalformedDirectiveError}
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  ExcludeDefinitionError,
+  MalformedDirectiveError
+}
 import scala.build.input.ElementsUtils.*
 import scala.build.input.*
 import scala.build.internal.Constants
+import scala.build.internal.util.RegexUtils
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -16,6 +24,9 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.*
+import scala.build.testrunner.DynamicTestRunner.globPattern
+import scala.util.Try
+import scala.util.chaining.*
 
 final case class CrossSources(
   paths: Seq[WithBuildRequirements[(os.Path, os.RelPath)]],
@@ -128,6 +139,7 @@ object CrossSources {
     preprocessors: Seq[Preprocessor],
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
+    exclude: Seq[Positioned[String]] = Nil,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, (CrossSources, Inputs)] = either {
 
@@ -155,8 +167,21 @@ object CrossSources {
         .left.map(CompositeBuildException(_))
         .map(_.flatten)
 
+    val flattenedInputs = inputs.flattened()
+    val allExclude = { // supports only one exclude directive in one source file, which should be the project file.
+      val projectScalaFileOpt = flattenedInputs.collectFirst {
+        case f: ProjectScalaFile => f
+      }
+      val excludeFromProjectFile =
+        value(preprocessSources(projectScalaFileOpt.toSeq))
+          .flatMap(_.options).flatMap(_.internal.exclude)
+      exclude ++ excludeFromProjectFile
+    }
+
     val preprocessedInputFromArgs: Seq[PreprocessedSource] =
-      value(preprocessSources(inputs.flattened()))
+      value(
+        preprocessSources(value(excludeSources(flattenedInputs, inputs.workspace, allExclude)))
+      )
 
     val sourcesFromDirectives =
       preprocessedInputFromArgs
@@ -166,11 +191,17 @@ object CrossSources {
     val inputsElemFromDirectives: Seq[SingleFile] =
       value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
     val preprocessedSourcesFromDirectives: Seq[PreprocessedSource] =
-      value(preprocessSources(inputsElemFromDirectives))
-    val allInputs = inputs.add(inputsElemFromDirectives)
+      value(preprocessSources(inputsElemFromDirectives.pipe(elements =>
+        value(excludeSources(elements, inputs.workspace, allExclude))
+      )))
+    val allInputs = inputs.add(inputsElemFromDirectives).pipe(inputs =>
+      val filteredElements = value(excludeSources(inputs.elements, inputs.workspace, allExclude))
+      inputs.withElements(elements = filteredElements)
+    )
 
     val preprocessedSources =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
+        .pipe(sources => value(validateExcludeDirectives(sources, allInputs.workspace)))
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
@@ -305,4 +336,56 @@ object CrossSources {
       .left.map(CompositeBuildException(_))
       .map(_.flatten)
 
+  /** Filters out the sources from the input sequence based on the provided 'exclude' patterns. The
+    * exclude patterns can be absolute paths, relative paths, or glob patterns.
+    *
+    * @throws BuildException
+    *   If multiple 'exclude' patterns are defined across the input sources.
+    */
+  private def excludeSources[E <: Element](
+    elements: Seq[E],
+    workspaceDir: os.Path,
+    exclude: Seq[Positioned[String]]
+  ): Either[BuildException, Seq[E]] = either {
+    val excludePatterns = exclude.map(_.value).flatMap { p =>
+      val maybeRelPath = Try(os.RelPath(p)).toOption
+      maybeRelPath match {
+        case Some(relPath) if os.isDir(workspaceDir / relPath) =>
+          // exclude relative directory paths, add * to exclude all files in the directory
+          Seq(p, (workspaceDir / relPath / "*").toString)
+        case Some(relPath) =>
+          Seq(p, (workspaceDir / relPath).toString) // exclude relative paths
+        case None => Seq(p)
+      }
+    }
+
+    def isSourceIncluded(path: String, excludePatterns: Seq[String]): Boolean =
+      excludePatterns
+        .forall(pattern => !RegexUtils.globPattern(pattern).matcher(path).matches())
+
+    elements.filter {
+      case e: OnDisk => isSourceIncluded(e.path.toString, excludePatterns)
+      case _         => true
+    }
+  }
+
+  /** Validates that exclude directives are defined only in the one source.
+    */
+  def validateExcludeDirectives(
+    sources: Seq[PreprocessedSource],
+    workspaceDir: os.Path
+  ): Either[BuildException, Seq[PreprocessedSource]] = {
+    val excludeDirectives = sources.flatMap(_.options).map(_.internal.exclude).toList.flatten
+
+    excludeDirectives match {
+      case Nil | Seq(_) =>
+        Right(sources)
+      case _ =>
+        val expectedProjectFilePath = workspaceDir / Constants.projectFileName
+        Left(new ExcludeDefinitionError(
+          excludeDirectives.flatMap(_.positions),
+          expectedProjectFilePath
+        ))
+    }
+  }
 }

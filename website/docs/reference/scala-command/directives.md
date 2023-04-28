@@ -123,6 +123,17 @@ Manually add sources to the project
 #### Examples
 `//> using file "utils.scala"`
 
+### Exclude sources
+
+Exclude sources from the project
+
+`//> using exclude "*.sc"`
+
+`//> using exclude "examples/*", "*/resources/*" …`
+
+#### Examples
+`//> using exclude "utils.scala"`
+
 ### JVM version
 
 Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`

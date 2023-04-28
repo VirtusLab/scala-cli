@@ -90,7 +90,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
           () => cliBuildOptions.javaHome().value.javaCommand
         ),
         logger,
-        cliBuildOptions.suppressWarningOptions
+        cliBuildOptions.suppressWarningOptions,
+        cliBuildOptions.internal.exclude
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
