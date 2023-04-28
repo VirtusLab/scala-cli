@@ -50,14 +50,4 @@ object DirectivesPreprocessingUtils {
       directives.RequireScalaVersionBounds.handler,
       directives.RequireScope.handler
     ).map(_.mapE(_.buildRequirements))
-
-  def handleUnusedValues(scopedDirective: ScopedDirective): BuildException = {
-    val values =
-      DirectiveUtil.concatAllValues(scopedDirective)
-    new UnusedDirectiveError(
-      scopedDirective.directive.key,
-      values.map(_.value),
-      values.flatMap(_.positions)
-    )
-  }
 }

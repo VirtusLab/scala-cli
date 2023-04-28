@@ -22,7 +22,8 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
-import scala.build.preprocessing.directives._
+import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
+import scala.build.preprocessing.directives.*
 
 object DirectivesPreprocessor {
   def preprocess(
@@ -57,77 +58,79 @@ object DirectivesPreprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, PreprocessedDirectives] = either {
-    val ExtractedDirectives(directives0, directivesPositions) = extractedDirectives
-
-    val updatedOptions: PartiallyProcessedDirectives[BuildOptions] = value {
-      DirectivesPreprocessor.applyDirectiveHandlers(
-        directives0,
-        usingDirectiveHandlers,
+    val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
+    def preprocessWithDirectiveHandlers[T: ConfigMonoid](
+      remainingDirectives: Seq[StrictDirective],
+      directiveHandlers: Seq[DirectiveHandler[T]]
+    ): Either[BuildException, PartiallyProcessedDirectives[T]] =
+      applyDirectiveHandlers(
+        remainingDirectives,
+        directiveHandlers,
         path,
         cwd,
         logger,
         allowRestrictedFeatures,
         suppressWarningOptions
       )
+
+    val (
+      buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
+      buildOptionsWithTargetRequirements: PartiallyProcessedDirectives[
+        List[WithBuildRequirements[BuildOptions]]
+      ],
+      scopedBuildRequirements: PartiallyProcessedDirectives[BuildRequirements],
+      unusedDirectives: Seq[StrictDirective]
+    ) = value {
+      for {
+        regularUsingDirectives: PartiallyProcessedDirectives[BuildOptions] <-
+          preprocessWithDirectiveHandlers(directives, usingDirectiveHandlers)
+        usingDirectivesWithRequirements: PartiallyProcessedDirectives[
+          List[WithBuildRequirements[BuildOptions]]
+        ] <-
+          preprocessWithDirectiveHandlers(
+            regularUsingDirectives.unused,
+            usingDirectiveWithReqsHandlers
+          )
+        targetDirectives: PartiallyProcessedDirectives[BuildRequirements] <-
+          preprocessWithDirectiveHandlers(
+            usingDirectivesWithRequirements.unused,
+            requireDirectiveHandlers
+          )
+        remainingDirectives = targetDirectives.unused
+      } yield (
+        regularUsingDirectives,
+        usingDirectivesWithRequirements,
+        targetDirectives,
+        remainingDirectives
+      )
     }
 
-    val optionsWithTargetRequirements
-      : PartiallyProcessedDirectives[List[WithBuildRequirements[BuildOptions]]] =
-      updatedOptions.andThen { directives1 =>
-        value {
-          DirectivesPreprocessor.applyDirectiveHandlers(
-            directives1,
-            usingDirectiveWithReqsHandlers,
-            path,
-            cwd,
-            logger,
-            allowRestrictedFeatures,
-            suppressWarningOptions
-          )
-        }
-      }
-
-    val updatedRequirements: PartiallyProcessedDirectives[BuildRequirements] =
-      optionsWithTargetRequirements.andThen { directives2 =>
-        value {
-          DirectivesPreprocessor.applyDirectiveHandlers(
-            directives2,
-            requireDirectiveHandlers,
-            path,
-            cwd,
-            logger,
-            allowRestrictedFeatures,
-            suppressWarningOptions
-          )
-        }
-      }
-
-    val unusedDirectives = updatedRequirements.unused
-
     val (optionsWithActualRequirements, optionsWithEmptyRequirements) =
-      optionsWithTargetRequirements.global.partition(_.requirements.nonEmpty)
+      buildOptionsWithTargetRequirements.global.partition(_.requirements.nonEmpty)
     val summedOptionsWithNoRequirements =
       optionsWithEmptyRequirements
         .map(_.value)
-        .foldLeft(updatedOptions.global)((acc, bo) => acc.orElse(bo))
+        .foldLeft(buildOptionsWithoutRequirements.global)((acc, bo) => acc.orElse(bo))
 
     value {
-      unusedDirectives match {
-        case Seq() =>
-          Right(PreprocessedDirectives(
-            updatedRequirements.global,
-            summedOptionsWithNoRequirements,
-            optionsWithActualRequirements,
-            updatedRequirements.scoped,
-            strippedContent = None,
-            directivesPositions
-          ))
-        case Seq(h, t*) =>
-          val errors = ::(
-            handleUnusedValues(ScopedDirective(h, path, cwd)),
-            t.map(d => handleUnusedValues(ScopedDirective(d, path, cwd))).toList
-          )
-          Left(CompositeBuildException(errors))
+      unusedDirectives.toList match {
+        case Nil =>
+          Right {
+            PreprocessedDirectives(
+              scopedBuildRequirements.global,
+              summedOptionsWithNoRequirements,
+              optionsWithActualRequirements,
+              scopedBuildRequirements.scoped,
+              strippedContent = None,
+              directivesPositions
+            )
+          }
+        case unused =>
+          Left {
+            CompositeBuildException(
+              exceptions = unused.map(ScopedDirective(_, path, cwd).unusedDirectiveError)
+            )
+          }
       }
     }
   }
