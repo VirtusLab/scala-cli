@@ -271,4 +271,23 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
+  test("resolve typelevel toolkit dependency") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using toolkit "typelevel:latest"
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val dep   = build.options.classPathOptions.extraDependencies.toSeq.headOption
+        assert(dep.nonEmpty)
+
+        val toolkitDep = dep.get.value
+        expect(toolkitDep.organization == "org.typelevel")
+        expect(toolkitDep.name == "toolkit")
+        expect(toolkitDep.version == "latest.release")
+    }
+  }
+
 }

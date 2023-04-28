@@ -60,4 +60,33 @@ class DependencyUpdateTests extends ScalaCliSuite {
       expect(Version(updatedToolkitVersion) > Version(toolkitVersion))
     }
   }
+
+  test("update typelevel toolkit dependence") {
+    val toolkitVersion = "0.0.1"
+    val testInputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using toolkit "typelevel:$toolkitVersion"
+           |
+           |import cats.effect.*
+           |
+           |object Hello extends IOApp.Simple {
+           |  def run = IO.println("Hello")
+           |}
+           |""".stripMargin
+    )
+    testInputs.fromRoot { root =>
+      // update toolkit
+      os.proc(TestUtil.cli, "--power", "dependency-update", "--all", ".")
+        .call(cwd = root)
+
+      val toolkitDirective = "//> using toolkit \"(.*)\"".r
+      val updatedToolkitVersionOpt = {
+        val regexMatch = toolkitDirective.findFirstMatchIn(os.read(root / "Foo.scala"))
+        regexMatch.map(_.group(1))
+      }
+      expect(updatedToolkitVersionOpt.nonEmpty)
+      val updatedToolkitVersion = updatedToolkitVersionOpt.get
+      expect(Version(updatedToolkitVersion) > Version(toolkitVersion))
+    }
+  }
 }
