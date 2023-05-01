@@ -593,11 +593,6 @@ trait LocalRepo extends Module {
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
-  def publishStubs = T {
-    val tasks = stubsModules.map(_.publishLocalNoFluff())
-    define.Target.sequence(tasks)
-  }
-
   def localRepo = T {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
     val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
