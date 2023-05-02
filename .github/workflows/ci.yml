@@ -312,7 +312,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/setup-action@0483b79dd365e04495b16440b2845ed49007f151
+      - uses: coursier/setup-action@6a582d7f7292a865e72c497ca64c3ef447cdb6c7
         with:
           apps: ""
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -341,7 +341,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/setup-action@0483b79dd365e04495b16440b2845ed49007f151
+      - uses: coursier/setup-action@6a582d7f7292a865e72c497ca64c3ef447cdb6c7
         with:
           apps: ""
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
