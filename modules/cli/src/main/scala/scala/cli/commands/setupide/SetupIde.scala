@@ -44,7 +44,10 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         )
       }
 
-      value(crossSources.scopedSources(options))
+      val sharedOptions       = crossSources.sharedOptions(options)
+      val wrappedCrossOptions = crossSources.withWrappedScripts(sharedOptions)
+
+      value(wrappedCrossOptions.scopedSources(options))
         .sources(Scope.Main, crossSources.sharedOptions(options))
         .buildOptions
     }

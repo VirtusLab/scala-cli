@@ -93,8 +93,10 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
-      val scopedSources = crossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
-      val sources       = scopedSources.sources(Scope.Main, crossSourcesSharedOptions)
+      val wrappedCrossSources       = crossSources.withWrappedScripts(crossSourcesSharedOptions)
+      val scopedSources =
+        wrappedCrossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
+      val sources = scopedSources.sources(Scope.Main, crossSourcesSharedOptions)
 
       val pureJava = sources.hasJava && !sources.hasScala
 

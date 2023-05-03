@@ -39,12 +39,25 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath,
-    directivesPositions: Option[DirectivesPositions],
-    wrapScriptFunOpt: Option[CodeWrapper => (String, Int)] = None
+    directivesPositions: Option[DirectivesPositions]
   ) extends PreprocessedSource {
     def reportingPath: Either[String, os.Path] =
       originalPath.map(_._2)
   }
+
+  final case class UnwrappedScript(
+    originalPath: Either[String, (os.SubPath, os.Path)],
+    relPath: os.RelPath,
+    options: Option[BuildOptions],
+    optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
+    requirements: Option[BuildRequirements],
+    scopedRequirements: Seq[Scoped[BuildRequirements]],
+    mainClassOpt: Option[String],
+    scopePath: ScopePath,
+    directivesPositions: Option[DirectivesPositions],
+    wrapScriptFun: CodeWrapper => (String, Int)
+  ) extends PreprocessedSource
+
   final case class NoSourceCode(
     options: Option[BuildOptions],
     optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],

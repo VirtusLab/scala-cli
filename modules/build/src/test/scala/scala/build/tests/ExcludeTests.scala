@@ -94,7 +94,9 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
+        .scopedSources(BuildOptions())
+        .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.paths.nonEmpty)
@@ -120,7 +122,9 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
+        .scopedSources(BuildOptions())
+        .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.paths.nonEmpty)
@@ -146,7 +150,9 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
+        .scopedSources(BuildOptions())
+        .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.paths.nonEmpty)
@@ -172,7 +178,9 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
+        .scopedSources(BuildOptions())
+        .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
       expect(sources.paths.nonEmpty)

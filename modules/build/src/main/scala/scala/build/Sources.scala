@@ -70,9 +70,19 @@ object Sources {
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
     generatedContent: String,
-    topWrapperLen: Int,
-    wrapScriptFunOpt: Option[CodeWrapper => (String, Int)] = None
+    topWrapperLen: Int
   )
+
+  final case class UnwrappedScript(
+    originalPath: Either[String, (os.SubPath, os.Path)],
+    generatedRelPath: os.RelPath,
+    wrapScriptFun: CodeWrapper => (String, Int)
+  ) {
+    def wrap(wrapper: CodeWrapper): InMemory = {
+      val (content, topWrapperLen) = wrapScriptFun(wrapper)
+      InMemory(originalPath, generatedRelPath, content, topWrapperLen)
+    }
+  }
 
   /** The default preprocessor list.
     *

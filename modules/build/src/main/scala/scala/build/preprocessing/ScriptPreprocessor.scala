@@ -76,65 +76,64 @@ case object ScriptPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.UnwrappedScript]] =
+    either {
 
-    val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
+      val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
 
-    val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
+      val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
-    val processingOutput: ProcessingOutput =
-      value(ScalaPreprocessor.process(
-        contentIgnoredSheBangLines,
-        reportingPath,
-        scopePath / os.up,
-        logger,
-        maybeRecoverOnError,
-        allowRestrictedFeatures,
-        suppressWarningOptions
-      ))
-        .getOrElse(ProcessingOutput.empty)
+      val processingOutput: ProcessingOutput =
+        value(ScalaPreprocessor.process(
+          contentIgnoredSheBangLines,
+          reportingPath,
+          scopePath / os.up,
+          logger,
+          maybeRecoverOnError,
+          allowRestrictedFeatures,
+          suppressWarningOptions
+        ))
+          .getOrElse(ProcessingOutput.empty)
 
-    val scriptCode = processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
-    // try to match in multiline mode, don't match comment lines starting with '//'
-    val containsMainAnnot = "(?m)^(?!//).*@main.*".r.findFirstIn(scriptCode).isDefined
+      val scriptCode = processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
+      // try to match in multiline mode, don't match comment lines starting with '//'
+      val containsMainAnnot = "(?m)^(?!//).*@main.*".r.findFirstIn(scriptCode).isDefined
 
-    val wrapScriptFun = (cw: CodeWrapper) => {
-      if (containsMainAnnot) logger.diagnostic(
-        cw match {
-          case _: ObjectCodeWrapper.type =>
-            WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
-          case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
-        }
+      val wrapScriptFun = (cw: CodeWrapper) => {
+        if (containsMainAnnot) logger.diagnostic(
+          cw match {
+            case _: ObjectCodeWrapper.type =>
+              WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
+            case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
+          }
+        )
+
+        val (code, topWrapperLen, _) = cw.wrapCode(
+          pkg,
+          wrapper,
+          scriptCode,
+          inputArgPath.getOrElse(subPath.last)
+        )
+        (code, topWrapperLen)
+      }
+
+      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
+      val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
+
+      val file = PreprocessedSource.UnwrappedScript(
+        originalPath = reportingPath.map((subPath, _)),
+        relPath = relPath,
+        options = Some(processingOutput.opts),
+        optionsWithTargetRequirements = processingOutput.optsWithReqs,
+        requirements = Some(processingOutput.globalReqs),
+        scopedRequirements = processingOutput.scopedReqs,
+        mainClassOpt = Some(CodeWrapper.mainClassObject(Name(className)).backticked),
+        scopePath = scopePath,
+        directivesPositions = processingOutput.directivesPositions,
+        wrapScriptFun = wrapScriptFun
       )
-
-      val (code, topWrapperLen, _) = cw.wrapCode(
-        pkg,
-        wrapper,
-        scriptCode,
-        inputArgPath.getOrElse(subPath.last)
-      )
-      (code, topWrapperLen)
+      List(file)
     }
-
-    val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-    val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
-
-    val file = PreprocessedSource.InMemory(
-      originalPath = reportingPath.map((subPath, _)),
-      relPath = relPath,
-      code = "", // code is captured in wrapScriptFun's closure
-      ignoreLen = 0,
-      options = Some(processingOutput.opts),
-      optionsWithTargetRequirements = processingOutput.optsWithReqs,
-      requirements = Some(processingOutput.globalReqs),
-      scopedRequirements = processingOutput.scopedReqs,
-      mainClassOpt = Some(CodeWrapper.mainClassObject(Name(className)).backticked),
-      scopePath = scopePath,
-      directivesPositions = processingOutput.directivesPositions,
-      wrapScriptFunOpt = Some(wrapScriptFun)
-    )
-    List(file)
-  }
 
   /** Get correct script wrapper depending on the platform and version of Scala. For Scala 2 or
     * Platform JS use [[ObjectCodeWrapper]]. Otherwise - for Scala 3 on JVM or Native use
