@@ -54,7 +54,8 @@ final case class JavaPreprocessor(
               scopePath,
               logger,
               allowRestrictedFeatures,
-              suppressWarningOptions
+              suppressWarningOptions,
+              maybeRecoverOnError
             )
           }
           Seq(PreprocessedSource.OnDisk(
@@ -95,7 +96,8 @@ final case class JavaPreprocessor(
               v.scopePath,
               logger,
               allowRestrictedFeatures,
-              suppressWarningOptions
+              suppressWarningOptions,
+              maybeRecoverOnError
             )
           }
           val s = PreprocessedSource.InMemory(

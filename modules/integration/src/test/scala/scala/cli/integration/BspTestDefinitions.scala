@@ -1184,7 +1184,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("bloop projects are initialised properly for an invalid directive") {
+  test("bloop projects are initialised properly for an invalid directive value") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
         s"""//> using scala 3.1.2
@@ -1214,6 +1214,44 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedStartCharacter = 19,
             expectedEndLine = 0,
             expectedEndCharacter = 19
+          )
+        }
+    }
+  }
+
+  test("bloop projects are initialised properly for an unrecognised directive") {
+    val sourceFileName = "UnrecognisedUsingDirective.scala"
+    val directiveKey   = "unrecognised.directive"
+    val directiveValue = "value"
+    val inputs = TestInputs(
+      os.rel / sourceFileName ->
+        s"""//> using $directiveKey "$directiveValue"
+           |
+           |object UnrecognisedUsingDirective extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".")) {
+      (root, localClient, remoteServer) =>
+        async {
+          checkIfBloopProjectIsInitialised(
+            root,
+            await(remoteServer.workspaceBuildTargets().asScala)
+          )
+          val diagnosticsParams =
+            extractDiagnosticsParams(root / sourceFileName, localClient)
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala
+          expect(diagnostics.length == 1)
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage =
+              s"Unrecognized directive: $directiveKey with values: $directiveValue",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 0,
+            expectedStartCharacter = 34,
+            expectedEndLine = 0,
+            expectedEndCharacter = 39
           )
         }
     }
