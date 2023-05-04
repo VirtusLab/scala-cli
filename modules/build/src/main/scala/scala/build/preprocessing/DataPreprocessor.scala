@@ -33,7 +33,8 @@ case object DataPreprocessor extends Preprocessor {
               file.scopePath,
               logger,
               allowRestrictedFeatures,
-              suppressWarningOptions
+              suppressWarningOptions,
+              maybeRecoverOnError
             )
           }
           val inMemory = Seq(

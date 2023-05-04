@@ -196,15 +196,18 @@ case object ScalaPreprocessor extends Preprocessor {
       logger,
       maybeRecoverOnError
     ))
-    value(processSources(
-      content,
-      extractedDirectives,
-      path,
-      scopeRoot,
-      logger,
-      allowRestrictedFeatures,
-      suppressWarningOptions
-    ))
+    value {
+      processSources(
+        content,
+        extractedDirectives,
+        path,
+        scopeRoot,
+        logger,
+        allowRestrictedFeatures,
+        suppressWarningOptions,
+        maybeRecoverOnError
+      )
+    }
   }
 
   def processSources(
@@ -214,7 +217,8 @@ case object ScalaPreprocessor extends Preprocessor {
     scopeRoot: ScopePath,
     logger: Logger,
     allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions
+    suppressWarningOptions: SuppressWarningOptions,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
@@ -224,7 +228,8 @@ case object ScalaPreprocessor extends Preprocessor {
         scopeRoot,
         logger,
         allowRestrictedFeatures,
-        suppressWarningOptions
+        suppressWarningOptions,
+        maybeRecoverOnError
       ))
 
     if (preprocessedDirectives.isEmpty) None

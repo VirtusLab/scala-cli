@@ -17,3 +17,15 @@ case class PreprocessedDirectives(
     strippedContent.isEmpty &&
     usingsWithReqs.isEmpty
 }
+
+object PreprocessedDirectives {
+  def empty: PreprocessedDirectives =
+    PreprocessedDirectives(
+      globalReqs = BuildRequirements.monoid.zero,
+      globalUsings = BuildOptions.monoid.zero,
+      usingsWithReqs = Nil,
+      scopedReqs = Nil,
+      strippedContent = None,
+      directivesPositions = None
+    )
+}

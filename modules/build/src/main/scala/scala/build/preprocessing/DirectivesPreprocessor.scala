@@ -33,7 +33,7 @@ object DirectivesPreprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, PreprocessedDirectives] = either {
     val directives = value {
       ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
@@ -45,7 +45,8 @@ object DirectivesPreprocessor {
         cwd,
         logger,
         allowRestrictedFeatures,
-        suppressWarningOptions
+        suppressWarningOptions,
+        maybeRecoverOnError
       )
     }
   }
@@ -56,7 +57,8 @@ object DirectivesPreprocessor {
     cwd: ScopePath,
     logger: Logger,
     allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions
+    suppressWarningOptions: SuppressWarningOptions,
+    maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
     def preprocessWithDirectiveHandlers[T: ConfigMonoid](
@@ -70,7 +72,8 @@ object DirectivesPreprocessor {
         cwd,
         logger,
         allowRestrictedFeatures,
-        suppressWarningOptions
+        suppressWarningOptions,
+        maybeRecoverOnError
       )
 
     val (
@@ -126,11 +129,11 @@ object DirectivesPreprocessor {
             )
           }
         case unused =>
-          Left {
+          maybeRecoverOnError {
             CompositeBuildException(
               exceptions = unused.map(ScopedDirective(_, path, cwd).unusedDirectiveError)
             )
-          }
+          }.toLeft(PreprocessedDirectives.empty)
       }
     }
   }
@@ -142,7 +145,8 @@ object DirectivesPreprocessor {
     cwd: ScopePath,
     logger: Logger,
     allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions
+    suppressWarningOptions: SuppressWarningOptions,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, PartiallyProcessedDirectives[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
@@ -151,7 +155,7 @@ object DirectivesPreprocessor {
     def handleValues(handler: DirectiveHandler[T])(
       scopedDirective: ScopedDirective,
       logger: Logger
-    ) =
+    ): Either[BuildException, ProcessedDirective[T]] =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
         val msg = // TODO pass the called progName here to print the full config command
@@ -182,6 +186,10 @@ object DirectivesPreprocessor {
           handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
       }
       .toVector
+      .flatMap {
+        case Left(e: BuildException) => maybeRecoverOnError(e).toVector.map(Left(_))
+        case r @ Right(_)            => Vector(r)
+      }
       .sequence
       .left.map(CompositeBuildException(_))
       .map(_.foldLeft((configMonoidInstance.zero, Seq.empty[Scoped[T]])) {

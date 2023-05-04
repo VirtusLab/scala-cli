@@ -86,7 +86,8 @@ case object MarkdownPreprocessor extends Preprocessor {
                   scopeRoot = scopePath / os.up,
                   logger = logger,
                   allowRestrictedFeatures = allowRestrictedFeatures,
-                  suppressWarningOptions = suppressWarningOptions
+                  suppressWarningOptions = suppressWarningOptions,
+                  maybeRecoverOnError = maybeRecoverOnError
                 )
               }.getOrElse(ProcessingOutput.empty)
             val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)
