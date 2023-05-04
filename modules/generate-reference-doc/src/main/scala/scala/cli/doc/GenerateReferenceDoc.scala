@@ -12,8 +12,8 @@ import java.nio.charset.StandardCharsets
 import java.util
 
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
-import scala.build.preprocessing.ScalaPreprocessor
 import scala.build.preprocessing.directives.DirectiveHandler
+import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
 import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
@@ -506,16 +506,15 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     val scalaOptionsReference = optionsReference(restrictedCommands, nameFormatter)
 
-    val allUsingDirectiveHandlers =
-      ScalaPreprocessor.usingDirectiveHandlers ++ ScalaPreprocessor.usingDirectiveWithReqsHandlers
+    val allUsingDirectiveHandlers = usingDirectiveHandlers ++ usingDirectiveWithReqsHandlers
     val allDirectivesContent = usingContent(
       allUsingDirectiveHandlers,
-      ScalaPreprocessor.requireDirectiveHandlers,
+      requireDirectiveHandlers,
       onlyRestricted = false
     )
     val restrictedDirectivesContent = usingContent(
       allUsingDirectiveHandlers.filterNot(_.isRestricted),
-      ScalaPreprocessor.requireDirectiveHandlers.filterNot(_.isRestricted),
+      requireDirectiveHandlers.filterNot(_.isRestricted),
       onlyRestricted = true
     )
     val restrictedDocsDir = os.rel / "scala-command"

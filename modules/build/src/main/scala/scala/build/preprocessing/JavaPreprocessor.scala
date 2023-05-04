@@ -17,10 +17,7 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
-import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
-import scala.build.preprocessing.ExtractedDirectives.from
-import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
-import scala.build.preprocessing.ScalaPreprocessor.*
+import scala.build.preprocessing.directives.PreprocessedDirectives
 
 /** Java source preprocessor.
   *
@@ -48,31 +45,26 @@ final case class JavaPreprocessor(
   ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: JavaFile => Some(either {
-          val content   = value(PreprocessingUtil.maybeRead(j.path))
-          val scopePath = ScopePath.fromPath(j.path)
-          val (
-            updatedOptions: BuildOptions,
-            optsWithReqs: List[WithBuildRequirements[BuildOptions]],
-            directivesPositions: Option[DirectivesPositions]
-          ) = value {
-            optionsAndPositionsFromDirectives(
+          val content: String = value(PreprocessingUtil.maybeRead(j.path))
+          val scopePath       = ScopePath.fromPath(j.path)
+          val preprocessedDirectives: PreprocessedDirectives = value {
+            DirectivesPreprocessor.preprocess(
               content,
-              scopePath,
               Right(j.path),
+              scopePath,
               logger,
-              maybeRecoverOnError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
           }
           Seq(PreprocessedSource.OnDisk(
             path = j.path,
-            options = Some(updatedOptions),
-            optionsWithTargetRequirements = optsWithReqs,
+            options = Some(preprocessedDirectives.globalUsings),
+            optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,
             requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
             mainClassOpt = None,
-            directivesPositions = directivesPositions
+            directivesPositions = preprocessedDirectives.directivesPositions
           ))
         })
       case v: VirtualJavaFile =>
@@ -96,17 +88,12 @@ final case class JavaPreprocessor(
             }
             else v.subPath
           val content = new String(v.content, StandardCharsets.UTF_8)
-          val (
-            updatedOptions: BuildOptions,
-            optsWithReqs: List[WithBuildRequirements[BuildOptions]],
-            directivesPositions: Option[DirectivesPositions]
-          ) = value {
-            optionsAndPositionsFromDirectives(
+          val preprocessedDirectives: PreprocessedDirectives = value {
+            DirectivesPreprocessor.preprocess(
               content,
-              v.scopePath,
               Left(relPath.toString),
+              v.scopePath,
               logger,
-              maybeRecoverOnError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
@@ -116,13 +103,13 @@ final case class JavaPreprocessor(
             relPath = relPath,
             code = content,
             ignoreLen = 0,
-            options = Some(updatedOptions),
-            optionsWithTargetRequirements = optsWithReqs,
+            options = Some(preprocessedDirectives.globalUsings),
+            optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,
             requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
             mainClassOpt = None,
             scopePath = v.scopePath,
-            directivesPositions = directivesPositions
+            directivesPositions = preprocessedDirectives.directivesPositions
           )
           Seq(s)
         }

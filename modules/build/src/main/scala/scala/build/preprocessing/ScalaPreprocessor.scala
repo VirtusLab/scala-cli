@@ -17,34 +17,16 @@ import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.*
-import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
 import scala.build.preprocessing.directives
-import scala.build.preprocessing.directives.{DirectiveHandler, DirectiveUtil, ScopedDirective}
+import scala.build.preprocessing.directives.{
+  DirectiveHandler,
+  DirectiveUtil,
+  PreprocessedDirectives,
+  ScopedDirective
+}
 import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
-
-  private case class StrictDirectivesProcessingOutput(
-    globalReqs: BuildRequirements,
-    globalUsings: BuildOptions,
-    usingsWithReqs: List[WithBuildRequirements[BuildOptions]],
-    scopedReqs: Seq[Scoped[BuildRequirements]],
-    strippedContent: Option[String],
-    directivesPositions: Option[DirectivesPositions]
-  ) {
-    def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
-      globalUsings == BuildOptions.monoid.zero &&
-      scopedReqs.isEmpty &&
-      strippedContent.isEmpty &&
-      usingsWithReqs.isEmpty
-  }
-
-  private case class SpecialImportsProcessingOutput(
-    reqs: BuildRequirements,
-    opts: BuildOptions,
-    content: String
-  )
-
   case class ProcessingOutput(
     globalReqs: BuildRequirements,
     scopedReqs: Seq[Scoped[BuildRequirements]],
@@ -64,47 +46,6 @@ case object ScalaPreprocessor extends Preprocessor {
       None
     )
   }
-
-  val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
-    Seq[DirectiveHandler[_ <: HasBuildOptions]](
-      directives.JavaHome.handler,
-      directives.Jvm.handler,
-      directives.MainClass.handler,
-      directives.Packaging.handler,
-      directives.Platform.handler,
-      directives.Plugin.handler,
-      directives.Publish.handler,
-      directives.PublishContextual.Local.handler,
-      directives.PublishContextual.CI.handler,
-      directives.Python.handler,
-      directives.Repository.handler,
-      directives.ScalaJs.handler,
-      directives.ScalaNative.handler,
-      directives.ScalaVersion.handler,
-      directives.Sources.handler,
-      directives.Tests.handler
-    ).map(_.mapE(_.buildOptions))
-
-  val usingDirectiveWithReqsHandlers
-    : Seq[DirectiveHandler[List[WithBuildRequirements[BuildOptions]]]] =
-    Seq[DirectiveHandler[_ <: HasBuildOptionsWithRequirements]](
-      directives.CustomJar.handler,
-      directives.Dependency.handler,
-      directives.JavaOptions.handler,
-      directives.JavacOptions.handler,
-      directives.JavaProps.handler,
-      directives.Resources.handler,
-      directives.ScalacOptions.handler,
-      directives.Toolkit.handler
-    ).map(_.mapE(_.buildOptionsWithRequirements))
-
-  val requireDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements]] =
-    Seq[DirectiveHandler[_ <: HasBuildRequirements]](
-      directives.RequirePlatform.handler,
-      directives.RequireScalaVersion.handler,
-      directives.RequireScalaVersionBounds.handler,
-      directives.RequireScope.handler
-    ).map(_.mapE(_.buildRequirements))
 
   def preprocess(
     input: SingleElement,
@@ -253,7 +194,6 @@ case object ScalaPreprocessor extends Preprocessor {
       contentWithNoShebang.toCharArray,
       path,
       logger,
-      scopeRoot,
       maybeRecoverOnError
     ))
     value(processSources(
@@ -277,9 +217,8 @@ case object ScalaPreprocessor extends Preprocessor {
     suppressWarningOptions: SuppressWarningOptions
   ): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
-    val afterStrictUsing: StrictDirectivesProcessingOutput =
-      value(processStrictUsing(
-        content0,
+    val preprocessedDirectives: PreprocessedDirectives =
+      value(DirectivesPreprocessor.preprocess(
         extractedDirectives,
         path,
         scopeRoot,
@@ -288,127 +227,25 @@ case object ScalaPreprocessor extends Preprocessor {
         suppressWarningOptions
       ))
 
-    if (afterStrictUsing.isEmpty) None
+    if (preprocessedDirectives.isEmpty) None
     else {
-      val allRequirements    = Seq(afterStrictUsing.globalReqs)
+      val allRequirements    = Seq(preprocessedDirectives.globalReqs)
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
-      val allOptions         = Seq(afterStrictUsing.globalUsings)
+      val allOptions         = Seq(preprocessedDirectives.globalUsings)
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContentOpt = afterStrictUsing.strippedContent
+      val lastContentOpt = preprocessedDirectives.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
-      val directivesPositions = afterStrictUsing.directivesPositions
+      val directivesPositions = preprocessedDirectives.directivesPositions
 
-      val scopedRequirements = afterStrictUsing.scopedReqs
+      val scopedRequirements = preprocessedDirectives.scopedReqs
       Some(ProcessingOutput(
         summedRequirements,
         scopedRequirements,
         summedOptions,
-        afterStrictUsing.usingsWithReqs,
+        preprocessedDirectives.usingsWithReqs,
         lastContentOpt,
         directivesPositions
       ))
     }
   }
-
-  private def processStrictUsing(
-    content: String,
-    extractedDirectives: ExtractedDirectives,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger,
-    allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions
-  ): Either[BuildException, StrictDirectivesProcessingOutput] = either {
-    val contentChars = content.toCharArray
-
-    val ExtractedDirectives(directives0, directivesPositions) = extractedDirectives
-
-    val updatedOptions: DirectivesProcessorOutput[BuildOptions] = value {
-      DirectivesProcessor.process(
-        directives0,
-        usingDirectiveHandlers,
-        path,
-        cwd,
-        logger,
-        allowRestrictedFeatures,
-        suppressWarningOptions
-      )
-    }
-
-    val directives1 = updatedOptions.unused
-
-    val optionsWithTargetRequirements
-      : DirectivesProcessorOutput[List[WithBuildRequirements[BuildOptions]]] = value {
-      DirectivesProcessor.process(
-        directives1,
-        usingDirectiveWithReqsHandlers,
-        path,
-        cwd,
-        logger,
-        allowRestrictedFeatures,
-        suppressWarningOptions
-      )
-    }
-
-    val directives2 = optionsWithTargetRequirements.unused
-
-    val updatedRequirements = value {
-      DirectivesProcessor.process(
-        directives2,
-        requireDirectiveHandlers,
-        path,
-        cwd,
-        logger,
-        allowRestrictedFeatures,
-        suppressWarningOptions
-      )
-    }
-
-    val unusedDirectives = updatedRequirements.unused
-
-    val (optionsWithActualRequirements, optionsWithEmptyRequirements) =
-      optionsWithTargetRequirements.global.partition(_.requirements.nonEmpty)
-    val summedOptionsWithNoRequirements =
-      optionsWithEmptyRequirements
-        .map(_.value)
-        .foldLeft(updatedOptions.global)((acc, bo) => acc.orElse(bo))
-
-    value {
-      unusedDirectives match {
-        case Seq() =>
-          Right(StrictDirectivesProcessingOutput(
-            updatedRequirements.global,
-            summedOptionsWithNoRequirements,
-            optionsWithActualRequirements,
-            updatedRequirements.scoped,
-            strippedContent = None,
-            directivesPositions
-          ))
-        case Seq(h, t*) =>
-          val errors = ::(
-            handleUnusedValues(ScopedDirective(h, path, cwd)),
-            t.map(d => handleUnusedValues(ScopedDirective(d, path, cwd))).toList
-          )
-          Left(CompositeBuildException(errors))
-      }
-    }
-  }
-
-  private def handleUnusedValues(
-    scopedDirective: ScopedDirective
-  ): BuildException = {
-    val values =
-      DirectiveUtil.concatAllValues(scopedDirective)
-    new UnusedDirectiveError(
-      scopedDirective.directive.key,
-      values.map(_.value),
-      values.flatMap(_.positions)
-    )
-  }
-
-  private def parseDependency(str: String, pos: Position): Either[BuildException, AnyDependency] =
-    DependencyParser.parse(str) match {
-      case Left(msg)  => Left(new DependencyFormatError(str, msg, positionOpt = Some(pos)))
-      case Right(dep) => Right(dep)
-    }
 }

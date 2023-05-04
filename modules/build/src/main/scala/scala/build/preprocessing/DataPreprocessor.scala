@@ -12,8 +12,7 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
-import scala.build.preprocessing.DirectivesProcessor.DirectivesProcessorOutput
-import scala.build.preprocessing.PreprocessingUtil.optionsAndPositionsFromDirectives
+import scala.build.preprocessing.directives.PreprocessedDirectives
 
 case object DataPreprocessor extends Preprocessor {
   def preprocess(
@@ -27,35 +26,29 @@ case object DataPreprocessor extends Preprocessor {
       case file: VirtualData =>
         val res = either {
           val content = new String(file.content, StandardCharsets.UTF_8)
-          val (
-            updatedOptions: BuildOptions,
-            optsWithReqs: List[WithBuildRequirements[BuildOptions]],
-            directivesPositions: Option[DirectivesPositions]
-          ) = value {
-            optionsAndPositionsFromDirectives(
+          val preprocessedDirectives: PreprocessedDirectives = value {
+            DirectivesPreprocessor.preprocess(
               content,
-              file.scopePath,
               Left(file.subPath.toString),
+              file.scopePath,
               logger,
-              maybeRecoverOnError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
           }
-
           val inMemory = Seq(
             PreprocessedSource.InMemory(
               originalPath = Left(file.source),
               relPath = file.subPath,
               code = content,
               ignoreLen = 0,
-              options = Some(updatedOptions),
-              optionsWithTargetRequirements = optsWithReqs,
+              options = Some(preprocessedDirectives.globalUsings),
+              optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,
               requirements = Some(BuildRequirements()),
               scopedRequirements = Nil,
               mainClassOpt = None,
               scopePath = file.scopePath,
-              directivesPositions
+              preprocessedDirectives.directivesPositions
             )
           )
           inMemory
