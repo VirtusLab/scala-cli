@@ -3,6 +3,8 @@ package scala.cli.util
 import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
+import scala.build.input.ScalaCliInvokeData
+import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.{SpecificationLevel, tags}
@@ -24,6 +26,17 @@ object ArgHelpers {
       .flatMap(t => tags.levelFor(t.name))
       .headOption
       .getOrElse(SpecificationLevel.IMPLEMENTATION)
+    def powerOptionUsedInSip(optionName: String)(using ScalaCliInvokeData): String = {
+      val specificationLevel =
+        if arg.isExperimental then SpecificationLevel.EXPERIMENTAL
+        else if arg.isRestricted then SpecificationLevel.RESTRICTED
+        else
+          arg.tags
+            .flatMap(t => tags.levelFor(t.name))
+            .headOption
+            .getOrElse(SpecificationLevel.EXPERIMENTAL)
+      WarningMessages.powerOptionUsedInSip(optionName, specificationLevel)
+    }
   }
 
   extension (helpFormat: HelpFormat) {

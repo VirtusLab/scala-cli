@@ -14,6 +14,7 @@ import scala.build.errors.{
   UnusedDirectiveError
 }
 import scala.build.input.ScalaCliInvokeData
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
 import scala.build.options.{
   BuildOptions,
@@ -148,9 +149,7 @@ object DirectivesPreprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  )(using
-    invokeData: ScalaCliInvokeData
-  ): Either[BuildException, PartiallyProcessedDirectives[T]] = {
+  )(using ScalaCliInvokeData): Either[BuildException, PartiallyProcessedDirectives[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
       suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
@@ -160,13 +159,8 @@ object DirectivesPreprocessor {
       logger: Logger
     ): Either[BuildException, ProcessedDirective[T]] =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
-        val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
-        val msg =
-          s"""The '${scopedDirective.directive.toString}' directive is $powerDirectiveType.
-             |Please run it with the '--power' flag or turn or turn power mode on globally by running:
-             |  ${Console.BOLD}${invokeData.progName} config power true${Console.RESET}""".stripMargin
         Left(DirectiveErrors(
-          ::(msg, Nil),
+          ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else

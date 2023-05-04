@@ -276,7 +276,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   override val messages: Help[T] =
     if shouldExcludeInSip then
       Help[T](helpMessage =
-        Some(HelpMessage(HelpMessages.powerCommandUsedInSip(
+        Some(HelpMessage(WarningMessages.powerCommandUsedInSip(
           actualCommandName,
           scalaSpecificationLevel
         )))
@@ -348,7 +348,10 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.global.logging.verbosity
     if shouldExcludeInSip then
-      logger.error(HelpMessages.powerCommandUsedInSip(actualCommandName, scalaSpecificationLevel))
+      logger.error(WarningMessages.powerCommandUsedInSip(
+        actualCommandName,
+        scalaSpecificationLevel
+      ))
       sys.exit(1)
     else if isExperimental && !shouldSuppressExperimentalFeatureWarnings then
       logger.message(WarningMessages.experimentalSubcommandUsed(name))
