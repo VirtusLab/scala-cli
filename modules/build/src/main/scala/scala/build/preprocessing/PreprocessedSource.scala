@@ -2,6 +2,7 @@ package scala.build.preprocessing
 
 import scala.build.internal.CodeWrapper
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
+import scala.build.Position
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]
@@ -11,7 +12,7 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
 
   def scopedRequirements: Seq[Scoped[BuildRequirements]]
   def scopePath: ScopePath
-  def directivesPositions: Option[DirectivesPositions]
+  def directivesPositions: Option[Position.File]
 }
 
 object PreprocessedSource {
@@ -23,7 +24,7 @@ object PreprocessedSource {
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
-    directivesPositions: Option[DirectivesPositions]
+    directivesPositions: Option[Position.File]
   ) extends PreprocessedSource {
     def scopePath: ScopePath =
       ScopePath.fromPath(path)
@@ -39,7 +40,7 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath,
-    directivesPositions: Option[DirectivesPositions]
+    directivesPositions: Option[Position.File]
   ) extends PreprocessedSource {
     def reportingPath: Either[String, os.Path] =
       originalPath.map(_._2)

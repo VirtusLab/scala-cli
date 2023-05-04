@@ -2,7 +2,6 @@ package scala.build
 package tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
-import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 
 import scala.build.errors.Diagnostic
 import scala.build.preprocessing.{ExtractedDirectives, ScopePath}

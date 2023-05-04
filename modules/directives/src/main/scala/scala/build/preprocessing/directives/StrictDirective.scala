@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{NumericValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{StringValue, Value}
 
 case class StrictDirective(
   key: String,
@@ -10,10 +10,9 @@ case class StrictDirective(
     val suffix = if values.isEmpty then "" else s" \"${values.mkString("\",  \"")}\""
     s"//> using $key$suffix"
   }
-  def numericalOrStringValuesCount: Int =
+  def stringValuesCount: Int =
     values.count {
-      case _: NumericValue => true
-      case _: StringValue  => true
-      case _               => false
+      case _: StringValue => true
+      case _              => false
     }
 }

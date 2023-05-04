@@ -1,12 +1,6 @@
 package scala.build.directives
 
-import com.virtuslab.using_directives.custom.model.{
-  BooleanValue,
-  EmptyValue,
-  NumericValue,
-  StringValue,
-  Value
-}
+import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
 
 import scala.build.Positioned.apply
 import scala.build.errors.{
@@ -106,11 +100,6 @@ object DirectiveValueParser {
         case s: BooleanValue => Some(s.get())
         case _               => None
       }
-    def asNum: Option[String] =
-      value match {
-        case n: NumericValue => Some(n.get())
-        case _               => None
-      }
 
     def position(path: Either[String, os.Path]): Position =
       DirectiveUtil.position(value, path, skipQuotes = isString)
@@ -152,10 +141,10 @@ object DirectiveValueParser {
 
   given DirectiveSingleValueParser[MaybeNumericalString] =
     (value, scopePath, path) =>
-      value.asString.orElse(value.asNum).map(MaybeNumericalString(_)).toRight {
+      value.asString.map(MaybeNumericalString(_)).toRight {
         val pos = value.position(path)
         new MalformedDirectiveError(
-          s"Expected a string or a numerical value, got '${value.getRelatedASTNode.toString}'",
+          s"Expected a string value, got '${value.getRelatedASTNode.toString}'",
           Seq(pos)
         )
       }

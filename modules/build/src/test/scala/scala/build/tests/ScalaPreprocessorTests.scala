@@ -27,8 +27,8 @@ class ScalaPreprocessorTests extends munit.FunSuite {
       )(using ScalaCliInvokeData.dummy)
       expect(result.nonEmpty)
       val Some(directivesPositions) = result.head.directivesPositions
-      expect(directivesPositions.specialCommentDirectives.startPos == 0 -> 0)
-      expect(directivesPositions.specialCommentDirectives.endPos == 3   -> 0)
+      expect(directivesPositions.startPos == 0 -> 0)
+      expect(directivesPositions.endPos == 3   -> 0)
     }
   }
 
@@ -47,8 +47,8 @@ class ScalaPreprocessorTests extends munit.FunSuite {
       )(using ScalaCliInvokeData.dummy)
       expect(result.nonEmpty)
       val Some(directivesPositions) = result.head.directivesPositions
-      expect(directivesPositions.specialCommentDirectives.startPos == 0 -> 0)
-      expect(directivesPositions.specialCommentDirectives.endPos == 2   -> 0)
+      expect(directivesPositions.startPos == 0 -> 0)
+      expect(directivesPositions.endPos == 2   -> 0)
     }
   }
 }

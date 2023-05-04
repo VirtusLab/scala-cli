@@ -10,5 +10,5 @@ final class SingleValueExpectedError(
         s"(got ${directive.values.length} values: ${directive.values.map(_.get().toString).mkString(", ")})",
       positions = DirectiveUtil.positions(directive.values, path)
     ) {
-  assert(directive.numericalOrStringValuesCount > 1)
+  assert(directive.stringValuesCount > 1)
 }

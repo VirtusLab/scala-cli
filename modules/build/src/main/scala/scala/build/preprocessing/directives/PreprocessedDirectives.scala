@@ -1,7 +1,8 @@
 package scala.build.preprocessing.directives
 
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
-import scala.build.preprocessing.{DirectivesPositions, Scoped}
+import scala.build.preprocessing.Scoped
+import scala.build.Position
 
 case class PreprocessedDirectives(
   globalReqs: BuildRequirements,
@@ -9,7 +10,7 @@ case class PreprocessedDirectives(
   usingsWithReqs: List[WithBuildRequirements[BuildOptions]],
   scopedReqs: Seq[Scoped[BuildRequirements]],
   strippedContent: Option[String],
-  directivesPositions: Option[DirectivesPositions]
+  directivesPositions: Option[Position.File]
 ) {
   def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
     globalUsings == BuildOptions.monoid.zero &&

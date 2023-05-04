@@ -1,6 +1,5 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 import coursier.cache.ArchiveCache
 import coursier.util.Task
 
