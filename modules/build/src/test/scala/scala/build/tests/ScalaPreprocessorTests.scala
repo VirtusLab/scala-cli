@@ -2,7 +2,7 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.input.SourceScalaFile
+import scala.build.input.{ScalaCliInvokeData, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.{PreprocessedSource, ScalaPreprocessor}
 
@@ -24,7 +24,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
         logger = TestLogger(),
         allowRestrictedFeatures = false,
         suppressWarningOptions = SuppressWarningOptions()
-      )
+      )(using ScalaCliInvokeData.dummy)
       expect(result.nonEmpty)
       val Some(directivesPositions) = result.head.directivesPositions
       expect(directivesPositions.specialCommentDirectives.startPos == 0 -> 0)
@@ -44,7 +44,7 @@ class ScalaPreprocessorTests extends munit.FunSuite {
         logger = TestLogger(),
         allowRestrictedFeatures = false,
         suppressWarningOptions = SuppressWarningOptions()
-      )
+      )(using ScalaCliInvokeData.dummy)
       expect(result.nonEmpty)
       val Some(directivesPositions) = result.head.directivesPositions
       expect(directivesPositions.specialCommentDirectives.startPos == 0 -> 0)

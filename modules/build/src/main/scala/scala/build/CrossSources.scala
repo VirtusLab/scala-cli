@@ -129,7 +129,7 @@ object CrossSources {
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  ): Either[BuildException, (CrossSources, Inputs)] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =

@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, Script, SingleElement, VirtualScript}
+import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
@@ -17,7 +17,7 @@ final case class ScriptPreprocessor(codeWrapper: CodeWrapper) extends Preprocess
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case script: Script =>
         val res = either {
@@ -80,7 +80,7 @@ object ScriptPreprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
 
     val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
 

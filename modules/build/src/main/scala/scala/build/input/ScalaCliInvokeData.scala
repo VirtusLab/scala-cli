@@ -26,6 +26,10 @@ case class ScalaCliInvokeData(
       case _                  => s"$progName $subCommandName"
 }
 
+object ScalaCliInvokeData {
+  def dummy: ScalaCliInvokeData = ScalaCliInvokeData("", "", SubCommand.Other, false)
+}
+
 enum SubCommand:
   case Default extends SubCommand
   case Shebang extends SubCommand

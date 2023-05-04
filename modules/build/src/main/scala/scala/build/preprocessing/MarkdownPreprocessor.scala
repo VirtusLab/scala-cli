@@ -5,7 +5,13 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, MarkdownFile, SingleElement, VirtualMarkdownFile}
+import scala.build.input.{
+  Inputs,
+  MarkdownFile,
+  ScalaCliInvokeData,
+  SingleElement,
+  VirtualMarkdownFile
+}
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
 import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
@@ -18,7 +24,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case markdown: MarkdownFile =>
         val res = either {
@@ -69,7 +75,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
     def preprocessSnippets(
       maybeWrapper: Option[MarkdownCodeWrapper.WrappedMarkdownCode],
       generatedSourceNameSuffix: String

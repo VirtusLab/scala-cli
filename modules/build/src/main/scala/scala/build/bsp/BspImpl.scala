@@ -21,7 +21,7 @@ import scala.build.errors.{
   Diagnostic,
   ParsingInputsException
 }
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, CustomCodeWrapper}
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -50,7 +50,7 @@ final class BspImpl(
   in: InputStream,
   out: OutputStream,
   actionableDiagnostics: Option[Boolean]
-) extends Bsp {
+)(using ScalaCliInvokeData) extends Bsp {
 
   import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
 

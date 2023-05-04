@@ -3,7 +3,7 @@ package scala.build.bsp
 import java.io.{InputStream, OutputStream}
 
 import scala.build.errors.BuildException
-import scala.build.input.Inputs
+import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.concurrent.Future
 
 trait Bsp {
@@ -19,7 +19,7 @@ object Bsp {
     in: InputStream,
     out: OutputStream,
     actionableDiagnostics: Option[Boolean]
-  ): Bsp =
+  )(using ScalaCliInvokeData): Bsp =
     new BspImpl(
       argsToInputs,
       bspReloadableOptionsReference,

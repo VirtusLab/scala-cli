@@ -221,7 +221,7 @@ object Build {
     buildTests: Boolean,
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean]
-  ): Either[BuildException, Builds] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, Builds] = either {
     // allInputs contains elements from using directives
     val (crossSources, allInputs) = value {
       CrossSources.forInputs(
@@ -425,7 +425,7 @@ object Build {
     buildTests: Boolean,
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean]
-  ): Either[BuildException, Build] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, Build] = either {
 
     val build0 = value {
       buildOnce(
@@ -547,7 +547,7 @@ object Build {
     buildTests: Boolean,
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean]
-  ): Either[BuildException, Builds] = {
+  )(using ScalaCliInvokeData): Either[BuildException, Builds] = {
     val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
@@ -621,7 +621,7 @@ object Build {
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean],
     postAction: () => Unit = () => ()
-  )(action: Either[BuildException, Builds] => Unit): Watcher = {
+  )(action: Either[BuildException, Builds] => Unit)(using ScalaCliInvokeData): Watcher = {
 
     val buildClient = BloopBuildClient.create(
       logger,
@@ -1212,7 +1212,7 @@ object Build {
     compiler: ScalaCompiler,
     buildTests: Boolean,
     actionableDiagnostics: Option[Boolean]
-  ): Either[BuildException, Option[Build]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, Option[Build]] = either {
     val jmhProjectName = inputs.projectName + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
     os.remove.all(jmhOutputDir)

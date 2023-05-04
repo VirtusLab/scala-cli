@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, JavaFile, SingleElement, VirtualJavaFile}
+import scala.build.input.{Inputs, JavaFile, ScalaCliInvokeData, SingleElement, VirtualJavaFile}
 import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.{
   BuildOptions,
@@ -42,7 +42,7 @@ final case class JavaPreprocessor(
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case j: JavaFile => Some(either {
           val content: String = value(PreprocessingUtil.maybeRead(j.path))
