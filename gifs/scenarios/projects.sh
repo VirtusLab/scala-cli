@@ -21,7 +21,7 @@ else
 
   # Put your stuff here
   cat <<EOF | updateFile Post.scala
-//> using dep "com.softwaremill.sttp.client3::core:3.3.18"
+//> using dep com.softwaremill.sttp.client3::core:3.3.18
 import sttp.client3._
 
 // https://sttp.softwaremill.com/en/latest/quickstart.html

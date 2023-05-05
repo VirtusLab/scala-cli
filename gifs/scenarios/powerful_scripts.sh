@@ -10,8 +10,8 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
-    echo '//> using dep "com.lihaoyi::os-lib:0.9.1"' | scala-cli -
-    echo '//> using dep "com.lihaoyi::pprint:0.8.1"' | scala-cli -
+    echo '//> using dep com.lihaoyi::os-lib:0.9.1' | scala-cli -
+    echo '//> using dep com.lihaoyi::pprint:0.8.1' | scala-cli -
   # or do other preparation (e.g. create code)
 else
   . $SCRIPT_DIR/../demo-magic.sh
@@ -20,8 +20,8 @@ else
 
   # Put your stuff here
   cat <<EOF | updateFile stat.sc
-//> using dep "com.lihaoyi::os-lib:0.9.1"
-//> using dep "com.lihaoyi::pprint:0.8.1"
+//> using dep com.lihaoyi::os-lib:0.9.1
+//> using dep com.lihaoyi::pprint:0.8.1
 import pprint._
 import os._
 

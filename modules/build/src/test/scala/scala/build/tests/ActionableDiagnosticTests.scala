@@ -27,7 +27,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using dep "$dependencyOsLib"
+        s"""//> using dep $dependencyOsLib
            |
            |object Hello extends App {
            |  println("Hello")
@@ -56,8 +56,8 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using dep "$dependencyOsLib"
-           |//> using dep "$dependencyPprintLib"
+        s"""//> using dep $dependencyOsLib
+           |//> using dep $dependencyPprintLib
            |
            |object Hello extends App {
            |  println("Hello")
@@ -87,7 +87,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   test("actionable actions suggest update only to stable version") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using dep "test-org::test-name-1:1.0.6"
+        s"""//> using dep test-org::test-name-1:1.0.6
            |
            |object Hello extends App {
            |  println("Hello")
@@ -150,7 +150,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   test("actionable actions should not suggest update to previous version") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using dep "test-org::test-name-1:2.0.0-M1"
+        s"""//> using dep test-org::test-name-1:2.0.0-M1
            |
            |object Hello extends App {
            |  println("Hello")
@@ -208,7 +208,7 @@ class ActionableDiagnosticTests extends munit.FunSuite {
   test("actionable actions should not suggest update if uses version: latest") {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using toolkit "latest"
+        s"""//> using toolkit latest
            |
            |object Hello extends App {
            |  os.list(os.pwd).foreach(println)
