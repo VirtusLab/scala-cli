@@ -445,51 +445,6 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     }
   }
 
-  test("ignore files if wrong Scala version requirement via in clause") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """//> using target.scala.== "2.12" in "my-scala-2.12/"
-          |object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "my-scala-2.12" / "Ignored.scala" ->
-        """object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class"
-      )
-    }
-  }
-  test("ignore files if wrong Scala target requirement via in clause") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """//> using target.platform scala.js in "js-sources/"
-          |object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "js-sources" / "Ignored.scala" ->
-        """object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class"
-      )
-    }
-  }
-
   test("Pass files with only commented directives as is to scalac") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
