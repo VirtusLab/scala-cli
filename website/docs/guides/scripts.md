@@ -195,7 +195,7 @@ script.sc
 You can also add source files with the using directive `//> using file` in Scala scripts:
 
 ```scala title=main.sc
-//> using file "Utils.scala" 
+//> using file Utils.scala
 
 println(Utils.message)
 ```

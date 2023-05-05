@@ -17,7 +17,7 @@ or [special imports](/docs/guides/configuration#special-imports)) can be used to
 
 A source file is treated as test source if:
 
-- it contains the `//> using target.scope "test"` directive, or
+- it contains the `//> using target.scope test` directive, or
 - the file name ends with `.test.scala`, or
 - the file comes from a directory that is provided as input, and the relative path from that file to its original
   directory contains a `test` directory
@@ -80,7 +80,7 @@ when running your whole app, you only need it in tests. So rather than declare i
 the `test.dep` directive:
 
 ```scala compile
-//> using test.dep "org.scalameta::munit::0.7.29"
+//> using test.dep org.scalameta::munit::0.7.29
 ```
 
 For more details on test directives,
@@ -103,7 +103,7 @@ Some of the most popular test frameworks in Scala are:
 The following example shows how to run an munit-based test suite:
 
 ```scala title=MyTests.test.scala
-//> using test.dep "org.scalameta::munit::0.7.29"
+//> using test.dep org.scalameta::munit::0.7.29
 
 class MyTests extends munit.FunSuite {
   test("foo") {
@@ -137,7 +137,7 @@ foo
 Passing the `--test-only` option to the `test` sub-command filters the test suites to be run:
 
 ```scala title=BarTests.test.scala
-//> using test.dep "org.scalameta::munit::0.7.29"
+//> using test.dep org.scalameta::munit::0.7.29
 package tests.only
 
 class BarTests extends munit.FunSuite {
@@ -175,7 +175,7 @@ tests.only.BarTests:
 To run a specific test case inside the unit test suite pass `*exact-test-name*` as an argument to scala-cli:
 
 ```scala title=BarTests.test.scala
-//> using test.dep "org.scalameta::munit::0.7.29"
+//> using test.dep org.scalameta::munit::0.7.29
 package tests.only
 
 class Tests extends munit.FunSuite {
@@ -209,7 +209,7 @@ tests.only.Tests:
 You can pass test arguments to your test framework by passing them after `--`:
 
 ```scala title=MyTests.test.scala
-//> using test.dep "org.scalatest::scalatest::3.2.9"
+//> using test.dep org.scalatest::scalatest::3.2.9
 
 import org.scalatest._
 import org.scalatest.flatspec._

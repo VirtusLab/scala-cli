@@ -101,11 +101,11 @@ That can be done by passing an appropriate option or by setting the appropriate 
 ### Warnings about `using` directives spread in multiple files
 
 ```scala title=Deps1.sc
-//> using dep "com.lihaoyi::os-lib:0.9.1"
+//> using dep com.lihaoyi::os-lib:0.9.1
 ```
 
 ```scala title=Deps2.sc
-//> using dep "com.lihaoyi::pprint:0.8.0"
+//> using dep com.lihaoyi::pprint:0.8.0
 ```
 
 It is generally advised to not spread the `using` directives in multiple files, and put them in the
@@ -144,7 +144,7 @@ scala-cli config suppress-warning.experimental-features true
 ### Warnings about having outdated dependencies
 
 ```scala title=OldDeps.sc
-//> using dep "com.lihaoyi::pprint:0.6.6"
+//> using dep com.lihaoyi::pprint:0.6.6
 ```
 
 Depending on outdated libraries produces warnings, which can be suppressed with

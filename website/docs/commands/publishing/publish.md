@@ -56,7 +56,7 @@ will infer an organization from it: if your project lives in GitHub organization
 
 To override this default value, set the `publish.organization` directive, like
 ```scala
-//> using publish.organization "io.github.foo"
+//> using publish.organization io.github.foo
 ```
 
 ### Name
@@ -67,7 +67,7 @@ Scala CLI project lives in a directory named `something`, it will be published a
 
 To override this default value, set the `publish.name` directive, like
 ```scala
-//> using publish.name "something"
+//> using publish.name something
 ```
 
 ### Version
@@ -78,7 +78,7 @@ Else, if it has such a tag earlier in the git history, version `1.2.4-SNAPSHOT` 
 
 To override this default value, set the `publish.computeVersion` directive, like
 ```scala
-//> using publish.computeVersion "git:tag"
+//> using publish.computeVersion git:tag
 ```
 
 ## Repository settings
@@ -180,9 +180,9 @@ To get started, consult the [documentation on the library's website](https://gnu
 [Protecting code integrity with PGP guide from the Linux Foundation](https://github.com/lfit/itpol/blob/master/protecting-code-integrity.md#target-audience).
 
 To enable signing with GPG, pass `--gpg-key *key_id*` on the command line
-or specify it with a `using` directive: `//>using publish.gpgKey "key_id"`.
+or specify it with a `using` directive: `//>using publish.gpgKey key_id`.
 If needed, you can specify arguments meant to be passed to `gpg`,
-with `--gpg-option` or `//>using publish.gpgOptions "--opt1" "--opt2"`, like
+with `--gpg-option` or `//>using publish.gpgOptions --opt1 --opt2`, like
 ```text
 --gpg-key 1234567890ABCDEF --gpg-option --foo --gpg-option --bar
 ```

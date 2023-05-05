@@ -31,7 +31,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 `--test` makes Scala CLI compile main and test scopes:
 
 ```scala title=Sample.test.scala
-//> using dep "org.scalameta::munit:0.7.29"
+//> using dep org.scalameta::munit:0.7.29
 class Test extends munit.FunSuite {
   test("sample") {
     assert(2 + 2 == 4)
@@ -118,15 +118,15 @@ scala-cli Hello.scala -S 2.13.9-bin-4505094
 For setting this inside scala files, use [`using` directives](/docs/guides/using-directives.md):
 
 ```scala compile
-//> using scala "2.nightly"
+//> using scala 2.nightly
 ```
 
 ```scala compile
-//> using scala "3.nightly"
+//> using scala 3.nightly
 ```
 
 ```scala compile
-//> using scala "2.13.9-bin-4505094"
+//> using scala 2.13.9-bin-4505094
 ```
 
 ## Dependencies
@@ -189,14 +189,14 @@ It is also possible to pass compiler options with the appropriate `using` direct
 A single option can be passed like this:
 
 ```scala compile
-//> using option "-new-syntax"
+//> using option -new-syntax
 @main def hello = if true then println("Hello")
 ```
 
 It's also possible to pass a value to the option with the same directive:
 
 ```scala compile
-//> using option "-release", "11"
+//> using option -release 11
 
 import java.net.http.HttpRequest
 ```
@@ -204,7 +204,7 @@ import java.net.http.HttpRequest
 There's a separate directive for passing multiple options at one time:
 
 ```scala compile
-//> using options "-new-syntax", "-rewrite", "-source:3.2-migration"
+//> using options -new-syntax -rewrite -source:3.2-migration
 
 @main def hello = if (true) println("Hello")
 ```
@@ -459,7 +459,7 @@ scala-cli Hello.scala --javac-opt source --javac-opt 1.8 --javac-opt target --ja
 You can also add javac options with the using directive `//> using javacOpt`:
 
 ```scala compile
-//> using javacOpt "source", "1.8", "target", "1.8"
+//> using javacOpt source 1.8 target 1.8
 ```
 
 ## Exclude sources

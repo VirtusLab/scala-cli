@@ -32,9 +32,9 @@ as well as options passed to the `export` sub-command.
 
 Let's take a simple one-file project as an example:
 ```scala title=Hello.scala
-//> using scala "3.1.3"
-//> using option "-Xasync"
-//> using dep "com.lihaoyi::os-lib:0.9.0"
+//> using scala 3.1.3
+//> using option -Xasync
+//> using dep com.lihaoyi::os-lib:0.9.0
 
 object Hello {
   def main(args: Array[String]): Unit =
