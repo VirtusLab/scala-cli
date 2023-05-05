@@ -1347,4 +1347,23 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(res3.out.trim().contains(s"$expectedMessage1$expectedMessage2"))
     }
   }
+  test("exclude file") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           | println("$message")
+           |}""".stripMargin,
+      os.rel / "Main.scala" ->
+        """object Main {
+          | val msg: String = 1 // compilation fails
+          |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, extraOptions, ".", "--exclude", "*Main.scala").call(cwd = root)
+      val output = res.out.trim()
+      expect(output == message)
+    }
+  }
 }

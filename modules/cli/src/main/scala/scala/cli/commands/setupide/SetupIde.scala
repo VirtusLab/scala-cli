@@ -40,7 +40,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
             () => options.javaHome().value.javaCommand
           ),
           logger,
-          options.suppressWarningOptions
+          options.suppressWarningOptions,
+          options.internal.exclude
         )
       }
 

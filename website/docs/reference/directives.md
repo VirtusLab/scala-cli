@@ -68,6 +68,17 @@ Add dependencies
 
 `//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
+### Exclude sources
+
+Exclude sources from the project
+
+`//> using exclude "*.sc"`
+
+`//> using exclude "examples/*", "*/resources/*" …`
+
+#### Examples
+`//> using exclude "utils.scala"`
+
 ### JVM version
 
 Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`

@@ -461,3 +461,25 @@ You can also add javac options with the using directive `//> using javacOpt`:
 ```scala compile
 //> using javacOpt "source", "1.8", "target", "1.8"
 ```
+
+## Exclude sources
+
+To exclude specific source files or entire directories from a Scala CLI project, use the `exclude` directive or command
+line parameter `--exclude` along with a pattern:
+
+- an absolute path: `/root/path/to/your/project/Main.scala`
+- a relative path: `src/main/scala/Main.scala`
+- a glob pattern: `*.sc`
+
+:::note
+The `exclude` directive should be placed in your `project.scala` file, which Scala CLI uses to determine the project
+root directory.
+For more details on `project.file`, see [the `Project root directory` reference](/docs/reference/root-dir).
+:::
+
+For example, to exclude all files in the `example/scala` directory, add the following directive to your
+ `project.file` file:
+
+```scala title=project.scala
+//> using exclude "example/scala"
+```

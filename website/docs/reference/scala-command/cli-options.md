@@ -1008,6 +1008,12 @@ Aliases: `--toolkit`
 
 Add toolkit to classPath
 
+### `--exclude`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Exclude sources
+
 ## Snippet options
 
 Available in commands:

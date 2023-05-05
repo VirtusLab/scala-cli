@@ -65,6 +65,8 @@ final case class Inputs(
 
   def add(extraElements: Seq[Element]): Inputs =
     if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
+  def withElements(elements: Seq[Element]): Inputs =
+    copy(elements = elements)
 
   def generatedSrcRoot(scope: Scope): os.Path =
     workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name

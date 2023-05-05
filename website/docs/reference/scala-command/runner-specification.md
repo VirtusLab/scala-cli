@@ -572,6 +572,10 @@ Add toolkit to classPath
 
 Aliases: `--toolkit`
 
+**--exclude**
+
+Exclude sources
+
 </details>
 
 ---
@@ -1266,6 +1270,10 @@ Add toolkit to classPath
 
 Aliases: `--toolkit`
 
+**--exclude**
+
+Exclude sources
+
 </details>
 
 ---
@@ -1798,6 +1806,10 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
+
+**--exclude**
+
+Exclude sources
 
 **--java-prop-option**
 
@@ -2361,6 +2373,10 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
+
+**--exclude**
+
+Exclude sources
 
 **--java-prop-option**
 
@@ -2934,6 +2950,10 @@ Add toolkit to classPath
 
 Aliases: `--toolkit`
 
+**--exclude**
+
+Exclude sources
+
 **--java-prop-option**
 
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
@@ -3463,6 +3483,10 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
+
+**--exclude**
+
+Exclude sources
 
 **--respect-project-filters**
 
@@ -4069,6 +4093,10 @@ Add toolkit to classPath
 
 Aliases: `--toolkit`
 
+**--exclude**
+
+Exclude sources
+
 **--java-prop-option**
 
 Add java properties. Note that options equal `-Dproperty=value` are assumed to be java properties and don't require to be passed after `--java-prop`.
@@ -4674,6 +4702,10 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
+
+**--exclude**
+
+Exclude sources
 
 **--json-options**
 
@@ -5517,6 +5549,10 @@ Aliases: `--help-fmt` ,`--fmt-help` ,`--scalafmt-help`
 Add toolkit to classPath
 
 Aliases: `--toolkit`
+
+**--exclude**
+
+Exclude sources
 
 **--bsp-directory**
 

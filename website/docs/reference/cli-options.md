@@ -1497,6 +1497,10 @@ Aliases: `--toolkit`
 
 Add toolkit to classPath
 
+### `--exclude`
+
+Exclude sources
+
 ## Snippet options
 
 Available in commands:

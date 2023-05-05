@@ -59,7 +59,8 @@ object Bsp extends ScalaCommand[BspOptions] {
                 () => buildOptions0.javaHome().value.javaCommand
               ),
               persistentLogger,
-              buildOptions0.suppressWarningOptions
+              buildOptions0.suppressWarningOptions,
+              buildOptions0.internal.exclude
             ).map(_._2).getOrElse(initialInputs)
 
           Build.updateInputs(allInputs, buildOptions(sharedOptions))
