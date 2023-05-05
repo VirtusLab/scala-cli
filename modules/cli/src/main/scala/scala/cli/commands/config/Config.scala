@@ -13,7 +13,7 @@ import scala.build.{Directories, Logger}
 import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.{HelpGroup, HelpMessages}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{
@@ -122,7 +122,7 @@ object Config extends ScalaCommand[ConfigOptions] {
             case None => unrecognizedKey(name)
             case Some(powerEntry)
                 if (powerEntry.isRestricted || powerEntry.isExperimental) && !allowRestrictedFeatures =>
-              logger.error(HelpMessages.powerConfigKeyUsedInSip(powerEntry))
+              logger.error(WarningMessages.powerConfigKeyUsedInSip(powerEntry))
               sys.exit(1)
             case Some(entry) =>
               if entry.isExperimental && !shouldSuppressExperimentalFeatureWarnings then

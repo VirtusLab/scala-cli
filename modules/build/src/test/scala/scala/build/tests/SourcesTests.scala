@@ -11,6 +11,7 @@ import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.Position
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
+import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.internal.ScalaJsLinkerConfig
 
@@ -19,6 +20,8 @@ class SourcesTests extends munit.FunSuite {
   def scalaVersion       = "2.13.5"
   def scalaParams        = ScalaParameters(scalaVersion)
   def scalaBinaryVersion = scalaParams.scalaBinaryVersion
+
+  given ScalaCliInvokeData = ScalaCliInvokeData.dummy
 
   val preprocessors = Sources.defaultPreprocessors(
     CustomCodeWrapper,

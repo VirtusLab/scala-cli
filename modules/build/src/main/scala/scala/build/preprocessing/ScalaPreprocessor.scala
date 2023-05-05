@@ -14,7 +14,7 @@ import scala.build.directives.{
   HasBuildRequirements
 }
 import scala.build.errors.*
-import scala.build.input.{Inputs, ScalaFile, SingleElement, VirtualScalaFile}
+import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.*
 import scala.build.preprocessing.directives
@@ -53,7 +53,7 @@ case object ScalaPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case f: ScalaFile =>
         val res = either {
@@ -188,7 +188,7 @@ case object ScalaPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Either[BuildException, Option[ProcessingOutput]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentWithNoShebang.toCharArray,
@@ -219,7 +219,7 @@ case object ScalaPreprocessor extends Preprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
-  ): Either[BuildException, Option[ProcessingOutput]] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
       value(DirectivesPreprocessor.preprocess(

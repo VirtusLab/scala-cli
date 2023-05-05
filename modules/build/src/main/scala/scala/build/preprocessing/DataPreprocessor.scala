@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, SingleElement, VirtualData}
+import scala.build.input.{Inputs, ScalaCliInvokeData, SingleElement, VirtualData}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -21,7 +21,7 @@ case object DataPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case file: VirtualData =>
         val res = either {

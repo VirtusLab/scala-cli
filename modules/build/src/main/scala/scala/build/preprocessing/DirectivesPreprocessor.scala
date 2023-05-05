@@ -13,6 +13,8 @@ import scala.build.errors.{
   DirectiveErrors,
   UnusedDirectiveError
 }
+import scala.build.input.ScalaCliInvokeData
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
 import scala.build.options.{
   BuildOptions,
@@ -34,7 +36,7 @@ object DirectivesPreprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
-  ): Either[BuildException, PreprocessedDirectives] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
     val directives = value {
       ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
     }
@@ -59,7 +61,7 @@ object DirectivesPreprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
-  ): Either[BuildException, PreprocessedDirectives] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
     def preprocessWithDirectiveHandlers[T: ConfigMonoid](
       remainingDirectives: Seq[StrictDirective],
@@ -147,7 +149,7 @@ object DirectivesPreprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  ): Either[BuildException, PartiallyProcessedDirectives[T]] = {
+  )(using ScalaCliInvokeData): Either[BuildException, PartiallyProcessedDirectives[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
       suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
@@ -157,13 +159,8 @@ object DirectivesPreprocessor {
       logger: Logger
     ): Either[BuildException, ProcessedDirective[T]] =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
-        val powerDirectiveType = if handler.isExperimental then "experimental" else "restricted"
-        val msg = // TODO pass the called progName here to print the full config command
-          s"""The '${scopedDirective.directive.toString}' directive is $powerDirectiveType.
-             |Please run it with the '--power' flag or turn or turn power mode on globally by running:
-             |  ${Console.BOLD}config power true${Console.RESET}""".stripMargin
         Left(DirectiveErrors(
-          ::(msg, Nil),
+          ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else

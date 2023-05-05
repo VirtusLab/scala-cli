@@ -3,7 +3,7 @@ package scala.build.tests
 import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, ScriptPreprocessor}
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.input.{Inputs, MarkdownFile, Script, SourceScalaFile}
+import scala.build.input.{Inputs, MarkdownFile, ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.internal.CustomCodeWrapper
 import scala.build.options.SuppressWarningOptions
 
@@ -18,7 +18,7 @@ class PreprocessingTests extends munit.FunSuite {
       logger,
       allowRestrictedFeatures = false,
       suppressWarningOptions = SuppressWarningOptions()
-    )
+    )(using ScalaCliInvokeData.dummy)
     val expectedMessage = s"File not found: ${scalaFile.path}"
 
     assert(res.nonEmpty)
@@ -35,7 +35,7 @@ class PreprocessingTests extends munit.FunSuite {
       logger,
       allowRestrictedFeatures = false,
       suppressWarningOptions = SuppressWarningOptions()
-    )
+    )(using ScalaCliInvokeData.dummy)
     val expectedMessage = s"File not found: ${scalaScript.path}"
 
     assert(res.nonEmpty)
@@ -52,7 +52,7 @@ class PreprocessingTests extends munit.FunSuite {
       logger,
       allowRestrictedFeatures = false,
       suppressWarningOptions = SuppressWarningOptions()
-    )
+    )(using ScalaCliInvokeData.dummy)
     val expectedMessage = s"File not found: ${markdownFile.path}"
 
     assert(res.nonEmpty)

@@ -7,9 +7,9 @@ import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
+import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli
-import scala.cli.commands.shared.HelpMessages
 import scala.cli.util.ArgHelpers.*
 
 object RestrictedCommandsParser {
@@ -17,7 +17,7 @@ object RestrictedCommandsParser {
     parser: Parser[T],
     logger: Logger,
     shouldSuppressExperimentalWarnings: Boolean
-  ): Parser[T] =
+  )(using ScalaCliInvokeData): Parser[T] =
     new Parser[T] {
 
       type D = parser.D
@@ -48,7 +48,7 @@ object RestrictedCommandsParser {
         (parser.step(args, index, d, nameFormatter), args) match {
           case (Right(Some(_, arg: Arg, _)), passedOption :: _) if !arg.isSupported =>
             Left((
-              Error.UnrecognizedArgument(HelpMessages.powerOptionUsedInSip(passedOption, arg)),
+              Error.UnrecognizedArgument(arg.powerOptionUsedInSip(passedOption)),
               arg,
               Nil
             ))

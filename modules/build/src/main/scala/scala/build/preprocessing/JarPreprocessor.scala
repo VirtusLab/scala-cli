@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, JarFile, SingleElement}
+import scala.build.input.{Inputs, JarFile, ScalaCliInvokeData, SingleElement}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -20,7 +20,7 @@ case object JarPreprocessor extends Preprocessor {
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
-  ): Option[Either[BuildException, Seq[PreprocessedSource]]] =
+  )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
     input match {
       case jar: JarFile => Some(either {
           val buildOptions = BuildOptions().copy(

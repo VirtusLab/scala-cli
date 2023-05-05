@@ -141,7 +141,7 @@ object CrossSources {
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  ): Either[BuildException, (CrossSources, Inputs)] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =

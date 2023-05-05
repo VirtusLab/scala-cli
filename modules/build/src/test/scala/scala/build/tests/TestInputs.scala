@@ -46,7 +46,7 @@ final case class TestInputs(
         forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
         allowRestrictedFeatures = true,
         extraClasspathWasPassed = false
-      )(using ScalaCliInvokeData("", "", SubCommand.Other, false))
+      )(using ScalaCliInvokeData.dummy)
       res match {
         case Left(err)     => throw new Exception(err)
         case Right(inputs) => f(tmpDir, inputs)
@@ -93,7 +93,7 @@ final case class TestInputs(
           buildTests = buildTests,
           partial = None,
           actionableDiagnostics = Some(actionableDiagnostics)
-        )
+        )(using ScalaCliInvokeData.dummy)
       val res = builds.map(_.get(scope).getOrElse {
         sys.error(s"No ${scope.name} build found")
       })
