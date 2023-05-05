@@ -1,8 +1,9 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.{ArchiveCache, Cache}
-import coursier.util.{Artifact, Task}
+import coursier.cache.Cache.Fetch
+import coursier.cache.{ArchiveCache, ArtifactError, Cache}
+import coursier.util.{Artifact, EitherT, Task}
 
 import java.io.File
 import scala.build.Ops.*
@@ -10,23 +11,25 @@ import scala.build.Sources
 import scala.build.internal.CustomCodeWrapper
 import scala.build.CrossSources
 import scala.build.errors.ExcludeDefinitionError
+import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
+import scala.build.preprocessing.Preprocessor
+import scala.concurrent.ExecutionContext
 
 class ExcludeTests extends munit.FunSuite {
 
-  val preprocessors = Sources.defaultPreprocessors(
-    CustomCodeWrapper,
-    ArchiveCache().withCache(
+  val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
+    codeWrapper = CustomCodeWrapper,
+    archiveCache = ArchiveCache().withCache(
       new Cache[Task] {
-        def fetch = _ => sys.error("shouldn't be used")
-
-        def file(artifact: Artifact) = sys.error("shouldn't be used")
-
-        def ec = sys.error("shouldn't be used")
+        def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")
+        def file(artifact: Artifact): EitherT[Task, ArtifactError, File] =
+          sys.error("shouldn't be used")
+        def ec: ExecutionContext = sys.error("shouldn't be used")
       }
     ),
-    None,
-    () => sys.error("shouldn't be used")
+    javaClassNameVersionOpt = None,
+    javaCommand = () => sys.error("shouldn't be used")
   )
 
   test("throw error when exclude found in multiple files") {
@@ -45,7 +48,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        )
+        )(using ScalaCliInvokeData.dummy)
       crossSources match {
         case Left(_: ExcludeDefinitionError) =>
         case o                               => fail("Exception expected", clues(o))
@@ -68,7 +71,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        )
+        )(using ScalaCliInvokeData.dummy)
       crossSources match {
         case Left(_: ExcludeDefinitionError) =>
         case o                               => fail("Exception expected", clues(o))
@@ -92,7 +95,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        ).orThrow
+        )(using ScalaCliInvokeData.dummy).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -118,7 +121,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        ).orThrow
+        )(using ScalaCliInvokeData.dummy).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -144,7 +147,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        ).orThrow
+        )(using ScalaCliInvokeData.dummy).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -170,7 +173,7 @@ class ExcludeTests extends munit.FunSuite {
           preprocessors,
           TestLogger(),
           SuppressWarningOptions()
-        ).orThrow
+        )(using ScalaCliInvokeData.dummy).orThrow
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
