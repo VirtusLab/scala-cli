@@ -180,7 +180,9 @@ Set the default platform to Scala.js or Scala Native
 
 ### Repository
 
-Add a repository for dependency resolution
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 `//> using repository `_repository_
 
@@ -188,6 +190,8 @@ Add a repository for dependency resolution
 `//> using repository jitpack`
 
 `//> using repository sonatype:snapshots`
+
+`//> using repository m2Local`
 
 `//> using repository https://maven-central.storage-download.googleapis.com/maven2`
 

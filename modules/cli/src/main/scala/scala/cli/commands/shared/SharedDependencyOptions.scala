@@ -4,6 +4,7 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.build.preprocessing.directives.Repository
 import scala.cli.commands.tags
 
 // format: off
@@ -17,7 +18,7 @@ final case class SharedDependencyOptions(
   @Group(HelpGroup.Dependency.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
-  @HelpMessage("Add repositories")
+  @HelpMessage(Repository.usageMsg)
   @Name("repo")
   @Name("r")
     repository: List[String] = Nil,
