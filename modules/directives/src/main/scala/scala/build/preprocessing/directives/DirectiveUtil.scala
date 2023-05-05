@@ -1,7 +1,12 @@
 package scala.build.preprocessing.directives
 
 import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
+import dependency.AnyDependency
+import dependency.parser.DependencyParser
 
+import scala.build.EitherCps.{either, value}
+import scala.build.Ops.*
+import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
 
@@ -46,4 +51,15 @@ object DirectiveUtil {
       Position.File(path, (line, column), (line, column))
     }
 
+  extension (deps: List[Positioned[String]]) {
+    def asDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] =
+      deps
+        .map {
+          _.map { str =>
+            DependencyParser.parse(str).left.map(new DependencyFormatError(str, _))
+          }.eitherSequence
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+  }
 }

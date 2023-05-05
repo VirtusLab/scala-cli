@@ -3,8 +3,8 @@ package scala.build.preprocessing.directives
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
-import scala.build.preprocessing.directives.JavaProps.buildOptions
-import scala.build.{Logger, Positioned, options}
+import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Java properties")
@@ -23,30 +23,28 @@ final case class JavaProps(
   @DirectiveName("test.javaProp")
   testJavaProperty: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {
-  def buildOptionsWithRequirements
-    : Either[BuildException, List[WithBuildRequirements[BuildOptions]]] =
-    Right(List(
-      buildOptions(javaProperty).withEmptyRequirements,
-      buildOptions(testJavaProperty).withScopeRequirement(Scope.Test)
-    ))
+  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = List(
+    JavaProps.buildOptions(javaProperty).map(_.withEmptyRequirements),
+    JavaProps.buildOptions(testJavaProperty).map(_.withScopeRequirement(Scope.Test))
+  )
 }
 
 object JavaProps {
   val handler: DirectiveHandler[JavaProps] = DirectiveHandler.derive
-
-  def buildOptions(javaProperties: List[Positioned[String]]): BuildOptions = {
-    val javaOpts = javaProperties.map { positioned =>
-      positioned.map { v =>
-        v.split("=") match {
-          case Array(k)    => JavaOpt(s"-D$k")
-          case Array(k, v) => JavaOpt(s"-D$k=$v")
+  def buildOptions(javaProperties: List[Positioned[String]]): Either[BuildException, BuildOptions] =
+    Right {
+      val javaOpts: Seq[Positioned[JavaOpt]] = javaProperties.map { positioned =>
+        positioned.map { v =>
+          v.split("=") match {
+            case Array(k)    => JavaOpt(s"-D$k")
+            case Array(k, v) => JavaOpt(s"-D$k=$v")
+          }
         }
       }
-    }
-    BuildOptions(
-      javaOptions = options.JavaOptions(
-        javaOpts = ShadowingSeq.from(javaOpts)
+      BuildOptions(
+        javaOptions = options.JavaOptions(
+          javaOpts = ShadowingSeq.from(javaOpts)
+        )
       )
-    )
-  }
+    }
 }
