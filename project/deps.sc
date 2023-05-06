@@ -80,9 +80,10 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursier           = "2.1.2"
-    def coursierCli        = "2.1.2"
-    def coursierM1Cli      = "2.1.2"
+    def coursierDefault    = "2.1.3"
+    def coursier           = coursierDefault
+    def coursierCli        = coursierDefault
+    def coursierM1Cli      = coursierDefault
     def jsoniterScala      = "2.23.0"
     def jsoniterScalaJava8 = "2.13.5.2"
     def scalaMeta          = "4.7.7"
@@ -98,7 +99,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.6-sc-8"
-  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M3"
+  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M24"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.10.0"
   // Force using of 2.13 - is there a better way?
@@ -167,7 +168,7 @@ object Deps {
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
   def slf4jNop        = ivy"org.slf4j:slf4j-nop:2.0.7"
-  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.8"
+  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.15"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
