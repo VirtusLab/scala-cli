@@ -168,7 +168,7 @@ object Deps {
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
   def slf4jNop        = ivy"org.slf4j:slf4j-nop:2.0.6"
-  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.8"
+  def sttp            = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.15"
   def svm             = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval          = ivy"com.swoval:file-tree-views:2.1.9"
   def testInterface   = ivy"org.scala-sbt:test-interface:1.0"
