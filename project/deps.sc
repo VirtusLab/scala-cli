@@ -181,7 +181,7 @@ object Deps {
   def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.1"
 }
 
-def graalVmVersion     = "22.3.2"
+def graalVmVersion     = "22.3.1"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
