@@ -51,14 +51,15 @@ object ExtractedDirectives {
       else None
     if (malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty) {
 
-      val directives = allDirectives.head
-      val directivesPositionOpt =
-        if (directives.containsTargetDirectivesOnly)
+      val directivesOpt = allDirectives.headOption
+      val directivesPositionOpt = directivesOpt match {
+        case Some(directives) if directives.containsTargetDirectivesOnly =>
           None
-        else
-          Some(directives.getPosition(path))
+        case Some(directives) => Some(directives.getPosition(path))
+        case None             => None
+      }
 
-      val flattened = directives.getFlattenedMap.asScala.toSeq
+      val flattened = directivesOpt.map(_.getFlattenedMap.asScala.toSeq).getOrElse(Seq.empty)
       val strictDirectives =
         flattened.map {
           case (k, l) =>
