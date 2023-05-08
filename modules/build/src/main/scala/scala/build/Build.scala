@@ -1125,11 +1125,9 @@ object Build {
       logger.debug("Post-processing class files of pre-processed sources")
       val mappings = generatedSources
         .map { source =>
-          val lineShift =
-            -os.read(source.generated).take(source.topWrapperLen).count(_ == '\n') // charset?
           val relPath       = source.generated.relativeTo(generatedSrcRoot).toString
           val reportingPath = source.reportingPath.fold(s => s, _.last)
-          (relPath, (reportingPath, lineShift))
+          (relPath, (reportingPath, -source.topWrapperLineCount))
         }
         .toMap
 

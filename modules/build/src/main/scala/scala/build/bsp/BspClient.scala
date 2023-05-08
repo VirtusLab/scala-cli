@@ -11,7 +11,7 @@ import scala.build.Position.File
 import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.util.WarningMessages
-import scala.build.postprocessing.LineConversion
+import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
 import scala.jdk.CollectionConverters.*
 
@@ -31,15 +31,11 @@ class BspClient(
       _.toNIO.toUri.toASCIIString
     )
     val updatedDiagnostics =
-      if (genSource.topWrapperLen == 0)
+      if (genSource.topWrapperLineCount == 0)
         Right(params.getDiagnostics)
       else
         Left { () =>
-          val updateLine = LineConversion.scalaLineToScLine(
-            os.read(os.Path(Paths.get(new URI(updatedUri)))),
-            os.read(os.Path(Paths.get(new URI(params.getTextDocument.getUri)))),
-            genSource.topWrapperLen
-          )
+          val updateLine = scalaLineToScLine(genSource.topWrapperLineCount)
           params.getDiagnostics.asScala.toSeq
             .map { diag =>
               val updatedDiagOpt = for {

@@ -108,13 +108,13 @@ case object ScriptPreprocessor extends Preprocessor {
           }
         )
 
-        val (code, topWrapperLen, _) = cw.wrapCode(
+        val (code, topWrapperLineCount, _) = cw.wrapCode(
           pkg,
           wrapper,
           scriptCode,
           inputArgPath.getOrElse(subPath.last)
         )
-        (code, topWrapperLen)
+        (code, topWrapperLineCount)
       }
 
       val className = (pkg :+ wrapper).map(_.raw).mkString(".")

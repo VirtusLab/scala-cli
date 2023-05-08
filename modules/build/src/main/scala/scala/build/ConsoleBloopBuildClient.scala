@@ -9,6 +9,7 @@ import java.nio.file.Paths
 import scala.build.errors.Severity
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
+import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
@@ -46,14 +47,14 @@ class ConsoleBloopBuildClient(
   ): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
     diagnosticMappings.get(path).collect {
       case (originalPath, lineOffset)
-          if diag.getRange.getStart.getLine + lineOffset >= 0 &&
-          diag.getRange.getEnd.getLine + lineOffset >= 0 =>
+          if scalaLineToScLine(lineOffset)(diag.getRange.getStart.getLine).isDefined &&
+          scalaLineToScLine(lineOffset)(diag.getRange.getEnd.getLine).isDefined =>
         val start = new bsp4j.Position(
-          diag.getRange.getStart.getLine + lineOffset,
+          scalaLineToScLine(lineOffset)(diag.getRange.getStart.getLine).get,
           diag.getRange.getStart.getCharacter
         )
         val end = new bsp4j.Position(
-          diag.getRange.getEnd.getLine + lineOffset,
+          scalaLineToScLine(lineOffset)(diag.getRange.getEnd.getLine).get,
           diag.getRange.getEnd.getCharacter
         )
         val range = new bsp4j.Range(start, end)
@@ -75,10 +76,7 @@ class ConsoleBloopBuildClient(
       val diagnosticMappings = generatedSources.valuesIterator
         .flatMap(_.iterator)
         .map { source =>
-          val lineShift = -os.read(source.generated)
-            .take(source.topWrapperLen)
-            .count(_ == '\n') // charset?
-          (source.generated, (source.reportingPath, lineShift))
+          source.generated -> (source.reportingPath, source.topWrapperLineCount)
         }
         .toMap
 

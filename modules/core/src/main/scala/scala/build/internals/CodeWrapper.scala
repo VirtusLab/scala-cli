@@ -22,14 +22,16 @@ abstract class CodeWrapper {
     val extraCode0 = "/*</generated>*/"
     val (topWrapper, bottomWrapper, userCodeNestingLevel) =
       apply(code, pkgName, indexedWrapperName, extraCode0, scriptPath)
+
+    val nl = System.lineSeparator()
     val (topWrapper0, bottomWrapper0) =
       (
-        topWrapper + "/*<script>*/" + System.lineSeparator(),
-        "/*</script>*/ /*<generated>*/" + bottomWrapper
+        topWrapper + "/*<script>*/" + nl,
+        nl + "/*</script>*/ /*<generated>*/" + bottomWrapper
       )
-    val importsLen = topWrapper0.length
+    val topWrapperLineCount = topWrapper0.linesIterator.size
 
-    (topWrapper0 + code + bottomWrapper0, importsLen, userCodeNestingLevel)
+    (topWrapper0 + code + bottomWrapper0, topWrapperLineCount, userCodeNestingLevel)
   }
 
 }

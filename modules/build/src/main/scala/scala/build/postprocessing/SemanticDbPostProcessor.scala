@@ -34,13 +34,8 @@ case object SemanticDbPostProcessor extends PostProcessor {
         SemanticdbProcessor.postProcess(
           os.read(originalSource),
           originalSource.relativeTo(workspace),
-          if (source.topWrapperLen == 0) n => Some(n)
-          else
-            LineConversion.scalaLineToScLine(
-              os.read(originalSource),
-              os.read(source.generated),
-              source.topWrapperLen
-            ),
+          if (source.topWrapperLineCount == 0) n => Some(n)
+          else LineConversion.scalaLineToScLine(source.topWrapperLineCount),
           semDbFile,
           finalSemDbFile
         )

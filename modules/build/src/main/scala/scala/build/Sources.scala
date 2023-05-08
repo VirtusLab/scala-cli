@@ -39,7 +39,7 @@ final case class Sources(
         (
           inMemSource.originalPath.map(_._2),
           inMemSource.generatedRelPath,
-          inMemSource.topWrapperLen
+          inMemSource.topWrapperLineCount
         )
       }
 
@@ -51,8 +51,8 @@ final case class Sources(
         .foreach(os.remove(_))
 
     generated.map {
-      case (reportingPath, path, topWrapperLen) =>
-        GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLen)
+      case (reportingPath, path, topWrapperLineCount) =>
+        GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLineCount)
     }
   }
 
@@ -70,7 +70,7 @@ object Sources {
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
     generatedContent: String,
-    topWrapperLen: Int
+    topWrapperLineCount: Int
   )
 
   final case class UnwrappedScript(
@@ -79,8 +79,8 @@ object Sources {
     wrapScriptFun: CodeWrapper => (String, Int)
   ) {
     def wrap(wrapper: CodeWrapper): InMemory = {
-      val (content, topWrapperLen) = wrapScriptFun(wrapper)
-      InMemory(originalPath, generatedRelPath, content, topWrapperLen)
+      val (content, topWrapperLineCount) = wrapScriptFun(wrapper)
+      InMemory(originalPath, generatedRelPath, content, topWrapperLineCount)
     }
   }
 
