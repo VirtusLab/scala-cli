@@ -61,6 +61,17 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains("Hello"))
     }
 
+  def extraSourceFromDirectiveWithExtraDependency(inputs: String*): Unit =
+    prepareTestInputs(
+      ExportTestProjects.extraSourceFromDirectiveWithExtraDependency(actualScalaVersion)
+    ).fromRoot { root =>
+      exportCommand(inputs*).call(cwd = root, stdout = os.Inherit)
+      val res = buildToolCommand(root, runMainArgs*)
+        .call(cwd = root / outputDir)
+      val output = res.out.trim(Charset.defaultCharset())
+      expect(output.contains(root.toString))
+    }
+
   if (runExportTests) {
     test("JVM") {
       jvmTest()
@@ -73,6 +84,12 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
     test("Ensure test framework NPE is not thrown when depending on logback") {
       logbackBugCase()
+    }
+    test("extra source from a directive introducing a dependency") {
+      extraSourceFromDirectiveWithExtraDependency("Main.scala")
+    }
+    test("extra source passed both via directive and from command line") {
+      extraSourceFromDirectiveWithExtraDependency(".")
     }
   }
 }

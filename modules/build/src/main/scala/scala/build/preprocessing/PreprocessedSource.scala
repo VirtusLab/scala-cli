@@ -9,10 +9,15 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]]
   def requirements: Option[BuildRequirements]
   def mainClassOpt: Option[String]
-
   def scopedRequirements: Seq[Scoped[BuildRequirements]]
   def scopePath: ScopePath
   def directivesPositions: Option[Position.File]
+  def distinctPathOrSource: String = this match {
+    case PreprocessedSource.OnDisk(p, _, _, _, _, _, _)                   => p.toString
+    case PreprocessedSource.InMemory(op, rp, _, _, _, _, _, _, _, _, _)   => s"$op; $rp"
+    case PreprocessedSource.UnwrappedScript(p, _, _, _, _, _, _, _, _, _) => p.toString
+    case PreprocessedSource.NoSourceCode(_, _, _, _, p)                   => p.toString
+  }
 }
 
 object PreprocessedSource {

@@ -279,4 +279,19 @@ object ExportTestProjects {
          |//> using lib "ch.qos.logback:logback-classic:1.4.5"
          |println("Hello")
          |""".stripMargin)
+
+  def extraSourceFromDirectiveWithExtraDependency(scalaVersion: String): TestInputs =
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using scala "$scalaVersion"
+           |//> using file "Message.scala"
+           |object Main extends App {
+           |  println(Message(value = os.pwd.toString).value)
+           |}
+           |""".stripMargin,
+      os.rel / "Message.scala" ->
+        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |case class Message(value: String)
+           |""".stripMargin
+    )
 }
