@@ -330,7 +330,7 @@ object CrossSources {
           ) -> m.directivesPositions
       }
     val unwrappedScriptsWithDirectivePositions
-      : Seq[(WithBuildRequirements[Sources.UnwrappedScript], Option[DirectivesPositions])] =
+      : Seq[(WithBuildRequirements[Sources.UnwrappedScript], Option[Position.File])] =
       preprocessedSources.collect {
         case m: PreprocessedSource.UnwrappedScript =>
           val baseReqs0 = baseReqs(m.scopePath)

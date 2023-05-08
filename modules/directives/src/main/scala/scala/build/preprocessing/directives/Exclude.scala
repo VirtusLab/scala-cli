@@ -10,12 +10,12 @@ import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 
 @DirectiveGroupName("Exclude sources")
-@DirectiveExamples("//> using exclude \"utils.scala\"")
+@DirectiveExamples("//> using exclude utils.scala")
 @DirectiveUsage(
-  "`//> using exclude `_pattern_ | `//> using exclude `_pattern_, _pattern_ …",
+  "`//> using exclude `_pattern_ | `//> using exclude `_pattern_ _pattern_ …",
   """`//> using exclude "*.sc"`
     |
-    |`//> using exclude "examples/*", "*/resources/*" …`""".stripMargin
+    |`//> using exclude "examples/*" "*/resources/*" …`""".stripMargin
 )
 @DirectiveDescription("Exclude sources from the project")
 @DirectiveLevel(SpecificationLevel.SHOULD)

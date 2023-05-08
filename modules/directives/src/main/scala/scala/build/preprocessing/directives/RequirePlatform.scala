@@ -10,9 +10,9 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Platform")
 @DirectivePrefix("target.")
 @DirectiveDescription("Require a Scala platform for the current file")
-@DirectiveExamples("//> using target.platform \"scala-js\"")
-@DirectiveExamples("//> using target.platform \"scala-js\", \"scala-native\"")
-@DirectiveExamples("//> using target.platform \"jvm\"")
+@DirectiveExamples("//> using target.platform scala-js")
+@DirectiveExamples("//> using target.platform scala-js, scala-native")
+@DirectiveExamples("//> using target.platform jvm")
 @DirectiveUsage(
   "//> using target.platform _platform_",
   "`//> using target.platform `_platform_"

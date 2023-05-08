@@ -1,8 +1,8 @@
 package scala.build.preprocessing
 
+import scala.build.Position
 import scala.build.internal.CodeWrapper
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
-import scala.build.Position
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]
@@ -55,7 +55,7 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath,
-    directivesPositions: Option[DirectivesPositions],
+    directivesPositions: Option[Position.File],
     wrapScriptFun: CodeWrapper => (String, Int)
   ) extends PreprocessedSource
 

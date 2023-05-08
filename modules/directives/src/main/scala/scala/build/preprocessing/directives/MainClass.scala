@@ -7,7 +7,7 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Main class")
-@DirectiveExamples("//> using mainClass \"helloWorld\"")
+@DirectiveExamples("//> using mainClass helloWorld")
 @DirectiveUsage(
   "//> using mainClass _main class_",
   "`//> using mainClass `_main class_"

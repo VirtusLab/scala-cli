@@ -1,8 +1,8 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.virtuslab.using_directives.reporter.ConsoleReporter
 import com.virtuslab.using_directives.UsingDirectivesProcessor
+import com.virtuslab.using_directives.reporter.ConsoleReporter
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 

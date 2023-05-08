@@ -11,14 +11,14 @@ Add Scala compiler options
 
 `//> using option `_option_
 
-`//> using options `_option1_ _option2_ …
+`//> using options `_option1_, _option2_ …
 
 #### Examples
 `//> using option -Xasync`
 
 `//> using test.option -Xasync`
 
-`//> using options -Xasync -Xfatal-warnings`
+`//> using options -Xasync, -Xfatal-warnings`
 
 ### Compiler plugins
 
@@ -48,7 +48,7 @@ Manually add sources to the project
 
 //> using file hello.sc
 
-//> using files Utils.scala Helper.scala …
+//> using files Utils.scala, Helper.scala …
 
 #### Examples
 `//> using file utils.scala`
@@ -74,10 +74,10 @@ Exclude sources from the project
 
 `//> using exclude "*.sc"`
 
-`//> using exclude "examples/*", "*/resources/*" …`
+`//> using exclude "examples/*" "*/resources/*" …`
 
 #### Examples
-`//> using exclude "utils.scala"`
+`//> using exclude utils.scala`
 
 ### JVM version
 
@@ -108,7 +108,7 @@ Add Java options which will be passed when running an application.
 `//> using javaOpt `_options_
 
 #### Examples
-`//> using javaOpt -Xmx2g -Dsomething=a`
+`//> using javaOpt -Xmx2g, -Dsomething=a`
 
 `//> using test.javaOpt -Dsomething=a`
 
@@ -120,9 +120,9 @@ Add Java properties
 `//> using javaProp `_key_
 
 #### Examples
-`//> using javaProp foo1=bar "foo2"`
+`//> using javaProp foo1=bar, foo2`
 
-`//> using test.javaProp foo3=bar "foo4"`
+`//> using test.javaProp foo3=bar foo4`
 
 ### Javac options
 
@@ -131,9 +131,9 @@ Add Javac options which will be passed when compiling sources.
 `//> using javacOpt `_options_
 
 #### Examples
-`//> using javacOpt source 1.8 target 1.8`
+`//> using javacOpt -source 1.8 -target 1.8`
 
-`//> using test.javacOpt source 1.8 target 1.8`
+`//> using test.javacOpt -source 1.8 -target 1.8`
 
 ### Main class
 
@@ -148,9 +148,9 @@ Specify default main class
 
 Set parameters for packaging
 
-`//> using packaging.packageType `"package type"
+`//> using packaging.packageType package_type`
 
-`//> using packaging.output `"destination path"
+`//> using packaging.output destination_path`
 
 
 
@@ -180,9 +180,9 @@ Set the default platform to Scala.js or Scala Native
 
 Set parameters for publishing
 
-`//> using publish.organization `"value"
-`//> using publish.name `"value"
-`//> using publish.version `"value"
+`//> using publish.organization `value
+`//> using publish.name `value
+`//> using publish.version `value
 
 
 #### Examples
@@ -196,9 +196,9 @@ Set parameters for publishing
 
 Set CI parameters for publishing
 
-`//> using publish.ci.computeVersion `"value"
-`//> using publish.ci.repository `"value"
-`//> using publish.ci.secretKey `"value"
+`//> using publish.ci.computeVersion `value
+`//> using publish.ci.repository `value
+`//> using publish.ci.secretKey `value
 
 
 #### Examples
@@ -212,9 +212,9 @@ Set CI parameters for publishing
 
 Set contextual parameters for publishing
 
-`//> using publish.computeVersion `"value"
-`//> using publish.repository `"value"
-`//> using publish.secretKey `"value"
+`//> using publish.computeVersion `value
+`//> using publish.repository `value
+`//> using publish.secretKey `value
 
 
 #### Examples
@@ -297,7 +297,7 @@ Set the default Scala version
 
 `//> using scala 2`
 
-`//> using scala 2.13.6 2.12.16`
+`//> using scala 2.13.6, 2.12.16`
 
 ### Scala.js options
 
@@ -368,7 +368,7 @@ Require a Scala platform for the current file
 #### Examples
 `//> using target.platform scala-js`
 
-`//> using target.platform scala-js scala-native`
+`//> using target.platform scala-js, scala-native`
 
 `//> using target.platform jvm`
 
@@ -388,9 +388,9 @@ Require a Scala version for the current file
 `//> using target.scala.>= `_version_
 
 #### Examples
-`//> using target.scala.>= "2.13"`
+`//> using target.scala.>= 2.13`
 
-`//> using target.scala.< "3.0.2"`
+`//> using target.scala.< 3.0.2`
 
 ### Scope
 

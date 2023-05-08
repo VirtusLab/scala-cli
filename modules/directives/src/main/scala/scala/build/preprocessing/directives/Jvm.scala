@@ -7,9 +7,9 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("JVM version")
-@DirectiveExamples("//> using jvm \"11\"")
-@DirectiveExamples("//> using jvm \"adopt:11\"")
-@DirectiveExamples("//> using jvm \"graalvm:21\"")
+@DirectiveExamples("//> using jvm 11")
+@DirectiveExamples("//> using jvm adopt:11")
+@DirectiveExamples("//> using jvm graalvm:21")
 @DirectiveUsage(
   "//> using jvm _value_",
   "`//> using jvm` _value_"

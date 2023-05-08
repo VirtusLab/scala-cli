@@ -1,8 +1,8 @@
 package scala.build.preprocessing
 
+import com.virtuslab.using_directives.UsingDirectivesProcessor
 import com.virtuslab.using_directives.custom.model.UsingDirectives
 import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
-import com.virtuslab.using_directives.UsingDirectivesProcessor
 
 import scala.annotation.targetName
 import scala.build.errors.*

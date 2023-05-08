@@ -11,14 +11,14 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Publish")
 @DirectivePrefix("publish.")
-@DirectiveExamples("//> using publish.organization \"io.github.myself\"")
-@DirectiveExamples("//> using publish.name \"my-library\"")
-@DirectiveExamples("//> using publish.version \"0.1.1\"")
+@DirectiveExamples("//> using publish.organization io.github.myself")
+@DirectiveExamples("//> using publish.name my-library")
+@DirectiveExamples("//> using publish.version 0.1.1")
 @DirectiveUsage(
   "//> using publish.(organization|name|version) [value]",
-  """`//> using publish.organization `"value"
-    |`//> using publish.name `"value"
-    |`//> using publish.version `"value"
+  """`//> using publish.organization `value
+    |`//> using publish.name `value
+    |`//> using publish.version `value
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for publishing")

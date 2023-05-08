@@ -20,8 +20,8 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Platform")
-@DirectiveExamples("//> using platform \"scala-js\"")
-@DirectiveExamples("//> using platform \"jvm\", \"scala-native\"")
+@DirectiveExamples("//> using platform scala-js")
+@DirectiveExamples("//> using platform jvm scala-native")
 @DirectiveUsage(
   "//> using platform (jvm|scala-js|scala-native)+",
   "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"

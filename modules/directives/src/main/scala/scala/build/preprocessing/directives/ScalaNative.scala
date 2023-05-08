@@ -7,7 +7,7 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala Native options")
-@DirectiveExamples("//> using nativeVersion \"0.4.0\"")
+@DirectiveExamples("//> using nativeVersion 0.4.0")
 @DirectiveUsage(
   "//> using nativeGc _value_ | using native-version _value_",
   """`//> using nativeGc` _value_
@@ -18,9 +18,9 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using nativeVersion` _value_
     |
-    |`//> using nativeCompile` _value1_, _value2_
+    |`//> using nativeCompile` _value1_ _value2_
     |
-    |`//> using nativeLinking` _value1_, _value2_
+    |`//> using nativeLinking` _value1_ _value2_
     |
     |`//> using nativeClang` _value_
     |

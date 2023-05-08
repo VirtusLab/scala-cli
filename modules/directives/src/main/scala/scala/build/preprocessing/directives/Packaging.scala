@@ -25,11 +25,11 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Packaging")
 @DirectivePrefix("packaging.")
-@DirectiveExamples("//> using packaging.packageType \"assembly\"")
-@DirectiveExamples("//> using packaging.output \"foo\"")
-@DirectiveExamples("//> using packaging.provided \"org.apache.spark::spark-sql\"")
-@DirectiveExamples("//> using packaging.dockerFrom \"openjdk:11\"")
-@DirectiveExamples("//> using packaging.graalvmArgs \"--no-fallback\"")
+@DirectiveExamples("//> using packaging.packageType assembly")
+@DirectiveExamples("//> using packaging.output foo")
+@DirectiveExamples("//> using packaging.provided org.apache.spark::spark-sql")
+@DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
+@DirectiveExamples("//> using packaging.graalvmArgs --no-fallback")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
@@ -40,9 +40,9 @@ import scala.cli.commands.SpecificationLevel
     |using packaging.dockerImageRegistry [image registry]
     |using packaging.dockerImageRepository [image repository]
     |""".stripMargin,
-  """`//> using packaging.packageType `"package type"
+  """`//> using packaging.packageType package_type`
     |
-    |`//> using packaging.output `"destination path"
+    |`//> using packaging.output destination_path`
     |
     |""".stripMargin
 )

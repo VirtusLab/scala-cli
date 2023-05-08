@@ -7,10 +7,10 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Repository")
-@DirectiveExamples("//> using repository \"jitpack\"")
-@DirectiveExamples("//> using repository \"sonatype:snapshots\"")
+@DirectiveExamples("//> using repository jitpack")
+@DirectiveExamples("//> using repository sonatype:snapshots")
 @DirectiveExamples(
-  "//> using repository \"https://maven-central.storage-download.googleapis.com/maven2\""
+  "//> using repository https://maven-central.storage-download.googleapis.com/maven2"
 )
 @DirectiveUsage(
   "//> using repository _repository_",
