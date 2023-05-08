@@ -74,7 +74,7 @@ def cs: T[String] = T.persistent {
       case "aarch64" =>
         if (Properties.isLinux)
           Some(
-            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-aarch64-pc-linux.gz"
+            s"https://github.com/VirtusLab/coursier-m1/releases/download/v$csVersion/cs-aarch64-pc-linux.gz"
           )
         else if (Properties.isMac)
           Some(
