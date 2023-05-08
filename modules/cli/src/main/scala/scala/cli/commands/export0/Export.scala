@@ -186,7 +186,7 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.6.1")
+      val sbtVersion = options.sbtVersion.getOrElse("1.6.2")
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
