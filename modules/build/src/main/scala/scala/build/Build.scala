@@ -18,7 +18,7 @@ import scala.build.errors.*
 import scala.build.input.VirtualScript.VirtualScriptNameRegex
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
-import scala.build.internal.{Constants, CustomCodeWrapper, MainClass, Util}
+import scala.build.internal.{Constants, MainClass, Util}
 import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -227,7 +227,6 @@ object Build {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          options.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           options.archiveCache,
           options.internal.javaClassNameVersionOpt,
           () => options.javaHome().value.javaCommand
@@ -266,8 +265,11 @@ object Build {
       overrideOptions: BuildOptions
     ): Either[BuildException, NonCrossBuilds] = either {
 
-      val baseOptions   = overrideOptions.orElse(sharedOptions)
-      val scopedSources = value(crossSources.scopedSources(baseOptions))
+      val baseOptions = overrideOptions.orElse(sharedOptions)
+
+      val wrappedScriptsSources = crossSources.withWrappedScripts(baseOptions)
+
+      val scopedSources = value(wrappedScriptsSources.scopedSources(baseOptions))
 
       val mainSources = scopedSources.sources(Scope.Main, baseOptions)
       val mainOptions = mainSources.buildOptions

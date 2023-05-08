@@ -15,7 +15,7 @@ abstract class CodeWrapper {
     indexedWrapperName: Name,
     code: String,
     scriptPath: String
-  ) = {
+  ): (String, Int, Int) = {
 
     // we need to normalize topWrapper and bottomWrapper in order to ensure
     // the snippets always use the platform-specific newLine
@@ -23,10 +23,18 @@ abstract class CodeWrapper {
     val (topWrapper, bottomWrapper, userCodeNestingLevel) =
       apply(code, pkgName, indexedWrapperName, extraCode0, scriptPath)
     val (topWrapper0, bottomWrapper0) =
-      (topWrapper + "/*<script>*/\n", "/*</script>*/ /*<generated>*/" + bottomWrapper)
+      (
+        topWrapper + "/*<script>*/" + System.lineSeparator(),
+        "/*</script>*/ /*<generated>*/" + bottomWrapper
+      )
     val importsLen = topWrapper0.length
 
     (topWrapper0 + code + bottomWrapper0, importsLen, userCodeNestingLevel)
   }
 
+}
+
+object CodeWrapper {
+  def mainClassObject(className: Name): Name =
+    Name(className.raw ++ "_sc")
 }

@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
@@ -10,6 +10,7 @@ import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 import scala.build.Position.File
 import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
+import scala.build.internal.util.WarningMessages
 import scala.build.postprocessing.LineConversion
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}
 import scala.jdk.CollectionConverters.*
@@ -48,6 +49,16 @@ class BspClient(
                 val diag0 = diag.duplicate()
                 diag0.getRange.getStart.setLine(startLine)
                 diag0.getRange.getEnd.setLine(endLine)
+
+                if (
+                  diag0.getMessage.contains(
+                    "cannot be a main method since it cannot be accessed statically"
+                  )
+                )
+                  diag0.setMessage(
+                    WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
+                  )
+
                 diag0
               }
               updatedDiagOpt.getOrElse(diag)

@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
-import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, InternalOptions, Scope, SuppressWarningOptions}
 import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
@@ -84,7 +83,6 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       val (crossSources, _) = CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          cliBuildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           cliBuildOptions.archiveCache,
           cliBuildOptions.internal.javaClassNameVersionOpt,
           () => cliBuildOptions.javaHome().value.javaCommand
@@ -95,8 +93,10 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       ).orExit(logger)
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
-      val scopedSources = crossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
-      val sources       = scopedSources.sources(Scope.Main, crossSourcesSharedOptions)
+      val wrappedCrossSources       = crossSources.withWrappedScripts(crossSourcesSharedOptions)
+      val scopedSources =
+        wrappedCrossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
+      val sources = scopedSources.sources(Scope.Main, crossSourcesSharedOptions)
 
       val pureJava = sources.hasJava && !sources.hasScala
 

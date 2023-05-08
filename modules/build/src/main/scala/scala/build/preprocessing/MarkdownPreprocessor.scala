@@ -13,7 +13,7 @@ import scala.build.input.{
   VirtualMarkdownFile
 }
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
-import scala.build.internal.{AmmUtil, CodeWrapper, CustomCodeWrapper, Name}
+import scala.build.internal.{AmmUtil, Name}
 import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 

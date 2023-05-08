@@ -28,13 +28,54 @@ import scala.build.testrunner.DynamicTestRunner.globPattern
 import scala.util.Try
 import scala.util.chaining.*
 
-final case class CrossSources(
+/** CrossSources with unwrapped scripts, use [[withWrappedScripts]] to wrap them and obtain an
+  * instance of CrossSources
+  *
+  * See [[CrossSources]] for more information
+  *
+  * @param paths
+  *   paths and realtive paths to sources on disk, wrapped in their build requirements
+  * @param inMemory
+  *   in memory sources (e.g. snippets) wrapped in their build requirements
+  * @param defaultMainClass
+  * @param resourceDirs
+  * @param buildOptions
+  *   build options from sources
+  * @param unwrappedScripts
+  *   in memory script sources, their code must be wrapped before compiling
+  */
+sealed class UnwrappedCrossSources(
   paths: Seq[WithBuildRequirements[(os.Path, os.RelPath)]],
   inMemory: Seq[WithBuildRequirements[Sources.InMemory]],
   defaultMainClass: Option[String],
   resourceDirs: Seq[WithBuildRequirements[os.Path]],
-  buildOptions: Seq[WithBuildRequirements[BuildOptions]]
+  buildOptions: Seq[WithBuildRequirements[BuildOptions]],
+  unwrappedScripts: Seq[WithBuildRequirements[Sources.UnwrappedScript]]
 ) {
+
+  /** For all unwrapped script sources contained in this object wrap them according to provided
+    * BuildOptions
+    *
+    * @param buildOptions
+    *   options used to choose the script wrapper
+    * @return
+    *   CrossSources with all the scripts wrapped
+    */
+  def withWrappedScripts(buildOptions: BuildOptions): CrossSources = {
+    val codeWrapper = ScriptPreprocessor.getScriptWrapper(buildOptions)
+
+    val wrappedScripts = unwrappedScripts.map { unwrapppedWithRequirements =>
+      unwrapppedWithRequirements.map(_.wrap(codeWrapper))
+    }
+
+    CrossSources(
+      paths,
+      inMemory ++ wrappedScripts,
+      defaultMainClass,
+      resourceDirs,
+      this.buildOptions
+    )
+  }
 
   def sharedOptions(baseOptions: BuildOptions): BuildOptions =
     buildOptions
@@ -42,12 +83,39 @@ final case class CrossSources(
       .map(_.value)
       .foldLeft(baseOptions)(_ orElse _)
 
-  private def needsScalaVersion =
+  protected def needsScalaVersion =
     paths.exists(_.needsScalaVersion) ||
     inMemory.exists(_.needsScalaVersion) ||
     resourceDirs.exists(_.needsScalaVersion) ||
     buildOptions.exists(_.needsScalaVersion)
+}
 
+/** Information gathered from preprocessing command inputs - sources and build options from using
+  * directives
+  *
+  * @param paths
+  *   paths and realtive paths to sources on disk, wrapped in their build requirements
+  * @param inMemory
+  *   in memory sources (e.g. snippets and wrapped scripts) wrapped in their build requirements
+  * @param defaultMainClass
+  * @param resourceDirs
+  * @param buildOptions
+  *   build options from sources
+  */
+final case class CrossSources(
+  paths: Seq[WithBuildRequirements[(os.Path, os.RelPath)]],
+  inMemory: Seq[WithBuildRequirements[Sources.InMemory]],
+  defaultMainClass: Option[String],
+  resourceDirs: Seq[WithBuildRequirements[os.Path]],
+  buildOptions: Seq[WithBuildRequirements[BuildOptions]]
+) extends UnwrappedCrossSources(
+      paths,
+      inMemory,
+      defaultMainClass,
+      resourceDirs,
+      buildOptions,
+      Nil
+    ) {
   def scopedSources(baseOptions: BuildOptions): Either[BuildException, ScopedSources] = either {
 
     val sharedOptions0 = sharedOptions(baseOptions)
@@ -114,7 +182,6 @@ final case class CrossSources(
       crossSources0.buildOptions.map(_.scopedValue(defaultScope))
     )
   }
-
 }
 
 object CrossSources {
@@ -141,7 +208,7 @@ object CrossSources {
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, (UnwrappedCrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =
@@ -262,6 +329,16 @@ object CrossSources {
             Sources.InMemory(m.originalPath, m.relPath, m.code, m.ignoreLen)
           ) -> m.directivesPositions
       }
+    val unwrappedScriptsWithDirectivePositions
+      : Seq[(WithBuildRequirements[Sources.UnwrappedScript], Option[DirectivesPositions])] =
+      preprocessedSources.collect {
+        case m: PreprocessedSource.UnwrappedScript =>
+          val baseReqs0 = baseReqs(m.scopePath)
+          WithBuildRequirements(
+            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            Sources.UnwrappedScript(m.originalPath, m.relPath, m.wrapScriptFun)
+          ) -> m.directivesPositions
+      }
 
     val resourceDirs: Seq[WithBuildRequirements[os.Path]] = allInputs.elements.collect {
       case r: ResourceDirectory =>
@@ -271,7 +348,9 @@ object CrossSources {
     )
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, DirectivesPositions)]] =
-      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions)
+      (pathsWithDirectivePositions ++
+        inMemoryWithDirectivePositions ++
+        unwrappedScriptsWithDirectivePositions)
         .flatMap { (withBuildRequirements, directivesPositions) =>
           val scope = withBuildRequirements.scopedValue(Scope.Main).scope
           val path: os.Path = withBuildRequirements.value match
@@ -279,6 +358,10 @@ object CrossSources {
               im.originalPath match
                 case Right((_, p: os.Path)) => p
                 case _                      => inputs.workspace / im.generatedRelPath
+            case us: Sources.UnwrappedScript =>
+              us.originalPath match
+                case Right((_, p: os.Path)) => p
+                case _                      => inputs.workspace / us.generatedRelPath
             case (p: os.Path, _) => p
           directivesPositions.map((path, scope, _))
         }
@@ -306,9 +389,20 @@ object CrossSources {
         }
     }
 
-    val paths    = pathsWithDirectivePositions.map(_._1)
-    val inMemory = inMemoryWithDirectivePositions.map(_._1)
-    (CrossSources(paths, inMemory, defaultMainClassOpt, resourceDirs, buildOptions), allInputs)
+    val paths            = pathsWithDirectivePositions.map(_._1)
+    val inMemory         = inMemoryWithDirectivePositions.map(_._1)
+    val unwrappedScripts = unwrappedScriptsWithDirectivePositions.map(_._1)
+    (
+      UnwrappedCrossSources(
+        paths,
+        inMemory,
+        defaultMainClassOpt,
+        resourceDirs,
+        buildOptions,
+        unwrappedScripts
+      ),
+      allInputs
+    )
   }
 
   private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =

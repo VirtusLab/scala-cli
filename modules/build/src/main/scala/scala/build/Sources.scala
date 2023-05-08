@@ -73,6 +73,17 @@ object Sources {
     topWrapperLen: Int
   )
 
+  final case class UnwrappedScript(
+    originalPath: Either[String, (os.SubPath, os.Path)],
+    generatedRelPath: os.RelPath,
+    wrapScriptFun: CodeWrapper => (String, Int)
+  ) {
+    def wrap(wrapper: CodeWrapper): InMemory = {
+      val (content, topWrapperLen) = wrapScriptFun(wrapper)
+      InMemory(originalPath, generatedRelPath, content, topWrapperLen)
+    }
+  }
+
   /** The default preprocessor list.
     *
     * @param codeWrapper
@@ -86,13 +97,12 @@ object Sources {
     * @return
     */
   def defaultPreprocessors(
-    codeWrapper: CodeWrapper,
     archiveCache: ArchiveCache[Task],
     javaClassNameVersionOpt: Option[String],
     javaCommand: () => String
   ): Seq[Preprocessor] =
     Seq(
-      ScriptPreprocessor(codeWrapper),
+      ScriptPreprocessor,
       MarkdownPreprocessor,
       JavaPreprocessor(archiveCache, javaClassNameVersionOpt, javaCommand),
       ScalaPreprocessor,

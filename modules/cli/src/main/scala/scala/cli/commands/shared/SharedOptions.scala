@@ -22,7 +22,7 @@ import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
-import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
+import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.Toolkit

@@ -358,7 +358,7 @@ println("Args: " + args.mkString(" "))
 
 This in turn is the Scala `3.x` equivalent for its own old `scala` runner.
 
-```scala compile title=old-scala-shebang-3.sc
+```scala title=old-scala-shebang-3.sc
 #!/usr/bin/env scala
 @main def main(args: String*): Unit = println("Args: " + args.mkString(" "))
 ```

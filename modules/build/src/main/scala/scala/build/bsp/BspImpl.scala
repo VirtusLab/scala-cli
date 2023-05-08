@@ -22,7 +22,7 @@ import scala.build.errors.{
   ParsingInputsException
 }
 import scala.build.input.{Inputs, ScalaCliInvokeData}
-import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -101,7 +101,6 @@ final class BspImpl(
       CrossSources.forInputs(
         inputs = inputs,
         preprocessors = Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand
@@ -113,16 +112,21 @@ final class BspImpl(
       ).left.map((_, Scope.Main))
     }
 
-    if (verbosity >= 3)
-      pprint.err.log(crossSources)
+    val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
 
-    val scopedSources = value(crossSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
+    if (verbosity >= 3)
+      pprint.err.log(wrappedScriptsSources)
+
+    val scopedSources =
+      value(wrappedScriptsSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
 
     if (verbosity >= 3)
       pprint.err.log(scopedSources)
 
-    val sourcesMain = scopedSources.sources(Scope.Main, crossSources.sharedOptions(buildOptions))
-    val sourcesTest = scopedSources.sources(Scope.Test, crossSources.sharedOptions(buildOptions))
+    val sourcesMain =
+      scopedSources.sources(Scope.Main, wrappedScriptsSources.sharedOptions(buildOptions))
+    val sourcesTest =
+      scopedSources.sources(Scope.Test, wrappedScriptsSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
       pprint.err.log(sourcesMain)

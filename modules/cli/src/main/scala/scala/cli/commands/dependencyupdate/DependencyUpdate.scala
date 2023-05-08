@@ -5,7 +5,6 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
-import scala.build.internal.CustomCodeWrapper
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
@@ -34,7 +33,6 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand
@@ -44,11 +42,13 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         buildOptions.internal.exclude
       ).orExit(logger)
 
-    val scopedSources = crossSources.scopedSources(buildOptions).orExit(logger)
+    val sharedOptions       = crossSources.sharedOptions(buildOptions)
+    val wrappedCrossOptions = crossSources.withWrappedScripts(sharedOptions)
+    val scopedSources       = wrappedCrossOptions.scopedSources(buildOptions).orExit(logger)
 
     def generateActionableUpdateDiagnostic(scope: Scope)
       : Seq[ActionableDependencyUpdateDiagnostic] = {
-      val sources = scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
+      val sources = scopedSources.sources(scope, sharedOptions)
 
       if (verbosity >= 3)
         pprint.err.log(sources)

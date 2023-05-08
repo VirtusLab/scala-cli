@@ -15,7 +15,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
-import scala.build.internal.{Constants, CustomCodeWrapper}
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Platform, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpGroup, SharedOptions}
@@ -44,7 +44,6 @@ object Export extends ScalaCommand[ExportOptions] {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
-          buildOptions.scriptOptions.codeWrapper.getOrElse(CustomCodeWrapper),
           buildOptions.archiveCache,
           buildOptions.internal.javaClassNameVersionOpt,
           () => buildOptions.javaHome().value.javaCommand
@@ -54,8 +53,11 @@ object Export extends ScalaCommand[ExportOptions] {
         buildOptions.internal.exclude
       )
     }
-    val scopedSources = value(crossSources.scopedSources(buildOptions))
-    val sources       = scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
+
+    val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
+
+    val scopedSources = value(wrappedScriptsSources.scopedSources(buildOptions))
+    val sources = scopedSources.sources(scope, wrappedScriptsSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
       pprint.err.log(sources)
