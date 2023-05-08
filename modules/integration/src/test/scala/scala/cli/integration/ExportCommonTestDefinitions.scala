@@ -7,7 +7,8 @@ import java.nio.charset.Charset
 import scala.util.Properties
 
 trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
-  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-warning")
 
   protected def runExportTests: Boolean = Properties.isLinux
 
