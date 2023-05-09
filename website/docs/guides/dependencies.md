@@ -37,6 +37,41 @@ For example:
 org.postgresql:postgresql:42.2.8
 ```
 
+### Repositories
+
+Sometimes dependencies are published into non-standard repositories, like nightly builds published to Sonatype Snapshots. Scala CLI can use additional maven and ivy repositories with the `repository` directive or `--repository` command line options:
+
+```scala
+//> using repository sonatype:snapshots
+```
+
+or
+
+```bash ignore
+scala-cli --repository "https://maven-central.storage-download.googleapis.com/maven2"
+```
+
+Both directive and command line option accept predefined repository definitions (see below) or a URL of the root of Maven repository.
+
+Repositories can also be resolved from the `COURSIER_REPOSITORIES` environment variable, but this is not recommended (more in [Coursier documentation](https://get-coursier.io/docs/other-repositories)).
+
+#### Predefined repositories
+
+
+| predefined repository | kind | description  |
+| ---------- | ---- | --- |
+| central | Maven [(root)](https://repo1.maven.org/maven2) | Used by default, default repository for most Scala libraries |
+| sonatype:snapshots | Maven [(root)](https://oss.sonatype.org/content/repositories/snapshots) | Repositories where most Scala libraries publish its snapshots / nightly builds. Used when `X.nightly` is used as Scala version e.g. `3.1.nightly`. |
+| ivy2local | Ivy | Local ivy repository, used to publish things locally (e.g. by `publishLocal`). Localized in `<ivy-home>/local`, usually `<user-home>/.ivy/local`.    |
+| m2Local | Maven | Local maven repository, localized in `<user-home>/.m2/repository` |
+
+Scala CLI delegates parsing of predefined repositories to Coursier and full details can be obtains from Coursier source code ([here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/jvm/src/main/scala/coursier/LocalRepositories.scala) and [here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/shared/src/main/scala/coursier/internal/SharedRepositoryParser.scala))
+
+
+
+
+
+
 ### Excluding Transitive Dependencies
 
 To exclude a transitive dependency from a Scala CLI project use the `exclude` parameter:
@@ -98,7 +133,7 @@ It is possible to declare dependencies limited to the test scope with the `using
 `````
 
 More details can be found in
-the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
+the [`using` directives guide](./using-directives#directives-with-a-test-scope-equivalent).
 
 ## Specifying dependencies from the command line
 
@@ -121,11 +156,11 @@ scala-cli compile Sample.sc \
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favor adding dependencies in the sources themselves
-via [using directives](/docs/guides/configuration.md#special-imports). However, the `--dependency` CLI option takes
+via [using directives](./configuration#special-imports). However, the `--dependency` CLI option takes
 precedence over `using` directives, so it can be used to override a `using` directive, such as when you want to work
 with a different dependency version.
 
-You can also add repositories on the command-line, via `--repository`:
+You can also add repositories on the command-line, via `--repository` or `//> using repos`
 
 ```bash ignore
 scala-cli compile Sample.sc \

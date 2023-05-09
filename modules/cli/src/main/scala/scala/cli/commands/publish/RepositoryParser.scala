@@ -3,14 +3,14 @@ package scala.cli.commands.publish
 // from coursier.internal.SharedRepositoryParser
 // delete when coursier.internal.SharedRepositoryParser.repositoryOpt is available for us
 
-import coursier.Repositories
 import coursier.core.Repository
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
+import coursier.{LocalRepositories, Repositories}
 
 object RepositoryParser {
 
-  def repositoryOpt(s: String): Option[Repository] =
+  def repositoryOpt(s: String): Option[MavenRepository] =
     if (s == "central")
       Some(Repositories.central)
     else if (s.startsWith("sonatype:"))
@@ -23,16 +23,10 @@ object RepositoryParser {
 
       Some(Repositories.bintray(id))
     }
-    else if (s.startsWith("bintray-ivy:"))
-      Some(Repositories.bintrayIvy(s.stripPrefix("bintray-ivy:")))
-    else if (s.startsWith("typesafe:ivy-"))
-      Some(Repositories.typesafeIvy(s.stripPrefix("typesafe:ivy-")))
     else if (s.startsWith("typesafe:"))
       Some(Repositories.typesafe(s.stripPrefix("typesafe:")))
     else if (s.startsWith("sbt-maven:"))
       Some(Repositories.sbtMaven(s.stripPrefix("sbt-maven:")))
-    else if (s.startsWith("sbt-plugin:"))
-      Some(Repositories.sbtPlugin(s.stripPrefix("sbt-plugin:")))
     else if (s == "scala-integration" || s == "scala-nightlies")
       Some(Repositories.scalaIntegration)
     else if (s == "jitpack")
@@ -53,24 +47,4 @@ object RepositoryParser {
       Some(Repositories.apache(s.stripPrefix("apache:")))
     else
       None
-
-  def repository(s: String): Either[String, Repository] =
-    repositoryOpt(s) match {
-      case Some(repo) => Right(repo)
-      case None =>
-        if (s.startsWith("ivy:")) {
-          val s0     = s.stripPrefix("ivy:")
-          val sepIdx = s0.indexOf('|')
-          if (sepIdx < 0)
-            IvyRepository.parse(s0)
-          else {
-            val mainPart     = s0.substring(0, sepIdx)
-            val metadataPart = s0.substring(sepIdx + 1)
-            IvyRepository.parse(mainPart, Some(metadataPart))
-          }
-        }
-        else
-          Right(MavenRepository(s))
-    }
-
 }

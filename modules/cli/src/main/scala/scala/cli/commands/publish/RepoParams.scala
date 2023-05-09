@@ -68,17 +68,12 @@ object RepoParams {
         }
         RepoParams.gitHubRepoFor(org, name)
       case repoStr =>
-        val repo0 = RepositoryParser.repositoryOpt(repoStr)
-          .collect {
-            case m: MavenRepository =>
-              m
-          }
-          .getOrElse {
-            val url =
-              if (repoStr.contains("://")) repoStr
-              else os.Path(repoStr, os.pwd).toNIO.toUri.toASCIIString
-            MavenRepository(url)
-          }
+        val repo0 = RepositoryParser.repositoryOpt(repoStr).getOrElse {
+          val url =
+            if (repoStr.contains("://")) repoStr
+            else os.Path(repoStr, os.pwd).toNIO.toUri.toASCIIString
+          MavenRepository(url)
+        }
 
         RepoParams(
           PublishRepository.Simple(repo0),

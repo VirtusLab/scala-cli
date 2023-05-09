@@ -226,7 +226,9 @@ Aliases: `-r`, `--repo`
 
 `SHOULD have` per Scala Runner specification
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 ### `--compiler-plugin`
 

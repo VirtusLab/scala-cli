@@ -186,7 +186,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -900,7 +902,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1431,7 +1435,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -1988,7 +1994,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -2564,7 +2572,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -3116,7 +3126,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -3705,7 +3717,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -4339,7 +4353,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
@@ -5186,7 +5202,9 @@ Embed resources into the Scala Native binary (can be read with the Java resource
 
 **--repository**
 
-Add repositories
+Add repositories for dependency resolution.
+
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
 Aliases: `-r` ,`--repo`
 
