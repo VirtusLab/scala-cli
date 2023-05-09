@@ -2,6 +2,7 @@ package scala.build
 
 import java.io.File
 
+import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
@@ -266,9 +267,21 @@ object CrossSources {
       inputs.withElements(elements = filteredElements)
     )
 
-    val preprocessedSources =
+    val preprocessedSources: Seq[PreprocessedSource] =
       (preprocessedInputFromArgs ++ preprocessedSourcesFromDirectives).distinct
-        .pipe(sources => value(validateExcludeDirectives(sources, allInputs.workspace)))
+        .pipe { sources =>
+          val validatedSources: Seq[PreprocessedSource] =
+            value(validateExcludeDirectives(sources, allInputs.workspace))
+          val distinctSources = validatedSources.distinctBy(_.distinctPathOrSource)
+          val diff            = validatedSources.diff(distinctSources)
+          if diff.nonEmpty then
+            val diffString = diff.map(_.distinctPathOrSource).mkString(s"${System.lineSeparator}  ")
+            logger.message(
+              s"""[${Console.YELLOW}warn${Console.RESET}] Skipped duplicate sources:
+                 |  $diffString""".stripMargin
+            )
+          distinctSources
+        }
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)

@@ -6,10 +6,8 @@ import coursier.util.{Artifact, Task}
 import dependency.*
 
 import scala.build.Ops.*
-import scala.build.Sources
+import scala.build.{CrossSources, Position, Sources, UnwrappedCrossSources}
 import scala.build.internal.ObjectCodeWrapper
-import scala.build.CrossSources
-import scala.build.Position
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
@@ -533,6 +531,44 @@ class SourcesTests extends munit.FunSuite {
         case Left(_: UsingDirectiveWrongValueTypeError) =>
         case o                                          => fail("Exception expected", clues(o))
       }
+    }
+  }
+
+  test("CrossSources.forInputs respects the order of inputs passed") {
+    val inputArgs @ Seq(project, main, abc, message) =
+      Seq("project.scala", "Main.scala", "Abc.scala", "Message.scala")
+    val testInputs = TestInputs(
+      os.rel / project ->
+        """//> using dep "com.lihaoyi::os-lib::0.8.1"
+          |//> using file "Message.scala"
+          |""".stripMargin,
+      os.rel / main ->
+        """object Main extends App {
+          |  println(Message(Abc.hello))
+          |}
+          |""".stripMargin,
+      os.rel / abc ->
+        """object Abc {
+          |  val hello = "Hello"
+          |}
+          |""".stripMargin,
+      os.rel / message ->
+        """case class Message(value: String)
+          |""".stripMargin
+    )
+    testInputs.withInputs { (_, inputs) =>
+      val crossSourcesResult =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions()
+        )
+      assert(crossSourcesResult.isRight)
+      val Right(CrossSources(onDiskSources, _, _, _, _)) =
+        crossSourcesResult.map(_._1.withWrappedScripts(BuildOptions()))
+      val onDiskPaths = onDiskSources.map(_.value._1.last)
+      expect(onDiskPaths == inputArgs)
     }
   }
 

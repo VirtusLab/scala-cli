@@ -40,7 +40,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val (crossSources, _) = value {
+    val (crossSources: UnwrappedCrossSources, _) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -56,8 +56,9 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
 
-    val scopedSources = value(wrappedScriptsSources.scopedSources(buildOptions))
-    val sources = scopedSources.sources(scope, wrappedScriptsSources.sharedOptions(buildOptions))
+    val scopedSources: ScopedSources = value(wrappedScriptsSources.scopedSources(buildOptions))
+    val sources: Sources =
+      scopedSources.sources(scope, wrappedScriptsSources.sharedOptions(buildOptions))
 
     if (verbosity >= 3)
       pprint.err.log(sources)
