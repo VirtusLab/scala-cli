@@ -1,10 +1,6 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.custom.model.{
-  UsingDirectiveKind,
-  UsingDirectiveSyntax,
-  UsingDirectives
-}
+import com.virtuslab.using_directives.custom.model.UsingDirectives
 import com.virtuslab.using_directives.custom.utils.ast.UsingDefs
 
 import scala.build.Position

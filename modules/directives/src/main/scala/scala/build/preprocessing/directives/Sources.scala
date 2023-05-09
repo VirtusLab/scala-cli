@@ -10,7 +10,7 @@ import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 
 @DirectiveGroupName("Custom sources")
-@DirectiveExamples("//> using file \"utils.scala\"")
+@DirectiveExamples("//> using file utils.scala")
 @DirectiveUsage(
   "`//> using file `_path_ | `//> using files `_path1_, _path2_ …",
   """//> using file hello.sc

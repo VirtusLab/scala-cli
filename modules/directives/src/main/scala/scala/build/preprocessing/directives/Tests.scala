@@ -7,7 +7,7 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Test framework")
-@DirectiveExamples("//> using testFramework \"utest.runner.Framework\"")
+@DirectiveExamples("//> using testFramework utest.runner.Framework")
 @DirectiveUsage(
   "using testFramework _class_name_",
   "`//> using testFramework ` _class_name_"

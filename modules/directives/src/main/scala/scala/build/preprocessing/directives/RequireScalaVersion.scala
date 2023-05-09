@@ -8,7 +8,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Scala version")
 @DirectivePrefix("target.")
 @DirectiveDescription("Require a Scala version for the current file")
-@DirectiveExamples("//> using target.scala \"3\"")
+@DirectiveExamples("//> using target.scala 3")
 @DirectiveUsage(
   "//> using target.scala _version_",
   "`//> using target.scala `_version_"

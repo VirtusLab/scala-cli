@@ -310,7 +310,7 @@ object CrossSources {
     } yield mainClass
 
     val pathsWithDirectivePositions
-      : Seq[(WithBuildRequirements[(os.Path, os.RelPath)], Option[DirectivesPositions])] =
+      : Seq[(WithBuildRequirements[(os.Path, os.RelPath)], Option[Position.File])] =
       preprocessedSources.collect {
         case d: PreprocessedSource.OnDisk =>
           val baseReqs0 = baseReqs(d.scopePath)
@@ -320,7 +320,7 @@ object CrossSources {
           ) -> d.directivesPositions
       }
     val inMemoryWithDirectivePositions
-      : Seq[(WithBuildRequirements[Sources.InMemory], Option[DirectivesPositions])] =
+      : Seq[(WithBuildRequirements[Sources.InMemory], Option[Position.File])] =
       preprocessedSources.collect {
         case m: PreprocessedSource.InMemory =>
           val baseReqs0 = baseReqs(m.scopePath)
@@ -330,7 +330,7 @@ object CrossSources {
           ) -> m.directivesPositions
       }
     val unwrappedScriptsWithDirectivePositions
-      : Seq[(WithBuildRequirements[Sources.UnwrappedScript], Option[DirectivesPositions])] =
+      : Seq[(WithBuildRequirements[Sources.UnwrappedScript], Option[Position.File])] =
       preprocessedSources.collect {
         case m: PreprocessedSource.UnwrappedScript =>
           val baseReqs0 = baseReqs(m.scopePath)
@@ -347,10 +347,8 @@ object CrossSources {
       WithBuildRequirements(BuildRequirements(), _)
     )
 
-    lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, DirectivesPositions)]] =
-      (pathsWithDirectivePositions ++
-        inMemoryWithDirectivePositions ++
-        unwrappedScriptsWithDirectivePositions)
+    lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
+      (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
         .flatMap { (withBuildRequirements, directivesPositions) =>
           val scope = withBuildRequirements.scopedValue(Scope.Main).scope
           val path: os.Path = withBuildRequirements.value match
@@ -384,7 +382,7 @@ object CrossSources {
         .foreach { (_, directivesPositions) =>
           logger.diagnostic(
             s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
-            positions = Seq(directivesPositions.all.maxBy(_.endPos._1))
+            positions = Seq(directivesPositions)
           )
         }
     }

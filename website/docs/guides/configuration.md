@@ -69,9 +69,9 @@ This is achieved by specifying `using` directives inside comments at the top of 
 before any `package` or `import` statement:
 
 ```scala compile
-//> using scala "2.13"
-//> using platform "scala-js"
-//> using options "-Xasync"
+//> using scala 2.13
+//> using platform scala-js
+//> using options -Xasync
 
 // package and import statements follow here ...
 ```
@@ -81,7 +81,7 @@ The reference documentation lists [all available using directives](/docs/referen
 Also, there are some directives which only target tests, like `using test.dep`. 
 Those can be useful when defining configuration specific to your test runs.
 ```scala compile
-//> using test.dep "com.lihaoyi::utest:0.7.10"
+//> using test.dep com.lihaoyi::utest:0.7.10
 ```
 
 More details can be found in the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
@@ -91,8 +91,8 @@ More details can be found in the [`using` directives guide](./using-directives.m
 Dependencies can be added right from `.scala` and `.sc` files with [`using` directives](#using-directives):
 
 ```scala compile
-//> using dep "com.lihaoyi::upickle:1.4.0"
-//> using dep "com.lihaoyi::pprint:0.6.6"
+//> using dep com.lihaoyi::upickle:1.4.0
+//> using dep com.lihaoyi::pprint:0.6.6
 import ujson._
 ```
 

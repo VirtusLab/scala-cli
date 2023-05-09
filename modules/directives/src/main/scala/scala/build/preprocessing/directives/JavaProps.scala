@@ -8,8 +8,8 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Java properties")
-@DirectiveExamples("//> using javaProp \"foo1=bar\", \"foo2\"")
-@DirectiveExamples("//> using test.javaProp \"foo3=bar\", \"foo4\"")
+@DirectiveExamples("//> using javaProp foo1=bar, foo2")
+@DirectiveExamples("//> using test.javaProp foo3=bar foo4")
 @DirectiveUsage(
   "//> using javaProp _key=val_",
   """`//> using javaProp `_key=value_

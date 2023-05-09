@@ -21,9 +21,9 @@ import scala.build.{Artifacts, Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
-@DirectiveExamples("//> using toolkit \"0.1.0\"")
-@DirectiveExamples("//> using toolkit \"latest\"")
-@DirectiveExamples("//> using test.toolkit \"latest\"")
+@DirectiveExamples("//> using toolkit 0.1.0")
+@DirectiveExamples("//> using toolkit latest")
+@DirectiveExamples("//> using test.toolkit latest")
 @DirectiveUsage(
   "//> using toolkit _version_",
   "`//> using toolkit` _version_"

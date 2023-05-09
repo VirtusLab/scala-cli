@@ -110,14 +110,14 @@ object PublishContextual {
 
   @DirectiveGroupName("Publish (contextual)")
   @DirectivePrefix("publish.")
-  @DirectiveExamples("//> using publish.computeVersion \"git:tag\"")
-  @DirectiveExamples("//> using publish.repository \"central-s01\"")
-  @DirectiveExamples("//> using publish.secretKey \"env:PUBLISH_SECRET_KEY\"")
+  @DirectiveExamples("//> using publish.computeVersion git:tag")
+  @DirectiveExamples("//> using publish.repository central-s01")
+  @DirectiveExamples("//> using publish.secretKey env:PUBLISH_SECRET_KEY")
   @DirectiveUsage(
     "//> using publish.(computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.computeVersion `"value"
-      |`//> using publish.repository `"value"
-      |`//> using publish.secretKey `"value"
+    """`//> using publish.computeVersion `value
+      |`//> using publish.repository `value
+      |`//> using publish.secretKey `value
       |""".stripMargin
   )
   @DirectiveDescription("Set contextual parameters for publishing")
@@ -146,14 +146,14 @@ object PublishContextual {
 
   @DirectiveGroupName("Publish (CI)")
   @DirectivePrefix("publish.ci.")
-  @DirectiveExamples("//> using publish.ci.computeVersion \"git:tag\"")
-  @DirectiveExamples("//> using publish.ci.repository \"central-s01\"")
-  @DirectiveExamples("//> using publish.ci.secretKey \"env:PUBLISH_SECRET_KEY\"")
+  @DirectiveExamples("//> using publish.ci.computeVersion git:tag")
+  @DirectiveExamples("//> using publish.ci.repository central-s01")
+  @DirectiveExamples("//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY")
   @DirectiveUsage(
     "//> using publish.[.ci](computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.ci.computeVersion `"value"
-      |`//> using publish.ci.repository `"value"
-      |`//> using publish.ci.secretKey `"value"
+    """`//> using publish.ci.computeVersion `value
+      |`//> using publish.ci.repository `value
+      |`//> using publish.ci.secretKey `value
       |""".stripMargin
   )
   @DirectiveDescription("Set CI parameters for publishing")

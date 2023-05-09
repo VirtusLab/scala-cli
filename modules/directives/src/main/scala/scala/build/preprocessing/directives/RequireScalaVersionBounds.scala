@@ -8,8 +8,8 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Scala version bounds")
 @DirectivePrefix("target.scala.")
 @DirectiveDescription("Require a Scala version for the current file")
-@DirectiveExamples("//> using target.scala.>= \"2.13\"")
-@DirectiveExamples("//> using target.scala.< \"3.0.2\"")
+@DirectiveExamples("//> using target.scala.>= 2.13")
+@DirectiveExamples("//> using target.scala.< 3.0.2")
 @DirectiveUsage(
   "//> using target.scala.>= _version_",
   "`//> using target.scala.>= `_version_"

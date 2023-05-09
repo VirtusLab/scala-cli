@@ -11,7 +11,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveGroupName("Scope")
 @DirectivePrefix("target.")
 @DirectiveDescription("Require a scope for the current file")
-@DirectiveExamples("//> using target.scope \"test\"")
+@DirectiveExamples("//> using target.scope test")
 @DirectiveUsage(
   "//> using target.scope _scope_",
   "`//> using target.scope `_scope_"

@@ -1,10 +1,8 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.virtuslab.using_directives.config.Settings
-import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
+import com.virtuslab.using_directives.UsingDirectivesProcessor
 import com.virtuslab.using_directives.reporter.ConsoleReporter
-import com.virtuslab.using_directives.{Context, UsingDirectivesProcessor}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
@@ -62,20 +60,13 @@ class PublishSetupTests extends ScalaCliSuite {
   }
 
   private def directives(content: String): Map[String, Seq[String]] = {
-    val reporter = new ConsoleReporter
-    val processor = {
-      val settings = new Settings
-      settings.setAllowStartWithoutAt(true)
-      settings.setAllowRequire(false)
-      val context = new Context(reporter, settings)
-      new UsingDirectivesProcessor(context)
-    }
+    val reporter  = new ConsoleReporter
+    val processor = new UsingDirectivesProcessor(reporter)
 
     val usedDirectives = processor
-      .extract(content.toCharArray, true, true)
+      .extract(content.toCharArray)
       .asScala
-      .find(_.getKind == UsingDirectiveKind.SpecialComment)
-      .get
+      .head
 
     usedDirectives
       .getFlattenedMap

@@ -87,9 +87,9 @@ Hello World from Scala.js
 Passing `--js-module-split-style smallestmodules` to the `package` sub-command creates many small modules as possibles for the classes in the listed packages (and their subpackages). To define packages use `jsSmallModuleForPackage` parameter.
 
 ```scala title=SmallestModules.scala
-//> using jsModuleKind "es"
-//> using jsModuleSplitStyleStr "smallmodulesfor"
-//> using jsSmallModuleForPackage "com.example.test", "com.example.example""
+//> using jsModuleKind es
+//> using jsModuleSplitStyleStr smallmodulesfor
+//> using jsSmallModuleForPackage com.example.test com.example.example
 
 package com.example.test
 
@@ -143,7 +143,7 @@ npm install jsdom
 :::
 
 ```scala title=Hello.scala
-//> using dep "org.scala-js::scalajs-dom::2.1.0"
+//> using dep org.scala-js::scalajs-dom::2.1.0
 //> using platform scala-js
 
 object Hello {

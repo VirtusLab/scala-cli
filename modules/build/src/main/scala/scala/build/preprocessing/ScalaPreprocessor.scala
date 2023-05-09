@@ -1,6 +1,5 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -33,7 +32,7 @@ case object ScalaPreprocessor extends Preprocessor {
     opts: BuildOptions,
     optsWithReqs: List[WithBuildRequirements[BuildOptions]],
     updatedContent: Option[String],
-    directivesPositions: Option[DirectivesPositions]
+    directivesPositions: Option[Position.File]
   )
 
   object ProcessingOutput {
@@ -129,7 +128,7 @@ case object ScalaPreprocessor extends Preprocessor {
             options: BuildOptions,
             optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
             updatedContentOpt: Option[String],
-            directivesPositions: Option[DirectivesPositions]
+            directivesPositions: Option[Position.File]
           ) =
             value(
               process(

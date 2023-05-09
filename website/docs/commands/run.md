@@ -88,7 +88,7 @@ scala-cli Hello.scala --jvm adopt:14
 You can also specify custom JVM with the using directive `//> using jvm`:
 
 ```scala compile
-//> using jvm "adopt:14"
+//> using jvm adopt:14
 ```
 
 JVMs are [managed by coursier](https://get-coursier.io/docs/cli-java#managed-jvms), and are read from
@@ -107,7 +107,7 @@ scala-cli Hello.scala --java-opt -Xmx1g --java-opt -Dfoo=bar
 You can also add java options with the using directive `//> using javaOpt`:
 
 ```scala compile
-//> using javaOpt "-Xmx1g", "-Dfoo=bar"
+//> using javaOpt -Xmx1g -Dfoo=bar
 ```
 
 Additionally, java properties can be passed to Scala CLI without `--java-prop`:
@@ -135,7 +135,7 @@ When you provide a JAR file as input to Scala CLI, it will be added to the `clas
 You can also add source files with the using directive `//> using file`:
 
 ```scala title=Main.scala
-//> using file "Utils.scala"
+//> using file Utils.scala
 
 object Main extends App {
   println(Utils.message)
@@ -169,7 +169,7 @@ Hello World
 It is also possible to pass multiple paths to source files in a single using directive:
 
 ```scala title=Multiple.scala
-//> using files "Utils.scala", "Main.scala"
+//> using files Utils.scala Main.scala
 ```
 
 ```bash

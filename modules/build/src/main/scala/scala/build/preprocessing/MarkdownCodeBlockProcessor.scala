@@ -1,7 +1,5 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.custom.model.UsingDirectiveKind
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException

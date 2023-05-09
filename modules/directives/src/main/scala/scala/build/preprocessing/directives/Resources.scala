@@ -15,15 +15,15 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Resource directories")
-@DirectiveExamples("//> using resourceDir \"./resources\"")
-@DirectiveExamples("//> using test.resourceDir \"./resources\"")
+@DirectiveExamples("//> using resourceDir ./resources")
+@DirectiveExamples("//> using test.resourceDir ./resources")
 @DirectiveUsage(
   """//> using resourceDir _path_
     |
-    |//> using resourceDirs _path1_, _path2_ …""".stripMargin,
+    |//> using resourceDirs _path1_ _path2_ …""".stripMargin,
   """`//> using resourceDir `_path_
     |
-    |`//> using resourceDirs `_path1_, _path2_ …""".stripMargin
+    |`//> using resourceDirs `_path1_ _path2_ …""".stripMargin
 )
 @DirectiveDescription("Manually add a resource directory to the class path")
 @DirectiveLevel(SpecificationLevel.SHOULD)

@@ -7,10 +7,10 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala version")
-@DirectiveExamples("//> using scala \"3.0.2\"")
-@DirectiveExamples("//> using scala \"2.13\"")
-@DirectiveExamples("//> using scala \"2\"")
-@DirectiveExamples("//> using scala \"2.13.6\", \"2.12.16\"")
+@DirectiveExamples("//> using scala 3.0.2")
+@DirectiveExamples("//> using scala 2.13")
+@DirectiveExamples("//> using scala 2")
+@DirectiveExamples("//> using scala 2.13.6, 2.12.16")
 @DirectiveUsage(
   "//> using scala _version_+",
   "`//> using scala `_version_+"

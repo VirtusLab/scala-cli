@@ -274,7 +274,7 @@ You can run `scala test` code blocks with the `test` sub-command.
 This is a simple example of an `.md` file with a test Scala snippet.
 
 ```scala test
-//> using dep "org.scalameta::munit:0.7.29"
+//> using dep org.scalameta::munit:0.7.29
 class Test extends munit.FunSuite {
   test("example test") {
     assert(true)
@@ -367,7 +367,7 @@ This is supported for all `scala` code block flavours.
 
 ## `scala raw` example
 ```scala raw
-//> using dep "com.lihaoyi::pprint:0.8.0"
+//> using dep com.lihaoyi::pprint:0.8.0
 object Printer {
   def printHello(): Unit = pprint.pprintln("Hello")
 }
@@ -375,13 +375,13 @@ object Printer {
 
 ## Plain `scala` example
 ```scala
-//> using dep "com.lihaoyi::os-lib:0.8.1"
+//> using dep com.lihaoyi::os-lib:0.8.1
 println(os.pwd)
 ```
 
 ## `scala test` example
 ```scala test
-//> using dep "org.scalameta::munit:1.0.0-M7"
+//> using dep org.scalameta::munit:1.0.0-M7
 
 class Test extends munit.FunSuite {
   test("foo") {
@@ -408,14 +408,14 @@ context. A directive defined in a later snippet within the same source may overr
 ## 1
 
 ```scala
-//> using scala "2.12.17"
+//> using scala 2.12.17
 println(util.Properties.versionNumberString)
 ```
 
 ## 2
 
 ```scala
-//> using scala "2.13.10"
+//> using scala 2.13.10
 println(util.Properties.versionNumberString)
 ```
 ````

@@ -926,35 +926,6 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  test("using directive") {
-    val inputs = TestInputs(
-      os.rel / "test.sc" ->
-        s"""// using scala "3.0"
-           |println(123)""".stripMargin
-    )
-    withBsp(inputs, Seq(".")) { (_, localClient, remoteServer) =>
-      async {
-        // prepare build
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        // build code
-        val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-        await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
-
-        val visibleDiagnostics =
-          localClient.diagnostics().takeWhile(!_.getReset).flatMap(_.getDiagnostics.asScala)
-
-        expect(visibleDiagnostics.nonEmpty)
-        visibleDiagnostics.foreach { d =>
-          expect(
-            d.getSeverity == b.DiagnosticSeverity.WARNING,
-            d.getMessage.contains("deprecated"),
-            d.getMessage.contains("directive")
-          )
-        }
-      }
-    }
-  }
-
   test("workspace/reload --dependency option") {
     val inputs = TestInputs(
       os.rel / "ReloadTest.scala" ->
@@ -1191,7 +1162,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("bloop projects are initialised properly for an invalid directive value") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
-        s"""//> using scala 3.1.2
+        s"""//> using scala true
            |
            |object InvalidUsingDirective extends App {
            |  println("Hello")
@@ -1212,12 +1183,12 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           checkDiagnostic(
             diagnostic = diagnostics.head,
             expectedMessage =
-              "Expected new line after the using directive, in the line; but found number literal: .2",
+              "Expected a string value, got 'true'",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 19,
+            expectedStartCharacter = 16,
             expectedEndLine = 0,
-            expectedEndCharacter = 19
+            expectedEndCharacter = 20
           )
         }
     }

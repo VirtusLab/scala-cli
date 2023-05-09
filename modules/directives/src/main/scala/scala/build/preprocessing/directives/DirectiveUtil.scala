@@ -1,12 +1,6 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{
-  BooleanValue,
-  EmptyValue,
-  NumericValue,
-  StringValue,
-  Value
-}
+import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
 
 import scala.build.preprocessing.ScopePath
 import scala.build.{Position, Positioned}
@@ -33,9 +27,6 @@ object DirectiveUtil {
     scopedDirective.directive.values.map {
       case v: StringValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = true)
-        Positioned(pos, v.get)
-      case v: NumericValue =>
-        val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
         Positioned(pos, v.get)
       case v: BooleanValue =>
         val pos = position(v, scopedDirective.maybePath, skipQuotes = false)

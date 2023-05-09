@@ -90,7 +90,7 @@ The `using` directives syntax is still experimental, and may change in future ve
 Here’s an example of a source code file named `version.scala` that contains a `using` directive:
 
 ```scala title=version.scala
-//> using scala "2.12"
+//> using scala 2.12
 
 object OldCode
 //rest of the config

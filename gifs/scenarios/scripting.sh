@@ -24,7 +24,7 @@ Hello World from file
 EOF
 
   cat <<EOF | updateFile script.sc
-//> using dep "com.lihaoyi::os-lib::0.9.1"
+//> using dep com.lihaoyi::os-lib::0.9.1
 
 val filePath = os.pwd / "file"
 val fileContent = os.read(filePath)

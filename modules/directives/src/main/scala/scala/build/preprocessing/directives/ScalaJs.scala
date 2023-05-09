@@ -8,7 +8,7 @@ import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala.js options")
-@DirectiveExamples("//> using jsModuleKind \"common\"")
+@DirectiveExamples("//> using jsModuleKind common")
 @DirectiveUsage(
   "//> using jsVersion|jsMode|jsModuleKind|… _value_",
   """
@@ -18,7 +18,7 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using jsModuleKind` _value_
     |
-    |`//> using jsSmallModuleForPackage` _value1_, _value2_
+    |`//> using jsSmallModuleForPackage` _value1_ _value2_
     |
     |`//> using jsCheckIr` _true|false_
     |

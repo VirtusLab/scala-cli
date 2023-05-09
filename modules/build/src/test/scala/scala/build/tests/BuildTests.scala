@@ -263,7 +263,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using dep "com.lihaoyi::geny:0.6.5"
+        """//> using dep com.lihaoyi::geny:0.6.5
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |println(g.mkString)
@@ -283,14 +283,14 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("several dependencies - using") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using dep "com.lihaoyi::geny:0.6.5"
-          |//> using dep "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::geny:0.6.5
+          |//> using dep com.lihaoyi::pprint:0.6.6
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using dep "com.lihaoyi::geny:0.6.5", "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::geny:0.6.5, "com.lihaoyi::pprint:0.6.6"
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -399,7 +399,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """//> using target.platform "scala.js"
+        """//> using target.platform scala.js
           |object Ignored {
           |  def foo = 2
           |}
@@ -422,13 +422,13 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """//> using target.platform "jvm"
+        """//> using target.platform jvm
           |object Ignored {
           |  def foo = 2
           |}
           |""".stripMargin,
       os.rel / "IgnoredToo.scala" ->
-        """//> using target.platform "native"
+        """//> using target.platform native
           |object IgnoredToo {
           |  def foo = 2
           |}
@@ -445,55 +445,10 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     }
   }
 
-  test("ignore files if wrong Scala version requirement via in clause") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """//> using target.scala.== "2.12" in "my-scala-2.12/"
-          |object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "my-scala-2.12" / "Ignored.scala" ->
-        """object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class"
-      )
-    }
-  }
-  test("ignore files if wrong Scala target requirement via in clause") {
-    val testInputs = TestInputs(
-      os.rel / "Simple.scala" ->
-        """//> using target.platform "scala.js" in "js-sources/"
-          |object Simple {
-          |  def main(args: Array[String]): Unit =
-          |    println("Hello")
-          |}
-          |""".stripMargin,
-      os.rel / "js-sources" / "Ignored.scala" ->
-        """object Ignored {
-          |  def foo = 2
-          |}
-          |""".stripMargin
-    )
-    testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
-      maybeBuild.orThrow.assertGeneratedEquals(
-        "Simple.class",
-        "Simple$.class"
-      )
-    }
-  }
-
   test("Pass files with only commented directives as is to scalac") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """//> using dep "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::pprint:0.6.6
           |object Simple {
           |  def main(args: Array[String]): Unit =
           |    pprint.log("Hello " + "from tests")
@@ -510,8 +465,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Compiler plugins from using directives") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using scala "2.13"
-          |//> using plugins "com.olegpy::better-monadic-for:0.3.1"
+        """//> using scala 2.13
+          |//> using plugins com.olegpy::better-monadic-for:0.3.1
           |
           |def getCounts: Either[String, (Int, Int)] = ???
           |
@@ -528,9 +483,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Scala Native working with Scala 3.1") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """//> using platform "scala-native"
-          |//> using nativeVersion "0.4.3-RC2"
-          |//> using scala "3.1.0"
+        """//> using platform scala-native
+          |//> using nativeVersion 0.4.3-RC2
+          |//> using scala 3.1.0
           |def foo(): String = "foo"
           |""".stripMargin
     )
@@ -547,9 +502,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Scala Native not working with Scala 3.0") {
     val testInputs = TestInputs(
       os.rel / "Simple.scala" ->
-        """//> using platform "scala-native"
-          |//> using nativeVersion "0.4.3-RC2"
-          |//> using scala "3.0.2"
+        """//> using platform scala-native
+          |//> using nativeVersion 0.4.3-RC2
+          |//> using scala 3.0.2
           |def foo(): String = "foo"
           |""".stripMargin
     )
@@ -600,7 +555,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        s"""//> using dep "$usingDependency"
+        s"""//> using dep $usingDependency
            |def foo = "bar"
            |""".stripMargin
     )
@@ -632,7 +587,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        s"""//> using options "${usingDirectiveScalacOptions.mkString("\", \"")}"
+        s"""//> using options ${usingDirectiveScalacOptions.mkString(" ")}
            |def foo = "bar"
            |""".stripMargin
     )
@@ -663,7 +618,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        s"""//> using javaOpt "${usingDirectiveJavaOptions.mkString("\", \"")}"
+        s"""//> using javaOpt ${usingDirectiveJavaOptions.mkString(" ")}
            |def foo = "bar"
            |""".stripMargin
     )
@@ -687,14 +642,14 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("repeated Java options") {
     val inputs = TestInputs(
       os.rel / "foo.sc" ->
-        """//> using javaOpt "--add-opens", "foo/bar"
-          |//> using javaOpt "--add-opens", "other/thing"
-          |//> using javaOpt "--add-exports", "foo/bar"
-          |//> using javaOpt "--add-exports", "other/thing"
-          |//> using javaOpt "--add-modules", "foo/bar"
-          |//> using javaOpt "--add-modules", "other/thing"
-          |//> using javaOpt "--add-reads", "foo/bar"
-          |//> using javaOpt "--add-reads", "other/thing"
+        """//> using javaOpt --add-opens, "foo/bar"
+          |//> using javaOpt --add-opens, "other/thing"
+          |//> using javaOpt --add-exports, "foo/bar"
+          |//> using javaOpt --add-exports, "other/thing"
+          |//> using javaOpt --add-modules, "foo/bar"
+          |//> using javaOpt --add-modules, other/thing
+          |//> using javaOpt --add-reads, "foo/bar"
+          |//> using javaOpt --add-reads, "other/thing"
           |//> using javaOpt "--patch-module", "foo/bar"
           |//> using javaOpt "--patch-module", "other/thing"
           |
@@ -746,9 +701,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("scalac options not spuriously duplicating") {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        """//> using scala "2.13"
-          |//> using options "-deprecation", "-feature", "-Xmaxwarns", "1"
-          |//> using option "-Xdisable-assertions"
+        """//> using scala 2.13
+          |//> using options -deprecation, "-feature", "-Xmaxwarns", "1"
+          |//> using option -Xdisable-assertions
           |
           |def foo = "bar"
           |""".stripMargin
@@ -766,8 +721,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("multiple times scalac options with -Xplugin prefix") {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        """//> using option "-Xplugin:/paradise_2.12.15-2.1.1.jar"
-          |//> using option "-Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar"
+        """//> using option -Xplugin:/paradise_2.12.15-2.1.1.jar
+          |//> using option -Xplugin:/semanticdb-scalac_2.12.15-4.4.31.jar
           |
           |def foo = "bar"
           |""".stripMargin
@@ -788,8 +743,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Pin Scala 2 artifacts version") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi:ammonite_2.13.8:2.5.1-6-5fce97fb"
-          |//> using scala "2.13.5"
+        """//> using dep com.lihaoyi:ammonite_2.13.8:2.5.1-6-5fce97fb
+          |//> using scala 2.13.5
           |
           |object Foo {
           |  def main(args: Array[String]): Unit = {
@@ -818,8 +773,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   test("Pin Scala 3 artifacts version") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi:ammonite_3.1.1:2.5.1-6-5fce97fb"
-          |//> using scala "3.1.0"
+        """//> using dep com.lihaoyi:ammonite_3.1.1:2.5.1-6-5fce97fb
+          |//> using scala 3.1.0
           |
           |object Foo {
           |  def main(args: Array[String]): Unit = {
@@ -901,7 +856,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     val inputs =
       TestInputs(
         os.rel / helloFile ->
-          """|//> using file "Utils.scala"
+          """|//> using file Utils.scala
              |
              |object Hello extends App {
              |   println(Utils.hello)
@@ -921,7 +876,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
       // updating sources in using directive should change project name
       val updatedHelloScala =
-        """|//> using file "Helper.scala"
+        """|//> using file Helper.scala
            |
            |object Hello extends App {
            |   println(Helper.hello)
