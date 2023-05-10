@@ -22,10 +22,13 @@
     - [ ] Update the `v0.1` tag to the newest tag.
       ```bash
       git fetch --all
-      git checkout origin v0.1.x
-      git tag -d v0.1
-      git tag v0.1
-      git push origin v0.1 -f  
+      git checkout origin v1.0.x
+      git tag -d v1.0
+      git tag v1.0
+      git push origin v1.0 -f 
+      git tag -d v1
+      git tag v1
+      git push origin v1 -f
       ```
 - [ ] Submit Scala CLI MSI installer `scala-cli-x86_64-pc-win32.msi` for malware analysis. The Msi file must be uploaded
   using this [service](https://www.microsoft.com/en-us/wdsi/filesubmission). If you have any questions, please contact
