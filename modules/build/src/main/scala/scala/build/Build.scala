@@ -22,6 +22,7 @@ import scala.build.internal.{Constants, MainClass, Util}
 import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
+import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.build.postprocessing.*
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
@@ -1127,7 +1128,7 @@ object Build {
         .map { source =>
           val relPath       = source.generated.relativeTo(generatedSrcRoot).toString
           val reportingPath = source.reportingPath.fold(s => s, _.last)
-          (relPath, (reportingPath, -source.topWrapperLineCount))
+          (relPath, (reportingPath, scalaLineToScLineShift(source.topWrapperLineCount)))
         }
         .toMap
 

@@ -35,7 +35,7 @@ class BspClient(
         Right(params.getDiagnostics)
       else
         Left { () =>
-          val updateLine = scalaLineToScLine(genSource.topWrapperLineCount)
+          val updateLine = scalaLine => scalaLineToScLine(scalaLine, genSource.topWrapperLineCount)
           params.getDiagnostics.asScala.toSeq
             .map { diag =>
               val updatedDiagOpt = for {

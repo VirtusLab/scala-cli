@@ -45,28 +45,25 @@ class ConsoleBloopBuildClient(
     diag: bsp4j.Diagnostic,
     diagnosticMappings: Map[os.Path, (Either[String, os.Path], Int)]
   ): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
-    diagnosticMappings.get(path).collect {
-      case (originalPath, lineOffset)
-          if scalaLineToScLine(lineOffset)(diag.getRange.getStart.getLine).isDefined &&
-          scalaLineToScLine(lineOffset)(diag.getRange.getEnd.getLine).isDefined =>
-        val start = new bsp4j.Position(
-          scalaLineToScLine(lineOffset)(diag.getRange.getStart.getLine).get,
-          diag.getRange.getStart.getCharacter
-        )
-        val end = new bsp4j.Position(
-          scalaLineToScLine(lineOffset)(diag.getRange.getEnd.getLine).get,
-          diag.getRange.getEnd.getCharacter
-        )
-        val range = new bsp4j.Range(start, end)
+    diagnosticMappings.get(path).map { case (originalPath, lineOffset) =>
+      (
+        originalPath,
+        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset),
+        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset)
+      )
+    }.collect { case (originalPath, Some(scLineStart), Some(scLineEnd)) =>
+      val start = new bsp4j.Position(scLineStart, diag.getRange.getStart.getCharacter)
+      val end   = new bsp4j.Position(scLineEnd, diag.getRange.getEnd.getCharacter)
+      val range = new bsp4j.Range(start, end)
 
-        val updatedDiag = new bsp4j.Diagnostic(range, diag.getMessage)
-        updatedDiag.setCode(diag.getCode)
-        updatedDiag.setRelatedInformation(diag.getRelatedInformation)
-        updatedDiag.setSeverity(diag.getSeverity)
-        updatedDiag.setSource(diag.getSource)
-        updatedDiag.setData(diag.getData)
+      val updatedDiag = new bsp4j.Diagnostic(range, diag.getMessage)
+      updatedDiag.setCode(diag.getCode)
+      updatedDiag.setRelatedInformation(diag.getRelatedInformation)
+      updatedDiag.setSeverity(diag.getSeverity)
+      updatedDiag.setSource(diag.getSource)
+      updatedDiag.setData(diag.getData)
 
-        (originalPath, updatedDiag)
+      (originalPath, updatedDiag)
     }
 
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
