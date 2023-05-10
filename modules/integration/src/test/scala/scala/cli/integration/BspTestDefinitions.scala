@@ -464,10 +464,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("diagnostics in script") {
     val inputs = TestInputs(
       os.rel / "test.sc" ->
-        s"""val msg = "Hello"
-           |zz
-           |println(msg)
-           |""".stripMargin
+        """val msg: NonExistent = "Hello""""
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -505,21 +502,20 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         val diagnostics = diagnosticsParams.getDiagnostics.asScala.toSeq
         expect(diagnostics.length == 1)
 
-        val (expectedMessage, expectedEndCharacter) =
+        val expectedMessage =
           if (actualScalaVersion.startsWith("2."))
-            "not found: value zz" -> 2
-          else if (actualScalaVersion == "3.0.0")
-            "Not found: zz" -> 0
+            "not found: type NonExistent"
           else
-            "Not found: zz" -> 2
+            "Not found: type NonExistent"
+
         checkDiagnostic(
           diagnostic = diagnostics.head,
           expectedMessage = expectedMessage,
           expectedSeverity = b.DiagnosticSeverity.ERROR,
-          expectedStartLine = 1,
-          expectedStartCharacter = 0,
-          expectedEndLine = 1,
-          expectedEndCharacter = expectedEndCharacter
+          expectedStartLine = 0,
+          expectedStartCharacter = 9,
+          expectedEndLine = 0,
+          expectedEndCharacter = 20
         )
       }
     }

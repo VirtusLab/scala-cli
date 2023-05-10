@@ -9,6 +9,7 @@ import java.nio.file.Paths
 import scala.build.errors.Severity
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
+import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
@@ -44,28 +45,25 @@ class ConsoleBloopBuildClient(
     diag: bsp4j.Diagnostic,
     diagnosticMappings: Map[os.Path, (Either[String, os.Path], Int)]
   ): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
-    diagnosticMappings.get(path).collect {
-      case (originalPath, lineOffset)
-          if diag.getRange.getStart.getLine + lineOffset >= 0 &&
-          diag.getRange.getEnd.getLine + lineOffset >= 0 =>
-        val start = new bsp4j.Position(
-          diag.getRange.getStart.getLine + lineOffset,
-          diag.getRange.getStart.getCharacter
-        )
-        val end = new bsp4j.Position(
-          diag.getRange.getEnd.getLine + lineOffset,
-          diag.getRange.getEnd.getCharacter
-        )
-        val range = new bsp4j.Range(start, end)
+    diagnosticMappings.get(path).map { case (originalPath, lineOffset) =>
+      (
+        originalPath,
+        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset),
+        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset)
+      )
+    }.collect { case (originalPath, Some(scLineStart), Some(scLineEnd)) =>
+      val start = new bsp4j.Position(scLineStart, diag.getRange.getStart.getCharacter)
+      val end   = new bsp4j.Position(scLineEnd, diag.getRange.getEnd.getCharacter)
+      val range = new bsp4j.Range(start, end)
 
-        val updatedDiag = new bsp4j.Diagnostic(range, diag.getMessage)
-        updatedDiag.setCode(diag.getCode)
-        updatedDiag.setRelatedInformation(diag.getRelatedInformation)
-        updatedDiag.setSeverity(diag.getSeverity)
-        updatedDiag.setSource(diag.getSource)
-        updatedDiag.setData(diag.getData)
+      val updatedDiag = new bsp4j.Diagnostic(range, diag.getMessage)
+      updatedDiag.setCode(diag.getCode)
+      updatedDiag.setRelatedInformation(diag.getRelatedInformation)
+      updatedDiag.setSeverity(diag.getSeverity)
+      updatedDiag.setSource(diag.getSource)
+      updatedDiag.setData(diag.getData)
 
-        (originalPath, updatedDiag)
+      (originalPath, updatedDiag)
     }
 
   override def onBuildPublishDiagnostics(params: bsp4j.PublishDiagnosticsParams): Unit = {
@@ -75,10 +73,7 @@ class ConsoleBloopBuildClient(
       val diagnosticMappings = generatedSources.valuesIterator
         .flatMap(_.iterator)
         .map { source =>
-          val lineShift = -os.read(source.generated)
-            .take(source.topWrapperLen)
-            .count(_ == '\n') // charset?
-          (source.generated, (source.reportingPath, lineShift))
+          source.generated -> (source.reportingPath, source.topWrapperLineCount)
         }
         .toMap
 

@@ -3,6 +3,7 @@ package scala.build.postprocessing
 import java.nio.file.FileSystemException
 
 import scala.annotation.tailrec
+import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{GeneratedSource, Logger}
 import scala.util.{Either, Right}
 
@@ -34,13 +35,10 @@ case object SemanticDbPostProcessor extends PostProcessor {
         SemanticdbProcessor.postProcess(
           os.read(originalSource),
           originalSource.relativeTo(workspace),
-          if (source.topWrapperLen == 0) n => Some(n)
+          if (source.topWrapperLineCount == 0)
+            n => Some(n)
           else
-            LineConversion.scalaLineToScLine(
-              os.read(originalSource),
-              os.read(source.generated),
-              source.topWrapperLen
-            ),
+            scalaLine => scalaLineToScLine(scalaLine, source.topWrapperLineCount),
           semDbFile,
           finalSemDbFile
         )
