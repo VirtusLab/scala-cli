@@ -4,7 +4,6 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
 import scala.build.preprocessing.ScopePath
-import scala.build.preprocessing.directives.CustomJar.buildOptions
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
 import scala.util.{Failure, Success, Try}
@@ -32,22 +31,15 @@ final case class CustomJar(
   testJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptionsWithRequirements {
-  override def buildOptionsWithRequirements
-    : Either[BuildException, List[WithBuildRequirements[BuildOptions]]] =
-    Seq(
-      buildOptions(jar).map(_.withEmptyRequirements),
-      buildOptions(testJar).map(_.withScopeRequirement(Scope.Test))
+  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
+    List(
+      CustomJar.buildOptions(jar).map(_.withEmptyRequirements),
+      CustomJar.buildOptions(testJar).map(_.withScopeRequirement(Scope.Test))
     )
-      .sequence
-      .left
-      .map(CompositeBuildException(_))
-      .map(_.toList)
-
 }
 
 object CustomJar {
   val handler: DirectiveHandler[CustomJar] = DirectiveHandler.derive
-
   def buildOptions(jar: DirectiveValueParser.WithScopePath[List[Positioned[String]]])
     : Either[BuildException, BuildOptions] = {
     val cwd = jar.scopePath

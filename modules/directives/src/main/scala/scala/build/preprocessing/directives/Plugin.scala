@@ -1,15 +1,13 @@
 package scala.build.preprocessing.directives
 
 import dependency.AnyDependency
-import dependency.parser.DependencyParser
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops._
+import scala.build.Positioned
 import scala.build.directives.*
-import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.ScopePath
-import scala.build.{Logger, Positioned}
+import scala.build.preprocessing.directives.DirectiveUtil.*
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compiler plugins")
@@ -25,23 +23,8 @@ final case class Plugin(
   plugin: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
-    val maybeDependencies = plugin
-      .map { posStr =>
-        posStr
-          .map { str =>
-            DependencyParser.parse(str)
-              .left.map(err => new DependencyFormatError(str, err))
-          }
-          .eitherSequence
-      }
-      .sequence
-      .left.map(CompositeBuildException(_))
-    val dependencies = value(maybeDependencies)
-    BuildOptions(
-      scalaOptions = ScalaOptions(
-        compilerPlugins = dependencies
-      )
-    )
+    val dependencies: Seq[Positioned[AnyDependency]] = value(plugin.asDependencies)
+    BuildOptions(scalaOptions = ScalaOptions(compilerPlugins = dependencies))
   }
 }
 

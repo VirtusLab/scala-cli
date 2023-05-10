@@ -2,11 +2,10 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
-import scala.build.preprocessing.directives.JavacOptions.buildOptions
-import scala.build.{Logger, Positioned, options}
+import scala.build.options.{BuildOptions, Scope, WithBuildRequirements}
+import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
-
 @DirectiveGroupName("Javac options")
 @DirectiveExamples("//> using javacOpt -source 1.8 -target 1.8")
 @DirectiveExamples("//> using test.javacOpt -source 1.8 -target 1.8")
@@ -22,18 +21,14 @@ final case class JavacOptions(
   @DirectiveName("test.javacOpt")
   testJavacOptions: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {
-
-  def buildOptionsWithRequirements
-    : Either[BuildException, List[WithBuildRequirements[BuildOptions]]] =
-    Right(List(
-      buildOptions(javacOptions).withEmptyRequirements,
-      buildOptions(testJavacOptions).withScopeRequirement(Scope.Test)
-    ))
+  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = List(
+    JavacOptions.buildOptions(javacOptions).map(_.withEmptyRequirements),
+    JavacOptions.buildOptions(testJavacOptions).map(_.withScopeRequirement(Scope.Test))
+  )
 }
 
 object JavacOptions {
   val handler: DirectiveHandler[JavacOptions] = DirectiveHandler.derive
-
-  def buildOptions(javacOptions: List[Positioned[String]]): BuildOptions =
-    BuildOptions(javaOptions = options.JavaOptions(javacOptions = javacOptions))
+  def buildOptions(javacOptions: List[Positioned[String]]): Either[BuildException, BuildOptions] =
+    Right(BuildOptions(javaOptions = options.JavaOptions(javacOptions = javacOptions)))
 }
