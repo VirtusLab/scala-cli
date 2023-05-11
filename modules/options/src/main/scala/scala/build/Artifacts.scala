@@ -30,8 +30,10 @@ final case class Artifacts(
   javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
   extraJavacPlugins: Seq[os.Path],
   userDependencies: Seq[AnyDependency],
+  userCompileOnlyDependencies: Seq[AnyDependency],
   internalDependencies: Seq[AnyDependency],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
+  detailedRuntimeArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
   extraClassPath: Seq[os.Path],
   extraCompileOnlyJars: Seq[os.Path],
   extraRuntimeClassPath: Seq[os.Path],
@@ -49,6 +51,15 @@ final case class Artifacts(
       }
       .toVector
       .distinct
+  lazy val runtimeArtifacts: Seq[(String, os.Path)] =
+    detailedRuntimeArtifacts
+      .iterator
+      .collect {
+        case (_, pub, a, f) if pub.classifier != Classifier.sources =>
+          (a.url, f)
+      }
+      .toVector
+      .distinct
   lazy val sourceArtifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
@@ -59,7 +70,7 @@ final case class Artifacts(
       .toVector
       .distinct
   lazy val classPath: Seq[os.Path] =
-    artifacts.map(_._2) ++ extraClassPath ++ extraRuntimeClassPath
+    runtimeArtifacts.map(_._2) ++ extraClassPath ++ extraRuntimeClassPath
   lazy val compileClassPath: Seq[os.Path] =
     artifacts.map(_._2) ++ extraClassPath ++ extraCompileOnlyJars
   lazy val sourcePath: Seq[os.Path] =
@@ -84,6 +95,7 @@ object Artifacts {
     javacPluginDependencies: Seq[Positioned[AnyDependency]],
     extraJavacPlugins: Seq[os.Path],
     dependencies: Seq[Positioned[AnyDependency]],
+    compileOnlyDependencies: Seq[Positioned[AnyDependency]],
     extraClassPath: Seq[os.Path],
     extraCompileOnlyJars: Seq[os.Path],
     extraSourceJars: Seq[os.Path],
@@ -183,8 +195,8 @@ object Artifacts {
             val forcedVersions = Seq(
               cmod"org.scala-js:scalajs-linker_2.13" -> scalaJsVersion
             )
-            Some(
-              value {
+            Some {
+              val (_, res) = value {
                 fetch0(
                   dependency.map(Positioned.none),
                   allExtraRepositories,
@@ -195,7 +207,8 @@ object Artifacts {
                   None
                 )
               }
-            )
+              res
+            }
           case None =>
             None
         }
@@ -210,8 +223,8 @@ object Artifacts {
 
         val fetchedScalaNativeCli = scalaNativeCliDependency match {
           case Some(dependency) =>
-            Some(
-              value {
+            Some {
+              val (_, res) = value {
                 fetch0(
                   dependency.map(Positioned.none),
                   allExtraRepositories,
@@ -222,7 +235,8 @@ object Artifacts {
                   None
                 )
               }
-            )
+              res
+            }
           case None =>
             None
         }
@@ -275,11 +289,12 @@ object Artifacts {
     val updatedDependencies = dependencies ++
       scalaOpt.toSeq.flatMap(_.extraDependencies).map(Positioned.none) ++
       internalDependencies
+    val allUpdatedDependencies = compileOnlyDependencies ++ updatedDependencies
 
     val updatedDependenciesMessage = {
       val b           = new mutable.StringBuilder("Downloading ")
       val depLen      = dependencies.length
-      val extraDepLen = updatedDependencies.length - depLen
+      val extraDepLen = allUpdatedDependencies.length - depLen
       depLen match {
         case 1          => b.append("one dependency")
         case n if n > 1 => b.append(s"$n dependencies")
@@ -298,9 +313,9 @@ object Artifacts {
       b.result()
     }
 
-    val fetchRes = value {
-      fetch(
-        updatedDependencies,
+    val (fetcher, fetchRes) = value {
+      fetchKeepFetcher(
+        allUpdatedDependencies,
         allExtraRepositories,
         scalaArtifactsParamsOpt.map(_.params),
         logger,
@@ -308,6 +323,31 @@ object Artifacts {
         classifiersOpt = Some(Set("_") ++ (if (fetchSources) Set("sources") else Set.empty)),
         maybeRecoverOnError
       )
+    }
+
+    val updatedDependencies0 = value {
+      coursierDeps(
+        updatedDependencies,
+        scalaArtifactsParamsOpt.map(_.params),
+        maybeRecoverOnError
+      )
+    }
+    val runtimeRes = {
+      val resolution = fetchRes.resolution.subset(updatedDependencies0.map(_._2._1))
+      // this is actually fetcher.artifacts, which is a private field…
+      val artifacts = coursier.Artifacts()
+        .withCache(fetcher.cache)
+        .withClassifiers(fetcher.classifiers)
+        .withMainArtifactsOpt(fetcher.mainArtifactsOpt)
+        .withArtifactTypesOpt(fetcher.artifactTypesOpt)
+        // .withOtherCaches(fetcher.otherCaches) missing on coursier.Fetch
+        .withExtraArtifactsSeq(fetcher.extraArtifactsSeq)
+        .withClasspathOrder(fetcher.classpathOrder)
+        .withTransformArtifacts(fetcher.transformArtifacts)
+      val res = artifacts
+        .withResolution(resolution)
+        .runResult()
+      res.fullDetailedArtifacts
     }
 
     val (hasRunner, extraRunnerJars) =
@@ -361,8 +401,12 @@ object Artifacts {
       javacPlugins0,
       extraJavacPlugins,
       dependencies.map(_.value) ++ scalaOpt.toSeq.flatMap(_.extraDependencies),
+      compileOnlyDependencies.map(_.value),
       internalDependencies.map(_.value),
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>
+        (d, p, a, os.Path(f, Os.pwd))
+      },
+      runtimeRes.collect { case (d, p, a, Some(f)) =>
         (d, p, a, os.Path(f, Os.pwd))
       },
       extraClassPath,
@@ -407,6 +451,36 @@ object Artifacts {
     result
   }
 
+  def coursierDeps(
+    dependencies: Seq[Positioned[AnyDependency]],
+    paramsOpt: Option[ScalaParameters],
+    maybeRecoverOnError: BuildException => Option[BuildException]
+  ): Either[BuildException, Seq[Positioned[(
+    CsDependency,
+    Option[((Module, String), (URL, Boolean))]
+  )]]] =
+    dependencies
+      .map(dep =>
+        dep.toCs(paramsOpt)
+          .map { case Positioned(pos, csDep) => Positioned(pos, (dep.value, csDep)) }
+      )
+      .map(_.left.map(maybeRecoverOnError))
+      .flatMap {
+        case Left(Some(e: NoScalaVersionProvidedError)) => Some(Left(e))
+        case Left(_)                                    => None
+        case Right(depTuple)                            => Some(Right(depTuple))
+      }
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map(positionedDepTupleSeq =>
+        positionedDepTupleSeq.map {
+          case Positioned(positions, (dep, csDep)) =>
+            val maybeUrl = dep.userParams.get("url").flatten.map(new URL(_))
+            val fallback = maybeUrl.map(url => (csDep.module -> csDep.version) -> (url -> true))
+            Positioned(positions, (csDep, fallback))
+        }
+      )
+
   def fetch(
     dependencies: Seq[Positioned[AnyDependency]],
     extraRepositories: Seq[Repository],
@@ -416,29 +490,31 @@ object Artifacts {
     classifiersOpt: Option[Set[String]],
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Fetch.Result] = either {
-    val coursierDependenciesWithFallbacks
-      : Seq[Positioned[(CsDependency, Option[((Module, String), (URL, Boolean))])]] = value {
-      dependencies
-        .map(dep =>
-          dep.toCs(paramsOpt)
-            .map { case Positioned(pos, csDep) => Positioned(pos, (dep.value, csDep)) }
-        )
-        .map(_.left.map(maybeRecoverOnError))
-        .flatMap {
-          case Left(Some(e: NoScalaVersionProvidedError)) => Some(Left(e))
-          case Left(_)                                    => None
-          case Right(depTuple)                            => Some(Right(depTuple))
-        }
-        .sequence
-        .left.map(CompositeBuildException(_))
-        .map(positionedDepTupleSeq =>
-          positionedDepTupleSeq.map {
-            case Positioned(positions, (dep, csDep)) =>
-              val maybeUrl = dep.userParams.get("url").flatten.map(new URL(_))
-              val fallback = maybeUrl.map(url => (csDep.module -> csDep.version) -> (url -> true))
-              Positioned(positions, (csDep, fallback))
-          }
-        )
+    val (_, res) = value {
+      fetchKeepFetcher(
+        dependencies,
+        extraRepositories,
+        paramsOpt,
+        logger,
+        cache,
+        classifiersOpt,
+        maybeRecoverOnError
+      )
+    }
+    res
+  }
+
+  private def fetchKeepFetcher(
+    dependencies: Seq[Positioned[AnyDependency]],
+    extraRepositories: Seq[Repository],
+    paramsOpt: Option[ScalaParameters],
+    logger: Logger,
+    cache: FileCache[Task],
+    classifiersOpt: Option[Set[String]],
+    maybeRecoverOnError: BuildException => Option[BuildException]
+  ): Either[BuildException, (coursier.Fetch[Task], coursier.Fetch.Result)] = either {
+    val coursierDependenciesWithFallbacks = value {
+      coursierDeps(dependencies, paramsOpt, maybeRecoverOnError)
     }
 
     val coursierDependencies: Seq[Positioned[CsDependency]] =
@@ -458,24 +534,33 @@ object Artifacts {
         cache,
         classifiersOpt,
         fallbacks
-      ).left.flatMap(_.maybeRecoverWithDefault(Fetch.Result(), maybeRecoverOnError))
+      ).left.flatMap(_.maybeRecoverWithDefault(
+        (
+          fetcher(
+            coursierDependencies,
+            extraRepositories,
+            paramsOpt.map(_.scalaVersion),
+            Nil,
+            cache,
+            classifiersOpt,
+            fallbacks
+          ),
+          Fetch.Result()
+        ),
+        maybeRecoverOnError
+      ))
     }
   }
 
-  def fetch0(
+  private def fetcher(
     dependencies: Seq[Positioned[coursier.Dependency]],
     extraRepositories: Seq[Repository],
     forceScalaVersionOpt: Option[String],
     forcedVersions: Seq[(coursier.Module, String)],
-    logger: Logger,
     cache: FileCache[Task],
     classifiersOpt: Option[Set[String]],
-    fallbacks: Map[(Module, String), (URL, Boolean)] = Map.empty
-  ): Either[BuildException, Fetch.Result] = either {
-    logger.debug {
-      s"Fetching ${dependencies.map(_.value)}" +
-        (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
-    }
+    fallbacks: Map[(Module, String), (URL, Boolean)]
+  ): coursier.Fetch[Task] = {
 
     val fallbackRepository            = TemporaryInMemoryRepository(fallbacks)
     val extraRepositoriesWithFallback = extraRepositories :+ fallbackRepository
@@ -515,9 +600,36 @@ object Artifacts {
       fetcher = fetcher
         .addClassifiers(classifiers.toSeq.filter(_ != "_").map(coursier.Classifier(_))*)
     }
+    fetcher
+  }
+
+  def fetch0(
+    dependencies: Seq[Positioned[coursier.Dependency]],
+    extraRepositories: Seq[Repository],
+    forceScalaVersionOpt: Option[String],
+    forcedVersions: Seq[(coursier.Module, String)],
+    logger: Logger,
+    cache: FileCache[Task],
+    classifiersOpt: Option[Set[String]],
+    fallbacks: Map[(Module, String), (URL, Boolean)] = Map.empty
+  ): Either[BuildException, (coursier.Fetch[Task], coursier.Fetch.Result)] = either {
+    logger.debug {
+      s"Fetching ${dependencies.map(_.value)}" +
+        (if (extraRepositories.isEmpty) "" else s", adding $extraRepositories")
+    }
+
+    val fetcher0 = fetcher(
+      dependencies,
+      extraRepositories,
+      forceScalaVersionOpt,
+      forcedVersions,
+      cache,
+      classifiersOpt,
+      fallbacks
+    )
 
     val res = cache.logger.use {
-      fetcher.eitherResult()
+      fetcher0.eitherResult()
     }
     value {
       res.left.map {
@@ -528,7 +640,7 @@ object Artifacts {
         case ex: ResolutionError.Simple =>
           toFetchingDependenciesError(dependencies, ex)
         case ex => new FetchingDependenciesError(ex, dependencies.flatMap(_.positions))
-      }
+      }.map((fetcher0, _))
     }
   }
 

@@ -91,8 +91,13 @@ final case class JsonProjectDescriptor(
   private def dependencySettings(options: BuildOptions): ScopedJsonProject = {
     val directDeps = options.classPathOptions.extraDependencies.toSeq.map(_.value)
       .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
+    val compileDeps = options.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value)
+      .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
 
-    ScopedJsonProject(dependencies = directDeps)
+    ScopedJsonProject(
+      dependencies = directDeps,
+      compileOnlyDependencies = compileDeps
+    )
   }
 
   private def repositorySettings(options: BuildOptions): ScopedJsonProject = {

@@ -66,6 +66,7 @@ final case class ScopedJsonProject(
   scalacOptions: Seq[String] = Nil,
   scalaCompilerPlugins: Seq[ExportDependencyFormat] = Nil,
   dependencies: Seq[ExportDependencyFormat] = Nil,
+  compileOnlyDependencies: Seq[ExportDependencyFormat] = Nil,
   resolvers: Seq[String] = Nil,
   resourcesDirs: Seq[String] = Nil,
   customJarsDecls: Seq[String] = Nil
@@ -80,6 +81,7 @@ final case class ScopedJsonProject(
       this.scalacOptions,
       this.scalaCompilerPlugins.sorted,
       this.dependencies.sorted,
+      this.compileOnlyDependencies.sorted,
       this.resolvers.sorted,
       this.resourcesDirs.sorted,
       this.customJarsDecls.sorted

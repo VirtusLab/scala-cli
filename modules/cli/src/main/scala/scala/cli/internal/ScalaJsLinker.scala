@@ -52,7 +52,7 @@ object ScalaJsLinker {
 
         options.finalUseJvm match {
           case Right(()) =>
-            val linkerClassPath = value {
+            val (_, linkerRes) = value {
               scala.build.Artifacts.fetch0(
                 Seq(Positioned.none(scalaJsCliDep.toCs)),
                 extraRepos,
@@ -62,7 +62,8 @@ object ScalaJsLinker {
                 cache,
                 None
               )
-            }.files
+            }
+            val linkerClassPath = linkerRes.files
 
             val command = Seq[os.Shellable](
               javaCommand,

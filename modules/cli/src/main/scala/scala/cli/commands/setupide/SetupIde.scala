@@ -116,7 +116,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
+    if (buildOptions.classPathOptions.allExtraDependencies.toSeq.nonEmpty)
       value(downloadDeps(
         inputs,
         buildOptions,

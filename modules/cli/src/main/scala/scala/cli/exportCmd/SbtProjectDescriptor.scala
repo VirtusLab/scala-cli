@@ -41,7 +41,7 @@ final case class SbtProjectDescriptor(
       !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.toSeq
+      options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
@@ -274,10 +274,16 @@ final case class SbtProjectDescriptor(
   private def dependencySettings(options: BuildOptions, scope: Scope): SbtProject = {
 
     val depSettings = {
-      val depStrings = options.classPathOptions
-        .extraDependencies.toSeq.toList
-        .map(_.value)
-        .map { dep =>
+      val allDeps =
+        options.classPathOptions.extraDependencies.toSeq.toList.map(_.value).map((_, false)) ++
+          options.classPathOptions.extraCompileOnlyDependencies
+            .toSeq
+            .toList
+            .map(_.value)
+            .map((_, true))
+
+      val depStrings = allDeps.map {
+        case (dep, isCompileOnly) =>
           val org  = dep.organization
           val name = dep.name
           val ver  = dep.version
@@ -293,11 +299,15 @@ final case class SbtProjectDescriptor(
               val sep = "%%"
               (sep, suffixOpt0)
           }
-          val scope0 = if (scope == Scope.Test) "% Test" else ""
+          val scope0 =
+            // FIXME This ignores the isCompileOnly when scope == Scope.Test
+            if (scope == Scope.Test) "% Test"
+            else if (isCompileOnly) "% Provided"
+            else ""
 
           val baseDep = s"""$q$org$q $sep $q$name$q % $q$ver$q $scope0"""
           suffixOpt.fold(baseDep)(suffix => s"($baseDep)$suffix")
-        }
+      }
 
       if (depStrings.isEmpty) Nil
       else if (depStrings.lengthCompare(1) == 0)

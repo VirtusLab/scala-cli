@@ -68,6 +68,12 @@ Add dependencies
 
 Aliases: `--dep`
 
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
+
 **--compiler-plugin**
 
 Add compiler plugin dependencies
@@ -772,6 +778,12 @@ Add dependencies
 
 Aliases: `--dep`
 
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
+
 **--compiler-plugin**
 
 Add compiler plugin dependencies
@@ -1310,6 +1322,12 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 
@@ -1863,6 +1881,12 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 
@@ -2442,6 +2466,12 @@ Add dependencies
 
 Aliases: `--dep`
 
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
+
 **--compiler-plugin**
 
 Add compiler plugin dependencies
@@ -3007,6 +3037,12 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 
@@ -3592,6 +3628,12 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 
@@ -4234,6 +4276,12 @@ Detailed documentation can be found on our website: https://scala-cli.virtuslab.
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 
@@ -5083,6 +5131,12 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 Add dependencies
 
 Aliases: `--dep`
+
+**--compile-only-dependency**
+
+Add compile-only dependencies
+
+Aliases: `--compile-dep`
 
 **--compiler-plugin**
 

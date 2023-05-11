@@ -39,19 +39,33 @@ final case class Dependency(
   @DirectiveName("test.dep")
   @DirectiveName("test.deps")
   @DirectiveName("test.dependencies")
-  testDependency: List[Positioned[String]] = Nil
+  testDependency: List[Positioned[String]] = Nil,
+  @DirectiveName("compileOnly.lib")
+  @DirectiveName("compileOnly.libs")
+  @DirectiveName("compileOnly.dep")
+  @DirectiveName("compileOnly.deps")
+  @DirectiveName("compileOnly.dependencies")
+  compileOnlyDependency: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {
   def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = List(
     Dependency.buildOptions(dependency).map(_.withEmptyRequirements),
-    Dependency.buildOptions(testDependency).map(_.withScopeRequirement(Scope.Test))
+    Dependency.buildOptions(testDependency).map(_.withScopeRequirement(Scope.Test)),
+    Dependency.buildOptions(compileOnlyDependency, isCompileOnly = true)
+      .map(_.withEmptyRequirements)
   )
 }
 
 object Dependency {
   val handler: DirectiveHandler[Dependency] = DirectiveHandler.derive
-  def buildOptions(ds: List[Positioned[String]]): Either[BuildException, BuildOptions] = either {
+  def buildOptions(
+    ds: List[Positioned[String]],
+    isCompileOnly: Boolean = false
+  ): Either[BuildException, BuildOptions] = either {
     val dependencies: ShadowingSeq[Positioned[AnyDependency]] =
       value(ds.asDependencies.map(ShadowingSeq.from))
-    BuildOptions(classPathOptions = ClassPathOptions(extraDependencies = dependencies))
+    val classPathOptions =
+      if (isCompileOnly) ClassPathOptions(extraCompileOnlyDependencies = dependencies)
+      else ClassPathOptions(extraDependencies = dependencies)
+    BuildOptions(classPathOptions = classPathOptions)
   }
 }

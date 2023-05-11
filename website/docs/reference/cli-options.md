@@ -253,6 +253,12 @@ Aliases: `--dep`
 
 Add dependencies
 
+### `--compile-only-dependency`
+
+Aliases: `--compile-dep`
+
+Add compile-only dependencies
+
 ### `--repository`
 
 Aliases: `-r`, `--repo`

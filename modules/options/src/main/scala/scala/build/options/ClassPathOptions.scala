@@ -11,9 +11,13 @@ final case class ClassPathOptions(
   extraSourceJars: Seq[os.Path] = Nil,
   fetchSources: Option[Boolean] = None,
   extraDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
+  extraCompileOnlyDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   resourcesDir: Seq[os.Path] = Nil,
   resourcesVirtualDir: Seq[os.SubPath] = Nil
-)
+) {
+  def allExtraDependencies: ShadowingSeq[Positioned[AnyDependency]] =
+    extraDependencies ++ extraCompileOnlyDependencies.toSeq
+}
 
 object ClassPathOptions {
   implicit val hasHashData: HasHashData[ClassPathOptions] = HasHashData.derive
