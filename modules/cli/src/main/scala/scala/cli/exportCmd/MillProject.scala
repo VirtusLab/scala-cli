@@ -10,7 +10,9 @@ import scala.util.Properties
 final case class MillProject(
   millVersion: Option[String] = None,
   mainDeps: Seq[String] = Nil,
+  mainCompileOnlyDeps: Seq[String] = Nil,
   testDeps: Seq[String] = Nil,
+  testCompileOnlyDeps: Seq[String] = Nil,
   scalaVersion: Option[String] = None,
   scalacOptions: Seq[String] = Nil,
   scalaCompilerPlugins: Seq[String] = Nil,

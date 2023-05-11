@@ -35,7 +35,7 @@ final case class MillProjectDescriptor(
       !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.toSeq
+      options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
     val sv = options.scalaOptions.scalaVersion
@@ -81,8 +81,17 @@ final case class MillProjectDescriptor(
     testOptions: BuildOptions
   ): MillProject = {
     val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val compileMainDeps =
+      mainOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
     val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
-    MillProject(mainDeps = mainDeps.toSeq, testDeps = testDeps.toSeq)
+    val compileTestDeps =
+      testOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
+    MillProject(
+      mainDeps = mainDeps.toSeq,
+      mainCompileOnlyDeps = compileMainDeps.toSeq,
+      testDeps = testDeps.toSeq,
+      testCompileOnlyDeps = compileTestDeps.toSeq
+    )
   }
 
   private def repositorySettings(options: BuildOptions): MillProject = {

@@ -358,6 +358,12 @@ final case class SharedOptions(
             dependencies.dependency.map(Positioned.none),
             ignoreErrors
           ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+        ),
+        extraCompileOnlyDependencies = ShadowingSeq.from(
+          SharedOptions.parseDependencies(
+            dependencies.compileOnlyDependency.map(Positioned.none),
+            ignoreErrors
+          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
         )
       ),
       internal = bo.InternalOptions(

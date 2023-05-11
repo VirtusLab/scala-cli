@@ -307,6 +307,46 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       compileTimeOnlyJars()
     }
 
+  def compileTimeOnlyDep(): Unit = {
+
+    def inputs(compileOnly: Boolean) = {
+      val directiveName = if (compileOnly) "compileOnly.dep" else "dep"
+      TestInputs(
+        os.rel / "test.sc" ->
+          s"""//> using $directiveName "com.chuusai::shapeless:2.3.10"
+             |val shapelessFound =
+             |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+             |  catch { case _: ClassNotFoundException => false }
+             |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+             |""".stripMargin,
+        os.rel / "Other.scala" ->
+          """object Other {
+            |  import shapeless._
+            |  val l = 2 :: "a" :: HNil
+            |}
+            |""".stripMargin
+      )
+    }
+    inputs(compileOnly = false).fromRoot { root =>
+      val baseOutput = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(baseOutput == "Hello with shapeless")
+    }
+    inputs(compileOnly = true).fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output == "Hello from test")
+    }
+  }
+
+  // TODO Adapt this test to Scala 3
+  if (actualScalaVersion.startsWith("2."))
+    test("Compile-time only dep") {
+      compileTimeOnlyDep()
+    }
+
   if (Properties.isLinux && TestUtil.isNativeCli)
     test("no JVM installed") {
       val fileName = "simple.sc"
