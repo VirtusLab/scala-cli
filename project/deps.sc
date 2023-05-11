@@ -101,6 +101,7 @@ object Deps {
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.6-sc-8"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M4"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M24"
+  def classPathUtil    = ivy"io.get-coursier::class-path-util:0.1.4"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.10.0"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"

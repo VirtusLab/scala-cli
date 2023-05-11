@@ -7,6 +7,7 @@ import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
+import coursier.cputil.ClassPathUtil
 import coursier.util.{Artifact, Task}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
@@ -392,6 +393,10 @@ final case class SharedOptions(
 
   extension (input: String) {
     def valueExtractedClassPath: Seq[os.Path] =
+      ClassPathUtil.classPath(input)
+        .map(os.Path(_, os.pwd))
+
+    def valueExtractedLegacyClassPath: Seq[os.Path] =
       input
         .split(File.pathSeparator)
         .toSeq
@@ -411,13 +416,15 @@ final case class SharedOptions(
   extension (rawClassPath: List[String]) {
     def extractedClassPath: List[os.Path] =
       rawClassPath.flatMap(valueExtractedClassPath(_))
+    def extractedLegacyClassPath: List[os.Path] =
+      rawClassPath.flatMap(valueExtractedLegacyClassPath(_))
   }
 
   def extraJarsAndClassPath: Seq[os.Path] = {
     val map = extraJars.map(value => value.index -> value.value.valueExtractedClassPath).toMap ++
-      classPath.map(value => value.index -> value.value.valueExtractedClassPath)
+      classPath.map(value => value.index -> value.value.valueExtractedLegacyClassPath)
     map.toVector.sortBy(_._1).flatMap(_._2) ++
-      scalac.scalacOption.getScalacOption("-classpath").toList.extractedClassPath
+      scalac.scalacOption.getScalacOption("-classpath").toList.extractedLegacyClassPath
   }
 
   def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath

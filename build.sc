@@ -456,6 +456,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def ivyDeps = super.ivyDeps() ++ Agg(
     // Deps.asm,
     Deps.bloopConfig,
+    Deps.classPathUtil,
     Deps.jsoniterCore,
     Deps.pprint,
     Deps.usingDirectives

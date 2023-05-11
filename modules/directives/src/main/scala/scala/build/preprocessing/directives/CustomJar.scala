@@ -1,4 +1,7 @@
 package scala.build.preprocessing.directives
+
+import coursier.cputil.ClassPathUtil
+
 import scala.build.Ops.*
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
@@ -6,6 +9,7 @@ import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequ
 import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 @DirectiveGroupName("Custom JAR")
@@ -48,9 +52,14 @@ object CustomJar {
         val eitherRootPathOrBuildException =
           Directive.osRoot(cwd, posPathStr.positions.headOption)
         eitherRootPathOrBuildException.flatMap { root =>
-          Try(os.Path(posPathStr.value, root))
-            .toEither
-            .left.map(new WrongJarPathError(_))
+          try {
+            val cp = ClassPathUtil.classPath(posPathStr.value)
+            Right(cp.map(f => os.Path(f, root)))
+          }
+          catch {
+            case NonFatal(ex) =>
+              Left(new WrongJarPathError(ex))
+          }
         }
       }
       .sequence
@@ -58,7 +67,7 @@ object CustomJar {
       .map { paths =>
         BuildOptions(
           classPathOptions = ClassPathOptions(
-            extraClassPath = paths
+            extraClassPath = paths.flatten
           )
         )
       }

@@ -347,6 +347,52 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       compileTimeOnlyDep()
     }
 
+  test("expand extra JARs") {
+    expandExtraJarTest(useDirective = true)
+  }
+
+  if (!Properties.isWin)
+    // Hard to spawn processes with arguments ending in '*' on Windows…
+    test("expand extra JARs via option") {
+      expandExtraJarTest(useDirective = false)
+    }
+
+  def expandExtraJarTest(useDirective: Boolean): Unit = {
+    val sv =
+      if (actualScalaVersion.startsWith("2.")) actualScalaVersion
+      else "2.13.10"
+    val cp = os.proc(TestUtil.cs, "fetch", "co.fs2::fs2-core:3.6.1", "--scala", sv)
+      .call()
+      .out.lines()
+      .filter(_.nonEmpty)
+      .map(os.Path(_, os.pwd))
+    val cpDir = os.temp.dir(prefix = "scala-cli-test")
+    for (f <- cp)
+      os.copy.into(f, cpDir)
+    val maybeDirective =
+      if (useDirective) """//> using jars "${cp.dir}/*""""
+      else ""
+    val maybeOptions =
+      if (useDirective) Nil
+      else Seq("--extra-jars", "${cp.dir}/*")
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""$maybeDirective
+           |
+           |import cats.effect.IO
+           |import fs2._
+           |
+           |object Foo {
+           |  val stream = Stream.bracket(IO.unit)(_ => IO.unit).flatMap(_ => Stream(1, 2, 3))
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, s"-Dcp.dir=$cpDir", "compile", extraOptions, ".", maybeOptions)
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
+    }
+  }
+
   if (Properties.isLinux && TestUtil.isNativeCli)
     test("no JVM installed") {
       val fileName = "simple.sc"
