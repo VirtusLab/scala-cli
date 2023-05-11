@@ -97,6 +97,7 @@ Please raise an issue if you run into any problems.
 
 When working with IntelliJ make sure that the project's Java is set correctly.
 To confirm, check under `File -> Project Structure` that:
+
 - in `Project Settings/Project` `SDK` and `Language level` is set to **17**
 - in `Project Settings/Modules` all the modules have `Language level` set to **17**
 - in `Platform Settings/SDKs` only **Java 17** is visible
@@ -249,3 +250,43 @@ unique to the workspace where BSP will be debugged). In such case BSP will be la
 on JVM. It will also expects a debugger running in the listen mode using provided port (so the initialization of the
 connection can be debugged). In such case we recommend to have option to auto rerun debugging session off (so there is
 always a debugger instance ready to be used).
+
+## GraalVM reflection configuration
+
+As Scala CLI is using GraalVM native image, it requires a configuration file for reflection.
+The configuration for the `cli` module is located
+in [the reflect-config.json](modules/cli/src/main/resources/META-INF/native-image/org.virtuslab/scala-cli-core/reflect-config.json)
+file.
+
+When adding new functionalities or updating dependencies, it might turn out the reflection configuration for some class
+may be missing. The relevant error message when running `integration.test.native` may be misleading,
+usually with a `ClassNotFoundException` or even with a functionality seemingly being skipped.
+This is because logic referring to classes with missing reflection configuration may be skipped for the used native
+image.
+
+To generate the relevant configuration automatically, you can run:
+
+```bash
+./mill -i cli.runWithAssistedConfig <scala-cli-sub-command> <args> <options>
+```
+
+Just make sure to run it exactly the same as the native image would have been run, as the configuration is generated for
+a particular invocation path. The run has to succeed as well, as the configuration will only be fully generated after an
+exit code 0.
+
+```text
+Config generated in out/cli/runWithAssistedConfig.dest/config
+```
+
+As a result, you should get the path to the generated configuration file. It might contain some unnecessary entries, so
+make sure to only copy what you truly need.
+As the formatting of the `reflect-config.json` is verified on the CI, make sure to run the following command to adjust
+it accordingly before committing:
+
+```bash
+./mill -i __.formatNativeImageConf
+```
+
+For more info about reflection configuration in GraalVM,
+check [the relevant GraalVM Reflection docs](https://www.graalvm.org/latest/reference-manual/native-image/dynamic-features/Reflection/).
+
