@@ -6,6 +6,7 @@ import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
+import scala.Console._
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -290,5 +291,13 @@ object TestUtil {
       stream.readLine()
     }
     Await.result(readLineF, timeout)
+  }
+
+  def normalizeConsoleOutput(text: String) = {
+    val allColors =
+      Set(BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, /* GREY */ "\u001b[90m")
+    allColors.+(Console.RESET).fold(text) { (textAcc, colorStr) =>
+      textAcc.replace(colorStr, "")
+    }
   }
 }

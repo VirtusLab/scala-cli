@@ -2,6 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.TestUtil.normalizeConsoleOutput
 import scala.util.Properties
 
 trait RunScriptTestDefinitions { _: RunTestDefinitions =>
@@ -21,13 +22,6 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         expect(output == message)
     }
   }
-
-  def normalizeConsoleOutput(text: String) =
-    text.replace(Console.RED, "")
-      .replace(Console.YELLOW, "")
-      .replace(Console.CYAN, "")
-      .replace(Console.MAGENTA, "")
-      .replace(Console.RESET, "")
 
   test("simple script") {
     simpleScriptTest()
@@ -446,7 +440,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     test("user readable error when @main is used") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
-          """using dep "com.lihaoyi::os-lib:0.9.1"
+          """//> using dep "com.lihaoyi::os-lib:0.9.1"
             |/*ignore this while regexing*/ @main def main(args: Strings*): Unit = println("Hello")
             |""".stripMargin
       )
