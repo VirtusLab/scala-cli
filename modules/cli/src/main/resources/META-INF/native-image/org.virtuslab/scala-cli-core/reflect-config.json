@@ -931,6 +931,10 @@
     ]
   },
   {
+    "name":"org.eclipse.jgit.lib.CoreConfig$TrustPackedRefsStat",
+    "methods":[{"name":"values","parameterTypes":[] }]
+  },
+  {
     "name": "org.eclipse.lsp4j.jsonrpc.json.adapters.JsonElementTypeAdapter$Factory",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
