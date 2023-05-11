@@ -722,9 +722,12 @@ object Build {
         .map { builds =>
           def artifacts(build: Build): Seq[os.Path] =
             build.successfulOpt.toSeq.flatMap(_.artifacts.classPath)
-          val main = artifacts(builds.main)
-          val test = builds.get(Scope.Test).map(artifacts).getOrElse(Nil)
-          (main ++ test).distinct
+          val main               = artifacts(builds.main)
+          val test               = builds.get(Scope.Test).map(artifacts).getOrElse(Nil)
+          val allScopesArtifacts = (main ++ test).distinct
+
+          allScopesArtifacts
+            .filterNot(_.segments.contains(Constants.workspaceDirName))
         }
         .getOrElse(Nil)
       for (artifact <- artifacts) {
