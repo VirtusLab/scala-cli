@@ -932,11 +932,19 @@ Set the Scala binary version
 
 ### `--extra-jars`
 
-Aliases: `--class`, `--class-path`, `--classes`, `--classpath`, `-classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
+Aliases: `--class`, `--classes`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
 
 `MUST have` per Scala Runner specification
 
 Add extra JARs and compiled classes to the class path
+
+### `--class-path`
+
+Aliases: `--classpath`, `-classpath`, `-cp`
+
+`MUST have` per Scala Runner specification
+
+Add extra JARs and compiled classes to the class path (legacy option)
 
 ### `--extra-compile-only-jars`
 

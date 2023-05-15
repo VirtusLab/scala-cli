@@ -2,6 +2,7 @@ package scala.cli.commands.shared
 
 import bloop.rifle.BloopRifleConfig
 import caseapp.*
+import caseapp.core.Indexed
 import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
@@ -107,13 +108,18 @@ final case class SharedOptions(
   @Name("extraClass")
   @Name("classes")
   @Name("extraClasses")
+  @Name("extraClassPath")
+  @Tag(tags.must)
+    extraJars: List[Indexed[String]] = Nil,
+
+  @Group(HelpGroup.Java.toString)
+  @HelpMessage("Add extra JARs and compiled classes to the class path (legacy option)")
+  @ValueDescription("paths")
   @Name("-classpath")
   @Name("-cp")
   @Name("classpath")
-  @Name("classPath")
-  @Name("extraClassPath")
   @Tag(tags.must)
-    extraJars: List[String] = Nil,
+    classPath: List[Indexed[String]] = Nil,
 
   @Group(HelpGroup.Java.toString)
   @HelpMessage("Add extra JARs in the compilaion class path. Mainly using to run code in managed environments like Spark not to include certain depenencies on runtime ClassPath.")
@@ -384,10 +390,11 @@ final case class SharedOptions(
     )
   }
 
-  extension (rawClassPath: List[String]) {
-    def extractedClassPath: List[os.Path] =
-      rawClassPath
-        .flatMap(_.split(File.pathSeparator).toSeq)
+  extension (input: String) {
+    def valueExtractedClassPath: Seq[os.Path] =
+      input
+        .split(File.pathSeparator)
+        .toSeq
         .filter(_.nonEmpty)
         .distinct
         .map(os.Path(_, os.pwd))
@@ -401,9 +408,17 @@ final case class SharedOptions(
         }
   }
 
-  def extraJarsAndClassPath: List[os.Path] =
-    (extraJars ++ scalac.scalacOption.getScalacOption("-classpath"))
-      .extractedClassPath
+  extension (rawClassPath: List[String]) {
+    def extractedClassPath: List[os.Path] =
+      rawClassPath.flatMap(valueExtractedClassPath(_))
+  }
+
+  def extraJarsAndClassPath: Seq[os.Path] = {
+    val map = extraJars.map(value => value.index -> value.value.valueExtractedClassPath).toMap ++
+      classPath.map(value => value.index -> value.value.valueExtractedClassPath)
+    map.toVector.sortBy(_._1).flatMap(_._2) ++
+      scalac.scalacOption.getScalacOption("-classpath").toList.extractedClassPath
+  }
 
   def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
 

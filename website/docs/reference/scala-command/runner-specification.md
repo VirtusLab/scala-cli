@@ -96,7 +96,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -806,7 +812,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -1351,7 +1363,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -1910,7 +1928,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -2494,7 +2518,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -3066,7 +3096,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -3657,7 +3693,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -4305,7 +4347,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
@@ -5160,7 +5208,13 @@ Aliases: `-B` ,`--scala-bin` ,`--scala-binary`
 
 Add extra JARs and compiled classes to the class path
 
-Aliases: `--extra-class-path` ,`--class-path` ,`--classpath` ,`-cp` ,`-classpath` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+Aliases: `--extra-class-path` ,`--extra-classes` ,`--classes` ,`--extra-class` ,`--class` ,`--extra-jar` ,`--jars` ,`--jar`
+
+**--class-path**
+
+Add extra JARs and compiled classes to the class path (legacy option)
+
+Aliases: `--classpath` ,`-cp` ,`-classpath`
 
 **--resource-dirs**
 
