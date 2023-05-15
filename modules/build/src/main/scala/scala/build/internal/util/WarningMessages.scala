@@ -13,16 +13,16 @@ object WarningMessages {
        |Please bear in mind that non-ideal user experience should be expected.
        |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at $scalaCliGithubUrl""".stripMargin
   def experimentalDirectiveUsed(name: String): String =
-    experimentalFeatureUsed(s"The '$name' directive")
+    experimentalFeatureUsed(s"The `$name` directive")
 
   def experimentalSubcommandUsed(name: String): String =
-    experimentalFeatureUsed(s"The '$name' sub-command")
+    experimentalFeatureUsed(s"The `$name` sub-command")
 
   def experimentalOptionUsed(name: String): String =
-    experimentalFeatureUsed(s"The '$name' option")
+    experimentalFeatureUsed(s"The `$name` option")
 
   def experimentalConfigKeyUsed(name: String): String =
-    experimentalFeatureUsed(s"The '$name' configuration key")
+    experimentalFeatureUsed(s"The `$name` configuration key")
 
   def rawValueNotWrittenToPublishFile(
     rawValue: String,
@@ -50,8 +50,8 @@ object WarningMessages {
   )(using invokeData: ScalaCliInvokeData): String = {
     val powerType =
       if specificationLevel == SpecificationLevel.EXPERIMENTAL then "experimental" else "restricted"
-    s"""The '$featureName' $featureType is $powerType.
-       |You can run it with the '--power' flag or turn power mode on globally by running:
+    s"""The `$featureName` $featureType is $powerType.
+       |You can run it with the `--power` flag or turn power mode on globally by running:
        |  ${Console.BOLD}${invokeData.progName} config power true${Console.RESET}.""".stripMargin
   }
 
