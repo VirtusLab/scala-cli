@@ -478,6 +478,10 @@ CPU architecture to use when looking up in the JVM index
 
 Port for BSP debugging
 
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
+
 **--ttl**
 
 Specify a TTL for changing dependencies, such as snapshots
@@ -742,6 +746,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--dump**
 
@@ -1177,6 +1185,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 
@@ -1716,6 +1728,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 
@@ -2285,6 +2301,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 
@@ -2864,6 +2884,10 @@ CPU architecture to use when looking up in the JVM index
 
 Port for BSP debugging
 
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
+
 **--ttl**
 
 Specify a TTL for changing dependencies, such as snapshots
@@ -3399,6 +3423,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 
@@ -4011,6 +4039,10 @@ CPU architecture to use when looking up in the JVM index
 
 Port for BSP debugging
 
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
+
 **--ttl**
 
 Specify a TTL for changing dependencies, such as snapshots
@@ -4622,6 +4654,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 
@@ -5471,6 +5507,10 @@ CPU architecture to use when looking up in the JVM index
 **--bsp-debug-port**
 
 Port for BSP debugging
+
+**--jmx-remote**
+
+Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally.
 
 **--ttl**
 

@@ -61,7 +61,16 @@ final case class SharedJvmOptions(
   @Tag(tags.implementation)
   @HelpMessage("Port for BSP debugging")
   @Hidden
-    bspDebugPort: Option[String] = None
+    bspDebugPort: Option[String] = None,
+
+  @Group(HelpGroup.Debug.toString)
+  @Tag(tags.implementation)
+  @HelpMessage(
+    "Enable JMX remote connections. Pass a port or host:port as argument, like --jmx-remote 9010 or --jmx-remote locahost:9010. Host defaults to localhost. " +
+    "If running on a machine you connect to with 'ssh foo', run 'ssh foo -L port:localhost:port' on your local machine, then open a JMX remote connection to localhost:port in VisualVM running locally."
+  )
+  @Hidden
+    jmxRemote: Option[String] = None
 )
 // format: on
 

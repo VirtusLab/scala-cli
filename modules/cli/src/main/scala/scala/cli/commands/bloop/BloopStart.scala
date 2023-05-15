@@ -19,10 +19,10 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
     List("bloop", "start")
   )
 
-  private def mkBloopRifleConfig(opts: BloopStartOptions): BloopRifleConfig = {
+  private def mkBloopRifleConfig(opts: BloopStartOptions, logger: Logger): BloopRifleConfig = {
     import opts.*
     val buildOptions = BuildOptions(
-      javaOptions = JvmUtils.javaOptions(jvm).orExit(global.logging.logger),
+      javaOptions = JvmUtils.javaOptions(jvm, logger).orExit(global.logging.logger),
       internal = InternalOptions(
         cache = Some(coursier.coursierCache(global.logging.logger.coursierLogger("")))
       )
@@ -39,7 +39,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
 
   override def runCommand(options: BloopStartOptions, args: RemainingArgs, logger: Logger): Unit = {
     val threads          = BloopThreads.create()
-    val bloopRifleConfig = mkBloopRifleConfig(options)
+    val bloopRifleConfig = mkBloopRifleConfig(options, logger)
 
     val isRunning = BloopRifle.check(bloopRifleConfig, logger.bloopRifleLogger)
 

@@ -106,7 +106,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
       logger,
       allowExecve = true,
       () =>
-        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
+        JvmUtils.javaOptions(options.jvm, logger).orExit(logger).javaHome(
           ArchiveCache().withCache(cache),
           cache,
           logger.verbosity

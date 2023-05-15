@@ -342,7 +342,7 @@ final case class SharedOptions(
       ),
       scalaJsOptions = scalaJsOptions(js),
       scalaNativeOptions = scalaNativeOptions(native),
-      javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
+      javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm, logger)),
       jmhOptions = bo.JmhOptions(
         addJmhDependencies =
           if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
