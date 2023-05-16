@@ -48,7 +48,7 @@ class SipScalaTests extends ScalaCliSuite {
       if (!isPowerMode) {
         expect(res.exitCode == 1)
         val output = res.out.text()
-        expect(output.contains("The 'directories' sub-command is restricted."))
+        expect(output.contains("The `directories` sub-command is restricted."))
       }
       else expect(res.exitCode == 0)
     }
@@ -69,11 +69,11 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.exitCode == 1)
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
-          expect(errOutput.contains("The 'export' sub-command is experimental."))
+          expect(errOutput.contains("The `export` sub-command is experimental."))
         case (true, false) =>
-          expect(errOutput.contains("The 'export' sub-command is experimental."))
+          expect(errOutput.contains("The `export` sub-command is experimental."))
         case (true, true) =>
-          expect(!errOutput.contains("The 'export' sub-command is experimental."))
+          expect(!errOutput.contains("The `export` sub-command is experimental."))
       }
     }
 
@@ -98,29 +98,29 @@ class SipScalaTests extends ScalaCliSuite {
         case (false, _) =>
           expect(configProxyResult.exitCode == 1)
           expect(configProxyErrOutput.contains(
-            "The 'repositories.default' configuration key is restricted."
+            "The `repositories.default` configuration key is restricted."
           ))
           expect(configPublishUserResult.exitCode == 1)
           expect(configPublishUserErrOutput.contains(
-            "The 'publish.user.name' configuration key is experimental."
+            "The `publish.user.name` configuration key is experimental."
           ))
         case (true, false) =>
           expect(configProxyResult.exitCode == 0)
           expect(!configProxyErrOutput.contains(
-            "The 'repositories.default' configuration key is restricted."
+            "The `repositories.default` configuration key is restricted."
           ))
           expect(configPublishUserResult.exitCode == 0)
           expect(configPublishUserErrOutput.contains(
-            "The 'publish.user.name' configuration key is experimental."
+            "The `publish.user.name` configuration key is experimental."
           ))
         case (true, true) =>
           expect(configProxyResult.exitCode == 0)
           expect(!configProxyErrOutput.contains(
-            "The 'repositories.default' configuration key is restricted."
+            "The `repositories.default` configuration key is restricted."
           ))
           expect(configPublishUserResult.exitCode == 0)
           expect(!configPublishUserErrOutput.contains(
-            "The 'publish.user.name' configuration key is experimental."
+            "The `publish.user.name` configuration key is experimental."
           ))
       }
     }
@@ -132,8 +132,8 @@ class SipScalaTests extends ScalaCliSuite {
         stderr = os.Pipe
       )
       val output = res.out.trim()
-      if (!isPowerMode) expect(output.contains("The 'export' sub-command is experimental."))
-      else expect(output.contains("The 'export' sub-command is experimental."))
+      if (!isPowerMode) expect(output.contains("The `export` sub-command is experimental."))
+      else expect(output.contains("The `export` sub-command is experimental."))
     }
 
   def testConfigCommandHelp(isPowerMode: Boolean, isFullHelp: Boolean): Unit =
@@ -187,12 +187,12 @@ class SipScalaTests extends ScalaCliSuite {
         case (true, false) =>
           expect(res.exitCode == 0)
           expect(errOutput.contains(
-            """The '//> using publish.name "my-library"' directive is experimental."""
+            """The `//> using publish.name "my-library"` directive is experimental."""
           ))
         case (true, true) =>
           expect(res.exitCode == 0)
           expect(!errOutput.contains(
-            """The '//> using publish.name "my-library"' directive is experimental."""
+            """The `//> using publish.name "my-library"` directive is experimental."""
           ))
       }
     }
@@ -229,10 +229,10 @@ class SipScalaTests extends ScalaCliSuite {
           expect(errOutput.contains("--markdown"))
         case (true, false) =>
           expect(res.exitCode == 0)
-          expect(errOutput.contains("The '--markdown' option is experimental."))
+          expect(errOutput.contains("The `--markdown` option is experimental."))
         case (true, true) =>
           expect(res.exitCode == 0)
-          expect(!errOutput.contains("The '--markdown' option is experimental."))
+          expect(!errOutput.contains("The `--markdown` option is experimental."))
       }
     }
 
@@ -381,7 +381,7 @@ class SipScalaTests extends ScalaCliSuite {
             .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
           val errOutput = res.err.trim()
           expect(res.exitCode == 1)
-          expect(errOutput.contains(s"The '$subCommand' sub-command is $restrictionType."))
+          expect(errOutput.contains(s"The `$subCommand` sub-command is $restrictionType."))
         },
         testWhenEnabled = { (root, homeEnv) =>
           val res = os.proc(TestUtil.cli, subCommand)
