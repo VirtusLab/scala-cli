@@ -81,6 +81,12 @@ object Test extends ScalaCommand[TestOptions] {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    /** Runs the tests via [[testOnce]] if build was successful
+      * @param builds
+      *   build results, checked for failures
+      * @param allowExit
+      *   false in watchMode
+      */
     def maybeTest(builds: Builds, allowExit: Boolean): Unit =
       if (builds.anyFailed) {
         System.err.println("Compilation failed")

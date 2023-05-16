@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import scala.util.Properties
+import scala.util.{Properties, Try}
 
 class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
 
@@ -118,6 +118,57 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
 
           val secondOutput = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(secondOutput == "Hola user")
+        }
+      finally
+        if (proc.isAlive()) {
+          proc.destroy()
+          Thread.sleep(200L)
+          if (proc.isAlive())
+            proc.destroyForcibly()
+        }
+    }
+  }
+
+  test("watch test - no infinite loop") {
+
+    val fileName = "watch.scala"
+
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        """//> using lib "org.scalameta::munit::0.7.29"
+          |
+          |class MyTests extends munit.FunSuite {
+          |    test("is true true") { assert(true) }
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val proc = os.proc(TestUtil.cli, "test", "-w", "watch.scala")
+        .spawn(cwd = root, mergeErrIntoOut = true)
+
+      val watchingMsg = "Watching sources, press Ctrl+C to exit, or press Enter to re-run."
+      val testingMsg  = "MyTests:"
+
+      try
+        TestUtil.withThreadPool("watch-test-test", 2) { pool =>
+          val timeout     = Duration("10 seconds")
+          implicit val ec = ExecutionContext.fromExecutorService(pool)
+
+          def lineReadIter = Iterator.continually(Try(TestUtil.readLine(proc.stdout, ec, timeout)))
+            .takeWhile(_.isSuccess)
+            .map(_.get)
+
+          val beforeAppendOut = lineReadIter.toSeq
+          expect(beforeAppendOut.count(_.contains(testingMsg)) == 1)
+          expect(beforeAppendOut.count(_.contains(watchingMsg)) == 1)
+          expect(beforeAppendOut.last.contains(watchingMsg))
+
+          os.write.append(root / fileName, "\n//comment")
+
+          val afterAppendOut = lineReadIter.toSeq
+          expect(afterAppendOut.count(_.contains(testingMsg)) == 1)
+          expect(afterAppendOut.count(_.contains(watchingMsg)) == 1)
+          expect(afterAppendOut.last.contains(watchingMsg))
         }
       finally
         if (proc.isAlive()) {
