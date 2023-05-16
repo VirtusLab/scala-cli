@@ -352,6 +352,7 @@ final case class SharedOptions(
       classPathOptions = bo.ClassPathOptions(
         extraClassPath = extraJarsAndClassPath,
         extraCompileOnlyJars = extraCompileOnlyClassPath,
+        extraSourceJars = extraSourceJars.extractedClassPath,
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
