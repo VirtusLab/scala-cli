@@ -65,12 +65,7 @@ Repositories can also be resolved from the `COURSIER_REPOSITORIES` environment v
 | ivy2local | Ivy | Local ivy repository, used to publish things locally (e.g. by `publishLocal`). Localized in `<ivy-home>/local`, usually `<user-home>/.ivy/local`.    |
 | m2Local | Maven | Local maven repository, localized in `<user-home>/.m2/repository` |
 
-Scala CLI delegates parsing of predefined repositories to Coursier and full details can be obtains from Coursier source code ([here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/jvm/src/main/scala/coursier/LocalRepositories.scala) and [here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/shared/src/main/scala/coursier/internal/SharedRepositoryParser.scala))
-
-
-
-
-
+Scala CLI delegates parsing of predefined repositories to Coursier and full details can be obtained from Coursier source code ([here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/jvm/src/main/scala/coursier/LocalRepositories.scala) and [here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/shared/src/main/scala/coursier/internal/SharedRepositoryParser.scala))
 
 ### Excluding Transitive Dependencies
 
@@ -152,7 +147,7 @@ You can also add a URL fallback for a JAR dependency, if it can't be fetched oth
 
 ```bash ignore
 scala-cli compile Sample.sc \
-  -- dependency "org::name::version,url=https://url-to-the-jar"
+  --dependency "org::name::version,url=https://url-to-the-jar"
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favor adding dependencies in the sources themselves
@@ -172,3 +167,28 @@ Lastly, you can also add simple JAR files as dependencies with `--jar`:
 ```bash ignore
 scala-cli compile Sample.sc --jar /path/to/library.jar
 ```
+
+## Adding local JARs as dependencies
+You can pass local JARs from the command line with the `--extra-jar` option:
+
+```bash ignore
+scala-cli compile Sample.sc \
+  --extra-jar "./path/to/custom.jar"
+```
+
+Local sources JARs can also be passed in a similar manner:
+```bash ignore
+scala-cli compile Sample.sc \
+  --extra-source-jar "./path/to/custom-sources.jar"
+```
+
+Both can be handled with the appropriate `using` directives, too:
+
+```scala
+//> using jar "./path/to/custom.jar"
+//> using sourceJar "./path/to/custom-sources.jar"
+```
+
+:::caution
+Local JARs with the `*-sources.jar` suffix are assumed to be sources JARs and are treated as such.
+:::
