@@ -42,6 +42,10 @@ Manually add JAR(s) to the class path
 
 `//> using test.jar /Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar`
 
+`//> using sourceJar /path/to/custom-jar-sources.jar`
+
+`//> using sourceJars /path/to/custom-jar-sources.jar /path/to/another-jar-sources.jar`
+
 ### Custom sources
 
 Manually add sources to the project

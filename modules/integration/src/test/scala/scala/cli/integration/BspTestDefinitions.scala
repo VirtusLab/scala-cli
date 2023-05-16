@@ -1373,7 +1373,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
-  test("source jars handled correctly from the command line") {
+  def testSourceJars(
+    directives: String = "//> using jar Message.jar",
+    passSourceJarFromCommandLine: Boolean = false
+  ): Unit = {
     val jarSources    = os.rel / "jarStuff"
     val mainSources   = os.rel / "src"
     val jarPath       = mainSources / "Message.jar"
@@ -1381,7 +1384,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       jarSources / "Message.scala" -> "case class Message(value: String)",
       mainSources / "Main.scala" ->
-        s"""//> using jar Message.jar
+        s"""$directives
            |object Main extends App {
            |  println(Message("Hello").value)
            |}
@@ -1412,11 +1415,14 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       )
         .call(cwd = root)
+      val bspOptions =
+        if (passSourceJarFromCommandLine) List("--source-jar", sourceJarPath.toString)
+        else List.empty
       withBsp(
         inputs,
         Seq(mainSources.toString),
         reuseRoot = Some(root),
-        bspOptions = List("--source-jar", sourceJarPath.toString)
+        bspOptions = bspOptions
       ) {
         (_, _, remoteServer) =>
           async {
@@ -1444,6 +1450,17 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           }
       }
     }
+  }
+
+  test("source jars handled correctly from the command line") {
+    testSourceJars(passSourceJarFromCommandLine = true)
+  }
+
+  test("source jars handled correctly from a using directive") {
+    testSourceJars(directives =
+      """//> using jar Message.jar
+        |//> using source.jar Message-sources.jar""".stripMargin
+    )
   }
 
   private def checkIfBloopProjectIsInitialised(

@@ -7,13 +7,17 @@ import scala.build.preprocessing.ScopePath
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
 import scala.util.{Failure, Success, Try}
+import scala.build.preprocessing.directives.CustomJar.JarType
 
 @DirectiveGroupName("Custom JAR")
 @DirectiveExamples(
   "//> using jar /Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
-) @DirectiveExamples(
+)
+@DirectiveExamples(
   "//> using test.jar /Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
 )
+@DirectiveExamples("//> using sourceJar /path/to/custom-jar-sources.jar")
+@DirectiveExamples("//> using sourceJars /path/to/custom-jar-sources.jar /path/to/another-jar-sources.jar")
 @DirectiveUsage(
   "`//> using jar `_path_ | `//> using jars `_path1_ _path2_ …",
   """//> using jar _path_
@@ -29,19 +33,36 @@ final case class CustomJar(
   @DirectiveName("test.jar")
   @DirectiveName("test.jars")
   testJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil),
+  @DirectiveName("sources.jar")
+  @DirectiveName("sourcesJars")
+  @DirectiveName("sources.jars")
+  @DirectiveName("sourceJar")
+  @DirectiveName("source.jar")
+  @DirectiveName("sourceJars")
+  @DirectiveName("source.jars")
+  sourcesJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptionsWithRequirements {
   def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
     List(
-      CustomJar.buildOptions(jar).map(_.withEmptyRequirements),
-      CustomJar.buildOptions(testJar).map(_.withScopeRequirement(Scope.Test))
+      CustomJar.buildOptions(jar, JarType.Jar)
+        .map(_.withEmptyRequirements),
+      CustomJar.buildOptions(testJar, JarType.Jar)
+        .map(_.withScopeRequirement(Scope.Test)),
+      CustomJar.buildOptions(sourcesJar, JarType.SourcesJar)
+        .map(_.withEmptyRequirements)
     )
 }
 
 object CustomJar {
   val handler: DirectiveHandler[CustomJar] = DirectiveHandler.derive
-  def buildOptions(jar: DirectiveValueParser.WithScopePath[List[Positioned[String]]])
-    : Either[BuildException, BuildOptions] = {
+  enum JarType:
+    case Jar, SourcesJar
+  def buildOptions(
+    jar: DirectiveValueParser.WithScopePath[List[Positioned[String]]],
+    jarType: JarType
+  ): Either[BuildException, BuildOptions] = {
     val cwd = jar.scopePath
     jar.value
       .map { posPathStr =>
@@ -56,11 +77,10 @@ object CustomJar {
       .sequence
       .left.map(CompositeBuildException(_))
       .map { paths =>
-        BuildOptions(
-          classPathOptions = ClassPathOptions(
-            extraClassPath = paths
-          )
-        )
+        val classPathOptions = jarType match
+          case JarType.Jar        => ClassPathOptions(extraClassPath = paths)
+          case JarType.SourcesJar => ClassPathOptions(extraSourceJars = paths)
+        BuildOptions(classPathOptions = classPathOptions)
       }
   }
 }
