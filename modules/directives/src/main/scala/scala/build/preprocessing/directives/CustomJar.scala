@@ -4,6 +4,7 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
 import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.CustomJar.JarType
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
@@ -92,7 +93,9 @@ object CustomJar {
       .left.map(CompositeBuildException(_))
       .map { paths =>
         val classPathOptions = jarType match
-          case JarType.Jar        => ClassPathOptions(extraClassPath = paths)
+          case JarType.Jar =>
+            val (sourceJars, regularJars) = paths.partition(_.hasSourceJarSuffix)
+            ClassPathOptions(extraClassPath = regularJars, extraSourceJars = sourceJars)
           case JarType.SourcesJar => ClassPathOptions(extraSourceJars = paths)
         BuildOptions(classPathOptions = classPathOptions)
       }

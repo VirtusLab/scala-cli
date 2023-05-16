@@ -1375,7 +1375,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   def testSourceJars(
     directives: String = "//> using jar Message.jar",
-    passSourceJarFromCommandLine: Boolean = false,
+    getBspOptions: os.RelPath => List[String] = _ => List.empty,
     checkTestTarget: Boolean = false
   ): Unit = {
     val jarSources    = os.rel / "jarStuff"
@@ -1416,14 +1416,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         extraOptions
       )
         .call(cwd = root)
-      val bspOptions =
-        if (passSourceJarFromCommandLine) List("--source-jar", sourceJarPath.toString)
-        else List.empty
       withBsp(
         inputs,
         Seq(mainSources.toString),
         reuseRoot = Some(root),
-        bspOptions = bspOptions
+        bspOptions = getBspOptions(sourceJarPath)
       ) {
         (_, _, remoteServer) =>
           async {
@@ -1460,13 +1457,28 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("source jars handled correctly from the command line") {
-    testSourceJars(passSourceJarFromCommandLine = true)
+    testSourceJars(getBspOptions = sourceJarPath => List("--source-jar", sourceJarPath.toString))
   }
 
   test("source jars handled correctly from a using directive") {
     testSourceJars(directives =
       """//> using jar Message.jar
         |//> using sourceJar Message-sources.jar""".stripMargin
+    )
+  }
+
+  test(
+    "source jars handled correctly from the command line smartly assuming a *-sources.jar is a source jar"
+  ) {
+    testSourceJars(getBspOptions = sourceJarPath => List("--extra-jar", sourceJarPath.toString))
+  }
+
+  test(
+    "source jars handled correctly from a using directive smartly assuming a *-sources.jar is a source jar"
+  ) {
+    testSourceJars(directives =
+      """//> using jar Message.jar
+        |//> using jar Message-sources.jar""".stripMargin
     )
   }
 

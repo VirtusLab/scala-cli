@@ -22,9 +22,11 @@ import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
 import scala.cli.ScalaCli
@@ -298,6 +300,14 @@ final case class SharedOptions(
         case _            => Right(None)
       }
     }
+    val (assumedSourceJars, extraRegularJarsAndClasspath) =
+      extraJarsAndClassPath.partition(_.hasSourceJarSuffix)
+    if assumedSourceJars.nonEmpty then
+      val assumedSourceJarsString = assumedSourceJars.mkString(", ")
+      logger.message(
+        s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole.GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
+           |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
+      )
     bo.BuildOptions(
       suppressWarningOptions =
         bo.SuppressWarningOptions(
@@ -350,9 +360,9 @@ final case class SharedOptions(
         runJmh = if (enableJmh) Some(true) else None
       ),
       classPathOptions = bo.ClassPathOptions(
-        extraClassPath = extraJarsAndClassPath,
+        extraClassPath = extraRegularJarsAndClasspath,
         extraCompileOnlyJars = extraCompileOnlyClassPath,
-        extraSourceJars = extraSourceJars.extractedClassPath,
+        extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
         extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
         extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
@@ -399,6 +409,8 @@ final case class SharedOptions(
   def extraJarsAndClassPath: List[os.Path] =
     (extraJars ++ scalac.scalacOption.getScalacOption("-classpath"))
       .extractedClassPath
+
+  def extraClasspathWasPassed: Boolean = extraJarsAndClassPath.exists(!_.hasSourceJarSuffix)
 
   def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
 
@@ -555,7 +567,7 @@ final case class SharedOptions(
       javaSnippetList = allJavaSnippets,
       markdownSnippetList = allMarkdownSnippets,
       enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraJarsAndClassPath.nonEmpty
+      extraClasspathWasPassed = extraClasspathWasPassed
     )
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
