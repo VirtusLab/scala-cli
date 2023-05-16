@@ -116,6 +116,8 @@ Manually add JAR(s) to the class path
 
 `//> using sourceJars /path/to/custom-jar-sources.jar /path/to/another-jar-sources.jar`
 
+`//> using test.sourceJar /path/to/test-custom-jar-sources.jar`
+
 ### Custom sources
 
 Manually add sources to the project

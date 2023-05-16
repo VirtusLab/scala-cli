@@ -4,10 +4,10 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
 import scala.build.preprocessing.ScopePath
+import scala.build.preprocessing.directives.CustomJar.JarType
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
 import scala.util.{Failure, Success, Try}
-import scala.build.preprocessing.directives.CustomJar.JarType
 
 @DirectiveGroupName("Custom JAR")
 @DirectiveExamples(
@@ -17,7 +17,10 @@ import scala.build.preprocessing.directives.CustomJar.JarType
   "//> using test.jar /Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar"
 )
 @DirectiveExamples("//> using sourceJar /path/to/custom-jar-sources.jar")
-@DirectiveExamples("//> using sourceJars /path/to/custom-jar-sources.jar /path/to/another-jar-sources.jar")
+@DirectiveExamples(
+  "//> using sourceJars /path/to/custom-jar-sources.jar /path/to/another-jar-sources.jar"
+)
+@DirectiveExamples("//> using test.sourceJar /path/to/test-custom-jar-sources.jar")
 @DirectiveUsage(
   "`//> using jar `_path_ | `//> using jars `_path1_ _path2_ …",
   """//> using jar _path_
@@ -42,6 +45,15 @@ final case class CustomJar(
   @DirectiveName("sourceJars")
   @DirectiveName("source.jars")
   sourcesJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil),
+  @DirectiveName("test.sources.jar")
+  @DirectiveName("test.sourcesJars")
+  @DirectiveName("test.sources.jars")
+  @DirectiveName("test.sourceJar")
+  @DirectiveName("test.source.jar")
+  @DirectiveName("test.sourceJars")
+  @DirectiveName("test.source.jars")
+  testSourcesJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptionsWithRequirements {
   def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
@@ -51,7 +63,9 @@ final case class CustomJar(
       CustomJar.buildOptions(testJar, JarType.Jar)
         .map(_.withScopeRequirement(Scope.Test)),
       CustomJar.buildOptions(sourcesJar, JarType.SourcesJar)
-        .map(_.withEmptyRequirements)
+        .map(_.withEmptyRequirements),
+      CustomJar.buildOptions(testSourcesJar, JarType.SourcesJar)
+        .map(_.withScopeRequirement(Scope.Test))
     )
 }
 

@@ -1375,7 +1375,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
   def testSourceJars(
     directives: String = "//> using jar Message.jar",
-    passSourceJarFromCommandLine: Boolean = false
+    passSourceJarFromCommandLine: Boolean = false,
+    checkTestTarget: Boolean = false
   ): Unit = {
     val jarSources    = os.rel / "jarStuff"
     val mainSources   = os.rel / "src"
@@ -1427,10 +1428,11 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
         (_, _, remoteServer) =>
           async {
             val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-            val Some(mainTarget) = buildTargetsResp
+            val targets = buildTargetsResp
               .getTargets
               .asScala
-              .collectFirst { case t if !t.getId.getUri.contains("-test") => t }
+            val Some(mainTarget) = targets.find(!_.getId.getUri.contains("-test"))
+            val Some(testTarget) = targets.find(_.getId.getUri.contains("-test"))
             // ensure that the project compiles
             val compileRes = await(remoteServer.buildTargetCompile(
               new b.CompileParams(List(mainTarget.getId).asJava)
@@ -1440,12 +1442,17 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             val dependencySourcesResp = await {
               remoteServer
                 .buildTargetDependencySources(
-                  new b.DependencySourcesParams(List(mainTarget.getId).asJava)
+                  new b.DependencySourcesParams(List(mainTarget.getId, testTarget.getId).asJava)
                 )
                 .asScala
             }
             val dependencySourceItems = dependencySourcesResp.getItems.asScala
-            val sources               = dependencySourceItems.flatMap(_.getSources.asScala)
+            val sources = dependencySourceItems
+              .filter(dsi =>
+                if (checkTestTarget) dsi.getTarget == testTarget.getId
+                else dsi.getTarget == mainTarget.getId
+              )
+              .flatMap(_.getSources.asScala)
             expect(sources.exists(_.endsWith(sourceJarPath.last)))
           }
       }
@@ -1459,7 +1466,15 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   test("source jars handled correctly from a using directive") {
     testSourceJars(directives =
       """//> using jar Message.jar
-        |//> using source.jar Message-sources.jar""".stripMargin
+        |//> using sourceJar Message-sources.jar""".stripMargin
+    )
+  }
+
+  test("source jars handled correctly from a test scope using directive") {
+    testSourceJars(
+      directives = """//> using jar Message.jar
+                     |//> using test.sourceJar Message-sources.jar""".stripMargin,
+      checkTestTarget = true
     )
   }
 
