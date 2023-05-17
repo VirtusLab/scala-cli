@@ -14,17 +14,18 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
   private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
 
-  val successfulTestInputs: TestInputs = TestInputs(
+  def successfulTestInputs(directivesString: String = "//> using dep org.scalameta::munit::0.7.29")
+    : TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using dep "org.scalameta::munit::0.7.29"
-        |
-        |class MyTests extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 4)
-        |    println("Hello from " + "tests")
-        |  }
-        |}
-        |""".stripMargin
+      s"""$directivesString
+         |
+         |class MyTests extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 4)
+         |    println("Hello from " + "tests")
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val failingTestInputs: TestInputs = TestInputs(
@@ -226,7 +227,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   test("successful test") {
-    successfulTestInputs.fromRoot { root =>
+    successfulTestInputs().fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
@@ -234,7 +235,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   if (actualScalaVersion.startsWith("2"))
     test("successful test JVM 8") {
-      successfulTestInputs.fromRoot { root =>
+      successfulTestInputs().fromRoot { root =>
         val output =
           os.proc(TestUtil.cli, "test", "--jvm", "8", extraOptions, ".").call(cwd = root).out.text()
         expect(output.contains("Hello from tests"))
@@ -242,7 +243,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   test("successful test JS") {
-    successfulTestInputs.fromRoot { root =>
+    successfulTestInputs().fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
         .call(cwd = root)
         .out.text()
@@ -339,7 +340,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
   def successfulNativeTest(): Unit =
-    successfulTestInputs.fromRoot { root =>
+    successfulTestInputs().fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--native")
         .call(cwd = root)
         .out.text()
@@ -728,6 +729,23 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
       val output = os.proc(TestUtil.cli, "test", extraOptions, "Test.md")
         .call(cwd = root, check = false)
         .out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  test("toolkit") {
+    successfulTestInputs("//> using toolkit latest").fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
+      expect(output.contains("Hello from tests"))
+    }
+  }
+
+  test("toolkit from command line") {
+    successfulTestInputs("").fromRoot { root =>
+      val output =
+        os.proc(TestUtil.cli, "test", extraOptions, ".", "--toolkit", "latest").call(cwd =
+          root
+        ).out.text()
       expect(output.contains("Hello from tests"))
     }
   }

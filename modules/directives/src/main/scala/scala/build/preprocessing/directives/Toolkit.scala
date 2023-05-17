@@ -13,7 +13,6 @@ import scala.build.options.{
   ShadowingSeq,
   WithBuildRequirements
 }
-import scala.build.preprocessing.directives.Toolkit.resolveDependency
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
@@ -37,26 +36,33 @@ final case class Toolkit(
 }
 
 object Toolkit {
-  def resolveDependency(toolkitCoords: Positioned[String])
-    : Positioned[DependencyLike[NameAttributes, NameAttributes]] =
-    toolkitCoords.map(coords =>
-      val tokens  = coords.split(':')
-      val version = tokens.last
-      val v       = if version == "latest" then "latest.release" else version
-      val flavor  = tokens.dropRight(1).headOption
-      val org = flavor match {
-        case Some("typelevel") => Constants.typelevelOrganization
-        case Some(org)         => org
-        case None              => Constants.toolkitOrganization
-      }
-      dep"$org::${Constants.toolkitName}::$v,toolkit"
-    )
+  def resolveDependencies(toolkitCoords: Positioned[String])
+    : List[Positioned[DependencyLike[NameAttributes, NameAttributes]]] =
+    toolkitCoords match
+      case Positioned(positions, coords) =>
+        val tokens  = coords.split(':')
+        val version = tokens.last
+        val v       = if version == "latest" then "latest.release" else version
+        val flavor  = tokens.dropRight(1).headOption
+        val org = flavor match {
+          case Some("typelevel") => Constants.typelevelOrganization
+          case Some(org)         => org
+          case None              => Constants.toolkitOrganization
+        }
+        flavor
+          .map(_ => List(Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")))
+          .getOrElse {
+            List(
+              Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit"),
+              Positioned(positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
+            )
+          }
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
   def buildOptions(t: Positioned[String]): Either[BuildException, BuildOptions] =
     Right {
       BuildOptions(
         classPathOptions = ClassPathOptions(
-          extraDependencies = ShadowingSeq.from(List(resolveDependency(t)))
+          extraDependencies = ShadowingSeq.from(resolveDependencies(t))
         )
       )
     }

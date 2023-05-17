@@ -1122,7 +1122,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--toolkit", "0.1.6")
+      val output = os.proc(TestUtil.cli, ".", "--toolkit", "0.1.7")
         .call(cwd = root).out.trim()
 
       expect(output == root.toString())
