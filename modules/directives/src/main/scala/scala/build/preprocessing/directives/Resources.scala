@@ -3,6 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
+import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
 import scala.cli.commands.SpecificationLevel
 

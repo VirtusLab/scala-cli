@@ -500,16 +500,6 @@ final case class BuildOptions(
 
   lazy val interactive: Either[BuildException, Interactive] =
     internal.interactive.map(_()).getOrElse(Right(InteractiveNop))
-
-  def withBuildRequirements(buildRequirements: BuildRequirements)
-    : WithBuildRequirements[BuildOptions] =
-    WithBuildRequirements(buildRequirements, this)
-
-  def withEmptyRequirements: WithBuildRequirements[BuildOptions] =
-    withBuildRequirements(BuildRequirements())
-
-  def withScopeRequirement(scope: Scope): WithBuildRequirements[BuildOptions] =
-    withBuildRequirements(BuildRequirements(scope = Some(ScopeRequirement(scope = scope))))
 }
 
 object BuildOptions {
