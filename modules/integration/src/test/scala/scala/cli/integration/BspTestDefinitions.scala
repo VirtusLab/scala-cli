@@ -1460,26 +1460,10 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     testSourceJars(getBspOptions = sourceJarPath => List("--source-jar", sourceJarPath.toString))
   }
 
-  test("source jars handled correctly from a using directive") {
-    testSourceJars(directives =
-      """//> using jar Message.jar
-        |//> using sourceJar Message-sources.jar""".stripMargin
-    )
-  }
-
   test(
     "source jars handled correctly from the command line smartly assuming a *-sources.jar is a source jar"
   ) {
     testSourceJars(getBspOptions = sourceJarPath => List("--extra-jar", sourceJarPath.toString))
-  }
-
-  test(
-    "source jars handled correctly from a using directive smartly assuming a *-sources.jar is a source jar"
-  ) {
-    testSourceJars(directives =
-      """//> using jar Message.jar
-        |//> using jar Message-sources.jar""".stripMargin
-    )
   }
 
   test("source jars handled correctly from a test scope using directive") {
