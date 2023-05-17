@@ -87,22 +87,28 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
-  test("resolve toolkit dependency") {
+  test("resolve toolkit & toolkit-test dependency") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using toolkit "latest"
+        """//> using toolkit latest
           |""".stripMargin
     )
-    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
-      (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
-        val dep   = build.options.classPathOptions.extraDependencies.toSeq.headOption
-        assert(dep.nonEmpty)
-
-        val toolkitDep = dep.get.value
-        expect(toolkitDep.organization == "org.scala-lang")
-        expect(toolkitDep.name == "toolkit")
-        expect(toolkitDep.version == "latest.release")
+    testInputs.withBuilds(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuilds) =>
+        val expectedVersion = "latest.release"
+        val builds          = maybeBuilds.orThrow
+        val Some(mainBuild) = builds.get(Scope.Main)
+        val Some(toolkitDep) =
+          mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        expect(toolkitDep.organization == Constants.toolkitOrganization)
+        expect(toolkitDep.name == Constants.toolkitName)
+        expect(toolkitDep.version == expectedVersion)
+        val Some(testBuild) = builds.get(Scope.Test)
+        val Some(toolkitTestDep) =
+          testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        expect(toolkitTestDep.organization == Constants.toolkitOrganization)
+        expect(toolkitTestDep.name == Constants.toolkitTestName)
+        expect(toolkitTestDep.version == expectedVersion)
     }
   }
   for (scope <- Scope.all) {
@@ -203,14 +209,25 @@ class DirectiveTests extends munit.FunSuite {
     test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
       withProjectFile(
         projectFileContent =
-          s"""//> using test.toolkit "latest"
+          s"""//> using test.toolkit ${Constants.toolkitVersion}
              |""".stripMargin
       ) { (build, isTestScope) =>
         val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
         if isTestScope then expect(deps.nonEmpty)
         val hasToolkitDep =
-          deps.exists(d => d.organization == "org.scala-lang" && d.name == "toolkit")
+          deps.exists(d =>
+            d.organization == Constants.toolkitOrganization &&
+            d.name == Constants.toolkitName &&
+            d.version == Constants.toolkitVersion
+          )
+        val hasTestToolkitDep =
+          deps.exists(d =>
+            d.organization == Constants.toolkitOrganization &&
+            d.name == Constants.toolkitTestName &&
+            d.version == Constants.toolkitVersion
+          )
         expect(if isTestScope then hasToolkitDep else !hasToolkitDep)
+        expect(if isTestScope then hasTestToolkitDep else !hasTestToolkitDep)
       }
     }
   }
@@ -284,8 +301,8 @@ class DirectiveTests extends munit.FunSuite {
         assert(dep.nonEmpty)
 
         val toolkitDep = dep.get.value
-        expect(toolkitDep.organization == "org.typelevel")
-        expect(toolkitDep.name == "toolkit")
+        expect(toolkitDep.organization == Constants.typelevelToolkitOrganization)
+        expect(toolkitDep.name == Constants.toolkitName)
         expect(toolkitDep.version == "latest.release")
     }
   }

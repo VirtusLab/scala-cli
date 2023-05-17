@@ -503,6 +503,7 @@ final case class BuildOptions(
 }
 
 object BuildOptions {
+  def empty: BuildOptions = BuildOptions()
 
   final case class CrossKey(
     scalaVersion: String,

@@ -696,5 +696,6 @@ object SharedOptions {
 
   private def resolveToolkitDependency(toolkitVersion: Option[String])
     : Seq[Positioned[AnyDependency]] =
-    toolkitVersion.toList.map(Positioned.commandLine).flatMap(Toolkit.resolveDependencies)
+    toolkitVersion.toList.map(Positioned.commandLine)
+      .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map(_.value))
 }

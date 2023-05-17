@@ -1,9 +1,13 @@
 package scala.build.options
 
+import scala.build.options.BuildRequirements
+
 sealed abstract class Scope(val name: String, private val index: Int) extends Product
     with Serializable {
   def inherits: Seq[Scope]       = Nil
   lazy val allScopes: Set[Scope] = inherits.toSet + this
+  def asScopeRequirement: BuildRequirements.ScopeRequirement =
+    BuildRequirements.ScopeRequirement(this)
 }
 object Scope {
   case object Main extends Scope("main", 0)
