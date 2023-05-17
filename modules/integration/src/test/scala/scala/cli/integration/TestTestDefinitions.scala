@@ -16,7 +16,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   def successfulTestInputs(directivesString: String = "//> using dep org.scalameta::munit::0.7.29")
     : TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       s"""$directivesString
          |
          |class MyTests extends munit.FunSuite {
@@ -29,7 +29,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val failingTestInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "org.scalameta::munit::0.7.29"
         |
         |class MyTests extends munit.FunSuite {
@@ -41,7 +41,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulUtestInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "com.lihaoyi::utest::0.7.10"
         |import utest._
         |
@@ -57,7 +57,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulUtestJsInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "com.lihaoyi::utest::0.7.10"
         |import utest._
         |import scala.scalajs.js
@@ -75,7 +75,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulUtestNativeInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "com.lihaoyi::utest::0.7.10"
         |import utest._
         |import scala.scalanative.libc._
@@ -96,7 +96,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using scala "2.13.8"
         |//> using platform "native"
         |//> using dep "org.typelevel::cats-kernel-laws::2.8.0"
@@ -113,7 +113,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulJunitInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "com.novocode:junit-interface:0.11"
         |import org.junit.Test
         |
@@ -129,7 +129,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val severalTestsInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "org.scalameta::munit::0.7.29"
         |
         |class MyTests extends munit.FunSuite {
@@ -139,7 +139,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         |  }
         |}
         |""".stripMargin,
-    os.rel / "OtherTests.scala" ->
+    os.rel / "OtherTests.test.scala" ->
       """//> using dep "org.scalameta::munit::0.7.29"
         |
         |class OtherTests extends munit.FunSuite {
@@ -152,7 +152,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulWeaverInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using deps "com.disneystreaming::weaver-cats:0.8.2"
         |import weaver._
         |import cats.effect.IO
@@ -166,7 +166,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   )
 
   val successfulESModuleTestInputs: TestInputs = TestInputs(
-    os.rel / "MyTests.scala" ->
+    os.rel / "MyTests.test.scala" ->
       """//> using dep "org.scalameta::munit::0.7.29"
         |//> using jsModuleKind "esmodule"
         |import scala.scalajs.js
@@ -296,7 +296,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   }
   test("run only one test from utest") {
     val inputs: TestInputs = TestInputs(
-      os.rel / "FooTests.scala" ->
+      os.rel / "FooTests.test.scala" ->
         """//> using dep "com.lihaoyi::utest::0.7.10"
           |package tests.foo
           |import utest._
@@ -309,7 +309,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
           |  }
           |}
           |""".stripMargin,
-      os.rel / "BarTests.scala" ->
+      os.rel / "BarTests.test.scala" ->
         """//> using dep "com.lihaoyi::utest::0.7.10"
           |package tests.bar
           |import utest._
@@ -397,7 +397,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("failing test return code when compiling error") {
     val inputs = TestInputs(
-      os.rel / "MyTests.scala" ->
+      os.rel / "MyTests.test.scala" ->
         """//> using dep "org.scalameta::munit::0.7.29"
           |
           |class SomeTest extends munit.FunSuite {
@@ -493,7 +493,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"test framework arguments $platformName") {
       val inputs = TestInputs(
-        os.rel / "MyTests.scala" ->
+        os.rel / "MyTests.test.scala" ->
           """//> using dep "org.scalatest::scalatest::3.2.9"
             |import org.scalatest._
             |import org.scalatest.flatspec._
@@ -535,7 +535,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"custom test framework $platformName") {
       val inputs = TestInputs(
-        os.rel / "MyTests.scala" ->
+        os.rel / "MyTests.test.scala" ->
           """//> using dep "com.lihaoyi::utest::0.7.10"
             |
             |package mytests
@@ -550,7 +550,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
             |  }
             |}
             |""".stripMargin,
-        os.rel / "CustomFramework.scala" ->
+        os.rel / "CustomFramework.test.scala" ->
           """package custom
             |
             |class CustomFramework extends utest.runner.Framework {
@@ -582,7 +582,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   for ((platformName, platformArgs) <- platforms)
     test(s"Fail if no tests were run $platformName") {
       val inputs = TestInputs(
-        os.rel / "MyTests.scala" ->
+        os.rel / "MyTests.test.scala" ->
           """//> using dep "org.scalameta::munit::0.7.29"
             |
             |object MyTests
@@ -679,7 +679,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
 
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
-      os.rel / "JsDom.scala" ->
+      os.rel / "JsDom.test.scala" ->
         s"""//> using dep "com.lihaoyi::utest::0.7.10"
            |//> using dep "org.scala-js::scalajs-dom::2.1.0"
            |
