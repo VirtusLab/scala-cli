@@ -1,16 +1,17 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.{assert => expect}
+import coursier.Repositories
 import coursier.cache.FileCache
 import dependency.ScalaParameters
 
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.{
   InvalidBinaryScalaVersionError,
   NoValidScalaVersionFoundError,
   UnsupportedScalaVersionError
 }
-import scala.build.internal.Constants._
+import scala.build.internal.Constants.*
 import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.{
   BuildOptions,
@@ -24,9 +25,24 @@ import scala.build.{Build, BuildThreads, LocalRepo}
 import scala.build.Directories
 import scala.build.options.ScalacOpt
 import scala.build.Positioned
+import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
 
 class BuildOptionsTests extends munit.FunSuite {
+
+  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories     = Directories.under(extraRepoTmpDir)
+  val buildThreads    = BuildThreads.create()
+  val baseOptions = BuildOptions(
+    internal = InternalOptions(
+      localRepository = LocalRepo.localRepo(directories.localRepoDir),
+      keepDiagnostics = true
+    )
+  )
+  def bloopConfigOpt = Some(BloopServer.bloopConfig)
+  override def afterAll(): Unit = {
+    buildThreads.shutdown()
+  }
 
   test("Empty BuildOptions is actually empty") {
     val empty = BuildOptions()
@@ -272,13 +288,6 @@ class BuildOptionsTests extends munit.FunSuite {
       expect(scalaParams == expectedScalaParams)
     }
 
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val buildThreads    = BuildThreads.create()
-  override def afterAll(): Unit = {
-    buildThreads.shutdown()
-  }
-
   test("User scalac options shadow internal ones") {
     val defaultOptions = BuildOptions(
       internal = InternalOptions(
@@ -321,6 +330,33 @@ class BuildOptionsTests extends munit.FunSuite {
 
         pprint.err.log(rawOptions)
         expect(rawOptions.containsSlice(extraScalacOpt))
+    }
+  }
+
+  test("parse snapshots repository") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        """//> using repository snapshots
+          |//> using repository central
+          |object Foo extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    )
+
+    inputs.withBuild(BuildOptions(), buildThreads, bloopConfigOpt, buildTests = false) {
+      (_, _, maybeBuild) =>
+        expect(maybeBuild.exists(_.success))
+        val build = maybeBuild
+          .toOption
+          .flatMap(_.successfulOpt)
+          .getOrElse(sys.error("cannot happen"))
+        val repositories = build.options.finalRepositories.orThrow
+
+        expect(repositories.length == 3)
+        expect(repositories.contains(Repositories.sonatype("snapshots")))
+        expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
+        expect(repositories.contains(Repositories.central))
     }
   }
 

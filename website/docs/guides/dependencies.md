@@ -57,13 +57,14 @@ Repositories can also be resolved from the `COURSIER_REPOSITORIES` environment v
 
 #### Predefined repositories
 
-
-| predefined repository | kind | description  |
-| ---------- | ---- | --- |
-| central | Maven [(root)](https://repo1.maven.org/maven2) | Used by default, default repository for most Scala libraries |
-| sonatype:snapshots | Maven [(root)](https://oss.sonatype.org/content/repositories/snapshots) | Repositories where most Scala libraries publish its snapshots / nightly builds. Used when `X.nightly` is used as Scala version e.g. `3.1.nightly`. |
-| ivy2local | Ivy | Local ivy repository, used to publish things locally (e.g. by `publishLocal`). Localized in `<ivy-home>/local`, usually `<user-home>/.ivy/local`.    |
-| m2Local | Maven | Local maven repository, localized in `<user-home>/.m2/repository` |
+| predefined repository  | kind                                                                                                                                                        | description                                                                                                                                                                           |
+|------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| central                | Maven [(root)](https://repo1.maven.org/maven2)                                                                                                              | Used by default, default repository for most Scala libraries                                                                                                                          |
+| sonatype:snapshots     | Maven [(root)](https://oss.sonatype.org/content/repositories/snapshots)                                                                                     | Repositories where most Scala libraries publish its snapshots / nightly builds. Used when `X.nightly` is used as Scala version e.g. `3.1.nightly`.                                    |
+| sonatype-s01:snapshots | Maven [(root)](https://s01.oss.sonatype.org/content/repositories/snapshots)                                                                                 | This repository is similar to the `sonatype:snapshots` repository but is dedicated for accounts that were created after February 2021 and which publish snapshots of their libraries. |
+| snapshots              | Maven [(root)](https://oss.sonatype.org/content/repositories/snapshots) and Maven S01 [(root)](https://s01.oss.sonatype.org/content/repositories/snapshots) | An alias for `sonatype:snapshots` and `sonatype-s01:snapshots`.                                                                                                                      
+| ivy2local              | Ivy                                                                                                                                                         | Local ivy repository, used to publish things locally (e.g. by `publishLocal`). Localized in `<ivy-home>/local`, usually `<user-home>/.ivy/local`.                                     |
+| m2Local                | Maven                                                                                                                                                       | Local maven repository, localized in `<user-home>/.m2/repository`                                                                                                                     |
 
 Scala CLI delegates parsing of predefined repositories to Coursier and full details can be obtained from Coursier source code ([here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/jvm/src/main/scala/coursier/LocalRepositories.scala) and [here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/shared/src/main/scala/coursier/internal/SharedRepositoryParser.scala))
 

@@ -213,20 +213,33 @@ final case class BuildOptions(
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
 
-  def finalRepositories: Either[BuildException, Seq[Repository]] = {
+  def finalRepositories: Either[BuildException, Seq[Repository]] = either {
     val nightlyRepos =
       if (scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)))
         scala2NightlyRepo
       else
         Nil
+    val snapshotRepositories =
+      if classPathOptions.extraRepositories.contains("snapshots")
+      then
+        Seq(
+          coursier.Repositories.sonatype("snapshots"),
+          coursier.Repositories.sonatypeS01("snapshots")
+        )
+      else Nil
+    val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
 
     val repositories = nightlyRepos ++
-      classPathOptions.extraRepositories ++
+      extraRepositories ++
       internal.localRepository.toSeq
 
-    RepositoryParser.repositories(repositories)
-      .either
-      .left.map(errors => new RepositoryFormatError(errors))
+    val parseRepositories = value {
+      RepositoryParser.repositories(repositories)
+        .either
+        .left.map(errors => new RepositoryFormatError(errors))
+    }
+
+    parseRepositories ++ snapshotRepositories
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
