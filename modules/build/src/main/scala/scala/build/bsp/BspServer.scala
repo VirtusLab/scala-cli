@@ -36,9 +36,14 @@ class BspServer(
 
   override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
 
-  private var extraDependencySources: Seq[os.Path] = Nil
+  @volatile private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars
+  }
+
+  @volatile private var extraTestDependencySources: Seq[os.Path] = Nil
+  def setExtraTestDependencySources(sourceJars: Seq[os.Path]): Unit = {
+    extraTestDependencySources = sourceJars
   }
 
   // Can we accept some errors in some circumstances?
@@ -192,8 +197,13 @@ class BspServer(
     super.buildTargetDependencySources(check(params)).thenApply { res =>
       val updatedItems = res.getItems.asScala.map {
         case item if validTarget(item.getTarget) =>
-          val updatedSources = item.getSources.asScala ++ extraDependencySources.map { sourceJar =>
-            sourceJar.toNIO.toUri.toASCIIString
+          val isTestTarget = item.getTarget.getUri.endsWith("-test")
+          val validExtraDependencySources =
+            if isTestTarget then (extraDependencySources ++ extraTestDependencySources).distinct
+            else extraDependencySources
+          val updatedSources = item.getSources.asScala ++ validExtraDependencySources.map {
+            sourceJar =>
+              sourceJar.toNIO.toUri.toASCIIString
           }
           new b.DependencySourcesItem(item.getTarget, updatedSources.asJava)
         case other => other

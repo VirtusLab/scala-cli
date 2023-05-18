@@ -674,6 +674,8 @@ Generate a library JAR rather than an executable JAR
 
 ### `--source`
 
+Aliases: `--source-jar`, `--sources`, `--src`
+
 Generate a source JAR rather than an executable JAR
 
 ### `--doc`

@@ -1373,6 +1373,107 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
+  def testSourceJars(
+    directives: String = "//> using jar Message.jar",
+    getBspOptions: os.RelPath => List[String] = _ => List.empty,
+    checkTestTarget: Boolean = false
+  ): Unit = {
+    val jarSources    = os.rel / "jarStuff"
+    val mainSources   = os.rel / "src"
+    val jarPath       = mainSources / "Message.jar"
+    val sourceJarPath = mainSources / "Message-sources.jar"
+    val inputs = TestInputs(
+      jarSources / "Message.scala" -> "case class Message(value: String)",
+      mainSources / "Main.scala" ->
+        s"""$directives
+           |object Main extends App {
+           |  println(Message("Hello").value)
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      // package the library jar
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        jarSources,
+        "--library",
+        "-o",
+        jarPath,
+        extraOptions
+      )
+        .call(cwd = root)
+      // package the sources jar
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        jarSources,
+        "--source",
+        "-o",
+        sourceJarPath,
+        extraOptions
+      )
+        .call(cwd = root)
+      withBsp(
+        inputs,
+        Seq(mainSources.toString),
+        reuseRoot = Some(root),
+        bspOptions = getBspOptions(sourceJarPath)
+      ) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets = buildTargetsResp
+              .getTargets
+              .asScala
+            val Some(mainTarget) = targets.find(!_.getId.getUri.contains("-test"))
+            val Some(testTarget) = targets.find(_.getId.getUri.contains("-test"))
+            // ensure that the project compiles
+            val compileRes = await(remoteServer.buildTargetCompile(
+              new b.CompileParams(List(mainTarget.getId).asJava)
+            ).asScala)
+            expect(compileRes.getStatusCode == b.StatusCode.OK)
+            // ensure that the source jar is in the dependency sources
+            val dependencySourcesResp = await {
+              remoteServer
+                .buildTargetDependencySources(
+                  new b.DependencySourcesParams(List(mainTarget.getId, testTarget.getId).asJava)
+                )
+                .asScala
+            }
+            val dependencySourceItems = dependencySourcesResp.getItems.asScala
+            val sources = dependencySourceItems
+              .filter(dsi =>
+                if (checkTestTarget) dsi.getTarget == testTarget.getId
+                else dsi.getTarget == mainTarget.getId
+              )
+              .flatMap(_.getSources.asScala)
+            expect(sources.exists(_.endsWith(sourceJarPath.last)))
+          }
+      }
+    }
+  }
+
+  test("source jars handled correctly from the command line") {
+    testSourceJars(getBspOptions = sourceJarPath => List("--source-jar", sourceJarPath.toString))
+  }
+
+  test(
+    "source jars handled correctly from the command line smartly assuming a *-sources.jar is a source jar"
+  ) {
+    testSourceJars(getBspOptions = sourceJarPath => List("--extra-jar", sourceJarPath.toString))
+  }
+
+  test("source jars handled correctly from a test scope using directive") {
+    testSourceJars(
+      directives = """//> using jar Message.jar
+                     |//> using test.sourceJar Message-sources.jar""".stripMargin,
+      checkTestTarget = true
+    )
+  }
+
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult

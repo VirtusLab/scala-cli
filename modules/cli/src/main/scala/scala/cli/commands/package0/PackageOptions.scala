@@ -48,6 +48,9 @@ final case class PackageOptions(
     library: Boolean = false,
   @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a source JAR rather than an executable JAR")
+  @Name("sources")
+  @Name("src")
+  @Name("sourceJar")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     source: Boolean = false,

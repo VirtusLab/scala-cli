@@ -290,4 +290,39 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
+  def testSourceJar(getDirectives: (String, String) => String): Unit = {
+    val dummyJar        = "Dummy.jar"
+    val dummySourcesJar = "Dummy-sources.jar"
+    TestInputs(
+      os.rel / "Main.scala" ->
+        s"""${getDirectives(dummyJar, dummySourcesJar)}
+           |object Main extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin,
+      os.rel / dummyJar        -> "dummy",
+      os.rel / dummySourcesJar -> "dummy-sources"
+    ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        val build     = maybeBuild.orThrow
+        val Some(jar) = build.options.classPathOptions.extraClassPath.headOption
+        expect(jar == root / dummyJar)
+        val Some(sourceJar) = build.options.classPathOptions.extraSourceJars.headOption
+        expect(sourceJar == root / dummySourcesJar)
+    }
+  }
+
+  test("source jar") {
+    testSourceJar((dummyJar, dummySourcesJar) =>
+      s"""//> using jar $dummyJar
+         |//> using sourceJar $dummySourcesJar""".stripMargin
+    )
+  }
+
+  test("assumed source jar") {
+    testSourceJar((dummyJar, dummySourcesJar) =>
+      s"//> using jars $dummyJar $dummySourcesJar"
+    )
+  }
+
 }
