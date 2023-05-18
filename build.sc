@@ -46,6 +46,8 @@ object cliBootstrapped extends ScalaCliPublishModule {
 
   import mill.modules.Assembly
 
+  override def mainClass = Some("scala.cli.ScalaCli")
+
   override def assemblyRules = Seq(
     Assembly.Rule.ExcludePattern(".*\\.tasty"),
     Assembly.Rule.ExcludePattern(".*\\.semanticdb")
