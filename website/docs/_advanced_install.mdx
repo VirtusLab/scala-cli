@@ -363,6 +363,22 @@ Script to automatically download and cache standalone `scala-cli` launcher.
 </Tabs>
 </div></div>
 
+<SectionAbout title="Bootstrapped standalone fat JAR" colBigTitle="7"></SectionAbout>
+
+<div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
+
+In certain restricted environments, jar files may only be accessible through Nexus or a specific Artifactory,
+making it cumbersome to manually load each dependency and construct the classpath.
+To simplify this process, run the bootstrapped Scala CLI standalone fat jar using Coursier, follow the command below:
+
+```bash
+cs launch org.virtuslab.scala-cli:cliBootstrapped:latest.release -M scala.cli.ScalaCli
+```
+
+Alternatively, you can directly download it from the Maven repository [here](https://repo1.maven.org/maven2/org/virtuslab/scala-cli/cliBootstrapped).
+
+</div></div>
+
 
 <SectionAbout title="Shell completions">
     <div className="margin--lg"/>
