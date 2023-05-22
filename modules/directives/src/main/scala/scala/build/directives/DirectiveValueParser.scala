@@ -7,6 +7,7 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   MalformedDirectiveError,
+  ToolkitDirectiveMissingVersionError,
   UsingDirectiveValueNumError,
   UsingDirectiveWrongValueTypeError
 }
@@ -53,15 +54,18 @@ object DirectiveValueParser {
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T] =
-      values.filter(!_.isEmpty) match {
-        case Seq(value) => parseValue(key, value, scopePath, path)
+      values match {
+        case Seq(value) if !value.isEmpty => parseValue(key, value, scopePath, path)
+        case Seq(value) if value.isEmpty && (key == "toolkit" || key == "test.toolkit") =>
+          // FIXME: handle similar parsing errors in the directive declaration instead of hacks like this one
+          Left(ToolkitDirectiveMissingVersionError(maybePath = path, key = key))
         case resultValues @ _ =>
           Left(
             new UsingDirectiveValueNumError(
               maybePath = path,
               key = key,
               expectedValueNum = 1,
-              providedValueNum = resultValues.length
+              providedValueNum = resultValues.count(!_.isEmpty)
             )
           )
       }
