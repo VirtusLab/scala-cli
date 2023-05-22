@@ -16,6 +16,7 @@ import scala.build.{Position, Positioned}
 
 abstract class DirectiveValueParser[+T] {
   def parse(
+    key: String,
     values: Seq[Value[_]],
     scopePath: ScopePath,
     path: Either[String, os.Path]
@@ -30,40 +31,43 @@ object DirectiveValueParser {
   private final class Mapped[T, +U](underlying: DirectiveValueParser[T], f: T => U)
       extends DirectiveValueParser[U] {
     def parse(
+      key: String,
       values: Seq[Value[_]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, U] =
-      underlying.parse(values, scopePath, path).map(f)
+      underlying.parse(key, values, scopePath, path).map(f)
   }
 
   abstract class DirectiveSingleValueParser[+T] extends DirectiveValueParser[T] {
     def parseValue(
+      key: String,
       value: Value[_],
       cwd: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T]
 
     final def parse(
+      key: String,
       values: Seq[Value[_]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T] =
       values.filter(!_.isEmpty) match {
-        case Seq(value) => parseValue(value, scopePath, path)
-        case _ =>
+        case Seq(value) => parseValue(key, value, scopePath, path)
+        case resultValues @ _ =>
           Left(
             new UsingDirectiveValueNumError(
-              path,
-              "",
-              "1",
-              values.length
+              maybePath = path,
+              key = key,
+              expectedValueNum = 1,
+              providedValueNum = resultValues.length
             )
           )
       }
   }
 
-  given DirectiveValueParser[Unit] = { (values, scopePath, path) =>
+  given DirectiveValueParser[Unit] = { (key, values, scopePath, path) =>
     values match {
       case Seq() => Right(())
       case Seq(value, _*) =>
@@ -105,16 +109,16 @@ object DirectiveValueParser {
       DirectiveUtil.position(value, path, skipQuotes = isString)
   }
 
-  given DirectiveValueParser[Boolean] = { (values, scopePath, path) =>
+  given DirectiveValueParser[Boolean] = { (key, values, scopePath, path) =>
     values.filter(!_.isEmpty) match {
       case Seq() => Right(true)
       case Seq(v) =>
         v.asBoolean.toRight {
           new UsingDirectiveWrongValueTypeError(
-            path,
-            "",
-            Seq("boolean"),
-            ""
+            maybePath = path,
+            key = key,
+            expectedTypes = Seq("boolean"),
+            hint = ""
           )
         }
       case values0 =>
@@ -128,23 +132,26 @@ object DirectiveValueParser {
   }
 
   given DirectiveSingleValueParser[String] =
-    (value, scopePath, path) =>
+    (key, value, scopePath, path) =>
       value.asString.toRight {
         val pos = value.position(path)
         new MalformedDirectiveError(
-          s"Expected a string, got '${value.getRelatedASTNode.toString}'",
-          Seq(pos)
+          message =
+            s"""Encountered an error for the $key using directive.
+               |Expected a string, got '${value.getRelatedASTNode.toString}'""".stripMargin,
+          positions = Seq(pos)
         )
       }.map(DirectiveSpecialSyntax.handlingSpecialPathSyntax(_, path))
 
   final case class MaybeNumericalString(value: String)
 
   given DirectiveSingleValueParser[MaybeNumericalString] =
-    (value, scopePath, path) =>
+    (key, value, scopePath, path) =>
       value.asString.map(MaybeNumericalString(_)).toRight {
         val pos = value.position(path)
         new MalformedDirectiveError(
-          s"Expected a string value, got '${value.getRelatedASTNode.toString}'",
+          s"""Encountered an error for the $key using directive.
+             |Expected a string value, got '${value.getRelatedASTNode.toString}'""".stripMargin,
           Seq(pos)
         )
       }
@@ -157,22 +164,22 @@ object DirectiveValueParser {
   }
 
   given [T](using underlying: DirectiveValueParser[T]): DirectiveValueParser[WithScopePath[T]] = {
-    (values, scopePath, path) =>
-      underlying.parse(values, scopePath, path)
+    (key, values, scopePath, path) =>
+      underlying.parse(key, values, scopePath, path)
         .map(WithScopePath(scopePath, _))
   }
   given [T](using
     underlying: DirectiveSingleValueParser[T]
   ): DirectiveSingleValueParser[Positioned[T]] = {
-    (value, scopePath, path) =>
-      underlying.parseValue(value, scopePath, path)
+    (key, value, scopePath, path) =>
+      underlying.parseValue(key, value, scopePath, path)
         .map(Positioned(value.position(path), _))
   }
   given [T](using underlying: DirectiveValueParser[T]): DirectiveValueParser[Option[T]] =
     underlying.map(Some(_))
   given [T](using underlying: DirectiveSingleValueParser[T]): DirectiveValueParser[List[T]] = {
-    (values, scopePath, path) =>
-      val res = values.filter(!_.isEmpty).map(underlying.parseValue(_, scopePath, path))
+    (key, values, scopePath, path) =>
+      val res = values.filter(!_.isEmpty).map(underlying.parseValue(key, _, scopePath, path))
       val errors = res.collect {
         case Left(e) => e
       }
