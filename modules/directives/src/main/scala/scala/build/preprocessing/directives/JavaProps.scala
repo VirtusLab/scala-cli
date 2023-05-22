@@ -2,6 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
+import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveUtil.*
 import scala.build.{Positioned, options}

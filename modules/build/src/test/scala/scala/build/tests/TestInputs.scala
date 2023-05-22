@@ -3,7 +3,7 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 
 import java.nio.charset.StandardCharsets
-import scala.build.{Build, BuildThreads, Directories}
+import scala.build.{Build, BuildThreads, Builds, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
@@ -66,15 +66,14 @@ final case class TestInputs(
       }
     )
 
-  def withBuild[T](
+  def withBuilds[T](
     options: BuildOptions,
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false,
     buildTests: Boolean = true,
-    actionableDiagnostics: Boolean = false,
-    scope: Scope = Scope.Main
-  )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
+    actionableDiagnostics: Boolean = false
+  )(f: (os.Path, Inputs, Either[BuildException, Builds]) => T): T =
     withCustomInputs(fromDirectory, None) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
         case Some(bloopConfig) =>
@@ -94,10 +93,32 @@ final case class TestInputs(
           partial = None,
           actionableDiagnostics = Some(actionableDiagnostics)
         )(using ScalaCliInvokeData.dummy)
-      val res = builds.map(_.get(scope).getOrElse {
-        sys.error(s"No ${scope.name} build found")
-      })
-      f(root, inputs, res)
+      f(root, inputs, builds)
+    }
+
+  def withBuild[T](
+    options: BuildOptions,
+    buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
+    bloopConfigOpt: Option[BloopRifleConfig],
+    fromDirectory: Boolean = false,
+    buildTests: Boolean = true,
+    actionableDiagnostics: Boolean = false,
+    scope: Scope = Scope.Main
+  )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
+    withBuilds(
+      options,
+      buildThreads,
+      bloopConfigOpt,
+      fromDirectory,
+      buildTests,
+      actionableDiagnostics
+    ) {
+      (p, i, builds) =>
+        f(
+          p,
+          i,
+          builds.map(_.get(scope).getOrElse(sys.error(s"No ${scope.name} build found")))
+        )
     }
 }
 
