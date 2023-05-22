@@ -531,7 +531,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           """//> using dep "com.lihaoyi::os-lib:0.9.1"
             |@main def main(args: String*): Unit = println("Hello")
             |""".stripMargin,
-        os.rel / "script_with_directive.sc" ->
+        os.rel / "script-with-directive.sc" ->
           """//> using dep "com.lihaoyi::os-lib:0.9.1"
             |//> using object.wrapper
             |@main def main(args: String*): Unit = println("Hello")
@@ -547,7 +547,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
         ))
 
-        val directiveRes = os.proc(TestUtil.cli, "--power", "script_with_directive.sc")
+        val directiveRes = os.proc(TestUtil.cli, "--power", "script-with-directive.sc")
           .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
 
         val directiveOutputNormalized: String = normalizeConsoleOutput(directiveRes.out.text())
