@@ -59,7 +59,7 @@ object Toolkit {
           case Some(org)         => org
           case None              => Constants.toolkitOrganization
         }
-        if org == Constants.toolkitOrganization then
+        if org == Constants.toolkitOrganization || org == Constants.typelevelOrganization then
           List(
             Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
               .withEmptyRequirements,
