@@ -937,6 +937,9 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def workspaceDirName = "$workspaceDirName"
            |  def libsodiumVersion = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage = "${TestDeps.archLinuxImage}"
+           |  
+           |  def toolkitVersion = "${Deps.toolkitVersion}"
+           |  def typelevelToolkitVersion = "${Deps.typelevelToolkitVersion}"
            |
            |  def ghOrg = "$ghOrg"
            |  def ghName = "$ghName"
