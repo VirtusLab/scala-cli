@@ -1142,10 +1142,30 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--toolkit", "typelevel:0.0.1")
+      val output = os.proc(TestUtil.cli, ".", "--toolkit", "typelevel:0.0.11")
         .call(cwd = root).out.trim()
 
       expect(output == root.toString())
+    }
+  }
+
+  test("should add typelevel toolkit-test to classpath") {
+    val inputs = TestInputs(
+      os.rel / "Hello.test.scala" ->
+        s"""|import cats.effect.*
+            |import munit.CatsEffectSuite
+            |class HelloSuite extends CatsEffectSuite {
+            |  // IO should be added to classpath by typelevel toolkit-test
+            |  test("warm hello from the sun is coming") {
+            |    (IO("i love to live in the") *> IO("sun")).assertEquals("sun")
+            |  }
+            |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "test", ".", "--toolkit", "typelevel:0.0.11")
+        .call(cwd = root).out.text()
+
+      expect(output.contains("+")) // test succeeded
     }
   }
 

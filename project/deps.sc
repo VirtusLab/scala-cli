@@ -167,16 +167,18 @@ object Deps {
     ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
-  def slf4jNop         = ivy"org.slf4j:slf4j-nop:2.0.7"
-  def sttp             = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.15"
-  def svm              = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval           = ivy"com.swoval:file-tree-views:2.1.10"
-  def testInterface    = ivy"org.scala-sbt:test-interface:1.0"
-  val toolkitVersion   = "0.1.7"
-  def toolkit          = ivy"org.scala-lang:toolkit:$toolkitVersion"
-  def toolkitTest      = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  def typelevelToolkit = ivy"org.typelevel:toolkit:0.0.10"
-  def usingDirectives  = ivy"org.virtuslab:using_directives:1.0.0"
+  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.7"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.15"
+  def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def swoval                  = ivy"com.swoval:file-tree-views:2.1.10"
+  def testInterface           = ivy"org.scala-sbt:test-interface:1.0"
+  val toolkitVersion          = "0.1.7"
+  def toolkit                 = ivy"org.scala-lang:toolkit:$toolkitVersion"
+  def toolkitTest             = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
+  val typelevelToolkitVersion = "0.0.11"
+  def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
+  def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
+  def usingDirectives         = ivy"org.virtuslab:using_directives:1.0.0"
   // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
