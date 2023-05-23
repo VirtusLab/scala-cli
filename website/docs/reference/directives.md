@@ -150,6 +150,15 @@ Specify default main class
 #### Examples
 `//> using mainClass helloWorld`
 
+### ObjectWrapper
+
+Set the default code wrapper for scripts to object wrapper
+
+`//> using objectWrapper
+
+#### Examples
+`//> using objectWrapper`
+
 ### Packaging
 
 Set parameters for packaging

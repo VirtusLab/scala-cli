@@ -16,6 +16,7 @@ object DirectivesPreprocessingUtils {
       directives.JavaHome.handler,
       directives.Jvm.handler,
       directives.MainClass.handler,
+      directives.ObjectWrapper.handler,
       directives.Packaging.handler,
       directives.Platform.handler,
       directives.Plugin.handler,
