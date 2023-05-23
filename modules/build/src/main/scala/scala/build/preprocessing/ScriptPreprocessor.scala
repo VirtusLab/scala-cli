@@ -99,23 +99,14 @@ case object ScriptPreprocessor extends Preprocessor {
       // try to match in multiline mode, don't match comment lines starting with '//'
       val containsMainAnnot = "(?m)^(?!//).*@main.*".r.findFirstIn(scriptCode).isDefined
 
-      val wrapScriptFun = (cw: CodeWrapper) => {
-        if (containsMainAnnot) logger.diagnostic(
-          cw match {
-            case _: ObjectCodeWrapper.type =>
-              WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
-            case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
-          }
-        )
-
-        val (code, topWrapperLineCount, _) = cw.wrapCode(
-          pkg,
-          wrapper,
-          scriptCode,
-          inputArgPath.getOrElse(subPath.last)
-        )
-        (code, topWrapperLineCount)
-      }
+      val wrapScriptFun = getScriptWrappingFunction(
+        logger,
+        containsMainAnnot,
+        pkg,
+        wrapper,
+        scriptCode,
+        inputArgPath.getOrElse(subPath.toString)
+      )
 
       val className = (pkg :+ wrapper).map(_.raw).mkString(".")
       val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
@@ -134,6 +125,32 @@ case object ScriptPreprocessor extends Preprocessor {
       )
       List(file)
     }
+
+  def getScriptWrappingFunction(
+    logger: Logger,
+    containsMainAnnot: Boolean,
+    packageStrings: Seq[Name],
+    wrapperName: Name,
+    scriptCode: String,
+    scriptPath: String
+  ): CodeWrapper => (String, Int) = {
+    (codeWrapper: CodeWrapper) =>
+      if (containsMainAnnot) logger.diagnostic(
+        codeWrapper match {
+          case _: ObjectCodeWrapper.type =>
+            WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
+          case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
+        }
+      )
+
+      val (code, topWrapperLineCount, _) = codeWrapper.wrapCode(
+        packageStrings,
+        wrapperName,
+        scriptCode,
+        scriptPath
+      )
+      (code, topWrapperLineCount)
+  }
 
   /** Get correct script wrapper depending on the platform and version of Scala. For Scala 2 or
     * Platform JS use [[ObjectCodeWrapper]]. Otherwise - for Scala 3 on JVM or Native use
