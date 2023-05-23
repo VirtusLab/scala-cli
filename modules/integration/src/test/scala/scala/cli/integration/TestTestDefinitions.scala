@@ -734,7 +734,7 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("toolkit") {
-    successfulTestInputs("//> using toolkit latest").fromRoot { root =>
+    successfulTestInputs(s"//> using toolkit ${Constants.toolkitVersion}").fromRoot { root =>
       val output = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root).out.text()
       expect(output.contains("Hello from tests"))
     }
@@ -743,7 +743,14 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
   test("toolkit from command line") {
     successfulTestInputs("").fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, "test", extraOptions, ".", "--toolkit", "latest").call(cwd =
+        os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          ".",
+          "--toolkit",
+          Constants.toolkitVersion
+        ).call(cwd =
           root
         ).out.text()
       expect(output.contains("Hello from tests"))

@@ -132,7 +132,8 @@ Directives with a test scope equivalent:
 
 ```scala compile
 //> using test.dep org.scalameta::munit::0.7.29
-//> using test.jar path/to/jar
+//> using test.jar path/to/dep.jar
+//> using test.sourceJar path/to/some-sources.jar
 //> using test.javaOpt -Dfoo=bar
 //> using test.javacOpt source 1.8 target 1.8
 //> using test.javaProp foo1=bar1

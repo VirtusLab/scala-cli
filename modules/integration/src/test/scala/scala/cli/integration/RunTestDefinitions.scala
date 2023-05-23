@@ -1122,7 +1122,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--toolkit", "0.1.7")
+      val output = os.proc(TestUtil.cli, ".", "--toolkit", Constants.toolkitVersion)
         .call(cwd = root).out.trim()
 
       expect(output == root.toString())
@@ -1142,8 +1142,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, ".", "--toolkit", "typelevel:0.0.11")
-        .call(cwd = root).out.trim()
+      val output =
+        os.proc(TestUtil.cli, ".", "--toolkit", s"typelevel:${Constants.typelevelToolkitVersion}")
+          .call(cwd = root).out.trim()
 
       expect(output == root.toString())
     }
@@ -1162,7 +1163,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |}""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", ".", "--toolkit", "typelevel:0.0.11")
+      val output = os.proc(
+        TestUtil.cli,
+        "test",
+        ".",
+        "--toolkit",
+        s"typelevel:${Constants.typelevelToolkitVersion}"
+      )
         .call(cwd = root).out.text()
 
       expect(output.contains("+")) // test succeeded

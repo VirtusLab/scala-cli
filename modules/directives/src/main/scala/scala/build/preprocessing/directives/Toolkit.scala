@@ -43,8 +43,7 @@ object Toolkit {
   /** @param toolkitCoords
     *   the toolkit coordinates
     * @return
-    *   the `toolkit` and (potentially) `toolkit-test` dependencies with the appropriate build
-    *   requirements
+    *   the `toolkit` and `toolkit-test` dependencies with the appropriate build requirements
     */
   def resolveDependenciesWithRequirements(toolkitCoords: Positioned[String])
     : List[WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]]] =
@@ -59,18 +58,12 @@ object Toolkit {
           case Some(org)         => org
           case None              => Constants.toolkitOrganization
         }
-        if org == Constants.toolkitOrganization || org == Constants.typelevelOrganization then
-          List(
-            Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
-              .withEmptyRequirements,
-            Positioned(positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
-              .withScopeRequirement(Scope.Test)
-          )
-        else
-          List(
-            Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
-              .withEmptyRequirements
-          )
+        List(
+          Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
+            .withEmptyRequirements,
+          Positioned(positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
+            .withScopeRequirement(Scope.Test)
+        )
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
 
   /** Returns the `toolkit` (and potentially `toolkit-test`) dependency with the appropriate
@@ -89,7 +82,7 @@ object Toolkit {
     *   the scope requirement for the `toolkit` dependency
     * @return
     *   a list of [[Either]] [[BuildException]] [[WithBuildRequirements]] [[BuildOptions]]
-    *   containing the `toolkit` (and potentially `toolkit-test`) dependencies.
+    *   containing the `toolkit` and `toolkit-test` dependencies.
     */
   private def buildOptionsWithScopeRequirement(
     t: Option[Positioned[String]],

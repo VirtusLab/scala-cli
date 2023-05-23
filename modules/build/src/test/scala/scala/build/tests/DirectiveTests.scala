@@ -291,7 +291,7 @@ class DirectiveTests extends munit.FunSuite {
   test("resolve typelevel toolkit dependency") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using toolkit "typelevel:latest"
+        """//> using toolkit typelevel:latest
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
