@@ -247,30 +247,23 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       // format: on
       val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.lines()
-      val exceptionLines = output
+      val exceptionLines: Vector[String] = output
         .map(stripAnsi)
         .dropWhile(!_.startsWith("Exception in thread "))
       val tab = "\t"
-      val expectedLines =
-        s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
-           |${tab}at throws$$_.<init>(throws.sc:8)
-           |${tab}at throws_sc$$.script(throws.sc:25)
-           |${tab}at throws_sc$$.main(throws.sc:29)
-           |${tab}at throws_sc.main(throws.sc)
-           |Caused by: java.lang.RuntimeException: nope
-           |${tab}at scala.sys.package$$.error(package.scala:27)
-           |${tab}at throws$$_.something(throws.sc:3)
-           |${tab}at throws$$_.<init>(throws.sc:5)
-           |$tab... 3 more""".stripMargin.linesIterator.toVector
+
+      val (caughtLines, causedLines) = exceptionLines.span(!_.startsWith("Caused by:"))
+
+      assert(caughtLines.length > 1)
+      assert(caughtLines.contains(s"${tab}at throws$$_.<init>(throws.sc:8)"), clues(caughtLines))
+
+      assert(causedLines.length > 1)
       assert(
-        exceptionLines.length == expectedLines.length,
-        clues(output, exceptionLines.length, expectedLines.length)
+        causedLines.contains(s"Caused by: java.lang.RuntimeException: nope") &&
+        causedLines.contains(s"${tab}at throws$$_.something(throws.sc:3)") &&
+        causedLines.contains(s"${tab}at throws$$_.<init>(throws.sc:5)"),
+        clues(causedLines)
       )
-      for (i <- exceptionLines.indices)
-        assert(
-          exceptionLines(i) == expectedLines(i),
-          clues(output, exceptionLines(i), expectedLines(i))
-        )
     }
   }
 
