@@ -51,6 +51,38 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     }
   }
 
+  test("actionable diagnostic report correct position") {
+    val dependencyOsLib     = "com.lihaoyi::os-lib:0.7.8"
+    val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
+    val testInputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using dep $dependencyOsLib
+           |//> using dep "$dependencyPprintLib"
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
+      (root, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val updateDiagnostics =
+          ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
+
+        val actionableDiagnostics = updateDiagnostics.collect {
+          case diagnostic: ActionableDependencyUpdateDiagnostic => diagnostic
+        }
+
+        val osLib = actionableDiagnostics.find(_.suggestion.startsWith("com.lihaoyi::os-lib")).get
+        val pprintLib =
+          actionableDiagnostics.find(_.suggestion.startsWith("com.lihaoyi::pprint")).get
+
+        expect(osLib.positions == Seq(File(Right(root / "Foo.scala"), (0, 14), (0, 39))))
+        expect(pprintLib.positions == Seq(File(Right(root / "Foo.scala"), (1, 15), (1, 40))))
+    }
+  }
+
   test("using outdated dependencies with --suppress-outdated-dependency-warning") {
     val dependencyOsLib     = "com.lihaoyi::os-lib:0.7.8"
     val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
