@@ -61,7 +61,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
     }
   }
 
-  test("update typelevel toolkit dependence") {
+  test("update typelevel toolkit dependency") {
     val toolkitVersion = "0.0.1"
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
@@ -79,7 +79,7 @@ class DependencyUpdateTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, "--power", "dependency-update", "--all", ".")
         .call(cwd = root)
 
-      val toolkitDirective = "//> using toolkit \"(.*)\"".r
+      val toolkitDirective = "//> using toolkit \"typelevel:(.*)\"".r
       val updatedToolkitVersionOpt = {
         val regexMatch = toolkitDirective.findFirstMatchIn(os.read(root / "Foo.scala"))
         regexMatch.map(_.group(1))

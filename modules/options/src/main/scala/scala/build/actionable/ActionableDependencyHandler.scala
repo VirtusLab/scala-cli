@@ -3,14 +3,15 @@ package scala.build.actionable
 import coursier.Versions
 import coursier.core.{Latest, Version}
 import coursier.parse.RepositoryParser
-import dependency._
+import dependency.*
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
-import scala.build.actionable.ActionableDiagnostic._
+import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.actionable.errors.ActionableHandlerError
 import scala.build.errors.{BuildException, RepositoryFormatError}
-import scala.build.internal.Util._
+import scala.build.internal.Constants
+import scala.build.internal.Util.*
 import scala.build.options.BuildOptions
 import scala.build.options.ScalaVersionUtil.versions
 import scala.concurrent.duration.DurationInt
@@ -32,15 +33,26 @@ case object ActionableDependencyHandler
     val dependency     = setting.value
     val currentVersion = dependency.version
     val latestVersion  = value(findLatestVersion(buildOptions, dependency))
-    if (Version(latestVersion) > Version(currentVersion) && !isLatestSyntaxVersion(currentVersion))
-      if (dependency.userParams.contains("toolkit"))
+    if Version(latestVersion) > Version(currentVersion) && !isLatestSyntaxVersion(currentVersion)
+    then
+      if dependency.userParams.contains(Constants.toolkitName) &&
+        dependency.module.name != Constants.toolkitTestName
+      then
+        val toolkitSuggestion =
+          if dependency.module.organization == Constants.toolkitOrganization then latestVersion
+          else if dependency.module.organization == Constants.typelevelOrganization then
+            s"typelevel:$latestVersion"
+          else s"${dependency.module.organization}:$latestVersion"
         Some(ActionableDependencyUpdateDiagnostic(
           setting.positions,
           currentVersion,
           latestVersion,
-          dependencyModuleName = "toolkit",
-          suggestion = latestVersion
+          dependencyModuleName = Constants.toolkitName,
+          suggestion = toolkitSuggestion
         ))
+      else if dependency.userParams.contains(Constants.toolkitName) &&
+        dependency.module.name == Constants.toolkitTestName
+      then None // filtering out toolkit-test to prevent double-update-diagnostic
       else
         Some(ActionableDependencyUpdateDiagnostic(
           setting.positions,
