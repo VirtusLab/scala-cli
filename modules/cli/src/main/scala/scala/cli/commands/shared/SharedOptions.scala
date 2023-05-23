@@ -208,6 +208,9 @@ final case class SharedOptions(
     withToolkit: Option[String] = None,
   @HelpMessage("Exclude sources")
     exclude: List[String] = Nil,
+  @HelpMessage("Force object wrapper for scripts")
+  @Tag(tags.experimental)
+    objectWrapper: Option[Boolean] = None,
 ) extends HasGlobalOptions {
   // format: on
 
@@ -348,7 +351,7 @@ final case class SharedOptions(
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = bo.ScriptOptions(
-        codeWrapper = None
+        forceObjectWrapper = objectWrapper
       ),
       scalaJsOptions = scalaJsOptions(js),
       scalaNativeOptions = scalaNativeOptions(native),

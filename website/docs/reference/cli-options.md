@@ -1505,6 +1505,10 @@ Add toolkit to classPath
 
 Exclude sources
 
+### `--object-wrapper`
+
+Force object wrapper for scripts
+
 ## Snippet options
 
 Available in commands:

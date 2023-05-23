@@ -160,16 +160,18 @@ case object ScriptPreprocessor extends Preprocessor {
     * @return
     *   code wrapper compatible with provided BuildOptions
     */
-  def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper = {
-    val scalaVersionOpt = for {
-      maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
-      scalaVersion      <- maybeScalaVersion.versionOpt
-    } yield scalaVersion
-    buildOptions.scalaOptions.platform.map(_.value) match {
-      case Some(_: Platform.JS.type)                      => ObjectCodeWrapper
-      case _ if scalaVersionOpt.exists(_.startsWith("2")) => ObjectCodeWrapper
-      case _                                              => ClassCodeWrapper
+  def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper =
+    buildOptions.scriptOptions.forceObjectWrapper match {
+      case Some(true) => ObjectCodeWrapper
+      case _ =>
+        val scalaVersionOpt = for {
+          maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
+          scalaVersion      <- maybeScalaVersion.versionOpt
+        } yield scalaVersion
+        buildOptions.scalaOptions.platform.map(_.value) match {
+          case Some(_: Platform.JS.type)                      => ObjectCodeWrapper
+          case _ if scalaVersionOpt.exists(_.startsWith("2")) => ObjectCodeWrapper
+          case _                                              => ClassCodeWrapper
+        }
     }
-  }
-
 }

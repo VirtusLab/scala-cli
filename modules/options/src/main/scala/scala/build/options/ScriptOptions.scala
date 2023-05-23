@@ -3,7 +3,7 @@ package scala.build.options
 import scala.build.internal.CodeWrapper
 
 final case class ScriptOptions(
-  codeWrapper: Option[CodeWrapper] = None
+  forceObjectWrapper: Option[Boolean] = None
 )
 
 object ScriptOptions {
