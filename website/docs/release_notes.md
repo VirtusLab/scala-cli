@@ -7,6 +7,86 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.0)
+
+## The official `scala` runner release
+
+Scala CLI has reached the highly anticipated `1.0.0` milestone!
+Having addressed all the [SIP-46](https://github.com/scala/improvement-proposals/pull/46) requirements,
+this version is going to become the official `scala` runner, replacing the old `scala` command.
+
+For a deeper understanding of Scala CLI as the new `scala` runner and to explore its benefits and features,
+we encourage you to check out our [blogpost](https://virtuslab.com/blog/scala-cli-the-new-scala-runner/).
+
+Also be sure to get familiar with all the differences introduced by this change in our [migration guide](docs/guides/old-runner-migration.md).
+
+## What's Changed
+
+### New default Scala version - 3.3.0
+
+Scala 3.3.0 is now the default version for Scala CLI projects.
+It's the first LTS (Long Term Support) release of Scala 3 to be used by Scala CLI.
+Right on time for 1.0.0!
+
+Added by [@lwronski](https://github.com/lwronski) in [#2140](https://github.com/VirtusLab/scala-cli/pull/2140)
+
+### Toolkit-test
+
+By incorporating the [Scala Toolkit](https://github.com/scala/toolkit) into your project, you gain the advantage of two additional
+dependencies seamlessly integrated into your classpath:
+- `org.scala-lang:toolkit:<version>` is added to the main scope, allowing its utilization throughout your project.
+- `org.scala-lang:toolkit-test:<version>` is included in the test scope, making it available exclusively for testing purposes.
+
+Scala CLI now supports the following features for the toolkit:
+* including e.g. `//> using toolkit latest` in any main scope file will automatically add the `toolkit` dependency to the main scope and the `toolkit-test` dependency to the test scope
+* if you place e.g. `//> using toolkit latest` within a test scope file, both `toolkit` and `toolkit-test` will be limited to the test scope only
+* inserting e.g. `//> using test.toolkit latest` anywhere in the project will add both `toolkit` and `toolkit-test` to the test scope only
+
+This convention is encouraged for other toolkit-like libraries as well.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2127](https://github.com/VirtusLab/scala-cli/pull/2127) and [#2137](https://github.com/VirtusLab/scala-cli/pull/2137)
+
+### Forcing an object wrapper for scripts
+
+Scala CLI now supports the `//> using objectWrapper` directive, along with the corresponding `--object-wrapper` option,
+which allows to force wrapping script code in an object body instead of a class.
+
+Using object wrappers should be avoided for scripts relying on multi-threading (as it may cause deadlocks), but may prove to be the only option in some cases.
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#2136](https://github.com/VirtusLab/scala-cli/pull/2136)
+
+## Other changes
+* Add alias for snapshots repository in Maven by [@lwronski](https://github.com/lwronski) in [#2125](https://github.com/VirtusLab/scala-cli/pull/2125)
+* Bump typelevel-toolkit to 0.0.11, configure toolkit-test by [@armanbilge](https://github.com/armanbilge) in [#2135](https://github.com/VirtusLab/scala-cli/pull/2135)
+* Fix updating toolkit dependencies by [@Gedochao](https://github.com/Gedochao) in [#2138](https://github.com/VirtusLab/scala-cli/pull/2138)
+* Improve directive parsing errors & special-case `toolkit` directive version parsing by [@Gedochao](https://github.com/Gedochao) in [#2133](https://github.com/VirtusLab/scala-cli/pull/2133)
+* Fix determining position for value in directive without quotes by [@lwronski](https://github.com/lwronski) in [#2141](https://github.com/VirtusLab/scala-cli/pull/2141)
+
+### Fixes
+* Fix line conversion logic by simplifying topWrapperLen to line count of top wrapper by [@MaciejG604](https://github.com/MaciejG604) in [#2101](https://github.com/VirtusLab/scala-cli/pull/2101)
+* Fix test watch infinite loop by [@MaciejG604](https://github.com/MaciejG604) in [#2113](https://github.com/VirtusLab/scala-cli/pull/2113)
+* Fix flaky completions for `zsh` by [@Jasper-M](https://github.com/Jasper-M) in [#2118](https://github.com/VirtusLab/scala-cli/pull/2118)
+* Fix - install certificates for java by [@lwronski](https://github.com/lwronski) in [#2123](https://github.com/VirtusLab/scala-cli/pull/2123)
+* Fix the `--source-jar` option & add corresponding `using` directives by [@Gedochao](https://github.com/Gedochao) in [#2120](https://github.com/VirtusLab/scala-cli/pull/2120)
+
+### Documentation changes
+* Add docs for bootstrapped standalone fat JAR by [@lwronski](https://github.com/lwronski) in [#2122](https://github.com/VirtusLab/scala-cli/pull/2122)
+* Add developer docs on modifying `reflect-config.json` by [@Gedochao](https://github.com/Gedochao) in [#2114](https://github.com/VirtusLab/scala-cli/pull/2114)
+
+### Build and internal changes
+* Update release procedure - update also v1 tag by [@lwronski](https://github.com/lwronski) in [#2107](https://github.com/VirtusLab/scala-cli/pull/2107)
+* NIT Refactor test scope directives by [@Gedochao](https://github.com/Gedochao) in [#2083](https://github.com/VirtusLab/scala-cli/pull/2083)
+* Add main class to jar manifest in assembly by [@romanowski](https://github.com/romanowski) in [#2124](https://github.com/VirtusLab/scala-cli/pull/2124)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.0.0-RC2 by [@github-actions](https://github.com/github-actions) in [#2105](https://github.com/VirtusLab/scala-cli/pull/2105)
+* Update org.eclipse.jgit to 6.5.0.202303070854-r by [@scala-steward](https://github.com/scala-steward) in [#2090](https://github.com/VirtusLab/scala-cli/pull/2090)
+
+## New Contributors
+* [@Jasper-M](https://github.com/Jasper-M) made their first contribution in [#2118](https://github.com/VirtusLab/scala-cli/pull/2118)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.0-RC2...v1.0.0
+
 ## [v1.0.0-RC2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.0-RC2)
 
 ## What's Changed
