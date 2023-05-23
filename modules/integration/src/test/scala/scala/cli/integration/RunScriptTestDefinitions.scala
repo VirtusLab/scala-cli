@@ -535,10 +535,22 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           """//> using dep "com.lihaoyi::os-lib:0.9.1"
             |//> using object.wrapper
             |@main def main(args: String*): Unit = println("Hello")
-            |""".stripMargin
+            |""".stripMargin,
+        os.rel / "munit.sc" ->
+          """//> using scala  "3.2.2"
+            |//> using dep "org.scalatest::scalatest:3.2.15"
+            |
+            |import org.scalatest.*, flatspec.*, matchers.*
+            |
+            |class PiTest extends AnyFlatSpec with should.Matchers {
+            |  "pi calculus" should "return a precise enough pi value" in {
+            |    math.Pi shouldBe 3.14158d +- 0.001d
+            |  }
+            |}
+            |org.scalatest.tools.Runner.main(Array("-oDF", "-s", classOf[PiTest].getName))""".stripMargin
       )
       inputs.fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "--power", "script.sc", "--object-wrapper")
+        val res = os.proc(TestUtil.cli, "--power", "script.sc", "munit.sc", "--object-wrapper")
           .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
 
         val outputNormalized: String = normalizeConsoleOutput(res.out.text())
@@ -547,7 +559,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
         ))
 
-        val directiveRes = os.proc(TestUtil.cli, "--power", "script-with-directive.sc")
+        val directiveRes = os.proc(TestUtil.cli, "--power", "script-with-directive.sc", "munit.sc")
           .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
 
         val directiveOutputNormalized: String = normalizeConsoleOutput(directiveRes.out.text())
