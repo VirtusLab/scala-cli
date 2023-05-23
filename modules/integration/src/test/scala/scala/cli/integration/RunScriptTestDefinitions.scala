@@ -524,5 +524,29 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           .contains("Annotation @main in .sc scripts is not supported"))
       }
     }
+
+    test("object-wrapped script forced") {
+      val inputs = TestInputs(
+        os.rel / "script.sc" ->
+          """//> using dep "com.lihaoyi::os-lib:0.9.1"
+            |@main def main(args: String*): Unit = println("Hello")
+            |""".stripMargin,
+        os.rel / "script_with_directive.sc" ->
+          """//> using dep "com.lihaoyi::os-lib:0.9.1"
+            |//> using objectWrapper
+            |@main def main(args: String*): Unit = println("Hello")
+            |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "--power", "script.sc", "--object-wrapper")
+          .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
+
+        val outputNormalized: String = normalizeConsoleOutput(res.out.text())
+
+        expect(outputNormalized.contains(
+          "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
+        ))
+      }
+    }
   }
 }

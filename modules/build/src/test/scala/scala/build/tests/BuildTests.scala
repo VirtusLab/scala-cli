@@ -59,7 +59,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       scalaVersion = Some(MaybeScalaVersion(sv2)),
       scalaBinaryVersion = None
     ),
-    scriptOptions = ScriptOptions(Some(ObjectCodeWrapper))
+    scriptOptions = ScriptOptions(Some(true))
   )
 
   def sv3 = "3.0.0"
@@ -68,7 +68,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       scalaVersion = Some(MaybeScalaVersion(sv3)),
       scalaBinaryVersion = None
     ),
-    scriptOptions = ScriptOptions(Some(ClassCodeWrapper))
+    scriptOptions = ScriptOptions(None)
   )
 
   def simple(checkResults: Boolean = true): Unit = {
