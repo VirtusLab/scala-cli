@@ -74,6 +74,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
         """//> using lib "com.lihaoyi::os-lib:0.7.8"
           |//> using option "-Xasync"
           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+          |//> using scala 3.2.2
           |
           |object Main {
           |  def main(args: Array[String]): Unit =
