@@ -39,8 +39,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
       val jsonContents = readJson(exportJsonProc.out.text())
 
       expect(jsonContents ==
-        """{
-          |"scalaVersion":"3.2.2",
+        s"""{
+          |"scalaVersion":"${Constants.scala3}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",
           |"scopes": {
