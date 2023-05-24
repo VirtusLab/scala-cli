@@ -1,6 +1,7 @@
 package scala.build.preprocessing.directives
 
 import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.utils.ast.StringLiteral
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
@@ -14,9 +15,16 @@ object DirectiveUtil {
 
   def position(
     v: Value[_],
-    path: Either[String, os.Path],
-    skipQuotes: Boolean = false
+    path: Either[String, os.Path]
   ): Position.File = {
+    val skipQuotes: Boolean = v match {
+      case stringValue: StringValue =>
+        stringValue.getRelatedASTNode match {
+          case literal: StringLiteral => literal.getIsWrappedDoubleQuotes()
+          case _                      => false
+        }
+      case _ => false
+    }
     val line       = v.getRelatedASTNode.getPosition.getLine
     val column     = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
     val endLinePos = column + v.toString.length
@@ -31,13 +39,13 @@ object DirectiveUtil {
   ): Seq[Positioned[String]] =
     scopedDirective.directive.values.map {
       case v: StringValue =>
-        val pos = position(v, scopedDirective.maybePath, skipQuotes = true)
+        val pos = position(v, scopedDirective.maybePath)
         Positioned(pos, v.get)
       case v: BooleanValue =>
-        val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
+        val pos = position(v, scopedDirective.maybePath)
         Positioned(pos, v.get.toString)
       case v: EmptyValue =>
-        val pos = position(v, scopedDirective.maybePath, skipQuotes = false)
+        val pos = position(v, scopedDirective.maybePath)
         Positioned(pos, v.get)
     }
 

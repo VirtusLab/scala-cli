@@ -110,7 +110,7 @@ object DirectiveValueParser {
       }
 
     def position(path: Either[String, os.Path]): Position =
-      DirectiveUtil.position(value, path, skipQuotes = isString)
+      DirectiveUtil.position(value, path)
   }
 
   given DirectiveValueParser[Boolean] = { (key, values, scopePath, path) =>
