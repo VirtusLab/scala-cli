@@ -1179,7 +1179,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           checkDiagnostic(
             diagnostic = diagnostics.head,
             expectedMessage =
-              "Expected a string value, got 'true'",
+              """Encountered an error for the scala using directive.
+                |Expected a string value, got 'true'""".stripMargin,
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
             expectedStartCharacter = 16,

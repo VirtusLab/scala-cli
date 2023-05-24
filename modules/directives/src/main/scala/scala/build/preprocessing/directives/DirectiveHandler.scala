@@ -381,6 +381,7 @@ object DirectiveHandler {
                     .map {
                       case (scopeOpt, values) =>
                         $parser.parse(
+                          $scopedDirective.directive.key,
                           $scopedDirective.directive.values,
                           $scopedDirective.cwd,
                           $scopedDirective.maybePath

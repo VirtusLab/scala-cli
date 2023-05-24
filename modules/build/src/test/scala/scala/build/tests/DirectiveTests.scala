@@ -9,6 +9,8 @@ import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import dependency.AnyDependency
 
+import scala.build.errors.ToolkitDirectiveMissingVersionError
+
 class DirectiveTests extends munit.FunSuite {
 
   val buildThreads = BuildThreads.create()
@@ -87,11 +89,11 @@ class DirectiveTests extends munit.FunSuite {
     }
   }
 
-  test("resolve toolkit & toolkit-test dependency") {
+  test(s"resolve toolkit & toolkit-test dependency with version passed") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using toolkit latest
-          |""".stripMargin
+        s"""//> using toolkit latest
+           |""".stripMargin
     )
     testInputs.withBuilds(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuilds) =>
@@ -111,6 +113,21 @@ class DirectiveTests extends munit.FunSuite {
         expect(toolkitTestDep.version == expectedVersion)
     }
   }
+
+  for (toolkitDirectiveKey <- Seq("toolkit", "test.toolkit"))
+    test(s"missing $toolkitDirectiveKey version produces an informative error message") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using $toolkitDirectiveKey
+             |""".stripMargin
+      )
+      testInputs.withBuilds(baseOptions, buildThreads, bloopConfigOpt) {
+        (_, _, maybeBuilds) =>
+          maybeBuilds match
+            case Left(ToolkitDirectiveMissingVersionError(_, errorKey)) =>
+              expect(errorKey == toolkitDirectiveKey)
+      }
+    }
   for (scope <- Scope.all) {
     def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
       os.rel / "project.scala" -> projectFileContent,
