@@ -10,8 +10,7 @@ import scala.build.directives.{
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
-  DirectiveErrors,
-  UnusedDirectiveError
+  DirectiveErrors
 }
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
