@@ -40,6 +40,9 @@ const Index = (props) => {
 				<p>
 					To get started you can read <a href="/docs/overview">the documentation</a>, or just <a href="/install">install</a> and enjoy <code>scala-cli</code>.
 				</p>
+				<p>
+					Scala CLI will soon become default Scala runner and will be shipped as `scala` (<a href="https://virtuslab.com/blog/scala-cli-the-new-scala-runner/">read more</a>).
+				</p>
 			</SectionAbout>
 
 		</Section>
