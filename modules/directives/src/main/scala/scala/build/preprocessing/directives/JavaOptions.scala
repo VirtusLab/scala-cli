@@ -4,8 +4,10 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Java options")
 @DirectiveExamples("//> using javaOpt -Xmx2g, -Dsomething=a")

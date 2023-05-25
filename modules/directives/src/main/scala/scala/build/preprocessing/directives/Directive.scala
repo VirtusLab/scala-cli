@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.Position
 import scala.build.errors.{BuildException, ForbiddenPathReferenceError}
-import scala.build.preprocessing.ScopePath
+import scala.cli.directivehandler.ScopePath
 
 final case class Directive(
   tpe: Directive.Type,

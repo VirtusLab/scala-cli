@@ -4,6 +4,7 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScriptOptions}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveExamples("//> using objectWrapper")
 @DirectiveUsage("//> using objectWrapper", "`//> using objectWrapper")

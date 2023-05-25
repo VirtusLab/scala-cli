@@ -1,17 +1,17 @@
 package scala.build.preprocessing
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeBlock
+import scala.build.preprocessing.BuildDirectiveException
+import scala.cli.directivehandler.{DirectiveException, ExtractedDirectives, ScopePath}
 
 object MarkdownCodeBlockProcessor {
   def process(
     codeBlocks: Seq[MarkdownCodeBlock],
     reportingPath: Either[String, os.Path],
     scopePath: ScopePath,
-    logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: DirectiveException => Option[DirectiveException]
   ): Either[BuildException, PreprocessedMarkdown] = either {
     val (rawCodeBlocks, remaining)         = codeBlocks.partition(_.isRaw)
     val (testCodeBlocks, scriptCodeBlocks) = remaining.partition(_.isTest)
@@ -23,9 +23,8 @@ object MarkdownCodeBlockProcessor {
             ExtractedDirectives.from(
               contentChars = cb.body.toCharArray,
               path = reportingPath,
-              logger = logger,
               maybeRecoverOnError = maybeRecoverOnError
-            )
+            ).left.map(new BuildDirectiveException(_))
           }
         }
         .fold(ExtractedDirectives.empty)(_ ++ _)

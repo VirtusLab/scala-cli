@@ -4,9 +4,11 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.Positioned
 import scala.build.directives.*
-import scala.build.errors.{BuildException, DirectiveErrors}
+import scala.build.errors.BuildException
 import scala.build.options.{BuildRequirements, Scope}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Scope")
 @DirectivePrefix("target.")
@@ -25,7 +27,7 @@ final case class RequireScope(
       scope
         .map { posStr =>
           RequireScope.scopesByName.get(posStr.value).toRight {
-            new DirectiveErrors(::("No such scope", Nil), posStr.positions)
+            new BuildException("No such scope", positions = posStr.positions) {}
           }
         }
         .sequence

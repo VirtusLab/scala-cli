@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.Position
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
-import scala.build.preprocessing.Scoped
+import scala.cli.directivehandler.Scoped
 
 case class PreprocessedDirectives(
   globalReqs: BuildRequirements,

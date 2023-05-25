@@ -17,6 +17,7 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.directives.PreprocessedDirectives
+import scala.cli.directivehandler.{DirectiveException, ScopePath}
 
 /** Java source preprocessor.
   *
@@ -38,7 +39,8 @@ final case class JavaPreprocessor(
   def preprocess(
     input: SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
@@ -54,7 +56,7 @@ final case class JavaPreprocessor(
               logger,
               allowRestrictedFeatures,
               suppressWarningOptions,
-              maybeRecoverOnError
+              maybeRecoverOnDirectiveError
             )
           }
           Seq(PreprocessedSource.OnDisk(
@@ -96,7 +98,7 @@ final case class JavaPreprocessor(
               logger,
               allowRestrictedFeatures,
               suppressWarningOptions,
-              maybeRecoverOnError
+              maybeRecoverOnDirectiveError
             )
           }
           val s = PreprocessedSource.InMemory(

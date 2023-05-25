@@ -4,8 +4,10 @@ import scala.build.EitherCps.{either, value}
 import scala.build.directives.*
 import scala.build.errors.{BuildException, WrongJavaHomePathError}
 import scala.build.options.{BuildOptions, JavaOptions}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 import scala.util.{Failure, Success, Try}
 
 @DirectiveGroupName("Java home")

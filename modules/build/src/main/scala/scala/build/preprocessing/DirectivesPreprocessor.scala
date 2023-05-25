@@ -1,4 +1,5 @@
 package scala.build.preprocessing
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops.*
@@ -7,11 +8,7 @@ import scala.build.directives.{
   HasBuildOptionsWithRequirements,
   HasBuildRequirements
 }
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  DirectiveErrors
-}
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
@@ -22,9 +19,12 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
+import scala.build.preprocessing.BuildDirectiveException
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
+import scala.build.preprocessing.directives.DirectiveUtil.{isExperimental, isRestricted, toScalaCli}
 import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
 import scala.build.preprocessing.directives.*
+import scala.cli.directivehandler.*
 
 object DirectivesPreprocessor {
   def preprocess(
@@ -34,10 +34,11 @@ object DirectivesPreprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: DirectiveException => Option[DirectiveException]
   )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
     val directives = value {
-      ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
+      ExtractedDirectives.from(content.toCharArray, path, maybeRecoverOnError)
+        .left.map(new BuildDirectiveException(_))
     }
     value {
       preprocess(
@@ -59,7 +60,7 @@ object DirectivesPreprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnError: DirectiveException => Option[DirectiveException]
   )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
     def preprocessWithDirectiveHandlers[T: ConfigMonoid](
@@ -126,15 +127,15 @@ object DirectivesPreprocessor {
               optionsWithActualRequirements,
               scopedBuildRequirements.scoped,
               strippedContent = None,
-              directivesPositions
+              directivesPositions.map(_.toScalaCli)
             )
           }
         case unused =>
           maybeRecoverOnError {
-            CompositeBuildException(
+            CompositeDirectiveException(
               exceptions = unused.map(ScopedDirective(_, path, cwd).unusedDirectiveError)
             )
-          }.toLeft(PreprocessedDirectives.empty)
+          }.map(new BuildDirectiveException(_)).toLeft(PreprocessedDirectives.empty)
       }
     }
   }
@@ -147,7 +148,7 @@ object DirectivesPreprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: DirectiveException => Option[DirectiveException] = e => Some(e)
   )(using ScalaCliInvokeData): Either[BuildException, PartiallyProcessedDirectives[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
@@ -156,16 +157,19 @@ object DirectivesPreprocessor {
     def handleValues(handler: DirectiveHandler[T])(
       scopedDirective: ScopedDirective,
       logger: Logger
-    ): Either[BuildException, ProcessedDirective[T]] =
+    ): Either[DirectiveException, ProcessedDirective[T]] =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         Left(DirectiveErrors(
           ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
-          DirectiveUtil.positions(scopedDirective.directive.values, path)
+          scala.build.preprocessing.directives.DirectiveUtil.positions(
+            scopedDirective.directive.values,
+            path
+          )
         ))
       else
         if handler.isExperimental && !shouldSuppressExperimentalFeatures then
           logger.message(experimentalDirectiveUsed(scopedDirective.directive.toString))
-        handler.handleValues(scopedDirective, logger)
+        handler.handleValues(scopedDirective)
 
     val handlersMap = handlers
       .flatMap { handler =>
@@ -175,19 +179,26 @@ object DirectivesPreprocessor {
 
     val unused = directives.filter(d => !handlersMap.contains(d.key))
 
-    val res = directives
+    val res0: Vector[Either[DirectiveException, ProcessedDirective[T]]] = directives
       .iterator
       .flatMap {
         case d @ StrictDirective(k, _) =>
-          handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
+          val a: Iterator[Either[
+            cli.directivehandler.DirectiveException,
+            cli.directivehandler.ProcessedDirective[T]
+          ]] = handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
+          a
       }
       .toVector
+    val res1: Vector[Either[DirectiveException, ProcessedDirective[T]]] = res0
       .flatMap {
-        case Left(e: BuildException) => maybeRecoverOnError(e).toVector.map(Left(_))
-        case r @ Right(_)            => Vector(r)
+        case Left(e: DirectiveException) => maybeRecoverOnError(e).toVector.map(e0 => Left(e0))
+        case r                           => Vector(r)
       }
+    val res = res1
       .sequence
-      .left.map(CompositeBuildException(_))
+      .left.map(CompositeDirectiveException(_))
+      .left.map(new BuildDirectiveException(_))
       .map(_.foldLeft((configMonoidInstance.zero, Seq.empty[Scoped[T]])) {
         case ((globalAcc, scopedAcc), ProcessedDirective(global, scoped)) => (
             global.fold(globalAcc)(ns => configMonoidInstance.orElse(ns, globalAcc)),

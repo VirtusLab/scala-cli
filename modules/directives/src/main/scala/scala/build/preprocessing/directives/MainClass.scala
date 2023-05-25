@@ -5,6 +5,7 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Main class")
 @DirectiveExamples("//> using mainClass helloWorld")

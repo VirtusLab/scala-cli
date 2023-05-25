@@ -16,12 +16,14 @@ import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.internal.{AmmUtil, Name}
 import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
+import scala.cli.directivehandler.{DirectiveException, ScopePath}
 
 case object MarkdownPreprocessor extends Preprocessor {
   def preprocess(
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
@@ -37,6 +39,7 @@ case object MarkdownPreprocessor extends Preprocessor {
               ScopePath.fromPath(markdown.path),
               logger,
               maybeRecoverOnError,
+              maybeRecoverOnDirectiveError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
@@ -55,6 +58,7 @@ case object MarkdownPreprocessor extends Preprocessor {
               markdown.scopePath,
               logger,
               maybeRecoverOnError,
+              maybeRecoverOnDirectiveError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
@@ -73,6 +77,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     scopePath: ScopePath,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.InMemory]] = either {
@@ -93,7 +98,7 @@ case object MarkdownPreprocessor extends Preprocessor {
                   logger = logger,
                   allowRestrictedFeatures = allowRestrictedFeatures,
                   suppressWarningOptions = suppressWarningOptions,
-                  maybeRecoverOnError = maybeRecoverOnError
+                  maybeRecoverOnDirectiveError = maybeRecoverOnDirectiveError
                 )
               }.getOrElse(ProcessingOutput.empty)
             val processedCode = processingOutput.updatedContent.getOrElse(wrappedMarkdown.code)
@@ -120,8 +125,7 @@ case object MarkdownPreprocessor extends Preprocessor {
         codeBlocks,
         reportingPath,
         scopePath,
-        logger,
-        maybeRecoverOnError
+        maybeRecoverOnDirectiveError
       ))
 
     val (mainScalaCode, rawScalaCode, testScalaCode) =

@@ -4,11 +4,8 @@ import scala.annotation.tailrec
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.internal.{AmmUtil, Name}
-import scala.build.preprocessing.{
-  ExtractedDirectives,
-  PreprocessedMarkdown,
-  PreprocessedMarkdownCodeBlocks
-}
+import scala.build.preprocessing.{PreprocessedMarkdown, PreprocessedMarkdownCodeBlocks}
+import scala.cli.directivehandler.ExtractedDirectives
 
 /** A util for extraction and wrapping of code blocks in Markdown files.
   */

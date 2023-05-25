@@ -26,6 +26,7 @@ import scala.build.options.{
 }
 import scala.build.preprocessing.*
 import scala.build.testrunner.DynamicTestRunner.globPattern
+import scala.cli.directivehandler.{DirectiveException, ScopePath}
 import scala.util.Try
 import scala.util.chaining.*
 
@@ -208,7 +209,8 @@ object CrossSources {
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException] = e => Some(e)
   )(using ScalaCliInvokeData): Either[BuildException, (UnwrappedCrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
@@ -222,6 +224,7 @@ object CrossSources {
                 elem,
                 logger,
                 maybeRecoverOnError,
+                maybeRecoverOnDirectiveError,
                 inputs.allowRestrictedFeatures,
                 suppressWarningOptions
               ).iterator

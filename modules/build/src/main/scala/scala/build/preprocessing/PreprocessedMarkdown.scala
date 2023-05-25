@@ -1,6 +1,7 @@
 package scala.build.preprocessing
 
 import scala.build.internal.markdown.MarkdownCodeBlock
+import scala.cli.directivehandler.ExtractedDirectives
 
 case class PreprocessedMarkdownCodeBlocks(
   codeBlocks: Seq[MarkdownCodeBlock],

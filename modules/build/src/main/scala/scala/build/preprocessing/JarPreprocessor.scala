@@ -12,12 +12,14 @@ import scala.build.options.{
   ClassPathOptions,
   SuppressWarningOptions
 }
+import scala.cli.directivehandler.DirectiveException
 
 case object JarPreprocessor extends Preprocessor {
   def preprocess(
     input: SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =

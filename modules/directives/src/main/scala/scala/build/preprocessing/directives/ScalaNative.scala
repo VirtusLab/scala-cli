@@ -5,6 +5,7 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ScalaNativeOptions, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Scala Native options")
 @DirectiveExamples("//> using nativeVersion 0.4.0")

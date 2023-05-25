@@ -2,8 +2,9 @@ package scala.build.internal.util
 
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.Constants
-import scala.build.preprocessing.directives.{DirectiveHandler, ScopedDirective}
+import scala.build.preprocessing.directives.DirectiveUtil.scalaSpecificationLevel
 import scala.cli.commands.{SpecificationLevel, tags}
+import scala.cli.directivehandler.{DirectiveHandler, ScopedDirective}
 import scala.cli.config.Key
 
 object WarningMessages {

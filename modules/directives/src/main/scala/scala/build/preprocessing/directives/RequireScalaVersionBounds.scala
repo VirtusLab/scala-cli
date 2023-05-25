@@ -4,6 +4,7 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.BuildRequirements
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Scala version bounds")
 @DirectivePrefix("target.scala.")

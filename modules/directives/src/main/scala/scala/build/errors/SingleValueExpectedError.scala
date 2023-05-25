@@ -1,6 +1,7 @@
 package scala.build.errors
 
-import scala.build.preprocessing.directives.{DirectiveUtil, StrictDirective}
+import scala.build.preprocessing.directives.DirectiveUtil
+import scala.cli.directivehandler.StrictDirective
 
 final class SingleValueExpectedError(
   val directive: StrictDirective,

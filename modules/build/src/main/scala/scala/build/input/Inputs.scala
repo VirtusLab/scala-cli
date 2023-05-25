@@ -12,8 +12,8 @@ import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope
-import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.SheBang.isShebangScript
+import scala.cli.directivehandler.ScopePath
 import scala.util.Properties
 import scala.util.matching.Regex
 

@@ -17,13 +17,15 @@ import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, 
 import scala.build.internal.Util
 import scala.build.options.*
 import scala.build.preprocessing.directives
-import scala.build.preprocessing.directives.{
-  DirectiveHandler,
-  DirectiveUtil,
-  PreprocessedDirectives,
-  ScopedDirective
-}
+import scala.build.preprocessing.directives.PreprocessedDirectives
 import scala.build.{Logger, Position, Positioned}
+import scala.cli.directivehandler.{
+  DirectiveException,
+  DirectiveHandler,
+  ExtractedDirectives,
+  ScopePath,
+  Scoped
+}
 
 case object ScalaPreprocessor extends Preprocessor {
   case class ProcessingOutput(
@@ -50,6 +52,7 @@ case object ScalaPreprocessor extends Preprocessor {
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
@@ -65,7 +68,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Right(f.path),
                 scopePath / os.up,
                 logger,
-                maybeRecoverOnError,
+                maybeRecoverOnDirectiveError,
                 allowRestrictedFeatures,
                 suppressWarningOptions
               )
@@ -136,7 +139,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 Left(v.source),
                 v.scopePath / os.up,
                 logger,
-                maybeRecoverOnError,
+                maybeRecoverOnDirectiveError,
                 allowRestrictedFeatures,
                 suppressWarningOptions
               )
@@ -184,7 +187,7 @@ case object ScalaPreprocessor extends Preprocessor {
     path: Either[String, os.Path],
     scopeRoot: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
@@ -192,9 +195,8 @@ case object ScalaPreprocessor extends Preprocessor {
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentWithNoShebang.toCharArray,
       path,
-      logger,
-      maybeRecoverOnError
-    ))
+      maybeRecoverOnDirectiveError
+    ).left.map(new BuildDirectiveException(_)))
     value {
       processSources(
         content,
@@ -204,7 +206,7 @@ case object ScalaPreprocessor extends Preprocessor {
         logger,
         allowRestrictedFeatures,
         suppressWarningOptions,
-        maybeRecoverOnError
+        maybeRecoverOnDirectiveError
       )
     }
   }
@@ -217,7 +219,7 @@ case object ScalaPreprocessor extends Preprocessor {
     logger: Logger,
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException]
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException]
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
@@ -228,7 +230,7 @@ case object ScalaPreprocessor extends Preprocessor {
         logger,
         allowRestrictedFeatures,
         suppressWarningOptions,
-        maybeRecoverOnError
+        maybeRecoverOnDirectiveError
       ))
 
     if (preprocessedDirectives.isEmpty) None

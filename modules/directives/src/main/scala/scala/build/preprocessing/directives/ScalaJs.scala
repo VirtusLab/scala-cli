@@ -6,6 +6,7 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ScalaJsOptions, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Scala.js options")
 @DirectiveExamples("//> using jsModuleKind common")

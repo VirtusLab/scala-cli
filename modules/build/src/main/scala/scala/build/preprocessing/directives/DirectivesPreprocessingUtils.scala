@@ -8,6 +8,8 @@ import scala.build.directives.{
 import scala.build.errors.{BuildException, UnusedDirectiveError}
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives
+import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.cli.directivehandler.DirectiveHandler
 
 object DirectivesPreprocessingUtils {
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =

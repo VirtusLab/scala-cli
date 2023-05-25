@@ -1,6 +1,6 @@
 package scala.build.input
 
-import scala.build.preprocessing.ScopePath
+import scala.cli.directivehandler.ScopePath
 import scala.util.matching.Regex
 
 sealed abstract class Element extends Product with Serializable

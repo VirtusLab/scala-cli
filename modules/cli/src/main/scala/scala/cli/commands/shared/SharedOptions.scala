@@ -16,7 +16,6 @@ import java.nio.file.Paths
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
@@ -42,6 +41,7 @@ import scala.cli.commands.tags
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.directivehandler.DirectiveDescription
 import scala.cli.util.ConfigDbUtils
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*

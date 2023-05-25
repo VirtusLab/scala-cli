@@ -3,6 +3,7 @@ package scala.build.preprocessing
 import scala.build.Position
 import scala.build.internal.CodeWrapper
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
+import scala.cli.directivehandler.{ScopePath, Scoped}
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]

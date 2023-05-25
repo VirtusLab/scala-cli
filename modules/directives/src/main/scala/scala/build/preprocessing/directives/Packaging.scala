@@ -20,8 +20,10 @@ import scala.build.options.{
   PostBuildOptions,
   ShadowingSeq
 }
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Packaging")
 @DirectivePrefix("packaging.")

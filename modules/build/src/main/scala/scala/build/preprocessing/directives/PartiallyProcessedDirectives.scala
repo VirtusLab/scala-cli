@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import scala.build.preprocessing.Scoped
+import scala.cli.directivehandler.{Scoped, StrictDirective}
 
 case class PartiallyProcessedDirectives[T](
   global: T,

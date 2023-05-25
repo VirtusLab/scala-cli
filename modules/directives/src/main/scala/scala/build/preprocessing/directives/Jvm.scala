@@ -3,8 +3,10 @@ package scala.build.preprocessing.directives
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ShadowingSeq}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("JVM version")
 @DirectiveExamples("//> using jvm 11")

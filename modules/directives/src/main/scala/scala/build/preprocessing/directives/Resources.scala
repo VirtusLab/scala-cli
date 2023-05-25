@@ -5,7 +5,9 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Resource directories")
 @DirectiveExamples("//> using resourceDir ./resources")

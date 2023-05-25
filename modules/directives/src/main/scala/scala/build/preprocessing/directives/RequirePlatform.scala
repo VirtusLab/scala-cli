@@ -4,8 +4,10 @@ import scala.build.EitherCps.{either, value}
 import scala.build.directives.*
 import scala.build.errors.{BuildException, MalformedPlatformError}
 import scala.build.options.{BuildRequirements, Platform}
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Platform")
 @DirectivePrefix("target.")

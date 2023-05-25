@@ -14,8 +14,9 @@ import scala.build.options.{
   ShadowingSeq,
   WithBuildRequirements
 }
-import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.preprocessing.directives.DirectiveUtil.{*, given}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveExamples("//> using dep com.lihaoyi::os-lib:0.9.1")
 @DirectiveExamples("//> using test.dep org.scalatest::scalatest:3.2.10")

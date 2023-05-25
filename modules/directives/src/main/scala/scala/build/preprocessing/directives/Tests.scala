@@ -5,6 +5,7 @@ import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ShadowingSeq, TestOptions}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Test framework")
 @DirectiveExamples("//> using testFramework utest.runner.Framework")

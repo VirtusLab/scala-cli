@@ -13,8 +13,10 @@ import scala.build.options.{
   PublishOptions,
   ShadowingSeq
 }
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 import scala.cli.signing.shared.PasswordOption
 
 trait PublishContextual {

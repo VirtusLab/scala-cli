@@ -11,12 +11,14 @@ import scala.build.internal.{AmmUtil, ClassCodeWrapper, CodeWrapper, Name, Objec
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessedSource
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
+import scala.cli.directivehandler.{DirectiveException, ScopePath}
 
 case object ScriptPreprocessor extends Preprocessor {
   def preprocess(
     input: SingleElement,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException] = e => Some(e),
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
@@ -32,7 +34,7 @@ case object ScriptPreprocessor extends Preprocessor {
               script.inputArg,
               ScopePath.fromPath(script.path),
               logger,
-              maybeRecoverOnError,
+              maybeRecoverOnDirectiveError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
@@ -53,7 +55,7 @@ case object ScriptPreprocessor extends Preprocessor {
               None,
               script.scopePath,
               logger,
-              maybeRecoverOnError,
+              maybeRecoverOnDirectiveError,
               allowRestrictedFeatures,
               suppressWarningOptions
             )
@@ -73,7 +75,7 @@ case object ScriptPreprocessor extends Preprocessor {
     inputArgPath: Option[String],
     scopePath: ScopePath,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.UnwrappedScript]] =

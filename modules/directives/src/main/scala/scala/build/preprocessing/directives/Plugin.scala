@@ -7,8 +7,9 @@ import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.preprocessing.directives.DirectiveUtil.{*, given}
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Compiler plugins")
 @DirectiveExamples("//> using plugin org.typelevel:::kind-projector:0.13.2")

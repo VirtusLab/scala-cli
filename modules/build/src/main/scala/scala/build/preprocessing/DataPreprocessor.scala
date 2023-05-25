@@ -13,12 +13,14 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.directives.PreprocessedDirectives
+import scala.cli.directivehandler.DirectiveException
 
 case object DataPreprocessor extends Preprocessor {
   def preprocess(
     input: SingleElement,
     logger: Logger,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    maybeRecoverOnError: BuildException => Option[BuildException],
+    maybeRecoverOnDirectiveError: DirectiveException => Option[DirectiveException],
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Option[Either[BuildException, Seq[PreprocessedSource]]] =
@@ -34,7 +36,7 @@ case object DataPreprocessor extends Preprocessor {
               logger,
               allowRestrictedFeatures,
               suppressWarningOptions,
-              maybeRecoverOnError
+              maybeRecoverOnDirectiveError
             )
           }
           val inMemory = Seq(

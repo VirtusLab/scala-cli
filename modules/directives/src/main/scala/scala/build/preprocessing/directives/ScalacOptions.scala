@@ -12,7 +12,9 @@ import scala.build.options.{
   ShadowingSeq,
   WithBuildRequirements
 }
+import scala.build.preprocessing.directives.DirectiveUtil.given
 import scala.cli.commands.SpecificationLevel
+import scala.cli.directivehandler.*
 
 @DirectiveGroupName("Compiler options")
 @DirectiveExamples("//> using option -Xasync")
