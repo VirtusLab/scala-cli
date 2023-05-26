@@ -185,8 +185,12 @@ chmod +x script.sc
 ```
 
 ```text
-script.sc
+./script.sc
 ```
+
+<!-- Expected:
+./script.sc
+-->
 
 </ChainedSnippets>
 
