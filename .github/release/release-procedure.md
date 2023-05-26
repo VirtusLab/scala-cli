@@ -18,6 +18,8 @@
     - [ ] Merge pull request with updated Scala CLI version
       in [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) repository. Pull request should be opened
       automatically after release.
+    - [ ] Wait for the `Update dist` PR to be automatically created after the previous one has been merged, and then
+      proceed to merge it.
     - [ ] Make a release with the updated Scala CLI version.
     - [ ] Update the `v0.1` tag to the newest tag.
       ```bash
