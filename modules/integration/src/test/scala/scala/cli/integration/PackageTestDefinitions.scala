@@ -808,7 +808,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("native image") {
     val message = "Hello from native-image"
-    val dest =
+    val dest = "hello"
+    val actualDest =
       if (Properties.isWin) "hello.exe"
       else "hello"
     val inputs = TestInputs(
@@ -837,11 +838,11 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         stdout = os.Inherit
       )
 
-      expect(os.isFile(root / dest))
+      expect(os.isFile(root / actualDest))
 
       // FIXME Check that dest is indeed a binary?
 
-      val res    = os.proc(root / dest).call(cwd = root)
+      val res    = os.proc(root / actualDest).call(cwd = root)
       val output = res.out.trim()
       expect(output == message)
     }

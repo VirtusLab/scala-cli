@@ -410,6 +410,14 @@ jobs:
       with:
         name: windows-launchers
         path: artifacts/
+    - name: Check
+      run: ./mill -i integration.test "scala.cli.integration.PackageTestsDefault.native image"
+      env:
+        COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 1
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
@@ -442,6 +450,14 @@ jobs:
       with:
         name: windows-launchers
         path: artifacts/
+    - name: Check
+      run: ./mill -i integration.test "scala.cli.integration.PackageTestsDefault.native image"
+      env:
+        COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 2
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
@@ -474,6 +490,14 @@ jobs:
       with:
         name: windows-launchers
         path: artifacts/
+    - name: Check
+      run: ./mill -i integration.test "scala.cli.integration.PackageTestsDefault.native image"
+      env:
+        COURSIER_JNI: force
+        UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
+        SCALA_CLI_IT_GROUP: 3
+        SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
