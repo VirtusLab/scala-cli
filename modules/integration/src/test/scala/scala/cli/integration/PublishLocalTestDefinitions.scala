@@ -12,10 +12,11 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
       actualScalaVersion.split('.').take(1).mkString
     else actualScalaVersion.split('.').take(2).mkString(".")
 
+  def testPublishVersion: String = "1.5.6"
+
   private object PublishTestInputs {
-    def testOrg: String     = "test-local-org.sth"
-    def testName: String    = "my-proj"
-    def testVersion: String = "1.5.6"
+    def testOrg: String  = "test-local-org.sth"
+    def testName: String = "my-proj"
     def projFile(message: String): String =
       s"""//> using scala "$testedPublishedScalaVersion"
          |//> using dep "com.lihaoyi::os-lib:0.9.1"
@@ -28,68 +29,86 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
          |}
          |""".stripMargin
 
-    private val publishConfFile: String =
+    private def publishConfFile(includePublishVersion: Boolean): String = {
+      val publishVersionDirective =
+        if (includePublishVersion) s"//> using publish.version $testPublishVersion"
+        else ""
       s"""//> using publish.organization $testOrg
          |//> using publish.name $testName
-         |//> using publish.version $testVersion
+         |$publishVersionDirective
          |""".stripMargin
-
-    val inputs: TestInputs = TestInputs(
-      os.rel / "project.scala"      -> projFile("Hello"),
-      os.rel / "publish-conf.scala" -> publishConfFile
-    )
-  }
-
-  test("publish local") {
-    val expectedFiles = {
-      val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
-      val base    = os.rel / PublishTestInputs.testOrg / modName / PublishTestInputs.testVersion
-      val baseFiles = Seq(
-        base / "jars" / s"$modName.jar",
-        base / "docs" / s"$modName-javadoc.jar",
-        base / "srcs" / s"$modName-sources.jar",
-        base / "poms" / s"$modName.pom",
-        base / "ivys" / "ivy.xml"
-      )
-      baseFiles
-        .flatMap { f =>
-          val md5  = f / os.up / s"${f.last}.md5"
-          val sha1 = f / os.up / s"${f.last}.sha1"
-          Seq(f, md5, sha1)
-        }
-        .toSet
     }
 
-    PublishTestInputs.inputs.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "publish",
-        "local",
-        ".",
-        "--ivy2-home",
-        os.rel / "ivy2",
-        extraOptions
+    def inputs(message: String = "Hello", includePublishVersion: Boolean = true): TestInputs =
+      TestInputs(
+        os.rel / "project.scala"      -> projFile(message),
+        os.rel / "publish-conf.scala" -> publishConfFile(includePublishVersion)
       )
-        .call(cwd = root)
-      val ivy2Local = root / "ivy2" / "local"
-      val foundFiles = os.walk(ivy2Local)
-        .filter(os.isFile(_))
-        .map(_.relativeTo(ivy2Local))
-        .toSet
-      val missingFiles    = expectedFiles -- foundFiles
-      val unexpectedFiles = foundFiles -- expectedFiles
-      if (missingFiles.nonEmpty)
-        pprint.err.log(missingFiles)
-      if (unexpectedFiles.nonEmpty)
-        pprint.err.log(unexpectedFiles)
-      expect(missingFiles.isEmpty)
-      expect(unexpectedFiles.isEmpty)
+  }
+
+  for (includePublishVersion <- Seq(true, false)) {
+    val withPublishVersionString =
+      if (includePublishVersion) " with publish.version"
+      else " without explicit publish.version, reading it from git:tag"
+    test(s"publish local$withPublishVersionString") {
+      val expectedFiles = {
+        val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base    = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val baseFiles = Seq(
+          base / "jars" / s"$modName.jar",
+          base / "docs" / s"$modName-javadoc.jar",
+          base / "srcs" / s"$modName-sources.jar",
+          base / "poms" / s"$modName.pom",
+          base / "ivys" / "ivy.xml"
+        )
+        baseFiles
+          .flatMap { f =>
+            val md5  = f / os.up / s"${f.last}.md5"
+            val sha1 = f / os.up / s"${f.last}.sha1"
+            Seq(f, md5, sha1)
+          }
+          .toSet
+      }
+
+      PublishTestInputs.inputs(includePublishVersion = includePublishVersion)
+        .fromRoot { root =>
+          val ciOptions =
+            if (!includePublishVersion) {
+              TestUtil.initializeGit(cwd = root, tag = testPublishVersion)
+              Seq("--ci=false") // when running on CI, version wouldn't be read from a git tag
+            }
+            else Seq.empty
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            "--ivy2-home",
+            os.rel / "ivy2",
+            extraOptions,
+            ciOptions
+          )
+            .call(cwd = root)
+          val ivy2Local = root / "ivy2" / "local"
+          val foundFiles = os.walk(ivy2Local)
+            .filter(os.isFile(_))
+            .map(_.relativeTo(ivy2Local))
+            .toSet
+          val missingFiles    = expectedFiles -- foundFiles
+          val unexpectedFiles = foundFiles -- expectedFiles
+          if (missingFiles.nonEmpty)
+            pprint.err.log(missingFiles)
+          if (unexpectedFiles.nonEmpty)
+            pprint.err.log(unexpectedFiles)
+          expect(missingFiles.isEmpty)
+          expect(unexpectedFiles.isEmpty)
+        }
     }
   }
 
   test("publish local twice") {
-    PublishTestInputs.inputs.fromRoot { root =>
+    PublishTestInputs.inputs().fromRoot { root =>
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
@@ -110,7 +129,7 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
           TestUtil.cs,
           s"-J-Divy.home=${root / "ivy2"}",
           "launch",
-          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:${PublishTestInputs.testVersion}"
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
         )
           .call(cwd = root)
           .out.trim()
@@ -119,7 +138,7 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
       val output1 = output()
       expect(output1 == "Hello")
 
-      os.write.over(root / "Project.scala", PublishTestInputs.projFile("olleH"))
+      os.write.over(root / "project.scala", PublishTestInputs.projFile("olleH"))
       publishLocal()
       val output2 = output()
       expect(output2 == "olleH")

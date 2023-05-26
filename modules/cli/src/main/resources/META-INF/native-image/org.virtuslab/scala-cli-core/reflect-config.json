@@ -931,6 +931,16 @@
     ]
   },
   {
+    "name": "org.eclipse.jgit.lib.CoreConfig$LogRefUpdates",
+    "methods": [
+      {
+        "name": "values",
+        "parameterTypes": [
+        ]
+      }
+    ]
+  },
+  {
     "name": "org.eclipse.jgit.lib.CoreConfig$TrustPackedRefsStat",
     "methods": [
       {
