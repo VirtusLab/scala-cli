@@ -178,7 +178,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
   test("export json with js") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using scala "3.1.3"
+        """//> using scala "3.2.2"
           |//> using platform "scala-js"
           |//> using lib "com.lihaoyi::os-lib:0.7.8"
           |//> using option "-Xasync"
@@ -211,7 +211,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
 
       expect(fileContents ==
         s"""{
-          |"scalaVersion": "3.1.3",
+          |"scalaVersion": "3.2.2",
           |"platform": "JS",
           |"scalaJsVersion": "${Constants.scalaJsVersion}",
           |"jsEsVersion":"es2015",

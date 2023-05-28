@@ -1098,11 +1098,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   if (actualScalaVersion.startsWith("3"))
-    test("should throw exception for code compiled by scala 3.1.3") {
+    test("should throw exception for code compiled by scala 3.2.2") {
       val exceptionMsg = "Throw exception in Scala"
       val inputs = TestInputs(
         os.rel / "hello.sc" ->
-          s"""//> using scala "3.1.3"
+          s"""//> using scala "3.2.2"
              |throw new Exception("$exceptionMsg")""".stripMargin
       )
 
