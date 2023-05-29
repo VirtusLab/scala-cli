@@ -300,4 +300,25 @@ object TestUtil {
       textAcc.replace(colorStr, "")
     }
   }
+
+  def initializeGit(
+    cwd: os.Path,
+    tag: String = "test-inputs",
+    gitUserName: String = "testUser",
+    gitUserEmail: String = "testUser@scala-cli-tests.com"
+  ): Unit = {
+    println(s"Initializing git in $cwd...")
+    os.proc("git", "init").call(cwd = cwd)
+    println(s"Setting git user.name to $gitUserName")
+    os.proc("git", "config", "--local", "user.name", gitUserName).call(cwd = cwd)
+    println(s"Setting git user.email to $gitUserEmail")
+    os.proc("git", "config", "--local", "user.email", gitUserEmail).call(cwd = cwd)
+    println(s"Adding $cwd to git...")
+    os.proc("git", "add", ".").call(cwd = cwd)
+    println(s"Doing an initial commit...")
+    os.proc("git", "commit", "-m", "git init test inputs").call(cwd = cwd)
+    println(s"Tagging as $tag...")
+    os.proc("git", "tag", tag).call(cwd = cwd)
+    println(s"Git initialized at $cwd")
+  }
 }
