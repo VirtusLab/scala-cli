@@ -1,6 +1,7 @@
 package scala.cli.commands
 
 import scala.annotation.tailrec
+import scala.build.internal.StdInConcurrentReader
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 
 object WatchUtil {
@@ -35,7 +36,7 @@ object WatchUtil {
     @tailrec
     def readNextChar(): Int =
       if (shouldReadInput())
-        try System.in.read()
+        try StdInConcurrentReader.waitForLine().map(s => (s + '\n').head.toInt).getOrElse(-1)
         catch {
           case _: InterruptedException =>
             // Actually never called, as System.in.read isn't interruptible…

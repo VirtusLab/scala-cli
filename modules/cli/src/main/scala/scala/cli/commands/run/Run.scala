@@ -225,9 +225,23 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       )
 
     if (options.sharedRun.watch.watchMode) {
-      var processOpt      = Option.empty[(Process, CompletableFuture[_])]
+
+      /** A handle to the Runner process, used to kill the process if it's still alive when a change
+        * occured and restarts are allowed or to wait for it if restarts are not allowed
+        */
+      var processOpt = Option.empty[(Process, CompletableFuture[_])]
+
+      /** shouldReadInput controls whether [[WatchUtil.waitForCtrlC]](that's keeping the main thread
+        * alive) should try to read StdIn or just call wait()
+        */
       var shouldReadInput = false
-      var mainThreadOpt   = Option.empty[Thread]
+
+      /** a handle to the main thread to interrupt its operations when:
+        *   - it's blocked on reading StdIn, and it's no longer required
+        *   - it's waiting and should start reading StdIn
+        */
+      var mainThreadOpt = Option.empty[Thread]
+
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
