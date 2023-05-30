@@ -64,7 +64,7 @@ class BspServerTests extends munit.FunSuite {
             val wrappedScriptCode = os.read(wrappedScript.generated)
             val topWrapper = wrappedScriptCode
               .linesIterator
-              .take(wrappedScript.topWrapperLineCount)
+              .take(wrappedScript.wrapperParamsOpt.map(_.topWrapperLineCount).getOrElse(0))
               .mkString("", System.lineSeparator(), System.lineSeparator())
 
             val bspServer = getScriptBuildServer(generatedSources, root)

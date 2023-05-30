@@ -5,7 +5,6 @@ package scala.build.internal
   * threads from script
   */
 case object ObjectCodeWrapper extends CodeWrapper {
-  private val userCodeNestingLevel = 1
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -65,6 +64,6 @@ $mainObjectCode
 """)
     // format: on
 
-    (top, bottom, userCodeNestingLevel)
+    (top, bottom)
   }
 }

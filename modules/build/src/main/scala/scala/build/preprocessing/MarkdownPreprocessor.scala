@@ -101,7 +101,7 @@ case object MarkdownPreprocessor extends Preprocessor {
               originalPath = reportingPath.map(subPath -> _),
               relPath = os.rel / (subPath / os.up) / s"${subPath.last}$generatedSourceNameSuffix",
               processedCode,
-              ignoreLen = 0,
+              wrapperParamsOpt = None,
               options = Some(processingOutput.opts),
               optionsWithTargetRequirements = processingOutput.optsWithReqs,
               requirements = Some(processingOutput.globalReqs),

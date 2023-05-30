@@ -7,6 +7,7 @@ import java.net.URI
 import java.nio.file.Paths
 
 import scala.build.errors.Severity
+import scala.build.internal.WrapperParams
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
@@ -43,13 +44,13 @@ class ConsoleBloopBuildClient(
   private def postProcessDiagnostic(
     path: os.Path,
     diag: bsp4j.Diagnostic,
-    diagnosticMappings: Map[os.Path, (Either[String, os.Path], Int)]
+    diagnosticMappings: Map[os.Path, (Either[String, os.Path], Option[WrapperParams])]
   ): Option[(Either[String, os.Path], bsp4j.Diagnostic)] =
-    diagnosticMappings.get(path).map { case (originalPath, lineOffset) =>
+    diagnosticMappings.get(path).map { case (originalPath, wrapperParamsOpt) =>
       (
         originalPath,
-        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset),
-        scalaLineToScLine(diag.getRange.getStart.getLine, lineOffset)
+        scalaLineToScLine(diag.getRange.getStart.getLine, wrapperParamsOpt),
+        scalaLineToScLine(diag.getRange.getStart.getLine, wrapperParamsOpt)
       )
     }.collect { case (originalPath, Some(scLineStart), Some(scLineEnd)) =>
       val start = new bsp4j.Position(scLineStart, diag.getRange.getStart.getCharacter)
@@ -73,7 +74,7 @@ class ConsoleBloopBuildClient(
       val diagnosticMappings = generatedSources.valuesIterator
         .flatMap(_.iterator)
         .map { source =>
-          source.generated -> (source.reportingPath, source.topWrapperLineCount)
+          source.generated -> (source.reportingPath, source.wrapperParamsOpt)
         }
         .toMap
 

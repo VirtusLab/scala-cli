@@ -8,19 +8,19 @@ abstract class CodeWrapper {
     indexedWrapperName: Name,
     extraCode: String,
     scriptPath: String
-  ): (String, String, Int)
+  ): (String, String)
 
   def wrapCode(
     pkgName: Seq[Name],
     indexedWrapperName: Name,
     code: String,
     scriptPath: String
-  ): (String, Int, Int) = {
+  ): (String, WrapperParams) = {
 
     // we need to normalize topWrapper and bottomWrapper in order to ensure
     // the snippets always use the platform-specific newLine
     val extraCode0 = "/*</generated>*/"
-    val (topWrapper, bottomWrapper, userCodeNestingLevel) =
+    val (topWrapper, bottomWrapper) =
       apply(code, pkgName, indexedWrapperName, extraCode0, scriptPath)
 
     val nl = System.lineSeparator()
@@ -29,9 +29,10 @@ abstract class CodeWrapper {
         topWrapper + "/*<script>*/" + nl,
         nl + "/*</script>*/ /*<generated>*/" + bottomWrapper
       )
-    val topWrapperLineCount = topWrapper0.linesIterator.size
 
-    (topWrapper0 + code + bottomWrapper0, topWrapperLineCount, userCodeNestingLevel)
+    val wrapperParams = WrapperParams(topWrapper0.linesIterator.size, code.linesIterator.size)
+
+    (topWrapper0 + code + bottomWrapper0, wrapperParams)
   }
 
 }
@@ -40,3 +41,5 @@ object CodeWrapper {
   def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
 }
+
+case class WrapperParams(topWrapperLineCount: Int, userCodeLineCount: Int)

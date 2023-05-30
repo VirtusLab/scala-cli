@@ -7,7 +7,14 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.{AmmUtil, ClassCodeWrapper, CodeWrapper, Name, ObjectCodeWrapper}
+import scala.build.internal.{
+  AmmUtil,
+  ClassCodeWrapper,
+  CodeWrapper,
+  Name,
+  ObjectCodeWrapper,
+  WrapperParams
+}
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessedSource
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
@@ -133,7 +140,7 @@ case object ScriptPreprocessor extends Preprocessor {
     wrapperName: Name,
     scriptCode: String,
     scriptPath: String
-  ): CodeWrapper => (String, Int) = {
+  ): CodeWrapper => (String, WrapperParams) = {
     (codeWrapper: CodeWrapper) =>
       if (containsMainAnnot) logger.diagnostic(
         codeWrapper match {
@@ -143,13 +150,13 @@ case object ScriptPreprocessor extends Preprocessor {
         }
       )
 
-      val (code, topWrapperLineCount, _) = codeWrapper.wrapCode(
+      val (code, wrapperParams) = codeWrapper.wrapCode(
         packageStrings,
         wrapperName,
         scriptCode,
         scriptPath
       )
-      (code, topWrapperLineCount)
+      (code, wrapperParams)
   }
 
   /** Get correct script wrapper depending on the platform and version of Scala. For Scala 2 or

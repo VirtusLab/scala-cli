@@ -1,10 +1,20 @@
 package scala.build.postprocessing
 
-object LineConversion {
-  def scalaLineToScLine(lineScala: Int, startOffsetInScala: Int): Option[Int] = {
-    val lineSc = lineScala - startOffsetInScala
-    if (lineSc >= 0) Some(lineSc) else None
-  }
+import scala.build.internal.WrapperParams
 
-  def scalaLineToScLineShift(startOffsetInScala: Int): Int = -startOffsetInScala
+object LineConversion {
+  def scalaLineToScLine(lineScala: Int, wrapperParamsOpt: Option[WrapperParams]): Option[Int] =
+    wrapperParamsOpt match {
+      case Some(wrapperParams) =>
+        val lineSc = lineScala - wrapperParams.topWrapperLineCount
+
+        if (lineSc >= 0 && lineSc < wrapperParams.userCodeLineCount) Some(lineSc) else None
+      case _ => None
+    }
+
+  def scalaLineToScLineShift(wrapperParamsOpt: Option[WrapperParams]): Int =
+    wrapperParamsOpt match {
+      case Some(wrapperParams) => wrapperParams.topWrapperLineCount * -1
+      case _                   => 0
+    }
 }

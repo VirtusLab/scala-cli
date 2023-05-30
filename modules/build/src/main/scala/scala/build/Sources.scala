@@ -4,7 +4,7 @@ import coursier.cache.ArchiveCache
 import coursier.util.Task
 
 import scala.build.input.Inputs
-import scala.build.internal.CodeWrapper
+import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.*
 
@@ -39,7 +39,7 @@ final case class Sources(
         (
           inMemSource.originalPath.map(_._2),
           inMemSource.generatedRelPath,
-          inMemSource.topWrapperLineCount
+          inMemSource.wrapperParamsOpt
         )
       }
 
@@ -51,8 +51,8 @@ final case class Sources(
         .foreach(os.remove(_))
 
     generated.map {
-      case (reportingPath, path, topWrapperLineCount) =>
-        GeneratedSource(generatedSrcRoot / path, reportingPath, topWrapperLineCount)
+      case (reportingPath, path, wrapperParamsOpt) =>
+        GeneratedSource(generatedSrcRoot / path, reportingPath, wrapperParamsOpt)
     }
   }
 
@@ -70,17 +70,17 @@ object Sources {
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
     generatedContent: String,
-    topWrapperLineCount: Int
+    wrapperParamsOpt: Option[WrapperParams]
   )
 
   final case class UnwrappedScript(
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
-    wrapScriptFun: CodeWrapper => (String, Int)
+    wrapScriptFun: CodeWrapper => (String, WrapperParams)
   ) {
     def wrap(wrapper: CodeWrapper): InMemory = {
-      val (content, topWrapperLineCount) = wrapScriptFun(wrapper)
-      InMemory(originalPath, generatedRelPath, content, topWrapperLineCount)
+      val (content, wrapperParams) = wrapScriptFun(wrapper)
+      InMemory(originalPath, generatedRelPath, content, Some(wrapperParams))
     }
   }
 

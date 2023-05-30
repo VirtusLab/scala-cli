@@ -31,11 +31,11 @@ class BspClient(
       _.toNIO.toUri.toASCIIString
     )
     val updatedDiagnostics =
-      if (genSource.topWrapperLineCount == 0)
+      if (genSource.wrapperParamsOpt.isEmpty)
         Right(params.getDiagnostics)
       else
         Left { () =>
-          val updateLine = scalaLine => scalaLineToScLine(scalaLine, genSource.topWrapperLineCount)
+          val updateLine = scalaLine => scalaLineToScLine(scalaLine, genSource.wrapperParamsOpt)
           params.getDiagnostics.asScala.toSeq
             .map { diag =>
               val updatedDiagOpt = for {
