@@ -291,7 +291,7 @@ class BspServer(
             item.setTopWrapper(
               content
                 .linesIterator
-                .take(s.topWrapperLineCount)
+                .take(s.wrapperParamsOpt.map(_.topWrapperLineCount).getOrElse(0))
                 .mkString("", System.lineSeparator(), System.lineSeparator())
             )
             item.setBottomWrapper("}") // meh

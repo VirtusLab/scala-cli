@@ -1,7 +1,7 @@
 package scala.build.preprocessing
 
 import scala.build.Position
-import scala.build.internal.CodeWrapper
+import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
@@ -38,7 +38,7 @@ object PreprocessedSource {
     originalPath: Either[String, (os.SubPath, os.Path)],
     relPath: os.RelPath,
     code: String,
-    ignoreLen: Int,
+    wrapperParamsOpt: Option[WrapperParams],
     options: Option[BuildOptions],
     optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
     requirements: Option[BuildRequirements],
@@ -61,7 +61,7 @@ object PreprocessedSource {
     mainClassOpt: Option[String],
     scopePath: ScopePath,
     directivesPositions: Option[Position.File],
-    wrapScriptFun: CodeWrapper => (String, Int)
+    wrapScriptFun: CodeWrapper => (String, WrapperParams)
   ) extends PreprocessedSource
 
   final case class NoSourceCode(

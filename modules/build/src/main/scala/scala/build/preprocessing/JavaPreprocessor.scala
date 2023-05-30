@@ -103,7 +103,7 @@ final case class JavaPreprocessor(
             originalPath = Left(v.source),
             relPath = relPath,
             code = content,
-            ignoreLen = 0,
+            wrapperParamsOpt = None,
             options = Some(preprocessedDirectives.globalUsings),
             optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,
             requirements = Some(BuildRequirements()),

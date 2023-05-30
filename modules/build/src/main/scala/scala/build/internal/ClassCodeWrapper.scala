@@ -6,7 +6,6 @@ package scala.build.internal
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
 case object ClassCodeWrapper extends CodeWrapper {
-  private val userCodeNestingLevel = 1
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -59,6 +58,6 @@ $mainObjectCode
 """)
     // format: on
 
-    (top, bottom, userCodeNestingLevel)
+    (top, bottom)
   }
 }

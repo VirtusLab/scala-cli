@@ -42,7 +42,7 @@ case object DataPreprocessor extends Preprocessor {
               originalPath = Left(file.source),
               relPath = file.subPath,
               code = content,
-              ignoreLen = 0,
+              wrapperParamsOpt = None,
               options = Some(preprocessedDirectives.globalUsings),
               optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,
               requirements = Some(BuildRequirements()),

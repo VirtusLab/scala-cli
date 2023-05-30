@@ -1131,7 +1131,7 @@ object Build {
         .map { source =>
           val relPath       = source.generated.relativeTo(generatedSrcRoot).toString
           val reportingPath = source.reportingPath.fold(s => s, _.last)
-          (relPath, (reportingPath, scalaLineToScLineShift(source.topWrapperLineCount)))
+          (relPath, (reportingPath, scalaLineToScLineShift(source.wrapperParamsOpt)))
         }
         .toMap
 
