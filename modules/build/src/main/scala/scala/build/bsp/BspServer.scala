@@ -288,7 +288,12 @@ class BspServer(
           s.reportingPath.toSeq.map(_.toNIO.toUri.toASCIIString).map { uri =>
             val item    = new WrappedSourceItem(uri, s.generated.toNIO.toUri.toASCIIString)
             val content = os.read(s.generated)
-            item.setTopWrapper(content.take(s.topWrapperLineCount))
+            item.setTopWrapper(
+              content
+                .linesIterator
+                .take(s.topWrapperLineCount)
+                .mkString("", System.lineSeparator(), System.lineSeparator())
+            )
             item.setBottomWrapper("}") // meh
             item
           }
