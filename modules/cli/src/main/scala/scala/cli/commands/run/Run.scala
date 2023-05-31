@@ -7,6 +7,7 @@ import caseapp.core.help.HelpFormat
 import java.io.File
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
@@ -229,18 +230,18 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       /** A handle to the Runner process, used to kill the process if it's still alive when a change
         * occured and restarts are allowed or to wait for it if restarts are not allowed
         */
-      var processOpt = Option.empty[(Process, CompletableFuture[_])]
+      val processOpt = AtomicReference(Option.empty[(Process, CompletableFuture[_])])
 
       /** shouldReadInput controls whether [[WatchUtil.waitForCtrlC]](that's keeping the main thread
         * alive) should try to read StdIn or just call wait()
         */
-      var shouldReadInput = false
+      val shouldReadInput = AtomicReference(false)
 
-      /** a handle to the main thread to interrupt its operations when:
+      /** A handle to the main thread to interrupt its operations when:
         *   - it's blocked on reading StdIn, and it's no longer required
         *   - it's waiting and should start reading StdIn
         */
-      var mainThreadOpt = Option.empty[Thread]
+      val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
       val watcher = Build.watch(
         inputs,
@@ -253,22 +254,22 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () =>
-          if (processOpt.exists(_._1.isAlive()))
+          if (processOpt.get().exists(_._1.isAlive()))
             WatchUtil.printWatchWhileRunningMessage()
           else
             WatchUtil.printWatchMessage()
       ) { res =>
-        for ((process, onExitProcess) <- processOpt) {
+        for ((process, onExitProcess) <- processOpt.get()) {
           onExitProcess.cancel(true)
           ProcUtil.interruptProcess(process, logger)
         }
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            for ((proc, _) <- processOpt if proc.isAlive)
+            for ((proc, _) <- processOpt.get() if proc.isAlive)
               // If the process doesn't exit, send SIGKILL
               ProcUtil.forceKillProcess(proc, logger)
-            shouldReadInput = false
-            mainThreadOpt.foreach(_.interrupt())
+            shouldReadInput.set(false)
+            mainThreadOpt.get().foreach(_.interrupt())
             val maybeProcess = maybeRun(
               s,
               allowTerminate = false,
@@ -282,29 +283,36 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 case (proc, onExit) =>
                   if (options.sharedRun.watch.restart)
                     onExit.thenApply { _ =>
-                      shouldReadInput = true
-                      mainThreadOpt.foreach(_.interrupt())
+                      shouldReadInput.set(true)
+                      mainThreadOpt.get().foreach(_.interrupt())
                     }
                   (proc, onExit)
               }
             s.copyOutput(options.shared)
             if (options.sharedRun.watch.restart)
-              processOpt = maybeProcess
+              processOpt.set(maybeProcess)
             else {
               for ((proc, onExit) <- maybeProcess)
                 ProcUtil.waitForProcess(proc, onExit)
-              shouldReadInput = true
-              mainThreadOpt.foreach(_.interrupt())
+              shouldReadInput.set(true)
+              mainThreadOpt.get().foreach(_.interrupt())
             }
           case _: Build.Failed =>
             System.err.println("Compilation failed")
         }
       }
-      mainThreadOpt = Some(Thread.currentThread())
+      mainThreadOpt.set(Some(Thread.currentThread()))
 
-      try WatchUtil.waitForCtrlC(() => watcher.schedule(), () => shouldReadInput)
+      try
+        WatchUtil.waitForCtrlC(
+          { () =>
+            watcher.schedule()
+            shouldReadInput.set(false)
+          },
+          () => shouldReadInput.get()
+        )
       finally {
-        mainThreadOpt = None
+        mainThreadOpt.set(None)
         watcher.dispose()
       }
     }
