@@ -146,12 +146,37 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
   }
 
   test("semantic DB") {
-    val testInputs = TestInputs(
-      os.rel / "simple.sc" ->
-        """val n = 2
-          |println(s"n=$n")
-          |""".stripMargin
+    import scala.meta.internal.semanticdb.*
+
+    val scriptContents =
+      """val n = 2
+        |println(s"n=$n")
+        |""".stripMargin
+
+    val expectedSymbolOccurences = Seq(
+      SymbolOccurrence(
+        Some(Range(0, 4, 0, 5)),
+        "_empty_/simple.n.",
+        SymbolOccurrence.Role.DEFINITION
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 8, 1, 9)),
+        "scala/StringContext#s().",
+        SymbolOccurrence.Role.REFERENCE
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 0, 1, 7)),
+        "scala/Predef.println(+1).",
+        SymbolOccurrence.Role.REFERENCE
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 13, 1, 14)),
+        "_empty_/simple.n.",
+        SymbolOccurrence.Role.REFERENCE
+      )
     )
+
+    val testInputs = TestInputs(os.rel / "simple.sc" -> scriptContents)
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         generateSemanticDbs = Some(true)
@@ -173,6 +198,23 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       val doc       = TextDocuments.parseFrom(semDb)
       val uris      = doc.documents.map(_.uri)
       expect(uris == Seq("simple.sc"))
+
+      val occurences = doc.documents.flatMap(_.occurrences)
+      expect(occurences.forall(_.range.isDefined))
+
+      val sortedOccurences = doc.documents.flatMap(_.occurrences)
+        .sortBy(s =>
+          s.range.map(r => (r.startLine, r.startCharacter)).getOrElse((Int.MaxValue, Int.MaxValue))
+        )
+      val sortedExpectedOccurences = expectedSymbolOccurences
+        .sortBy(s =>
+          s.range.map(r => (r.startLine, r.startCharacter)).getOrElse((Int.MaxValue, Int.MaxValue))
+        )
+
+      munit.Assertions.assert(
+        sortedOccurences == sortedExpectedOccurences,
+        clue = doc.documents.flatMap(_.occurrences)
+      )
     }
   }
 
