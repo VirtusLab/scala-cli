@@ -268,9 +268,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         case _ if Properties.isWin                              => "app.bat"
         case _                                                  => "app"
       }
+      val output = outputOpt.map {
+        case o if packageType == PackageType.GraalVMNativeImage && Properties.isWin && !o.endsWith(".exe") =>
+          o + ".exe" // graalvm-native-image requires .exe extension on Windows
+        case o => o
+      }
 
       val packageOutput = build.options.notForBloopOptions.packageOptions.output
-      val dest = outputOpt.orElse(packageOutput)
+      val dest = output.orElse(packageOutput)
         .orElse {
           build.sources.defaultMainClass
             .map(n => n.drop(n.lastIndexOf('.') + 1))
