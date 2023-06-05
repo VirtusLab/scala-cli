@@ -25,8 +25,8 @@ import ReactPlayer from 'react-player'
 * Enforce to use jvm 17 on linux aarch64 by [@lwronski](https://github.com/lwronski) in [#2180](https://github.com/VirtusLab/scala-cli/pull/2180)
 
 ### Updates and maintenance
-* Update scala-cli.sh launcher for 1.0.0 by [@github-actions](https://github.com/github-actions) in [#2149](https://github.com/VirtusLab/scala-cli/pull/2149)
-* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#2155](https://github.com/VirtusLab/scala-cli/pull/2155)
+* Update scala-cli.sh launcher for 1.0.0 by @github-actions in [#2149](https://github.com/VirtusLab/scala-cli/pull/2149)
+* Back port of documentation changes to main by @github-actions in [#2155](https://github.com/VirtusLab/scala-cli/pull/2155)
 * Update jsoniter-scala-core, ... to 2.23.1 by [@scala-steward](https://github.com/scala-steward) in [#2160](https://github.com/VirtusLab/scala-cli/pull/2160)
 * Update guava to 32.0.0-jre by [@scala-steward](https://github.com/scala-steward) in [#2161](https://github.com/VirtusLab/scala-cli/pull/2161)
 * Update coursier-jvm_2.13, ... to 2.1.4 by [@scala-steward](https://github.com/scala-steward) in [#2162](https://github.com/VirtusLab/scala-cli/pull/2162)
@@ -111,7 +111,7 @@ Added by [@MaciejG604](https://github.com/MaciejG604) in [#2136](https://github.
 * Add main class to jar manifest in assembly by [@romanowski](https://github.com/romanowski) in [#2124](https://github.com/VirtusLab/scala-cli/pull/2124)
 
 ### Updates and maintenance
-* Update scala-cli.sh launcher for 1.0.0-RC2 by [@github-actions](https://github.com/github-actions) in [#2105](https://github.com/VirtusLab/scala-cli/pull/2105)
+* Update scala-cli.sh launcher for 1.0.0-RC2 by @github-actions in [#2105](https://github.com/VirtusLab/scala-cli/pull/2105)
 * Update org.eclipse.jgit to 6.5.0.202303070854-r by [@scala-steward](https://github.com/scala-steward) in [#2090](https://github.com/VirtusLab/scala-cli/pull/2090)
 
 ## New Contributors
@@ -329,7 +329,7 @@ Fixed by [@MaciejG604](https://github.com/MaciejG604) in [#2033](https://github.
 * Bump coursier/setup-action from 1.3.0 to 1.3.1 by [@dependabot](https://github.com/dependabot)  in [#2042](https://github.com/VirtusLab/scala-cli/pull/2042)
 * Dump bloop core to 1.5.6-sc-8 by [@lwronski](https://github.com/lwronski) in [#2013](https://github.com/VirtusLab/scala-cli/pull/2013)
 * Fix snapshot versions calculation when the current version ends with `-RC.` by [@Gedochao](https://github.com/Gedochao) in [#2002](https://github.com/VirtusLab/scala-cli/pull/2002)
-* Update scala-cli.sh launcher for 1.0.0-RC1 by [@github-actions](https://github.com/github-actions) in [#1995](https://github.com/VirtusLab/scala-cli/pull/1995)
+* Update scala-cli.sh launcher for 1.0.0-RC1 by @github-actions in [#1995](https://github.com/VirtusLab/scala-cli/pull/1995)
 * Update scalafmt-cli_2.13, scalafmt-core to 3.7.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2094](https://github.com/VirtusLab/scala-cli/pull/2094)
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.0-RC1...v1.0.0-RC2
@@ -788,7 +788,7 @@ Remove by [@lwronski](https://github.com/lwronski) in [#1867](https://github.com
 * Switch `scala-cli-signing` to `org.virtuslab` and bump to `0.1.15` by [@Gedochao](https://github.com/Gedochao) in [#1853](https://github.com/VirtusLab/scala-cli/pull/1853)
 * Add clang to scala-cli docker image by [@lwronski](https://github.com/lwronski) in [#1846](https://github.com/VirtusLab/scala-cli/pull/1846)
 * bloop-file: show timeout value in error message by [@Flowdalic](https://github.com/flowdalic) in [#1855](https://github.com/VirtusLab/scala-cli/pull/1855)
-* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#1860](https://github.com/VirtusLab/scala-cli/pull/1860)
+* Back port of documentation changes to main by @github-actions in [#1860](https://github.com/VirtusLab/scala-cli/pull/1860)
 * Run generate reference doc as non sip by [@lwronski](https://github.com/lwronski) in [#1866](https://github.com/VirtusLab/scala-cli/pull/1866)
 * Bump `case-app` to `2.1.0-M23` by [@lwronski](https://github.com/lwronski) in [#1868](https://github.com/VirtusLab/scala-cli/pull/1868)
 
@@ -800,7 +800,7 @@ Remove by [@lwronski](https://github.com/lwronski) in [#1867](https://github.com
 * docs: Fix Yum manual installation step by [@tgodzik](https://github.com/tgodzik) in [#1850](https://github.com/VirtusLab/scala-cli/pull/1850)
 
 #### Updates & maintenance
-* Update scala-cli.sh launcher for 0.1.20 by [@github-actions](https://github.com/github-actions) in [#1790](https://github.com/VirtusLab/scala-cli/pull/1790)
+* Update scala-cli.sh launcher for 0.1.20 by @github-actions in [#1790](https://github.com/VirtusLab/scala-cli/pull/1790)
 * Bump VirtusLab/scala-cli-setup from 0.1.19 to 0.1.20 by [@dependabot](https://github.com/dependabot) in [#1806](https://github.com/VirtusLab/scala-cli/pull/1806)
 
 ## New Contributors
@@ -938,7 +938,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#1767](https://github.com/
 
 #### Updates & maintenance
 * Update svm to 22.3.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1689](https://github.com/VirtusLab/scala-cli/pull/1689)
-* Update scala-cli.sh launcher for 0.1.19 by [@github-actions](https://github.com/github-actions) in [#1707](https://github.com/VirtusLab/scala-cli/pull/1707)
+* Update scala-cli.sh launcher for 0.1.19 by @github-actions in [#1707](https://github.com/VirtusLab/scala-cli/pull/1707)
 * Bump VirtusLab/scala-cli-setup from 0.1.18 to 0.1.19 by [@dependabot](https://github.com/dependabot) in [#1709](https://github.com/VirtusLab/scala-cli/pull/1709)
 * Update Bloop to 1.5.6-sc-1 by [@lwronski](https://github.com/lwronski) in [#1704](https://github.com/VirtusLab/scala-cli/pull/1704)
 * Update trees_2.13 to 4.7.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1717](https://github.com/VirtusLab/scala-cli/pull/1717)
@@ -1046,7 +1046,7 @@ Added by [@carlosedp](https://github.com/carlosedp) in [#1626](https://github.co
 * Update jsoniter-scala-core_2.13 to 2.18.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1651](https://github.com/VirtusLab/scala-cli/pull/1651)
 * Update slf4j-nop to 2.0.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1658](https://github.com/VirtusLab/scala-cli/pull/1658)
 * Bump VirtusLab/scala-cli-setup from 0.1.17 to 0.1.18 by [@dependabot](https://github.com/dependabot) in [#1644](https://github.com/VirtusLab/scala-cli/pull/1644)
-* Update scala-cli.sh launcher for 0.1.18 by [@github-actions](https://github.com/github-actions) in [#1624](https://github.com/VirtusLab/scala-cli/pull/1624)
+* Update scala-cli.sh launcher for 0.1.18 by @github-actions in [#1624](https://github.com/VirtusLab/scala-cli/pull/1624)
 * Update using_directives to 0.0.10 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1692](https://github.com/VirtusLab/scala-cli/pull/1692)
 * Bumped up com.lihaoyi::os-lib version to 0.9.0 by [@pingu1m](https://github.com/scala-steward-org/pingu1m) in [#1649](https://github.com/VirtusLab/scala-cli/pull/1649)
 
@@ -1225,7 +1225,7 @@ Added by [@lolgab](https://github.com/lolgab) in [#1562](https://github.com/Virt
 * Make DefaultTests more robust by [@alexarchambault](https://github.com/alexarchambault) in [#1613](https://github.com/VirtusLab/scala-cli/pull/1613)
 
 #### Updates & maintenance
-* Update scala-cli.sh launcher for 0.1.17 by [@github-actions](https://github.com/github-actions) in [#1564](https://github.com/VirtusLab/scala-cli/pull/1564)
+* Update scala-cli.sh launcher for 0.1.17 by @github-actions in [#1564](https://github.com/VirtusLab/scala-cli/pull/1564)
 * Update zip-input-stream to 0.1.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1573](https://github.com/VirtusLab/scala-cli/pull/1573)
 * Update coursier-jvm_2.13, ... to 2.1.0-RC1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1572](https://github.com/VirtusLab/scala-cli/pull/1572)
 * Update mill-main to 0.10.9 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1571](https://github.com/VirtusLab/scala-cli/pull/1571)
@@ -1453,7 +1453,7 @@ Fixed by [@kiendang](https://github.com/kiendang) in https://github.com/VirtusLa
 * Debugging cookbook by [@wleczny](https://github.com/wleczny) in https://github.com/VirtusLab/scala-cli/pull/1441
 
 #### Updates / maintainance
-* Update scala-cli.sh launcher for 0.1.15 by [@github-actions](https://github.com/github-actions) in https://github.com/VirtusLab/scala-cli/pull/1401
+* Update scala-cli.sh launcher for 0.1.15 by @github-actions in https://github.com/VirtusLab/scala-cli/pull/1401
 * Revert scalafmt fix by [@lwronski](https://github.com/lwronski) in https://github.com/VirtusLab/scala-cli/pull/1402
 * Bump respective Scala versions to `2.12.17` & `2.13.9` and Ammonite to `2.5.4-33-0af04a5b` by [@Gedochao](https://github.com/Gedochao) in https://github.com/VirtusLab/scala-cli/pull/1405
 * Turn off running tests in PR for M1 runner by [@lwronski](https://github.com/lwronski) in https://github.com/VirtusLab/scala-cli/pull/1403
@@ -1611,7 +1611,7 @@ Added in [#1347](https://github.com/VirtusLab/scala-cli/pull/1347) by [@wleczny]
 
 #### Updates
 
-* Update scala-cli.sh launcher for 0.1.14 by [@github-actions](https://github.com/features/actions) in [#1362](https://github.com/VirtusLab/scala-cli/pull/1362)
+* Update scala-cli.sh launcher for 0.1.14 by @github-actions in [#1362](https://github.com/VirtusLab/scala-cli/pull/1362)
 * Update jsoniter-scala-core_2.13 to 2.17.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1364](https://github.com/VirtusLab/scala-cli/pull/1364)
 * Update core_2.13 to 3.8.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#1365](https://github.com/VirtusLab/scala-cli/pull/1365)
 * Bump VirtusLab/scala-cli-setup from 0.1.13 to 0.1.14.1 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#1376](https://github.com/VirtusLab/scala-cli/pull/1376)
@@ -1641,7 +1641,7 @@ Added in [#1358](https://github.com/VirtusLab/scala-cli/pull/1358) by [@romanows
 
 ### Build and internal changes
 * Disable mill-scala-cli for now by [@alexarchambault](https://github.com/alexarchambault) in [#1335](https://github.com/VirtusLab/scala-cli/pull/1335)
-* Update scala-cli.sh launcher for 0.1.13 by [@github-actions](https://github.com/features/actions) in [#1351](https://github.com/VirtusLab/scala-cli/pull/1351)
+* Update scala-cli.sh launcher for 0.1.13 by @github-actions in [#1351](https://github.com/VirtusLab/scala-cli/pull/1351)
 * Remove backslash which skip execution of `mv` command by [@lwronski](https://github.com/lwronski) in [#1353](https://github.com/VirtusLab/scala-cli/pull/1353)
 * Fix import ordering by [@alexarchambault](https://github.com/alexarchambault) in [#1359](https://github.com/VirtusLab/scala-cli/pull/1359)
 
