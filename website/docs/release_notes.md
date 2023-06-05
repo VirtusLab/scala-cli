@@ -7,6 +7,38 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.1)
+
+## Changes
+* Fix conflicts when watch and interactive try to read StdIn by [@MaciejG604](https://github.com/MaciejG604) in [#2168](https://github.com/VirtusLab/scala-cli/pull/2168)
+* Bsp wrapper fixes by [@MaciejG604](https://github.com/MaciejG604) in [#2171](https://github.com/VirtusLab/scala-cli/pull/2171)
+* Add the .exe suffix to output provided by user for graalvm-native-image by [@lwronski](https://github.com/lwronski) in [#2182](https://github.com/VirtusLab/scala-cli/pull/2182)
+
+### Fixes
+* Fix - add test to output from name of script example by [@lwronski](https://github.com/lwronski) in [#2153](https://github.com/VirtusLab/scala-cli/pull/2153)
+* Fix publishing with implicit `publish.version` coming from a `git` tag by [@Gedochao](https://github.com/Gedochao) in [#2154](https://github.com/VirtusLab/scala-cli/pull/2154)
+
+### Documentation changes
+
+### Build and internal changes
+* refactor: Remove JavaInterface, which causes compilation issues with Bloop by [@tgodzik](https://github.com/tgodzik) in [#2174](https://github.com/VirtusLab/scala-cli/pull/2174)
+* Enforce to use jvm 17 on linux aarch64 by [@lwronski](https://github.com/lwronski) in [#2180](https://github.com/VirtusLab/scala-cli/pull/2180)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.0.0 by [@github-actions](https://github.com/github-actions) in [#2149](https://github.com/VirtusLab/scala-cli/pull/2149)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#2155](https://github.com/VirtusLab/scala-cli/pull/2155)
+* Update jsoniter-scala-core, ... to 2.23.1 by [@scala-steward](https://github.com/scala-steward) in [#2160](https://github.com/VirtusLab/scala-cli/pull/2160)
+* Update guava to 32.0.0-jre by [@scala-steward](https://github.com/scala-steward) in [#2161](https://github.com/VirtusLab/scala-cli/pull/2161)
+* Update coursier-jvm_2.13, ... to 2.1.4 by [@scala-steward](https://github.com/scala-steward) in [#2162](https://github.com/VirtusLab/scala-cli/pull/2162)
+* Update sbt to 1.8.3 by [@scala-steward](https://github.com/scala-steward) in [#2164](https://github.com/VirtusLab/scala-cli/pull/2164)
+* Bump `mill` scripts by [@Gedochao](https://github.com/Gedochao) in [#2167](https://github.com/VirtusLab/scala-cli/pull/2167)
+* Bump VirtusLab/scala-cli-setup from 0.2.1 to 1.0.0 by [@dependabot](https://github.com/dependabot) in [#2169](https://github.com/VirtusLab/scala-cli/pull/2169)
+* Bump `scala-cli-signing` to `0.2.2` by [@Gedochao](https://github.com/Gedochao) in [#2173](https://github.com/VirtusLab/scala-cli/pull/2173)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.4 by [@scala-steward](https://github.com/scala-steward) in [#2175](https://github.com/VirtusLab/scala-cli/pull/2175)
+* Update trees_2.13 to 4.7.8 by [@scala-steward](https://github.com/scala-steward) in [#2176](https://github.com/VirtusLab/scala-cli/pull/2176)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.0...v1.0.1
+
 ## [v1.0.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.0)
 
 ## The official `scala` runner release
