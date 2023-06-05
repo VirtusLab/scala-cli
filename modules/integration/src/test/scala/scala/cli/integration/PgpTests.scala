@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 class PgpTests extends ScalaCliSuite {
 
   private val pubKeyInputs = TestInputs(
@@ -111,6 +113,32 @@ class PgpTests extends ScalaCliSuite {
         errOutput.contains(
           """Could not fetch binary, fetching JVM dependencies:
             |  org.virtuslab.scala-cli-signing""".stripMargin
+        )
+      )
+    }
+  }
+
+  test("pgp push with external JVM process, java version too low") {
+    pubKeyInputs.fromRoot { root =>
+      val java8Home =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "push",
+        "key.pub",
+        "--force-signing-binary",
+        "--force-jvm-signing-cli",
+        "-v",
+        "-v",
+        "-v"
+      ).call(
+        cwd = root,
+        env = Map(
+          "JAVA_HOME" -> java8Home.toString,
+          "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
         )
       )
     }

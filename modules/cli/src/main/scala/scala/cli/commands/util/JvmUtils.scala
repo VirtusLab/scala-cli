@@ -6,9 +6,10 @@ import java.io.File
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, UnrecognizedDebugModeError}
 import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.OsLibc
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.{Os, Position, Positioned, options as bo}
-import scala.cli.commands.shared.{SharedJvmOptions, SharedOptions}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions, SharedOptions}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.Properties
 import scala.util.control.NonFatal
@@ -87,4 +88,28 @@ object JvmUtils {
     javaCmd
   }
 
+  def getJavaCmdVersionOrHigher(
+    javaVersion: Int,
+    options: bo.BuildOptions
+  ): String = {
+    val javaHomeCmdOpt = for {
+      javaHome <- options.javaHomeLocationOpt()
+      (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
+      if javaHomeVersion >= javaVersion
+    } yield javaHomeCmd
+
+    javaHomeCmdOpt.getOrElse(downloadJvm(javaVersion.toString, options))
+  }
+
+  def getJavaCmdVersionOrHigher(
+    javaVersion: Int,
+    jvmOpts: SharedJvmOptions,
+    coursierOpts: CoursierOptions
+  ): Either[BuildException, String] = {
+    val sharedOpts = SharedOptions(jvm = jvmOpts, coursier = coursierOpts)
+
+    for {
+      options <- sharedOpts.buildOptions()
+    } yield getJavaCmdVersionOrHigher(javaVersion, options)
+  }
 }
