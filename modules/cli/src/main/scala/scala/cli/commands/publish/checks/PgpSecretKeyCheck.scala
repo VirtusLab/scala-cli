@@ -107,7 +107,8 @@ final case class PgpSecretKeyCheck(
               "[generated key]",
               coursierCache,
               logger,
-              value(javaCommand),
+              options.sharedJvm,
+              options.coursier,
               options.scalaSigning.cliOptions()
             )
           }
@@ -191,7 +192,8 @@ final case class PgpSecretKeyCheck(
         Some(passwordSecret),
         logger,
         coursierCache,
-        value(javaCommand),
+        options.sharedJvm,
+        options.coursier,
         options.scalaSigning.cliOptions()
       )
     }
@@ -223,7 +225,8 @@ final case class PgpSecretKeyCheck(
               "[generated key]",
               coursierCache,
               logger,
-              value(javaCommand),
+              options.sharedJvm,
+              options.coursier,
               options.scalaSigning.cliOptions()
             ).orThrow
 

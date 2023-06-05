@@ -4,8 +4,9 @@ import coursier.cache.{Cache, FileCache}
 import coursier.util.Task
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options => bo}
+import scala.build.{Logger, options as bo}
 import scala.cli.commands.pgp.{PgpCreateExternal, PgpKeyIdExternal}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.util.Properties
 
@@ -18,7 +19,8 @@ class PgpProxy {
     passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
@@ -45,7 +47,8 @@ class PgpProxy {
       extraEnv,
       logger,
       allowExecve = false,
-      javaCommand,
+      jvmOptions,
+      coursierOptions,
       signingCliOptions
     )
   }
@@ -55,7 +58,8 @@ class PgpProxy {
     keyPrintablePath: String,
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = {
     val keyPath =
@@ -70,7 +74,8 @@ class PgpProxy {
           Seq(keyPath.toString),
           Map(),
           logger,
-          javaCommand,
+          jvmOptions,
+          coursierOptions,
           signingCliOptions
         ).map(_.trim)
       }

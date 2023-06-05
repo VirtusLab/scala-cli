@@ -868,8 +868,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           fileCache,
           archiveCache,
           logger,
-          () => builds.head.options.javaHome().value.javaCommand,
-          publishOptions.signingCli
+          buildOptions.getOrElse(BuildOptions())
         ) match {
           case Left(e)              => throw new Exception(e)
           case Right(binaryCommand) => binaryCommand.toArray

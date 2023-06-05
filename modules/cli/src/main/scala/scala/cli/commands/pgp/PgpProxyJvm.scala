@@ -7,7 +7,8 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options => bo}
+import scala.build.{Logger, options as bo}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
 import scala.cli.signing.shared.{PasswordOption, Secret}
@@ -21,7 +22,8 @@ class PgpProxyJvm extends PgpProxy {
     passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
@@ -45,7 +47,8 @@ class PgpProxyJvm extends PgpProxy {
     keyPrintablePath: String,
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] =
     PgpKeyId.get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)

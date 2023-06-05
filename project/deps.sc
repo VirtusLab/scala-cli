@@ -80,16 +80,17 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault    = "2.1.4"
-    def coursier           = coursierDefault
-    def coursierCli        = coursierDefault
-    def coursierM1Cli      = coursierDefault
-    def jsoniterScala      = "2.23.1"
-    def jsoniterScalaJava8 = "2.13.5.2"
-    def scalaMeta          = "4.7.8"
-    def scalaNative        = "0.4.12"
-    def scalaPackager      = "0.1.29"
-    def signingCli         = "0.2.2"
+    def coursierDefault      = "2.1.4"
+    def coursier             = coursierDefault
+    def coursierCli          = coursierDefault
+    def coursierM1Cli        = coursierDefault
+    def jsoniterScala        = "2.23.1"
+    def jsoniterScalaJava8   = "2.13.5.2"
+    def scalaMeta            = "4.7.8"
+    def scalaNative          = "0.4.12"
+    def scalaPackager        = "0.1.29"
+    def signingCli           = "0.2.2"
+    def signingCliJvmVersion = 17
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions

@@ -7,8 +7,9 @@ import java.security.SecureRandom
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.{Logger, options => bo}
+import scala.build.{Logger, options as bo}
 import scala.cli.commands.pgp.{PgpProxyMaker, PgpScalaSigningOptions}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.shared.Secret
 import scala.util.Properties
@@ -33,7 +34,8 @@ object ThrowawayPgpSecret {
     password: Option[Secret[String]],
     logger: Logger,
     cache: FileCache[Task],
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, (Secret[String], Secret[String])] = either {
 
@@ -49,7 +51,8 @@ object ThrowawayPgpSecret {
         password.map(_.value),
         cache,
         logger,
-        javaCommand,
+        jvmOptions,
+        coursierOptions,
         signingCliOptions
       )
     }

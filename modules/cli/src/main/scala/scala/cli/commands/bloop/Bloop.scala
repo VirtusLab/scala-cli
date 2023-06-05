@@ -34,18 +34,12 @@ object Bloop extends ScalaCommand[BloopOptions] {
       coursier = opts.coursier
     )
     val options = sharedOptions.buildOptions(false, None).orExit(opts.global.logging.logger)
-    lazy val defaultJvmCmd =
-      JvmUtils.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+
     val javaCmd = opts.compilationServer.bloopJvm
       .map(JvmUtils.downloadJvm(_, options))
-      .orElse {
-        for (javaHome <- options.javaHomeLocationOpt()) yield {
-          val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-          if (javaHomeVersion >= 17) javaHomeCmd
-          else defaultJvmCmd
-        }
+      .getOrElse {
+        JvmUtils.getJavaCmdVersionOrHigher(17, options)
       }
-      .getOrElse(defaultJvmCmd)
 
     opts.compilationServer.bloopRifleConfig(
       opts.global.logging.logger,
