@@ -9,16 +9,15 @@ import ReactPlayer from 'react-player'
 
 ## [v1.0.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.1)
 
-## Changes
-* Fix conflicts when watch and interactive try to read StdIn by [@MaciejG604](https://github.com/MaciejG604) in [#2168](https://github.com/VirtusLab/scala-cli/pull/2168)
-* Bsp wrapper fixes by [@MaciejG604](https://github.com/MaciejG604) in [#2171](https://github.com/VirtusLab/scala-cli/pull/2171)
-* Add the .exe suffix to output provided by user for graalvm-native-image by [@lwronski](https://github.com/lwronski) in [#2182](https://github.com/VirtusLab/scala-cli/pull/2182)
+## What's new
+This release only contains bug fixes and minor internal improvements.
 
 ### Fixes
 * Fix - add test to output from name of script example by [@lwronski](https://github.com/lwronski) in [#2153](https://github.com/VirtusLab/scala-cli/pull/2153)
 * Fix publishing with implicit `publish.version` coming from a `git` tag by [@Gedochao](https://github.com/Gedochao) in [#2154](https://github.com/VirtusLab/scala-cli/pull/2154)
-
-### Documentation changes
+* Fix conflicts when watch and interactive try to read StdIn by [@MaciejG604](https://github.com/MaciejG604) in [#2168](https://github.com/VirtusLab/scala-cli/pull/2168)
+* Bsp wrapper fixes by [@MaciejG604](https://github.com/MaciejG604) in [#2171](https://github.com/VirtusLab/scala-cli/pull/2171)
+* Add the .exe suffix to output provided by user for graalvm-native-image by [@lwronski](https://github.com/lwronski) in [#2182](https://github.com/VirtusLab/scala-cli/pull/2182)
 
 ### Build and internal changes
 * refactor: Remove JavaInterface, which causes compilation issues with Bloop by [@tgodzik](https://github.com/tgodzik) in [#2174](https://github.com/VirtusLab/scala-cli/pull/2174)
