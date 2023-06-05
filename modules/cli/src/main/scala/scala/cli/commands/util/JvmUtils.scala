@@ -5,10 +5,13 @@ import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, UnrecognizedDebugModeError}
+import scala.build.internal.CsLoggerUtil.*
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
-import scala.build.{Os, Position, Positioned}
+import scala.build.{Os, Position, Positioned, options as bo}
 import scala.cli.commands.shared.{SharedJvmOptions, SharedOptions}
+import scala.concurrent.ExecutionContextExecutorService
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 object JvmUtils {
   def javaOptions(opts: SharedJvmOptions): Either[BuildException, JavaOptions] = either {
@@ -62,4 +65,26 @@ object JvmUtils {
       javacOptions = javacOption.map(Positioned.commandLine)
     )
   }
+
+  def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
+    implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
+    val javaHomeManager = options.javaHomeManager
+      .withMessage(s"Downloading JVM $jvmId")
+    val logger = javaHomeManager.cache
+      .flatMap(_.archiveCache.cache.loggerOpt)
+      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
+    val command = {
+      val path = logger.use {
+        try javaHomeManager.get(jvmId).unsafeRun()
+        catch {
+          case NonFatal(e) => throw new Exception(e)
+        }
+      }
+      os.Path(path)
+    }
+    val ext     = if (Properties.isWin) ".exe" else ""
+    val javaCmd = (command / "bin" / s"java$ext").toString
+    javaCmd
+  }
+
 }

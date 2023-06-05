@@ -9,6 +9,7 @@ import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{LoggingOptions, SharedOptions}
+import scala.cli.commands.util.JvmUtils
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -34,9 +35,9 @@ object Bloop extends ScalaCommand[BloopOptions] {
     )
     val options = sharedOptions.buildOptions(false, None).orExit(opts.global.logging.logger)
     lazy val defaultJvmCmd =
-      sharedOptions.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+      JvmUtils.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
     val javaCmd = opts.compilationServer.bloopJvm
-      .map(sharedOptions.downloadJvm(_, options))
+      .map(JvmUtils.downloadJvm(_, options))
       .orElse {
         for (javaHome <- options.javaHomeLocationOpt()) yield {
           val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
