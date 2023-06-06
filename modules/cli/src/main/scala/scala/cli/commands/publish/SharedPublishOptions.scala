@@ -73,9 +73,10 @@ final case class SharedPublishOptions(
     ivy2Home: Option[String] = None,
 
   @Group(HelpGroup.Publishing.toString)
+  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing externally")
   @Hidden
   @Tag(tags.restricted)
-    forceSigningBinary: Boolean = false,
+    forceSigningExternally: Boolean = false,
 
   @Group(HelpGroup.Publishing.toString)
   @Hidden

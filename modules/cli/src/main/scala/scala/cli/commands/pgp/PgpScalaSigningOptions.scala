@@ -2,6 +2,7 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
+import scala.build.internal.Constants
 import scala.build.options as bo
 import scala.cli.commands.shared.{CoursierOptions, HelpGroup, LoggingOptions, SharedJvmOptions}
 import scala.cli.commands.tags
@@ -10,16 +11,18 @@ import scala.cli.commands.tags
 final case class PgpScalaSigningOptions(
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
+  @HelpMessage(s"scala-cli-signing version when running externally (${Constants.scalaCliSigningVersion} by default)")
   @Hidden
     signingCliVersion: Option[String] = None,
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
+  @HelpMessage("Pass arguments to the Java command when running scala-cli-singing externally on JVM")
   @ValueDescription("option")
   @Hidden
     signingCliJavaArg: List[String] = Nil,
   @Group(HelpGroup.Signing.toString)
   @Tag(tags.restricted)
-  @HelpMessage("Whether to run the Scala Signing CLI on the JVM or using a native executable")
+  @HelpMessage("When running scala-cli-singing externally, ensure the use of JVM for its execution")
   @Hidden
     forceJvmSigningCli: Option[Boolean] = None
 ) { // format: on

@@ -171,7 +171,7 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       "--secret-key", s"file:$secretKey",
       "--secret-key-password", "value:1234",
       "--signer", "bc",
-      "--force-signing-binary",
+      "--force-signing-externally",
       "--force-jvm-signing-cli"
     )
     // format: on

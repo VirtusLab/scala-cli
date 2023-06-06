@@ -241,7 +241,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       workingDir,
       ivy2HomeOpt,
       publishLocal = false,
-      forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      forceSigningExternally = options.sharedPublish.forceSigningExternally,
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
@@ -263,7 +263,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     workingDir: => os.Path,
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
@@ -295,7 +295,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             publishLocal,
             logger,
             allowExit = false,
-            forceSigningBinary = forceSigningBinary,
+            forceSigningExternally = forceSigningExternally,
             parallelUpload = parallelUpload,
             isCi = isCi,
             configDb,
@@ -327,7 +327,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         publishLocal,
         logger,
         allowExit = true,
-        forceSigningBinary = forceSigningBinary,
+        forceSigningExternally = forceSigningExternally,
         parallelUpload = parallelUpload,
         isCi = isCi,
         configDb,
@@ -380,7 +380,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -416,7 +416,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               ivy2HomeOpt,
               publishLocal,
               logger,
-              forceSigningBinary,
+              forceSigningExternally,
               parallelUpload,
               isCi,
               configDb,
@@ -722,7 +722,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -875,7 +875,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
       }
 
-      if (forceSigningBinary)
+      if (forceSigningExternally)
         (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
           secretKeyPasswordOpt.fold(null)(_.toCliSigning),
           secretKey.toCliSigning,
