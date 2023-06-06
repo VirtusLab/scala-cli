@@ -11,7 +11,7 @@ import scala.cli.commands.pgp.PgpProxy;
 @TargetClass(className = "scala.cli.commands.pgp.PgpProxyMaker")
 public final class PgpProxyMakerSubst {
   @Substitute
-  public PgpProxy get() {
+  public PgpProxy get(Boolean forceSigningExternally) {
     return new PgpProxy();
   }
 }

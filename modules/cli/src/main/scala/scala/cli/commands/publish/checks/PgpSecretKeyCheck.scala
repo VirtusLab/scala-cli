@@ -102,7 +102,7 @@ final case class PgpSecretKeyCheck(
       pubKeyOpt match {
         case Some(pubKey) =>
           val keyId = value {
-            (new PgpProxyMaker).get().keyId(
+            (new PgpProxyMaker).get(false).keyId(
               pubKey.get().value,
               "[generated key]",
               coursierCache,
@@ -219,7 +219,7 @@ final case class PgpSecretKeyCheck(
             .get()
             .value
 
-          val keyId = (new PgpProxyMaker).get()
+          val keyId = (new PgpProxyMaker).get(false)
             .keyId(
               publicKeyString,
               "[generated key]",
