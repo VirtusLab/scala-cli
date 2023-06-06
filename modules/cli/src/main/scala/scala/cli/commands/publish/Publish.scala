@@ -875,20 +875,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
       }
 
-      if (forceSigningExternally)
-        (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
-      else
-        (new BouncycastleSignerMaker).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
+      (new BouncycastleSignerMaker).get(
+        forceSigningExternally,
+        secretKeyPasswordOpt.fold(null)(_.toCliSigning),
+        secretKey.toCliSigning,
+        getLauncher,
+        logger
+      )
     }
 
     val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {
