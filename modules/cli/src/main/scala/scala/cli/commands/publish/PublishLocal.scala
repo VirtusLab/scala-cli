@@ -78,7 +78,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       workingDir,
       ivy2HomeOpt,
       publishLocal = true,
-      forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      forceSigningExternally = options.sharedPublish.forceSigningExternally,
       parallelUpload = Some(true),
       options.watch.watch,
       isCi = options.publishParams.isCi,

@@ -13,6 +13,12 @@ import scala.cli.errors.PgpError
 import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
 import scala.cli.signing.shared.{PasswordOption, Secret}
 
+/** A proxy running the PGP operations using scala-cli-singing as a dependency. This construct is
+  * not used when PGP commands are evoked from CLI (see [[PgpCommandsSubst]] and [[PgpCommands]]),
+  * but rather when PGP operations are used internally. <br>
+  *
+  * This is the 'JVM' counterpart of [[PgpProxy]]
+  */
 class PgpProxyJvm extends PgpProxy {
   override def createKey(
     pubKey: String,

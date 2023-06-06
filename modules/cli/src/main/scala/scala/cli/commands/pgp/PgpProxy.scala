@@ -10,6 +10,13 @@ import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.util.Properties
 
+/** A proxy running the PGP operations externally using scala-cli-singing. This is done either using
+  * it's native image launchers or running it in a JVM process. This construct is not used when PGP
+  * commands are evoked from CLI (see [[PgpCommandsSubst]] and [[PgpCommands]]), but rather when PGP
+  * operations are used internally. <br>
+  *
+  * This is the 'native' counterpart of [[PgpProxyJvm]]
+  */
 class PgpProxy {
   def createKey(
     pubKey: String,

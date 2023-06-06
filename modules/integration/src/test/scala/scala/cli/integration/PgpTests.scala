@@ -95,7 +95,7 @@ class PgpTests extends ScalaCliSuite {
         "pgp",
         "push",
         "key.pub",
-        "--force-signing-binary",
+        "--force-signing-externally",
         "-v",
         "-v",
         "-v"
@@ -129,7 +129,7 @@ class PgpTests extends ScalaCliSuite {
         "pgp",
         "push",
         "key.pub",
-        "--force-signing-binary",
+        "--force-signing-externally",
         "--force-jvm-signing-cli",
         "-v",
         "-v",

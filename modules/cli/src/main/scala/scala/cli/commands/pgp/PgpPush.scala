@@ -42,7 +42,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       val keyContent = os.read(path)
 
       val keyId =
-        if (options.forceSigningBinary)
+        if (options.forceSigningExternally)
           (new PgpProxyMakerSubst).get()
             .keyId(
               keyContent,
