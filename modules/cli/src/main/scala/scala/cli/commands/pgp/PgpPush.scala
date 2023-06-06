@@ -50,7 +50,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
 
       val keyId =
         if (options.forceSigningBinary)
-          (new PgpProxyMaker).get()
+          (new PgpProxyMakerSubst).get()
             .keyId(
               keyContent,
               key,
@@ -61,7 +61,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
             )
             .orExit(logger)
         else
-          (new PgpProxyMakerSubst).get()
+          (new PgpProxyMaker).get()
             .keyId(
               keyContent,
               key,
