@@ -14,44 +14,52 @@ import scala.util.Try
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],
-  inputArgs: Seq[String]
+  inputArgs: Seq[String] = Seq.empty,
+  forceCwd: Option[os.Path] = None
 ) {
   def withInputs[T](f: (os.Path, Inputs) => T): T =
     withCustomInputs(false, None)(f)
 
-  def fromRoot[T](f: os.Path => T): T =
-    TestInputs.withTmpDir("scala-cli-tests-") { tmpDir =>
-      for ((relPath, content) <- files) {
-        val path = tmpDir / relPath
-        os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
-      }
+  def fromRoot[T](f: os.Path => T, skipCreatingSources: Boolean = false): T =
+    TestInputs.withTmpDir("scala-cli-tests-", forceCwd) { tmpDir =>
+      if skipCreatingSources then f(tmpDir)
+      else {
+        for ((relPath, content) <- files) {
+          val path = tmpDir / relPath
+          os.write(path, content.getBytes(StandardCharsets.UTF_8), createFolders = true)
+        }
 
-      f(tmpDir)
+        f(tmpDir)
+      }
     }
 
   def withCustomInputs[T](
     viaDirectory: Boolean,
-    forcedWorkspaceOpt: Option[os.FilePath]
+    forcedWorkspaceOpt: Option[os.FilePath],
+    skipCreatingSources: Boolean = false
   )(
     f: (os.Path, Inputs) => T
   ): T =
-    fromRoot { tmpDir =>
-      val inputArgs0 =
-        if (viaDirectory) Seq(tmpDir.toString)
-        else if (inputArgs.isEmpty) files.map(_._1.toString)
-        else inputArgs
-      val res = Inputs(
-        inputArgs0,
-        tmpDir,
-        forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
-        allowRestrictedFeatures = true,
-        extraClasspathWasPassed = false
-      )(using ScalaCliInvokeData.dummy)
-      res match {
-        case Left(err)     => throw new Exception(err)
-        case Right(inputs) => f(tmpDir, inputs)
-      }
-    }
+    fromRoot(
+      { tmpDir =>
+        val inputArgs0 =
+          if (viaDirectory) Seq(tmpDir.toString)
+          else if (inputArgs.isEmpty) files.map(_._1.toString)
+          else inputArgs
+        val res = Inputs(
+          inputArgs0,
+          tmpDir,
+          forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
+          allowRestrictedFeatures = true,
+          extraClasspathWasPassed = false
+        )(using ScalaCliInvokeData.dummy)
+        res match {
+          case Left(err)     => throw new Exception(err)
+          case Right(inputs) => f(tmpDir, inputs)
+        }
+      },
+      skipCreatingSources
+    )
 
   def withLoadedBuild[T](
     options: BuildOptions,
@@ -72,9 +80,10 @@ final case class TestInputs(
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false,
     buildTests: Boolean = true,
-    actionableDiagnostics: Boolean = false
+    actionableDiagnostics: Boolean = false,
+    skipCreatingSources: Boolean = false
   )(f: (os.Path, Inputs, Either[BuildException, Builds]) => T): T =
-    withCustomInputs(fromDirectory, None) { (root, inputs) =>
+    withCustomInputs(fromDirectory, None, skipCreatingSources) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
         case Some(bloopConfig) =>
           new BloopCompilerMaker(bloopConfig, buildThreads.bloop, strictBloopJsonCheck = true)
@@ -103,15 +112,17 @@ final case class TestInputs(
     fromDirectory: Boolean = false,
     buildTests: Boolean = true,
     actionableDiagnostics: Boolean = false,
-    scope: Scope = Scope.Main
+    scope: Scope = Scope.Main,
+    skipCreatingSources: Boolean = false
   )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
     withBuilds(
       options,
       buildThreads,
       bloopConfigOpt,
       fromDirectory,
-      buildTests,
-      actionableDiagnostics
+      buildTests = buildTests,
+      actionableDiagnostics = actionableDiagnostics,
+      skipCreatingSources = skipCreatingSources
     ) {
       (p, i, builds) =>
         f(
@@ -127,11 +138,14 @@ object TestInputs {
   def apply(files: (os.RelPath, String)*): TestInputs =
     TestInputs(files, Nil)
 
-  def withTmpDir[T](prefix: String)(f: os.Path => T): T = {
-    val tmpDir = os.temp.dir(prefix = prefix)
-    try f(tmpDir)
-    finally tryRemoveAll(tmpDir)
-  }
+  def withTmpDir[T](prefix: String, forceCwd: Option[os.Path] = None)(f: os.Path => T): T =
+    forceCwd match {
+      case Some(path) => f(path)
+      case None =>
+        val tmpDir = os.temp.dir(prefix = prefix)
+        try f(tmpDir)
+        finally tryRemoveAll(tmpDir)
+    }
 
   def tryRemoveAll(f: os.Path): Unit =
     try os.remove.all(f)

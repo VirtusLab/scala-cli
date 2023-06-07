@@ -1,6 +1,7 @@
 package scala.cli.packaging
 
 import java.io.OutputStream
+import java.nio.file.StandardOpenOption.{CREATE, TRUNCATE_EXISTING}
 import java.nio.file.attribute.FileTime
 import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
@@ -28,7 +29,11 @@ object Library {
     if (cacheData.changed) {
       var outputStream: OutputStream = null
       try {
-        outputStream = os.write.outputStream(dest, createFolders = true)
+        outputStream = os.write.outputStream(
+          dest,
+          createFolders = true,
+          openOptions = Seq(CREATE, TRUNCATE_EXISTING)
+        )
         writeLibraryJarTo(
           outputStream,
           build,
