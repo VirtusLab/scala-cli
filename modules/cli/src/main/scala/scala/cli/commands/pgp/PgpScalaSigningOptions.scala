@@ -21,15 +21,21 @@ final case class PgpScalaSigningOptions(
   @Hidden
     signingCliJavaArg: List[String] = Nil,
   @Group(HelpGroup.Signing.toString)
+  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing externally")
+  @Hidden
   @Tag(tags.restricted)
-  @HelpMessage("When running scala-cli-singing externally, ensure the use of JVM for its execution")
+    forceSigningExternally: Option[Boolean] = None,
+  @Group(HelpGroup.Signing.toString)
+  @Tag(tags.restricted)
+  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher")
   @Hidden
     forceJvmSigningCli: Option[Boolean] = None
 ) { // format: on
   def cliOptions(): bo.ScalaSigningCliOptions =
     bo.ScalaSigningCliOptions(
       javaArgs = signingCliJavaArg,
-      useJvm = forceJvmSigningCli,
+      forceExternal = forceSigningExternally,
+      forceJvm = forceJvmSigningCli,
       signingCliVersion = signingCliVersion
     )
 }

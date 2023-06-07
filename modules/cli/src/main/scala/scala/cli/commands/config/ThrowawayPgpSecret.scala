@@ -43,7 +43,9 @@ object ThrowawayPgpSecret {
     val pubKey = dir / "pub"
     val secKey = dir / "sec"
     val retCode = value {
-      (new PgpProxyMaker).get(false).createKey(
+      (new PgpProxyMaker).get(
+        signingCliOptions.forceExternal.getOrElse(false)
+      ).createKey(
         pubKey.toString,
         secKey.toString,
         mail,
