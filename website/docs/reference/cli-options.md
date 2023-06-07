@@ -946,11 +946,6 @@ gpg command-line options
 
 Set Ivy 2 home directory
 
-### `--force-signing-externally`
-
-[Internal]
-When running Scala CLI on the JVM, force running scala-cli-singing externally
-
 ### `--checksum`
 
 [Internal]
@@ -2028,10 +2023,15 @@ scala-cli-signing version when running externally (0.2.2 by default)
 [Internal]
 Pass arguments to the Java command when running scala-cli-singing externally on JVM
 
+### `--force-signing-externally`
+
+[Internal]
+When running Scala CLI on the JVM, force running scala-cli-singing externally
+
 ### `--force-jvm-signing-cli`
 
 [Internal]
-When running scala-cli-singing externally, ensure the use of JVM for its execution
+When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
 
 ### Pgp sign options
 

@@ -169,7 +169,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )),
           signingCli = ScalaSigningCliOptions(
             signingCliVersion = scalaSigning.signingCliVersion,
-            useJvm = scalaSigning.forceJvmSigningCli,
+            forceExternal = scalaSigning.forceSigningExternally,
+            forceJvm = scalaSigning.forceJvmSigningCli,
             javaArgs = scalaSigning.signingCliJavaArg
           )
         )
@@ -241,7 +242,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       workingDir,
       ivy2HomeOpt,
       publishLocal = false,
-      forceSigningExternally = options.sharedPublish.forceSigningExternally,
+      forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,

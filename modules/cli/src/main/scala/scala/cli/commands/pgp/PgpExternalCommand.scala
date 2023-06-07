@@ -185,7 +185,7 @@ object PgpExternalCommand {
     val jvmSigningDep =
       dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}_3:$ver"
 
-    if (signingCliOptions.useJvm.getOrElse(false)) {
+    if (signingCliOptions.forceJvm.getOrElse(false)) {
       val extraRepos =
         if (version.endsWith("SNAPSHOT"))
           Seq(Repositories.sonatype("snapshots"))

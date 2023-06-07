@@ -2,7 +2,8 @@ package scala.build.options
 
 final case class ScalaSigningCliOptions(
   javaArgs: Seq[String] = Nil,
-  useJvm: Option[Boolean] = None,
+  forceExternal: Option[Boolean] = None,
+  forceJvm: Option[Boolean] = None,
   signingCliVersion: Option[String] = None
 )
 
