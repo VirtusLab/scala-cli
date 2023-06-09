@@ -614,6 +614,7 @@ object SharedOptions {
         path
       }
       .map(ResourceDirectory.apply)
+
     val maybeInputs = Inputs(
       args,
       Os.pwd,
