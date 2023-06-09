@@ -781,6 +781,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierLauncher,
     Deps.coursierProxySetup,
     Deps.coursierPublish.exclude((organization, "config_2.13")),
+    Deps.giter8,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,

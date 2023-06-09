@@ -113,6 +113,7 @@ object Deps {
   // TODO bump once 0.15.5 is out
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
+  def giter8        = ivy"org.foundweekends.giter8:giter8_2.13:0.16.2"
   def guava         = ivy"com.google.guava:guava:32.0.0-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r"
