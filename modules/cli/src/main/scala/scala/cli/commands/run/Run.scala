@@ -31,6 +31,7 @@ import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.util.{Properties, Try}
+import scala.build.options.PackageType
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group: String                               = HelpCommandGroup.Main.toString
@@ -663,7 +664,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     mainClass: String,
     logger: Logger
   )(f: os.Path => T): Either[BuildException, T] =
-    Package.buildNative(build, mainClass, logger).map(f)
+    Package.buildNative(
+      build = build,
+      mainClass = Some(mainClass),
+      targetType = PackageType.Native.Application,
+      destPath = None,
+      logger = logger
+    ).map(f)
 
   final class PythonDetectionError(cause: Throwable) extends BuildException(
         s"Error detecting Python environment: ${cause.getMessage}",

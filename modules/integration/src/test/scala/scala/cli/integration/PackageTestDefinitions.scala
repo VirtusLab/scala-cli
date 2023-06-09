@@ -469,10 +469,52 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!Properties.isWin && actualScalaVersion.startsWith("2.13"))
+  def libraryNativeTest(shared: Boolean = false): Unit = {
+    val fileName     = "simple.sc"
+    val nativeTarget = if (shared) "dynamic" else "static"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""
+           |//> using platform scala-native
+           |//> using nativeTarget $nativeTarget
+           |import scala.scalanative.unsafe._
+           |object myLib{
+           |  @exported
+           |  def addLongs(l: Long, r: Long): Long = l + r
+           |  @exported("mylib_addInts")
+           |  def addInts(l: Int, r: Int): Int = l + r
+           |}""".stripMargin
+    )
+    val destName = {
+      val ext =
+        if (!shared)
+          if (Properties.isWin) ".lib" else ".a"
+        else if (Properties.isWin) ".dll"
+        else if (Properties.isMac) ".dylib"
+        else ".so"
+      fileName.stripSuffix(".sc") + ext
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val library = root / destName
+      expect(os.isFile(library))
+    }
+  }
+
+  if (!Properties.isWin && actualScalaVersion.startsWith("2.13")) {
     test("simple native") {
       simpleNativeTest()
     }
+    test("dynamic and static library native") {
+      libraryNativeTest()
+    }
+  }
 
   test("assembly") {
     val fileName = "simple.sc"

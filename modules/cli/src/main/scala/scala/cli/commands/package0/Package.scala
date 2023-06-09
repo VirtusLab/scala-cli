@@ -43,6 +43,10 @@ import scala.cli.packaging.{Library, NativeImage}
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
+import scala.build.options.ScalaNativeOptions
+import scala.build.options.ScalaNativeTarget
+import scala.deriving.Mirror
+import scala.build.options.PackageType.Native
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name          = "package"
@@ -85,6 +89,19 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    def detectNativePackageType(
+      platform: Platform,
+      sn: ScalaNativeOptions
+    ): Option[Native & scala.deriving.Mirror.Singleton] =
+      Option.when(platform == Platform.Native) {
+        import ScalaNativeTarget.*
+        sn.buildTargetStr.flatMap(fromString).map {
+          case Application    => PackageType.Native.Application
+          case LibraryDynamic => PackageType.Native.LibraryDynamic
+          case LibraryStatic  => PackageType.Native.LibraryStatic
+        }
+      }.flatten
+
     if (options.watch.watchMode) {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
@@ -101,12 +118,15 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
-            s.copyOutput(options.shared)
             val mtimeDestPath = doPackage(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
               force = options.force,
-              forcedPackageTypeOpt = options.forcedPackageTypeOpt,
+              forcedPackageTypeOpt =
+                options.forcedPackageTypeOpt orElse detectNativePackageType(
+                  s.options.platform.value,
+                  s.options.scalaNativeOptions
+                ),
               build = s,
               extraArgs = args.unparsed,
               expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
@@ -146,7 +166,11 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),
             force = options.force,
-            forcedPackageTypeOpt = options.forcedPackageTypeOpt,
+            forcedPackageTypeOpt =
+              options.forcedPackageTypeOpt orElse detectNativePackageType(
+                s.options.platform.value,
+                s.options.scalaNativeOptions
+              ),
             build = s,
             extraArgs = args.unparsed,
             expectedModifyEpochSecondOpt = None,
@@ -199,7 +223,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         lazy val validPackageScalaJS =
           Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
         lazy val validPackageScalaNative =
-          Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+          Seq(
+            PackageType.LibraryJar,
+            PackageType.SourceJar,
+            PackageType.DocJar,
+            PackageType.Native.Application,
+            PackageType.Native.LibraryDynamic,
+            PackageType.Native.LibraryStatic
+          )
 
         forcedPackageTypeOpt -> build.options.platform.value match {
           case (Some(forcedPackageType), _) => Right(forcedPackageType)
@@ -226,7 +257,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
                   else Left(new MalformedCliInputError(
                     s"Unsupported package type: $basePackageType for Scala Native."
                   ))
-            validatedPackageType.getOrElse(Right(PackageType.Native))
+
+            validatedPackageType.getOrElse(Right(PackageType.Native.Application))
           case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
         }
       }
@@ -234,36 +266,54 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {
-        case PackageType.LibraryJar                             => ".jar"
-        case PackageType.SourceJar                              => ".jar"
-        case PackageType.DocJar                                 => ".jar"
-        case _: PackageType.Assembly                            => ".jar"
-        case PackageType.Spark                                  => ".jar"
-        case PackageType.Js                                     => ".js"
-        case PackageType.Debian                                 => ".deb"
-        case PackageType.Dmg                                    => ".dmg"
-        case PackageType.Pkg                                    => ".pkg"
-        case PackageType.Rpm                                    => ".rpm"
-        case PackageType.Msi                                    => ".msi"
-        case PackageType.Native if Properties.isWin             => ".exe"
+        case PackageType.LibraryJar  => ".jar"
+        case PackageType.SourceJar   => ".jar"
+        case PackageType.DocJar      => ".jar"
+        case _: PackageType.Assembly => ".jar"
+        case PackageType.Spark       => ".jar"
+        case PackageType.Js          => ".js"
+        case PackageType.Debian      => ".deb"
+        case PackageType.Dmg         => ".dmg"
+        case PackageType.Pkg         => ".pkg"
+        case PackageType.Rpm         => ".rpm"
+        case PackageType.Msi         => ".msi"
+
+        case PackageType.Native.Application =>
+          if Properties.isWin then ".exe" else ""
+        case PackageType.Native.LibraryDynamic =>
+          if Properties.isWin then ".dll" else if Properties.isMac then ".dylib" else ".so"
+        case PackageType.Native.LibraryStatic =>
+          if Properties.isWin then ".lib" else ".a"
+
         case PackageType.GraalVMNativeImage if Properties.isWin => ".exe"
         case _ if Properties.isWin                              => ".bat"
         case _                                                  => ""
       }
 
       def defaultName = packageType match {
-        case PackageType.LibraryJar                             => "library.jar"
-        case PackageType.SourceJar                              => "source.jar"
-        case PackageType.DocJar                                 => "scaladoc.jar"
-        case _: PackageType.Assembly                            => "app.jar"
-        case PackageType.Spark                                  => "job.jar"
-        case PackageType.Js                                     => "app.js"
-        case PackageType.Debian                                 => "app.deb"
-        case PackageType.Dmg                                    => "app.dmg"
-        case PackageType.Pkg                                    => "app.pkg"
-        case PackageType.Rpm                                    => "app.rpm"
-        case PackageType.Msi                                    => "app.msi"
-        case PackageType.Native if Properties.isWin             => "app.exe"
+        case PackageType.LibraryJar  => "library.jar"
+        case PackageType.SourceJar   => "source.jar"
+        case PackageType.DocJar      => "scaladoc.jar"
+        case _: PackageType.Assembly => "app.jar"
+        case PackageType.Spark       => "job.jar"
+        case PackageType.Js          => "app.js"
+        case PackageType.Debian      => "app.deb"
+        case PackageType.Dmg         => "app.dmg"
+        case PackageType.Pkg         => "app.pkg"
+        case PackageType.Rpm         => "app.rpm"
+        case PackageType.Msi         => "app.msi"
+
+        case PackageType.Native.Application =>
+          if Properties.isWin then "app.exe" else "app"
+
+        case PackageType.Native.LibraryDynamic =>
+          if Properties.isWin then "library.dll"
+          else if Properties.isMac then "library.dylib"
+          else "library.so"
+
+        case PackageType.Native.LibraryStatic =>
+          if Properties.isWin then "library.lib" else "library.a"
+
         case PackageType.GraalVMNativeImage if Properties.isWin => "app.exe"
         case _ if Properties.isWin                              => "app.bat"
         case _                                                  => "app"
@@ -399,8 +449,20 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         case PackageType.Js =>
           value(buildJs(build, destPath, mainClassOpt, logger))
 
-        case PackageType.Native =>
-          val cachedDest = value(buildNative(build, value(mainClass), logger))
+        case tpe: PackageType.Native =>
+          import PackageType.Native.*
+          val mainClassO =
+            tpe match
+              case Application => Some(value(mainClass))
+              case _           => None
+
+          val cachedDest = value(buildNative(
+            build = build,
+            mainClass = mainClassO,
+            targetType = tpe,
+            destPath = Some(destPath),
+            logger = logger
+          ))
           if (force) os.copy.over(cachedDest, destPath, createFolders = true)
           else os.copy(cachedDest, destPath, createFolders = true)
           destPath
@@ -667,7 +729,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       case Platform.JVM => value(bootstrap(build, appPath, mainClass, () => Right(()), logger))
       case Platform.JS  => buildJs(build, appPath, Some(mainClass), logger)
       case Platform.Native =>
-        val dest = value(buildNative(build, mainClass, logger))
+        val dest =
+          value(buildNative(
+            build = build,
+            mainClass = Some(mainClass),
+            targetType = PackageType.Native.Application,
+            destPath = None,
+            logger = logger
+          ))
         os.copy(dest, appPath)
     }
 
@@ -995,7 +1064,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
   def buildNative(
     build: Build.Successful,
-    mainClass: String,
+    mainClass: Option[String], // when building a static/dynamic library, we don't need a main class
+    targetType: PackageType.Native,
+    destPath: Option[os.Path],
     logger: Logger
   ): Either[BuildException, os.Path] = either {
     val dest = build.inputs.nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
@@ -1016,9 +1087,24 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         Nil
     val pythonCliOptions = pythonLdFlags.flatMap(f => Seq("--linking-option", f)).toList
 
+    val libraryLinkingOptions: Seq[String] =
+      Option.when(targetType != PackageType.Native.Application) {
+        /* If we are building a library, we make sure to change the name
+         that the linker will put into the loading path - otherwise
+         the built library will depend on some internal path within .scala-build
+         */
+
+        destPath.flatMap(_.lastOpt).toSeq.flatMap { filename =>
+          Seq("--linking-option", s"-Wl,-install_name,$filename")
+        }
+      }.toSeq.flatten
+
+    import PackageType.Native.*
+
     val allCliOptions = pythonCliOptions ++
       cliOptions ++
-      Seq("--main", mainClass)
+      libraryLinkingOptions ++
+      mainClass.toSeq.flatMap(m => Seq("--main", m))
 
     val nativeWorkDir = build.inputs.nativeWorkDir
     os.makeDir.all(nativeWorkDir)

@@ -25,9 +25,18 @@ object PackageType {
   case object Spark extends PackageType {
     override def runnable = Some(false)
   }
-  case object Js extends PackageType
-  case object Native extends PackageType {
-    override def runnable = Some(true)
+  case object Js      extends PackageType
+  sealed trait Native extends PackageType
+  object Native {
+    case object Application extends Native {
+      override def runnable = Some(true)
+    }
+    case object LibraryDynamic extends Native {
+      override def runnable = Some(false)
+    }
+    case object LibraryStatic extends Native {
+      override def runnable = Some(false)
+    }
   }
   case object Docker extends PackageType {
     override def runnable = None
@@ -50,14 +59,17 @@ object PackageType {
     "doc"          -> DocJar,
     "spark"        -> Spark,
     "js"           -> Js,
-    "native"       -> Native,
-    "docker"       -> Docker,
-    "graalvm"      -> GraalVMNativeImage,
-    "deb"          -> Debian,
-    "dmg"          -> Dmg,
-    "pkg"          -> Pkg,
-    "rpm"          -> Rpm,
-    "msi"          -> Msi
+    // TODO: handle more types here?
+    "native"         -> Native.Application,
+    "native-dynamic" -> Native.LibraryDynamic,
+    "native-static"  -> Native.LibraryStatic,
+    "docker"         -> Docker,
+    "graalvm"        -> GraalVMNativeImage,
+    "deb"            -> Debian,
+    "dmg"            -> Dmg,
+    "pkg"            -> Pkg,
+    "rpm"            -> Rpm,
+    "msi"            -> Msi
   )
   private lazy val map = mapping.toMap
   def parse(input: String): Option[PackageType] =
