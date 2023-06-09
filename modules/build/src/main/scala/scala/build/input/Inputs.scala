@@ -128,7 +128,6 @@ final case class Inputs(
 object Inputs {
   private def forValidatedElems(
     validElems: Seq[Element],
-    baseProjectName: String,
     workspace: os.Path,
     needsHash: Boolean,
     workspaceOrigin: WorkspaceOrigin,
@@ -152,7 +151,7 @@ object Inputs {
       updatedElems,
       defaultMainClassElemOpt,
       workspace,
-      baseProjectName,
+      workspace.baseName,
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
@@ -318,7 +317,6 @@ object Inputs {
   private def forNonEmptyArgs(
     args: Seq[String],
     cwd: os.Path,
-    baseProjectName: String,
     download: String => Either[String, Array[Byte]],
     stdinOpt: => Option[Array[Byte]],
     scriptSnippetList: List[String],
@@ -407,7 +405,6 @@ object Inputs {
       else
         Right(forValidatedElems(
           validElems,
-          baseProjectName,
           workspace,
           needsHash,
           workspaceOrigin0,
@@ -423,7 +420,6 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
-    baseProjectName: String = "project",
     defaultInputs: () => Option[Inputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
@@ -448,7 +444,6 @@ object Inputs {
       forNonEmptyArgs(
         args,
         cwd,
-        baseProjectName,
         download,
         stdinOpt,
         scriptSnippetList,
@@ -469,7 +464,7 @@ object Inputs {
       elements = Nil,
       defaultMainClassElement = None,
       workspace = workspace,
-      baseProjectName = "project",
+      baseProjectName = workspace.baseName,
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
