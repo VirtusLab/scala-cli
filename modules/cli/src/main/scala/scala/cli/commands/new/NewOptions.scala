@@ -6,8 +6,8 @@ import scala.cli.commands.shared.*
 @HelpMessage(NewOptions.newMessage, "", NewOptions.detailedNewMessage)
 final case class NewOptions(
   @Recurse
-  shared: SharedOptions = SharedOptions()
-) extends HasSharedOptions
+  global: GlobalOptions = GlobalOptions()
+) extends HasGlobalOptions
 
 object NewOptions {
   implicit lazy val parser: Parser[NewOptions] = Parser.derive
