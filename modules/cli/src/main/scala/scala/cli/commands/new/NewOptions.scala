@@ -1,6 +1,7 @@
 package scala.cli.commands.`new`
 
 import caseapp.*
+
 import scala.cli.commands.shared.*
 
 @HelpMessage(NewOptions.newMessage, "", NewOptions.detailedNewMessage)
