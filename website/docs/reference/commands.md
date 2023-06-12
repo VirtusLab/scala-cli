@@ -149,6 +149,15 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
+## new
+
+New giter8 template.
+
+ Creates a new project from a giter8 template.
+
+
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+
 ## repl
 
 Aliases: `console`

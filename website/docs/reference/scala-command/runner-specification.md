@@ -5057,6 +5057,72 @@ Binary directory
 
 ---
 
+## `new` command
+**IMPLEMENTATION specific for Scala Runner specification.**
+
+New giter8 template.
+
+ Creates a new project from a giter8 template.
+
+
+<details><summary>
+
+### Implementantation specific options
+
+</summary>
+
+**--usage**
+
+Print usage and exit
+
+**--help**
+
+Print help message and exit
+
+Aliases: `-h` ,`-help`
+
+**--help-full**
+
+Print help message, including hidden options, and exit
+
+Aliases: `--full-help` ,`-help-full` ,`-full-help`
+
+**--verbose**
+
+Increase verbosity (can be specified multiple times)
+
+Aliases: `-verbose` ,`-v`
+
+**--interactive**
+
+Interactive mode
+
+Aliases: `-i`
+
+**--actions**
+
+Enable actionable diagnostics
+
+**--quiet**
+
+Decrease logging verbosity
+
+Aliases: `-q`
+
+**--progress**
+
+Use progress bars
+
+**--suppress-experimental-feature-warning**
+
+Suppress warnings about using experimental features
+
+Aliases: `--suppress-experimental-warning`
+
+</details>
+
+---
+
 ## `setup-ide` command
 **IMPLEMENTATION specific for Scala Runner specification.**
 
