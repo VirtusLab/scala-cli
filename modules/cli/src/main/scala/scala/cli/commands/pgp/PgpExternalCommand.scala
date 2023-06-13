@@ -4,11 +4,12 @@ import coursier.Repositories
 import coursier.cache.{ArchiveCache, Cache, FileCache}
 import coursier.core.Version
 import coursier.util.Task
-import dependency._
+import dependency.*
 
 import java.io.File
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.*
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{
@@ -19,9 +20,11 @@ import scala.build.internal.{
   Runner,
   ScalaJsLinkerConfig
 }
+import scala.build.options.BuildOptions
 import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned, options => bo}
+import scala.build.{Logger, Positioned, options as bo}
 import scala.cli.ScalaCli
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.commands.util.JvmUtils
 import scala.util.Properties
 
@@ -35,7 +38,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
     extraEnv: Map[String, String],
     logger: Logger,
     allowExecve: Boolean,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = either {
 
@@ -45,7 +49,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
       cache,
       archiveCache,
       logger,
-      javaCommand,
+      jvmOptions,
+      coursierOptions,
       signingCliOptions
     ))
 
@@ -66,7 +71,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
     args: Seq[String],
     extraEnv: Map[String, String],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = either {
 
@@ -76,7 +82,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
       cache,
       archiveCache,
       logger,
-      javaCommand,
+      jvmOptions,
+      coursierOptions,
       signingCliOptions
     ))
 
@@ -105,12 +112,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
       Map(),
       logger,
       allowExecve = true,
-      () =>
-        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
-          ArchiveCache().withCache(cache),
-          cache,
-          logger.verbosity
-        ).value.javaCommand,
+      options.jvm,
+      options.coursier,
       options.scalaSigning.cliOptions()
     ).orExit(logger)
 
@@ -120,14 +123,60 @@ abstract class PgpExternalCommand extends ExternalCommand {
 }
 
 object PgpExternalCommand {
+  val scalaCliSigningJvmVersion: Int = Constants.signingCliJvmVersion
+
   def launcher(
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    logger: Logger,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
+    signingCliOptions: bo.ScalaSigningCliOptions
+  ): Either[BuildException, Seq[String]] = {
+    val javaCommand = () =>
+      JvmUtils.getJavaCmdVersionOrHigher(
+        scalaCliSigningJvmVersion,
+        jvmOptions,
+        coursierOptions
+      ).orThrow
+
+    launcher(
+      cache,
+      archiveCache,
+      logger,
+      javaCommand,
+      signingCliOptions
+    )
+  }
+
+  def launcher(
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task],
+    logger: Logger,
+    buildOptions: bo.BuildOptions
+  ): Either[BuildException, Seq[String]] = {
+    val javaCommand = () =>
+      JvmUtils.getJavaCmdVersionOrHigher(
+        scalaCliSigningJvmVersion,
+        buildOptions
+      )
+
+    launcher(
+      cache,
+      archiveCache,
+      logger,
+      javaCommand,
+      buildOptions.notForBloopOptions.publishOptions.signingCli
+    )
+  }
+
+  private def launcher(
     cache: FileCache[Task],
     archiveCache: ArchiveCache[Task],
     logger: Logger,
     javaCommand: () => String,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Seq[String]] = either {
-
     val version =
       signingCliOptions.signingCliVersion
         .getOrElse(Constants.scalaCliSigningVersion)
@@ -136,7 +185,7 @@ object PgpExternalCommand {
     val jvmSigningDep =
       dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}_3:$ver"
 
-    if (signingCliOptions.useJvm.getOrElse(false)) {
+    if (signingCliOptions.forceJvm.getOrElse(false)) {
       val extraRepos =
         if (version.endsWith("SNAPSHOT"))
           Seq(Repositories.sonatype("snapshots"))
@@ -186,4 +235,5 @@ object PgpExternalCommand {
       binary.command
     }
   }
+
 }

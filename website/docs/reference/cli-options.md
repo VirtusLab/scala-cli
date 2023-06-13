@@ -946,9 +946,6 @@ gpg command-line options
 
 Set Ivy 2 home directory
 
-### `--force-signing-binary`
-
-[Internal]
 ### `--checksum`
 
 [Internal]
@@ -2003,9 +2000,11 @@ Try to push the key even if Scala CLI thinks it's not a public key
 [Internal]
 Whether to exit with code 0 if no key is passed
 
-### `--force-signing-binary`
+### `--force-signing-externally`
 
 [Internal]
+When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
+
 ### Pgp scala signing options
 
 Available in commands:
@@ -2017,13 +2016,22 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
+scala-cli-signing version when running externally (0.2.2 by default)
+
 ### `--signing-cli-java-arg`
 
 [Internal]
+Pass arguments to the Java command when running scala-cli-singing externally on JVM
+
+### `--force-signing-externally`
+
+[Internal]
+When running Scala CLI on the JVM, force running scala-cli-singing externally
+
 ### `--force-jvm-signing-cli`
 
 [Internal]
-Whether to run the Scala Signing CLI on the JVM or using a native executable
+When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
 
 ### Pgp sign options
 

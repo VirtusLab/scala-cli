@@ -80,16 +80,17 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault    = "2.1.4"
-    def coursier           = coursierDefault
-    def coursierCli        = coursierDefault
-    def coursierM1Cli      = coursierDefault
-    def jsoniterScala      = "2.23.1"
-    def jsoniterScalaJava8 = "2.13.5.2"
-    def scalaMeta          = "4.7.8"
-    def scalaNative        = "0.4.14"
-    def scalaPackager      = "0.1.29"
-    def signingCli         = "0.2.2"
+    def coursierDefault      = "2.1.4"
+    def coursier             = coursierDefault
+    def coursierCli          = coursierDefault
+    def coursierM1Cli        = coursierDefault
+    def jsoniterScala        = "2.23.1"
+    def jsoniterScalaJava8   = "2.13.5.2"
+    def scalaMeta            = "4.7.8"
+    def scalaNative          = "0.4.14"
+    def scalaPackager        = "0.1.29"
+    def signingCli           = "0.2.2"
+    def signingCliJvmVersion = 17
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -113,7 +114,7 @@ object Deps {
   // TODO bump once 0.15.5 is out
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
-  def guava         = ivy"com.google.guava:guava:32.0.0-jre"
+  def guava         = ivy"com.google.guava:guava:32.0.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"

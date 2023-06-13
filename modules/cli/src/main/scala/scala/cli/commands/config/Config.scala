@@ -88,12 +88,8 @@ object Config extends ScalaCommand[ConfigOptions] {
                 passwordOpt,
                 logger,
                 coursierCache,
-                () =>
-                  JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
-                    ArchiveCache().withCache(coursierCache),
-                    coursierCache,
-                    logger.verbosity
-                  ).value.javaCommand,
+                options.jvm,
+                options.coursier,
                 options.scalaSigning.cliOptions()
               ).orExit(logger)
 
