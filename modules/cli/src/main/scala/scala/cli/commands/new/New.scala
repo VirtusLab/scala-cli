@@ -1,19 +1,57 @@
 package scala.cli.commands.`new`
 
 import caseapp.core.RemainingArgs
-import giter8.Giter8
+import dependency.*
 
-import scala.build.Logger
+import scala.build.internal.{Constants, OsLibc, Runner}
+import scala.build.options.{BuildOptions, JavaOptions}
+import scala.build.{Artifacts, Logger, Positioned}
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.HelpCommandGroup
+import scala.cli.commands.shared.{CoursierOptions, HelpCommandGroup}
 
 object New extends ScalaCommand[NewOptions] {
   override def group: String = HelpCommandGroup.Main.toString
 
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
+  val giter8Dependency =
+    Seq(dep"${Constants.giter8Organization}::${Constants.giter8Name}:${Constants.giter8Version}")
+
   override def runCommand(options: NewOptions, remainingArgs: RemainingArgs, logger: Logger): Unit =
-    val inputArgs = remainingArgs.remaining
-    Giter8.run(inputArgs.toArray)
-    ()
+    val fetchedGiter8 = Artifacts.fetch(
+      Positioned.none(giter8Dependency),
+      Seq.empty,
+      None,
+      logger,
+      CoursierOptions().coursierCache(logger.coursierLogger("")),
+      None
+    ) match {
+      case Right(value) => value
+      case Left(value) =>
+        System.err.println(value.message)
+        sys.exit(1)
+    }
+
+    val giter8 = fetchedGiter8.fullDetailedArtifacts.collect {
+      case (_, _, _, Some(f)) => os.Path(f, os.pwd)
+    }
+
+    val buildOptions = BuildOptions(
+      javaOptions = JavaOptions(
+        jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")).map(Positioned.none)
+      )
+    )
+
+    val exitCode =
+      Runner.runJvm(
+        buildOptions.javaHome().value.javaCommand,
+        buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
+        giter8,
+        "giter8.Giter8",
+        remainingArgs.unparsed,
+        logger,
+        allowExecve = true
+      ).waitFor()
+
+    sys.exit(exitCode)
 }

@@ -430,6 +430,10 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
+         |
+         |  def giter8Organization = "${Deps.giter8.dep.module.organization.value}"
+         |  def giter8Name = "${Deps.giter8.dep.module.name.value}"
+         |  def giter8Version = "${Deps.giter8.dep.version}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -781,7 +785,6 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.coursierLauncher,
     Deps.coursierProxySetup,
     Deps.coursierPublish.exclude((organization, "config_2.13")),
-    Deps.giter8,
     Deps.jimfs, // scalaJsEnvNodeJs pulls jimfs:1.1, whose class path seems borked (bin compat issue with the guava version it depends on)
     Deps.jniUtils,
     Deps.jsoniterCore,
