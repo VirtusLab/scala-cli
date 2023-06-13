@@ -27,6 +27,8 @@ import scala.cli.commands.SpecificationLevel
     |`//> using nativeClangPP` _value_
     |
     |`//> using nativeEmbedResources` _true|false_
+    |
+    |`//> using nativeTarget` _application|library-dynamic|library-static_
     """.stripMargin.trim
 )
 @DirectiveDescription("Add Scala Native options")
