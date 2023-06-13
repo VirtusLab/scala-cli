@@ -54,7 +54,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         pprint.err.log(sources)
 
       val options = buildOptions.orElse(sources.buildOptions)
-      ActionableDependencyHandler.createActionableDiagnostics(options).orExit(logger)
+      ActionableDependencyHandler.createActionableDiagnostics(options, Some(logger)).orExit(logger)
     }
 
     val actionableMainUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Main)
