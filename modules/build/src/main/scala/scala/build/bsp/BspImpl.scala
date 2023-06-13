@@ -13,7 +13,6 @@ import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
-import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{
   BuildException,
