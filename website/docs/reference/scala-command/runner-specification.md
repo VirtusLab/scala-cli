@@ -180,6 +180,10 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-target**
+
+Build target type
+
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
@@ -896,6 +900,10 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-target**
+
+Build target type
+
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
@@ -1428,6 +1436,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -1987,6 +1999,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -2566,6 +2582,10 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-target**
+
+Build target type
+
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
@@ -3119,6 +3139,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -3710,6 +3734,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -4346,6 +4374,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -5195,6 +5227,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 

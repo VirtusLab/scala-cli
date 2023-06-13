@@ -15,7 +15,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
-import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.publish.ConfigUtil.*
@@ -31,7 +31,6 @@ import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.util.{Properties, Try}
-import scala.build.options.PackageType
 
 object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def group: String                               = HelpCommandGroup.Main.toString

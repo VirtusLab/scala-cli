@@ -59,17 +59,14 @@ object PackageType {
     "doc"          -> DocJar,
     "spark"        -> Spark,
     "js"           -> Js,
-    // TODO: handle more types here?
-    "native"         -> Native.Application,
-    "native-dynamic" -> Native.LibraryDynamic,
-    "native-static"  -> Native.LibraryStatic,
-    "docker"         -> Docker,
-    "graalvm"        -> GraalVMNativeImage,
-    "deb"            -> Debian,
-    "dmg"            -> Dmg,
-    "pkg"            -> Pkg,
-    "rpm"            -> Rpm,
-    "msi"            -> Msi
+    "native"       -> Native.Application,
+    "docker"       -> Docker,
+    "graalvm"      -> GraalVMNativeImage,
+    "deb"          -> Debian,
+    "dmg"          -> Dmg,
+    "pkg"          -> Pkg,
+    "rpm"          -> Rpm,
+    "msi"          -> Msi
   )
   private lazy val map = mapping.toMap
   def parse(input: String): Option[PackageType] =

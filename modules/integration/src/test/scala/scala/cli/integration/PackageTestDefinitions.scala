@@ -511,9 +511,17 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     test("simple native") {
       simpleNativeTest()
     }
-    test("dynamic and static library native") {
-      libraryNativeTest()
+    test("dynamic library native") {
+      libraryNativeTest(shared = true)
     }
+    
+    // To produce a static library, `LLVM_BIN` environment variable needs to be 
+    // present (for `llvm-ar` utility)
+    if (sys.env.contains("LLVM_BIN"))
+      test("shared library native") {
+        libraryNativeTest(shared = false)
+      }
+
   }
 
   test("assembly") {

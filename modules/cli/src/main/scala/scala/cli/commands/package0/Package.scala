@@ -26,7 +26,8 @@ import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform}
+import scala.build.options.PackageType.Native
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalaNativeTarget}
 import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
@@ -43,10 +44,6 @@ import scala.cli.packaging.{Library, NativeImage}
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
-import scala.build.options.ScalaNativeOptions
-import scala.build.options.ScalaNativeTarget
-import scala.deriving.Mirror
-import scala.build.options.PackageType.Native
 
 object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   override def name          = "package"
@@ -89,19 +86,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    def detectNativePackageType(
-      platform: Platform,
-      sn: ScalaNativeOptions
-    ): Option[Native & scala.deriving.Mirror.Singleton] =
-      Option.when(platform == Platform.Native) {
-        import ScalaNativeTarget.*
-        sn.buildTargetStr.flatMap(fromString).map {
-          case Application    => PackageType.Native.Application
-          case LibraryDynamic => PackageType.Native.LibraryDynamic
-          case LibraryStatic  => PackageType.Native.LibraryStatic
-        }
-      }.flatten
-
     if (options.watch.watchMode) {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
@@ -118,15 +102,12 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       ) { res =>
         res.orReport(logger).map(_.main).foreach {
           case s: Build.Successful =>
+            s.copyOutput(options.shared)
             val mtimeDestPath = doPackage(
               logger = logger,
               outputOpt = options.output.filter(_.nonEmpty),
               force = options.force,
-              forcedPackageTypeOpt =
-                options.forcedPackageTypeOpt orElse detectNativePackageType(
-                  s.options.platform.value,
-                  s.options.scalaNativeOptions
-                ),
+              forcedPackageTypeOpt = options.forcedPackageTypeOpt,
               build = s,
               extraArgs = args.unparsed,
               expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
@@ -166,11 +147,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             logger = logger,
             outputOpt = options.output.filter(_.nonEmpty),
             force = options.force,
-            forcedPackageTypeOpt =
-              options.forcedPackageTypeOpt orElse detectNativePackageType(
-                s.options.platform.value,
-                s.options.scalaNativeOptions
-              ),
+            forcedPackageTypeOpt = options.forcedPackageTypeOpt,
             build = s,
             extraArgs = args.unparsed,
             expectedModifyEpochSecondOpt = None,
@@ -250,13 +227,22 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
                   ))
             validatedPackageType.getOrElse(Right(PackageType.Js))
           case (_, Platform.Native) =>
+            val specificNativePackageType =
+              import ScalaNativeTarget.*
+              build.options.scalaNativeOptions.buildTargetStr.flatMap(fromString).map {
+                case Application    => PackageType.Native.Application
+                case LibraryDynamic => PackageType.Native.LibraryDynamic
+                case LibraryStatic  => PackageType.Native.LibraryStatic
+              }
+
             val validatedPackageType =
-              for (basePackageType <- basePackageTypeOpt)
-                yield
-                  if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
-                  else Left(new MalformedCliInputError(
-                    s"Unsupported package type: $basePackageType for Scala Native."
-                  ))
+              for
+                basePackageType <- specificNativePackageType orElse basePackageTypeOpt
+              yield
+                if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+                else Left(new MalformedCliInputError(
+                  s"Unsupported package type: $basePackageType for Scala Native."
+                ))
 
             validatedPackageType.getOrElse(Right(PackageType.Native.Application))
           case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
