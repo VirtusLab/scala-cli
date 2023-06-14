@@ -18,10 +18,11 @@ object New extends ScalaCommand[NewOptions] {
     Seq(dep"${Constants.giter8Organization}::${Constants.giter8Name}:${Constants.giter8Version}")
 
   override def runCommand(options: NewOptions, remainingArgs: RemainingArgs, logger: Logger): Unit =
+    val scalaParameters = ScalaParameters(Constants.defaultScala213Version)
     val fetchedGiter8 = Artifacts.fetch(
       Positioned.none(giter8Dependency),
       Seq.empty,
-      None,
+      Some(scalaParameters),
       logger,
       CoursierOptions().coursierCache(logger.coursierLogger("")),
       None
@@ -48,7 +49,7 @@ object New extends ScalaCommand[NewOptions] {
         buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
         giter8,
         "giter8.Giter8",
-        remainingArgs.unparsed,
+        remainingArgs.remaining,
         logger,
         allowExecve = true
       ).waitFor()
