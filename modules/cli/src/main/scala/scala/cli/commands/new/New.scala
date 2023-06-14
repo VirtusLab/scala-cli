@@ -12,7 +12,7 @@ import scala.cli.commands.shared.{CoursierOptions, HelpCommandGroup}
 object New extends ScalaCommand[NewOptions] {
   override def group: String = HelpCommandGroup.Main.toString
 
-  override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
+  override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   val giter8Dependency =
     Seq(dep"${Constants.giter8Organization}::${Constants.giter8Name}:${Constants.giter8Version}")
