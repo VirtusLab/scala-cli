@@ -23,8 +23,8 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using platform scala-js")
 @DirectiveExamples("//> using platform jvm scala-native")
 @DirectiveUsage(
-  "//> using platform (jvm|scala-js|scala-native)+",
-  "`//> using platform `(`jvm`|`scala-js`|`scala-native`)+"
+  "//> using platform (jvm|scala-js|js|scala-native|native)+",
+  "`//> using platform `(`jvm`|`scala-js`|`js`|`scala-native`|`native`)+"
 )
 @DirectiveDescription("Set the default platform to Scala.js or Scala Native")
 @DirectiveLevel(SpecificationLevel.SHOULD)
