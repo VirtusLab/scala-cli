@@ -177,7 +177,7 @@ Add Javac options which will be passed when compiling sources.
 
 Set the default platform to Scala.js or Scala Native
 
-`//> using platform `(`jvm`|`scala-js`|`scala-native`)+
+`//> using platform `(`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
 
 #### Examples
 `//> using platform scala-js`

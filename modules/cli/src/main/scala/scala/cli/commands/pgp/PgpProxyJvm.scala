@@ -7,11 +7,18 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options => bo}
+import scala.build.{Logger, options as bo}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}
 import scala.cli.signing.shared.{PasswordOption, Secret}
 
+/** A proxy running the PGP operations using scala-cli-singing as a dependency. This construct is
+  * not used when PGP commands are evoked from CLI (see [[PgpCommandsSubst]] and [[PgpCommands]]),
+  * but rather when PGP operations are used internally. <br>
+  *
+  * This is the 'JVM' counterpart of [[PgpProxy]]
+  */
 class PgpProxyJvm extends PgpProxy {
   override def createKey(
     pubKey: String,
@@ -21,7 +28,8 @@ class PgpProxyJvm extends PgpProxy {
     passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
@@ -45,7 +53,8 @@ class PgpProxyJvm extends PgpProxy {
     keyPrintablePath: String,
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] =
     PgpKeyId.get(key.getBytes(StandardCharsets.UTF_8), fingerprint = false)

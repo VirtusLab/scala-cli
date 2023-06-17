@@ -102,12 +102,15 @@ final case class PgpSecretKeyCheck(
       pubKeyOpt match {
         case Some(pubKey) =>
           val keyId = value {
-            (new PgpProxyMaker).get().keyId(
+            (new PgpProxyMaker).get(
+              options.scalaSigning.forceSigningExternally.getOrElse(false)
+            ).keyId(
               pubKey.get().value,
               "[generated key]",
               coursierCache,
               logger,
-              value(javaCommand),
+              options.sharedJvm,
+              options.coursier,
               options.scalaSigning.cliOptions()
             )
           }
@@ -191,7 +194,8 @@ final case class PgpSecretKeyCheck(
         Some(passwordSecret),
         logger,
         coursierCache,
-        value(javaCommand),
+        options.sharedJvm,
+        options.coursier,
         options.scalaSigning.cliOptions()
       )
     }
@@ -217,15 +221,17 @@ final case class PgpSecretKeyCheck(
             .get()
             .value
 
-          val keyId = (new PgpProxyMaker).get()
-            .keyId(
-              publicKeyString,
-              "[generated key]",
-              coursierCache,
-              logger,
-              value(javaCommand),
-              options.scalaSigning.cliOptions()
-            ).orThrow
+          val keyId = (new PgpProxyMaker).get(
+            options.scalaSigning.forceSigningExternally.getOrElse(false)
+          ).keyId(
+            publicKeyString,
+            "[generated key]",
+            coursierCache,
+            logger,
+            options.sharedJvm,
+            options.coursier,
+            options.scalaSigning.cliOptions()
+          ).orThrow
 
           value(keyServers)
             .map { keyServer =>

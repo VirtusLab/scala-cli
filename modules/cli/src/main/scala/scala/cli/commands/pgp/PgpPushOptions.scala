@@ -25,8 +25,9 @@ final case class PgpPushOptions(
   @HelpMessage("Whether to exit with code 0 if no key is passed")
     allowEmpty: Boolean = false,
   @Group(HelpGroup.PGP.toString)
+  @HelpMessage("When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher")
   @Hidden
-    forceSigningBinary: Boolean = false
+    forceSigningExternally: Boolean = false
 ) extends HasGlobalOptions
 // format: on
 

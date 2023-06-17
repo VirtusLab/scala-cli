@@ -11,11 +11,21 @@ import scala.build.Logger;
 import scala.cli.publish.BouncycastleExternalSigner$;
 import scala.cli.signing.shared.PasswordOption;
 
+/** Used for choosing the right BouncyCastleSigner when Scala CLI is run as a native image.
+ *  This class is used to substitute scala.cli.commands.pgp.PgpProxyMaker.
+ *  This decouples Scala CLI native image from BouncyCastle used by scala-cli-signing.
+ */
 @TargetClass(className = "scala.cli.publish.BouncycastleSignerMaker")
 public final class BouncycastleSignerMakerSubst {
 
   @Substitute
-  public Signer get(PasswordOption passwordOrNull, PasswordOption secretKey, Supplier<String[]> command, Logger logger) {
+  public Signer get(
+    Boolean forceSigningExternally,
+    PasswordOption passwordOrNull,
+    PasswordOption secretKey,
+    Supplier<String[]> command,
+    Logger logger
+  ) {
     return BouncycastleExternalSigner$.MODULE$.apply(secretKey, passwordOrNull, command.get(), logger);
   }
 

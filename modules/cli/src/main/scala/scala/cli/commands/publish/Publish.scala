@@ -169,7 +169,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )),
           signingCli = ScalaSigningCliOptions(
             signingCliVersion = scalaSigning.signingCliVersion,
-            useJvm = scalaSigning.forceJvmSigningCli,
+            forceExternal = scalaSigning.forceSigningExternally,
+            forceJvm = scalaSigning.forceJvmSigningCli,
             javaArgs = scalaSigning.signingCliJavaArg
           )
         )
@@ -241,7 +242,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       workingDir,
       ivy2HomeOpt,
       publishLocal = false,
-      forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
@@ -263,7 +264,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     workingDir: => os.Path,
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
@@ -295,7 +296,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             publishLocal,
             logger,
             allowExit = false,
-            forceSigningBinary = forceSigningBinary,
+            forceSigningExternally = forceSigningExternally,
             parallelUpload = parallelUpload,
             isCi = isCi,
             configDb,
@@ -327,7 +328,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         publishLocal,
         logger,
         allowExit = true,
-        forceSigningBinary = forceSigningBinary,
+        forceSigningExternally = forceSigningExternally,
         parallelUpload = parallelUpload,
         isCi = isCi,
         configDb,
@@ -380,7 +381,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -416,7 +417,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               ivy2HomeOpt,
               publishLocal,
               logger,
-              forceSigningBinary,
+              forceSigningExternally,
               parallelUpload,
               isCi,
               configDb,
@@ -722,7 +723,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -868,28 +869,20 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           fileCache,
           archiveCache,
           logger,
-          () => builds.head.options.javaHome().value.javaCommand,
-          publishOptions.signingCli
+          buildOptions.getOrElse(BuildOptions())
         ) match {
           case Left(e)              => throw new Exception(e)
           case Right(binaryCommand) => binaryCommand.toArray
         }
       }
 
-      if (forceSigningBinary)
-        (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
-      else
-        (new BouncycastleSignerMaker).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
+      (new BouncycastleSignerMaker).get(
+        forceSigningExternally,
+        secretKeyPasswordOpt.fold(null)(_.toCliSigning),
+        secretKey.toCliSigning,
+        getLauncher,
+        logger
+      )
     }
 
     val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {

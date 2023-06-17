@@ -4,11 +4,19 @@ import coursier.cache.{Cache, FileCache}
 import coursier.util.Task
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options => bo}
+import scala.build.{Logger, options as bo}
 import scala.cli.commands.pgp.{PgpCreateExternal, PgpKeyIdExternal}
+import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.util.Properties
 
+/** A proxy running the PGP operations externally using scala-cli-singing. This is done either using
+  * it's native image launchers or running it in a JVM process. This construct is not used when PGP
+  * commands are evoked from CLI (see [[PgpCommandsSubst]] and [[PgpCommands]]), but rather when PGP
+  * operations are used internally. <br>
+  *
+  * This is the 'native' counterpart of [[PgpProxyJvm]]
+  */
 class PgpProxy {
   def createKey(
     pubKey: String,
@@ -18,7 +26,8 @@ class PgpProxy {
     passwordOpt: Option[String],
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, Int] = {
 
@@ -45,7 +54,8 @@ class PgpProxy {
       extraEnv,
       logger,
       allowExecve = false,
-      javaCommand,
+      jvmOptions,
+      coursierOptions,
       signingCliOptions
     )
   }
@@ -55,7 +65,8 @@ class PgpProxy {
     keyPrintablePath: String,
     cache: FileCache[Task],
     logger: Logger,
-    javaCommand: () => String,
+    jvmOptions: SharedJvmOptions,
+    coursierOptions: CoursierOptions,
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, String] = {
     val keyPath =
@@ -70,7 +81,8 @@ class PgpProxy {
           Seq(keyPath.toString),
           Map(),
           logger,
-          javaCommand,
+          jvmOptions,
+          coursierOptions,
           signingCliOptions
         ).map(_.trim)
       }

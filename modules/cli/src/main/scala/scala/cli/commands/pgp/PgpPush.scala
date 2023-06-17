@@ -41,36 +41,19 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       }
       val keyContent = os.read(path)
 
-      val javaCommand = () =>
-        JvmUtils.javaOptions(options.jvm).orExit(logger).javaHome(
-          ArchiveCache().withCache(coursierCache),
-          coursierCache,
-          logger.verbosity
-        ).value.javaCommand
-
       val keyId =
-        if (options.forceSigningBinary)
-          (new PgpProxyMaker).get()
-            .keyId(
-              keyContent,
-              key,
-              coursierCache,
-              logger,
-              javaCommand,
-              options.scalaSigning.cliOptions()
-            )
-            .orExit(logger)
-        else
-          (new PgpProxyMakerSubst).get()
-            .keyId(
-              keyContent,
-              key,
-              coursierCache,
-              logger,
-              javaCommand,
-              options.scalaSigning.cliOptions()
-            )
-            .orExit(logger)
+        (new PgpProxyMaker).get(
+          options.scalaSigning.forceSigningExternally.getOrElse(false)
+        ).keyId(
+          keyContent,
+          key,
+          coursierCache,
+          logger,
+          options.jvm,
+          options.coursier,
+          options.scalaSigning.cliOptions()
+        )
+          .orExit(logger)
 
       if (keyId.isEmpty)
         if (options.force) {

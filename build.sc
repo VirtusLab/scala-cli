@@ -426,6 +426,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def javaClassNameName = "${Deps.javaClassName.dep.module.name.value}"
          |  def javaClassNameVersion = "${Deps.javaClassName.dep.version}"
          |
+         |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
+         |
          |  def libsodiumVersion = "${deps.libsodiumVersion}"
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |
@@ -722,6 +724,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
+         |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

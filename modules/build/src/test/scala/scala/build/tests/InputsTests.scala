@@ -37,6 +37,7 @@ class InputsTests extends munit.FunSuite {
     testInputs.withCustomInputs(viaDirectory = false, forcedWorkspaceOpt = Some(forcedWorkspace)) {
       (root, inputs) =>
         expect(inputs.workspace == root / forcedWorkspace)
+        expect(inputs.baseProjectName == "workspace")
     }
   }
 
@@ -65,6 +66,10 @@ class InputsTests extends munit.FunSuite {
         assert(javaOptsCheck)
         assert(os.exists(root / "custom-dir" / Constants.workspaceDirName))
         assert(!os.exists(root / Constants.workspaceDirName))
+
+        val filesUnderScalaBuild = os.list(root / "custom-dir" / Constants.workspaceDirName)
+        assert(filesUnderScalaBuild.exists(_.baseName.startsWith("custom-dir")))
+        assert(!filesUnderScalaBuild.exists(_.baseName.startsWith("project")))
     }
   }
 
@@ -85,6 +90,10 @@ class InputsTests extends munit.FunSuite {
       (root, _, _) =>
         assert(os.exists(root / "custom-dir" / Constants.workspaceDirName))
         assert(!os.exists(root / Constants.workspaceDirName))
+
+        val filesUnderScalaBuild = os.list(root / "custom-dir" / Constants.workspaceDirName)
+        assert(filesUnderScalaBuild.exists(_.baseName.startsWith("custom-dir")))
+        assert(!filesUnderScalaBuild.exists(_.baseName.startsWith("project")))
     }
   }
 
@@ -106,6 +115,10 @@ class InputsTests extends munit.FunSuite {
       (root, inputs, _) =>
         assert(os.exists(root / Constants.workspaceDirName))
         assert(inputs.elements.projectSettingsFiles.length == 1)
+
+        val filesUnderScalaBuild = os.list(root / Constants.workspaceDirName)
+        assert(filesUnderScalaBuild.exists(_.baseName.startsWith(root.baseName)))
+        assert(!filesUnderScalaBuild.exists(_.baseName.startsWith("project")))
     }
   }
 }
