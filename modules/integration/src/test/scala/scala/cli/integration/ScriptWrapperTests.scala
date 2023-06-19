@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 trait ScriptWrapperTests { _: RunTestDefinitions =>
-  def expectObjectWrapped(wrapperName: String, path: os.Path) = {
+  def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName {"),
@@ -18,7 +18,7 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
     )
   }
 
-  def expectClassWrapped(wrapperName: String, path: os.Path) = {
+  def expectClassWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"final class $wrapperName$$_"),
@@ -30,54 +30,8 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
     )
   }
 
-  if (actualScalaVersion.startsWith("2."))
-    test("object wrapper for Scala 2") {
-      val inputs = TestInputs(
-        os.rel / "script.sc" ->
-          s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-             |
-             |def main(args: String*): Unit = println("Hello")
-             |""".stripMargin,
-        os.rel / "munit.sc" ->
-          s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-             |
-             |def main(args: String*): Unit = println("Hello")
-             |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, extraOptions, "--power", "script.sc", "munit.sc")
-          .call(cwd = root, mergeErrIntoOut = true, stdout = os.Inherit)
-
-        val projectDir = os.list(root / Constants.workspaceDirName).filter(
-          _.baseName.startsWith(root.baseName + "_")
-        )
-        expect(projectDir.size == 1)
-        expectClassWrapped("script", projectDir.head / "src_generated" / "main" / "script.scala")
-      }
-    }
-
-  test("object wrapper for Scala JS") {
-    val inputs = TestInputs(
-      os.rel / "script.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |
-           |def main(args: String*): Unit = println("Hello")
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "script.sc", "munit.sc", "--js")
-        .call(cwd = root, mergeErrIntoOut = true, stdout = os.Inherit)
-
-      val projectDir = os.list(root / Constants.workspaceDirName).filter(
-        _.baseName.startsWith(root.baseName + "_")
-      )
-      expect(projectDir.size == 1)
-      expectObjectWrapped("script", projectDir.head / "src_generated" / "main" / "script.scala")
-    }
-  }
-
   if (actualScalaVersion.startsWith("3.")) {
-    test("class wrapper for Scala 3") {
+    test("BSP class wrapper for Scala 3") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
           s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
@@ -97,14 +51,34 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
              |org.scalatest.tools.Runner.main(Array("-oDF", "-s", classOf[PiTest].getName))""".stripMargin
       )
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "script.sc", "munit.sc")
-          .call(cwd = root, mergeErrIntoOut = true, stdout = os.Inherit)
+        TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
+          val timeout     = Duration("60 seconds")
+          implicit val ec = ExecutionContext.fromExecutorService(pool)
+          val bspProc = os.proc(TestUtil.cli, "--power", "bsp", "script.sc", "munit.sc")
+            .spawn(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
 
-        val projectDir = os.list(root / Constants.workspaceDirName).filter(
-          _.baseName.startsWith(root.baseName + "_")
-        )
-        expect(projectDir.size == 1)
-        expectClassWrapped("script", projectDir.head / "src_generated" / "main" / "script.scala")
+          def lineReaderIter =
+            Iterator.continually(TestUtil.readLine(bspProc.stdout, ec, timeout))
+
+          lineReaderIter.find(_.contains("\"build/taskFinish\""))
+
+          bspProc.destroy()
+          if (bspProc.isAlive())
+            bspProc.destroyForcibly()
+
+          val projectDir = os.list(root / Constants.workspaceDirName).filter(
+            _.baseName.startsWith(root.baseName + "_")
+          )
+          expect(projectDir.size == 1)
+          expectClassWrapper(
+            "script",
+            projectDir.head / "src_generated" / "main" / "script.scala"
+          )
+          expectClassWrapper(
+            "munit",
+            projectDir.head / "src_generated" / "main" / "munit.scala"
+          )
+        }
       }
     }
 
@@ -112,7 +86,8 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
       useDirectives <- Seq(true, false)
       (directive, options) <- Seq(
         ("//> using object.wrapper", Seq("--object-wrapper")),
-        ("//> using scala 2.13", Seq("--scala", "2.13"))
+        ("//> using scala 2.13", Seq("--scala", "2.13")),
+        ("//> using platform js", Seq("--js"))
       )
     } {
       val inputs = TestInputs(
@@ -147,11 +122,11 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
             _.baseName.startsWith(root.baseName + "_")
           )
           expect(projectDir.size == 1)
-          expectObjectWrapped(
+          expectObjectWrapper(
             "script1",
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
-          expectObjectWrapped(
+          expectObjectWrapper(
             "script2",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )
@@ -162,7 +137,6 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
         s"BSP object wrapper forced with ${if (useDirectives) directive else options.mkString(" ")}"
       ) {
         inputs.fromRoot { root =>
-
           TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
             val timeout     = Duration("60 seconds")
             implicit val ec = ExecutionContext.fromExecutorService(pool)
@@ -190,11 +164,11 @@ trait ScriptWrapperTests { _: RunTestDefinitions =>
               _.baseName.startsWith(root.baseName + "_")
             )
             expect(projectDir.size == 1)
-            expectObjectWrapped(
+            expectObjectWrapper(
               "script1",
               projectDir.head / "src_generated" / "main" / "script1.scala"
             )
-            expectObjectWrapped(
+            expectObjectWrapper(
               "script2",
               projectDir.head / "src_generated" / "main" / "script2.scala"
             )
