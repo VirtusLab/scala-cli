@@ -37,7 +37,7 @@ object MarkdownCodeWrapper {
     val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
     val maybePkgString =
       if pkg.isEmpty then None else Some(s"package ${AmmUtil.encodeScalaSourcePath(pkg)}")
-    val wrapperName = s"${wrapper.raw}_md"
+    val wrapperName = Name(s"${wrapper.raw}_md").backticked
     (
       wrapScalaCode(markdown.scriptCodeBlocks, wrapperName, maybePkgString),
       rawScalaCode(markdown.rawCodeBlocks),
