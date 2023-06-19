@@ -273,15 +273,6 @@ Install Scala CLI in a sub-directory of the home directory
 
 Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
 
-### new
-
-New giter8 template.
-
- Creates a new project from a giter8 template.
-
-
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
-
 ### setup-ide
 
 Generates a BSP file that you can import into your IDE.
