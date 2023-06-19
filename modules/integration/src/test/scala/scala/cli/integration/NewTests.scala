@@ -31,8 +31,12 @@ class NewTests extends ScalaCliSuite {
 
   test("error missing template argument") {
     TestInputs.empty.fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "--power", "new").call(cwd = root, check = false)
-      val lines = removeAnsiColors(result.err.text()).linesIterator.toVector
+     val result = os.proc(TestUtil.cli, "--power", "new").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      val lines = removeAnsiColors(result.out.text()).linesIterator.toVector
       assert(result.exitCode == 1)
       expect(lines.contains("Error: Missing argument <template>"))
     }
