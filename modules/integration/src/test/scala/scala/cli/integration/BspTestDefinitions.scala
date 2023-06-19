@@ -78,7 +78,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     attempts: Int = if (TestUtil.isCI) 3 else 1,
     pauseDuration: FiniteDuration = 5.seconds,
     bspOptions: List[String] = List.empty,
-    reuseRoot: Option[os.Path] = None
+    reuseRoot: Option[os.Path] = None,
+    stdErrOpt: Option[os.RelPath] = None
   )(
     f: (
       os.Path,
@@ -88,10 +89,13 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
   ): T = {
 
     def attempt(): Try[T] = Try {
-      val root = reuseRoot.getOrElse(inputs.root())
+      val inputsRoot                              = inputs.root()
+      val root                                    = reuseRoot.getOrElse(inputsRoot)
+      val stdErrPathOpt: Option[os.ProcessOutput] = stdErrOpt.map(path => inputsRoot / path)
+      val stderr: os.ProcessOutput                = stdErrPathOpt.getOrElse(os.Inherit)
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
-        .spawn(cwd = root)
+        .spawn(cwd = root, stderr = stderr)
       var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = null
 
       val bspServerExited = Promise[Unit]()
@@ -1260,6 +1264,44 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             expectedEndCharacter = 26,
             strictlyCheckMessage = false
           )
+        }
+    }
+  }
+  test("bsp should support parsing cancel params") { // TODO This test only checks if the native launcher of Scala CLI is able to parse cancel params,
+    // this test does not check if Bloop supports $/cancelRequest. The status of that is tracked under the https://github.com/scalacenter/bloop/issues/2030.
+    val fileName = "Hello.scala"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""object Hello extends App {
+           |  while(true) {
+           |    println("Hello World")
+           |  }
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq("."), stdErrOpt = Some(os.rel / "stderr.txt")) {
+      (root, _, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId())
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets.asJava))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+          val Some(mainTarget) = targets.find(!_.getUri.contains("-test"))
+          val runRespFuture =
+            remoteServer
+              .buildTargetRun(new b.RunParams(mainTarget))
+          runRespFuture.cancel(true)
+          expect(runRespFuture.isCancelled || runRespFuture.isCompletedExceptionally)
+          expect(!os.read(root / "stderr.txt").contains(
+            "Unmatched cancel notification for request id null"
+          ))
         }
     }
   }
