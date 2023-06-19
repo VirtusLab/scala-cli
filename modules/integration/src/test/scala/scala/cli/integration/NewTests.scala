@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.removeAnsiColors
-  
+
 class NewTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
@@ -31,7 +31,7 @@ class NewTests extends ScalaCliSuite {
 
   test("error missing template argument") {
     TestInputs.empty.fromRoot { root =>
-     val result = os.proc(TestUtil.cli, "--power", "new").call(
+      val result = os.proc(TestUtil.cli, "--power", "new").call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
