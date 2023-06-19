@@ -5,8 +5,8 @@ import scala.util.Properties
 import $file.utils, utils.isArmArchitecture
 
 object Scala {
-  def scala212     = "2.12.17"
-  def scala213     = "2.13.10"
+  def scala212     = "2.12.18"
+  def scala213     = "2.13.11"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3       = "3.3.0"
   val allScala2    = Seq(scala213, scala212)
@@ -95,7 +95,7 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.8"
+  def ammonite = ivy"com.lihaoyi:::ammonite:2.5.9"
   def asm      = ivy"org.ow2.asm:asm:9.5"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
