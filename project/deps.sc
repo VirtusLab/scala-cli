@@ -116,7 +116,7 @@ object Deps {
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def guava         = ivy"com.google.guava:guava:32.0.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
