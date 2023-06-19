@@ -32,7 +32,7 @@ object Scala {
   }
 
   def maxAmmoniteScala212Version = scala212
-  def maxAmmoniteScala213Version = scala213
+  def maxAmmoniteScala213Version = "2.13.10"
   def maxAmmoniteScala3Version   = "3.2.2"
   lazy val listAllAmmonite = {
     import coursier.core.Version
