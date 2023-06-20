@@ -89,7 +89,7 @@ If you want to compile it with the `pprint` library but exclude its `sourcecode`
 the `exclude` parameter as follows:
 
 ```scala title=Main.scala
-//> using dep com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%%sourcecode
+//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%%sourcecode"
 object Main extends App {
   println("Hello")
 }
@@ -98,7 +98,7 @@ object Main extends App {
 To exclude Scala modules, you can also use a single `%` but with the full name of the module name, like this:
 
 ```scala title=Main.scala
-//> using dep com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%sourcecode_3
+//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%sourcecode_3"
 object Main extends App {
   println("Hello")
 }
@@ -114,11 +114,16 @@ If you want to use the `pytorch` dependency with the classifier `linux-x86_64`, 
 follows:
 
 ```scala title=Main.scala
-//> using dep org.bytedeco:pytorch:1.12.1-1.5.8,classifier=linux-x86_64
+//> using dep "org.bytedeco:pytorch:1.12.1-1.5.8,classifier=linux-x86_64"
 object Main extends App {
   println("Hello")
 }
 ```
+
+:::caution
+When using the `classifier`, `exclude` or others parameters, it is necessary to wrap the value of dependency within double quotes `"`.
+If this is omitted, Scala CLI treats these parameters as dependencies, resulting in a dependency parsing error.
+:::
 
 ### Test dependencies
 
