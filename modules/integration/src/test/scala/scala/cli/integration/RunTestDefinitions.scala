@@ -1430,7 +1430,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           val timeout     = Duration("60 seconds")
           implicit val ec = ExecutionContext.fromExecutorService(pool)
 
-          def lineReaderIter = Iterator.continually(TestUtil.readLine(proc.stdout, ec, timeout))
+          def lineReaderIter = Iterator.continually {
+            val line = TestUtil.readLine(proc.stdout, ec, timeout)
+            println(s"Line read: $line")
+            line
+          }
 
           def checkLinesForError(lines: Seq[String]) = munit.Assertions.assert(
             !lines.exists { line =>
