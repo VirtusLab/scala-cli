@@ -359,4 +359,22 @@ class DirectiveTests extends munit.FunSuite {
     )
   }
 
+  test("include test.resourceDir into sources for test scope") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using test.resourceDir foo
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Test) {
+      (root, _, maybeBuild) =>
+        val build =
+          maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        val resourceDirs = build.sources.resourceDirs
+
+        expect(resourceDirs.nonEmpty)
+        expect(resourceDirs.length == 1)
+        expect(resourceDirs == Seq(root / "foo"))
+    }
+  }
+
 }

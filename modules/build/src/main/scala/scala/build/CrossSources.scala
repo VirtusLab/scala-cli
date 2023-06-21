@@ -353,12 +353,8 @@ object CrossSources {
           ) -> m.directivesPositions
       }
 
-    val resourceDirs: Seq[WithBuildRequirements[os.Path]] = allInputs.elements.collect {
-      case r: ResourceDirectory =>
-        WithBuildRequirements(BuildRequirements(), r.path)
-    } ++ preprocessedSources.flatMap(_.options).flatMap(_.classPathOptions.resourcesDir).map(
-      WithBuildRequirements(BuildRequirements(), _)
-    )
+    val resourceDirs: Seq[WithBuildRequirements[os.Path]] =
+      resolveResourceDirs(allInputs, preprocessedSources)
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
       (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
@@ -414,6 +410,25 @@ object CrossSources {
       ),
       allInputs
     )
+  }
+
+  /** @return
+    *   the resource directories that should be added to the classpath
+    */
+  private def resolveResourceDirs(
+    allInputs: Inputs,
+    preprocessedSources: Seq[PreprocessedSource]
+  ): Seq[WithBuildRequirements[os.Path]] = {
+    val fromInputs = allInputs.elements
+      .collect { case r: ResourceDirectory => WithBuildRequirements(BuildRequirements(), r.path) }
+    val fromSources =
+      preprocessedSources.flatMap(_.options)
+        .flatMap(_.classPathOptions.resourcesDir)
+        .map(r => WithBuildRequirements(BuildRequirements(), r))
+    val fromSourcesWithRequirements = preprocessedSources
+      .flatMap(_.optionsWithTargetRequirements)
+      .flatMap(_.map(_.classPathOptions.resourcesDir).flatten)
+    fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
   private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
