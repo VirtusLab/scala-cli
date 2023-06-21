@@ -7,7 +7,7 @@ import scala.build.preprocessing.ScopePath
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveExamples("//> using python")
-@DirectiveUsage("//> using python", "`//> using python")
+@DirectiveUsage("//> using python", "`//> using python`")
 @DirectiveDescription("Enable Python support")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class Python(
