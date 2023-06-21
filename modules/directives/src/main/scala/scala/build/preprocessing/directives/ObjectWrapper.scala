@@ -6,7 +6,7 @@ import scala.build.options.{BuildOptions, ScriptOptions}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveExamples("//> using objectWrapper")
-@DirectiveUsage("//> using objectWrapper", "`//> using objectWrapper")
+@DirectiveUsage("//> using objectWrapper", "`//> using objectWrapper`")
 @DirectiveDescription("Set the default code wrapper for scripts to object wrapper")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
 final case class ObjectWrapper(

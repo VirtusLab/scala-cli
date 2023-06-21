@@ -154,7 +154,7 @@ Specify default main class
 
 Set the default code wrapper for scripts to object wrapper
 
-`//> using objectWrapper
+`//> using objectWrapper`
 
 #### Examples
 `//> using objectWrapper`
@@ -243,7 +243,7 @@ Set contextual parameters for publishing
 
 Enable Python support
 
-`//> using python
+`//> using python`
 
 #### Examples
 `//> using python`
