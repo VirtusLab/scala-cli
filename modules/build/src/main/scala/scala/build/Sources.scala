@@ -86,8 +86,6 @@ object Sources {
 
   /** The default preprocessor list.
     *
-    * @param codeWrapper
-    *   used by the Scala script preprocessor to "wrap" user code
     * @param archiveCache
     *   used from native launchers by the Java preprocessor, to download a java-class-name binary,
     *   used to infer the class name of unnamed Java sources (like stdin)
