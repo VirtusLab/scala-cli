@@ -35,6 +35,7 @@ import scala.cli.commands.shared.{
   ScalaJsOptions,
   ScalaNativeOptions,
   SharedOptions,
+  SourceGeneratorOptions,
   SuppressWarningOptions
 }
 import scala.cli.commands.tags
@@ -50,6 +51,8 @@ import scala.util.control.NonFatal
 
 // format: off
 final case class SharedOptions(
+  @Recurse
+    sourceGenerator: SourceGeneratorOptions = SourceGeneratorOptions(),
   @Recurse
     suppress: SuppressWarningOptions = SuppressWarningOptions(),
   @Recurse
@@ -312,6 +315,9 @@ final case class SharedOptions(
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
     bo.BuildOptions(
+      sourceGeneratorOptions = bo.SourceGeneratorOptions(
+        useBuildInfo = sourceGenerator.useBuildInfo
+      ),
       suppressWarningOptions =
         bo.SuppressWarningOptions(
           suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(

@@ -1,5 +1,6 @@
 package scala.build
 
+import scala.build.info.{BuildInfo, ScopedBuildInfo}
 import scala.build.options.{BuildOptions, HasScope, Scope}
 import scala.build.preprocessing.ScriptPreprocessor
 
@@ -35,21 +36,80 @@ final case class ScopedSources(
       case _ => buildOptions.flatMap(_.valueFor(scope).toSeq)
     }
 
+  /** Resolve scope requirements and create a Sources instance
+    * @param scope
+    *   scope to be resolved
+    * @param baseOptions
+    *   options that have already been collected for this build, they should consist of:
+    *   - options from the console
+    *   - options from using directives from the sources
+    *   - options from resolved using directives that had Scala version and platform requirements
+    *     that fit the current build
+    * @return
+    *   [[Sources]] instance that belong to specified scope
+    */
   def sources(scope: Scope, baseOptions: BuildOptions): Sources =
-    val combinedBuildOptions = buildOptionsFor(scope)
-      .foldRight(baseOptions)(_ orElse _)
+    val combinedOptions = combinedBuildOptions(scope, baseOptions)
 
-    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedBuildOptions)
+    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions)
 
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .map(_.wrap(codeWrapper))
 
+    val needsBuildInfo = combinedOptions.sourceGeneratorOptions.useBuildInfo.getOrElse(false)
+
+    val maybeBuildInfoSource = if (needsBuildInfo && scope == Scope.Main)
+      Seq(Sources.InMemory(
+        Left("build-info"),
+        os.rel / "BuildInfo.scala",
+        buildInfo(combinedOptions).generateContents(),
+        None
+      ))
+    else Nil
+
     Sources(
       paths.flatMap(_.valueFor(scope).toSeq),
-      inMemory.flatMap(_.valueFor(scope).toSeq) ++ wrappedScripts,
+      inMemory.flatMap(_.valueFor(scope).toSeq) ++ wrappedScripts ++ maybeBuildInfoSource,
       defaultMainClass,
       resourceDirs.flatMap(_.valueFor(scope).toSeq),
-      combinedBuildOptions
+      combinedOptions
     )
+
+  /** Combine build options that had no requirements (console and using directives) or their
+    * requirements have been resolved (e.g. target using directives) with build options that require
+    * the specified scope
+    *
+    * @param scope
+    *   scope to be resolved
+    * @param baseOptions
+    *   options that have already been collected for this build (had no requirements or they have
+    *   been resolved)
+    * @return
+    *   Combined BuildOptions, baseOptions' values take precedence
+    */
+  def combinedBuildOptions(scope: Scope, baseOptions: BuildOptions): BuildOptions =
+    buildOptionsFor(scope)
+      .foldRight(baseOptions)(_ orElse _)
+
+  def buildInfo(baseOptions: BuildOptions): BuildInfo = {
+    def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
+      val combinedOptions = combinedBuildOptions(scope, baseOptions)
+      val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toString)
+      val inMemoryPaths =
+        (inMemory.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption) ++
+          unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
+          .map(_._2.toString)
+
+      ScopedBuildInfo(combinedOptions, sourcePaths ++ inMemoryPaths)
+
+    val baseBuildInfo = BuildInfo(combinedBuildOptions(Scope.Main, baseOptions))
+
+    val mainBuildInfo = getScopedBuildInfo(Scope.Main)
+    val testBuildInfo = getScopedBuildInfo(Scope.Test)
+
+    baseBuildInfo
+      .withScope(Scope.Main.name, mainBuildInfo)
+      .withScope(Scope.Test.name, testBuildInfo)
+  }
 }
