@@ -42,9 +42,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         buildOptions.internal.exclude
       ).orExit(logger)
 
-    val sharedOptions       = crossSources.sharedOptions(buildOptions)
-    val wrappedCrossOptions = crossSources.withWrappedScripts(sharedOptions)
-    val scopedSources       = wrappedCrossOptions.scopedSources(buildOptions).orExit(logger)
+    val sharedOptions = crossSources.sharedOptions(buildOptions)
+    val scopedSources = crossSources.scopedSources(buildOptions).orExit(logger)
 
     def generateActionableUpdateDiagnostic(scope: Scope)
       : Seq[ActionableDependencyUpdateDiagnostic] = {
