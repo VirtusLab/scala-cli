@@ -111,14 +111,13 @@ final class BspImpl(
       ).left.map((_, Scope.Main))
     }
 
-    val sharedOptions         = crossSources.sharedOptions(buildOptions)
-    val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
+    val sharedOptions = crossSources.sharedOptions(buildOptions)
 
     if (verbosity >= 3)
-      pprint.err.log(wrappedScriptsSources)
+      pprint.err.log(crossSources)
 
     val scopedSources =
-      value(wrappedScriptsSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
+      value(crossSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
 
     if (verbosity >= 3)
       pprint.err.log(scopedSources)

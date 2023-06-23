@@ -28,6 +28,11 @@ final case class Sources(
     )
   }
 
+  /** Write all in-memory sources to disk.
+    *
+    * @param generatedSrcRoot
+    *   the root directory where the sources should be written
+    */
   def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
       for (inMemSource <- inMemory) yield {

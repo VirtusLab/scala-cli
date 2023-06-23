@@ -267,9 +267,7 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val wrappedScriptsSources = crossSources.withWrappedScripts(baseOptions)
-
-      val scopedSources = value(wrappedScriptsSources.scopedSources(baseOptions))
+      val scopedSources = value(crossSources.scopedSources(baseOptions))
 
       val mainSources = scopedSources.sources(Scope.Main, baseOptions)
       val mainOptions = mainSources.buildOptions

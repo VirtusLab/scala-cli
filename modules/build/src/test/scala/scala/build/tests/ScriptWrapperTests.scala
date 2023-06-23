@@ -156,4 +156,50 @@ class ScriptWrapperTests extends munit.FunSuite {
       }
     }
   }
+
+  for {
+    (targetDirective, enablingDirective) <- Seq(
+      ("target.scala 3.2.2", "scala 3.2.2"),
+      ("target.platform scala-native", "platform scala-native")
+    )
+  } {
+    val inputs = TestInputs(
+      os.rel / "script1.sc" ->
+        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |//> using $targetDirective
+           |//> using objectWrapper
+           |
+           |def main(args: String*): Unit = println("Hello")
+           |main()
+           |""".stripMargin,
+      os.rel / "script2.sc" ->
+        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |//> using $enablingDirective
+           |
+           |println("Hello")
+           |""".stripMargin
+    )
+
+    test(
+      s"object wrapper with $targetDirective"
+    ) {
+      inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+        (root, _, maybeBuild) =>
+          expect(maybeBuild.orThrow.success)
+          val projectDir = os.list(root / ".scala-build").filter(
+            _.baseName.startsWith(root.baseName + "_")
+          )
+          expect(projectDir.size == 1)
+
+          expectObjectWrapper(
+            "script1",
+            projectDir.head / "src_generated" / "main" / "script1.scala"
+          )
+          expectObjectWrapper(
+            "script2",
+            projectDir.head / "src_generated" / "main" / "script2.scala"
+          )
+      }
+    }
+  }
 }

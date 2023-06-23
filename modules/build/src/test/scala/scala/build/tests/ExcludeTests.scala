@@ -94,8 +94,7 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -122,8 +121,7 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -150,8 +148,7 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
@@ -178,8 +175,7 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
