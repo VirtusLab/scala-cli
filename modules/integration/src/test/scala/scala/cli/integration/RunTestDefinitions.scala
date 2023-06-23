@@ -14,7 +14,6 @@ import scala.util.Properties
 
 abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     extends WithWarmUpScalaCliSuite
-    with ScriptWrapperTests
     with TestScalaVersionArgs
     with RunScriptTestDefinitions
     with RunScalaJsTestDefinitions
