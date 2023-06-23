@@ -5,6 +5,15 @@ sidebar_position: 2
 
 ## using directives
 
+### BuildInfo
+
+Generate BuildInfo for project
+
+`//> using buildInfo
+
+#### Examples
+`//> using buildInfo`
+
 ### Compiler options
 
 Add Scala compiler options

@@ -41,7 +41,8 @@ final case class BuildOptions(
   internal: InternalOptions = InternalOptions(),
   mainClass: Option[String] = None,
   testOptions: TestOptions = TestOptions(),
-  notForBloopOptions: PostBuildOptions = PostBuildOptions()
+  notForBloopOptions: PostBuildOptions = PostBuildOptions(),
+  sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions()
 ) {
 
   import BuildOptions.JavaHomeInfo

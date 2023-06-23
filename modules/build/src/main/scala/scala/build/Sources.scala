@@ -3,6 +3,7 @@ package scala.build
 import coursier.cache.ArchiveCache
 import coursier.util.Task
 
+import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}

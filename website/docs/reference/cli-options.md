@@ -1561,6 +1561,20 @@ Aliases: `--execute-md`
 [Internal]
 A synonym to --markdown-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly
 
+## Source generator options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--use-build-info`
+
+Aliases: `--build-info`
+
+Generate BuildInfo for project
+
 ## Suppress warning options
 
 Available in commands:

@@ -1554,4 +1554,75 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         }
     }
   }
+
+  test("BuildInfo fields should be reachable") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using jvm 11
+           |//> using mainClass Main
+           |//> using resourceDir ./resources
+           |//> using jar TEST1.jar TEST2.jar
+           |
+           |//> using buildInfo
+           |
+           |import scala.cli.build.BuildInfo
+           |
+           |object Main extends App {
+           |  assert(BuildInfo.scalaVersion == "$actualScalaVersion")
+           |  assert(BuildInfo.platform == "JVM")
+           |  assert(BuildInfo.jvmVersion == Some("11"))
+           |  assert(BuildInfo.scalaJsVersion == None)
+           |  assert(BuildInfo.jsEsVersion == None)
+           |  assert(BuildInfo.scalaNativeVersion == None)
+           |  assert(BuildInfo.mainClass == Some("Main"))
+           |
+           |  assert(BuildInfo.Main.sources.head.endsWith("Main.scala"))
+           |  assert(BuildInfo.Main.scalacOptions == Seq("-Xasync"))
+           |  assert(BuildInfo.Main.scalaCompilerPlugins.size == 0)
+           |  assert(BuildInfo.Main.dependencies.size == 1)
+           |  assert(BuildInfo.Main.dependencies.head.contains("com.lihaoyi:os-lib_"))
+           |  assert(BuildInfo.Main.resolvers.size == 3)
+           |  assert(BuildInfo.Main.resourceDirs.size == 1)
+           |  assert(BuildInfo.Main.customJarsDecls.size == 2)
+           |   
+           |  assert(BuildInfo.Test.sources.head.endsWith("Test.scala"))
+           |  assert(BuildInfo.Test.scalacOptions == Seq("-Xasync"))
+           |  assert(BuildInfo.Test.scalaCompilerPlugins.size == 0)
+           |  assert(BuildInfo.Test.dependencies.size == 2)
+           |  assert(BuildInfo.Test.dependencies.exists(_.contains("com.lihaoyi:os-lib_")))
+           |  assert(BuildInfo.Test.dependencies.exists(_.contains("org.scalameta:munit")))
+           |  assert(BuildInfo.Test.resolvers.size == 3)
+           |  assert(BuildInfo.Test.resourceDirs.size == 1)
+           |  assert(BuildInfo.Test.customJarsDecls.size == 2)
+           |}
+           |""".stripMargin,
+      os.rel / "test" / "Test.scala" ->
+        """//> using dep org.scalameta::munit::0.7.29
+          |
+          |class MyTests extends munit.FunSuite {
+          |  test("foo") {
+          |    assert(2 + 2 == 4)
+          |    println("Hello from " + "tests")
+          |  }
+          |}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "--power", extraOptions, ".").call(cwd = root)
+      val output = res.out.trim()
+
+      val projectDir = os.list(root / ".scala-build").filter(
+        _.baseName.startsWith(root.baseName + "_")
+      )
+      expect(projectDir.size == 1)
+      val buildInfoPath = projectDir.head / "src_generated" / "main" / "BuildInfo.scala"
+      expect(os.isFile(buildInfoPath))
+
+      expect(output == "")
+    }
+  }
 }
