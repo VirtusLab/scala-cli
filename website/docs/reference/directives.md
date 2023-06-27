@@ -230,6 +230,7 @@ Set contextual parameters for publishing
 `//> using publish.computeVersion `value
 `//> using publish.repository `value
 `//> using publish.secretKey `value
+`//> using publish.doc `boolean
 
 
 #### Examples
@@ -238,6 +239,8 @@ Set contextual parameters for publishing
 `//> using publish.repository central-s01`
 
 `//> using publish.secretKey env:PUBLISH_SECRET_KEY`
+
+`//> using publish.doc false`
 
 ### Python
 

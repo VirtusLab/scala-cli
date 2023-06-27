@@ -28,6 +28,7 @@ trait PublishContextual {
   def user: Option[Positioned[String]]
   def password: Option[Positioned[String]]
   def realm: Option[String]
+  def doc: Option[Boolean]
 
   def buildOptions(isCi: Boolean): Either[BuildException, BuildOptions] = either {
 
@@ -84,6 +85,7 @@ trait PublishContextual {
     val publishContextualOptions = PublishContextualOptions(
       computeVersion = computeVersionOpt,
       repository = repository,
+      docJar = doc,
       gpgSignatureId = gpgKey,
       gpgOptions = gpgOptions,
       secretKey = secretKeyOpt,
@@ -113,11 +115,13 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.computeVersion git:tag")
   @DirectiveExamples("//> using publish.repository central-s01")
   @DirectiveExamples("//> using publish.secretKey env:PUBLISH_SECRET_KEY")
+  @DirectiveExamples("//> using publish.doc false")
   @DirectiveUsage(
     "//> using publish.(computeVersion|repository|secretKey|…) [value]",
     """`//> using publish.computeVersion `value
       |`//> using publish.repository `value
       |`//> using publish.secretKey `value
+      |`//> using publish.doc `boolean
       |""".stripMargin
   )
   @DirectiveDescription("Set contextual parameters for publishing")
@@ -133,7 +137,8 @@ object PublishContextual {
     publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
-    realm: Option[String] = None
+    realm: Option[String] = None,
+    doc: Option[Boolean] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
     def buildOptions: Either[BuildException, BuildOptions] =
@@ -169,7 +174,8 @@ object PublishContextual {
     publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
-    realm: Option[String] = None
+    realm: Option[String] = None,
+    doc: Option[Boolean] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
     def buildOptions: Either[BuildException, BuildOptions] =

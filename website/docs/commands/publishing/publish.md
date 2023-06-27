@@ -117,6 +117,7 @@ provided as a convenience.
 | URL | `publish.url` | `--url` | | |
 | VCS | `publish.vcs` | `--vcs` | `github:VirtusLab/scala-cli`, `https://github.com/VirtusLab/scala-cli.git` |scm:git:github.com/VirtusLab/scala-cli.git|scm:git:git@github.com:VirtusLab/scala-cli.git` | |
 | Developers | `publish.developer` | `--developer` | <code>alexme&vert;Alex Me&vert;https://alex.me</code> | Can be specified multiple times, using directives and CLI values add up |
+| Docs       | `publish.doc`       | `--doc`             | `--doc=false`, `//> using doc false`                                       | Use to disable publishing docs jar.                                     |
 
 ### Signing
 
