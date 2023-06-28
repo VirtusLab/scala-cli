@@ -9,33 +9,24 @@ import dependency.AnyDependency
 import java.io.PrintStream
 import java.nio.charset.StandardCharsets
 
+import scala.build.info.{BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
 import scala.build.options.ConfigMonoid
 import scala.cli.util.SeqHelpers.*
 import scala.reflect.NameTransformer
 import scala.util.{Properties, Using}
 
-final case class JsonProject(
-  projectName: Option[String] = None,
-  scalaVersion: Option[String] = None,
-  platform: Option[String] = None,
-  jvmVersion: Option[String] = None,
-  scalaJsVersion: Option[String] = None,
-  jsEsVersion: Option[String] = None,
-  scalaNativeVersion: Option[String] = None,
-  mainClass: Option[String] = None,
-  scopes: Map[String, ScopedJsonProject] = Map.empty
-) extends Project {
+final case class JsonProject(buildInfo: BuildInfo) extends Project {
+  def sorted = this.copy(
+    buildInfo = buildInfo.copy(
+      scopes = buildInfo.scopes.map { case (k, v) => k -> v.sorted }
+    )
+  )
 
-  def +(other: JsonProject): JsonProject =
-    JsonProject.monoid.orElse(this, other)
-
-  def withScope(scopeName: String, scopedJsonProj: ScopedJsonProject): JsonProject =
-    if (scopedJsonProj.sources.isEmpty)
-      this
-    else
-      this.copy(
-        scopes = this.scopes + (scopeName -> scopedJsonProj)
-      )
+  def withEmptyScopesRemoved = this.copy(
+    buildInfo = buildInfo.copy(
+      scopes = buildInfo.scopes.filter(_._2 != ScopedBuildInfo.empty)
+    )
+  )
 
   def writeTo(dir: os.Path): Unit = {
     val config = WriterConfig.withIndentionStep(1)
@@ -43,9 +34,11 @@ final case class JsonProject(
     Using(os.write.outputStream(dir / "export.json")) {
       outputStream =>
         writeToStream(
-          this,
+          sorted.withEmptyScopesRemoved.buildInfo,
           outputStream,
           config
+        )(
+          using JsonProject.jsonCodecBuildInfo
         )
     }
   }
@@ -54,85 +47,34 @@ final case class JsonProject(
     val config = WriterConfig.withIndentionStep(1)
 
     writeToStream(
-      this,
+      sorted.withEmptyScopesRemoved.buildInfo,
       printStream,
       config
+    )(
+      using JsonProject.jsonCodecBuildInfo
     )
   }
 }
 
-final case class ScopedJsonProject(
-  sources: Seq[String] = Nil,
-  scalacOptions: Seq[String] = Nil,
-  scalaCompilerPlugins: Seq[ExportDependencyFormat] = Nil,
-  dependencies: Seq[ExportDependencyFormat] = Nil,
-  compileOnlyDependencies: Seq[ExportDependencyFormat] = Nil,
-  resolvers: Seq[String] = Nil,
-  resourcesDirs: Seq[String] = Nil,
-  customJarsDecls: Seq[String] = Nil
-) {
-
-  def +(other: ScopedJsonProject): ScopedJsonProject =
-    ScopedJsonProject.monoid.orElse(this, other)
-
-  def sorted(using ord: Ordering[String]): ScopedJsonProject =
-    ScopedJsonProject(
-      this.sources.sorted,
-      this.scalacOptions,
-      this.scalaCompilerPlugins.sorted,
-      this.dependencies.sorted,
-      this.compileOnlyDependencies.sorted,
-      this.resolvers.sorted,
-      this.resourcesDirs.sorted,
-      this.customJarsDecls.sorted
-    )
-}
-
-object ScopedJsonProject {
-  implicit val monoid: ConfigMonoid[ScopedJsonProject]           = ConfigMonoid.derive
-  implicit lazy val jsonCodec: JsonValueCodec[ScopedJsonProject] = JsonCodecMaker.make
+extension (s: ScopedBuildInfo) {
+  def sorted(using ord: Ordering[String]) = s.copy(
+    s.sources.sorted,
+    s.scalacOptions.sorted,
+    s.scalaCompilerPlugins.sorted(using JsonProject.ordering),
+    s.dependencies.sorted(using JsonProject.ordering),
+    s.compileOnlyDependencies.sorted(using JsonProject.ordering),
+    s.resolvers.sorted,
+    s.resourceDirs.sorted,
+    s.customJarsDecls.sorted
+  )
 }
 
 object JsonProject {
-  implicit val monoid: ConfigMonoid[JsonProject]           = ConfigMonoid.derive
-  implicit lazy val jsonCodec: JsonValueCodec[JsonProject] = JsonCodecMaker.make
-}
-
-case class ExportDependencyFormat(groupId: String, artifactId: ArtifactId, version: String)
-
-case class ArtifactId(name: String, fullName: String)
-
-object ExportDependencyFormat {
-  def apply(dep: Dependency): ExportDependencyFormat = {
-    val scalaVersionStartIndex = dep.module.name.value.lastIndexOf('_')
-    val shortDepName = if (scalaVersionStartIndex == -1)
-      dep.module.name.value
-    else
-      dep.module.name.value.take(scalaVersionStartIndex)
-    new ExportDependencyFormat(
-      dep.module.organization.value,
-      ArtifactId(shortDepName, dep.module.name.value),
-      dep.version
-    )
-  }
-
-  def apply(
-    dep: AnyDependency,
-    scalaParamsOpt: Option[dependency.ScalaParameters]
-  ): ExportDependencyFormat = {
-    import scala.build.internal.Util.*
-    dep.toCs(scalaParamsOpt)
-      .map(ExportDependencyFormat.apply)
-      .getOrElse(
-        ExportDependencyFormat(
-          dep.module.organization,
-          ArtifactId(dep.module.name, dep.module.name),
-          dep.version
-        )
-      )
-  }
+  implicit lazy val jsonCodecBuildInfo: JsonValueCodec[BuildInfo]             = JsonCodecMaker.make
+  implicit lazy val jsonCodecScopedBuildInfo: JsonValueCodec[ScopedBuildInfo] = JsonCodecMaker.make
 
   implicit val ordering: Ordering[ExportDependencyFormat] =
     Ordering.by(x => x.groupId + x.artifactId.fullName)
-  implicit lazy val jsonCodec: JsonValueCodec[ExportDependencyFormat] = JsonCodecMaker.make
+  implicit lazy val jsonCodecExportDependencyFormat: JsonValueCodec[ExportDependencyFormat] =
+    JsonCodecMaker.make
 }

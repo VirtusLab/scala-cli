@@ -15,6 +15,7 @@ final case class ScopedBuildInfo(
   scalacOptions: Seq[String] = Nil,
   scalaCompilerPlugins: Seq[ExportDependencyFormat] = Nil,
   dependencies: Seq[ExportDependencyFormat] = Nil,
+  compileOnlyDependencies: Seq[ExportDependencyFormat] = Nil,
   resolvers: Seq[String] = Nil,
   resourceDirs: Seq[String] = Nil,
   customJarsDecls: Seq[String] = Nil
@@ -45,6 +46,7 @@ final case class ScopedBuildInfo(
 
 object ScopedBuildInfo {
   def empty: ScopedBuildInfo = ScopedBuildInfo()
+
   def apply(options: BuildOptions, sourcePaths: Seq[String]): ScopedBuildInfo =
     Seq(
       ScopedBuildInfo(sources = sourcePaths),
@@ -69,8 +71,13 @@ object ScopedBuildInfo {
   private def dependencySettings(options: BuildOptions): ScopedBuildInfo = {
     val directDeps = options.classPathOptions.extraDependencies.toSeq.map(_.value)
       .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
+    val compileDeps = options.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value)
+      .map(ExportDependencyFormat(_, options.scalaParams.getOrElse(None)))
 
-    ScopedBuildInfo(dependencies = directDeps)
+    ScopedBuildInfo(
+      dependencies = directDeps,
+      compileOnlyDependencies = compileDeps
+    )
   }
 
   private def repositorySettings(options: BuildOptions): ScopedBuildInfo = {
