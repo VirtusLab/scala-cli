@@ -376,5 +376,22 @@ class DirectiveTests extends munit.FunSuite {
         expect(resourceDirs == Seq(root / "foo"))
     }
   }
+  test("parse boolean for publish.doc") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using publish.doc false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val publishOptionsCI =
+          build.options.notForBloopOptions.publishOptions.contextual(isCi = true)
+        val publishOptionsLocal =
+          build.options.notForBloopOptions.publishOptions.contextual(isCi = false)
 
+        expect(publishOptionsCI.docJar.contains(false))
+        expect(publishOptionsLocal.docJar.contains(false))
+    }
+  }
 }
