@@ -63,7 +63,8 @@ sealed class UnwrappedCrossSources(
     *   CrossSources with all the scripts wrapped
     */
   def withWrappedScripts(buildOptions: BuildOptions): CrossSources = {
-    val codeWrapper = ScriptPreprocessor.getScriptWrapper(buildOptions)
+    val sharedOptions = this.sharedOptions(buildOptions)
+    val codeWrapper   = ScriptPreprocessor.getScriptWrapper(sharedOptions)
 
     val wrappedScripts = unwrappedScripts.map { unwrapppedWithRequirements =>
       unwrapppedWithRequirements.map(_.wrap(codeWrapper))
