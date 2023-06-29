@@ -43,8 +43,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |"scalaVersion":"${Constants.scala3}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",
-          |"scopes": {
-          | "main": {
+          |"scopes": [[
+          | "main", {
           |   "sources": ["Main.scala"],
           |   "dependencies": [
           |     {
@@ -62,7 +62,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -107,8 +107,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |"scalaVersion":"3.2.2",
           |"platform":"Native",
           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
-          |"scopes": {
-          | "main": {
+          |"scopes": [[
+          | "main", {
           |   "sources": ["Main.scala"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -136,8 +136,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../scalacli/local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
-          | },
-          | "test": {
+          | }], [
+          | "test", {
           |   "sources":["unit.test.scala"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -169,7 +169,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |   "resourcesDirs":["./resources"],
           |   "customJarsDecls":["./TEST.jar"]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -215,8 +215,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |"platform": "JS",
           |"scalaJsVersion": "${Constants.scalaJsVersion}",
           |"jsEsVersion":"es2015",
-          |"scopes": {
-          | "main": {
+          |"scopes": [[
+          | "main", {
           |   "sources": ["Main.scala"],
           |   "scalacOptions": ["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -245,7 +245,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
 

@@ -14,6 +14,7 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.cli.publish.BouncycastleSignerMaker
+import scala.cli.standaloneLauncher.StandaloneJavaLauncherCli
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
@@ -175,6 +176,10 @@ object ScalaCli {
               else Nil
             val newArgs = powerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
+          case _ if
+                javaMajorVersion < 17
+                && sys.props.get("scala-cli.kind").contains("standaloneLauncher") =>
+            StandaloneJavaLauncherCli.runAndExit(args)
           case None =>
             if (launcherOpts.power)
               isSipScala = false
