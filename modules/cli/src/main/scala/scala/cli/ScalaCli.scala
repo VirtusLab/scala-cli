@@ -12,9 +12,9 @@ import scala.build.Directories
 import scala.build.internal.Constants
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
+import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.cli.publish.BouncycastleSignerMaker
-import scala.cli.standaloneLauncher.StandaloneJavaLauncherCli
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
@@ -163,7 +163,16 @@ object ScalaCli {
       s"Java >= 17 is required to run $fullRunnerName (found Java $javaMajorVersion)"
     )
 
+  private def loadJavaPropertiesFromResources() = {
+    val prop = new java.util.Properties()
+    val cl   = getClass.getResourceAsStream("/java-properties/scala-cli-properties")
+    if cl != null then
+      prop.load(cl)
+      prop.stringPropertyNames().forEach(name => System.setProperty(name, prop.getProperty(name)))
+  }
+
   private def main0(args: Array[String]): Unit = {
+    loadJavaPropertiesFromResources() // load java properties to detect launcher kind
     val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
       case Left(e) =>
         System.err.println(e.message)
@@ -178,8 +187,8 @@ object ScalaCli {
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
                 javaMajorVersion < 17
-                && sys.props.get("scala-cli.kind").contains("standaloneLauncher") =>
-            StandaloneJavaLauncherCli.runAndExit(args)
+                && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
+            JavaLauncherCli.runAndExit(args)
           case None =>
             if (launcherOpts.power)
               isSipScala = false

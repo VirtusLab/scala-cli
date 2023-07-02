@@ -52,6 +52,19 @@ object cliBootstrapped extends ScalaCliPublishModule {
     Assembly.Rule.ExcludePattern(".*\\.tasty"),
     Assembly.Rule.ExcludePattern(".*\\.semanticdb")
   ) ++ super.assemblyRules
+
+  override def resources = T.sources {
+    super.resources() ++ Seq(propertiesFilesResources())
+  }
+
+  def propertiesFilesResources = T.persistent {
+    val dir = T.dest / "resources"
+
+    val dest    = dir / "java-properties" / "scala-cli-properties"
+    val content = "scala-cli.kind=jvm.bootstrapped"
+    os.write.over(dest, content, createFolders = true)
+    PathRef(dir)
+  }
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
@@ -1046,6 +1059,11 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       new TestHelper(
         cli.standaloneLauncher,
         "jvm"
+      ).test(args: _*)
+    def jvmBootstrapped(args: String*) =
+      new TestHelper(
+        cliBootstrapped.jar,
+        "jvmBootstrapped"
       ).test(args: _*)
     def native(args: String*) =
       new TestHelper(
