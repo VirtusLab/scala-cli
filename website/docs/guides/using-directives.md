@@ -36,7 +36,11 @@ This means that a library or compiler option defined in one file applies to the 
 whether the source file is a test, or not).
 
 The only exceptions are `using target` directives, which only apply to the given file.
-`using target` is a marker to assign a given file to a given target (e.g., test or main sources).
+`using target` is a marker to specify requirements for the file to be used (e.g. Scala version, platform, or scope).
+
+:::caution
+The `using target` directives are an experimental feature. They may be subject to changes in the future.
+:::
 
 **We believe that syntax similar to `using` directives should become a part of Scala in the future and will already be included within the Scala runner itself**
 
@@ -53,7 +57,6 @@ the [Reference section of this documentation](/docs/reference/directives.md).
 - `//> using resourceDir dir` - marks directory as source of resources. Resources accessible at runtime and packaged
   together with compiled code.
 - `//> using javaOpt opt` - use given java options when running application or tests
-- `//> using target.scope test` used to marked or unmarked given source as test
 - `//> using testFramework framework` - select test framework to use
 
 There are several reasons that we believe `using` directives are a good solution:

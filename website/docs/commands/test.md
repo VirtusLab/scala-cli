@@ -17,10 +17,14 @@ or [special imports](/docs/guides/configuration#special-imports)) can be used to
 
 A source file is treated as test source if:
 
-- it contains the `//> using target.scope test` directive, or
 - the file name ends with `.test.scala`, or
 - the file comes from a directory that is provided as input, and the relative path from that file to its original
   directory contains a `test` directory
+- it contains the `//> using target.scope test` directive, or
+
+:::caution
+The `using target` directives are an experimental feature. They may be subject to changes in the future.
+:::
 
 The last rule may sound a bit complicated, so let's explain it using following directory structure:
 
