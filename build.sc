@@ -1248,6 +1248,15 @@ def copyJvmLauncher(directory: String = "artifacts") = T.command {
     replaceExisting = true
   )
 }
+def copyJvmBootstrappedLauncher(directory: String = "artifacts") = T.command {
+  val launcher = cliBootstrapped.jar().path
+  os.copy(
+    launcher,
+    os.Path(directory, os.pwd) / s"scala-cli.jar",
+    createFolders = true,
+    replaceExisting = true
+  )
+}
 
 def uploadLaunchers(directory: String = "artifacts") = T.command {
   val version = cli.publishVersion()
