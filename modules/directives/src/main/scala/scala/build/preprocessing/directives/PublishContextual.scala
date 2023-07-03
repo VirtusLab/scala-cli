@@ -4,15 +4,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedInputError}
-import scala.build.options.publish.{ComputeVersion, ConfigPasswordOption}
-import scala.build.options.{
-  BuildOptions,
-  JavaOpt,
-  PostBuildOptions,
-  PublishContextualOptions,
-  PublishOptions,
-  ShadowingSeq
-}
+import scala.build.options._
+import scala.build.options.publish.ConfigPasswordOption
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.cli.signing.shared.PasswordOption

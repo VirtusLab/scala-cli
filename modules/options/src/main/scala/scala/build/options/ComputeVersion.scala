@@ -1,14 +1,14 @@
-package scala.build.options.publish
+package scala.build.options
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Constants, Ref}
 
 import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.io.Codec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Using
 
 sealed abstract class ComputeVersion extends Product with Serializable {

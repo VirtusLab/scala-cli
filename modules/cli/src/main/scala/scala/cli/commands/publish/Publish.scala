@@ -31,9 +31,10 @@ import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassF
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
+  ComputeVersion,
   ConfigMonoid,
   PublishContextualOptions,
   ScalaSigningCliOptions,
