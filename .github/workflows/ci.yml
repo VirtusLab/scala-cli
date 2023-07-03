@@ -1066,4 +1066,4 @@ jobs:
       with:
         identifier: VirtusLab.ScalaCLI
         installers-regex: '\.msi$'
-        token: ${{ secrets.WINGET_TOKEN }}
+        token: ${{ secrets.STEWARD_WINGET_TOKEN }}
