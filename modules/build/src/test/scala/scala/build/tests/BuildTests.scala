@@ -603,7 +603,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
 
     val parsedCliDependency = DependencyParser.parse(cliDependency).getOrElse(
-      throw new DependencyFormatError(cliDependency, "")
+      throw new DependencyFormatError(cliDependency, "", Nil)
     )
 
     // Emulates options derived from cli

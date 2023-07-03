@@ -9,7 +9,7 @@ import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import dependency.AnyDependency
 
-import scala.build.errors.ToolkitDirectiveMissingVersionError
+import scala.build.errors.{DependencyFormatError, ToolkitDirectiveMissingVersionError}
 
 class DirectiveTests extends munit.FunSuite {
 
@@ -392,6 +392,33 @@ class DirectiveTests extends munit.FunSuite {
 
         expect(publishOptionsCI.docJar.contains(false))
         expect(publishOptionsLocal.docJar.contains(false))
+    }
+  }
+
+  test("dependency parsing error with position") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using dep not-a-dep
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.isLeft)
+        val error = maybeBuild.left.toOption.get
+
+        error match {
+          case error: DependencyFormatError =>
+            expect(
+              error.message == "Error parsing dependency 'not-a-dep': malformed module: not-a-dep"
+            )
+            expect(error.positions.length == 1)
+            expect(error.positions.head == Position.File(
+              Right(root / "simple.sc"),
+              (0, 14),
+              (0, 23)
+            ))
+          case _ => fail("unexpected BuildException type")
+        }
     }
   }
 }
