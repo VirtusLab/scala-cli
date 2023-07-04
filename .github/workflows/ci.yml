@@ -54,6 +54,8 @@ jobs:
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
+    - name: Fat jar integration test
+      run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
 
   jvm-tests-2:
     timeout-minutes: 120

@@ -521,6 +521,7 @@ trait CliLaunchers extends SbtModule { self =>
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)
       .withPreamble(preamble)
+      .withJavaProperties(Seq("scala-cli.kind" -> "jvm.standaloneLauncher"))
 
     BootstrapGenerator.generate(params, dest.toNIO)
 
