@@ -23,7 +23,7 @@ A source file is treated as test source if:
 - it contains the `//> using target.scope test` directive, or
 
 :::caution
-The `using target` directives are an experimental feature. They may be subject to changes in the future.
+The `using target` directives are an experimental feature, and may change in future versions of Scala CLI.
 :::
 
 The last rule may sound a bit complicated, so let's explain it using following directory structure:
