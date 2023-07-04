@@ -39,7 +39,7 @@ The only exceptions are `using target` directives, which only apply to the given
 `using target` is a marker to specify requirements for the file to be used (e.g. Scala version, platform, or scope).
 
 :::caution
-The `using target` directives are an experimental feature. They may be subject to changes in the future.
+The `using target` directives are an experimental feature, and may change in future versions of Scala CLI.
 :::
 
 **We believe that syntax similar to `using` directives should become a part of Scala in the future and will already be included within the Scala runner itself**
