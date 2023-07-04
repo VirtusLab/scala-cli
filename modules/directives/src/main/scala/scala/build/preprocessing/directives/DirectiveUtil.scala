@@ -62,9 +62,15 @@ object DirectiveUtil {
   extension (deps: List[Positioned[String]]) {
     def asDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] =
       deps
-        .map {
-          _.map { str =>
-            DependencyParser.parse(str).left.map(new DependencyFormatError(str, _))
+        .map { positionedDep =>
+          positionedDep.map { str =>
+            DependencyParser.parse(str).left.map { error =>
+              new DependencyFormatError(
+                str,
+                error,
+                positions = positionedDep.positions
+              )
+            }
           }.eitherSequence
         }
         .sequence

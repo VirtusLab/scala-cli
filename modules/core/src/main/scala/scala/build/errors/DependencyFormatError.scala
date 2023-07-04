@@ -5,9 +5,8 @@ import scala.build.Position
 final class DependencyFormatError(
   val dependencyString: String,
   val error: String,
-  val originOpt: Option[String] = None,
-  positionOpt: Option[Position] = None
+  positions: Seq[Position]
 ) extends BuildException(
-      s"Error parsing ${originOpt.getOrElse("")}dependency '$dependencyString': $error",
-      positions = positionOpt.toSeq
+      s"Error parsing dependency '$dependencyString': $error",
+      positions = positions
     )
