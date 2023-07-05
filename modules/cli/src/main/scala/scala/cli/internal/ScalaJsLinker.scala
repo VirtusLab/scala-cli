@@ -54,7 +54,7 @@ object ScalaJsLinker {
           case Right(()) =>
             val linkerClassPath = value {
               scala.build.Artifacts.fetch0(
-                Positioned.none(Seq(scalaJsCliDep.toCs)),
+                Seq(Positioned.none(scalaJsCliDep.toCs)),
                 extraRepos,
                 None,
                 forcedVersions.map { case (m, v) => (m.toCs, v) },
