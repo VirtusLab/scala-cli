@@ -9,7 +9,12 @@ import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import dependency.AnyDependency
 
-import scala.build.errors.{DependencyFormatError, ToolkitDirectiveMissingVersionError}
+import scala.build.errors.{
+  CompositeBuildException,
+  DependencyFormatError,
+  FetchingDependenciesError,
+  ToolkitDirectiveMissingVersionError
+}
 
 class DirectiveTests extends munit.FunSuite {
 
@@ -417,6 +422,52 @@ class DirectiveTests extends munit.FunSuite {
               (0, 14),
               (0, 23)
             ))
+          case _ => fail("unexpected BuildException type")
+        }
+    }
+  }
+
+  test("separate dependency resolution errors for each dependency") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using dep org.xyz::foo:0.0.1
+          |//> using dep com.lihaoyi::os-lib:0.9.1 org.qwerty::bar:0.0.1
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.isLeft)
+        val errors = maybeBuild.left.toOption.get
+
+        errors match {
+          case error: CompositeBuildException =>
+            expect(error.exceptions.length == 2)
+            expect(error.exceptions.forall(_.isInstanceOf[FetchingDependenciesError]))
+            expect(error.exceptions.forall(_.positions.length == 1))
+
+            {
+              val xyzError = error.exceptions.find(_.message.contains("org.xyz")).get
+              expect(xyzError.message.startsWith("Error downloading org.xyz:foo"))
+              expect(!xyzError.message.contains("com.lihaoyi"))
+              expect(!xyzError.message.contains("org.qwerty"))
+              expect(xyzError.positions.head == Position.File(
+                Right(root / "simple.sc"),
+                (0, 14),
+                (0, 32)
+              ))
+            }
+
+            {
+              val qwertyError = error.exceptions.find(_.message.contains("org.qwerty")).get
+              expect(qwertyError.message.contains("Error downloading org.qwerty:bar"))
+              expect(!qwertyError.message.contains("com.lihaoyi"))
+              expect(!qwertyError.message.contains("org.xyz"))
+              expect(qwertyError.positions.head == Position.File(
+                Right(root / "simple.sc"),
+                (1, 40),
+                (1, 61)
+              ))
+            }
           case _ => fail("unexpected BuildException type")
         }
     }

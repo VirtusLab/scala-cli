@@ -32,7 +32,7 @@ object LauncherCli {
 
     val fetchedScalaCli =
       Artifacts.fetch(
-        Positioned.none(scalaCliDependency),
+        scalaCliDependency.map(Positioned.none),
         snapshotsRepo,
         Some(scalaParameters),
         logger,
