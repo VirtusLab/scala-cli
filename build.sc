@@ -196,7 +196,7 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listAllAmmonite: _*)
+  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion: _*)
   class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps = Agg(
@@ -1244,6 +1244,15 @@ def copyJvmLauncher(directory: String = "artifacts") = T.command {
   os.copy(
     launcher,
     os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension",
+    createFolders = true,
+    replaceExisting = true
+  )
+}
+def copyJvmBootstrappedLauncher(directory: String = "artifacts") = T.command {
+  val launcher = cliBootstrapped.jar().path
+  os.copy(
+    launcher,
+    os.Path(directory, os.pwd) / s"scala-cli.jar",
     createFolders = true,
     replaceExisting = true
   )
