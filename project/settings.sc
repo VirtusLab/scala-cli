@@ -836,8 +836,9 @@ trait ScalaCliModule extends ScalaModule {
   }
 }
 
-def workspaceDirName = ".scala-build"
-def projectFileName  = "project.scala"
+def workspaceDirName      = ".scala-build"
+def projectFileName       = "project.scala"
+def jvmPropertiesFileName = ".scala-jvmopts"
 
 final case class License(licenseId: String, name: String, reference: String)
 object License {

@@ -46,6 +46,19 @@ In order set them, the `-D` command-line flags must be placed as the first optio
 scala-cli -Dfoo1=bar1 -Dfoo2=bar2 run ...
 ```
 
+The Scala CLI can also load Java properties from the `.scala-jvmopts` file present in the current working
+directory and import these Java properties into Scala CLI. Any java options in the `.scala-jvmopts` that are not
+recognizable as Java properties will be ignored.
+
+The example below shows that the Java properties `foo1` and `foo2` from the `.scala-jvmopts` file will be passed
+into the Scala CLI:
+```bash ignore
+$ cat .scala-jvmopts
+-Dfoo1=bar1 
+-Dfoo2=bar2
+$ scala-cli run ...
+```
+
 :::note
 - `scala-cli run . -Dfoo=bar` would pass the java property into your Scala app
 - `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli.`
