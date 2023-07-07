@@ -120,7 +120,7 @@ object Deps {
   def guava         = ivy"com.google.guava:guava:32.1.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r"
-  def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
+  def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
