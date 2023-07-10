@@ -9,14 +9,20 @@ final case class ScopedSources(
   resourceDirs: Seq[HasScope[os.Path]],
   buildOptions: Seq[HasScope[BuildOptions]]
 ) {
+  def buildOptionsFor(scope: Scope): Seq[BuildOptions] =
+    scope match {
+      case Scope.Test => buildOptions.flatMap(_.valueFor(Scope.Test).toSeq) ++
+          buildOptions.flatMap(_.valueFor(Scope.Main).toSeq)
+      case _ => buildOptions.flatMap(_.valueFor(scope).toSeq)
+    }
+
   def sources(scope: Scope, baseOptions: BuildOptions): Sources =
     Sources(
       paths.flatMap(_.valueFor(scope).toSeq),
       inMemory.flatMap(_.valueFor(scope).toSeq),
       defaultMainClass,
       resourceDirs.flatMap(_.valueFor(scope).toSeq),
-      buildOptions
-        .flatMap(_.valueFor(scope).toSeq)
+      buildOptionsFor(scope)
         .foldRight(baseOptions)(_ orElse _)
     )
 }

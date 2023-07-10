@@ -4,7 +4,14 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt, Scope}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  MaybeScalaVersion,
+  ScalaOptions,
+  ScalacOpt,
+  Scope
+}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import dependency.AnyDependency
@@ -470,6 +477,27 @@ class DirectiveTests extends munit.FunSuite {
             }
           case _ => fail("unexpected BuildException type")
         }
+    }
+  }
+
+  test("main scope dependencies propagate to test scope") {
+    val Scala322Options = baseOptions.copy(scalaOptions =
+      ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion("3.2.2"))
+      )
+    )
+
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using target.scala 3.2.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1
+          |""".stripMargin,
+      os.rel / "test" / "test.sc" ->
+        """println(os.list(os.pwd))
+          |""".stripMargin
+    )
+    testInputs.withBuild(Scala322Options, buildThreads, bloopConfigOpt, scope = Scope.Test) {
+      (root, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
 }
