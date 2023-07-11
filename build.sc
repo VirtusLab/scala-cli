@@ -16,7 +16,8 @@ import $file.project.settings, settings.{
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName,
-  projectFileName
+  projectFileName,
+  jvmPropertiesFileName
 }
 import $file.project.deps, deps.customRepositories
 import $file.project.website
@@ -428,6 +429,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
+         |  def jvmPropertiesFileName = "$jvmPropertiesFileName"
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"

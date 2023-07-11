@@ -163,16 +163,33 @@ object ScalaCli {
       s"Java >= 17 is required to run $fullRunnerName (found Java $javaMajorVersion)"
     )
 
-  private def loadJavaPropertiesFromResources() = {
+  def loadJavaProperties(cwd: os.Path) = {
+    // load java properties from scala-cli-properties resource file
     val prop = new java.util.Properties()
     val cl   = getClass.getResourceAsStream("/java-properties/scala-cli-properties")
     if cl != null then
       prop.load(cl)
       prop.stringPropertyNames().forEach(name => System.setProperty(name, prop.getProperty(name)))
+    // load java properties from .scala-jvmopts located in the current working directory and filter only java properties and warning if someone used other options
+    val jvmopts = cwd / Constants.jvmPropertiesFileName
+    if os.exists(jvmopts) && os.isFile(jvmopts) then
+      val jvmoptsContent        = os.read(jvmopts)
+      val jvmoptsLines          = jvmoptsContent.linesIterator.toSeq
+      val (javaOpts, otherOpts) = jvmoptsLines.partition(_.startsWith("-D"))
+      javaOpts.foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2).match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _                 => System.err.println(s"Warning: Invalid java property: $opt")
+        }
+      }
+      if otherOpts.nonEmpty then
+        System.err.println(
+          s"Warning: Only java properties are supported in .scala-jvmopts file. Other options are ignored: ${otherOpts.mkString(", ")} "
+        )
   }
 
   private def main0(args: Array[String]): Unit = {
-    loadJavaPropertiesFromResources() // load java properties to detect launcher kind
+    loadJavaProperties(cwd = os.pwd) // load java properties to detect launcher kind
     val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
       case Left(e) =>
         System.err.println(e.message)
