@@ -779,13 +779,13 @@ trait FormatNativeImageConf extends JavaModule {
 }
 
 trait ScalaCliScalafixModule extends ScalafixModule {
+
+  override def semanticDbVersion = Deps.Versions.scalaMeta
+
   def scalafixConfig = T {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(os.pwd / ".scalafix3.conf")
   }
-  def scalafixIvyDeps = super.scalafixIvyDeps() ++ Seq(
-    Deps.organizeImports
-  )
   def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
