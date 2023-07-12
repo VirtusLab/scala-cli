@@ -1,10 +1,17 @@
 package scala.build
 
-import ch.epfl.scala.bsp4j.SourcesItem
+import ch.epfl.scala.bsp4j.{
+  ScalaAction,
+  ScalaDiagnostic,
+  ScalaTextEdit,
+  ScalaWorkspaceEdit,
+  SourcesItem
+}
 import ch.epfl.scala.bsp4j as b
 
 import java.util.concurrent.CompletableFuture
 
+import scala.build.errors.Diagnostic
 import scala.jdk.CollectionConverters.*
 
 package object bsp {
