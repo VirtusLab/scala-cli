@@ -133,7 +133,7 @@ case class DirectivesPreprocessor(
 
     val handlersMap = handlers
       .flatMap { handler =>
-        handler.keys.map(k => k -> handleValues(handler))
+        handler.keys.flatMap(_.nameAliases).map(k => k -> handleValues(handler))
       }
       .toMap
 

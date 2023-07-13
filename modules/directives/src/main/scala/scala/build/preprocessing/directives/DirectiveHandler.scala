@@ -37,7 +37,7 @@ trait DirectiveHandler[+T] { self =>
   final def isRestricted: Boolean   = scalaSpecificationLevel == SpecificationLevel.RESTRICTED
   final def isExperimental: Boolean = scalaSpecificationLevel == SpecificationLevel.EXPERIMENTAL
 
-  def keys: Seq[String]
+  def keys: Seq[Key]
 
   def handleValues(
     scopedDirective: ScopedDirective,
@@ -79,6 +79,9 @@ trait DirectiveHandler[+T] { self =>
     }
 
 }
+
+/** Using directive key with all its aliases */
+case class Key(nameAliases: Seq[String])
 
 object DirectiveHandler {
 
@@ -315,9 +318,9 @@ object DirectiveHandler {
       }
 
     val keysValue = Expr.ofList {
-      fields0.flatMap {
+      fields0.map {
         case (sym, _) =>
-          withPrefix(Expr(sym.name)) +: namesFromAnnotations(sym)
+          Expr.ofList(withPrefix(Expr(sym.name)) +: namesFromAnnotations(sym))
       }
     }
 
@@ -429,15 +432,17 @@ object DirectiveHandler {
         def scalaSpecificationLevel = $levelValue
 
         lazy val keys = $keysValue
-          .flatMap(key =>
-            List(
-              key,
-              DirectiveHandler.pascalCaseSplit(key.toCharArray.toList)
-                .map(_.toLowerCase(Locale.ROOT))
-                .mkString("-")
-            )
-          )
-          .distinct
+          .map { nameAliases =>
+            val allAliases = nameAliases.flatMap(key =>
+              List(
+                key,
+                DirectiveHandler.pascalCaseSplit(key.toCharArray.toList)
+                  .map(_.toLowerCase(Locale.ROOT))
+                  .mkString("-")
+              )
+            ).distinct
+            Key(allAliases)
+          }
 
         def handleValues(scopedDirective: ScopedDirective, logger: Logger) =
           ${ handleValuesImpl('{ scopedDirective }, '{ logger }) }
