@@ -237,7 +237,7 @@ class BspClient(
           bAction.setEdit(bScalaWorkspaceEdit)
           val bScalaDiagnostic = new ScalaDiagnostic
           bScalaDiagnostic.setActions(List(bAction).asJava)
-          bDiag.setData("scala")
+          bDiag.setDataKind("scala")
           bDiag.setData(new Gson().toJsonTree(bScalaDiagnostic))
         }
 
