@@ -14,9 +14,9 @@ final case class SnippetOptions(
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("A synonym to --script-snippet, which defaults the sub-command to `run` when no sub-command is passed explicitly")
   @Hidden
+  @Name("e")
   @Name("executeScalaScript")
   @Name("executeSc")
-  @Name("e")
   @Tag(tags.should)
     executeScript: List[String] = List.empty,
 

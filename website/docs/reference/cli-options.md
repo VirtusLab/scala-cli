@@ -1428,7 +1428,7 @@ Set the Scala binary version
 
 ### `--extra-jars`
 
-Aliases: `--class`, `--class-path`, `--classes`, `--classpath`, `-classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
+Aliases: `--class`, `--class-path`, `--classes`, `-classpath`, `--classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
 
 Add extra JARs and compiled classes to the class path
 

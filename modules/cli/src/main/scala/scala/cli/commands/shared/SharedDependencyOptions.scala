@@ -19,8 +19,8 @@ final case class SharedDependencyOptions(
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage(Repository.usageMsg)
-  @Name("repo")
   @Name("r")
+  @Name("repo")
     repository: List[String] = Nil,
   @Group(HelpGroup.Scala.toString)
   @Name("P")

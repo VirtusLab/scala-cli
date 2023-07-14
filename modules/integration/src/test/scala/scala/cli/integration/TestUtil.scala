@@ -296,7 +296,7 @@ object TestUtil {
 
   def normalizeConsoleOutput(text: String) = {
     val allColors =
-      Set(BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, /* GREY */ "\u001b[90m")
+      Set(BOLD, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, /* GREY */ "\u001b[90m")
     allColors.+(Console.RESET).fold(text) { (textAcc, colorStr) =>
       textAcc.replace(colorStr, "")
     }

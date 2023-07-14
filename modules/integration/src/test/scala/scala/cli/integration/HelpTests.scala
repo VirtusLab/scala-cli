@@ -46,6 +46,23 @@ class HelpTests extends ScalaCliSuite {
       expect(fullHelpOutput.contains("Legacy Scala runner options"))
     }
   }
+
+  test("name aliases limited for standard help") {
+    val help       = os.proc(TestUtil.cli, "run", "--help").call()
+    val helpOutput = help.out.trim()
+
+    expect(TestUtil.removeAnsiColors(helpOutput).contains(
+      "--jar, --extra-jars paths"
+    ))
+  }
+
+  test("name aliases not limited for full help") {
+    val help       = os.proc(TestUtil.cli, "run", "--full-help").call()
+    val helpOutput = help.out.trim()
+    expect(TestUtil.removeAnsiColors(helpOutput).contains(
+      "-cp, --jar, --jars, --class, --classes, -classpath, --extra-jar, --classpath, --extra-jars, --class-path, --extra-class, --extra-classes, --extra-class-path paths"
+    ))
+  }
 }
 
 object HelpTests {

@@ -76,17 +76,17 @@ final case class SharedOptions(
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
   @ValueDescription("version")
-  @Name("scala")
   @Name("S")
+  @Name("scala")
   @Tag(tags.must)
     scalaVersion: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
+  @Name("B")
   @Name("scalaBinary")
   @Name("scalaBin")
-  @Name("B")
   @Tag(tags.must)
     scalaBinaryVersion: Option[String] = None,
 
@@ -190,8 +190,8 @@ final case class SharedOptions(
     strictBloopJsonCheck: Option[Boolean] = None,
 
   @Group(HelpGroup.Scala.toString)
-  @Name("output-directory")
   @Name("d")
+  @Name("output-directory")
   @Name("destination")
   @Name("compileOutput")
   @Name("compileOut")
