@@ -16,7 +16,8 @@ The default behaviour of exporting with the `--json` option is printing to stand
 :::caution
 The `export` sub-command is restricted and requires setting the `--power` option to be used.
 You can pass it explicitly or set it globally by running:
-scala-cli config power true
+
+    scala-cli config power true
 :::
 
 :::caution

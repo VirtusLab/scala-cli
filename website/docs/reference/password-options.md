@@ -3,6 +3,13 @@ title: Password options ⚡️
 sidebar_position: 8
 ---
 
+:::caution
+The `export` sub-command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
+:::
+
 Some Scala CLI options expect password / secret values. Passing passwords directly on the command-line
 poses security issues, so Scala CLI offers a few ways to work around that.
 Passwords / secrets can be passed: via environment variables, via a command printing the secret, via a file, or (not recommended)
