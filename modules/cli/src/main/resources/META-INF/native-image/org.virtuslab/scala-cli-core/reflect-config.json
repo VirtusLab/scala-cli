@@ -469,6 +469,13 @@
     "allDeclaredFields": true
   },
   {
+    "name": "ch.epfl.scala.bsp4j.ScalaAction",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
     "name": "ch.epfl.scala.bsp4j.ScalaBuildServer",
     "queryAllDeclaredMethods": true,
     "allDeclaredConstructors": true,
@@ -478,6 +485,13 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.ScalaBuildTarget",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaDiagnostic",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
@@ -541,6 +555,20 @@
   },
   {
     "name": "ch.epfl.scala.bsp4j.ScalaTestParams",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaTextEdit",
+    "allDeclaredConstructors": true,
+    "allPublicConstructors": true,
+    "allDeclaredMethods": true,
+    "allDeclaredFields": true
+  },
+  {
+    "name": "ch.epfl.scala.bsp4j.ScalaWorkspaceEdit",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
     "allDeclaredMethods": true,
