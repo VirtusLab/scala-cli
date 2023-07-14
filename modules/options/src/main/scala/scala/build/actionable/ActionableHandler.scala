@@ -2,10 +2,10 @@ package scala.build.actionable
 
 import scala.build.Logger
 import scala.build.Ops.*
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic}
 import scala.build.options.BuildOptions
 
-trait ActionableHandler[A <: ActionableDiagnostic] {
+trait ActionableHandler[A <: Diagnostic] {
 
   /** Type of setting used to generate actionable diagnostic
     */

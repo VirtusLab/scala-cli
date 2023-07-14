@@ -1345,16 +1345,22 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
             strictlyCheckMessage = false
           )
 
-          val textEdit = new Gson().fromJson[TextEdit](
+          val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
             updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
-            classOf[TextEdit]
+            classOf[b.ScalaDiagnostic]
           )
 
-          expect(textEdit.newText.contains("com.lihaoyi::os-lib:"))
-          expect(textEdit.range.getStart.getLine == 0)
-          expect(textEdit.range.getStart.getCharacter == 15)
-          expect(textEdit.range.getEnd.getLine == 0)
-          expect(textEdit.range.getEnd.getCharacter == 40)
+          val actions = scalaDiagnostic.getActions().asScala.toList
+          assert(actions.size == 1)
+          val changes = actions.head.getEdit().getChanges().asScala.toList
+          assert(changes.size == 1)
+          val textEdit = changes.head
+
+          expect(textEdit.getNewText().contains("com.lihaoyi::os-lib:"))
+          expect(textEdit.getRange().getStart.getLine == 0)
+          expect(textEdit.getRange().getStart.getCharacter == 15)
+          expect(textEdit.getRange().getEnd.getLine == 0)
+          expect(textEdit.getRange().getEnd.getCharacter == 40)
         }
     }
   }

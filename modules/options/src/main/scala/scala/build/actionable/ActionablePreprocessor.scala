@@ -11,7 +11,7 @@ object ActionablePreprocessor {
 
   def generateActionableDiagnostics(
     options: BuildOptions
-  ): Either[BuildException, Seq[ActionableDiagnostic]] =
+  ): Either[BuildException, Seq[Diagnostic]] =
     actionableHandlers
       .map(handler => handler.createActionableDiagnostics(options))
       .sequence
