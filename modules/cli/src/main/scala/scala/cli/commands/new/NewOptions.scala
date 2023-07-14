@@ -7,7 +7,9 @@ import scala.cli.commands.shared.*
 @HelpMessage(NewOptions.newMessage, "", NewOptions.detailedNewMessage)
 final case class NewOptions(
   @Recurse
-  global: GlobalOptions = GlobalOptions()
+  global: GlobalOptions = GlobalOptions(),
+  @Recurse
+  shared: SharedOptions = SharedOptions()
 ) extends HasGlobalOptions
 
 object NewOptions {

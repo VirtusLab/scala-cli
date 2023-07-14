@@ -3,11 +3,13 @@ package scala.cli.commands.`new`
 import caseapp.core.RemainingArgs
 import dependency.*
 
+import scala.build.input.Inputs
 import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Logger, Positioned}
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.{CoursierOptions, HelpCommandGroup}
+import scala.cli.commands.setupide.SetupIde
+import scala.cli.commands.shared.{CoursierOptions, HelpCommandGroup, SharedOptions}
 
 object New extends ScalaCommand[NewOptions] {
   override def group: String = HelpCommandGroup.Main.toString
@@ -54,5 +56,22 @@ object New extends ScalaCommand[NewOptions] {
         allowExecve = true
       ).waitFor()
 
+    if (exitCode == 0) {
+      val inputs = options.shared.inputs(
+        remainingArgs.remaining,
+        () => Inputs.default()
+      )(
+        using invokeData
+      ).orExit(logger)
+
+      SetupIde.runSafe(
+        options.shared,
+        inputs,
+        logger,
+        buildOptions,
+        Some(name),
+        Seq.empty
+      )
+    }
     sys.exit(exitCode)
 }
