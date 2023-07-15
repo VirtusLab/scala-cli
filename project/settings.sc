@@ -1,5 +1,5 @@
-import $ivy.`com.goyeau::mill-scalafix::0.2.8`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.23`
+import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
 
 import $file.deps,
   deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
@@ -14,6 +14,7 @@ import java.util.Locale
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
+import upickle.core.LinkedHashMap
 import upickle.default._
 
 private def isCI = System.getenv("CI") != null
@@ -37,7 +38,7 @@ def fromPath(name: String): String =
 
     candidates
       .filter(_.canExecute)
-      .toStream
+      .to(LazyList)
       .headOption
       .map(_.getAbsolutePath)
       .getOrElse {
@@ -538,7 +539,7 @@ trait HasTests extends SbtModule {
       else Nil
     super.scalacOptions() ++ extraOptions
   }
-  trait Tests extends super.Tests {
+  trait ScalaCliTests extends super.SbtModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
@@ -703,7 +704,13 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
           json.arrOpt.fold(json) { arr =>
             val values =
               arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
-                val entries = t.map(_.obj).reduce(_ ++ _)
+                val entries =
+                  t.map(_.obj).foldLeft(LinkedHashMap[String, ujson.Value]()) {
+                    case (acc, obj) =>
+                      obj.iterator.foldLeft(acc) { case (acc, v) =>
+                        acc.addOne(v)
+                      }
+                  }
                 if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
                   entries -= "fields"
                 if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
@@ -815,10 +822,9 @@ trait ScalaCliScalafixModule extends ScalafixModule {
   }
 }
 
-trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
+trait ScalaCliCrossSbtModule extends Cross.Module[String] with CrossSbtModule with ScalaCliModule
 trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
-trait ScalaCliTests extends TestModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
   def javacOptions = super.javacOptions() ++ Seq(
@@ -838,11 +844,11 @@ trait ScalaCliModule extends ScalaModule {
 def workspaceDirName = ".scala-build"
 def projectFileName  = "project.scala"
 
-final case class License(licenseId: String, name: String, reference: String)
+case class License(licenseId: String, name: String, reference: String)
 object License {
   implicit val rw: ReadWriter[License] = macroRW
 }
-final case class Licenses(licenses: List[License])
+case class Licenses(licenses: List[License])
 object Licenses {
   implicit val rw: ReadWriter[Licenses] = macroRW
 }
