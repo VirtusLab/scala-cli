@@ -826,7 +826,6 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 trait ScalaCliCrossSbtModule extends Cross.Module[String] with CrossSbtModule with ScalaCliModule
 trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
-
 trait ScalaCliModule extends ScalaModule {
   def javacOptions = super.javacOptions() ++ Seq(
     "--release",

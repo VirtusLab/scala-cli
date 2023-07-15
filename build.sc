@@ -93,11 +93,7 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   }
 }
 object integration extends CliIntegration {
-  object test extends IntegrationScalaTests {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      Deps.jgit
-    )
-  }
+  object test extends IntegrationScalaTests
   object docker extends CliIntegrationDocker {
     object test extends IntegrationScalaTests {
       def sources = T.sources {
@@ -889,6 +885,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.coursier
         .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros")),
       Deps.dockerClient,
+      Deps.jgit,
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
