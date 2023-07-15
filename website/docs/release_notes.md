@@ -7,6 +7,198 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.2)
+
+## What's new
+
+This release brings enhancements to Scala CLI:
+- WinGet installation for Windows users
+- better navigation with improved build target names
+- introducing `new` command for Giter8 project generation
+- easier JVM properties management with `.scalaopts` file support.
+
+The release also includes numerous bug fixes, updates, and new contributors.
+
+## Installation via WinGet on Windows
+
+Scala CLI can now be installed via [WinGet](https://learn.microsoft.com/en-gb/windows/package-manager/) on Windows, with
+a command such as
+
+```bat
+winget install virtuslab.scalacli
+```
+
+Added by [@mimoguz](https://github.com/mimoguz) in [#2239](https://github.com/VirtusLab/scala-cli/pull/2239), Thanks!
+
+## Enhanced build target names
+
+Now, the build target name will be derived from the workspace directory that contains it, making it easier for users to
+navigate between different projects within a multi-root workspace. Instead of a build target named as `project_XYZ-XYZ`,
+you will now see the name like `workspace_XYZ-XYZ`, where `workspace` refers to the name of the workspace directory.
+
+```
+.
+├── scripts
+│   ├── .scala-build
+│   │   └── scripts_59f2159dd5
+│   └── one.sc
+├── skan
+│   ├── .scala-build
+│   │   └── skan_88b44a2858
+│   └── main.scala
+└── skan.code-workspace
+```
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#2201](https://github.com/VirtusLab/scala-cli/pull/2201)
+
+## Introducing 'new' command for Giter8 project generation
+
+Giter8 is a project templating tool for Scala, and its integration within Scala CLI offers efficient way to set up new
+projects. By using the `new` command, users can generate new projects based on predefined or custom templates.
+
+For example:
+
+```bash
+scala-cli --power new VirtusLab/scala-cli.g8
+```
+
+Added by [@zetashift](https://github.com/zetashift) in [#2202](https://github.com/VirtusLab/scala-cli/pull/2202), Thanks!
+
+## Loading Java Properties from `.scalaopts` into ScalaCLI launcher
+
+ScalaCLI allows to load Java properties into `scala-cli` launcher directly from a `.scalaopts` file located in your
+current working directory. This will simplify the JVM properties management process, eliminating the need to pass these
+properties with each scala-cli execution.
+
+For instance, if `-Djavax.net.ssl.trustStore=cacerts` and `-Dfoo2=bar2` are defined within your `.scalaopts` file, these
+values will be loaded into `scala-cli` launcher:
+
+```bash ignore
+$ cat .scalaopts
+-Djavax.net.ssl.trustStore=cacerts
+-Dfoo2=bar2
+$ scala-cli run ...
+```
+
+Added by [@lwronski](https://github.com/lwronski) in  [#2267](https://github.com/VirtusLab/scala-cli/pull/2267)
+
+Please be aware that ScalaCLI will only process Java properties that it recognizes from the `.scalaopts` file. Other JVM
+options, such as` -Xms1024m`, will be ignored as they can't be used within native image, and users will be alerted with 
+a warning message when such non-compliant options are passed.
+
+## Other changes
+
+* Add publish.doc directive by [@lwronski](https://github.com/lwronski)
+  in [#2245](https://github.com/VirtusLab/scala-cli/pull/2245)
+* Fix pgp create with no java 17 by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2189](https://github.com/VirtusLab/scala-cli/pull/2189)
+* Support for running standalone launcher of scala-cli with JVM 8 by [@lwronski](https://github.com/lwronski)
+  in [#2253](https://github.com/VirtusLab/scala-cli/pull/2253)
+
+### Fixes
+
+* Make dependencies keep their positions when fetching by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2266](https://github.com/VirtusLab/scala-cli/pull/2266)
+* Fix empty position in DependencyFormatErrors by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2261](https://github.com/VirtusLab/scala-cli/pull/2261)
+* Script wrapper verification by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2227](https://github.com/VirtusLab/scala-cli/pull/2227)
+* Fix - include test.resourceDir into sources for test scope by [@lwronski](https://github.com/lwronski)
+  in [#2235](https://github.com/VirtusLab/scala-cli/pull/2235)
+* Fix markdown - allow running .md files that start with a number by [@lwronski](https://github.com/lwronski)
+  in [#2225](https://github.com/VirtusLab/scala-cli/pull/2225)
+* Fix dep update error by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2211](https://github.com/VirtusLab/scala-cli/pull/2211)
+* Add new mechanism for resolving scoped BuildOptions by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2274](https://github.com/VirtusLab/scala-cli/pull/2274)
+* Fix - download cs from coursier-m1 as an archive by [@lwronski](https://github.com/lwronski)
+  in [#2193](https://github.com/VirtusLab/scala-cli/pull/2193)
+* Fix - Truncate file length to 0 when override content by [@lwronski](https://github.com/lwronski)
+  in [#2188](https://github.com/VirtusLab/scala-cli/pull/2188)
+
+### Documentation changes
+
+* Add mentions that using target directives are experimental by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2262](https://github.com/VirtusLab/scala-cli/pull/2262)
+* Fix inline code in directives docs by [@izzyreal](https://github.com/izzyreal)
+  in [#2233](https://github.com/VirtusLab/scala-cli/pull/2233)
+* Update docs - dependency parameters by [@lwronski](https://github.com/lwronski)
+  in [#2224](https://github.com/VirtusLab/scala-cli/pull/2224)
+* Update directive docs for Platform by [@lwronski](https://github.com/lwronski)
+  in [#2213](https://github.com/VirtusLab/scala-cli/pull/2213)
+
+### Build and internal changes
+
+* Build changes by [@lwronski](https://github.com/lwronski) in [#2263](https://github.com/VirtusLab/scala-cli/pull/2263)
+* Remove file change portion of test by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2251](https://github.com/VirtusLab/scala-cli/pull/2251)
+* Add logging to 'watch with interactive' test by [@MaciejG604](https://github.com/MaciejG604)
+  in [#2229](https://github.com/VirtusLab/scala-cli/pull/2229)
+* Add support for parsing cancel params in native launcher of Scala CLI by [@lwronski](https://github.com/lwronski)
+  in [#2195](https://github.com/VirtusLab/scala-cli/pull/2195)
+
+### Updates and maintenance
+
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.7
+  by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2271](https://github.com/VirtusLab/scala-cli/pull/2271)
+* Update trees_2.13 to 4.8.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2272](https://github.com/VirtusLab/scala-cli/pull/2272)
+* Update core_2.13 to 3.8.16 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2270](https://github.com/VirtusLab/scala-cli/pull/2270)
+* Update jimfs to 1.3.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2269](https://github.com/VirtusLab/scala-cli/pull/2269)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.6
+  by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2264](https://github.com/VirtusLab/scala-cli/pull/2264)
+* Update trees_2.13 to 4.8.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2265](https://github.com/VirtusLab/scala-cli/pull/2265)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.5
+  by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2256](https://github.com/VirtusLab/scala-cli/pull/2256)
+* Update trees_2.13 to 4.8.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2257](https://github.com/VirtusLab/scala-cli/pull/2257)
+* Update guava to 32.1.1-jre by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2259](https://github.com/VirtusLab/scala-cli/pull/2259)
+* Update coursier-jvm_2.13, ... to 2.1.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2232](https://github.com/VirtusLab/scala-cli/pull/2232)
+* Update sbt to 1.9.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2222](https://github.com/VirtusLab/scala-cli/pull/2222)
+* Update dependency to 0.2.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2219](https://github.com/VirtusLab/scala-cli/pull/2219)
+* Update org.eclipse.jgit to 6.6.0.202305301015-r
+  by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2220](https://github.com/VirtusLab/scala-cli/pull/2220)
+* Updates - `amm` (`2.5.9`), `scala-library` (`2.12.18`, `2.13.11`) by [@lwronski](https://github.com/lwronski)
+  in [#2223](https://github.com/VirtusLab/scala-cli/pull/2223)
+* Update bsp4j to 2.1.0-M5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2216](https://github.com/VirtusLab/scala-cli/pull/2216)
+* Update jsoniter-scala-core, ... to 2.23.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2217](https://github.com/VirtusLab/scala-cli/pull/2217)
+* Update scala-collection-compat to 2.11.0 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2221](https://github.com/VirtusLab/scala-cli/pull/2221)
+* Update test-runner, tools to 0.4.14 by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2192](https://github.com/VirtusLab/scala-cli/pull/2192)
+* Bump VirtusLab/scala-cli-setup from 1.0.0 to 1.0.1
+  by [@dependabot](https://docs.github.com/en/code-security/dependabot)
+  in [#2207](https://github.com/VirtusLab/scala-cli/pull/2207)
+* Update guava to 32.0.1-jre by [@scala-steward](https://github.com/scala-steward-org/scala-steward)
+  in [#2197](https://github.com/VirtusLab/scala-cli/pull/2197)
+* Update scala-cli.sh launcher for 1.0.1 by @github-actions in [#2194](https://github.com/VirtusLab/scala-cli/pull/2194)
+* Upgrade scripts to latest coursier by [@mkurz](https://github.com/mkurz)
+  in [#1728](https://github.com/VirtusLab/scala-cli/pull/1728)
+
+## New Contributors
+
+* [@zetashift](https://github.com/zetashift) made their first contribution
+  in [#2202](https://github.com/VirtusLab/scala-cli/pull/2202)
+* [@izzyreal](https://github.com/izzyreal) made their first contribution
+  in [#2233](https://github.com/VirtusLab/scala-cli/pull/2233)
+* [@mimoguz](https://github.com/mimoguz) made their first contribution
+  in [#2239](https://github.com/VirtusLab/scala-cli/pull/2239)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.1...v1.0.2
+
 ## [v1.0.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.1)
 
 ## What's new

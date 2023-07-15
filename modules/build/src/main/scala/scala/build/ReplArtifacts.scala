@@ -53,14 +53,14 @@ object ReplArtifacts {
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
     val allDeps = dependencies ++ Seq(dep"com.lihaoyi:::ammonite:$ammoniteVersion") ++ scalapyDeps
     val replArtifacts = Artifacts.artifacts(
-      Positioned.none(allDeps),
+      allDeps.map(Positioned.none),
       extraRepositories,
       Some(scalaParams),
       logger,
       cache.withMessage(s"Downloading Ammonite $ammoniteVersion")
     )
     val replSourceArtifacts = Artifacts.artifacts(
-      Positioned.none(allDeps),
+      allDeps.map(Positioned.none),
       extraRepositories,
       Some(scalaParams),
       logger,
@@ -95,7 +95,7 @@ object ReplArtifacts {
     val allDeps = dependencies ++ Seq(replDep) ++ scalapyDeps
     val replArtifacts =
       Artifacts.artifacts(
-        Positioned.none(allDeps),
+        allDeps.map(Positioned.none),
         repositories,
         Some(scalaParams),
         logger,

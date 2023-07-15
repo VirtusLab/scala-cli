@@ -34,6 +34,8 @@ object Scala {
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
   def maxAmmoniteScala3Version   = "3.2.2"
+  lazy val listMaxAmmoniteScalaVersion =
+    Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
     import coursier.core.Version
     val max212 = Version(maxAmmoniteScala212Version)
@@ -86,7 +88,7 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.7.8"
+    def scalaMeta            = "4.8.4"
     def scalaNative          = "0.4.14"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.2"
@@ -101,7 +103,7 @@ object Deps {
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.6-sc-8"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M24"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M25"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
@@ -115,17 +117,17 @@ object Deps {
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = ivy"com.google.guava:guava:32.0.1-jre"
+  def guava         = ivy"com.google.guava:guava:32.1.1-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r"
-  def jimfs         = ivy"com.google.jimfs:jimfs:1.2"
+  def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterCoreJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterMacros =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
+    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
@@ -144,7 +146,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.4"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.7"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
@@ -165,12 +167,16 @@ object Deps {
     ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
   def signingCli =
     ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
   def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.7"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.15"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.8.16"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.10"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"

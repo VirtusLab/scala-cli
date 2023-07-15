@@ -71,7 +71,7 @@ object Bloop {
     either {
       val res = value {
         Artifacts.artifacts(
-          Positioned.none(Seq(dep)),
+          Seq(Positioned.none(dep)),
           Nil,
           Some(params),
           logger,

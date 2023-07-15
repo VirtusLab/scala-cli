@@ -15,7 +15,8 @@ import $file.project.settings, settings.{
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName,
-  projectFileName
+  projectFileName,
+  jvmPropertiesFileName
 }
 import $file.project.deps, deps.customRepositories
 import $file.project.website
@@ -51,6 +52,19 @@ object cliBootstrapped extends ScalaCliPublishModule {
     Assembly.Rule.ExcludePattern(".*\\.tasty"),
     Assembly.Rule.ExcludePattern(".*\\.semanticdb")
   ) ++ super.assemblyRules
+
+  override def resources = T.sources {
+    super.resources() ++ Seq(propertiesFilesResources())
+  }
+
+  def propertiesFilesResources = T.persistent {
+    val dir = T.dest / "resources"
+
+    val dest    = dir / "java-properties" / "scala-cli-properties"
+    val content = "scala-cli.kind=jvm.bootstrapped"
+    os.write.over(dest, content, createFolders = true)
+    PathRef(dir)
+  }
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all)
@@ -182,7 +196,7 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listAllAmmonite)
+  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
   trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
     def crossScalaVersion = crossValue
     def skipBloop         = true
@@ -415,6 +429,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
+         |  def jvmPropertiesFileName = "$jvmPropertiesFileName"
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
@@ -1050,6 +1065,11 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
         cli.standaloneLauncher,
         "jvm"
       ).test(args: _*)
+    def jvmBootstrapped(args: String*) =
+      new TestHelper(
+        cliBootstrapped.jar,
+        "jvmBootstrapped"
+      ).test(args: _*)
     def native(args: String*) =
       new TestHelper(
         if (System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY") == null) cli.nativeImage
@@ -1235,6 +1255,15 @@ def copyJvmLauncher(directory: String = "artifacts") = T.command {
   os.copy(
     launcher,
     os.Path(directory, os.pwd) / s"scala-cli$platformExecutableJarExtension",
+    createFolders = true,
+    replaceExisting = true
+  )
+}
+def copyJvmBootstrappedLauncher(directory: String = "artifacts") = T.command {
+  val launcher = cliBootstrapped.jar().path
+  os.copy(
+    launcher,
+    os.Path(directory, os.pwd) / s"scala-cli.jar",
     createFolders = true,
     replaceExisting = true
   )

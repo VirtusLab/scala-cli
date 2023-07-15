@@ -16,6 +16,7 @@ object TestUtil {
 
   val cliKind: String              = sys.props("test.scala-cli.kind")
   val isNativeCli: Boolean         = cliKind.startsWith("native")
+  val isJvmCli: Boolean            = cliKind.startsWith("jvm")
   val isCI: Boolean                = System.getenv("CI") != null
   val cliPath: String              = sys.props("test.scala-cli.path")
   val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
@@ -295,7 +296,7 @@ object TestUtil {
 
   def normalizeConsoleOutput(text: String) = {
     val allColors =
-      Set(BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, /* GREY */ "\u001b[90m")
+      Set(BOLD, BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE, /* GREY */ "\u001b[90m")
     allColors.+(Console.RESET).fold(text) { (textAcc, colorStr) =>
       textAcc.replace(colorStr, "")
     }

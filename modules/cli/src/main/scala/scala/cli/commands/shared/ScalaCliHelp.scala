@@ -60,4 +60,5 @@ object ScalaCliHelp {
     .withSortedCommandGroups(sortedCommandGroups)
     .withSortedGroups(sortedHelpGroups)
     .withHiddenGroups(hiddenHelpGroups)
+    .withNamesLimit(2)
 }

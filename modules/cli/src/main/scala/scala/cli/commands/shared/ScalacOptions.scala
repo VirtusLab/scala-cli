@@ -15,9 +15,9 @@ final case class ScalacOptions(
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Add a scalac option")
   @ValueDescription("option")
+  @Name("O")
   @Name("scala-opt")
   @Name("scala-option")
-  @Name("O")
   @Tag(tags.must)
     scalacOption: List[String] = Nil
 )

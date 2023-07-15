@@ -61,6 +61,7 @@ object ArgHelpers {
       helpFormat.copy(sortedGroups = Some(sortedGroups.map(_.toString)))
     def withSortedCommandGroups(sortedGroups: Seq[HelpCommandGroup]): HelpFormat =
       helpFormat.copy(sortedCommandGroups = Some(sortedGroups.map(_.toString)))
-
+    def withNamesLimit(namesLimit: Int): HelpFormat =
+      helpFormat.copy(namesLimit = Some(namesLimit))
   }
 }

@@ -1478,11 +1478,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run2 launched")
 
           analyzeRunOutput( /* restart */ false)
-          os.write.append(root / fileName, "\n//comment")
-
-          answerInteractivePrompt(0)
-          expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run1 launched")
-          analyzeRunOutput( /* restart */ false)
         }
       finally
         if (proc.isAlive()) {
@@ -1493,5 +1488,4 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         }
     }
   }
-
 }

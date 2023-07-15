@@ -194,7 +194,7 @@ object PgpExternalCommand {
 
       val signingClassPath = value {
         scala.build.Artifacts.fetch0(
-          Positioned.none(Seq(jvmSigningDep.toCs)),
+          Seq(Positioned.none(jvmSigningDep.toCs)),
           extraRepos,
           None,
           Nil,

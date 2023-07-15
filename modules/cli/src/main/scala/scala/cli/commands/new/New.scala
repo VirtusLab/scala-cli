@@ -20,7 +20,7 @@ object New extends ScalaCommand[NewOptions] {
   override def runCommand(options: NewOptions, remainingArgs: RemainingArgs, logger: Logger): Unit =
     val scalaParameters = ScalaParameters(Constants.defaultScala213Version)
     val fetchedGiter8 = Artifacts.fetch(
-      Positioned.none(giter8Dependency),
+      giter8Dependency.map(Positioned.none),
       Seq.empty,
       Some(scalaParameters),
       logger,

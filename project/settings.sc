@@ -522,6 +522,7 @@ trait CliLaunchers extends SbtModule { self =>
     val params = Parameters.Bootstrap(Seq(loaderContent), mainClass0)
       .withDeterministic(true)
       .withPreamble(preamble)
+      .withJavaProperties(Seq("scala-cli.kind" -> "jvm.standaloneLauncher"))
 
     BootstrapGenerator.generate(params, dest.toNIO)
 
@@ -841,8 +842,9 @@ trait ScalaCliModule extends ScalaModule {
   }
 }
 
-def workspaceDirName = ".scala-build"
-def projectFileName  = "project.scala"
+def workspaceDirName      = ".scala-build"
+def projectFileName       = "project.scala"
+def jvmPropertiesFileName = ".scala-jvmopts"
 
 case class License(licenseId: String, name: String, reference: String)
 object License {
