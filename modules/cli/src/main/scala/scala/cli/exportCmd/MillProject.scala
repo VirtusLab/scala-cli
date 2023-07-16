@@ -109,6 +109,17 @@ final case class MillProject(
           resources.map(resource => s"  $resource").appendOnInit(",") ++
           Seq(").map(PathRef(_))")
       }
+    val millScalaTestPlatform = if (scalaJsVersion.nonEmpty) "ScalaJSTests"
+    else if (scalaNativeVersion.nonEmpty) "ScalaNativeTests"
+    else "ScalaTests"
+    val maybeTestDefinition = if (testSources.nonEmpty)
+      Seq(
+        "",
+        s"  object test extends $millScalaTestPlatform {"
+      ) ++
+        maybeDeps(testDeps).map(s => s"    $s") ++
+        extraTestDecls.map(s => s"    $s") ++ Seq("  }")
+    else Seq.empty
 
     val buildSc: String = {
       val parts: Seq[String] = Seq(
@@ -125,16 +136,8 @@ final case class MillProject(
         maybeMain.map(s => s"  $s") ++
         customResourcesDecls.map(s => s"  $s") ++
         extraDecls.map("  " + _) ++
-        Seq(
-          "",
-          "  object test extends Tests {"
-        ) ++
-        maybeDeps(testDeps).map(s => s"    $s") ++
-        extraTestDecls.map(s => s"    $s") ++ Seq(
-          "  }",
-          "}",
-          ""
-        )
+        maybeTestDefinition ++
+        Seq("}", "")
       parts.mkString(nl)
     }
 
