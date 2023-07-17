@@ -14,6 +14,7 @@ import java.util.Locale
 import mill._, scalalib._
 import scala.collection.JavaConverters._
 import scala.util.Properties
+import upickle.core.LinkedHashMap
 import upickle.default._
 
 private def isCI = System.getenv("CI") != null
@@ -704,7 +705,13 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
           json.arrOpt.fold(json) { arr =>
             val values =
               arr.toVector.groupBy(_("name").str).toVector.sortBy(_._1).map(_._2).map { t =>
-                val entries = t.map(_.obj).reduce(_ ++ _)
+                val entries =
+                  t.map(_.obj).foldLeft(LinkedHashMap[String, ujson.Value]()) {
+                    case (acc, obj) =>
+                      obj.iterator.foldLeft(acc) { case (acc, v) =>
+                        acc.addOne(v)
+                      }
+                  }
                 if (entries.get("allDeclaredFields") == Some(ujson.Bool(true)))
                   entries -= "fields"
                 if (entries.get("allDeclaredMethods") == Some(ujson.Bool(true)))
