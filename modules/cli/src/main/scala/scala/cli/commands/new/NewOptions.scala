@@ -9,7 +9,8 @@ final case class NewOptions(
   @Recurse
   global: GlobalOptions = GlobalOptions(),
   @Recurse
-  shared: SharedOptions = SharedOptions()
+  shared: SharedOptions = SharedOptions(),
+  out: String = ".",
 ) extends HasGlobalOptions
 
 object NewOptions {
