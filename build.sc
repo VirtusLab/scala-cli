@@ -12,7 +12,6 @@ import $file.project.settings, settings.{
   ScalaCliCrossSbtModule,
   ScalaCliSbtModule,
   ScalaCliScalafixModule,
-  ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName,
@@ -94,13 +93,13 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   }
 }
 object integration extends CliIntegration {
-  object test extends Tests with ScalaCliTests {
+  object test extends IntegrationScalaTests {
     def ivyDeps = super.ivyDeps() ++ Seq(
       Deps.jgit
     )
   }
   object docker extends CliIntegrationDocker {
-    object test extends Tests with ScalaCliTests {
+    object test extends ScalaCliTests {
       def sources = T.sources {
         super.sources() ++ integration.sources()
       }
@@ -115,7 +114,7 @@ object integration extends CliIntegration {
     }
   }
   object `docker-slim` extends CliIntegrationDocker {
-    object test extends Tests with ScalaCliTests {
+    object test extends ScalaCliTests {
       def sources = T.sources {
         integration.docker.test.sources()
       }
@@ -149,7 +148,7 @@ object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests 
   }
   def forkEnv = super.forkEnv() ++ extraEnv()
 
-  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     def forkEnv = super.forkEnv() ++ extraEnv() ++ Seq(
       "SCALA_CLI_EXAMPLES"                -> (os.pwd / "examples").toString,
       "SCALA_CLI_GIF_SCENARIOS"           -> (os.pwd / "gifs" / "scenarios").toString,
@@ -240,7 +239,7 @@ trait BuildMacros extends ScalaCliSbtModule
       )
   }
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
 
     // Is there a better way to add task dependency to test?
     def test(args: String*) = T.command {
@@ -488,7 +487,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint
     )
@@ -572,7 +571,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
@@ -649,7 +648,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint,
       Deps.slf4jNop
@@ -836,7 +835,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`.test
     )
@@ -880,7 +879,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   )
 
   private def mainArtifactName = T(artifactName())
-  trait Tests extends super.Tests with ScalaCliScalafixModule {
+  trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
       Deps.coursier
