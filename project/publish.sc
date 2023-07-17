@@ -1,4 +1,4 @@
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r`
 import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
