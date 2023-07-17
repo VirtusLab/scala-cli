@@ -26,6 +26,7 @@ class NewTests extends ScalaCliSuite {
       os.proc(TestUtil.cli, "--power", "new", simpleTemplateName).call(cwd = root)
       val content = os.read(root / "HelloWorld.scala")
       expect(content == expectedTemplateContent)
+      expect(os.exists(root / ".bsp" / "scala-cli.json"))
     }
   }
 
