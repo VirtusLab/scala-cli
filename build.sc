@@ -1180,26 +1180,29 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.comma
   )
 }
 
-def copyTo(task: mill.main.Tasks[PathRef], dest: os.Path) = T.command {
+def copyTo(task: mill.main.Tasks[PathRef], dest: String) = T.command {
+  val destPath = os.Path(dest, os.pwd)
   if (task.value.length > 1)
     sys.error("Expected a single task")
   val ref = task.value.head()
-  os.makeDir.all(dest / os.up)
-  os.copy.over(ref.path, dest)
+  os.makeDir.all(destPath / os.up)
+  os.copy.over(ref.path, destPath)
 }
 
-def writePackageVersionTo(dest: os.Path) = T.command {
+def writePackageVersionTo(dest: String) = T.command {
+  val destPath = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version =
     if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
     else rawVersion
-  os.write.over(dest, version)
+  os.write.over(destPath, version)
 }
 
-def writeShortPackageVersionTo(dest: os.Path) = T.command {
+def writeShortPackageVersionTo(dest: String) = T.command {
+  val destPath = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
-  os.write.over(dest, version)
+  os.write.over(destPath, version)
 }
 
 def importedLauncher(directory: String = "artifacts"): Array[Byte] = {
