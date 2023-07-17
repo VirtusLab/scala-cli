@@ -72,7 +72,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -782,7 +782,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -1327,7 +1327,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -1886,7 +1886,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -2470,7 +2470,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -3042,7 +3042,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -3633,7 +3633,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -4281,7 +4281,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 
@@ -5136,7 +5136,7 @@ Aliases: `--dep`
 
 Add compile-only dependencies
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep` ,`--compile-lib`
 
 **--compiler-plugin**
 

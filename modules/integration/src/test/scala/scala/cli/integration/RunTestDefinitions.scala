@@ -302,12 +302,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == "Hello from test")
     }
   }
-
+  
   // TODO Adapt this test to Scala 3
   if (actualScalaVersion.startsWith("2."))
     test("Compile-time only JARs") {
       compileTimeOnlyJars()
     }
+
+  test("compile-time only for jsoniter macros") {
+    val inputs = TestInputs(
+      os.rel / "hello.sc" ->
+        """|//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
+           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+           |
+           |import com.github.plokhotnyuk.jsoniter_scala.core._
+           |import com.github.plokhotnyuk.jsoniter_scala.macros._
+           |
+           |case class User(name: String, friends: Seq[String])
+           |implicit val codec: JsonValueCodec[User] = JsonCodecMaker.make
+           |
+           |val user = readFromString[User]("{\"name\":\"John\",\"friends\":[\"Mark\"]}")
+           |System.out.println(user.name)
+           |val classPath = System.getProperty("java.class.path").split(java.io.File.pathSeparator).iterator.toList
+           |System.out.println(classPath)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output.contains("John"))
+      expect(!output.contains("jsoniter-scala-macros"))
+    }
+  }
 
   def compileTimeOnlyDep(): Unit = {
 
@@ -343,7 +370,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  // TODO Adapt this test to Scala 3
   if (actualScalaVersion.startsWith("2."))
     test("Compile-time only dep") {
       compileTimeOnlyDep()

@@ -255,7 +255,7 @@ Add dependencies
 
 ### `--compile-only-dependency`
 
-Aliases: `--compile-dep`
+Aliases: `--compile-dep`, `--compile-lib`
 
 Add compile-only dependencies
 
