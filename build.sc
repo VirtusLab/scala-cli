@@ -35,8 +35,8 @@ import mill.contrib.bloop.Bloop
 import _root_.scala.util.{Properties, Using}
 
 // Tell mill modules are under modules/
-implicit def millModuleBasePath: define.BasePath =
-  define.BasePath(super.millModuleBasePath.value / "modules")
+implicit def millModuleBasePath: define.Ctx.BasePath =
+  define.Ctx.BasePath(super.millModuleBasePath.value / "modules")
 
 object cli extends Cli
 
