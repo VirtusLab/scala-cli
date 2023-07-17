@@ -1,4 +1,4 @@
-import $ivy.`com.goyeau::mill-scalafix::0.2.8`
+import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
 
 import $file.deps,
