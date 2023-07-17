@@ -31,7 +31,7 @@ object LauncherCli {
     val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$cliVersion")
 
     val fetchedScalaCli =
-      Artifacts.fetch(
+      Artifacts.fetchAnyDependencies(
         scalaCliDependency.map(Positioned.none),
         snapshotsRepo,
         Some(scalaParameters),

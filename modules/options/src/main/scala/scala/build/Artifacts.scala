@@ -197,7 +197,7 @@ object Artifacts {
             )
             Some {
               val (_, res) = value {
-                fetch0(
+                fetchCsDependencies(
                   dependency.map(Positioned.none),
                   allExtraRepositories,
                   None,
@@ -225,7 +225,7 @@ object Artifacts {
           case Some(dependency) =>
             Some {
               val (_, res) = value {
-                fetch0(
+                fetchCsDependencies(
                   dependency.map(Positioned.none),
                   allExtraRepositories,
                   None,
@@ -314,7 +314,7 @@ object Artifacts {
     }
 
     val (fetcher, fetchRes) = value {
-      fetchKeepFetcher(
+      fetchAnyDependenciesWithResult(
         allUpdatedDependencies,
         allExtraRepositories,
         scalaArtifactsParamsOpt.map(_.params),
@@ -436,7 +436,14 @@ object Artifacts {
     classifiersOpt: Option[Set[String]] = None
   ): Either[BuildException, Seq[(String, os.Path)]] = either {
     val res =
-      value(fetch(dependencies, extraRepositories, paramsOpt, logger, cache, classifiersOpt))
+      value(fetchAnyDependencies(
+        dependencies,
+        extraRepositories,
+        paramsOpt,
+        logger,
+        cache,
+        classifiersOpt
+      ))
     val result = res
       .artifacts
       .iterator
@@ -481,7 +488,7 @@ object Artifacts {
         }
       )
 
-  def fetch(
+  def fetchAnyDependencies(
     dependencies: Seq[Positioned[AnyDependency]],
     extraRepositories: Seq[Repository],
     paramsOpt: Option[ScalaParameters],
@@ -491,7 +498,7 @@ object Artifacts {
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Fetch.Result] = either {
     val (_, res) = value {
-      fetchKeepFetcher(
+      fetchAnyDependenciesWithResult(
         dependencies,
         extraRepositories,
         paramsOpt,
@@ -504,7 +511,7 @@ object Artifacts {
     res
   }
 
-  private def fetchKeepFetcher(
+  private def fetchAnyDependenciesWithResult(
     dependencies: Seq[Positioned[AnyDependency]],
     extraRepositories: Seq[Repository],
     paramsOpt: Option[ScalaParameters],
@@ -525,7 +532,7 @@ object Artifacts {
         .toMap
 
     value {
-      fetch0(
+      fetchCsDependencies(
         coursierDependencies,
         extraRepositories,
         paramsOpt.map(_.scalaVersion),
@@ -603,7 +610,7 @@ object Artifacts {
     fetcher
   }
 
-  def fetch0(
+  def fetchCsDependencies(
     dependencies: Seq[Positioned[coursier.Dependency]],
     extraRepositories: Seq[Repository],
     forceScalaVersionOpt: Option[String],

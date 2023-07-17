@@ -216,7 +216,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
         val (classPath: Seq[os.Path], mainClass: String) =
           if (shared.helpGroups.helpScaladoc) {
             val docArtifacts = value {
-              Artifacts.fetch(
+              Artifacts.fetchAnyDependencies(
                 Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
                 value(buildOptions.finalRepositories),
                 Some(scalaParams),
@@ -245,7 +245,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
           }
           else {
             val fmtArtifacts = value {
-              Artifacts.fetch(
+              Artifacts.fetchAnyDependencies(
                 Seq(Positioned.none(
                   dep"${Constants.scalafmtOrganization}:${Constants.scalafmtName}:${Constants.defaultScalafmtVersion}"
                 )),

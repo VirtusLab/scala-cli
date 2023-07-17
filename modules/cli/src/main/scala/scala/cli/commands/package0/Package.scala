@@ -756,7 +756,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val params =
       if (build.options.notForBloopOptions.doSetupPython.getOrElse(false)) {
         val res = value {
-          Artifacts.fetch(
+          Artifacts.fetchAnyDependencies(
             Seq(Positioned.none(
               dep"${Constants.pythonInterfaceOrg}:${Constants.pythonInterfaceName}:${Constants.pythonInterfaceVersion}"
             )),

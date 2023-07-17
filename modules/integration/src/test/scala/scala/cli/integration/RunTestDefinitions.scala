@@ -302,7 +302,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == "Hello from test")
     }
   }
-  
+
   // TODO Adapt this test to Scala 3
   if (actualScalaVersion.startsWith("2."))
     test("Compile-time only JARs") {

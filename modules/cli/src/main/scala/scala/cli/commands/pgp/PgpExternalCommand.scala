@@ -193,7 +193,7 @@ object PgpExternalCommand {
           Nil
 
       val (_, signingRes) = value {
-        scala.build.Artifacts.fetch0(
+        scala.build.Artifacts.fetchCsDependencies(
           Seq(Positioned.none(jvmSigningDep.toCs)),
           extraRepos,
           None,

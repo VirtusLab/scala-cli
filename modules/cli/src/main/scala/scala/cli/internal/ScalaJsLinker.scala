@@ -53,7 +53,7 @@ object ScalaJsLinker {
         options.finalUseJvm match {
           case Right(()) =>
             val (_, linkerRes) = value {
-              scala.build.Artifacts.fetch0(
+              scala.build.Artifacts.fetchCsDependencies(
                 Seq(Positioned.none(scalaJsCliDep.toCs)),
                 extraRepos,
                 None,
