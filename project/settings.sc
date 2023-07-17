@@ -845,11 +845,11 @@ def workspaceDirName      = ".scala-build"
 def projectFileName       = "project.scala"
 def jvmPropertiesFileName = ".scala-jvmopts"
 
-final case class License(licenseId: String, name: String, reference: String)
+case class License(licenseId: String, name: String, reference: String)
 object License {
   implicit val rw: ReadWriter[License] = macroRW
 }
-final case class Licenses(licenses: List[License])
+case class Licenses(licenses: List[License])
 object Licenses {
   implicit val rw: ReadWriter[Licenses] = macroRW
 }
