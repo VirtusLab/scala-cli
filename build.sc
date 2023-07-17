@@ -180,7 +180,7 @@ object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     cli
   )
-  def repositories = super.repositories ++ customRepositories
+  def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
@@ -795,7 +795,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     `specification-level`(Scala.scala3)
   )
 
-  def repositories = super.repositories ++ customRepositories
+  def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
