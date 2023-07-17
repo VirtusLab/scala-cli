@@ -279,11 +279,11 @@ trait BuildMacros extends ScalaCliSbtModule
         val testFile = base / "negative-tests" / testName
         val res      = compile(testFile)
         println(s"Compiling $testName:")
-        println(res.out.text)
+        println(res.out.text())
         val name = testFile.last
         if (res.exitCode != 0) {
           println(s"Test case $name failed to compile as expected")
-          val lines = res.out.lines
+          val lines = res.out.lines()
           println(lines)
           expectedErrors.forall { expected =>
             if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
@@ -1661,7 +1661,7 @@ object ci extends Module {
     val launcherURL =
       s"https://github.com/VirtusLab/scala-cli/releases/download/v$version/scala-cli-x86_64-pc-win32.msi"
     val bytes  = os.read.stream(msiPackagePath)
-    val sha256 = os.proc("sha256sum").call(cwd = packagesDir, stdin = bytes).out.trim.take(64)
+    val sha256 = os.proc("sha256sum").call(cwd = packagesDir, stdin = bytes).out.trim().take(64)
     val ps1UpdatedContent = os.read(ps1Path)
       .replace("@LAUNCHER_URL@", launcherURL)
       .replace("@LAUNCHER_SHA256@", sha256.toUpperCase)
