@@ -199,7 +199,7 @@ object dummy extends Module {
   object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
   trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
     def crossScalaVersion = crossValue
-    def skipBloop = true
+    def skipBloop         = true
     def ivyDeps = Agg(
       Deps.ammonite
     )
@@ -525,7 +525,7 @@ trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
   def crossScalaVersion = crossValue
-  def moduleDeps = Seq(`specification-level`(crossScalaVersion))
+  def moduleDeps        = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
@@ -1197,7 +1197,7 @@ def copyTo(task: mill.main.Tasks[PathRef], dest: String) = T.command {
 }
 
 def writePackageVersionTo(dest: String) = T.command {
-  val destPath = os.Path(dest, os.pwd)
+  val destPath   = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version =
     if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
@@ -1206,7 +1206,7 @@ def writePackageVersionTo(dest: String) = T.command {
 }
 
 def writeShortPackageVersionTo(dest: String) = T.command {
-  val destPath = os.Path(dest, os.pwd)
+  val destPath   = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
   os.write.over(destPath, version)
