@@ -44,7 +44,7 @@ object cliBootstrapped extends ScalaCliPublishModule {
   override def unmanagedClasspath = T(cli.nativeImageClassPath())
   override def jar                = assembly()
 
-  import mill.modules.Assembly
+  import mill.scalalib.Assembly
 
   override def mainClass = Some("scala.cli.ScalaCli")
 
