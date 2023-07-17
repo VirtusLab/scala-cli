@@ -827,7 +827,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
     val cache     = T.dest / "native-cp"
     // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
-    val res = mill.modules.Jvm.callSubprocess(
+    val res = mill.util.Jvm.callSubprocess(
       mainClass = `scala3-graal-processor`.finalMainClass(),
       classPath = `scala3-graal-processor`.runClasspath().map(_.path),
       mainArgs = Seq(cache.toNIO.toString, classpath),
