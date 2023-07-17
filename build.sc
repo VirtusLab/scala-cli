@@ -67,20 +67,20 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
+object `specification-level` extends Cross[SpecificationLevel](Scala.all)
 object `build-macros`        extends BuildMacros
-object config                extends Cross[Config](Scala.all: _*)
+object config                extends Cross[Config](Scala.all)
 object options               extends Options
 object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
-object runner                extends Cross[Runner](Scala.runnerScalaVersions: _*)
-object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
-object `tasty-lib`           extends Cross[TastyLib](Scala.all: _*)
+object runner                extends Cross[Runner](Scala.runnerScalaVersions)
+object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions)
+object `tasty-lib`           extends Cross[TastyLib](Scala.all)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
 // Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions: _*)
+object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Scala3GraalProcessor
 
@@ -196,8 +196,9 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion: _*)
-  class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
+  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
+  trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
+    def crossScalaVersion = crossValue
     def skipBloop = true
     def ivyDeps = Agg(
       Deps.ammonite
@@ -520,9 +521,10 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   }
 }
 
-class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def moduleDeps = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps = {
     val maybeCollectionCompat =
@@ -584,8 +586,9 @@ trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def scalaVersion = Scala.scala3
 }
 
-class Scala3Graal(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Scala3Graal extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.osLib
@@ -688,8 +691,9 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-class SpecificationLevel(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     val isScala213 = crossScalaVersion.startsWith("2.13.")
     val extraOptions =
@@ -1096,9 +1100,10 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
   )
 }
 
-class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Runner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-release", "8")
   }
@@ -1118,9 +1123,10 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait TestRunner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-release", "8")
   }
@@ -1132,9 +1138,10 @@ class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
-class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"

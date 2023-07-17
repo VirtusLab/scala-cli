@@ -816,7 +816,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
   }
 }
 
-trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
+trait ScalaCliCrossSbtModule extends Cross.Module[String] with CrossSbtModule with ScalaCliModule
 trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
