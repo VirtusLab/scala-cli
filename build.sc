@@ -1283,8 +1283,8 @@ def unitTests() = T.command {
   options.test.test()()
 }
 
-def scala(args: String*) = T.command {
-  cli.run(args: _*)()
+def scala(args: Task[Args] = T.task(Args())) = T.command {
+  cli.run(args)()
 }
 
 def defaultNativeImage() =
