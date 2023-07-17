@@ -139,7 +139,7 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   def publishVersion =
     finalPublishVersion()
   override def sourceJar = T {
-    import mill.modules.Jvm.createJar
+    import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
     createJar(
       allSources0 ++ resources().map(_.path).filter(os.exists),
