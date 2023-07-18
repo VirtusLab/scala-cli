@@ -340,7 +340,6 @@ object Artifacts {
         .withClassifiers(fetcher.classifiers)
         .withMainArtifactsOpt(fetcher.mainArtifactsOpt)
         .withArtifactTypesOpt(fetcher.artifactTypesOpt)
-        // .withOtherCaches(fetcher.otherCaches) missing on coursier.Fetch
         .withExtraArtifactsSeq(fetcher.extraArtifactsSeq)
         .withClasspathOrder(fetcher.classpathOrder)
         .withTransformArtifacts(fetcher.transformArtifacts)

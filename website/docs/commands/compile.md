@@ -486,8 +486,8 @@ For example, to exclude all files in the `example/scala` directory, add the foll
 
 ## Compile-Only Dependencies
 
-Compile-only dependencies, allowing users to include certain libraries exclusively at compile-time. These
-dependencies are added to the class path during compilation, but won't be included during runtime.
+Compile-only dependencies, allow to include certain libraries exclusively at the time of the compilation. These
+dependencies are added to the class path during compilation, but won't be included when the application is run.
 
 To declare a compile-only dependency, you should use the `compileOnly.lib` directive or `--compile-lib` command line
 option. For instance, to include the `jsoniter-scala-macros` library at compile-time, you would use:
