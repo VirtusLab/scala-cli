@@ -540,7 +540,7 @@ trait HasTests extends SbtModule {
       else Nil
     super.scalacOptions() ++ extraOptions
   }
-  trait ScalaCliTests extends super.SbtModuleTests {
+  trait ScalaCliTests extends ScalaCliModule with super.SbtModuleTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
@@ -823,7 +823,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
   }
 }
 
-trait ScalaCliCrossSbtModule extends Cross.Module[String] with CrossSbtModule with ScalaCliModule
+trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
