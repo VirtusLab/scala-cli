@@ -322,7 +322,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -687,7 +687,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -1022,7 +1022,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -1561,7 +1561,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -2082,7 +2082,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
 
 **--command**
 
@@ -2130,7 +2130,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -2660,7 +2660,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
 
 **--command**
 
@@ -2708,7 +2708,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -3244,7 +3244,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -3855,7 +3855,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4160,7 +4160,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4467,7 +4467,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4766,7 +4766,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4845,7 +4845,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -4912,7 +4912,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5003,7 +5003,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5316,7 +5316,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5625,7 +5625,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5806,7 +5806,7 @@ Custom completions name
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
@@ -5873,7 +5873,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-v` ,`-verbose`
+Aliases: `-verbose` ,`-v`
 
 **--interactive**
 
