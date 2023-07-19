@@ -1,6 +1,6 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.4`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.24`
+import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.25`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
 import $file.project.settings, settings.{
@@ -12,7 +12,6 @@ import $file.project.settings, settings.{
   ScalaCliCrossSbtModule,
   ScalaCliSbtModule,
   ScalaCliScalafixModule,
-  ScalaCliTests,
   localRepoResourcePath,
   platformExecutableJarExtension,
   workspaceDirName,
@@ -35,8 +34,8 @@ import mill.contrib.bloop.Bloop
 import _root_.scala.util.{Properties, Using}
 
 // Tell mill modules are under modules/
-implicit def millModuleBasePath: define.BasePath =
-  define.BasePath(super.millModuleBasePath.value / "modules")
+implicit def millModuleBasePath: define.Ctx.BasePath =
+  define.Ctx.BasePath(super.millModuleBasePath.value / "modules")
 
 object cli extends Cli
 
@@ -45,7 +44,7 @@ object cliBootstrapped extends ScalaCliPublishModule {
   override def unmanagedClasspath = T(cli.nativeImageClassPath())
   override def jar                = assembly()
 
-  import mill.modules.Assembly
+  import mill.scalalib.Assembly
 
   override def mainClass = Some("scala.cli.ScalaCli")
 
@@ -68,20 +67,20 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.all: _*)
+object `specification-level` extends Cross[SpecificationLevel](Scala.all)
 object `build-macros`        extends BuildMacros
-object config                extends Cross[Config](Scala.all: _*)
+object config                extends Cross[Config](Scala.all)
 object options               extends Options
 object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
-object runner                extends Cross[Runner](Scala.runnerScalaVersions: _*)
-object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions: _*)
-object `tasty-lib`           extends Cross[TastyLib](Scala.all: _*)
+object runner                extends Cross[Runner](Scala.runnerScalaVersions)
+object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions)
+object `tasty-lib`           extends Cross[TastyLib](Scala.all)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
 // Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions: _*)
+object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Scala3GraalProcessor
 
@@ -94,13 +93,13 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   }
 }
 object integration extends CliIntegration {
-  object test extends Tests with ScalaCliTests {
+  object test extends IntegrationScalaTests {
     def ivyDeps = super.ivyDeps() ++ Seq(
       Deps.jgit
     )
   }
   object docker extends CliIntegrationDocker {
-    object test extends Tests with ScalaCliTests {
+    object test extends ScalaCliTests {
       def sources = T.sources {
         super.sources() ++ integration.sources()
       }
@@ -115,7 +114,7 @@ object integration extends CliIntegration {
     }
   }
   object `docker-slim` extends CliIntegrationDocker {
-    object test extends Tests with ScalaCliTests {
+    object test extends ScalaCliTests {
       def sources = T.sources {
         integration.docker.test.sources()
       }
@@ -149,7 +148,7 @@ object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests 
   }
   def forkEnv = super.forkEnv() ++ extraEnv()
 
-  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     def forkEnv = super.forkEnv() ++ extraEnv() ++ Seq(
       "SCALA_CLI_EXAMPLES"                -> (os.pwd / "examples").toString,
       "SCALA_CLI_GIF_SCENARIOS"           -> (os.pwd / "gifs" / "scenarios").toString,
@@ -181,7 +180,7 @@ object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
     cli
   )
-  def repositories = super.repositories ++ customRepositories
+  def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
   def ivyDeps = Agg(
     Deps.caseApp,
     Deps.munit
@@ -197,9 +196,10 @@ object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion: _*)
-  class Amm(val crossScalaVersion: String) extends CrossScalaModule with Bloop.Module {
-    def skipBloop = true
+  object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
+  trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
+    def crossScalaVersion = crossValue
+    def skipBloop         = true
     def ivyDeps = Agg(
       Deps.ammonite
     )
@@ -240,7 +240,7 @@ trait BuildMacros extends ScalaCliSbtModule
       )
   }
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
 
     // Is there a better way to add task dependency to test?
     def test(args: String*) = T.command {
@@ -279,11 +279,11 @@ trait BuildMacros extends ScalaCliSbtModule
         val testFile = base / "negative-tests" / testName
         val res      = compile(testFile)
         println(s"Compiling $testName:")
-        println(res.out.text)
+        println(res.out.text())
         val name = testFile.last
         if (res.exitCode != 0) {
           println(s"Test case $name failed to compile as expected")
-          val lines = res.out.lines
+          val lines = res.out.lines()
           println(lines)
           expectedErrors.forall { expected =>
             if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
@@ -488,7 +488,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint
     )
@@ -521,10 +521,11 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   }
 }
 
-class Config(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def moduleDeps = Seq(`specification-level`(crossScalaVersion))
+  def crossScalaVersion = crossValue
+  def moduleDeps        = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
@@ -572,7 +573,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = T {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
@@ -585,8 +586,9 @@ trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def scalaVersion = Scala.scala3
 }
 
-class Scala3Graal(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Scala3Graal extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.asm,
     Deps.osLib
@@ -649,7 +651,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def repositoriesTask =
     T.task(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends Tests with ScalaCliTests {
+  object test extends ScalaCliTests {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.pprint,
       Deps.slf4jNop
@@ -689,8 +691,9 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 }
 
-class SpecificationLevel(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     val isScala213 = crossScalaVersion.startsWith("2.13.")
     val extraOptions =
@@ -796,7 +799,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     `specification-level`(Scala.scala3)
   )
 
-  def repositories = super.repositories ++ customRepositories
+  def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.caseApp,
@@ -824,7 +827,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
     val cache     = T.dest / "native-cp"
     // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
-    val res = mill.modules.Jvm.callSubprocess(
+    val res = mill.util.Jvm.callSubprocess(
       mainClass = `scala3-graal-processor`.finalMainClass(),
       classPath = `scala3-graal-processor`.runClasspath().map(_.path),
       mainArgs = Seq(cache.toNIO.toString, classpath),
@@ -836,7 +839,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   def localRepoJar = `local-repo`.localRepoJar()
 
-  object test extends Tests with ScalaCliTests with ScalaCliScalafixModule {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     def moduleDeps = super.moduleDeps ++ Seq(
       `build-module`.test
     )
@@ -880,7 +883,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   )
 
   private def mainArtifactName = T(artifactName())
-  trait Tests extends super.Tests with ScalaCliScalafixModule {
+  trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
       Deps.coursier
@@ -1097,9 +1100,10 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
   )
 }
 
-class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait Runner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-release", "8")
   }
@@ -1119,9 +1123,10 @@ class Runner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   }
 }
 
-class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait TestRunner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-release", "8")
   }
@@ -1133,9 +1138,10 @@ class TestRunner(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
   def mainClass = Some("scala.build.testrunner.DynamicTestRunner")
 }
 
-class TastyLib(val crossScalaVersion: String) extends ScalaCliCrossSbtModule
+trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def constantsFile = T.persistent {
     val dir  = T.dest / "constants"
     val dest = dir / "Constants.scala"
@@ -1181,26 +1187,29 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = T.comma
   )
 }
 
-def copyTo(task: mill.main.Tasks[PathRef], dest: os.Path) = T.command {
+def copyTo(task: mill.main.Tasks[PathRef], dest: String) = T.command {
+  val destPath = os.Path(dest, os.pwd)
   if (task.value.length > 1)
     sys.error("Expected a single task")
   val ref = task.value.head()
-  os.makeDir.all(dest / os.up)
-  os.copy.over(ref.path, dest)
+  os.makeDir.all(destPath / os.up)
+  os.copy.over(ref.path, destPath)
 }
 
-def writePackageVersionTo(dest: os.Path) = T.command {
+def writePackageVersionTo(dest: String) = T.command {
+  val destPath   = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version =
     if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
     else rawVersion
-  os.write.over(dest, version)
+  os.write.over(destPath, version)
 }
 
-def writeShortPackageVersionTo(dest: os.Path) = T.command {
+def writeShortPackageVersionTo(dest: String) = T.command {
+  val destPath   = os.Path(dest, os.pwd)
   val rawVersion = cli.publishVersion()
   val version    = rawVersion.takeWhile(c => c != '-' && c != '+')
-  os.write.over(dest, version)
+  os.write.over(destPath, version)
 }
 
 def importedLauncher(directory: String = "artifacts"): Array[Byte] = {
@@ -1284,8 +1293,8 @@ def unitTests() = T.command {
   options.test.test()()
 }
 
-def scala(args: String*) = T.command {
-  cli.run(args: _*)()
+def scala(args: Task[Args] = T.task(Args())) = T.command {
+  cli.run(args)()
 }
 
 def defaultNativeImage() =
@@ -1652,7 +1661,7 @@ object ci extends Module {
     val launcherURL =
       s"https://github.com/VirtusLab/scala-cli/releases/download/v$version/scala-cli-x86_64-pc-win32.msi"
     val bytes  = os.read.stream(msiPackagePath)
-    val sha256 = os.proc("sha256sum").call(cwd = packagesDir, stdin = bytes).out.trim.take(64)
+    val sha256 = os.proc("sha256sum").call(cwd = packagesDir, stdin = bytes).out.trim().take(64)
     val ps1UpdatedContent = os.read(ps1Path)
       .replace("@LAUNCHER_URL@", launcherURL)
       .replace("@LAUNCHER_SHA256@", sha256.toUpperCase)
