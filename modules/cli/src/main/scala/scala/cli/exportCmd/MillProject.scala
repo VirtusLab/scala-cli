@@ -81,14 +81,18 @@ final case class MillProject(
         val optsString = scalacOptions.map(opt => s"\"$opt\"").mkString(", ")
         Some(s"""def scalacOptions = super.scalacOptions() ++ Seq($optsString)""")
       }
-    def maybeDeps(deps: Seq[String]) =
+    def maybeDeps(deps: Seq[String], isCompileOnly: Boolean = false) = {
+      val depsDefinition = if (isCompileOnly)
+        Seq("def compileIvyDeps = super.compileIvyDeps() ++ Seq(")
+      else Seq("def ivyDeps = super.ivyDeps() ++ Seq(")
       if (deps.isEmpty) Seq.empty[String]
       else
-        Seq("def ivyDeps = super.ivyDeps() ++ Seq(") ++
+        depsDefinition ++
           deps
             .map(dep => """  ivy"""" + dep + "\"")
             .appendOnInit(",") ++
           Seq(")")
+    }
 
     val maybeScalaCompilerPlugins =
       if (scalaCompilerPlugins.isEmpty) Seq.empty
@@ -120,6 +124,7 @@ final case class MillProject(
         s"  object test extends $millScalaTestPlatform {"
       ) ++
         maybeDeps(testDeps).map(s => s"    $s") ++
+        maybeDeps(testCompileOnlyDeps, isCompileOnly = true).map(s => s"    $s") ++
         extraTestDecls.map(s => s"    $s") ++ Seq("  }")
     else Seq.empty
 
@@ -134,6 +139,7 @@ final case class MillProject(
         maybePlatformVer.map(s => s"  $s") ++
         maybeScalacOptions.map(s => s"  $s") ++
         maybeDeps(mainDeps).map(s => s"  $s") ++
+        maybeDeps(mainCompileOnlyDeps, isCompileOnly = true).map(s => s"  $s") ++
         maybeScalaCompilerPlugins.map(s => s"  $s") ++
         maybeMain.map(s => s"  $s") ++
         customResourcesDecls.map(s => s"  $s") ++
