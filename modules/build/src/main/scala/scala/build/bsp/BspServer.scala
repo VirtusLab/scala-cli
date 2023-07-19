@@ -137,6 +137,19 @@ class BspServer(
       sourceItem.setUri(updatedUri)
       sourceItem.setGenerated(false)
     }
+
+    // GeneratedSources not corresponding to files that exist on disk (unlike script wrappers)
+    val sourcesWithReportingPathString = generatedSources.values.flatMap(_.sources)
+      .filter(_.reportingPath.isLeft)
+
+    for {
+      item <- res.getItems.asScala
+      if validTarget(item.getTarget)
+      sourceItem <- item.getSources.asScala
+      if sourcesWithReportingPathString.exists(
+        _.generated.toNIO.toUri.toASCIIString == sourceItem.getUri
+      )
+    } sourceItem.setGenerated(true)
   }
 
   protected def forwardTo
