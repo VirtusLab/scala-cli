@@ -684,7 +684,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 `SHOULD have` per Scala Runner specification
 
-The Scala.js version (1.13.1 by default).
+The Scala.js version (1.13.2 by default).
 
 ### `--js-mode`
 
@@ -772,7 +772,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.13.1 by default).
+Scala.js CLI version to use for linking (1.13.2 by default).
 
 ### `--js-cli-java-arg`
 
