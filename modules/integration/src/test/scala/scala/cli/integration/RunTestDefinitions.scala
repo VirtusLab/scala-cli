@@ -309,6 +309,72 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       compileTimeOnlyJars()
     }
 
+  test("compile-time only for jsoniter macros") {
+    val inputs = TestInputs(
+      os.rel / "hello.sc" ->
+        """|//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
+           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+           |
+           |import com.github.plokhotnyuk.jsoniter_scala.core._
+           |import com.github.plokhotnyuk.jsoniter_scala.macros._
+           |
+           |case class User(name: String, friends: Seq[String])
+           |implicit val codec: JsonValueCodec[User] = JsonCodecMaker.make
+           |
+           |val user = readFromString[User]("{\"name\":\"John\",\"friends\":[\"Mark\"]}")
+           |System.out.println(user.name)
+           |val classPath = System.getProperty("java.class.path").split(java.io.File.pathSeparator).iterator.toList
+           |System.out.println(classPath)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output.contains("John"))
+      expect(!output.contains("jsoniter-scala-macros"))
+    }
+  }
+
+  def compileTimeOnlyDep(): Unit = {
+
+    def inputs(compileOnly: Boolean) = {
+      val directiveName = if (compileOnly) "compileOnly.dep" else "dep"
+      TestInputs(
+        os.rel / "test.sc" ->
+          s"""//> using $directiveName "com.chuusai::shapeless:2.3.10"
+             |val shapelessFound =
+             |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+             |  catch { case _: ClassNotFoundException => false }
+             |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+             |""".stripMargin,
+        os.rel / "Other.scala" ->
+          """object Other {
+            |  import shapeless._
+            |  val l = 2 :: "a" :: HNil
+            |}
+            |""".stripMargin
+      )
+    }
+    inputs(compileOnly = false).fromRoot { root =>
+      val baseOutput = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(baseOutput == "Hello with shapeless")
+    }
+    inputs(compileOnly = true).fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output == "Hello from test")
+    }
+  }
+
+  if (actualScalaVersion.startsWith("2."))
+    test("Compile-time only dep") {
+      compileTimeOnlyDep()
+    }
+
   if (Properties.isLinux && TestUtil.isNativeCli)
     test("no JVM installed") {
       val fileName = "simple.sc"

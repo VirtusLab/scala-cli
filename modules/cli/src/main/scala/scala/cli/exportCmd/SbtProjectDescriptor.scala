@@ -3,16 +3,23 @@ package scala.cli.exportCmd
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
-import dependency.{NoAttributes, ScalaNameAttributes}
+import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
+import scala.build.options.{
+  BuildOptions,
+  Platform,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  Scope,
+  ShadowingSeq
+}
 import scala.build.testrunner.AsmTestRunner
-import scala.build.{Logger, Sources}
+import scala.build.{Logger, Positioned, Sources}
 
 final case class SbtProjectDescriptor(
   sbtVersion: String,
@@ -41,7 +48,7 @@ final case class SbtProjectDescriptor(
       !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.toSeq
+      options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
     val settings =
@@ -274,10 +281,8 @@ final case class SbtProjectDescriptor(
   private def dependencySettings(options: BuildOptions, scope: Scope): SbtProject = {
 
     val depSettings = {
-      val depStrings = options.classPathOptions
-        .extraDependencies.toSeq.toList
-        .map(_.value)
-        .map { dep =>
+      def toDepString(deps: ShadowingSeq[Positioned[AnyDependency]], isCompileOnly: Boolean) =
+        deps.toSeq.toList.map(_.value).map { dep =>
           val org  = dep.organization
           val name = dep.name
           val ver  = dep.version
@@ -293,18 +298,25 @@ final case class SbtProjectDescriptor(
               val sep = "%%"
               (sep, suffixOpt0)
           }
-          val scope0 = if (scope == Scope.Test) "% Test" else ""
+          val scope0 =
+            // FIXME This ignores the isCompileOnly when scope == Scope.Test
+            if (scope == Scope.Test) "% Test"
+            else if (isCompileOnly) "% Provided"
+            else ""
 
           val baseDep = s"""$q$org$q $sep $q$name$q % $q$ver$q $scope0"""
           suffixOpt.fold(baseDep)(suffix => s"($baseDep)$suffix")
         }
 
-      if (depStrings.isEmpty) Nil
-      else if (depStrings.lengthCompare(1) == 0)
-        Seq(s"""libraryDependencies += ${depStrings.head}""")
+      val allDepStrings = toDepString(options.classPathOptions.extraDependencies, false) ++
+        toDepString(options.classPathOptions.extraCompileOnlyDependencies, true)
+
+      if (allDepStrings.isEmpty) Nil
+      else if (allDepStrings.lengthCompare(1) == 0)
+        Seq(s"""libraryDependencies += ${allDepStrings.head}""")
       else {
-        val count = depStrings.length
-        val allDeps = depStrings
+        val count = allDepStrings.length
+        val allDeps = allDepStrings
           .iterator
           .zipWithIndex
           .map {

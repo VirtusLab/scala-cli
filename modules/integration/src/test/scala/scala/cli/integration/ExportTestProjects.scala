@@ -294,4 +294,25 @@ object ExportTestProjects {
            |case class Message(value: String)
            |""".stripMargin
     )
+  def compileOnlySource(scalaVersion: String, userName: String): TestInputs =
+    TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""//> using scala "$scalaVersion"
+           |//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
+           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+           |
+           |import com.github.plokhotnyuk.jsoniter_scala.core._
+           |import com.github.plokhotnyuk.jsoniter_scala.macros._
+           |
+           |object Hello extends App {
+           |  case class User(name: String, friends: Seq[String])
+           |  implicit val codec: JsonValueCodec[User] = JsonCodecMaker.make
+           |
+           |  val user = readFromString[User]("{\\"name\\":\\"$userName\\",\\"friends\\":[\\"Mark\\"]}")
+           |  System.out.println(user.name)
+           |  val classPath = System.getProperty("java.class.path").split(java.io.File.pathSeparator).iterator.toList
+           |  System.out.println(classPath)
+           |}
+           |""".stripMargin
+    )
 }

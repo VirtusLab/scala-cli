@@ -756,7 +756,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val params =
       if (build.options.notForBloopOptions.doSetupPython.getOrElse(false)) {
         val res = value {
-          Artifacts.fetch(
+          Artifacts.fetchAnyDependencies(
             Seq(Positioned.none(
               dep"${Constants.pythonInterfaceOrg}:${Constants.pythonInterfaceName}:${Constants.pythonInterfaceVersion}"
             )),
@@ -822,7 +822,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .map(_._1)
       .filter(dep => modulesSet.contains(dep.module))
     val providedRes = res.subset(providedDeps)
-    val fileMap = build.artifacts.detailedArtifacts
+    val fileMap = build.artifacts.detailedRuntimeArtifacts
       .map {
         case (_, _, artifact, path) =>
           artifact -> path
@@ -864,7 +864,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allFiles =
-      build.artifacts.artifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
+      build.artifacts.runtimeArtifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
     val files =
       if (provided.isEmpty) allFiles
       else {

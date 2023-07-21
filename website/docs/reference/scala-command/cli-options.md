@@ -220,6 +220,14 @@ Aliases: `--dep`
 
 Add dependencies
 
+### `--compile-only-dependency`
+
+Aliases: `--compile-dep`, `--compile-lib`
+
+`MUST have` per Scala Runner specification
+
+Add compile-only dependencies
+
 ### `--repository`
 
 Aliases: `-r`, `--repo`

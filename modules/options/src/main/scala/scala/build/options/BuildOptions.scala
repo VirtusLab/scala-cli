@@ -382,6 +382,7 @@ final case class BuildOptions(
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
       dependencies = value(dependencies),
+      compileOnlyDependencies = classPathOptions.extraCompileOnlyDependencies.toSeq,
       extraClassPath = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,
       extraSourceJars = allExtraSourceJars,

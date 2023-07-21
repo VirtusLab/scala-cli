@@ -192,8 +192,8 @@ object PgpExternalCommand {
         else
           Nil
 
-      val signingClassPath = value {
-        scala.build.Artifacts.fetch0(
+      val (_, signingRes) = value {
+        scala.build.Artifacts.fetchCsDependencies(
           Seq(Positioned.none(jvmSigningDep.toCs)),
           extraRepos,
           None,
@@ -202,7 +202,8 @@ object PgpExternalCommand {
           cache,
           None
         )
-      }.files
+      }
+      val signingClassPath = signingRes.files
 
       val command = Seq[os.Shellable](
         javaCommand(),
