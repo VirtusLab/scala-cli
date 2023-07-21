@@ -112,8 +112,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val threads = BuildThreads.create()
-
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    // compilerMaker should be a lazy val to prevent download a JAVA 17 for bloop when users run the repl without sources
+    lazy val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     val directories = Directories.directories
 
