@@ -44,6 +44,7 @@ object New extends ScalaCommand[NewOptions] {
         jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")).map(Positioned.none)
       )
     )
+    val destPath = options.out.filter(_.nonEmpty).map(os.Path(_, os.pwd)).getOrElse(os.pwd)
 
     val exitCode =
       Runner.runJvm(
@@ -51,7 +52,7 @@ object New extends ScalaCommand[NewOptions] {
         buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
         giter8,
         "giter8.Giter8",
-        remainingArgs.remaining,
+        remainingArgs.remaining ++ Seq("-o", destPath.toString),
         logger,
         allowExecve = true
       ).waitFor()

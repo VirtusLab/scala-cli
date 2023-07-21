@@ -10,7 +10,7 @@ final case class NewOptions(
   global: GlobalOptions = GlobalOptions(),
   @Recurse
   shared: SharedOptions = SharedOptions(),
-  out: Option[String] = None,
+  out: Option[String] = None
 ) extends HasGlobalOptions
 
 object NewOptions {
