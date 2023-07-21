@@ -58,7 +58,7 @@ object New extends ScalaCommand[NewOptions] {
 
     if (exitCode == 0) {
       val inputs = options.shared.inputs(
-        Seq(options.out),
+        Seq(destPath.toString),
         () => Inputs.default()
       )(
         using invokeData
