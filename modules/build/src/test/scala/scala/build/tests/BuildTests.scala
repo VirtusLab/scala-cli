@@ -53,7 +53,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
   )
 
-  def sv2 = "2.13.5"
+  def sv2 = "2.13.8"
   val defaultOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
