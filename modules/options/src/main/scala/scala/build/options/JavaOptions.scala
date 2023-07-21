@@ -11,6 +11,7 @@ import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.{Os, Position, Positioned}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NonFatal
+import scala.util.{Properties, Try}
 
 /** @javaOpts
   *   java options which will be passed when compiling sources.
@@ -70,6 +71,14 @@ final case class JavaOptions(
             sys.props.get("java.home").map(p =>
               Positioned(Position.Custom("java.home prop"), os.Path(p, os.pwd))
             )
+          ).orElse(
+            if (Properties.isMac)
+              Try(os.proc("/usr/libexec/java_home").call(os.pwd, check = false).out.text().trim())
+                .toOption
+                .flatMap(p => Try(os.Path(p, os.pwd)).toOption)
+                .filter(os.exists(_))
+                .map(p => Positioned(Position.Custom("/usr/libexec/java_home"), p))
+            else None
           )
         else None
       }
