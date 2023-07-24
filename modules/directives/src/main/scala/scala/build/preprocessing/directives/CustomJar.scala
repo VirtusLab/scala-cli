@@ -49,6 +49,7 @@ final case class CustomJar(
   @DirectiveName("source.jars")
   sourcesJar: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil),
+  @DirectiveName("test.sourcesJar")
   @DirectiveName("test.sources.jar")
   @DirectiveName("test.sourcesJars")
   @DirectiveName("test.sources.jars")

@@ -36,6 +36,7 @@ final case class Dependency(
   @DirectiveName("deps")
   @DirectiveName("dependencies")
   dependency: List[Positioned[String]] = Nil,
+  @DirectiveName("test.dependency")
   @DirectiveName("test.dep")
   @DirectiveName("test.deps")
   @DirectiveName("test.dependencies")
