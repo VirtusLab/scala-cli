@@ -23,6 +23,7 @@ import scala.cli.commands.SpecificationLevel
 final case class JavaProps(
   @DirectiveName("javaProp")
   javaProperty: List[Positioned[String]] = Nil,
+  @DirectiveName("test.javaProperty")
   @DirectiveName("test.javaProp")
   testJavaProperty: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {

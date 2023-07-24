@@ -19,6 +19,7 @@ import scala.cli.commands.SpecificationLevel
 final case class JavaOptions(
   @DirectiveName("javaOpt")
   javaOptions: List[Positioned[String]] = Nil,
+  @DirectiveName("test.javaOptions")
   @DirectiveName("test.javaOpt")
   testJavaOptions: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {

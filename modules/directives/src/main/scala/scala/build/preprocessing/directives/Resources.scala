@@ -25,6 +25,7 @@ final case class Resources(
   resourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil),
   @DirectiveName("test.resourceDir")
+  @DirectiveName("test.resourceDirs")
   testResourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptionsWithRequirements {
