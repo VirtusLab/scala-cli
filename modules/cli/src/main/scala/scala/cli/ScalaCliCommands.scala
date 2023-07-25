@@ -38,6 +38,7 @@ class ScalaCliCommands(
     directories.Directories,
     doc.Doc,
     export0.Export,
+    fix.Fix,
     fmt.Fmt,
     new HelpCmd(help),
     installcompletions.InstallCompletions,
