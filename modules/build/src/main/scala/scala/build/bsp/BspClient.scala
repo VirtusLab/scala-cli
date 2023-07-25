@@ -202,8 +202,8 @@ class BspClient(
         }
       }
         .groupBy(_.positions.headOption match
-          case Some(File(Right(path), _, _)) => Some(path)
-          case _                             => None
+          case Some(File(Right(path), _, _, _)) => Some(path)
+          case _                                => None
         )
         .filter(_._1.isDefined)
         .values
@@ -222,7 +222,7 @@ class BspClient(
     reset: Boolean = false
   )(diag: Diagnostic): Seq[os.Path] =
     diag.positions.flatMap {
-      case File(Right(path), (startLine, startC), (endL, endC)) =>
+      case File(Right(path), (startLine, startC), (endL, endC), _) =>
         val id       = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
         val startPos = new b.Position(startLine, startC)
         val endPos   = new b.Position(endL, endC)
