@@ -60,8 +60,8 @@ class DirectiveTests extends munit.FunSuite {
         assert(position.nonEmpty)
 
         val (startPos, endPos) = position.get match {
-          case Position.File(_, startPos, endPos) => (startPos, endPos)
-          case _                                  => sys.error("cannot happen")
+          case Position.File(_, startPos, endPos, _) => (startPos, endPos)
+          case _                                     => sys.error("cannot happen")
         }
 
         expect(startPos == (0, 15))

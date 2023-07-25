@@ -240,7 +240,9 @@ case object ScalaPreprocessor extends Preprocessor {
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = preprocessedDirectives.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
-      val directivesPositions = preprocessedDirectives.directivesPositions
+      val directivesPositions = preprocessedDirectives.directivesPositions.map { pos =>
+        if (isSheBang) pos.copy(endPos = pos.endPos._1 + 1 -> pos.endPos._2) else pos
+      }
 
       val scopedRequirements = preprocessedDirectives.scopedReqs
       Some(ProcessingOutput(
