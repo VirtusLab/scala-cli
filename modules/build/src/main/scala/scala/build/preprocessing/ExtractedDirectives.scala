@@ -53,8 +53,9 @@ object ExtractedDirectives {
 
       val directivesOpt = allDirectives.headOption
       val directivesPositionOpt = directivesOpt match {
-        case Some(directives) if directives.containsTargetDirectivesOnly =>
-          None
+        case Some(directives)
+            if directives.containsTargetDirectives ||
+            directives.isEmpty => None
         case Some(directives) => Some(directives.getPosition(path))
         case None             => None
       }
