@@ -9,4 +9,10 @@ final case class SuppressWarningOptions(
 object SuppressWarningOptions {
   implicit val hasHashData: HasHashData[SuppressWarningOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[SuppressWarningOptions]     = ConfigMonoid.derive
+
+  val suppressAll = SuppressWarningOptions(
+    suppressDirectivesInMultipleFilesWarning = Some(true),
+    suppressOutdatedDependencyWarning = Some(true),
+    suppressExperimentalFeatureWarning = Some(true)
+  )
 }

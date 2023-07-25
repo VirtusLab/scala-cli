@@ -117,6 +117,28 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 
 Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [export](./cli-options.md#export-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [main class](./cli-options.md#main-class-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [source generator](./cli-options.md#source-generator-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
 
+## fix
+
+Perform fixes on a Scala CLI project.
+
+Specific fix configurations can be specified with both command line options and using directives defined in sources.
+Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
+Using directives can be defined in all supported input source file types.
+
+Multiple inputs can be passed at once.
+Paths to directories, URLs and supported file types are accepted as inputs.
+Accepted file extensions: .scala, .sc, .java, .jar, .md, .jar, .c, .h, .zip
+For piped inputs use the corresponding alias: _.scala, _.java, _.sc, _.md
+All supported types of inputs can be mixed with each other.
+
+For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fix
+
+The `fix` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [source generator](./cli-options.md#source-generator-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
+
 ## fmt
 
 Aliases: `format`, `scalafmt`
