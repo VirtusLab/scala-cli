@@ -135,15 +135,17 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test(
-    "target directives in files should not produce warnings about using directives in multiple files"
+    "having target + using directives in files should not produce warnings about using directives in multiple files"
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """//> using target.platform "jvm"
+          |//> using jvm "17"
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
         """//> using target.scala.>= "2.13"
+          |//> using dep "com.lihaoyi::os-lib::0.8.1"
           |class Foo {}
           |""".stripMargin
     )
@@ -162,12 +164,10 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """//> using jvm "17"
-          |//> using target.scope "test"
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using target.scala.>= "2.13"
-          |//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using dep "com.lihaoyi::os-lib::0.8.1"
           |class Foo {}
           |""".stripMargin
     )

@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters.*
 object UsingDirectivesOps {
   extension (ud: UsingDirectives) {
     def keySet: Set[String] = ud.getFlattenedMap.keySet().asScala.map(_.toString).toSet
-    def containsTargetDirectivesOnly: Boolean = ud.keySet.forall(_.toString.startsWith("target."))
+    def containsTargetDirectives: Boolean = ud.keySet.exists(_.startsWith("target."))
 
     def getPosition(path: Either[String, os.Path]): Position.File =
       val line   = ud.getAst().getPosition().getLine()
@@ -24,6 +24,7 @@ object UsingDirectivesOps {
           Nil
       }
 
-    def nonEmpty: Boolean = !ud.getFlattenedMap.isEmpty
+    def nonEmpty: Boolean = !isEmpty
+    def isEmpty: Boolean  = ud.getFlattenedMap.isEmpty
   }
 }
