@@ -5,10 +5,11 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.nio.file.FileSystems
 
 import scala.build.Ops.*
-import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.options.{BuildOptions, InternalOptions, PackageType}
 import scala.build.tests.TestInputs
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.cli.commands.package0.Package
 import scala.cli.internal.CachedBinary
 import scala.cli.packaging.Library
 import scala.util.{Properties, Random}
@@ -72,6 +73,26 @@ class PackageTests extends munit.FunSuite {
               fs.close()
           }
       }
+    }
+  }
+
+  /** Fixes - https://github.com/VirtusLab/scala-cli/issues/2303 */
+  test("accept packageType-native when using native platform") {
+    val inputs = TestInputs(
+      files = Seq(os.rel / "Hello.scala" ->
+        """//> using platform native
+          |//> using packaging.packageType native
+          |
+          |object Hello extends App {
+          |  println("Hello World")
+          |}""".stripMargin)
+    )
+    inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig)) {
+      (_, _, maybeFirstBuild) =>
+        val build = maybeFirstBuild.orThrow.successfulOpt.get
+
+        val packageType = Package.resolvePackageType(build, None).orThrow
+        expect(packageType == PackageType.Native)
     }
   }
 
