@@ -83,7 +83,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 PreprocessedSource.InMemory(
                   originalPath = Right((f.subPath, f.path)),
                   relPath = f.subPath,
-                  code = updatedCode,
+                  content = updatedCode.getBytes(StandardCharsets.UTF_8),
                   wrapperParamsOpt = None,
                   options = Some(options),
                   optionsWithTargetRequirements = optionsWithReqs,
@@ -161,7 +161,7 @@ case object ScalaPreprocessor extends Preprocessor {
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
-            updatedContentOpt.getOrElse(content),
+            updatedContentOpt.map(_.getBytes(StandardCharsets.UTF_8)).getOrElse(v.content),
             wrapperParamsOpt = None,
             options = Some(options),
             optionsWithTargetRequirements = optionsWithTargetRequirements,

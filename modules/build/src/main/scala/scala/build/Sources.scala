@@ -3,6 +3,8 @@ package scala.build
 import coursier.cache.ArchiveCache
 import coursier.util.Task
 
+import java.nio.charset.StandardCharsets
+
 import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
@@ -39,7 +41,7 @@ final case class Sources(
       for (inMemSource <- inMemory) yield {
         os.write.over(
           generatedSrcRoot / inMemSource.generatedRelPath,
-          inMemSource.generatedContent.getBytes("UTF-8"),
+          inMemSource.content,
           createFolders = true
         )
         (
@@ -75,7 +77,7 @@ object Sources {
   final case class InMemory(
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
-    generatedContent: String,
+    content: Array[Byte],
     wrapperParamsOpt: Option[WrapperParams]
   )
 
@@ -86,7 +88,12 @@ object Sources {
   ) {
     def wrap(wrapper: CodeWrapper): InMemory = {
       val (content, wrapperParams) = wrapScriptFun(wrapper)
-      InMemory(originalPath, generatedRelPath, content, Some(wrapperParams))
+      InMemory(
+        originalPath,
+        generatedRelPath,
+        content.getBytes(StandardCharsets.UTF_8),
+        Some(wrapperParams)
+      )
     }
   }
 

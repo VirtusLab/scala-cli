@@ -26,13 +26,12 @@ final case class SbtProjectDescriptor(
   extraSettings: Seq[String],
   logger: Logger
 ) extends ProjectDescriptor {
-  private val charSet = StandardCharsets.UTF_8
-  private val q       = "\""
-  private val nl      = System.lineSeparator()
+  private val q  = "\""
+  private val nl = System.lineSeparator()
 
   private def sources(sourcesMain: Sources, sourcesTest: Sources): SbtProject = {
-    val mainSources = ProjectDescriptor.sources(sourcesMain, charSet)
-    val testSources = ProjectDescriptor.sources(sourcesTest, charSet)
+    val mainSources = ProjectDescriptor.sources(sourcesMain)
+    val testSources = ProjectDescriptor.sources(sourcesTest)
     SbtProject(
       mainSources = mainSources,
       testSources = testSources

@@ -37,7 +37,7 @@ object PreprocessedSource {
   final case class InMemory(
     originalPath: Either[String, (os.SubPath, os.Path)],
     relPath: os.RelPath,
-    code: String,
+    content: Array[Byte],
     wrapperParamsOpt: Option[WrapperParams],
     options: Option[BuildOptions],
     optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],

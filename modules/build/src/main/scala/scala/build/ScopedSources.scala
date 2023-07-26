@@ -1,5 +1,7 @@
 package scala.build
 
+import java.nio.charset.StandardCharsets
+
 import scala.build.info.{BuildInfo, ScopedBuildInfo}
 import scala.build.options.{BuildOptions, HasScope, Scope}
 import scala.build.preprocessing.ScriptPreprocessor
@@ -63,7 +65,7 @@ final case class ScopedSources(
       Seq(Sources.InMemory(
         Left("build-info"),
         os.rel / "BuildInfo.scala",
-        buildInfo(combinedOptions).generateContents(),
+        buildInfo(combinedOptions).generateContents().getBytes(StandardCharsets.UTF_8),
         None
       ))
     else Nil

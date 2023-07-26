@@ -100,7 +100,7 @@ case object MarkdownPreprocessor extends Preprocessor {
             PreprocessedSource.InMemory(
               originalPath = reportingPath.map(subPath -> _),
               relPath = os.rel / (subPath / os.up) / s"${subPath.last}$generatedSourceNameSuffix",
-              processedCode,
+              processedCode.getBytes(StandardCharsets.UTF_8),
               wrapperParamsOpt = None,
               options = Some(processingOutput.opts),
               optionsWithTargetRequirements = processingOutput.optsWithReqs,

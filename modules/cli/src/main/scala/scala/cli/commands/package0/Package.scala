@@ -593,7 +593,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
       val generated = (
         prefix / inMemSource.generatedRelPath,
-        inMemSource.generatedContent.getBytes(StandardCharsets.UTF_8),
+        inMemSource.content,
         lastModified
       )
       Iterator(generated) ++ originalOpt.iterator

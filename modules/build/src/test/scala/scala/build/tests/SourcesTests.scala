@@ -5,6 +5,7 @@ import coursier.cache.{ArchiveCache, Cache}
 import coursier.util.{Artifact, Task}
 import dependency.*
 
+import java.nio.charset.StandardCharsets
 import scala.build.Ops.*
 import scala.build.{CrossSources, Position, Sources}
 import scala.build.internal.ObjectCodeWrapper
@@ -310,7 +311,8 @@ class SourcesTests extends munit.FunSuite {
       val sources =
         scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
 
-      val parsedCodes: Seq[String] = sources.inMemory.map(_.generatedContent)
+      val parsedCodes: Seq[String] =
+        sources.inMemory.map(_.content).map(s => new String(s, StandardCharsets.UTF_8))
 
       parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
         expect(parsedCode.contains(expectedCode))
