@@ -291,7 +291,7 @@ object CrossSources {
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
             m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-            Sources.InMemory(m.originalPath, m.relPath, m.code, m.wrapperParamsOpt)
+            Sources.InMemory(m.originalPath, m.relPath, m.content, m.wrapperParamsOpt)
           ) -> m.directivesPositions
       }
     val unwrappedScriptsWithDirectivePositions

@@ -21,11 +21,9 @@ final case class MillProjectDescriptor(
   logger: Logger
 ) extends ProjectDescriptor {
 
-  private val charSet = StandardCharsets.UTF_8
-
   private def sourcesSettings(mainSources: Sources, testSources: Sources): MillProject = {
-    val mainSources0 = ProjectDescriptor.sources(mainSources, charSet)
-    val testSources0 = ProjectDescriptor.sources(testSources, charSet)
+    val mainSources0 = ProjectDescriptor.sources(mainSources)
+    val testSources0 = ProjectDescriptor.sources(testSources)
     MillProject(mainSources = mainSources0, testSources = testSources0)
   }
 

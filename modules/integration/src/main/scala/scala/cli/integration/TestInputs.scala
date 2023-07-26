@@ -26,7 +26,7 @@ final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, S
   def asZip[T](f: (os.Path, os.Path) => T): T =
     TestInputs.withTmpDir { tmpDir =>
       val zipArchivePath = tmpDir / s"${tmpDir.last}.zip"
-      compress(zipArchivePath, files)
+      compress(zipArchivePath, files.map { case (relPath, content) => (relPath, content, charset) })
       f(tmpDir, zipArchivePath)
     }
   def fromRoot[T](f: os.Path => T): T =
@@ -46,11 +46,11 @@ object TestInputs {
 
   def empty: TestInputs = TestInputs()
 
-  def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String)]) = {
+  def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String, Charset)]) = {
     val zip = new ZipOutputStream(new FileOutputStream(zipFilepath.toString()))
-    try for ((relPath, content) <- files) {
+    try for ((relPath, content, charset) <- files) {
         zip.putNextEntry(new ZipEntry(relPath.toString()))
-        val in: Array[Byte] = content.getBytes
+        val in: Array[Byte] = content.getBytes(charset)
         zip.write(in)
         zip.closeEntry()
       }

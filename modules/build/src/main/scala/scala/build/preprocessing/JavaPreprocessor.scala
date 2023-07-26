@@ -102,7 +102,7 @@ final case class JavaPreprocessor(
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
-            code = content,
+            content = v.content,
             wrapperParamsOpt = None,
             options = Some(preprocessedDirectives.globalUsings),
             optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,

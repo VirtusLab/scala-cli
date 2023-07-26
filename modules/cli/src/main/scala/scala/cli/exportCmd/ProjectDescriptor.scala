@@ -15,7 +15,7 @@ abstract class ProjectDescriptor extends Product with Serializable {
 }
 
 object ProjectDescriptor {
-  def sources(sources: Sources, charSet: Charset): Seq[(os.SubPath, String, Array[Byte])] = {
+  def sources(sources: Sources): Seq[(os.SubPath, String, Array[Byte])] = {
 
     val mainSources = sources.paths.map {
       case (path, relPath) =>
@@ -33,7 +33,7 @@ object ProjectDescriptor {
       (
         inMemSource.generatedRelPath.asSubPath,
         language,
-        inMemSource.generatedContent.getBytes(charSet)
+        inMemSource.content
       )
     }
 

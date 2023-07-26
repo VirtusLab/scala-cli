@@ -23,7 +23,6 @@ final case class JsonProjectDescriptor(
   projectName: Option[String] = None,
   logger: Logger
 ) extends ProjectDescriptor {
-  private val charSet = StandardCharsets.UTF_8
 
   def `export`(
     optionsMain: BuildOptions,
