@@ -126,6 +126,13 @@ object Keys {
       "Default repository, syntax: https://first-repo.company.com https://second-repo.company.com",
     specificationLevel = SpecificationLevel.RESTRICTED
   )
+  val javaProperties = new Key.StringListEntry(
+    prefix = Nil,
+    name = "java.properties",
+    description =
+      "Java properties",
+    specificationLevel = SpecificationLevel.SHOULD
+  )
 
   // Kept for binary compatibility
   val repositoriesMirrors = repositoryMirrors
@@ -161,6 +168,7 @@ object Keys {
     ghToken,
     globalInteractiveWasSuggested,
     interactive,
+    javaProperties,
     suppressDirectivesInMultipleFilesWarning,
     suppressOutdatedDependenciessWarning,
     suppressExperimentalFeatureWarning,
