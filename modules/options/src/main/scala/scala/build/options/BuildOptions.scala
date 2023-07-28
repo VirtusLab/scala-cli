@@ -123,14 +123,32 @@ final case class BuildOptions(
   }
 
   private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false) &&
-      value(scalaParams).exists(_.scalaVersion.startsWith("2."))
-    if (generateSemDbs)
-      Seq(
-        dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
-      )
-    else
-      Nil
+    val scalaVersion: Option[String] = value(scalaParams).map(_.scalaVersion)
+    val generateSemDbs               = scalaOptions.generateSemanticDbs.getOrElse(false)
+    scalaVersion match {
+      case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
+        val semanticDbVersion = findSemanticDbVersion(sv)
+        Seq(
+          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
+        )
+      case _ => Nil
+    }
+  }
+
+  /** Find the latest supported semanticdb version for @scalaVersion
+    */
+  def findSemanticDbVersion(scalaVersion: String): String = {
+    val (_, versions) =
+      finalCache.logger.use {
+        coursier.complete.Complete(finalCache)
+          .withScalaVersion(scalaVersion)
+          .withScalaBinaryVersion(scalaVersion.split('.').take(2).mkString("."))
+          .withInput(s"org.scalameta:semanticdb-scalac_$scalaVersion:")
+          .complete()
+          .unsafeRun()(finalCache.ec)
+      }
+
+    versions.lastOption.getOrElse(semanticDbPluginVersion)
   }
 
   private def maybeJsCompilerPlugins: Either[BuildException, Seq[AnyDependency]] = either {

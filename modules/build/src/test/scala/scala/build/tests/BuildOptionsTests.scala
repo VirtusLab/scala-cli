@@ -360,4 +360,12 @@ class BuildOptionsTests extends munit.FunSuite {
     }
   }
 
+  test("resolve semanticDB for older scala version") {
+    val buildOptions = BuildOptions()
+    val scalaVersion = "2.13.3"
+
+    val semanticDbVersion = buildOptions.findSemanticDbVersion(scalaVersion)
+    expect(semanticDbVersion == "4.8.4")
+  }
+
 }
