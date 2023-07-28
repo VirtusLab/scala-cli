@@ -129,7 +129,7 @@ final case class BuildOptions(
       case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
         val semanticDbVersion = findSemanticDbVersion(sv)
         Seq(
-          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbPluginVersion"
+          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbVersion"
         )
       case _ => Nil
     }
