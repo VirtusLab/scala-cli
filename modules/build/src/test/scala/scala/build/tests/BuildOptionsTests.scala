@@ -368,4 +368,27 @@ class BuildOptionsTests extends munit.FunSuite {
     expect(semanticDbVersion == "4.8.4")
   }
 
+  test("skip setting release option when -release or -java-output-version is set by user") {
+    val javaOutputVersionOpt = "-java-output-version:16"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""//> using option $javaOutputVersionOpt
+           |""".stripMargin
+    )
+
+    inputs.withBuild(BuildOptions(), buildThreads, bloopConfigOpt, buildTests = false) {
+      (_, _, maybeBuild) =>
+        expect(maybeBuild.exists(_.success))
+        val build = maybeBuild
+          .toOption
+          .flatMap(_.successfulOpt)
+          .getOrElse(sys.error("cannot happen"))
+
+        val scalacOpts = build.project.scalaCompiler.toSeq.flatMap(_.scalacOptions)
+
+        expect(scalacOpts.contains(javaOutputVersionOpt))
+        expect(!scalacOpts.exists(_.startsWith("-release")))
+    }
+  }
+
 }

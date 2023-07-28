@@ -766,8 +766,9 @@ object Build {
     else if (compilerJvmVersionOpt.exists(_.value == 8))
       None
     else if (
-      options.scalaOptions.scalacOptions.values.exists(
-        _.headOption.exists(_.value.value == "-release")
+      options.scalaOptions.scalacOptions.values.exists(opt =>
+        opt.headOption.exists(_.value.value.startsWith("-release")) ||
+        opt.headOption.exists(_.value.value.startsWith("-java-output-version"))
       )
     )
       None
