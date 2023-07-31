@@ -18,6 +18,13 @@ object Util {
         out.println(s"  $l")
       printException(t.getCause, out)
     }
+  def printException(t: Throwable, out: => String => Unit): Unit =
+    if (t != null) {
+      out(t.toString)
+      for (l <- t.getStackTrace)
+        out(s"  $l")
+      printException(t.getCause, out)
+    }
 
   def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
