@@ -31,6 +31,26 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     simpleJsTest("--js-mode", "release")
   }
 
+  test("without node on the PATH") {
+    val fileName = "simple.sc"
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val thrown = os.proc(TestUtil.cli, extraOptions, fileName, "--js", "--server=false", "-v", "-v")
+        .call(cwd = root, env = Map("PATH" -> ""), check = false)
+
+      assert(thrown.exitCode == 1)
+      assert(thrown.err.trim().lines.toList.asScala == "node not found in PATH")
+    }
+  }
+
   test("JS arguments") {
     val inputs = TestInputs(
       os.rel / "simple.sc" ->

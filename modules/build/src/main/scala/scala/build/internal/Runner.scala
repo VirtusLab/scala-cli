@@ -12,6 +12,7 @@ import java.nio.file.{Files, Path, Paths}
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.{
+  NodeNotFoundError,
   NoFrameworkFoundByBridgeError,
   NoTestFrameworkFoundError,
   NoTestsRun,
@@ -232,11 +233,11 @@ object Runner {
     jsDom: Boolean = false,
     sourceMap: Boolean = false,
     esModule: Boolean = false
-  ): Process = {
+  ): Either[BuildException, Process] = either {
 
     import logger.{log, debug}
 
-    val nodePath = findInPath("node").fold("node")(_.toString)
+    val nodePath = findInPath("node").map(_.toString).getOrElse(throw new NodeNotFoundError())
 
     if (!jsDom && allowExecve && Execve.available()) {
 
