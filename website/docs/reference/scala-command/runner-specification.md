@@ -328,7 +328,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -693,7 +693,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -1034,7 +1034,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -1579,7 +1579,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -2106,7 +2106,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
 
 **--command**
 
@@ -2154,7 +2154,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -2690,7 +2690,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--list-main-classes` ,`--list-main-class` ,`--main-class-list`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
 
 **--command**
 
@@ -2738,7 +2738,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -3280,7 +3280,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -3590,7 +3590,7 @@ Aliases: `--dialect`
 
 **--scalafmt-version**
 
-Pass scalafmt version before running it (3.7.10 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.11 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 Aliases: `--fmt-version`
 
@@ -3897,7 +3897,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -4202,7 +4202,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -4515,7 +4515,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -4814,7 +4814,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -4893,7 +4893,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -4960,7 +4960,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -5051,7 +5051,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -5370,7 +5370,7 @@ Aliases: `--suppress-experimental-warning`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -5679,7 +5679,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -5860,7 +5860,7 @@ Custom completions name
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
@@ -5927,7 +5927,7 @@ Aliases: `--full-help` ,`-help-full` ,`-full-help`
 
 Increase verbosity (can be specified multiple times)
 
-Aliases: `-verbose` ,`-v`
+Aliases: `-v` ,`-verbose`
 
 **--interactive**
 
