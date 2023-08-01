@@ -33,7 +33,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("without node on the PATH") {
     val fileName = "simple.sc"
-    val message = "Hello"
+    val message  = "Hello"
     val inputs = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
@@ -43,11 +43,12 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val thrown = os.proc(TestUtil.cli, extraOptions, fileName, "--js", "--server=false", "-v", "-v")
-        .call(cwd = root, env = Map("PATH" -> ""), check = false)
+      val thrown = os.proc(TestUtil.cli, extraOptions, fileName, "--js", "--server=false")
+        .call(cwd = root, env = Map("PATH" -> "", "PATHEXT" -> ""), check = false, mergeErrIntoOut = true)
+      val output = thrown.out.trim()
 
       assert(thrown.exitCode == 1)
-      assert(thrown.err.trim().lines.toList.asScala == "node not found in PATH")
+      assert(output.contains("Node was not found on the PATH"))
     }
   }
 

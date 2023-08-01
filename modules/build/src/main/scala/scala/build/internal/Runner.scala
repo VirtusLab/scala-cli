@@ -11,14 +11,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{
-  NodeNotFoundError,
-  NoFrameworkFoundByBridgeError,
-  NoTestFrameworkFoundError,
-  NoTestsRun,
-  TestError,
-  TooManyFrameworksFoundByBridgeError
-}
+import scala.build.errors._
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.util.{Failure, Properties, Success}
 
@@ -237,7 +230,7 @@ object Runner {
 
     import logger.{log, debug}
 
-    val nodePath = findInPath("node").map(_.toString).getOrElse(throw new NodeNotFoundError())
+    val nodePath = value(findInPath("node").map(_.toString).toRight(NodeNotFoundError()))
 
     if (!jsDom && allowExecve && Execve.available()) {
 

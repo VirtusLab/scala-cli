@@ -1,6 +1,5 @@
 package scala.build.errors
 
-import scala.build.Position
-
-final class NodeNotFoundError(positions: Seq[Position] = Nil)
-  extends BuildException("NODE not found in path", positions = positions)
+final class NodeNotFoundError extends BuildException(
+      "The Node was not found on the PATH. Please ensure that Node is installed correctly and then try again"
+    )
