@@ -20,13 +20,15 @@ import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
-import scala.build.internal.{Constants, OsLibc, StableScalaVersion}
+import scala.build.internal.{Constants, OsLibc, StableScalaVersion, Util}
 import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.collection.immutable.Seq
+import scala.concurrent.Await
 import scala.concurrent.duration.*
 import scala.util.Properties
+import scala.util.control.NonFatal
 
 final case class BuildOptions(
   suppressWarningOptions: SuppressWarningOptions = SuppressWarningOptions(),
@@ -123,30 +125,41 @@ final case class BuildOptions(
       classPathOptions.extraDependencies.toSeq
   }
 
-  private def semanticDbPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    val scalaVersion: Option[String] = value(scalaParams).map(_.scalaVersion)
-    val generateSemDbs               = scalaOptions.generateSemanticDbs.getOrElse(false)
-    scalaVersion match {
-      case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
-        val semanticDbVersion = findSemanticDbVersion(sv)
-        Seq(
-          dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbVersion"
-        )
-      case _ => Nil
+  private def semanticDbPlugins(logger: Logger): Either[BuildException, Seq[AnyDependency]] =
+    either {
+      val scalaVersion: Option[String] = value(scalaParams).map(_.scalaVersion)
+      val generateSemDbs               = scalaOptions.generateSemanticDbs.getOrElse(false)
+      scalaVersion match {
+        case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
+          val semanticDbVersion = findSemanticDbVersion(sv, logger)
+          Seq(
+            dep"$semanticDbPluginOrganization:::$semanticDbPluginModuleName:$semanticDbVersion"
+          )
+        case _ => Nil
+      }
     }
-  }
 
   /** Find the latest supported semanticdb version for @scalaVersion
     */
-  def findSemanticDbVersion(scalaVersion: String): String = {
-    val (_, versions) =
+  def findSemanticDbVersion(scalaVersion: String, logger: Logger): String = {
+    val versionsFuture =
       finalCache.logger.use {
         coursier.complete.Complete(finalCache)
           .withScalaVersion(scalaVersion)
           .withScalaBinaryVersion(scalaVersion.split('.').take(2).mkString("."))
           .withInput(s"org.scalameta:semanticdb-scalac_$scalaVersion:")
           .complete()
-          .unsafeRun()(finalCache.ec)
+          .future()(finalCache.ec)
+      }
+
+    val versions =
+      try
+        Await.result(versionsFuture, FiniteDuration(10, "s"))._2
+      catch {
+        case NonFatal(e) =>
+          logger.debug(s"Error while looking up semanticdb versions for scala $scalaVersion")
+          Util.printException(e, logger.debug(_: String))
+          Nil
       }
 
     versions.lastOption.getOrElse(semanticDbPluginVersion)
@@ -162,12 +175,13 @@ final case class BuildOptions(
   private def maybeNativeCompilerPlugins: Seq[AnyDependency] =
     if (platform.value == Platform.Native) scalaNativeOptions.compilerPlugins
     else Nil
-  def compilerPlugins: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
-    value(maybeJsCompilerPlugins).map(Positioned.none) ++
-      maybeNativeCompilerPlugins.map(Positioned.none) ++
-      value(semanticDbPlugins).map(Positioned.none) ++
-      scalaOptions.compilerPlugins
-  }
+  def compilerPlugins(logger: Logger): Either[BuildException, Seq[Positioned[AnyDependency]]] =
+    either {
+      value(maybeJsCompilerPlugins).map(Positioned.none) ++
+        maybeNativeCompilerPlugins.map(Positioned.none) ++
+        value(semanticDbPlugins(logger)).map(Positioned.none) ++
+        scalaOptions.compilerPlugins
+    }
 
   private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {
     val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false)
@@ -371,7 +385,7 @@ final case class BuildOptions(
       case Some(scalaParams0) =>
         val params = Artifacts.ScalaArtifactsParams(
           params = scalaParams0,
-          compilerPlugins = value(compilerPlugins),
+          compilerPlugins = value(compilerPlugins(logger)),
           addJsTestBridge = addJsTestBridge.filter(_ => isTests),
           addNativeTestInterface = addNativeTestInterface.filter(_ => isTests),
           scalaJsVersion =
