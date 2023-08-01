@@ -668,6 +668,12 @@ Remove an entry from config
 
 Aliases: `--remove`
 
+**--force**
+
+Force overwriting values for key
+
+Aliases: `-f`
+
 <details><summary>
 
 ### Implementantation specific options

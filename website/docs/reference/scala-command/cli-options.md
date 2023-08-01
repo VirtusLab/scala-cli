@@ -178,6 +178,14 @@ Aliases: `--remove`
 
 Remove an entry from config
 
+### `--force`
+
+Aliases: `-f`
+
+`SHOULD have` per Scala Runner specification
+
+Force overwriting values for key
+
 ## Debug options
 
 Available in commands:

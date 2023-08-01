@@ -32,7 +32,7 @@ class SipScalaTests extends ScalaCliSuite {
         os.proc(TestUtil.cli, "config", configKey, disableSetting)
           .call(cwd = root, env = homeEnv)
         testWhenDisabled(root, homeEnv)
-        os.proc(TestUtil.cli, "config", configKey, "true")
+        os.proc(TestUtil.cli, "config", configKey, "true", "-f")
           .call(cwd = root, env = homeEnv)
         testWhenEnabled(root, homeEnv)
       }
