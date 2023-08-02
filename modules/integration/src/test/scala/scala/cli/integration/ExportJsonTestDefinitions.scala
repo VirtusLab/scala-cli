@@ -35,6 +35,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
+      TestUtil.initializeGit(root, "v1.1.2")
+
       val exportJsonProc =
         os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "adopt:11")
           .call(cwd = root)
@@ -43,6 +45,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
 
       expect(jsonContents ==
         s"""{
+          |"projectVersion":"1.1.2",
           |"scalaVersion":"${Constants.scala3}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",

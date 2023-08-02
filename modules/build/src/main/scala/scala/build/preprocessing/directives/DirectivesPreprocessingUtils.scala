@@ -13,6 +13,7 @@ object DirectivesPreprocessingUtils {
   val usingDirectiveHandlers: Seq[DirectiveHandler[BuildOptions]] =
     Seq[DirectiveHandler[_ <: HasBuildOptions]](
       directives.BuildInfo.handler,
+      directives.ComputeVersion.handler,
       directives.Exclude.handler,
       directives.JavaHome.handler,
       directives.Jvm.handler,

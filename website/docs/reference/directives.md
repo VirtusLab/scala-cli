@@ -38,6 +38,17 @@ Adds compiler plugins
 #### Examples
 `//> using plugin org.typelevel:::kind-projector:0.13.2`
 
+### Compute Version
+
+Method used to compute the version for BuildInfo
+
+`//> using computeVersion `git:tag
+
+#### Examples
+`//> using computeVersion git:tag`
+
+`//> using computeVersion "command:cat project.version"`
+
 ### Custom JAR
 
 Manually add JAR(s) to the class path

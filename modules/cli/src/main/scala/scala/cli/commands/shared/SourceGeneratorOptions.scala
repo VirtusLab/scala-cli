@@ -11,6 +11,9 @@ final case class SourceGeneratorOptions(
   @HelpMessage("Generate BuildInfo for project")
   @Name("buildInfo")
     useBuildInfo: Option[Boolean] = None,
+  @HelpMessage("Method used to compute the project version for BuildInfo")
+  @Tag(tags.experimental)
+    computeVersion: Option[String] = None,
 )
 // format: on
 

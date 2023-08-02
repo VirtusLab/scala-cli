@@ -1577,6 +1577,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |  assert(BuildInfo.jsEsVersion == None)
            |  assert(BuildInfo.scalaNativeVersion == None)
            |  assert(BuildInfo.mainClass == Some("Main"))
+           |  assert(BuildInfo.projectVersion == Some("1.0.0"))
            |
            |  assert(BuildInfo.Main.sources.head.endsWith("Main.scala"))
            |  assert(BuildInfo.Main.scalacOptions == Seq("-Xasync"))
@@ -1611,6 +1612,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
+      TestUtil.initializeGit(root, "v1.0.0")
+
       val res =
         os.proc(TestUtil.cli, "--power", extraOptions, ".").call(cwd = root)
       val output = res.out.trim()

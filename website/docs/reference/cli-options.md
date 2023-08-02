@@ -1581,6 +1581,10 @@ Aliases: `--build-info`
 
 Generate BuildInfo for project
 
+### `--compute-version`
+
+Method used to compute the project version for BuildInfo
+
 ## Suppress warning options
 
 Available in commands:

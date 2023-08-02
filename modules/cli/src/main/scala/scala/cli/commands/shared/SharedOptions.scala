@@ -14,6 +14,7 @@ import java.io.{File, InputStream}
 import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.EitherOptOps
 import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
@@ -24,7 +25,7 @@ import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
-import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.options.{ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
@@ -316,7 +317,13 @@ final case class SharedOptions(
       )
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
-        useBuildInfo = sourceGenerator.useBuildInfo
+        useBuildInfo = sourceGenerator.useBuildInfo,
+        computeVersion = value {
+          sourceGenerator.computeVersion
+            .map(Positioned.commandLine)
+            .map(ComputeVersion.parse)
+            .sequence
+        }
       ),
       suppressWarningOptions =
         bo.SuppressWarningOptions(

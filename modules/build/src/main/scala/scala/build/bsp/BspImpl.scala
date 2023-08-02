@@ -122,10 +122,15 @@ final class BspImpl(
     if (verbosity >= 3)
       pprint.err.log(scopedSources)
 
-    val sourcesMain =
-      scopedSources.sources(Scope.Main, sharedOptions)
-    val sourcesTest =
-      scopedSources.sources(Scope.Test, sharedOptions)
+    val sourcesMain = value {
+      scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace)
+        .left.map((_, Scope.Main))
+    }
+
+    val sourcesTest = value {
+      scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace)
+        .left.map((_, Scope.Test))
+    }
 
     if (verbosity >= 3)
       pprint.err.log(sourcesMain)
