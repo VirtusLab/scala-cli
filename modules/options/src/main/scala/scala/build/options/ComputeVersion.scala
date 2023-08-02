@@ -9,7 +9,7 @@ import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.io.Codec
 import scala.jdk.CollectionConverters.*
-import scala.util.Using
+import scala.util.{Success, Try, Using}
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
@@ -19,11 +19,16 @@ object ComputeVersion {
 
   final case class Command(command: Seq[String]) extends ComputeVersion {
     def get(workspace: os.Path): Either[BuildException, String] = {
-      val res = os.proc(command).call(stdin = os.Inherit, cwd = workspace, check = false)
-      if (res.exitCode == 0)
-        Right(res.out.trim(Codec.default))
-      else
-        Left(new Command.ComputeVersionCommandError(command, res.exitCode))
+      val maybeRes = Try(os.proc(command).call(stdin = os.Inherit, cwd = workspace, check = false))
+      maybeRes match {
+        case Success(res) if res.exitCode == 0 =>
+          Right(res.out.trim(Codec.default))
+        case _ =>
+          Left(new Command.ComputeVersionCommandError(
+            command,
+            maybeRes.map(_.exitCode).getOrElse(1)
+          ))
+      }
     }
   }
 
