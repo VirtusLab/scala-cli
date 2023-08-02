@@ -53,6 +53,8 @@ import scala.util.control.NonFatal
 // format: off
 final case class SharedOptions(
   @Recurse
+    sharedVersionOptions: SharedVersionOptions = SharedVersionOptions(),
+  @Recurse
     sourceGenerator: SourceGeneratorOptions = SourceGeneratorOptions(),
   @Recurse
     suppress: SuppressWarningOptions = SuppressWarningOptions(),
@@ -319,7 +321,7 @@ final case class SharedOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
         computeVersion = value {
-          sourceGenerator.computeVersion
+          sharedVersionOptions.computeVersion
             .map(Positioned.commandLine)
             .map(ComputeVersion.parse)
             .sequence

@@ -991,14 +991,6 @@ Name to publish artifacts as
 
 Final name to publish artifacts as, including Scala version and platform suffixes if any
 
-### `--version`
-
-Version to publish artifacts as
-
-### `--compute-version`
-
-How to compute the version to publish artifacts as
-
 ### `--url`
 
 URL to put in publishing metadata
@@ -1581,10 +1573,6 @@ Aliases: `--build-info`
 
 Generate BuildInfo for project
 
-### `--compute-version`
-
-Method used to compute the project version for BuildInfo
-
 ## Suppress warning options
 
 Available in commands:
@@ -1734,9 +1722,17 @@ Enable actionable diagnostics
 
 Available in commands:
 
-[`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--compute-version`
+
+Method used to compute the project version
+
+### `--project-version`
+
+Set the project version
 
 ### `--cli-version`
 

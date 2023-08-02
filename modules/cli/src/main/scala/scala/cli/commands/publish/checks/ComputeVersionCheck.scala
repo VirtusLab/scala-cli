@@ -29,7 +29,7 @@ final case class ComputeVersionCheck(
       }
       else
         None
-    val cv = options.publishParams.computeVersion
+    val cv = options.sharedVersionOptions.computeVersion
       .orElse(fromGitOpt)
     cv.map(OptionCheck.DefaultValue.simple(_, Nil, Nil)).toRight {
       new MissingPublishOptionError(
