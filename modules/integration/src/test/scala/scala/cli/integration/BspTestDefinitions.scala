@@ -1523,6 +1523,95 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     )
   }
 
+  if (actualScalaVersion.startsWith("3."))
+    test("actionable diagnostics from compiler") {
+      val inputs = TestInputs(
+        os.rel / "test.sc" ->
+          """//> using scala 3.3.2-RC1-bin-20230723-5afe621-NIGHTLY
+            |def foo(): Int = 23
+            |
+            |def test: Int = foo
+            |//              ^^^ error: missing parentheses
+            |""".stripMargin
+      )
+
+      withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val target = {
+            val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+            expect(targets.length == 2)
+            extractMainTargets(targets)
+          }
+
+          val targetUri = TestUtil.normalizeUri(target.getUri)
+          checkTargetUri(root, targetUri)
+
+          val targets = List(target).asJava
+
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.ERROR)
+
+          val diagnosticsParams = {
+            val diagnostics = localClient.diagnostics()
+            val params      = diagnostics(2)
+            expect(params.getBuildTarget.getUri == targetUri)
+            expect(
+              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
+                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+            )
+            params
+          }
+
+          val diagnostics = diagnosticsParams.getDiagnostics.asScala
+          expect(diagnostics.size == 1)
+
+          val theDiagnostic = diagnostics.head
+
+          checkDiagnostic(
+            diagnostic = theDiagnostic,
+            expectedMessage =
+              "method foo in class test$_ must be called with () argument",
+            expectedSeverity = b.DiagnosticSeverity.ERROR,
+            expectedStartLine = 3,
+            expectedStartCharacter = 16,
+            expectedEndLine = 3,
+            expectedEndCharacter = 19
+          )
+
+          // Shouldn't dataKind be set to "scala"? expect(theDiagnostic.getDataKind == "scala")
+
+          val gson = new com.google.gson.Gson()
+
+          val scalaDiagnostic: b.ScalaDiagnostic = gson.fromJson(
+            theDiagnostic.getData.toString,
+            classOf[b.ScalaDiagnostic]
+          )
+
+          val actions = scalaDiagnostic.getActions.asScala
+          expect(actions.size == 1)
+
+          val action = actions.head
+          expect(action.getTitle == "Insert ()")
+
+          val edit = action.getEdit
+          expect(edit.getChanges.asScala.size == 1)
+          val change = edit.getChanges.asScala.head
+
+          val expectedRange = new b.Range(
+            new b.Position(11, 19),
+            new b.Position(11, 19)
+          )
+          expect(change.getRange == expectedRange)
+          expect(change.getNewText == "()")
+        }
+      }
+    }
+
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult
@@ -1577,7 +1666,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     expect(diagnostic.getRange.getEnd.getLine == expectedEndLine)
     expect(diagnostic.getRange.getEnd.getCharacter == expectedEndCharacter)
     if (strictlyCheckMessage)
-      expect(diagnostic.getMessage == expectedMessage)
+      assertNoDiff(diagnostic.getMessage, expectedMessage)
     else
       expect(diagnostic.getMessage.contains(expectedMessage))
     for (es <- expectedSource)
