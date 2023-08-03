@@ -207,6 +207,12 @@ For repository.credentials, whether to use these credentials are optional
 
 For repository.credentials, whether to use these credentials should be passed upon redirection
 
+### `--force`
+
+Aliases: `-f`
+
+Force overwriting values for key
+
 ## Cross options
 
 Available in commands:

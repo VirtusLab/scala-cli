@@ -284,6 +284,7 @@ def checkFile(file: os.Path, options: Options): Unit =
           }
       case Commands.Clear(_) =>
         os.list(out).filterNot(_ == binDir).foreach(os.remove.all)
+        os.remove(os.Path(sys.env("SCALA_CLI_CONFIG")))
 
   try
     println(Blue(s"\n[${file.relativeTo(os.pwd)}]  Running checks in $out"))

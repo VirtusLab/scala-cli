@@ -16,14 +16,7 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.config.{
-  ConfigDb,
-  Keys,
-  PasswordOption,
-  PublishCredentials,
-  RepositoryCredentials,
-  Secret
-}
+import scala.cli.config._
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 object Config extends ScalaCommand[ConfigOptions] {
@@ -285,6 +278,8 @@ object Config extends ScalaCommand[ConfigOptions] {
                       else
                         values
 
+                    checkIfAskForUpdate(entry, finalValues, db, options)
+
                     db.setFromString(entry, finalValues)
                       .wrapConfigException
                       .orExit(logger)
@@ -298,4 +293,49 @@ object Config extends ScalaCommand[ConfigOptions] {
       }
     }
   }
+
+  /** Check whether to ask for an update depending on the provided key.
+    */
+  private def checkIfAskForUpdate(
+    entry: Key[_],
+    newValues: Seq[String],
+    db: ConfigDb,
+    options: ConfigOptions
+  ): Unit = entry match {
+    case listEntry: Key.StringListEntry =>
+      val previousValue = db.get(listEntry).wrapConfigException.orExit(logger).getOrElse(Nil)
+
+      confirmUpdateValue(
+        listEntry.fullName,
+        previousValue,
+        newValues,
+        options
+      ).wrapConfigException.orExit(logger)
+    case _ => ()
+  }
+
+  /** If the new value is different from the previous value, ask user for confirmation or suggest to
+    * use --force option. If the new value is the same as the previous value, confirm the operation.
+    * If force option is provided, skip the confirmation.
+    */
+  private def confirmUpdateValue(
+    keyFullName: String,
+    previousValues: Seq[String],
+    newValues: Seq[String],
+    options: ConfigOptions
+  ): Either[Exception, Unit] =
+    val (newValuesStr, previousValueStr) = (newValues.mkString(", "), previousValues.mkString(", "))
+    val shouldUpdate = !options.force && newValuesStr != previousValueStr && previousValues.nonEmpty
+
+    if shouldUpdate then
+      val interactive = options.global.logging.verbosityOptions.interactiveInstance()
+      val msg =
+        s"Do you want to change the key '$keyFullName' from '$previousValueStr' to '$newValuesStr'?"
+      interactive.confirmOperation(msg) match {
+        case Some(true) => Right(())
+        case _ => Left(new Exception(
+            s"Unable to change the value for the key: '$keyFullName' from '$previousValueStr' to '$newValuesStr' without the force flag. Please pass -f or --force to override."
+          ))
+      }
+    else Right(())
 }

@@ -55,6 +55,7 @@ Available keys:
   - httpProxy.user                                 HTTP proxy user (used for authentication).
   - interactive                                    Globally enables interactive mode (the '--interactive' flag).
   - interactive-was-suggested                      Setting indicating if the global interactive mode was already suggested.
+  - java.properties                                Java properties
   - pgp.public-key                                 The PGP public key, used for signing.
   - pgp.secret-key                                 The PGP secret key, used for signing.
   - pgp.secret-key-password                        The PGP secret key password, used for signing.

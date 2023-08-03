@@ -186,6 +186,17 @@ object ScalaCli {
         System.err.println(
           s"Warning: Only java properties are supported in .scala-jvmopts file. Other options are ignored: ${otherOpts.mkString(", ")} "
         )
+    // load java properties from config
+    for {
+      configDb   <- ConfigDbUtils.configDb.toOption
+      properties <- configDb.get(Keys.javaProperties).getOrElse(Nil)
+    }
+      properties.foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2).match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _ => System.err.println(s"Warning: Invalid java property in config: $opt")
+        }
+      }
   }
 
   private def main0(args: Array[String]): Unit = {

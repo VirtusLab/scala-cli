@@ -522,4 +522,42 @@ class ConfigTests extends ScalaCliSuite {
       }
   }
 
+  test("change value for key") {
+    val configFile              = os.rel / "config" / "config.json"
+    val configEnv               = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+    val (props, props2, props3) = ("props=test", "props2=test2", "props3=test3")
+    val key                     = "java.properties"
+    TestInputs.empty.fromRoot { root =>
+      // set some values first time
+      os.proc(TestUtil.cli, "--power", "config", key, props, props2).call(
+        cwd = root,
+        env = configEnv
+      )
+
+      // override some values should throw error without force flag
+      val res = os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3).call(
+        cwd = root,
+        env = configEnv,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      expect(res.exitCode == 1)
+      expect(res.out.trim().contains("pass -f or --force"))
+
+      os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3, "-f").call(
+        cwd = root,
+        env = configEnv,
+        check = false
+      )
+      val propertiesFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
+        .call(cwd = root, env = configEnv)
+        .out.trim()
+
+      expect(propertiesFromConfig.contains(props))
+      expect(propertiesFromConfig.contains(props2))
+      expect(propertiesFromConfig.contains(props3))
+    }
+  }
+
 }
