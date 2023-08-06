@@ -21,10 +21,13 @@ object Bsp extends ScalaCommand[BspOptions] {
   override def hidden                  = true
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
   private def latestSharedOptions(options: BspOptions): SharedOptions =
-    options.jsonOptions.map { optionsPath =>
-      val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-      readFromArray(content)(SharedOptions.jsonCodec)
-    }.getOrElse(options.shared)
+    options.jsonOptions
+      .map(path => os.Path(path, os.pwd))
+      .filter(path => os.exists(path) && os.isFile(path))
+      .map { optionsPath =>
+        val content = os.read.bytes(os.Path(optionsPath, os.pwd))
+        readFromArray(content)(SharedOptions.jsonCodec)
+      }.getOrElse(options.shared)
   override def sharedOptions(options: BspOptions): Option[SharedOptions] =
     Option(latestSharedOptions(options))
 
