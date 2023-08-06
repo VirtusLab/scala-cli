@@ -1,5 +1,5 @@
 FROM debian:stable-slim
-RUN apt update && apt install build-essential libz-dev clang -y
+RUN apt update && apt install build-essential libz-dev clang procps -y
 ADD scala-cli /usr/bin/
 RUN \
  echo "println(1)" | scala-cli -S 3 - -v -v -v && \
