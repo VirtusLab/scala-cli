@@ -4,7 +4,7 @@ ADD scala-cli /usr/bin/
 RUN \
  echo "println(1)" | scala-cli -S 3 - -v -v -v && \
  echo "println(1)" | scala-cli -S 2.13 - -v -v -v && \
- echo "println(1)" | scala-cli -S 2.12 - -v -v -v \
+ echo "println(1)" | scala-cli -S 2.12 - -v -v -v
 RUN \
  echo "println(1)" | scala-cli --power package --native _.sc --force && \
  echo "println(1)" | scala-cli --power package --native-image _.sc --force
