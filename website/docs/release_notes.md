@@ -7,6 +7,109 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.3)
+
+## What's new
+
+## Access project configuration with the new `BuildInfo`
+
+`BuildInfo` access your project's build configuration within your Scala code. This feature automatically gathers and generates build information about your project, making project details instantly accessible at runtime.
+
+To generate BuildInfo, either use the `--build-info` command line option or include the `//> using buildInfo` directive in your code.
+
+Upon activation, a `BuildInfo` object becomes accessible on your project's classpath. To use it, simply add the following import into your code:
+
+```
+import scala.cli.build.BuildInfo
+```
+
+This `BuildInfo` object encapsulates information such as the Scala version used, target platform, main class, scalac options, dependencies, and much more for both Main and Test scopes. The generation ensures up-to-date configuration data from both the console options and using directives in your project's sources.
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#2249](https://github.com/VirtusLab/scala-cli/pull/2249).
+
+## CompileOnly Dependencies
+
+Now, users can declare dependencies that are exclusively included at the compile time. These dependencies are added to the classpath during compilation, but won't be included when the application is run, keeping your runtime environment lightweight.
+
+To declare such a dependency:
+
+1.  Via the using directive:
+```
+//> using compileOnly.dep "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+```
+2. Via the command line:
+```
+scala-cli Hello.scala --compile-dep "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+```
+
+Added by @alexarchambault and [@lwronski](https://github.com/lwronski) in [#2299](https://github.com/VirtusLab/scala-cli/pull/2299), Thanks!
+
+
+## Set globally Java properties
+
+Scala CLI allows users to globally set Java properties for its launcher using the `config` command. This will simplify the JVM properties management process, eliminating the need to pass these properties with each `scala-cli` execution.
+
+To set global Java properties execute the following command:
+
+```
+scala-cli config java.properties Djavax.net.ssl.trustStore=cacerts Dfoo=bar2
+```
+
+When modifying Java properties, remember that you must redefine all of them. It's not possible to update just a single property. Essentially, each time you use the `config` command for Java properties, you replace the entire list of properties.
+
+Whenever overwriting existing Java properties Scala CLI will let you know what was the previous value and in interactive mode ensure that you are ok with replacing them.
+
+Added by [@lwronski](https://github.com/lwronski) in [#2317](https://github.com/VirtusLab/scala-cli/pull/2317), Thanks!
+
+
+## Other changes
+* Add custom exception and throw it when node not found in the path by [@lwronski](https://github.com/lwronski) in [#2323](https://github.com/VirtusLab/scala-cli/pull/2323)
+* Skip reading ide-options-v2.json if doesn't exist to avoid throwing a… by [@lwronski](https://github.com/lwronski) in [#2333](https://github.com/VirtusLab/scala-cli/pull/2333)
+* Skip setting release flag when user pass directly -release or -java-o… by [@lwronski](https://github.com/lwronski) in [#2321](https://github.com/VirtusLab/scala-cli/pull/2321)
+* Prevent downloading Java 17 when running a REPL without sources by [@lwronski](https://github.com/lwronski) in [#2305](https://github.com/VirtusLab/scala-cli/pull/2305)
+* Extract JAVA_HOME from /usr/libexec/java_home for Mac by [@lwronski](https://github.com/lwronski) in [#2304](https://github.com/VirtusLab/scala-cli/pull/2304)
+* Bump case-app, add names limit to HelpFormat, move some name aliases, add test by [@MaciejG604](https://github.com/MaciejG604) in [#2280](https://github.com/VirtusLab/scala-cli/pull/2280)
+* Build info with compute version [@MaciejG604](https://github.com/MaciejG604) in [#2310](https://github.com/VirtusLab/scala-cli/pull/2310)
+
+
+### Fixes
+* Fix - install ps, which is necessary for starting Bloop by [@lwronski](https://github.com/lwronski) in [#2332](https://github.com/VirtusLab/scala-cli/pull/2332)
+* Load virtual data as byte arrays without encoding using UTF-8 by [@lwronski](https://github.com/lwronski) in [#2313](https://github.com/VirtusLab/scala-cli/pull/2313)
+* Accept directive packageType native when using native platform by [@lwronski](https://github.com/lwronski) in [#2311](https://github.com/VirtusLab/scala-cli/pull/2311)
+* Ignore url query params [@MaciejG604](https://github.com/MaciejG604) in [#2334](https://github.com/VirtusLab/scala-cli/pull/2334)
+
+### Documentation changes
+* Update runner specification by [@MaciejG604](https://github.com/MaciejG604) in [#2301](https://github.com/VirtusLab/scala-cli/pull/2301)
+* Add WinGet to Windows installation methods by [@lwronski](https://github.com/lwronski) in [#2283](https://github.com/VirtusLab/scala-cli/pull/2283)
+* Add missing caution to Password options and fix displaying command in… by [@lwronski](https://github.com/lwronski) in [#2286](https://github.com/VirtusLab/scala-cli/pull/2286)
+* Document BuildInfo [@MaciejG604](https://github.com/MaciejG604) in [#2325](https://github.com/VirtusLab/scala-cli/pull/2325)
+
+### Build and internal changes
+* Add timeout for resolving semanticDbVersion by [@lwronski](https://github.com/lwronski) in [#2322](https://github.com/VirtusLab/scala-cli/pull/2322)
+* Resolve semanticDB for older scala version by [@lwronski](https://github.com/lwronski) in [#2318](https://github.com/VirtusLab/scala-cli/pull/2318)
+* feat: use the new ScalaAction from BSP4J by [@ckipp01](https://github.com/ckipp01)  in [#2284](https://github.com/VirtusLab/scala-cli/pull/2284)
+
+
+### Updates and maintenance
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.12 by [@lwronski](https://github.com/lwronski) in [#2335](https://github.com/VirtusLab/scala-cli/pull/2335)
+* Update trees_2.13 to 4.8.7 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2329](https://github.com/VirtusLab/scala-cli/pull/2329)
+* Update guava to 32.1.2-jre by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2324](https://github.com/VirtusLab/scala-cli/pull/2324)
+* Update bloop-rifle_2.13 to 1.5.9-sc-1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2314](https://github.com/VirtusLab/scala-cli/pull/2314)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.11 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2315](https://github.com/VirtusLab/scala-cli/pull/2315)
+* Update scalajs-sbt-test-adapter_2.13 to 1.13.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2240](https://github.com/VirtusLab/scala-cli/pull/2240)
+* Bump VirtusLab/scala-cli-setup from 1.0.1 to 1.0.2 by [@dependabot](https://github.com/dependabot) in [#2300](https://github.com/VirtusLab/scala-cli/pull/2300)
+* Update mill 0.11.1 by [@lwronski](https://github.com/lwronski) in [#2297](https://github.com/VirtusLab/scala-cli/pull/2297)
+* deps: update mill-scalafix to 0.3.1 by [@ckipp01](https://github.com/ckipp01)  in [#2285](https://github.com/VirtusLab/scala-cli/pull/2285)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.10 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2295](https://github.com/VirtusLab/scala-cli/pull/2295)
+* Update sbt to 1.9.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2288](https://github.com/VirtusLab/scala-cli/pull/2288)
+* Update trees_2.13 to 4.8.4 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2290](https://github.com/VirtusLab/scala-cli/pull/2290)
+* Update scala-cli.sh launcher for 1.0.2 by @github-actions in [#2281](https://github.com/VirtusLab/scala-cli/pull/2281)
+* Update trees_2.13 to 4.8.3 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2279](https://github.com/VirtusLab/scala-cli/pull/2279)
+* Bump semver from 5.7.1 to 5.7.2 in /website by [@dependabot](https://github.com/dependabot) in [#2276](https://github.com/VirtusLab/scala-cli/pull/2276)
+
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.2...v1.0.3
+
 ## [v1.0.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.2)
 
 ## What's new
