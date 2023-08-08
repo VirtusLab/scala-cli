@@ -548,7 +548,14 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       customJarsDecls = Nil
     )
 
-    val buildInfo = BuildInfo(BuildOptions()).copy(
+    val generatedBuildInfo = BuildInfo(BuildOptions(), os.pwd) match {
+      case Right(bv) => bv
+      case Left(exception) =>
+        System.err.println(s"Failed to generate BuildInfo: ${exception.message}")
+        sys.exit(1)
+    }
+
+    val buildInfo = generatedBuildInfo.copy(
       scalaVersion = Some("3.3.0"),
       platform = Some("JVM"),
       jvmVersion = Some("11"),

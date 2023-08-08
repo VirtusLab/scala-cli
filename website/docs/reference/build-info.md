@@ -49,6 +49,8 @@ object BuildInfo {
   val scalaNativeVersion = None
   /** Main class specified for the project */
   val mainClass = Some("Main")
+  /** Project version */
+  val projectVersion = Some("1.0.3-SNAPSHOT")
 
   /** Information about the Main scope */
   object Main {
