@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util
 
 import scala.build.info.{ArtifactId, BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
@@ -19,7 +20,6 @@ import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
 import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}
-
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   implicit class PBUtils(sb: StringBuilder) {
@@ -562,7 +562,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       scalaJsVersion = None,
       jsEsVersion = None,
       scalaNativeVersion = None,
-      mainClass = Some("Main")
+      mainClass = Some("Main"),
+      projectVersion = None
     )
       .withScope("main", mainScopedBuildInfo)
       .withScope("test", testScopedBuildInfo)
