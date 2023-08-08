@@ -25,14 +25,19 @@ final case class ScopedBuildInfo(
 
   def generateContentLines(): Seq[String] =
     Seq(
-      s"val sources = "              -> sources,
-      s"val scalacOptions = "        -> scalacOptions,
-      s"val scalaCompilerPlugins = " -> scalaCompilerPlugins.map(_.toString()),
-      s"val dependencies = "         -> dependencies.map(_.toString()),
-      s"val resolvers = "            -> resolvers,
-      s"val resourceDirs = "         -> resourceDirs,
-      s"val customJarsDecls = "      -> customJarsDecls
-    ).map { case (prefix, values) =>
+      Seq("/** sources found for the scope */", "val sources = ")        -> sources,
+      Seq("/** scalac options for the scope */", "val scalacOptions = ") -> scalacOptions,
+      Seq(
+        "/** compiler plugins used in this scope */",
+        "val scalaCompilerPlugins = "
+      ) -> scalaCompilerPlugins.map(_.toString()),
+      Seq("/** dependencies used in this scope */", "val dependencies = ") -> dependencies.map(
+        _.toString()
+      ),
+      Seq("/** dependency resolvers used in this scope */", "val resolvers = ")    -> resolvers,
+      Seq("/** resource directories used in this scope */", "val resourceDirs = ") -> resourceDirs,
+      Seq("/** custom jars added to this scope */", "val customJarsDecls = ") -> customJarsDecls
+    ).flatMap { case (Seq(scaladoc, prefix), values) =>
       val sb = new StringBuilder
       sb.append(prefix)
       if (values.isEmpty) sb.append("Nil")
@@ -40,7 +45,7 @@ final case class ScopedBuildInfo(
         values.map(str => s"\"${BuildInfo.escapeBackslashes(str)}\"")
           .mkString("Seq(", ", ", ")")
       }
-      sb.toString()
+      Seq(scaladoc, sb.toString())
     }
 }
 

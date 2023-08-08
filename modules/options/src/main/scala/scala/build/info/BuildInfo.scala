@@ -34,19 +34,42 @@ final case class BuildInfo(
     val nl     = System.lineSeparator()
     val indent = " " * 2
     val stringVals = Seq(
+      "/** version of Scala used to compile this project */",
       s"val scalaVersion = \"${escapeBackslashes(scalaVersion.getOrElse(Constants.defaultScalaVersion))}\"",
+      "/** target platform of this project, it can be \"JVM\" or \"JS\" or \"Native\" */",
       s"val platform = \"${escapeBackslashes(platform.getOrElse(Platform.JVM.repr))}\""
     )
 
     val optionVals = Seq(
-      "val jvmVersion ="         -> jvmVersion,
-      "val scalaJsVersion ="     -> scalaJsVersion,
-      "val jsEsVersion ="        -> jsEsVersion,
-      "val scalaNativeVersion =" -> scalaNativeVersion,
-      "val mainClass ="          -> mainClass,
-      "val projectVersion ="     -> projectVersion
-    ).map { case (prefix, opt) =>
-      opt.map(v => s"$prefix Some(\"${escapeBackslashes(v)}\")").getOrElse(s"$prefix None")
+      Seq(
+        "/** version of JVM, if it's the target platform */",
+        "val jvmVersion ="
+      ) -> jvmVersion,
+      Seq(
+        "/** version of Scala.js, if it's the target platform */",
+        "val scalaJsVersion ="
+      ) -> scalaJsVersion,
+      Seq(
+        "/** Scala.js ECMA Script version, if Scala.js is the target platform */",
+        "val jsEsVersion ="
+      ) -> jsEsVersion,
+      Seq(
+        "/** version of Scala Native, if it's the target platform */",
+        "val scalaNativeVersion ="
+      ) -> scalaNativeVersion,
+      Seq(
+        "/** Main class specified for the project */",
+        "val mainClass ="
+      ) -> mainClass,
+      Seq(
+        "/** Project version */",
+        "val projectVersion ="
+      ) -> projectVersion
+    ).flatMap { case (Seq(scaladoc, prefix), opt) =>
+      Seq(
+        scaladoc,
+        opt.map(v => s"$prefix Some(\"${escapeBackslashes(v)}\")").getOrElse(s"$prefix None")
+      )
     }
 
     val allVals = stringVals ++ optionVals
@@ -56,17 +79,18 @@ final case class BuildInfo(
         yield {
           val scopedBuildInfoVals = scopedBuildInfo.generateContentLines()
             .mkString(indent, nl + indent * 2, "")
-          s"""${indent}object ${scopeName.capitalize} {
+          s"""$indent/** Information about the ${scopeName.capitalize} scope */
+             |${indent}object ${scopeName.capitalize} {
              |$indent$scopedBuildInfoVals
-             |$indent}
-             |""".stripMargin
+             |$indent}""".stripMargin
         }
 
     s"""package scala.cli.build
        |
+       |/** Information about the build gathered by Scala CLI */
        |object BuildInfo {
        |${allVals.mkString(indent, nl + indent, nl)}
-       |${scopesContents.mkString(nl, nl, "")}
+       |${scopesContents.mkString(nl * 2)}
        |}
        |""".stripMargin
   }

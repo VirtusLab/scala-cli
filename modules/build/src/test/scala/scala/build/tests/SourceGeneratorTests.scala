@@ -40,7 +40,7 @@ class SourceGeneratorTests extends munit.FunSuite {
     )
   )
 
-  private def normalizeResolvers(contents: String): String =
+  private def normalizeContents(contents: String): String =
     contents
       .replaceAll(
         "ivy:file:[^\"]*scala-cli-tests-extra-repo[^\"]*/local-repo[^\"]*",
@@ -49,7 +49,9 @@ class SourceGeneratorTests extends munit.FunSuite {
       .replaceAll(
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
-      )
+      ).linesWithSeparators
+      .filterNot(_.stripLeading().startsWith("/**"))
+      .mkString
 
   def initializeGit(
     cwd: os.Path,
@@ -111,7 +113,8 @@ class SourceGeneratorTests extends munit.FunSuite {
 
             val buildInfoContent = os.read(buildInfoPath)
 
-            expect(normalizeResolvers(buildInfoContent) ==
+            assertNoDiff(
+              normalizeContents(buildInfoContent),
               s"""package scala.cli.build
                  |
                  |object BuildInfo {
@@ -123,7 +126,6 @@ class SourceGeneratorTests extends munit.FunSuite {
                  |  val scalaNativeVersion = None
                  |  val mainClass = Some("Main")
                  |  val projectVersion = Some("1.0.0")
-                 |
                  |
                  |  object Main {
                  |    val sources = Seq("${root / "main.scala"}")
@@ -144,11 +146,11 @@ class SourceGeneratorTests extends munit.FunSuite {
                  |    val resourceDirs = Nil
                  |    val customJarsDecls = Nil
                  |  }
-                 |
                  |}
-                 |""".stripMargin)
-        }
+                 |""".stripMargin
+            )
     }
+  }
 
   }
 
@@ -189,7 +191,8 @@ class SourceGeneratorTests extends munit.FunSuite {
 
         val buildInfoContent = os.read(buildInfoPath)
 
-        expect(normalizeResolvers(buildInfoContent) ==
+        assertNoDiff(
+          normalizeContents(buildInfoContent),
           s"""package scala.cli.build
              |
              |object BuildInfo {
@@ -201,7 +204,6 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val scalaNativeVersion = Some("0.4.6")
              |  val mainClass = Some("Main")
              |  val projectVersion = None
-             |
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -222,9 +224,9 @@ class SourceGeneratorTests extends munit.FunSuite {
              |    val resourceDirs = Nil
              |    val customJarsDecls = Nil
              |  }
-             |
              |}
-             |""".stripMargin)
+             |""".stripMargin
+        )
     }
   }
 
@@ -267,7 +269,8 @@ class SourceGeneratorTests extends munit.FunSuite {
 
         val buildInfoContent = os.read(buildInfoPath)
 
-        expect(normalizeResolvers(buildInfoContent) ==
+        assertNoDiff(
+          normalizeContents(buildInfoContent),
           s"""package scala.cli.build
              |
              |object BuildInfo {
@@ -279,7 +282,6 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = Some("TestVersion")
-             |
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -300,9 +302,9 @@ class SourceGeneratorTests extends munit.FunSuite {
              |    val resourceDirs = Nil
              |    val customJarsDecls = Nil
              |  }
-             |
              |}
-             |""".stripMargin)
+             |""".stripMargin
+        )
     }
   }
 
@@ -342,7 +344,8 @@ class SourceGeneratorTests extends munit.FunSuite {
 
         val buildInfoContent = os.read(buildInfoPath)
 
-        expect(normalizeResolvers(buildInfoContent) ==
+        assertNoDiff(
+          normalizeContents(buildInfoContent),
           s"""package scala.cli.build
              |
              |object BuildInfo {
@@ -354,7 +357,6 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = Some("TestVersion")
-             |
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -375,9 +377,9 @@ class SourceGeneratorTests extends munit.FunSuite {
              |    val resourceDirs = Nil
              |    val customJarsDecls = Nil
              |  }
-             |
              |}
-             |""".stripMargin)
+             |""".stripMargin
+        )
     }
   }
 }
