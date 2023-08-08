@@ -408,7 +408,7 @@ class ConfigTests extends ScalaCliSuite {
         testOrg,
         "--name",
         testName,
-        "--version",
+        "--project-version",
         testVersion
       )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)

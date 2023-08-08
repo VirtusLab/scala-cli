@@ -7,12 +7,13 @@ import dependency.NoAttributes
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
-import scala.cli.util.SeqHelpers._
+import scala.cli.util.SeqHelpers.*
 
 final case class MillProjectDescriptor(
   millVersion: String,
@@ -173,7 +174,7 @@ final case class MillProjectDescriptor(
     optionsTest: BuildOptions,
     sourcesMain: Sources,
     sourcesTest: Sources
-  ): MillProject = {
+  ): Either[BuildException, MillProject] = {
 
     // FIXME Put a sensible value in MillProject.nameOpt
 
@@ -202,6 +203,6 @@ final case class MillProjectDescriptor(
       testFrameworkSettings(optionsTest)
     )
 
-    settings.foldLeft(MillProject())(_ + _)
+    Right(settings.foldLeft(MillProject())(_ + _))
   }
 }

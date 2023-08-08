@@ -2,6 +2,8 @@ package scala.build
 
 import java.nio.charset.StandardCharsets
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.info.{BuildInfo, ScopedBuildInfo}
 import scala.build.options.{BuildOptions, HasScope, Scope}
 import scala.build.preprocessing.ScriptPreprocessor
@@ -50,7 +52,11 @@ final case class ScopedSources(
     * @return
     *   [[Sources]] instance that belong to specified scope
     */
-  def sources(scope: Scope, baseOptions: BuildOptions): Sources =
+  def sources(
+    scope: Scope,
+    baseOptions: BuildOptions,
+    workspace: os.Path
+  ): Either[BuildException, Sources] = either {
     val combinedOptions = combinedBuildOptions(scope, baseOptions)
 
     val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions)
@@ -62,12 +68,16 @@ final case class ScopedSources(
     val needsBuildInfo = combinedOptions.sourceGeneratorOptions.useBuildInfo.getOrElse(false)
 
     val maybeBuildInfoSource = if (needsBuildInfo && scope == Scope.Main)
-      Seq(Sources.InMemory(
-        Left("build-info"),
-        os.rel / "BuildInfo.scala",
-        buildInfo(combinedOptions).generateContents().getBytes(StandardCharsets.UTF_8),
-        None
-      ))
+      Seq(
+        Sources.InMemory(
+          Left("build-info"),
+          os.rel / "BuildInfo.scala",
+          value(buildInfo(combinedOptions, workspace)).generateContents().getBytes(
+            StandardCharsets.UTF_8
+          ),
+          None
+        )
+      )
     else Nil
 
     Sources(
@@ -77,6 +87,7 @@ final case class ScopedSources(
       resourceDirs.flatMap(_.valueFor(scope).toSeq),
       combinedOptions
     )
+  }
 
   /** Combine build options that had no requirements (console and using directives) or their
     * requirements have been resolved (e.g. target using directives) with build options that require
@@ -94,24 +105,25 @@ final case class ScopedSources(
     buildOptionsFor(scope)
       .foldRight(baseOptions)(_ orElse _)
 
-  def buildInfo(baseOptions: BuildOptions): BuildInfo = {
-    def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
-      val combinedOptions = combinedBuildOptions(scope, baseOptions)
-      val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toString)
-      val inMemoryPaths =
-        (inMemory.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption) ++
-          unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
-          .map(_._2.toString)
+  def buildInfo(baseOptions: BuildOptions, workspace: os.Path): Either[BuildException, BuildInfo] =
+    either {
+      def getScopedBuildInfo(scope: Scope): ScopedBuildInfo =
+        val combinedOptions = combinedBuildOptions(scope, baseOptions)
+        val sourcePaths     = paths.flatMap(_.valueFor(scope).toSeq).map(_._1.toString)
+        val inMemoryPaths =
+          (inMemory.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption) ++
+            unwrappedScripts.flatMap(_.valueFor(scope).toSeq).flatMap(_.originalPath.toOption))
+            .map(_._2.toString)
 
-      ScopedBuildInfo(combinedOptions, sourcePaths ++ inMemoryPaths)
+        ScopedBuildInfo(combinedOptions, sourcePaths ++ inMemoryPaths)
 
-    val baseBuildInfo = BuildInfo(combinedBuildOptions(Scope.Main, baseOptions))
+      val baseBuildInfo = value(BuildInfo(combinedBuildOptions(Scope.Main, baseOptions), workspace))
 
-    val mainBuildInfo = getScopedBuildInfo(Scope.Main)
-    val testBuildInfo = getScopedBuildInfo(Scope.Test)
+      val mainBuildInfo = getScopedBuildInfo(Scope.Main)
+      val testBuildInfo = getScopedBuildInfo(Scope.Test)
 
-    baseBuildInfo
-      .withScope(Scope.Main.name, mainBuildInfo)
-      .withScope(Scope.Test.name, testBuildInfo)
-  }
+      baseBuildInfo
+        .withScope(Scope.Main.name, mainBuildInfo)
+        .withScope(Scope.Test.name, testBuildInfo)
+    }
 }

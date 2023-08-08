@@ -4,6 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 
+import scala.build.options.ComputeVersion
 import scala.build.tests.{TestInputs, TestUtil}
 
 class ComputeVersionTests extends munit.FunSuite {

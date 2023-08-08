@@ -2,7 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
-import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.shared.{HelpGroup, SharedVersionOptions}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*
@@ -11,7 +11,6 @@ import scala.cli.util.MaybeConfigPasswordOption
 
 // format: off
 final case class PublishParamsOptions(
-
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("Organization to publish artifacts under")
   @Tag(tags.restricted)
@@ -27,15 +26,6 @@ final case class PublishParamsOptions(
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     moduleName: Option[String] = None,
-  @Group(HelpGroup.Publishing.toString)
-  @HelpMessage("Version to publish artifacts as")
-  @Tag(tags.restricted)
-  @Tag(tags.inShortHelp)
-    version: Option[String] = None,
-  @Group(HelpGroup.Publishing.toString)
-  @HelpMessage("How to compute the version to publish artifacts as")
-  @Tag(tags.restricted)
-    computeVersion: Option[String] = None,
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("URL to put in publishing metadata")
   @Tag(tags.restricted)

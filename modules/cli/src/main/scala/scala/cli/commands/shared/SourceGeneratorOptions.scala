@@ -7,10 +7,10 @@ import scala.cli.commands.tags
 // format: off
 final case class SourceGeneratorOptions(
   @Group(HelpGroup.SourceGenerator.toString)
-  @Tag(tags.experimental)
+  @Tag(tags.restricted)
   @HelpMessage("Generate BuildInfo for project")
   @Name("buildInfo")
-    useBuildInfo: Option[Boolean] = None,
+    useBuildInfo: Option[Boolean] = None
 )
 // format: on
 

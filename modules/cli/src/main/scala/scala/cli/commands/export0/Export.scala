@@ -40,7 +40,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val (crossSources: CrossSources, _) = value {
+    val (crossSources: CrossSources, allInputs: Inputs) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -56,7 +56,8 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
     val sources: Sources =
-      scopedSources.sources(scope, crossSources.sharedOptions(buildOptions))
+      scopedSources.sources(scope, crossSources.sharedOptions(buildOptions), inputs.workspace)
+        .orExit(logger)
 
     if (verbosity >= 3)
       pprint.err.log(sources)
@@ -98,8 +99,12 @@ object Export extends ScalaCommand[ExportOptions] {
     MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
   }
 
-  def jsonProjectDescriptor(projectName: Option[String], logger: Logger): JsonProjectDescriptor =
-    JsonProjectDescriptor(projectName, logger)
+  def jsonProjectDescriptor(
+    projectName: Option[String],
+    workspace: os.Path,
+    logger: Logger
+  ): JsonProjectDescriptor =
+    JsonProjectDescriptor(projectName, workspace, logger)
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
@@ -181,8 +186,9 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (shouldExportJsonToStdout) {
-      val project = jsonProjectDescriptor(options.project, logger)
+      val project = jsonProjectDescriptor(options.project, inputs.workspace, logger)
         .`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+        .orExit(logger)
 
       project.print(System.out)
     }
@@ -196,11 +202,12 @@ object Export extends ScalaCommand[ExportOptions] {
         if (shouldExportToMill)
           millProjectDescriptor(options.shared.coursierCache, options.project, logger)
         else if (shouldExportToJson)
-          jsonProjectDescriptor(options.project, logger)
+          jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default
           sbtProjectDescriptor0
 
       val project = projectDescriptor.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+        .orExit(logger)
 
       os.makeDir.all(dest)
       project.writeTo(dest)
