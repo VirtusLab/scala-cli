@@ -113,42 +113,42 @@ class SourceGeneratorTests extends munit.FunSuite {
 
             val buildInfoContent = os.read(buildInfoPath)
 
-        assertNoDiff(
-          normalizeContents(buildInfoContent),
-          s"""package scala.cli.build
-             |
-             |object BuildInfo {
-             |  val scalaVersion = "3.2.2"
-             |  val platform = "JVM"
-             |  val jvmVersion = Some("11")
-             |  val scalaJsVersion = None
-             |  val jsEsVersion = None
-             |  val scalaNativeVersion = None
-             |  val mainClass = Some("Main")
-             |  val projectVersion = Some("1.0.0")
-             |
-             |  object Main {
-             |    val sources = Seq("${root / "main.scala"}")
-             |    val scalacOptions = Seq("-Xasync")
-             |    val scalaCompilerPlugins = Seq("org.wartremover:wartremover_3.2.2:3.0.9")
-             |    val dependencies = Seq("com.lihaoyi:os-lib_3:0.9.1")
-             |    val resolvers = Seq("ivy:file:.../scala-cli-tests-extra-repo/local-repo/...", "https://repo1.maven.org/maven2", "ivy:file:.../.ivy2/local/")
-             |    val resourceDirs = Seq("${root / "resources"}")
-             |    val customJarsDecls = Seq("${root / "TEST1.jar"}", "${root / "TEST2.jar"}")
-             |  }
-             |
-             |  object Test {
-             |    val sources = Nil
-             |    val scalacOptions = Nil
-             |    val scalaCompilerPlugins = Nil
-             |    val dependencies = Nil
-             |    val resolvers = Nil
-             |    val resourceDirs = Nil
-             |    val customJarsDecls = Nil
-             |  }
-             |}
-             |""".stripMargin
-        )
+            assertNoDiff(
+              normalizeContents(buildInfoContent),
+              s"""package scala.cli.build
+                 |
+                 |object BuildInfo {
+                 |  val scalaVersion = "3.2.2"
+                 |  val platform = "JVM"
+                 |  val jvmVersion = Some("11")
+                 |  val scalaJsVersion = None
+                 |  val jsEsVersion = None
+                 |  val scalaNativeVersion = None
+                 |  val mainClass = Some("Main")
+                 |  val projectVersion = Some("1.0.0")
+                 |
+                 |  object Main {
+                 |    val sources = Seq("${root / "main.scala"}")
+                 |    val scalacOptions = Seq("-Xasync")
+                 |    val scalaCompilerPlugins = Seq("org.wartremover:wartremover_3.2.2:3.0.9")
+                 |    val dependencies = Seq("com.lihaoyi:os-lib_3:0.9.1")
+                 |    val resolvers = Seq("ivy:file:.../scala-cli-tests-extra-repo/local-repo/...", "https://repo1.maven.org/maven2", "ivy:file:.../.ivy2/local/")
+                 |    val resourceDirs = Seq("${root / "resources"}")
+                 |    val customJarsDecls = Seq("${root / "TEST1.jar"}", "${root / "TEST2.jar"}")
+                 |  }
+                 |
+                 |  object Test {
+                 |    val sources = Nil
+                 |    val scalacOptions = Nil
+                 |    val scalaCompilerPlugins = Nil
+                 |    val dependencies = Nil
+                 |    val resolvers = Nil
+                 |    val resourceDirs = Nil
+                 |    val customJarsDecls = Nil
+                 |  }
+                 |}
+                 |""".stripMargin
+            )
     }
   }
 
