@@ -40,6 +40,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
 
     val initialBuildOptions = Publish.mkBuildOptions(
       baseOptions,
+      options.shared.sharedVersionOptions,
       options.publishParams,
       options.sharedPublish,
       PublishRepositoryOptions(),

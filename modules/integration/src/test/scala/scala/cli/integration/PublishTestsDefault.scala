@@ -93,7 +93,7 @@ class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None)
       org,
       "--name",
       name,
-      "--version",
+      "--project-version",
       ver
     )
 

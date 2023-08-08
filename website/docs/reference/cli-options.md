@@ -418,7 +418,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.7.11 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.12 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -990,14 +990,6 @@ Name to publish artifacts as
 ### `--module-name`
 
 Final name to publish artifacts as, including Scala version and platform suffixes if any
-
-### `--version`
-
-Version to publish artifacts as
-
-### `--compute-version`
-
-How to compute the version to publish artifacts as
 
 ### `--url`
 
@@ -1730,9 +1722,17 @@ Enable actionable diagnostics
 
 Available in commands:
 
-[`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--compute-version`
+
+Method used to compute the project version
+
+### `--project-version`
+
+Set the project version
 
 ### `--cli-version`
 

@@ -31,9 +31,10 @@ import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassF
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
+  ComputeVersion,
   ConfigMonoid,
   PublishContextualOptions,
   ScalaSigningCliOptions,
@@ -49,7 +50,8 @@ import scala.cli.commands.shared.{
   HelpGroup,
   MainClassOptions,
   SharedOptions,
-  SharedPythonOptions
+  SharedPythonOptions,
+  SharedVersionOptions
 }
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
@@ -84,6 +86,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   def mkBuildOptions(
     baseOptions: BuildOptions,
+    sharedVersionOptions: SharedVersionOptions,
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
@@ -110,7 +113,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .sequence
       },
       computeVersion = value {
-        publishParams.computeVersion
+        sharedVersionOptions.computeVersion
           .map(Positioned.commandLine)
           .map(ComputeVersion.parse)
           .sequence
@@ -131,7 +134,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           moduleName =
             publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           version =
-            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+            sharedVersionOptions.projectVersion.map(_.trim).filter(_.nonEmpty).map(
+              Positioned.commandLine
+            ),
           url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           license = value {
             publishParams.license
@@ -202,6 +207,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val initialBuildOptions = mkBuildOptions(
       baseOptions,
+      options.shared.sharedVersionOptions,
       options.publishParams,
       options.sharedPublish,
       options.publishRepo,

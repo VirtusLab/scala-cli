@@ -3,6 +3,7 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
+import scala.Console.println
 import scala.build.Ops.EitherThrowOps
 import scala.build.errors.ToolkitDirectiveMissingVersionError
 import scala.build.options.{
@@ -52,6 +53,27 @@ class SourceGeneratorTests extends munit.FunSuite {
       .filterNot(_.stripLeading().startsWith("/**"))
       .mkString
 
+  def initializeGit(
+    cwd: os.Path,
+    tag: String = "test-inputs",
+    gitUserName: String = "testUser",
+    gitUserEmail: String = "testUser@scala-cli-tests.com"
+  ): Unit = {
+    println(s"Initializing git in $cwd...")
+    os.proc("git", "init").call(cwd = cwd)
+    println(s"Setting git user.name to $gitUserName")
+    os.proc("git", "config", "--local", "user.name", gitUserName).call(cwd = cwd)
+    println(s"Setting git user.email to $gitUserEmail")
+    os.proc("git", "config", "--local", "user.email", gitUserEmail).call(cwd = cwd)
+    println(s"Adding $cwd to git...")
+    os.proc("git", "add", ".").call(cwd = cwd)
+    println(s"Doing an initial commit...")
+    os.proc("git", "commit", "-m", "git init test inputs").call(cwd = cwd)
+    println(s"Tagging as $tag...")
+    os.proc("git", "tag", tag).call(cwd = cwd)
+    println(s"Git initialized at $cwd")
+  }
+
   test(s"BuildInfo source generated") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
@@ -75,17 +97,21 @@ class SourceGeneratorTests extends munit.FunSuite {
           |""".stripMargin
     )
 
-    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
-      (root, _, maybeBuild) =>
-        expect(maybeBuild.orThrow.success)
-        val projectDir = os.list(root / ".scala-build").filter(
-          _.baseName.startsWith(root.baseName + "_")
-        )
-        expect(projectDir.size == 1)
-        val buildInfoPath = projectDir.head / "src_generated" / "main" / "BuildInfo.scala"
-        expect(os.isFile(buildInfoPath))
+    inputs.fromRoot { root =>
+      initializeGit(root, "v1.0.0")
 
-        val buildInfoContent = os.read(buildInfoPath)
+      inputs.copy(forceCwd = Some(root))
+        .withBuild(baseOptions, buildThreads, bloopConfigOpt, skipCreatingSources = true) {
+          (root, _, maybeBuild) =>
+            expect(maybeBuild.orThrow.success)
+            val projectDir = os.list(root / ".scala-build").filter(
+              _.baseName.startsWith(root.baseName + "_")
+            )
+            expect(projectDir.size == 1)
+            val buildInfoPath = projectDir.head / "src_generated" / "main" / "BuildInfo.scala"
+            expect(os.isFile(buildInfoPath))
+
+            val buildInfoContent = os.read(buildInfoPath)
 
         assertNoDiff(
           normalizeContents(buildInfoContent),
@@ -99,6 +125,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = None
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
+             |  val projectVersion = Some("1.0.0")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -123,6 +150,8 @@ class SourceGeneratorTests extends munit.FunSuite {
              |""".stripMargin
         )
     }
+  }
+
   }
 
   test(s"BuildInfo for native") {
@@ -174,6 +203,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = None
              |  val scalaNativeVersion = Some("0.4.6")
              |  val mainClass = Some("Main")
+             |  val projectVersion = None
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -214,6 +244,7 @@ class SourceGeneratorTests extends munit.FunSuite {
            |//> using platform scala-js
            |//> using jsVersion 1.13.1
            |//> using jsEsVersionStr es2015
+           |//> using computeVersion "command:echo TestVersion"
            |
            |//> using buildInfo
            |
@@ -250,6 +281,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = Some("es2015")
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
+             |  val projectVersion = Some("TestVersion")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -287,6 +319,7 @@ class SourceGeneratorTests extends munit.FunSuite {
            |//> using mainClass "Main"
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
+           |//> using computeVersion "command:echo TestVersion"
            |
            |//> using buildInfo
            |
@@ -323,6 +356,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = None
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
+             |  val projectVersion = Some("TestVersion")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")

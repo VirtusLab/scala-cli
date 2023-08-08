@@ -88,7 +88,7 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.6"
+    def scalaMeta            = "4.8.7"
     def scalaNative          = "0.4.14"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.2"
@@ -145,7 +145,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.11"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.12"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

@@ -4,7 +4,13 @@ import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.Build
-import scala.build.input.Inputs
+import scala.build.input.{
+  Inputs,
+  ScalaCliInvokeData,
+  VirtualJavaFile,
+  VirtualScalaFile,
+  VirtualScript
+}
 import scala.build.input.ElementsUtils.*
 import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion}
 import scala.build.tests.util.BloopServer
@@ -119,6 +125,59 @@ class InputsTests extends munit.FunSuite {
         val filesUnderScalaBuild = os.list(root / Constants.workspaceDirName)
         assert(filesUnderScalaBuild.exists(_.baseName.startsWith(root.baseName)))
         assert(!filesUnderScalaBuild.exists(_.baseName.startsWith("project")))
+    }
+  }
+
+  test("URLs with query parameters") {
+    val urlBase =
+      "https://gist.githubusercontent.com/USER/hash/raw/hash"
+    val urls = Seq(
+      s"$urlBase/test.sc",
+      s"$urlBase/test.sc?foo=bar",
+      s"$urlBase/test.sc?foo=endsWith.md",
+      s"http://gist.githubusercontent.com/USER/hash/raw/hash/test.sc?foo=bar",
+      s"$urlBase/test.scala?foo=endsWith.java",
+      s"$urlBase/test.java?token=123456789123456789",
+      s"file:///Users/user/content/test.sc"
+    )
+
+    TestInputs().fromRoot { root =>
+      val elements = Inputs.validateArgs(
+        urls,
+        root,
+        download = url => Right(Array.emptyByteArray),
+        stdinOpt = None,
+        acceptFds = true,
+        enableMarkdown = true
+      )(using ScalaCliInvokeData.dummy)
+
+      elements match {
+        case Seq(
+              Right(Seq(el1: VirtualScript)),
+              Right(Seq(el2: VirtualScript)),
+              Right(Seq(el3: VirtualScript)),
+              Right(Seq(el4: VirtualScript)),
+              Right(Seq(el5: VirtualScalaFile)),
+              Right(Seq(el6: VirtualJavaFile)),
+              Right(Seq(el7: VirtualScript))
+            ) =>
+          Seq(el1, el2, el3, el4, el5, el6, el7)
+            .zip(urls)
+            .foreach {
+              case (el: VirtualScript, url) =>
+                expect(el.source == url)
+                expect(el.content.isEmpty)
+                expect(el.wrapperPath.endsWith(os.rel / "test.sc"))
+              case (el: VirtualScalaFile, url) =>
+                expect(el.source == url)
+                expect(el.content.isEmpty)
+              case (el: VirtualJavaFile, url) =>
+                expect(el.source == url)
+                expect(el.content.isEmpty)
+              case _ => fail("Unexpected elements")
+            }
+        case _ => fail("Unexpected elements")
+      }
     }
   }
 }

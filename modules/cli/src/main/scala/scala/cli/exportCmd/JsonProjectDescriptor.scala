@@ -17,10 +17,12 @@ import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
+import scala.cli.commands.util.CommandHelpers
 import scala.cli.util.SeqHelpers.*
 
 final case class JsonProjectDescriptor(
   projectName: Option[String] = None,
+  workspace: os.Path,
   logger: Logger
 ) extends ProjectDescriptor {
 
@@ -29,19 +31,18 @@ final case class JsonProjectDescriptor(
     optionsTest: BuildOptions,
     sourcesMain: Sources,
     sourcesTest: Sources
-  ): JsonProject = {
+  ): Either[BuildException, JsonProject] = {
     def getScopedBuildInfo(options: BuildOptions, sources: Sources) =
       val sourcePaths   = sources.paths.map(_._1.toString)
       val inMemoryPaths = sources.inMemory.flatMap(_.originalPath.toSeq.map(_._2.toString))
 
       ScopedBuildInfo(options, sourcePaths ++ inMemoryPaths)
 
-    val baseBuildInfo = BuildInfo(optionsMain)
-
-    val mainBuildInfo = getScopedBuildInfo(optionsMain, sourcesMain)
-    val testBuildInfo = getScopedBuildInfo(optionsTest, sourcesTest)
-
-    JsonProject(baseBuildInfo
+    for {
+      baseBuildInfo <- BuildInfo(optionsMain, workspace)
+      mainBuildInfo = getScopedBuildInfo(optionsMain, sourcesMain)
+      testBuildInfo = getScopedBuildInfo(optionsTest, sourcesTest)
+    } yield JsonProject(baseBuildInfo
       .withScope(Scope.Main.name, mainBuildInfo)
       .withScope(Scope.Test.name, testBuildInfo))
   }

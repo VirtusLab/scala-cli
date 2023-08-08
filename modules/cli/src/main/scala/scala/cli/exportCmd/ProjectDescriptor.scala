@@ -2,6 +2,7 @@ package scala.cli.exportCmd
 
 import java.nio.charset.Charset
 
+import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
 
@@ -11,7 +12,7 @@ abstract class ProjectDescriptor extends Product with Serializable {
     optionsTest: BuildOptions,
     sourcesMain: Sources,
     sourcesTest: Sources
-  ): Project
+  ): Either[BuildException, Project]
 }
 
 object ProjectDescriptor {

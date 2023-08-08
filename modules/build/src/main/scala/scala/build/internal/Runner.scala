@@ -11,13 +11,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{
-  NoFrameworkFoundByBridgeError,
-  NoTestFrameworkFoundError,
-  NoTestsRun,
-  TestError,
-  TooManyFrameworksFoundByBridgeError
-}
+import scala.build.errors._
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.util.{Failure, Properties, Success}
 
@@ -232,11 +226,11 @@ object Runner {
     jsDom: Boolean = false,
     sourceMap: Boolean = false,
     esModule: Boolean = false
-  ): Process = {
+  ): Either[BuildException, Process] = either {
 
     import logger.{log, debug}
 
-    val nodePath = findInPath("node").fold("node")(_.toString)
+    val nodePath = value(findInPath("node").map(_.toString).toRight(NodeNotFoundError()))
 
     if (!jsDom && allowExecve && Execve.available()) {
 

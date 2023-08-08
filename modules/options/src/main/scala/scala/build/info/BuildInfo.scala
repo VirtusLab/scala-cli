@@ -1,10 +1,13 @@
 package scala.build.info
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.{BuildException, BuildInfoGenerationError}
 import scala.build.info.BuildInfo.escapeBackslashes
 import scala.build.internal.Constants
 import scala.build.options.*
 
 final case class BuildInfo(
+  projectVersion: Option[String] = None,
   scalaVersion: Option[String] = None,
   platform: Option[String] = None,
   jvmVersion: Option[String] = None,
@@ -57,7 +60,11 @@ final case class BuildInfo(
       Seq(
         "/** Main class specified for the project */",
         "val mainClass ="
-      ) -> mainClass
+      ) -> mainClass,
+      Seq(
+        "/** Project version */",
+        "val projectVersion ="
+      ) -> projectVersion
     ).flatMap { case (Seq(scaladoc, prefix), opt) =>
       Seq(
         scaladoc,
@@ -91,16 +98,21 @@ final case class BuildInfo(
 
 object BuildInfo {
   def apply(
-    options: BuildOptions
-  ): BuildInfo =
+    options: BuildOptions,
+    workspace: os.Path
+  ): Either[BuildException, BuildInfo] = either {
     Seq(
       BuildInfo(
-        mainClass = options.mainClass
+        mainClass = options.mainClass,
+        projectVersion = options.sourceGeneratorOptions.computeVersion
+          .map(cv => value(cv.get(workspace)))
+          .orElse(ComputeVersion.GitTag(os.rel, dynVer = false).get(workspace).toOption)
       ),
       scalaVersionSettings(options),
       platformSettings(options)
     )
       .reduceLeft(_ + _)
+  }.left.map(BuildInfoGenerationError(_))
 
   def escapeBackslashes(s: String): String =
     s.replace("\\", "\\\\")

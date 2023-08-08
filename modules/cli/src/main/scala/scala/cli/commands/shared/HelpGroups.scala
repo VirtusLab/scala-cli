@@ -12,7 +12,7 @@ enum HelpGroup:
     Launcher, LegacyScalaRunner, Logging,
     MacOS, Markdown,
     NativeImage,
-    Package, PGP, Publishing,
+    Package, PGP, ProjectVersion, Publishing,
     RedHat, Repl, Run, Runner,
     Scala, ScalaJs, ScalaNative, Secret, Signing, SuppressWarnings, SourceGenerator,
     Test,
@@ -29,6 +29,7 @@ enum HelpGroup:
     case ScalaNative       => "Scala Native"
     case SuppressWarnings  => "Suppress warnings"
     case SourceGenerator   => "Source generator"
+    case ProjectVersion    => "Project version"
     case e                 => e.productPrefix
 
 enum HelpCommandGroup:
