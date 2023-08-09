@@ -149,8 +149,8 @@ class SourceGeneratorTests extends munit.FunSuite {
                  |}
                  |""".stripMargin
             )
+        }
     }
-  }
 
   }
 

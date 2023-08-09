@@ -96,12 +96,17 @@ class TestBspClient extends b.BuildClient {
 object TestBspClient {
 
   private trait BuildServer extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
+      with b.JvmBuildServer
 
   def connect(
     in: InputStream,
     out: OutputStream,
     es: ExecutorService
-  ): (TestBspClient, b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer, Future[Unit]) = {
+  ): (
+    TestBspClient,
+    b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+    Future[Unit]
+  ) = {
 
     val localClient = new TestBspClient
 
