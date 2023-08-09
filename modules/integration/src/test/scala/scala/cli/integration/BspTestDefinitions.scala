@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.BuildTargetIdentifier
+import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmTestEnvironmentParams}
 import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -84,7 +84,7 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     f: (
       os.Path,
       TestBspClient,
-      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
     ) => Future[T]
   ): T = {
 
@@ -96,7 +96,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
         .spawn(cwd = root, stderr = stderr)
-      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer = null
+      var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
+        null
 
       val bspServerExited = Promise[Unit]()
       val t = new Thread("bsp-server-watcher") {
@@ -1361,6 +1362,40 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           expect(textEdit.getRange().getStart.getCharacter == 15)
           expect(textEdit.getRange().getEnd.getLine == 0)
           expect(textEdit.getRange().getEnd.getCharacter == 40)
+        }
+    }
+  }
+  test("bsp should support jvmRunEnvironment request") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
+           |
+           |object Hello extends App {
+           |  println("Hello")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".")) {
+      (_, _, remoteServer) =>
+        async {
+          // prepare build
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          // build code
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+
+          val jvmRunEnvironmentResult: b.JvmRunEnvironmentResult = await {
+            remoteServer
+              .jvmRunEnvironment(new b.JvmRunEnvironmentParams(targets))
+              .asScala
+          }
+          expect(jvmRunEnvironmentResult.getItems.asScala.toList.nonEmpty)
+
+          val jvmTestEnvironmentResult: b.JvmTestEnvironmentResult = await {
+            remoteServer
+              .jvmTestEnvironment(new JvmTestEnvironmentParams(targets))
+              .asScala
+          }
+          expect(jvmTestEnvironmentResult.getItems.asScala.toList.nonEmpty)
         }
     }
   }

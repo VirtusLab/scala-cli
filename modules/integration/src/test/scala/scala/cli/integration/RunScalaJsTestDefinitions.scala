@@ -44,7 +44,12 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val thrown = os.proc(TestUtil.cli, extraOptions, fileName, "--js", "--server=false")
-        .call(cwd = root, env = Map("PATH" -> "", "PATHEXT" -> ""), check = false, mergeErrIntoOut = true)
+        .call(
+          cwd = root,
+          env = Map("PATH" -> "", "PATHEXT" -> ""),
+          check = false,
+          mergeErrIntoOut = true
+        )
       val output = thrown.out.trim()
 
       assert(thrown.exitCode == 1)
