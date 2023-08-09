@@ -7,6 +7,22 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.4)
+
+## Hotfix for buildTarget/jvmRunEnvironment in BSP
+
+We've addressed a bug that surfaced when opening your ScalaCLI projects in Metals or IntelliJ. If you encountered the following log:
+
+```
+2023.08.09 15:48:34 INFO  BSP server: Caused by: java.lang.IllegalArgumentException: Type ch.epfl.scala.bsp4j.JvmMainClass is instantiated reflectively but was never registered. Register the type by adding "unsafeAllocated" for the type in reflect-config.json.
+2023.08.09 15:48:34 INFO  BSP server: 	at com.oracle.svm.core.graal.snippets.SubstrateAllocationSnippets.instanceHubErrorStub(SubstrateAllocationSnippets.java:309)
+2023.08.09 15:48:34 INFO  BSP server: 	at jdk.unsupported@17.0.6/sun.misc.Unsafe.allocateInstance(Unsafe.java:864)
+2023.08.09 15:48:34 INFO  BSP server: 	... 36 more
+```
+
+those logs should no longer appear. Thanks to [@lwronski](https://github.com/lwronski) for providing the fix in [#2342](https://github.com/VirtusLab/scala-cli/pull/2342).
+
+
 ## [v1.0.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.3)
 
 ## What's new
