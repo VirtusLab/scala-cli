@@ -61,6 +61,13 @@ Whenever overwriting existing Java properties Scala CLI will let you know what w
 
 Added by [@lwronski](https://github.com/lwronski) in [#2317](https://github.com/VirtusLab/scala-cli/pull/2317), Thanks!
 
+## Rename parameter for `publish` command
+
+We've updated the `--version` parameter for the publish command. Now, when specifying the project version, use `--project-version` instead.
+
+```bash ignore 
+scala-cli publish --project-version 1.0.3 ...
+```
 
 ## Other changes
 * Add custom exception and throw it when node not found in the path by [@lwronski](https://github.com/lwronski) in [#2323](https://github.com/VirtusLab/scala-cli/pull/2323)
