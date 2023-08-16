@@ -74,7 +74,7 @@ class SourceGeneratorTests extends munit.FunSuite {
     println(s"Git initialized at $cwd")
   }
 
-  test(s"BuildInfo source generated") {
+  test("BuildInfo source generated") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
         """//> using dep com.lihaoyi::os-lib:0.9.1
@@ -154,7 +154,7 @@ class SourceGeneratorTests extends munit.FunSuite {
 
   }
 
-  test(s"BuildInfo for native") {
+  test("BuildInfo for native") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
         s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
@@ -230,7 +230,7 @@ class SourceGeneratorTests extends munit.FunSuite {
     }
   }
 
-  test(s"BuildInfo for js") {
+  test("BuildInfo for js") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
         s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
@@ -308,7 +308,7 @@ class SourceGeneratorTests extends munit.FunSuite {
     }
   }
 
-  test(s"BuildInfo for Scala 2") {
+  test("BuildInfo for Scala 2") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
         s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
