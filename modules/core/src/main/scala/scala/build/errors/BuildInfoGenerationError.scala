@@ -1,4 +1,10 @@
 package scala.build.errors
 
-final class BuildInfoGenerationError(cause: Exception)
-    extends BuildException(s"BuildInfo generation error: ${cause.getMessage}", cause = cause)
+import scala.build.Position
+
+final class BuildInfoGenerationError(msg: String, positions: Seq[Position], cause: Exception)
+    extends BuildException(
+      s"BuildInfo generation error: $msg",
+      positions = positions,
+      cause = cause
+    )

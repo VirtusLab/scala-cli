@@ -370,7 +370,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     name
   }
   def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
-    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false))
+    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
     else None
   def defaultVersionError =
     new MissingPublishOptionError("version", "--version", "publish.version")
