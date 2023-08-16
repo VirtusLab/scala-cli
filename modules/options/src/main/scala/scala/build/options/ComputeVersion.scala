@@ -5,19 +5,21 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Constants, Ref}
 
-import scala.build.Positioned
 import scala.build.errors.{BuildException, MalformedInputError}
+import scala.build.{Position, Positioned}
 import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.{Success, Try, Using}
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
+
+  val positions: Seq[Position]
 }
 
 object ComputeVersion {
 
-  final case class Command(command: Seq[String]) extends ComputeVersion {
+  final case class Command(command: Seq[String], positions: Seq[Position]) extends ComputeVersion {
     def get(workspace: os.Path): Either[BuildException, String] = {
       val maybeRes = Try(os.proc(command).call(stdin = os.Inherit, cwd = workspace, check = false))
       maybeRes match {
@@ -26,22 +28,28 @@ object ComputeVersion {
         case _ =>
           Left(new Command.ComputeVersionCommandError(
             command,
-            maybeRes.map(_.exitCode).getOrElse(1)
+            maybeRes.map(_.exitCode).getOrElse(1),
+            positions
           ))
       }
     }
   }
 
   object Command {
-    final class ComputeVersionCommandError(command: Seq[String], exitCode: Int)
-        extends BuildException(
-          s"Error running command ${command.mkString(" ")} (exit code: $exitCode)"
+    final class ComputeVersionCommandError(
+      command: Seq[String],
+      exitCode: Int,
+      positions: Seq[Position]
+    ) extends BuildException(
+          s"Error running command ${command.mkString(" ")} (exit code: $exitCode)",
+          positions = positions
         )
   }
 
   final case class GitTag(
     repo: os.FilePath,
     dynVer: Boolean,
+    positions: Seq[Position],
     defaultFirstVersion: String = "0.1.0-SNAPSHOT"
   ) extends ComputeVersion {
     import GitTag.GitTagError
@@ -115,17 +123,19 @@ object ComputeVersion {
               Option(tagOrNull) match {
                 case None =>
                   Left(new GitTagError(
+                    positions,
                     s"Unexpected error when running git describe from Git repository $repo0 (git describe doesn't find back tag $tag)"
                   ))
                 case Some(tag) =>
                   versionOf(tag).map(_ + "-SNAPSHOT").toRight(
                     new GitTagError(
+                      positions,
                       s"Unexpected error when running git describe from Git repository $repo0 (git describe-provided tag $tag doesn't have the expected shape)"
                     )
                   )
               }
             case (Some(_), None) =>
-              Left(new GitTagError(s"No stable tag found in Git repository $repo0"))
+              Left(new GitTagError(positions, s"No stable tag found in Git repository $repo0"))
             case (_, Some((tag, name))) =>
               val idx = name.lastIndexOf('.')
               if (
@@ -134,6 +144,7 @@ object ComputeVersion {
                 Right(name.take(idx + 1) + (name.drop(idx + 1).toInt + 1).toString + "-SNAPSHOT")
               else
                 Left(new GitTagError(
+                  positions,
                   s"Don't know how to bump version in tag $tag in Git repository $repo0"
                 ))
           }
@@ -142,11 +153,12 @@ object ComputeVersion {
           Right(defaultFirstVersion)
       }
       else
-        Left(new GitTagError(s"$repo0 doesn't look like a Git repository"))
+        Left(new GitTagError(positions, s"$repo0 doesn't look like a Git repository"))
     }
   }
   object GitTag {
-    final class GitTagError(message: String) extends BuildException(message)
+    final class GitTagError(positions: Seq[Position], message: String)
+        extends BuildException(message, positions)
   }
 
   private lazy val commandCodec: JsonValueCodec[List[String]] =
@@ -154,20 +166,25 @@ object ComputeVersion {
 
   def parse(input: Positioned[String]): Either[BuildException, ComputeVersion] =
     if (input.value == "git" || input.value == "git:tag")
-      Right(ComputeVersion.GitTag(os.rel, dynVer = false))
+      Right(ComputeVersion.GitTag(os.rel, dynVer = false, positions = input.positions))
     else if (input.value.startsWith("git:tag:"))
-      Right(ComputeVersion.GitTag(os.FilePath(input.value.stripPrefix("git:tag:")), dynVer = false))
+      Right(ComputeVersion.GitTag(
+        os.FilePath(input.value.stripPrefix("git:tag:")),
+        dynVer = false,
+        positions = input.positions
+      ))
     else if (input.value == "git:dynver")
-      Right(ComputeVersion.GitTag(os.rel, dynVer = true))
+      Right(ComputeVersion.GitTag(os.rel, dynVer = true, positions = input.positions))
     else if (input.value.startsWith("git:dynver:"))
       Right(ComputeVersion.GitTag(
         os.FilePath(input.value.stripPrefix("git:dynver:")),
-        dynVer = true
+        dynVer = true,
+        positions = input.positions
       ))
     else if (input.value.startsWith("command:["))
       try {
         val command = readFromString(input.value.stripPrefix("command:"))(commandCodec)
-        Right(ComputeVersion.Command(command))
+        Right(ComputeVersion.Command(command, input.positions))
       }
       catch {
         case e: JsonReaderException =>
@@ -183,7 +200,7 @@ object ComputeVersion {
       }
     else if (input.value.startsWith("command:")) {
       val command = input.value.stripPrefix("command:").split("\\s+").toSeq
-      Right(ComputeVersion.Command(command))
+      Right(ComputeVersion.Command(command, input.positions))
     }
     else
       Left(

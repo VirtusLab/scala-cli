@@ -100,19 +100,25 @@ object BuildInfo {
   def apply(
     options: BuildOptions,
     workspace: os.Path
-  ): Either[BuildException, BuildInfo] = either {
+  ): Either[BuildException, BuildInfo] = either[Exception] {
     Seq(
       BuildInfo(
         mainClass = options.mainClass,
         projectVersion = options.sourceGeneratorOptions.computeVersion
           .map(cv => value(cv.get(workspace)))
-          .orElse(ComputeVersion.GitTag(os.rel, dynVer = false).get(workspace).toOption)
+          .orElse(
+            ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil).get(workspace).toOption
+          )
       ),
       scalaVersionSettings(options),
       platformSettings(options)
     )
       .reduceLeft(_ + _)
-  }.left.map(BuildInfoGenerationError(_))
+  }.left.map {
+    case e: BuildException =>
+      BuildInfoGenerationError(e.message, positions = e.positions, cause = e)
+    case e => BuildInfoGenerationError(e.getMessage, Nil, e)
+  }
 
   def escapeBackslashes(s: String): String =
     s.replace("\\", "\\\\")

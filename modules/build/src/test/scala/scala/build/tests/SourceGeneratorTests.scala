@@ -382,4 +382,47 @@ class SourceGeneratorTests extends munit.FunSuite {
         )
     }
   }
+
+  test("BuildInfo no git repository error") {
+    val usingPrefix = "//> using computeVersion \""
+    val usingValue  = "git:tag"
+    val usingSuffix = "\""
+
+    val inputs = TestInputs(
+      os.rel / "main.scala" ->
+        s"""
+           |$usingPrefix$usingValue$usingSuffix
+           |//> using buildInfo
+           |
+           |import scala.cli.build.BuildInfo
+           |
+           |object Main extends App {
+           |  println(s"Scala version: $${BuildInfo.projectVersion}")
+           |}
+           |""".stripMargin
+    )
+
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        maybeBuild match {
+          case Left(buildException) =>
+            expect(buildException.positions.size == 1)
+            val position = buildException.positions.head
+
+            assertEquals(
+              position,
+              scala.build.Position.File(
+                Right(root / "main.scala"),
+                (1, usingPrefix.length),
+                (1, (usingPrefix + usingValue).length)
+              )
+            )
+            assertNoDiff(
+              buildException.message,
+              s"BuildInfo generation error: $root doesn't look like a Git repository"
+            )
+          case _ => fail("Build should fail")
+        }
+    }
+  }
 }
