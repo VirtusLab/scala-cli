@@ -30,13 +30,9 @@ final case class ScalaJsLinkerConfig(
         Seq("--smallModuleForPackages", smallModuleForPackage.mkString(","))
       else
         Nil
-    val esFeaturesArgs =
-      if (esFeatures.esVersion == ScalaJsLinkerConfig.ESVersion.ES2015)
-        Seq("--es2015")
-      else
-        Nil
-    val checkIRArgs   = if (checkIR) Seq("--checkIR") else Nil
-    val sourceMapArgs = if (sourceMap) Seq("--sourceMap") else Nil
+    val esFeaturesArgs = Seq("--esVersion", esFeatures.esVersion)
+    val checkIRArgs    = if (checkIR) Seq("--checkIR") else Nil
+    val sourceMapArgs  = if (sourceMap) Seq("--sourceMap") else Nil
     val relativizeSourceMapBaseArgs =
       relativizeSourceMapBase.toSeq
         .flatMap(uri => Seq("--relativizeSourceMap", uri))

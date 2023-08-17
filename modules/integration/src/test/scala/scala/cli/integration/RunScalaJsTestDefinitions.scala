@@ -250,4 +250,19 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
       expect(output == message)
     }
   }
+  test("set es version to scala-js-cli") {
+    val inputs = TestInputs(
+      os.rel / "run.sc" ->
+        s"""//> using jsEsVersionStr "es2018"
+           |
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log(\"\"\"(?m).\"\"\".r.findFirstIn("Hi").get)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js").call(cwd = root).out.trim()
+      expect(output == "H")
+    }
+  }
 }
