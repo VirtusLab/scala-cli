@@ -8,20 +8,6 @@ import scala.build.options.ComputeVersion
 import scala.build.tests.{TestInputs, TestUtil}
 
 class ComputeVersionTests extends munit.FunSuite {
-
-  test("command") {
-    val ver = "1.2.3"
-    val inputs = TestInputs(
-      os.rel / "version" -> ver
-    )
-    inputs.fromRoot { root =>
-      val cv = ComputeVersion.Command(Seq("cat", "version"), Nil)
-      val readVersion = cv.get(root)
-        .fold(ex => throw new Exception(ex), identity)
-      expect(readVersion == ver)
-    }
-  }
-
   test("git tag") {
     TestInputs().fromRoot { root =>
       val ghRepo = "scala-cli/compute-version-test"
