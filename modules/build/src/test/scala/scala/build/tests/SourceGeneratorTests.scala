@@ -244,7 +244,6 @@ class SourceGeneratorTests extends munit.FunSuite {
            |//> using platform scala-js
            |//> using jsVersion 1.13.1
            |//> using jsEsVersionStr es2015
-           |//> using computeVersion "command:echo TestVersion"
            |
            |//> using buildInfo
            |
@@ -281,7 +280,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = Some("es2015")
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
-             |  val projectVersion = Some("TestVersion")
+             |  val projectVersion = None
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -319,7 +318,6 @@ class SourceGeneratorTests extends munit.FunSuite {
            |//> using mainClass "Main"
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
-           |//> using computeVersion "command:echo TestVersion"
            |
            |//> using buildInfo
            |
@@ -356,7 +354,7 @@ class SourceGeneratorTests extends munit.FunSuite {
              |  val jsEsVersion = None
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
-             |  val projectVersion = Some("TestVersion")
+             |  val projectVersion = None
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")

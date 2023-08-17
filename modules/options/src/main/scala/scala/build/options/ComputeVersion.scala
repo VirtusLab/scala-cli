@@ -18,34 +18,6 @@ sealed abstract class ComputeVersion extends Product with Serializable {
 }
 
 object ComputeVersion {
-
-  final case class Command(command: Seq[String], positions: Seq[Position]) extends ComputeVersion {
-    def get(workspace: os.Path): Either[BuildException, String] = {
-      val maybeRes = Try(os.proc(command).call(stdin = os.Inherit, cwd = workspace, check = false))
-      maybeRes match {
-        case Success(res) if res.exitCode == 0 =>
-          Right(res.out.trim(Codec.default))
-        case _ =>
-          Left(new Command.ComputeVersionCommandError(
-            command,
-            maybeRes.map(_.exitCode).getOrElse(1),
-            positions
-          ))
-      }
-    }
-  }
-
-  object Command {
-    final class ComputeVersionCommandError(
-      command: Seq[String],
-      exitCode: Int,
-      positions: Seq[Position]
-    ) extends BuildException(
-          s"Error running command ${command.mkString(" ")} (exit code: $exitCode)",
-          positions = positions
-        )
-  }
-
   final case class GitTag(
     repo: os.FilePath,
     dynVer: Boolean,
@@ -181,33 +153,12 @@ object ComputeVersion {
         dynVer = true,
         positions = input.positions
       ))
-    else if (input.value.startsWith("command:["))
-      try {
-        val command = readFromString(input.value.stripPrefix("command:"))(commandCodec)
-        Right(ComputeVersion.Command(command, input.positions))
-      }
-      catch {
-        case e: JsonReaderException =>
-          Left(
-            new MalformedInputError(
-              "compute-version",
-              input.value,
-              "git|git:tag|command:…",
-              input.positions,
-              cause = Some(e)
-            )
-          )
-      }
-    else if (input.value.startsWith("command:")) {
-      val command = input.value.stripPrefix("command:").split("\\s+").toSeq
-      Right(ComputeVersion.Command(command, input.positions))
-    }
     else
       Left(
         new MalformedInputError(
           "compute-version",
           input.value,
-          "git|git:tag|command:…",
+          "git|git:tag|git:dynver",
           input.positions
         )
       )
