@@ -177,7 +177,7 @@ object ScalaCli {
       val jvmoptsLines          = jvmoptsContent.linesIterator.toSeq
       val (javaOpts, otherOpts) = jvmoptsLines.partition(_.startsWith("-D"))
       javaOpts.foreach { opt =>
-        opt.stripPrefix("-D").split("=", 2).match {
+        opt.stripPrefix("-D").split("=", 2) match {
           case Array(key, value) => System.setProperty(key, value)
           case _                 => System.err.println(s"Warning: Invalid java property: $opt")
         }
@@ -192,9 +192,21 @@ object ScalaCli {
       properties <- configDb.get(Keys.javaProperties).getOrElse(Nil)
     }
       properties.foreach { opt =>
-        opt.stripPrefix("-D").split("=", 2).match {
+        opt.stripPrefix("-D").split("=", 2) match {
           case Array(key, value) => System.setProperty(key, value)
           case _ => System.err.println(s"Warning: Invalid java property in config: $opt")
+        }
+      }
+
+    // load java properties from JAVA_OPTS and JDK_JAVA_OPTIONS environment variables
+    val javaOpts = sys.env.get("JAVA_OPTS").toSeq ++ sys.env.get("JDK_JAVA_OPTIONS").toSeq
+
+    javaOpts
+      .flatMap(_.split("\\s+"))
+      .foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2) match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _                 => // Ignore if not a Java property
         }
       }
   }
