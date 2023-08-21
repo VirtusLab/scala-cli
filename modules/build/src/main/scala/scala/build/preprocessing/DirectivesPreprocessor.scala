@@ -27,56 +27,24 @@ import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
 import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
 import scala.build.preprocessing.directives.*
 
-object DirectivesPreprocessor {
-  def preprocess(
-    content: String,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger,
-    allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException]
-  )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
-    val directives = value {
-      ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
-    }
-    value {
-      preprocess(
-        directives,
-        path,
-        cwd,
-        logger,
-        allowRestrictedFeatures,
-        suppressWarningOptions,
-        maybeRecoverOnError
-      )
-    }
-  }
+case class DirectivesPreprocessor(
+  path: Either[String, os.Path],
+  cwd: ScopePath,
+  logger: Logger,
+  allowRestrictedFeatures: Boolean,
+  suppressWarningOptions: SuppressWarningOptions,
+  maybeRecoverOnError: BuildException => Option[BuildException]
+)(
+  using ScalaCliInvokeData
+) {
+  def preprocess(content: String): Either[BuildException, PreprocessedDirectives] = for {
+    directives <- ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
+    res        <- preprocess(directives)
+  } yield res
 
-  def preprocess(
-    extractedDirectives: ExtractedDirectives,
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger,
-    allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException]
-  )(using ScalaCliInvokeData): Either[BuildException, PreprocessedDirectives] = either {
+  def preprocess(extractedDirectives: ExtractedDirectives)
+    : Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
-    def preprocessWithDirectiveHandlers[T: ConfigMonoid](
-      remainingDirectives: Seq[StrictDirective],
-      directiveHandlers: Seq[DirectiveHandler[T]]
-    ): Either[BuildException, PartiallyProcessedDirectives[T]] =
-      applyDirectiveHandlers(
-        remainingDirectives,
-        directiveHandlers,
-        path,
-        cwd,
-        logger,
-        allowRestrictedFeatures,
-        suppressWarningOptions,
-        maybeRecoverOnError
-      )
 
     val (
       buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
@@ -88,16 +56,16 @@ object DirectivesPreprocessor {
     ) = value {
       for {
         regularUsingDirectives: PartiallyProcessedDirectives[BuildOptions] <-
-          preprocessWithDirectiveHandlers(directives, usingDirectiveHandlers)
+          applyDirectiveHandlers(directives, usingDirectiveHandlers)
         usingDirectivesWithRequirements: PartiallyProcessedDirectives[
           List[WithBuildRequirements[BuildOptions]]
         ] <-
-          preprocessWithDirectiveHandlers(
+          applyDirectiveHandlers(
             regularUsingDirectives.unused,
             usingDirectiveWithReqsHandlers
           )
         targetDirectives: PartiallyProcessedDirectives[BuildRequirements] <-
-          preprocessWithDirectiveHandlers(
+          applyDirectiveHandlers(
             usingDirectivesWithRequirements.unused,
             requireDirectiveHandlers
           )
@@ -142,14 +110,8 @@ object DirectivesPreprocessor {
 
   private def applyDirectiveHandlers[T: ConfigMonoid](
     directives: Seq[StrictDirective],
-    handlers: Seq[DirectiveHandler[T]],
-    path: Either[String, os.Path],
-    cwd: ScopePath,
-    logger: Logger,
-    allowRestrictedFeatures: Boolean,
-    suppressWarningOptions: SuppressWarningOptions,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  )(using ScalaCliInvokeData): Either[BuildException, PartiallyProcessedDirectives[T]] = {
+    handlers: Seq[DirectiveHandler[T]]
+  ): Either[BuildException, PartiallyProcessedDirectives[T]] = {
     val configMonoidInstance = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
       suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
