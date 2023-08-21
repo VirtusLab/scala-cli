@@ -846,6 +846,11 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     def runClasspath = T {
       super.runClasspath() ++ Seq(localRepoJar())
     }
+
+    // Required by the reflection usage in modules/cli/src/test/scala/cli/tests/SetupScalaCLITests.scala
+    override def forkArgs: T[Seq[String]] = T {
+      super.forkArgs() ++ Seq("--add-opens=java.base/java.util=ALL-UNNAMED")
+    }
   }
 }
 
