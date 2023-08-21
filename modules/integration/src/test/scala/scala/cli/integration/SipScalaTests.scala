@@ -161,6 +161,7 @@ class SipScalaTests extends ScalaCliSuite {
       val code =
         """
           | //> using publish.name "my-library"
+          | //> using python
           | class A
           |""".stripMargin
 
@@ -189,10 +190,16 @@ class SipScalaTests extends ScalaCliSuite {
           expect(errOutput.contains(
             """The `//> using publish.name "my-library"` directive is experimental."""
           ))
+          expect(errOutput.contains(
+            """The `//> using python` directive is experimental."""
+          ))
         case (true, true) =>
           expect(res.exitCode == 0)
           expect(!errOutput.contains(
             """The `//> using publish.name "my-library"` directive is experimental."""
+          ))
+          expect(!errOutput.contains(
+            """The `//> using python` directive is experimental."""
           ))
       }
     }
