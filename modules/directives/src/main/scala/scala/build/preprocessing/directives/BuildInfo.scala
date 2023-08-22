@@ -6,7 +6,7 @@ import scala.build.options.{BuildOptions, SourceGeneratorOptions}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveExamples("//> using buildInfo")
-@DirectiveUsage("//> using buildInfo", "`//> using buildInfo")
+@DirectiveUsage("//> using buildInfo", "`//> using buildInfo`")
 @DirectiveDescription("Generate BuildInfo for project")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
 final case class BuildInfo(

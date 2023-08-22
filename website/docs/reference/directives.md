@@ -9,7 +9,7 @@ sidebar_position: 2
 
 Generate BuildInfo for project
 
-`//> using buildInfo
+`//> using buildInfo`
 
 #### Examples
 `//> using buildInfo`
