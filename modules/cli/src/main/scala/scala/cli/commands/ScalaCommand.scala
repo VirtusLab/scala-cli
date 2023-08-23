@@ -19,6 +19,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
+import scala.build.internals.FeatureType
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
@@ -346,6 +347,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
+    logger.flushExperimentalWarnings
+
     CurrentParams.verbosity = options.global.logging.verbosity
     if shouldExcludeInSip then
       logger.error(WarningMessages.powerCommandUsedInSip(

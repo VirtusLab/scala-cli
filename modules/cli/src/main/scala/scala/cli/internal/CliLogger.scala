@@ -2,7 +2,7 @@ package scala.cli.internal
 
 import bloop.rifle.BloopRifleLogger
 import ch.epfl.scala.bsp4j.Location
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
@@ -12,10 +12,13 @@ import java.io.PrintStream
 import scala.build.bsp.protocol.TextEdit
 import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
 import scala.build.internal.CustomProgressBarRefreshDisplay
+import scala.build.internal.util.WarningMessages
+import scala.build.internals.FeatureType
+import scala.build.options.ShadowingSeq
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters._
-import scala.scalanative.{build => sn}
+import scala.jdk.CollectionConverters.*
+import scala.scalanative.build as sn
 
 class CliLogger(
   val verbosity: Int,
@@ -131,6 +134,7 @@ class CliLogger(
     if (verbosity >= 2)
       printEx(ex, new mutable.HashMap)
   def exit(ex: BuildException): Nothing =
+    flushExperimentalWarnings
     if (verbosity < 0)
       sys.exit(1)
     else if (verbosity == 0) {
@@ -205,6 +209,24 @@ class CliLogger(
 
   // Allow to disable that?
   def compilerOutputStream = out
+
+  private var experimentalWarnings: Map[FeatureType, Set[String]] = Map()
+  def experimentalWarning(featureName: String, featureType: FeatureType): Unit = {
+    experimentalWarnings ++= experimentalWarnings.updatedWith(featureType) {
+      case None           => Some(Set(featureName))
+      case Some(namesSet) => Some(namesSet + featureName)
+    }
+  }
+  def flushExperimentalWarnings: Unit = if (experimentalWarnings.nonEmpty) {
+    val messageStr = {
+      val namesAndTypes = for {
+        (featureType, names) <- experimentalWarnings.toSeq
+        name                 <- names
+      } yield name -> featureType
+      WarningMessages.experimentalFeaturesUsed(namesAndTypes)
+    }
+    message(messageStr)
+  }
 }
 
 object CliLogger {

@@ -9,6 +9,7 @@ import java.util.Base64
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.FeatureType
 import scala.build.{Directories, Logger}
 import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.pgp.PgpScalaSigningOptions
@@ -115,7 +116,7 @@ object Config extends ScalaCommand[ConfigOptions] {
               sys.exit(1)
             case Some(entry) =>
               if entry.isExperimental && !shouldSuppressExperimentalFeatureWarnings then
-                logger.message(WarningMessages.experimentalConfigKeyUsed(entry.fullName))
+                logger.experimentalWarning(entry.fullName, FeatureType.ConfigKey)
               if (values.isEmpty)
                 if (options.unset) {
                   db.remove(entry)
@@ -292,6 +293,8 @@ object Config extends ScalaCommand[ConfigOptions] {
           }
       }
     }
+
+    logger.flushExperimentalWarnings
   }
 
   /** Check whether to ask for an update depending on the provided key.

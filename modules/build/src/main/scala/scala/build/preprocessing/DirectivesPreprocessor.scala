@@ -15,7 +15,7 @@ import scala.build.errors.{
 }
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
+import scala.build.internals.FeatureType
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -123,11 +123,12 @@ case class DirectivesPreprocessor(
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         Left(DirectiveErrors(
           ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
+          // TODO: use positions from ExtractedDirectives to get the full directive underlined
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else
         if handler.isExperimental && !shouldSuppressExperimentalFeatures then
-          logger.message(experimentalDirectiveUsed(scopedDirective.directive.toString))
+          logger.experimentalWarning(scopedDirective.directive.toString, FeatureType.Directive)
         handler.handleValues(scopedDirective, logger)
 
     val handlersMap = handlers
