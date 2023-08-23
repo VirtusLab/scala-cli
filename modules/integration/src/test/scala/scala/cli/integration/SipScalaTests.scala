@@ -181,10 +181,9 @@ class SipScalaTests extends ScalaCliSuite {
       )
 
       val experimentalDirsWarning =
-        """Directives:
+        """Some directives specified are experimental:
           | - `//> using publish.name "my-library"`
-          | - `//> using python`
-          |are experimental.""".stripMargin
+          | - `//> using python`""".stripMargin
 
       val errOutput = res.err.trim()
       isPowerMode -> areWarningsSuppressed match {

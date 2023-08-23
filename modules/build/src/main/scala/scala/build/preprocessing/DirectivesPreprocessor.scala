@@ -129,7 +129,7 @@ case class DirectivesPreprocessor(
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         Left(DirectiveErrors(
           ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
-          //TODO: use positions from ExtractedDirectives to get the full directive underlined
+          // TODO: use positions from ExtractedDirectives to get the full directive underlined
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else

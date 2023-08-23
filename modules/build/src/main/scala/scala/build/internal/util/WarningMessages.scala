@@ -8,32 +8,31 @@ import scala.cli.config.Key
 
 object WarningMessages {
   private val scalaCliGithubUrl = s"https://github.com/${Constants.ghOrg}/${Constants.ghName}"
-  private def experimentalFeatureUsed(featureName: String): String =
-    s"""$featureName experimental.
+  private def experimentalFeatureUsed(featureDescription: String): String =
+    s"""$featureDescription
        |Please bear in mind that non-ideal user experience should be expected.
        |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at $scalaCliGithubUrl""".stripMargin
   def experimentalDirectivesUsed(names: Seq[String]): String =
     if names.size == 1 then
-      experimentalFeatureUsed(s"The `${names.head}` directive is")
+      experimentalFeatureUsed(s"The `${names.head}` directive is experimental.")
     else
       val nl          = System.lineSeparator()
       val bulletPoint = " - "
       val bulletPointList = names.map(name => s" - `$name`")
         .mkString(nl)
       experimentalFeatureUsed(
-        s"""Directives:
-           |$bulletPointList
-           |are""".stripMargin
+        s"""Some directives specified are experimental:
+           |$bulletPointList""".stripMargin
       )
 
   def experimentalSubcommandUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` sub-command is")
+    experimentalFeatureUsed(s"The `$name` sub-command is experimental.")
 
   def experimentalOptionUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` option is")
+    experimentalFeatureUsed(s"The `$name` option is experimental.")
 
   def experimentalConfigKeyUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` configuration key is")
+    experimentalFeatureUsed(s"The `$name` configuration key is experimental.")
 
   def rawValueNotWrittenToPublishFile(
     rawValue: String,
