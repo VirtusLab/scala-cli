@@ -64,7 +64,8 @@ final case class JavaPreprocessor(
             requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
             mainClassOpt = None,
-            directivesPositions = preprocessedDirectives.directivesPositions
+            directivesPositions = preprocessedDirectives.directivesPositions,
+            experimentalDirectivesUsed = preprocessedDirectives.experimentalUsed
           ))
         })
       case v: VirtualJavaFile =>
@@ -111,7 +112,8 @@ final case class JavaPreprocessor(
             scopedRequirements = Nil,
             mainClassOpt = None,
             scopePath = v.scopePath,
-            directivesPositions = preprocessedDirectives.directivesPositions
+            directivesPositions = preprocessedDirectives.directivesPositions,
+            experimentalDirectivesUsed = preprocessedDirectives.experimentalUsed
           )
           Seq(s)
         }

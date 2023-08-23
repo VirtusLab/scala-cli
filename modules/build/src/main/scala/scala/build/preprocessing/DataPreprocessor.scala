@@ -37,7 +37,8 @@ case object DataPreprocessor extends Preprocessor {
               scopedRequirements = Nil,
               mainClassOpt = None,
               scopePath = file.scopePath,
-              directivesPositions = None
+              directivesPositions = None,
+              experimentalDirectivesUsed = Nil
             )
           )
           inMemory

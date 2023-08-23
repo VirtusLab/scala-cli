@@ -15,7 +15,7 @@ import scala.build.errors.{
 import scala.build.input.ElementsUtils.*
 import scala.build.input.*
 import scala.build.internal.Constants
-import scala.build.internal.util.RegexUtils
+import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -234,6 +234,12 @@ object CrossSources {
             )
           distinctSources
         }
+
+    reportExperimentalDirectivesUsage(
+      preprocessedSources,
+      suppressWarningOptions.suppressExperimentalFeatureWarning,
+      logger
+    )
 
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
@@ -459,5 +465,20 @@ object CrossSources {
           expectedProjectFilePath
         ))
     }
+  }
+
+  def reportExperimentalDirectivesUsage(
+    preprocessedSources: Seq[PreprocessedSource],
+    suppressExperimentalFeatureWarning: Option[Boolean],
+    logger: Logger
+  ): Unit = {
+    if !suppressExperimentalFeatureWarning.getOrElse(false) then
+      val allExperimentalDirsAsStrings = preprocessedSources
+        .flatMap(_.experimentalDirectivesUsed)
+        .map(_.toString)
+
+      logger.message(
+        WarningMessages.experimentalDirectivesUsed(allExperimentalDirsAsStrings)
+      )
   }
 }

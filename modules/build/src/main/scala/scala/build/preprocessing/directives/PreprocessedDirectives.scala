@@ -10,7 +10,9 @@ case class PreprocessedDirectives(
   usingsWithReqs: List[WithBuildRequirements[BuildOptions]],
   scopedReqs: Seq[Scoped[BuildRequirements]],
   strippedContent: Option[String],
-  directivesPositions: Option[Position.File]
+  directivesPositions: Option[Position.File],
+  // Usage of experimental directives needs to be reported to the user
+  experimentalUsed: Seq[StrictDirective]
 ) {
   def isEmpty: Boolean = globalReqs == BuildRequirements.monoid.zero &&
     globalUsings == BuildOptions.monoid.zero &&
@@ -27,6 +29,7 @@ object PreprocessedDirectives {
       usingsWithReqs = Nil,
       scopedReqs = Nil,
       strippedContent = None,
-      directivesPositions = None
+      directivesPositions = None,
+      experimentalUsed = Nil
     )
 }

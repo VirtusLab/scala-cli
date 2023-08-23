@@ -156,7 +156,7 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
-  def testPublishDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
+  def testExperimentalDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val code =
         """
@@ -180,27 +180,30 @@ class SipScalaTests extends ScalaCliSuite {
         stderr = os.Pipe
       )
 
+      val experimentalDirsWarning =
+        """Directives:
+          | - `//> using publish.name "my-library"`
+          | - `//> using python`
+          |are experimental.""".stripMargin
+
       val errOutput = res.err.trim()
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
           expect(res.exitCode == 1)
-          expect(errOutput.contains(s"directive is experimental"))
+          expect(errOutput.contains(
+            """Directives errors: The `//> using publish.name "my-library"` directive is experimental."""
+          ))
+          expect(errOutput.contains(
+            """Directives errors: The `//> using python` directive is experimental."""
+          ))
         case (true, false) =>
           expect(res.exitCode == 0)
-          expect(errOutput.contains(
-            """The `//> using publish.name "my-library"` directive is experimental."""
-          ))
-          expect(errOutput.contains(
-            """The `//> using python` directive is experimental."""
-          ))
+          expect(errOutput.contains(experimentalDirsWarning))
         case (true, true) =>
           expect(res.exitCode == 0)
-          expect(!errOutput.contains(
-            """The `//> using publish.name "my-library"` directive is experimental."""
-          ))
-          expect(!errOutput.contains(
-            """The `//> using python` directive is experimental."""
-          ))
+          expect(!errOutput.contains(experimentalDirsWarning))
+          expect(!errOutput.contains("""`//> using publish.name "my-library"`"""))
+          expect(!errOutput.contains("""`//> using python`"""))
       }
     }
 
@@ -315,9 +318,9 @@ class SipScalaTests extends ScalaCliSuite {
       warningsSuppressedString = if (warningsSuppressed) "suppressed" else "not suppressed"
     } {
       test(
-        s"test publish directives when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+        s"test experimental directives when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
       ) {
-        testPublishDirectives(isPowerMode, warningsSuppressed)
+        testExperimentalDirectives(isPowerMode, warningsSuppressed)
       }
       test(
         s"test markdown options when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"

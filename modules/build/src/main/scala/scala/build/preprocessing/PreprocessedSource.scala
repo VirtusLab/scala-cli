@@ -3,6 +3,7 @@ package scala.build.preprocessing
 import scala.build.Position
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
+import scala.build.preprocessing.directives.StrictDirective
 
 sealed abstract class PreprocessedSource extends Product with Serializable {
   def options: Option[BuildOptions]
@@ -12,11 +13,12 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def scopedRequirements: Seq[Scoped[BuildRequirements]]
   def scopePath: ScopePath
   def directivesPositions: Option[Position.File]
+  def experimentalDirectivesUsed: Seq[StrictDirective]
   def distinctPathOrSource: String = this match {
-    case PreprocessedSource.OnDisk(p, _, _, _, _, _, _)                   => p.toString
-    case PreprocessedSource.InMemory(op, rp, _, _, _, _, _, _, _, _, _)   => s"$op; $rp"
-    case PreprocessedSource.UnwrappedScript(p, _, _, _, _, _, _, _, _, _) => p.toString
-    case PreprocessedSource.NoSourceCode(_, _, _, _, p)                   => p.toString
+    case PreprocessedSource.OnDisk(p, _, _, _, _, _, _, _)                   => p.toString
+    case PreprocessedSource.InMemory(op, rp, _, _, _, _, _, _, _, _, _, _)   => s"$op; $rp"
+    case PreprocessedSource.UnwrappedScript(p, _, _, _, _, _, _, _, _, _, _) => p.toString
+    case PreprocessedSource.NoSourceCode(_, _, _, _, p)                      => p.toString
   }
 }
 
@@ -29,7 +31,8 @@ object PreprocessedSource {
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
-    directivesPositions: Option[Position.File]
+    directivesPositions: Option[Position.File],
+    experimentalDirectivesUsed: Seq[StrictDirective]
   ) extends PreprocessedSource {
     def scopePath: ScopePath =
       ScopePath.fromPath(path)
@@ -45,7 +48,8 @@ object PreprocessedSource {
     scopedRequirements: Seq[Scoped[BuildRequirements]],
     mainClassOpt: Option[String],
     scopePath: ScopePath,
-    directivesPositions: Option[Position.File]
+    directivesPositions: Option[Position.File],
+    experimentalDirectivesUsed: Seq[StrictDirective]
   ) extends PreprocessedSource {
     def reportingPath: Either[String, os.Path] =
       originalPath.map(_._2)
@@ -61,6 +65,7 @@ object PreprocessedSource {
     mainClassOpt: Option[String],
     scopePath: ScopePath,
     directivesPositions: Option[Position.File],
+    experimentalDirectivesUsed: Seq[StrictDirective],
     wrapScriptFun: CodeWrapper => (String, WrapperParams)
   ) extends PreprocessedSource
 
@@ -74,6 +79,7 @@ object PreprocessedSource {
     def mainClassOpt: None.type = None
     def scopePath: ScopePath =
       ScopePath.fromPath(path)
-    def directivesPositions: None.type = None
+    def directivesPositions: None.type       = None
+    def experimentalDirectivesUsed: Nil.type = Nil
   }
 }

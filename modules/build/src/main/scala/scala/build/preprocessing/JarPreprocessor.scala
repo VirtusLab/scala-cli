@@ -35,7 +35,8 @@ case object JarPreprocessor extends Preprocessor {
             requirements = Some(BuildRequirements()),
             scopedRequirements = Nil,
             mainClassOpt = None,
-            directivesPositions = None
+            directivesPositions = None,
+            experimentalDirectivesUsed = Nil
           ))
         })
       case _ =>

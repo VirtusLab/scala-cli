@@ -9,20 +9,31 @@ import scala.cli.config.Key
 object WarningMessages {
   private val scalaCliGithubUrl = s"https://github.com/${Constants.ghOrg}/${Constants.ghName}"
   private def experimentalFeatureUsed(featureName: String): String =
-    s"""$featureName is experimental.
+    s"""$featureName experimental.
        |Please bear in mind that non-ideal user experience should be expected.
        |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at $scalaCliGithubUrl""".stripMargin
-  def experimentalDirectiveUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` directive")
+  def experimentalDirectivesUsed(names: Seq[String]): String =
+    if names.size == 1 then
+      experimentalFeatureUsed(s"The `${names.head}` directive is")
+    else
+      val nl          = System.lineSeparator()
+      val bulletPoint = " - "
+      val bulletPointList = names.map(name => s" - `$name`")
+        .mkString(nl)
+      experimentalFeatureUsed(
+        s"""Directives:
+           |$bulletPointList
+           |are""".stripMargin
+      )
 
   def experimentalSubcommandUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` sub-command")
+    experimentalFeatureUsed(s"The `$name` sub-command is")
 
   def experimentalOptionUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` option")
+    experimentalFeatureUsed(s"The `$name` option is")
 
   def experimentalConfigKeyUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` configuration key")
+    experimentalFeatureUsed(s"The `$name` configuration key is")
 
   def rawValueNotWrittenToPublishFile(
     rawValue: String,

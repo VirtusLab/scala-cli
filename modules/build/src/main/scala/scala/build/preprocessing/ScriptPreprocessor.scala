@@ -128,6 +128,7 @@ case object ScriptPreprocessor extends Preprocessor {
         mainClassOpt = Some(CodeWrapper.mainClassObject(Name(className)).backticked),
         scopePath = scopePath,
         directivesPositions = processingOutput.directivesPositions,
+        experimentalDirectivesUsed = processingOutput.experimentalDirectivesUsed,
         wrapScriptFun = wrapScriptFun
       )
       List(file)

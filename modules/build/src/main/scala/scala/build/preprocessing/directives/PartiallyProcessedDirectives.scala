@@ -5,5 +5,6 @@ import scala.build.preprocessing.Scoped
 case class PartiallyProcessedDirectives[T](
   global: T,
   scoped: Seq[Scoped[T]],
-  unused: Seq[StrictDirective]
+  unused: Seq[StrictDirective],
+  experimentalUsed: Seq[StrictDirective]
 )

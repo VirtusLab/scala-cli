@@ -108,7 +108,8 @@ case object MarkdownPreprocessor extends Preprocessor {
               processingOutput.scopedReqs,
               mainClassOpt = None,
               scopePath = scopePath,
-              directivesPositions = processingOutput.directivesPositions
+              directivesPositions = processingOutput.directivesPositions,
+              experimentalDirectivesUsed = processingOutput.experimentalDirectivesUsed
             )
           }
       }

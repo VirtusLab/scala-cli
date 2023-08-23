@@ -15,7 +15,6 @@ import scala.build.errors.{
 }
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.util.WarningMessages.experimentalDirectiveUsed
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -85,6 +84,11 @@ case class DirectivesPreprocessor(
         .map(_.value)
         .foldLeft(buildOptionsWithoutRequirements.global)((acc, bo) => acc.orElse(bo))
 
+    val experimentalDirectivesUsed =
+      buildOptionsWithTargetRequirements.experimentalUsed ++
+        buildOptionsWithoutRequirements.experimentalUsed ++
+        scopedBuildRequirements.experimentalUsed
+
     value {
       unusedDirectives.toList match {
         case Nil =>
@@ -95,7 +99,8 @@ case class DirectivesPreprocessor(
               optionsWithActualRequirements,
               scopedBuildRequirements.scoped,
               strippedContent = None,
-              directivesPositions
+              directivesPositions = directivesPositions,
+              experimentalUsed = experimentalDirectivesUsed
             )
           }
         case unused =>
@@ -116,7 +121,8 @@ case class DirectivesPreprocessor(
     val shouldSuppressExperimentalFeatures =
       suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
 
-    def handleValues(handler: DirectiveHandler[T])(
+    def handleValues(
+      handler: DirectiveHandler[T],
       scopedDirective: ScopedDirective,
       logger: Logger
     ): Either[BuildException, ProcessedDirective[T]] =
@@ -126,39 +132,40 @@ case class DirectivesPreprocessor(
           DirectiveUtil.positions(scopedDirective.directive.values, path)
         ))
       else
-        if handler.isExperimental && !shouldSuppressExperimentalFeatures then
-          logger.message(experimentalDirectiveUsed(scopedDirective.directive.toString))
         handler.handleValues(scopedDirective, logger)
 
-    val handlersMap = handlers
-      .flatMap { handler =>
-        handler.keys.map(k => k -> handleValues(handler))
-      }
-      .toMap
+    val handlersMap: Map[String, DirectiveHandler[T]] = (for {
+      handler <- handlers
+      key     <- handler.keys
+    } yield key -> handler).toMap
 
-    val unused = directives.filter(d => !handlersMap.contains(d.key))
+    val (used, unused) = directives.partition(d => handlersMap.contains(d.key))
 
-    val res = directives
-      .iterator
-      .flatMap {
-        case d @ StrictDirective(k, _) =>
-          handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
-      }
-      .toVector
-      .flatMap {
-        case Left(e: BuildException) => maybeRecoverOnError(e).toVector.map(Left(_))
-        case r @ Right(_)            => Vector(r)
-      }
-      .sequence
+    val res = used.flatMap {
+      case d @ StrictDirective(k, _) =>
+        handlersMap.get(k).map { handler =>
+          handleValues(handler, ScopedDirective(d, path, cwd), logger)
+        }
+    }.flatMap {
+      case Left(e: BuildException) => maybeRecoverOnError(e).map(Left(_)).toSeq
+      case r @ Right(_)            => Seq(r)
+    }           // Seq[Either[BuildException, ProcessedDirective[T]]]
+      .sequence // Either[BuildException, Seq[ProcessedDirective[T]]]
       .left.map(CompositeBuildException(_))
-      .map(_.foldLeft((configMonoidInstance.zero, Seq.empty[Scoped[T]])) {
-        case ((globalAcc, scopedAcc), ProcessedDirective(global, scoped)) => (
-            global.fold(globalAcc)(ns => configMonoidInstance.orElse(ns, globalAcc)),
-            scopedAcc ++ scoped
-          )
-      })
-    res.map {
-      case (g, s) => PartiallyProcessedDirectives(g, s, unused)
+      .map { processedDirectives =>
+        processedDirectives.foldLeft((configMonoidInstance.zero, Seq.empty[Scoped[T]])) {
+          case ((globalAcc, scopedAcc), ProcessedDirective(global, scoped)) => (
+              global.fold(globalAcc)(ns => configMonoidInstance.orElse(ns, globalAcc)),
+              scopedAcc ++ scoped
+            )
+        }
+      }
+
+    res.map { case (g, s) =>
+      val expDirs = used.filter { case d @ StrictDirective(k, _) =>
+        handlersMap.get(k).exists(_.isExperimental)
+      }
+      PartiallyProcessedDirectives(g, s, unused, experimentalUsed = expDirs)
     }
   }
 }
