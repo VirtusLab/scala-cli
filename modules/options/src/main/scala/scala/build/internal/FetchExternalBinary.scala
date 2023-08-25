@@ -2,14 +2,13 @@ package scala.build.internal
 
 import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger}
 import coursier.error.FetchError
-import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 
 import java.util.Locale
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors.{BuildException, FetchingDependenciesError, RepositoryFormatError}
+import scala.build.errors.{BuildException, FetchingDependenciesError}
 import scala.build.internal.OsLibc
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.util.Properties

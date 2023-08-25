@@ -17,8 +17,7 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   FetchingDependenciesError,
-  NoScalaVersionProvidedError,
-  RepositoryFormatError
+  NoScalaVersionProvidedError
 }
 import scala.build.internal.Constants
 import scala.build.internal.Constants.*

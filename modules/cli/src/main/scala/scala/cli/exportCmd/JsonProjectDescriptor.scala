@@ -1,12 +1,5 @@
 package scala.cli.exportCmd
 
-import com.github.plokhotnyuk.jsoniter_scala.core.WriterConfig
-import coursier.ivy.IvyRepository
-import coursier.maven.MavenRepository
-import coursier.parse.RepositoryParser
-import coursier.{LocalRepositories, Repositories}
-import dependency.NoAttributes
-
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
