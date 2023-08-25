@@ -100,7 +100,7 @@ final case class MillProjectDescriptor(
       else {
         val repos = options.classPathOptions
           .extraRepositories
-          .map(repo => RepositoryParser.repository(repo))
+          .map(repo => RepositoryParser.repository(repo.value))
           .map {
             case Right(repo: MavenRepository) =>
               // TODO repo.authentication?

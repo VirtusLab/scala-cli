@@ -1,5 +1,9 @@
 package scala.build.errors
 
-final class RepositoryFormatError(errors: ::[String]) extends BuildException(
-      s"Error parsing repositories: ${errors.mkString(", ")}"
+import scala.build.Position
+
+final class RepositoryFormatError(errors: ::[String], positions: Seq[Position])
+    extends BuildException(
+      s"Error parsing repositories: ${errors.mkString(", ")}",
+      positions
     )

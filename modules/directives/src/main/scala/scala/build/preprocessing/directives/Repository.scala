@@ -22,7 +22,7 @@ import scala.cli.commands.SpecificationLevel
 // format: off
 final case class Repository(
   @DirectiveName("repository")
-    repositories: List[String] = Nil
+    repositories: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {

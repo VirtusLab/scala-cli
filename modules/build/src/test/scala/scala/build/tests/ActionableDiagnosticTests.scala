@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.options.{BuildOptions, InternalOptions, SuppressWarningOptions}
 import scala.build.Ops.*
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{BuildThreads, Directories, LocalRepo, Positioned}
 import scala.build.actionable.ActionablePreprocessor
 import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.Position.File
@@ -160,7 +160,9 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     )
     val withRepoBuildOptions = baseOptions.copy(
       classPathOptions =
-        baseOptions.classPathOptions.copy(extraRepositories = Seq(s"file:${repoTmpDir.toString}"))
+        baseOptions.classPathOptions.copy(extraRepositories =
+          Seq(Positioned.none(s"file:${repoTmpDir.toString}"))
+        )
     )
     testInputs.withBuild(withRepoBuildOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
@@ -221,7 +223,9 @@ class ActionableDiagnosticTests extends munit.FunSuite {
     )
     val withRepoBuildOptions = baseOptions.copy(
       classPathOptions =
-        baseOptions.classPathOptions.copy(extraRepositories = Seq(s"file:${repoTmpDir.toString}"))
+        baseOptions.classPathOptions.copy(extraRepositories =
+          Seq(Positioned.none(s"file:${repoTmpDir.toString}"))
+        )
     )
     testInputs.withBuild(withRepoBuildOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>

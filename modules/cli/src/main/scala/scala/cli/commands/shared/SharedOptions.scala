@@ -381,7 +381,8 @@ final case class SharedOptions(
         extraClassPath = extraRegularJarsAndClasspath,
         extraCompileOnlyJars = extraCompileOnlyClassPath,
         extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
-        extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
+        extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty)
+          .map(Positioned.none),
         extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),

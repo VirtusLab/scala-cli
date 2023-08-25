@@ -5,7 +5,7 @@ import dependency._
 import scala.build.Positioned
 
 final case class ClassPathOptions(
-  extraRepositories: Seq[String] = Nil,
+  extraRepositories: Seq[Positioned[String]] = Nil,
   extraClassPath: Seq[os.Path] = Nil,
   extraCompileOnlyJars: Seq[os.Path] = Nil,
   extraSourceJars: Seq[os.Path] = Nil,

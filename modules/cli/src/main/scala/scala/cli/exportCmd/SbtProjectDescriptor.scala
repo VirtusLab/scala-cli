@@ -138,7 +138,7 @@ final case class SbtProjectDescriptor(
       else {
         val repos = options.classPathOptions
           .extraRepositories
-          .map(repo => (repo, RepositoryParser.repository(repo)))
+          .map(repo => (repo, RepositoryParser.repository(repo.value)))
           .zipWithIndex
           .map {
             case ((_, Right(repo: IvyRepository)), idx) =>

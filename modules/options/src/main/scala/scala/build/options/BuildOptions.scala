@@ -3,6 +3,7 @@ package scala.build.options
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
+import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.*
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
 import scala.build.errors.*
 import scala.build.interactive.Interactive
@@ -24,11 +26,12 @@ import scala.build.internal.{Constants, OsLibc, StableScalaVersion, Util}
 import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
+import scala.cli.config.{PasswordOption, Secret}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*
-import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.util.{Properties, Try}
 
 final case class BuildOptions(
   suppressWarningOptions: SuppressWarningOptions = SuppressWarningOptions(),
@@ -244,35 +247,78 @@ final case class BuildOptions(
   lazy val javaHomeManager =
     javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
-  private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
+  private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration)
 
-  def finalRepositories: Either[BuildException, Seq[Repository]] = either {
+  private def parseWithAuthenticationParams(repositoryStr: Positioned[String])
+    : Either[BuildException, Repository] = {
+    val authParamsRegex = "(https?)://(\\{.*}:)?(\\{.+})@(.*)".r
+
+    extension (s: String)
+      def stripFormat: String = s.trim.stripPrefix("{").stripSuffix(":").stripSuffix("}")
+
+    def parsePasswordOption(
+      passwordOption: String,
+      positions: Seq[Position]
+    ): Either[BuildException, Secret[String]] =
+      PasswordOption.parse(passwordOption.stripFormat)
+        .left.map { _ =>
+          new MalformedInputError(
+            "repository credentials",
+            passwordOption.stripFormat,
+            "file:_path_|value:_value_|env:_env_var_name_",
+            positions = positions
+          )
+        }
+        .flatMap { p =>
+          Try(p.get()).toEither
+            .left.map(t => PasswordOptionError(t.getMessage, positions))
+        }
+
+    repositoryStr.value match {
+      case authParamsRegex(protocol, null, tokenOption, domain) =>
+        for {
+          token <- parsePasswordOption(tokenOption, repositoryStr.positions)
+          csRepository <- RepositoryParser.repository(
+            s"$protocol://Private-Token:${token.value}@$domain"
+          ).left.map(err => new RepositoryFormatError(::(err, Nil), repositoryStr.positions))
+        } yield csRepository
+
+      case authParamsRegex(protocol, userOption, passwordOption, domain) =>
+        for {
+          password <- parsePasswordOption(passwordOption, repositoryStr.positions)
+          user     <- parsePasswordOption(userOption, repositoryStr.positions)
+          csRepository <- RepositoryParser.repository(
+            s"$protocol://${user.value}:${password.value}@$domain"
+          ).left.map(err => new RepositoryFormatError(::(err, Nil), repositoryStr.positions))
+        } yield csRepository
+      case _ => RepositoryParser.repository(repositoryStr.value)
+          .left.map(err => new RepositoryFormatError(::(err, Nil), repositoryStr.positions))
+    }
+  }
+
+  lazy val finalRepositories: Either[BuildException, Seq[Repository]] = either {
     val nightlyRepos =
       if (scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)))
         scala2NightlyRepo
       else
         Nil
     val snapshotRepositories =
-      if classPathOptions.extraRepositories.contains("snapshots")
+      if classPathOptions.extraRepositories.exists(_.value == "snapshots")
       then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots")
         )
       else Nil
-    val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
+    val extraRepositories = classPathOptions.extraRepositories.filterNot(_.value == "snapshots")
 
-    val repositories = nightlyRepos ++
-      extraRepositories ++
-      internal.localRepository.toSeq
+    val repositories = extraRepositories ++ internal.localRepository.map(Positioned.none).toSeq
 
-    val parseRepositories = value {
-      RepositoryParser.repositories(repositories)
-        .either
-        .left.map(errors => new RepositoryFormatError(errors))
-    }
+    val parsedRepositories = repositories.map(parseWithAuthenticationParams)
+      .sequence
+      .left.map(CompositeBuildException(_))
 
-    parseRepositories ++ snapshotRepositories
+    value(parsedRepositories) ++ snapshotRepositories ++ nightlyRepos
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {

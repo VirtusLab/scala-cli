@@ -1628,4 +1628,99 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == "")
     }
   }
+
+  test("Repository credentials can be embedded in urls as PasswordOptions") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.2"
+    val user        = "Private-Token"
+    val password    = "1234"
+    val realm       = "Realm"
+    val inputs = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep "$testOrg::$testName:$testVersion"
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello(args.headOption.getOrElse("Unknown")))
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map(
+        "SCALA_CLI_CONFIG" -> configFile.toString
+      )
+      val repoPath = root / "the-repo"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
+        {
+          val resWithPassword = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://{env:USER}:{env:PASSWORD}@$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            )
+          )
+
+          expect(resWithPassword.exitCode == 0)
+        }
+        {
+          val resWithToken = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://{env:PASSWORD}@$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            )
+          )
+
+          expect(resWithToken.exitCode == 0)
+        }
+      }
+    }
+  }
 }
