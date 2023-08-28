@@ -1,7 +1,7 @@
 package scala.build.tests
 
-import com.eed3si9n.expecty.Expecty.{assert => expect}
-import coursier.Repositories
+import com.eed3si9n.expecty.Expecty.assert as expect
+import coursier.{MavenRepository, Repositories}
 import coursier.cache.FileCache
 import dependency.ScalaParameters
 
@@ -357,6 +357,67 @@ class BuildOptionsTests extends munit.FunSuite {
         expect(repositories.contains(Repositories.sonatype("snapshots")))
         expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
+    }
+  }
+
+  test("parse repositories with credentials") {
+    val credentialsInputs = TestInputs(
+      os.rel / "user.txt"     -> "UserFromFile",
+      os.rel / "password.txt" -> "PasswordFromFile"
+    )
+
+    def repoWith(user: String, password: String, domain: String) =
+      s"https://{$user}:{$password}@$domain"
+
+    credentialsInputs.fromRoot { credRoot =>
+      val userOptions = List(
+        (s"file:${credRoot / "user.txt"}", "file"),
+        ("value:UserFromValue", "value")
+      )
+
+      val passwordOptions = List(
+        (s"file:${credRoot / "password.txt"}", "file"),
+        ("value:PasswordFromValue", "value")
+      )
+
+      val repos = for {
+        (user, userPrefix)         <- userOptions
+        (password, passwordPrefix) <- passwordOptions
+      } yield repoWith(user, password, s"$userPrefix-$passwordPrefix-repo.com")
+
+      val inputs = TestInputs(
+        os.rel / "Foo.scala" ->
+          s"""${repos.mkString(s"//> using repository ", " ", "")}
+             |
+             |object Foo extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin
+      )
+
+      inputs.withBuild(BuildOptions(), buildThreads, bloopConfigOpt, buildTests = false) {
+        (_, _, maybeBuild) =>
+          expect(maybeBuild.exists(_.success))
+          val build = maybeBuild
+            .toOption
+            .flatMap(_.successfulOpt)
+            .getOrElse(sys.error("cannot happen"))
+          val repositories = build.options.finalRepositories.orThrow
+
+          expect(repositories.length == repos.length)
+
+          for {
+            (user, userPrefix)         <- userOptions
+            (password, passwordPrefix) <- passwordOptions
+          } do
+            expect(repositories.exists {
+              case r: MavenRepository =>
+                r.authentication.exists { a =>
+                  a.user == s"UserFrom${userPrefix.capitalize}" &&
+                  a.passwordOpt.contains(s"PasswordFrom${passwordPrefix.capitalize}")
+                }
+            })
+      }
     }
   }
 
