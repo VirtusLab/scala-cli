@@ -1555,6 +1555,39 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("decoded classNames in interactive ask") {
+    val fileName = "watch.scala"
+
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        """object `Run-1` extends App {println("Run-1 launched")}
+          |object `Run-2` extends App {println("Run-2 launched")}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+
+      os.write(confFile, "{\"interactive-was-suggested\":true}", createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val configEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      val proc = os.proc(TestUtil.cli, "run", "--interactive", fileName)
+        .call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          env = Map("SCALA_CLI_INTERACTIVE_INPUTS" -> "Run-1") ++ configEnv
+        )
+
+      expect(proc.out.trim.contains("[0] Run-1"))
+      expect(proc.out.trim.contains("[1] Run-2"))
+      expect(proc.out.trim.contains("Run-1 launched"))
+    }
+  }
+
   test("BuildInfo fields should be reachable") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->

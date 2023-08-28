@@ -17,7 +17,7 @@ import scala.build.errors.*
 import scala.build.input.VirtualScript.VirtualScriptNameRegex
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
-import scala.build.internal.{Constants, MainClass, Util}
+import scala.build.internal.{Constants, MainClass, Name, Util}
 import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -76,12 +76,19 @@ object Build {
           case _ =>
             inferredMainClass(mainClasses, logger)
               .left.flatMap { mainClasses =>
+                // decode the names to present them to the user,
+                // but keep the link to each original name to account for package prefixes:
+                // "pack.Main$minus1" decodes to "pack.Main-1", which encodes back to "pack$u002EMain$minus1"
+                //  ^^^^^^^^^^^^^^^^----------------NOT THE SAME-----------------------^^^^^^^^^^^^^^^^^^^^^
+                val decodedToEncoded = mainClasses.map(mc => Name.decoded(mc) -> mc).toMap
+
                 options.interactive.flatMap { interactive =>
                   interactive
                     .chooseOne(
                       "Found several main classes. Which would you like to run?",
-                      mainClasses.toList
+                      decodedToEncoded.keys.toList
                     )
+                    .map(decodedToEncoded(_)) // encode back the name of the chosen class
                     .toRight {
                       SeveralMainClassesFoundError(
                         ::(mainClasses.head, mainClasses.tail.toList),
