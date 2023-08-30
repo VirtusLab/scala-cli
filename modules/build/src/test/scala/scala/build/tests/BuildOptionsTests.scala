@@ -3,6 +3,7 @@ package scala.build.tests
 import com.eed3si9n.expecty.Expecty.assert as expect
 import coursier.{MavenRepository, Repositories}
 import coursier.cache.FileCache
+import coursier.ivy.IvyRepository
 import dependency.ScalaParameters
 
 import scala.build.Ops.*
@@ -366,8 +367,11 @@ class BuildOptionsTests extends munit.FunSuite {
       os.rel / "password.txt" -> "PasswordFromFile"
     )
 
-    def repoWith(user: String, password: String, domain: String) =
-      s"https://{$user}:{$password}@$domain"
+    def repoWith(user: String, password: String, domain: String, isIvy: Boolean) =
+      if isIvy then
+        s"ivy:https://{$user}:{$password}@ivy-$domain/[pattern]"
+      else
+        s"https://{$user}:{$password}@$domain"
 
     credentialsInputs.fromRoot { credRoot =>
       val userOptions = List(
@@ -383,7 +387,8 @@ class BuildOptionsTests extends munit.FunSuite {
       val repos = for {
         (user, userPrefix)         <- userOptions
         (password, passwordPrefix) <- passwordOptions
-      } yield repoWith(user, password, s"$userPrefix-$passwordPrefix-repo.com")
+        isIvy                      <- Seq(true, false)
+      } yield repoWith(user, password, s"$userPrefix-$passwordPrefix-repo.com", isIvy)
 
       val inputs = TestInputs(
         os.rel / "Foo.scala" ->
@@ -409,13 +414,24 @@ class BuildOptionsTests extends munit.FunSuite {
           for {
             (user, userPrefix)         <- userOptions
             (password, passwordPrefix) <- passwordOptions
+            isIvy                      <- Seq(true, false)
           } do
             expect(repositories.exists {
-              case r: MavenRepository =>
+              case r: MavenRepository if !isIvy =>
+                r.root == s"https://$userPrefix-$passwordPrefix-repo.com" &&
                 r.authentication.exists { a =>
                   a.user == s"UserFrom${userPrefix.capitalize}" &&
                   a.passwordOpt.contains(s"PasswordFrom${passwordPrefix.capitalize}")
                 }
+              case r: IvyRepository if isIvy =>
+                r.pattern.string.startsWith(
+                  s"https://ivy-$userPrefix-$passwordPrefix-repo.com"
+                ) &&
+                r.authentication.exists { a =>
+                  a.user == s"UserFrom${userPrefix.capitalize}" &&
+                  a.passwordOpt.contains(s"PasswordFrom${passwordPrefix.capitalize}")
+                }
+              case _ => false
             })
       }
     }

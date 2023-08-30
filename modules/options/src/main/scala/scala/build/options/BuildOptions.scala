@@ -251,7 +251,7 @@ final case class BuildOptions(
 
   private def parseWithAuthenticationParams(repositoryStr: Positioned[String])
     : Either[BuildException, Repository] = {
-    val authParamsRegex = "(https?)://(\\{.*}:)?(\\{.+})@(.*)".r
+    val authParamsRegex = "(ivy:)?(https?)://(\\{.*}:)?(\\{.*})@(.*)".r
 
     extension (s: String)
       def stripFormat: String = s.trim.stripPrefix("{").stripSuffix(":").stripSuffix("}")
@@ -275,20 +275,22 @@ final case class BuildOptions(
         }
 
     repositoryStr.value match {
-      case authParamsRegex(protocol, null, tokenOption, domain) =>
+      case authParamsRegex(ivyOpt, protocol, null, tokenOption, domain) =>
         for {
           token <- parsePasswordOption(tokenOption, repositoryStr.positions)
+          ivy = Option(ivyOpt).getOrElse("")
           csRepository <- RepositoryParser.repository(
-            s"$protocol://Private-Token:${token.value}@$domain"
+            s"$ivy$protocol://Private-Token:${token.value}@$domain"
           ).left.map(err => new RepositoryFormatError(::(err, Nil), repositoryStr.positions))
         } yield csRepository
 
-      case authParamsRegex(protocol, userOption, passwordOption, domain) =>
+      case authParamsRegex(ivyOpt, protocol, userOption, passwordOption, domain) =>
         for {
           password <- parsePasswordOption(passwordOption, repositoryStr.positions)
           user     <- parsePasswordOption(userOption, repositoryStr.positions)
+          ivy = Option(ivyOpt).getOrElse("")
           csRepository <- RepositoryParser.repository(
-            s"$protocol://${user.value}:${password.value}@$domain"
+            s"$ivy$protocol://${user.value}:${password.value}@$domain"
           ).left.map(err => new RepositoryFormatError(::(err, Nil), repositoryStr.positions))
         } yield csRepository
       case _ => RepositoryParser.repository(repositoryStr.value)
