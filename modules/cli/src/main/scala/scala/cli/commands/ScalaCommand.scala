@@ -289,12 +289,12 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
             message =
               s"""${hm.message}
                  |
-                 |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin,
+                 |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin,
             detailedMessage =
               if hm.detailedMessage.nonEmpty then
                 s"""${hm.detailedMessage}
                    |
-                   |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin
+                   |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin
               else hm.detailedMessage
           )
         )
@@ -347,8 +347,6 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     * start of running every [[ScalaCommand]].
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
-    logger.flushExperimentalWarnings
-
     CurrentParams.verbosity = options.global.logging.verbosity
     if shouldExcludeInSip then
       logger.error(WarningMessages.powerCommandUsedInSip(
@@ -357,13 +355,15 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       ))
       sys.exit(1)
     else if isExperimental && !shouldSuppressExperimentalFeatureWarnings then
-      logger.message(WarningMessages.experimentalSubcommandUsed(name))
+      logger.experimentalWarning(name, FeatureType.Subcommand)
+
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
+    logger.flushExperimentalWarnings
     runCommand(options, remainingArgs, options.global.logging.logger)
   }
 }

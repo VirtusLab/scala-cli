@@ -210,22 +210,28 @@ class CliLogger(
   // Allow to disable that?
   def compilerOutputStream = out
 
-  private var experimentalWarnings: Map[FeatureType, Set[String]] = Map()
-  def experimentalWarning(featureName: String, featureType: FeatureType): Unit = {
-    experimentalWarnings ++= experimentalWarnings.updatedWith(featureType) {
-      case None           => Some(Set(featureName))
-      case Some(namesSet) => Some(namesSet + featureName)
-    }
-  }
+  private var experimentalWarnings: Map[FeatureType, Set[String]] = Map.empty
+  private var reported: Map[FeatureType, Set[String]]             = Map.empty
+  def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
+    if (!reported.get(featureType).exists(_.contains(featureName)))
+      experimentalWarnings ++= experimentalWarnings.updatedWith(featureType) {
+        case None           => Some(Set(featureName))
+        case Some(namesSet) => Some(namesSet + featureName)
+      }
   def flushExperimentalWarnings: Unit = if (experimentalWarnings.nonEmpty) {
-    val messageStr = {
+    val messageStr: String = {
       val namesAndTypes = for {
-        (featureType, names) <- experimentalWarnings.toSeq
+        (featureType, names) <- experimentalWarnings.toSeq.sortBy(_._1) // by feature type
         name                 <- names
       } yield name -> featureType
       WarningMessages.experimentalFeaturesUsed(namesAndTypes)
     }
     message(messageStr)
+    reported = for {
+      (featureType, names) <- experimentalWarnings
+      reportedNames = reported.getOrElse(featureType, Set.empty[String])
+    } yield featureType -> (names ++ reportedNames)
+    experimentalWarnings = Map.empty
   }
 }
 

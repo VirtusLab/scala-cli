@@ -15,19 +15,31 @@ object WarningMessages {
        |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at $scalaCliGithubUrl""".stripMargin
   def experimentalFeaturesUsed(namesAndFeatureTypes: Seq[(String, FeatureType)]): String = {
     val message = namesAndFeatureTypes match {
-      case Seq((name, featureType)) => s"The $name $featureType is experimental"
+      case Seq((name, featureType)) => s"The `$name` $featureType is experimental"
       case namesAndTypes =>
-        val nl = System.lineSeparator()
-        val bulletPointList = namesAndTypes.map((name, fType) => s" - `$name` $fType")
-          .mkString(nl)
-        s"""Some utilized features are marked as experimental:
+        val nl                   = System.lineSeparator()
+        val distinctFeatureTypes = namesAndTypes.map(_._2).distinct
+        val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
+          (
+            namesAndTypes.map((name, fType) => s" - `$name`")
+              .mkString(nl),
+            s"${distinctFeatureTypes.head}s" // plural form
+          )
+        else
+          (
+            namesAndTypes.map((name, fType) => s" - `$name` $fType")
+              .mkString(nl),
+            "features"
+          )
+
+        s"""Some utilized $featureNameToPrint are marked as experimental:
            |$bulletPointList""".stripMargin
     }
     s"""$message
        |$experimentalNote""".stripMargin
   }
 
-  def experimentalSubcommandUsed(name: String): String =
+  def experimentalSubcommandWarning(name: String): String =
     s"""The `$name` sub-command is experimental.
        |$experimentalNote""".stripMargin
 
