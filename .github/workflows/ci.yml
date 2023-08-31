@@ -212,7 +212,7 @@ jobs:
 
   generate-macos-launcher:
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -239,7 +239,7 @@ jobs:
   native-macos-tests-1:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -263,7 +263,7 @@ jobs:
   native-macos-tests-2:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -287,7 +287,7 @@ jobs:
   native-macos-tests-3:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -363,7 +363,7 @@ jobs:
 
   generate-windows-launcher:
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -395,7 +395,7 @@ jobs:
   native-windows-tests-1:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -427,7 +427,7 @@ jobs:
   native-windows-tests-2:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -459,7 +459,7 @@ jobs:
   native-windows-tests-3:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
     - uses: actions/checkout@v3
       with:
@@ -824,7 +824,7 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: windows-latest
+    runs-on: "windows-2019"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v3
@@ -1049,7 +1049,7 @@ jobs:
   update-windows-packages:
     name: Update Windows packages
     needs: launchers
-    runs-on: windows-latest
+    runs-on: "windows-2019"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
     - uses: actions/checkout@v3
