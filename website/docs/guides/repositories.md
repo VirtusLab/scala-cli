@@ -3,7 +3,7 @@ title: Repositories and HTTP Proxies ⚡️
 sidebar_position: 51
 ---
 
-Scala CLI downloads the dependencies declared in your projects using Coursier.
+Scala CLI downloads the dependencies declared in your projects using [Coursier](https://get-coursier.io/).
 The default repositories being searched are the Maven Central and local Ivy repository on your machine.
 If additional repositories are required it is possible to declare them:
 - on the command line with `--repository` or `--repo` or just `-r`
