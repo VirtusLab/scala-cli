@@ -12,7 +12,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.javacOpt -source 1.8 -target 1.8")
 @DirectiveUsage(
   "//> using javacOpt _options_",
-  "`//> using javacOpt `_options_"
+  "`//> using javacOpt` _options_"
 )
 @DirectiveDescription("Add Javac options which will be passed when compiling sources.")
 @DirectiveLevel(SpecificationLevel.SHOULD)

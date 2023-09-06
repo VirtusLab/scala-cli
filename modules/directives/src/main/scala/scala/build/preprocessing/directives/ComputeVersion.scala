@@ -16,9 +16,10 @@ import scala.build.options.{BuildOptions, ComputeVersion => cv, SourceGeneratorO
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compute Version")
+@DirectiveExamples("//> using computeVersion git")
 @DirectiveExamples("//> using computeVersion git:tag")
-@DirectiveExamples("//> using computeVersion \"command:cat project.version\"")
-@DirectiveUsage("//> using computeVersion git:tag", "`//> using computeVersion `git:tag")
+@DirectiveExamples("//> using computeVersion git:dynver")
+@DirectiveUsage("//> using computeVersion git:tag", "`//> using computeVersion` _method_")
 @DirectiveDescription("Method used to compute the version for BuildInfo")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
 // format: off
