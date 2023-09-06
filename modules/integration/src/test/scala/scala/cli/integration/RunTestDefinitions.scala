@@ -1683,7 +1683,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
 
       TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
-        // test("No repository credentials passed to coursier")
+        // This codeblock represents test("No repository credentials passed to coursier")
         {
           val resWithNoCreds = os.proc(
             TestUtil.cli,
@@ -1706,7 +1706,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(resWithNoCreds.exitCode == 1)
         }
 
-        // test("Repository credentials passed to coursier - environment variables")
+        // This codeblock represents test("Repository credentials passed to coursier - environment variables")
         {
           val resWithEnvVar = os.proc(
             TestUtil.cli,
@@ -1729,7 +1729,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(resWithEnvVar.exitCode == 0)
         }
 
-        // test("Repository credentials passed to coursier - config entry")
+        // This codeblock represents test("Repository credentials passed to coursier - config entry")
         {
           os.write(
             configFile,
@@ -1759,7 +1759,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(resWithConfig.exitCode == 0)
         }
 
-        // test("Repository credentials passed to coursier - java properties")
+        // This codeblock represents test("Repository credentials passed to coursier - java properties")
         {
           os.write(root / ".scala-jvmopts", s"-Dcoursier.credentials=$host $user:$password\n")
 
