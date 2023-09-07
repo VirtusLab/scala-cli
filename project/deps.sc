@@ -101,7 +101,7 @@ object Deps {
   def asm      = ivy"org.ow2.asm:asm:9.5"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
-  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.9-sc-2"
+  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M25"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
