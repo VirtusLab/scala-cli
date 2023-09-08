@@ -26,10 +26,17 @@ Scala CLI by default uses the normal Scala REPL.
 
 If you prefer to use the [Ammonite REPL](https://ammonite.io/#Ammonite-REPL), specify `--amm` to launch it rather than the default REPL:
 
+:::caution
+Using the Ammonite REPL is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
+:::
+
 <ChainedSnippets>
 
 ```bash ignore
-scala-cli repl --amm
+scala-cli --power repl --amm
 ```
 
 ```text
