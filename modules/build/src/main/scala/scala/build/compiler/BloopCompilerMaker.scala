@@ -4,20 +4,24 @@ import bloop.rifle.{BloopRifleConfig, BloopServer, BloopThreads}
 import ch.epfl.scala.bsp4j.BuildClient
 
 import scala.build.Logger
+import scala.build.errors.{FetchingDependenciesError, Severity}
 import scala.build.internal.Constants
+import scala.build.internal.util.WarningMessages
 import scala.concurrent.duration.DurationInt
+import scala.util.Try
 
 final class BloopCompilerMaker(
   config: BloopRifleConfig,
   threads: BloopThreads,
-  strictBloopJsonCheck: Boolean
+  strictBloopJsonCheck: Boolean,
+  offline: Boolean
 ) extends ScalaCompilerMaker {
   def create(
     workspace: os.Path,
     classesDir: os.Path,
     buildClient: BuildClient,
     logger: Logger
-  ): BloopCompiler = {
+  ): ScalaCompiler = {
     val createBuildServer =
       () =>
         BloopServer.buildServer(
@@ -30,6 +34,23 @@ final class BloopCompilerMaker(
           threads,
           logger.bloopRifleLogger
         )
-    new BloopCompiler(createBuildServer, 20.seconds, strictBloopJsonCheck)
+
+    Try(new BloopCompiler(createBuildServer, 20.seconds, strictBloopJsonCheck))
+      .toEither
+      .left.flatMap {
+        case e if offline =>
+          e.getCause match
+            case _: FetchingDependenciesError =>
+              logger.diagnostic(
+                WarningMessages.offlineModeBloopNotFound,
+                Severity.Warning
+              )
+              Right(
+                SimpleScalaCompilerMaker("java", Nil)
+                  .create(workspace, classesDir, buildClient, logger)
+              )
+            case _ => Left(e)
+        case e => Left(e)
+      }.fold(t => throw t, identity)
   }
 }

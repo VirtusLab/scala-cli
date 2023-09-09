@@ -401,7 +401,8 @@ final case class SharedOptions(
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
-        exclude = exclude.map(Positioned.commandLine)
+        exclude = exclude.map(Positioned.commandLine),
+        offline = coursier.offline
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
@@ -543,7 +544,8 @@ final case class SharedOptions(
       new BloopCompilerMaker(
         value(bloopRifleConfig()),
         threads.bloop,
-        strictBloopJsonCheckOrDefault
+        strictBloopJsonCheckOrDefault,
+        coursier.offline.getOrElse(false)
       )
     else
       SimpleScalaCompilerMaker("java", Nil)
