@@ -1,7 +1,7 @@
 package scala.build.options
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.{ArchiveCache, FileCache, UnArchiver}
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
@@ -305,6 +305,8 @@ final case class BuildOptions(
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
       case Some(MaybeScalaVersion(None)) =>
         None
+      case Some(MaybeScalaVersion(Some(svInput))) if internal.offline.getOrElse(false) =>
+        Some(svInput)
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {

@@ -98,4 +98,7 @@ object WarningMessages {
 
   val chainingUsingFileDirective: String =
     "Chaining the 'using file' directive is not supported, the source won't be included in the build."
+
+  val offlineModeBloopNotFound =
+    "Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback"
 }

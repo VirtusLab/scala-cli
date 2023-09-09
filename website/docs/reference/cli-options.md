@@ -213,6 +213,33 @@ Aliases: `-f`
 
 Force overwriting values for key
 
+## Coursier options
+
+Available in commands:
+
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--ttl`
+
+[Internal]
+Specify a TTL for changing dependencies, such as snapshots
+
+### `--cache`
+
+[Internal]
+Set the coursier cache location
+
+### `--coursier-validate-checksums`
+
+[Internal]
+Enable checksum validation of artifacts downloaded by coursier
+
+### `--offline`
+
+Disable using the network to download artifacts, use the local cache only
+
 ## Cross options
 
 Available in commands:
@@ -1847,29 +1874,6 @@ Aliases: `--name`
 
 [Internal]
 Name of BSP
-
-### Coursier options
-
-Available in commands:
-
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--ttl`
-
-[Internal]
-Specify a TTL for changing dependencies, such as snapshots
-
-### `--cache`
-
-[Internal]
-Set the coursier cache location
-
-### `--coursier-validate-checksums`
-
-[Internal]
-Enable checksum validation of artifacts downloaded by coursier
 
 ### Default file options
 
