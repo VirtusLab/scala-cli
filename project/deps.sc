@@ -88,7 +88,7 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.9"
+    def scalaMeta            = "4.8.10"
     def scalaNative          = "0.4.14"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.2"
@@ -101,7 +101,7 @@ object Deps {
   def asm      = ivy"org.ow2.asm:asm:9.5"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
-  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.9-sc-2"
+  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M5"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M25"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
@@ -119,7 +119,7 @@ object Deps {
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava         = ivy"com.google.guava:guava:32.1.2-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.0.202305301015-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.1.202309021850-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
