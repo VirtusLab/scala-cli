@@ -5,15 +5,12 @@ import caseapp.*
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
-// format: off
 case class PowerOptions(
-  @Hidden
   @Group(HelpGroup.Launcher.toString)
   @HelpMessage("When called as 'scala', allow to use power commands too")
   @Tag(tags.must)
-  power: Boolean= false
+  power: Boolean = false
 )
-// format: on
 
 object PowerOptions {
   implicit val parser: Parser[PowerOptions] = Parser.derive
