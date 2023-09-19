@@ -15,7 +15,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using target.platform jvm")
 @DirectiveUsage(
   "//> using target.platform _platform_",
-  "`//> using target.platform `_platform_"
+  "`//> using target.platform` _platform_"
 )
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 // format: off

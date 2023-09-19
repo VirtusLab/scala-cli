@@ -13,9 +13,10 @@ import scala.util.Try
 @DirectiveExamples("//> using file utils.scala")
 @DirectiveUsage(
   "`//> using file `_path_ | `//> using files `_path1_, _path2_ …",
-  """//> using file hello.sc
+  """`//> using file` _path_
     |
-    |//> using files Utils.scala, Helper.scala …""".stripMargin
+    |`//> using files` _path1_ _path2_ …
+    |""".stripMargin
 )
 @DirectiveDescription("Manually add sources to the project")
 @DirectiveLevel(SpecificationLevel.SHOULD)

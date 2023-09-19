@@ -18,7 +18,7 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using jsModuleKind` _value_
     |
-    |`//> using jsSmallModuleForPackage` _value1_ _value2_
+    |`//> using jsSmallModuleForPackage` _value1_ _value2_ …
     |
     |`//> using jsCheckIr` _true|false_
     |

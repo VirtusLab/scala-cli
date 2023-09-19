@@ -25,9 +25,10 @@ import scala.util.{Failure, Success, Try}
 @DirectiveExamples("//> using test.sourceJar /path/to/test-custom-jar-sources.jar")
 @DirectiveUsage(
   "`//> using jar `_path_ | `//> using jars `_path1_ _path2_ …",
-  """//> using jar _path_
+  """`//> using jar` _path_
     |
-    |//> using jars _path1_ _path2_ …""".stripMargin
+    |`//> using jars` _path1_ _path2_ …
+    |""".stripMargin
 )
 @DirectiveDescription("Manually add JAR(s) to the class path")
 @DirectiveLevel(SpecificationLevel.SHOULD)

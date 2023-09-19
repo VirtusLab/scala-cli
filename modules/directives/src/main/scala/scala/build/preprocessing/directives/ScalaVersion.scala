@@ -13,7 +13,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using scala 2.13.6, 2.12.16")
 @DirectiveUsage(
   "//> using scala _version_+",
-  "`//> using scala `_version_+"
+  "`//> using scala` _version_+"
 )
 @DirectiveDescription("Set the default Scala version")
 @DirectiveLevel(SpecificationLevel.MUST)
