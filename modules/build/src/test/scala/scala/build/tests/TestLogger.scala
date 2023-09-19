@@ -3,12 +3,13 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
-import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
 
 import scala.build.errors.BuildException
 import scala.build.Logger
-import scala.scalanative.{build => sn}
+import scala.scalanative.build as sn
 import scala.build.errors.Diagnostic
+import scala.build.internals.FeatureType
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
 
@@ -83,4 +84,9 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     if (debug) 2
     else if (info) 0
     else -1
+
+  override def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
+    System.err.println(s"Experimental $featureType `$featureName` used")
+
+  override def flushExperimentalWarnings: Unit = ()
 }

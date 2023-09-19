@@ -3,19 +3,19 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.CacheLogger
-import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
 
 import java.io.PrintStream
-
-import scala.build.Ops._
+import scala.build.Ops.*
 import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.build.input.Inputs
+import scala.build.internals.FeatureType
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
   JavaOptions,
-  ScalacOpt,
   ScalaOptions,
+  ScalacOpt,
   Scope,
   ShadowingSeq
 }
@@ -61,6 +61,8 @@ class BuildProjectTests extends munit.FunSuite {
 
     override def verbosity = ???
 
+    override def experimentalWarning(featureName: String, featureType: FeatureType): Unit = ???
+    override def flushExperimentalWarnings: Unit                                          = ???
   }
 
   val bloopJavaPath = Position.Bloop("/home/empty/jvm/8/")
