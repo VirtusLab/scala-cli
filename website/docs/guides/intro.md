@@ -47,5 +47,5 @@ Less introductory guides on specific topics.
 
 - [SBT and Mill export](./sbt-mill.md) - learn how to convert your Scala CLI project into an SBT or Mill project (when
   you need a more powerful build tool).
-- [proxies](./proxies.md) - learn how to configure Scala CLI to work with proxies.
+- [proxies](./repositories.md) - learn how to configure Scala CLI to work with proxies.
 - [Markdown](./markdown.md) - learn how to work with `.md` sources.
