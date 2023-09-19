@@ -119,7 +119,7 @@ object Deps {
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava         = ivy"com.google.guava:guava:32.1.2-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.1.202309021850-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
