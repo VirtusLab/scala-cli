@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -46,7 +46,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -80,7 +80,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -96,7 +96,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -123,7 +123,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -147,7 +147,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -171,7 +171,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -194,7 +194,7 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
@@ -214,7 +214,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -241,7 +241,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -265,7 +265,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -289,7 +289,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -313,7 +313,7 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
@@ -342,7 +342,7 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
@@ -365,7 +365,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -397,7 +397,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -429,7 +429,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -461,7 +461,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -492,7 +492,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -516,7 +516,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -553,7 +553,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -577,7 +577,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -600,7 +600,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -624,7 +624,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -661,7 +661,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -687,7 +687,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -712,7 +712,7 @@ jobs:
     # for now, let's run those tests only on ubuntu
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -731,7 +731,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -756,7 +756,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -770,7 +770,7 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -790,7 +790,7 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -812,7 +812,7 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -827,7 +827,7 @@ jobs:
     runs-on: "windows-2019"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -847,7 +847,7 @@ jobs:
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -910,7 +910,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -969,7 +969,7 @@ jobs:
     runs-on: ubuntu-20.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
@@ -1052,7 +1052,7 @@ jobs:
     runs-on: "windows-2019"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
