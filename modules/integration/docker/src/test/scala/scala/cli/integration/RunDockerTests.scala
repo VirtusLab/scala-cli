@@ -13,12 +13,6 @@ class RunDockerTests extends munit.FunSuite {
   lazy val termOpt = if (System.console() == null) Nil else Seq("-t")
   lazy val ciOpt   = Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
   lazy val slimScalaCliImage = "scala-cli-slim"
-  val extraOptions: List[String] = List(
-    "--bloop-startup-timeout",
-    "2min",
-    "--bloop-bsp-timeout",
-    "1min"
-  )
 
   test("run simple app in in docker") {
     val fileName = "simple.sc"
@@ -34,7 +28,7 @@ class RunDockerTests extends munit.FunSuite {
       val cmd = Seq[os.Shellable](
         // format: off
         "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
-        imageName, fileName, extraOptions
+        imageName, fileName
         // format: on
       )
       os.proc(cmd).call(
@@ -60,7 +54,7 @@ class RunDockerTests extends munit.FunSuite {
         val cmdPackage = Seq[os.Shellable](
           // format: off
           "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
-          imageName, "--power", "package", "--native", fileName, "-o", "Hello", extraOptions
+          imageName, "--power", "package", "--native", fileName, "-o", "Hello"
           // format: on
         )
         val procPackage = os.proc(cmdPackage).call(cwd = root, check = false)
@@ -76,7 +70,7 @@ class RunDockerTests extends munit.FunSuite {
         val cmdPackage = Seq[os.Shellable](
           // format: off
           "docker", "run", "--rm", termOpt, "-v", s"$root:/data", "-w", "/data", ciOpt,
-          imageName, "--power", "package", "--native-image", fileName, "-o", "Hello", extraOptions
+          imageName, "--power", "package", "--native-image", fileName, "-o", "Hello"
           // format: on
         )
         val procPackage = os.proc(cmdPackage).call(cwd = root, check = false)
