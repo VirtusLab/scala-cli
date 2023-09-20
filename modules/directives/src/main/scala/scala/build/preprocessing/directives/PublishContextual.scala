@@ -111,10 +111,14 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.doc false")
   @DirectiveUsage(
     "//> using publish.(computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.computeVersion `value
-      |`//> using publish.repository `value
-      |`//> using publish.secretKey `value
-      |`//> using publish.doc `boolean
+    """`//> using publish.computeVersion` value
+      |
+      |`//> using publish.repository` value
+      |
+      |`//> using publish.secretKey` value
+      |
+      |`//> using publish.doc` boolean
+      |
       |""".stripMargin
   )
   @DirectiveDescription("Set contextual parameters for publishing")
@@ -149,9 +153,12 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY")
   @DirectiveUsage(
     "//> using publish.[.ci](computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.ci.computeVersion `value
-      |`//> using publish.ci.repository `value
-      |`//> using publish.ci.secretKey `value
+    """`//> using publish.ci.computeVersion` value
+      |
+      |`//> using publish.ci.repository` value
+      |
+      |`//> using publish.ci.secretKey` value
+      |
       |""".stripMargin
   )
   @DirectiveDescription("Set CI parameters for publishing")

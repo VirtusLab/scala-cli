@@ -9,6 +9,7 @@ import caseapp.core.{Arg, Error}
 import scala.build.Logger
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
+import scala.build.internals.FeatureType
 import scala.cli.ScalaCli
 import scala.cli.util.ArgHelpers.*
 
@@ -54,7 +55,7 @@ object RestrictedCommandsParser {
             ))
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isExperimental && !shouldSuppressExperimentalWarnings =>
-            logger.message(WarningMessages.experimentalOptionUsed(passedOption))
+            logger.experimentalWarning(passedOption, FeatureType.Option)
             r
           case (other, _) =>
             other

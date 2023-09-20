@@ -235,6 +235,8 @@ object CrossSources {
           distinctSources
         }
 
+    logger.flushExperimentalWarnings
+
     val scopedRequirements       = preprocessedSources.flatMap(_.scopedRequirements)
     val scopedRequirementsByRoot = scopedRequirements.groupBy(_.path.root)
     def baseReqs(path: ScopePath): BuildRequirements = {

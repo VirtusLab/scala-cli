@@ -2,27 +2,46 @@ package scala.build.internal.util
 
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.Constants
+import scala.build.internals.FeatureType
 import scala.build.preprocessing.directives.{DirectiveHandler, ScopedDirective}
 import scala.cli.commands.{SpecificationLevel, tags}
 import scala.cli.config.Key
 
 object WarningMessages {
   private val scalaCliGithubUrl = s"https://github.com/${Constants.ghOrg}/${Constants.ghName}"
-  private def experimentalFeatureUsed(featureName: String): String =
-    s"""$featureName is experimental.
-       |Please bear in mind that non-ideal user experience should be expected.
+
+  private val experimentalNote =
+    s"""Please bear in mind that non-ideal user experience should be expected.
        |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at $scalaCliGithubUrl""".stripMargin
-  def experimentalDirectiveUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` directive")
+  def experimentalFeaturesUsed(namesAndFeatureTypes: Seq[(String, FeatureType)]): String = {
+    val message = namesAndFeatureTypes match {
+      case Seq((name, featureType)) => s"The `$name` $featureType is experimental"
+      case namesAndTypes =>
+        val nl                   = System.lineSeparator()
+        val distinctFeatureTypes = namesAndTypes.map(_._2).distinct
+        val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
+          (
+            namesAndTypes.map((name, fType) => s" - `$name`")
+              .mkString(nl),
+            s"${distinctFeatureTypes.head}s" // plural form
+          )
+        else
+          (
+            namesAndTypes.map((name, fType) => s" - `$name` $fType")
+              .mkString(nl),
+            "features"
+          )
 
-  def experimentalSubcommandUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` sub-command")
+        s"""Some utilized $featureNameToPrint are marked as experimental:
+           |$bulletPointList""".stripMargin
+    }
+    s"""$message
+       |$experimentalNote""".stripMargin
+  }
 
-  def experimentalOptionUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` option")
-
-  def experimentalConfigKeyUsed(name: String): String =
-    experimentalFeatureUsed(s"The `$name` configuration key")
+  def experimentalSubcommandWarning(name: String): String =
+    s"""The `$name` sub-command is experimental.
+       |$experimentalNote""".stripMargin
 
   def rawValueNotWrittenToPublishFile(
     rawValue: String,

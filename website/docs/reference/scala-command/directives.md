@@ -15,22 +15,22 @@ Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHO
 
 Add Scala compiler options
 
-`//> using option `_option_
+`//> using option` _option_
 
-`//> using options `_option1_, _option2_ …
+`//> using options` _option1_ _option2_ …
 
 #### Examples
 `//> using option -Xasync`
 
 `//> using test.option -Xasync`
 
-`//> using options -Xasync, -Xfatal-warnings`
+`//> using options -Xasync -Xfatal-warnings`
 
 ### Compiler plugins
 
 Adds compiler plugins
 
-`using plugin `_org_`:`name`:`ver
+`using plugin` _org_`:`_name_`:`_ver_
 
 #### Examples
 `//> using plugin org.typelevel:::kind-projector:0.13.2`
@@ -39,7 +39,7 @@ Adds compiler plugins
 
 Add dependencies
 
-`//> using dep `_org_`:`name`:`ver
+`//> using dep` _org_`:`name`:`ver
 
 #### Examples
 `//> using dep com.lihaoyi::os-lib:0.9.1`
@@ -54,7 +54,7 @@ Add dependencies
 
 Add Java options which will be passed when running an application.
 
-`//> using javaOpt `_options_
+`//> using javaOpt` _options_
 
 #### Examples
 `//> using javaOpt -Xmx2g, -Dsomething=a`
@@ -65,8 +65,10 @@ Add Java options which will be passed when running an application.
 
 Add Java properties
 
-`//> using javaProp `_key=value_
-`//> using javaProp `_key_
+`//> using javaProp` _key=value_
+
+`//> using javaProp` _key_
+
 
 #### Examples
 `//> using javaProp foo1=bar, foo2`
@@ -77,16 +79,16 @@ Add Java properties
 
 Specify default main class
 
-`//> using mainClass `_main class_
+`//> using mainClass` _main-class_
 
 #### Examples
-`//> using mainClass helloWorld`
+`//> using mainClass HelloWorld`
 
 ### Scala version
 
 Set the default Scala version
 
-`//> using scala `_version_+
+`//> using scala` _version_+
 
 #### Examples
 `//> using scala 3.0.2`
@@ -103,9 +105,10 @@ Set the default Scala version
 
 Manually add JAR(s) to the class path
 
-//> using jar _path_
+`//> using jar` _path_
 
-//> using jars _path1_ _path2_ …
+`//> using jars` _path1_ _path2_ …
+
 
 #### Examples
 `//> using jar /Users/alexandre/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/chuusai/shapeless_2.13/2.3.7/shapeless_2.13-2.3.7.jar`
@@ -122,9 +125,10 @@ Manually add JAR(s) to the class path
 
 Manually add sources to the project
 
-//> using file hello.sc
+`//> using file` _path_
 
-//> using files Utils.scala, Helper.scala …
+`//> using files` _path1_ _path2_ …
+
 
 #### Examples
 `//> using file utils.scala`
@@ -133,12 +137,17 @@ Manually add sources to the project
 
 Exclude sources from the project
 
-`//> using exclude "*.sc"`
+`//> using exclude` _pattern_
 
-`//> using exclude "examples/*" "*/resources/*" …`
+`//> using exclude` _pattern1_ _pattern2_ …
+
 
 #### Examples
 `//> using exclude utils.scala`
+
+`//> using exclude "examples/*" "*/resources/*"`
+
+`//> using exclude "*.sc"`
 
 ### JVM version
 
@@ -157,7 +166,7 @@ Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
 
 Sets Java home used to run your application or tests
 
-`//> using javaHome `_path_
+`//> using javaHome` _path_
 
 #### Examples
 `//> using javaHome /Users/Me/jdks/11`
@@ -166,7 +175,7 @@ Sets Java home used to run your application or tests
 
 Add Javac options which will be passed when compiling sources.
 
-`//> using javacOpt `_options_
+`//> using javacOpt` _options_
 
 #### Examples
 `//> using javacOpt -source 1.8 -target 1.8`
@@ -177,7 +186,7 @@ Add Javac options which will be passed when compiling sources.
 
 Set the default platform to Scala.js or Scala Native
 
-`//> using platform `(`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+`//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
 
 #### Examples
 `//> using platform scala-js`
@@ -190,7 +199,7 @@ Add repositories for dependency resolution.
 
 Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
 
-`//> using repository `_repository_
+`//> using repository` _repository_
 
 #### Examples
 `//> using repository jitpack`
@@ -205,9 +214,9 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 
 Manually add a resource directory to the class path
 
-`//> using resourceDir `_path_
+`//> using resourceDir` _path_
 
-`//> using resourceDirs `_path1_ _path2_ …
+`//> using resourceDirs` _path1_ _path2_ …
 
 #### Examples
 `//> using resourceDir ./resources`
@@ -226,9 +235,9 @@ Add Scala Native options
 
 `//> using nativeVersion` _value_
 
-`//> using nativeCompile` _value1_ _value2_
+`//> using nativeCompile` _value1_ _value2_ …
 
-`//> using nativeLinking` _value1_ _value2_
+`//> using nativeLinking` _value1_ _value2_ …
 
 `//> using nativeClang` _value_
 
@@ -250,7 +259,7 @@ Add Scala.js options
 
 `//> using jsModuleKind` _value_
 
-`//> using jsSmallModuleForPackage` _value1_ _value2_
+`//> using jsSmallModuleForPackage` _value1_ _value2_ …
 
 `//> using jsCheckIr` _true|false_
 
@@ -278,7 +287,7 @@ Add Scala.js options
 
 Set the test framework
 
-`//> using testFramework ` _class_name_
+`//> using testFramework`  _class-name_
 
 #### Examples
 `//> using testFramework utest.runner.Framework`

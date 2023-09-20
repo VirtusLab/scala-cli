@@ -1661,4 +1661,161 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(output == "")
     }
   }
+
+  // Credentials tests
+  test("Repository credentials passed to coursier") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.2"
+    val user        = "username"
+    val password    = "1234"
+    val realm       = "Realm"
+    val inputs = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep "$testOrg::$testName:$testVersion"
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello(args.headOption.getOrElse("Unknown")))
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map(
+        "SCALA_CLI_CONFIG" -> configFile.toString
+      )
+      val repoPath = root / "the-repo"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
+        // This codeblock represents test("No repository credentials passed to coursier")
+        {
+          val resWithNoCreds = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ),
+            check = false,
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithNoCreds.exitCode == 1)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - environment variables")
+        {
+          val resWithEnvVar = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"                 -> user,
+              "PASSWORD"             -> password,
+              "COURSIER_CREDENTIALS" -> s"$host $user:$password"
+            ),
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithEnvVar.exitCode == 0)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - config entry")
+        {
+          os.write(
+            configFile,
+            s"""{
+               |"repositories.credentials": [
+               |{"host":"$host","user":"value:$user","password":"value:$password","matchHost":true}
+               |]
+               |}""".stripMargin
+          )
+          val resWithConfig = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ) ++ extraEnv,
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithConfig.exitCode == 0)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - java properties")
+        {
+          os.write(root / ".scala-jvmopts", s"-Dcoursier.credentials=$host $user:$password\n")
+
+          val resWithProps = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ),
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithProps.exitCode == 0)
+        }
+      }
+    }
+  }
 }

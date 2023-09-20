@@ -6,6 +6,7 @@ import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.internals.FeatureType
 import scala.scalanative.{build => sn}
 
 trait Logger {
@@ -37,6 +38,12 @@ trait Logger {
   def compilerOutputStream: PrintStream
 
   def verbosity: Int
+
+  /** Since we have a lot of experimental warnings all over the build process, this method can be
+    * used to accumulate them for a better UX
+    */
+  def experimentalWarning(featureName: String, featureType: FeatureType): Unit
+  def flushExperimentalWarnings: Unit
 }
 
 object Logger {
@@ -73,6 +80,9 @@ object Logger {
       )
 
     def verbosity: Int = -1
+
+    def experimentalWarning(featureUsed: String, featureType: FeatureType): Unit = ()
+    def flushExperimentalWarnings: Unit                                          = ()
   }
   def nop: Logger = new Nop
 }

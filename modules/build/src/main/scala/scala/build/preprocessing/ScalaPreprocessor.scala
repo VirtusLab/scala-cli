@@ -221,14 +221,15 @@ case object ScalaPreprocessor extends Preprocessor {
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
-      value(DirectivesPreprocessor.preprocess(
-        extractedDirectives,
+      value(DirectivesPreprocessor(
         path,
         scopeRoot,
         logger,
         allowRestrictedFeatures,
         suppressWarningOptions,
         maybeRecoverOnError
+      ).preprocess(
+        extractedDirectives
       ))
 
     if (preprocessedDirectives.isEmpty) None

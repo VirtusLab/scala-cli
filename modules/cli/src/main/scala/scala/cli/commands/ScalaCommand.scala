@@ -19,6 +19,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
+import scala.build.internals.FeatureType
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
@@ -288,12 +289,12 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
             message =
               s"""${hm.message}
                  |
-                 |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin,
+                 |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin,
             detailedMessage =
               if hm.detailedMessage.nonEmpty then
                 s"""${hm.detailedMessage}
                    |
-                   |${WarningMessages.experimentalSubcommandUsed(name)}""".stripMargin
+                   |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin
               else hm.detailedMessage
           )
         )
@@ -354,13 +355,15 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       ))
       sys.exit(1)
     else if isExperimental && !shouldSuppressExperimentalFeatureWarnings then
-      logger.message(WarningMessages.experimentalSubcommandUsed(name))
+      logger.experimentalWarning(name, FeatureType.Subcommand)
+
     maybePrintWarnings(options)
     maybePrintGroupHelp(options)
     buildOptions(options).foreach { bo =>
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
+    logger.flushExperimentalWarnings
     runCommand(options, remainingArgs, options.global.logging.logger)
   }
 }

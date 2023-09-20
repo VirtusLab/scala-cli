@@ -14,7 +14,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using target.scope test")
 @DirectiveUsage(
   "//> using target.scope _scope_",
-  "`//> using target.scope `_scope_"
+  "`//> using target.scope` _scope_"
 )
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class RequireScope(

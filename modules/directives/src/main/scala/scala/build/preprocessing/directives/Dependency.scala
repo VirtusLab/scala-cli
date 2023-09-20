@@ -25,7 +25,7 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveUsage(
   "//> using dep org:name:ver | //> using deps org:name:ver org2:name2:ver2",
-  "`//> using dep `_org_`:`name`:`ver"
+  "`//> using dep` _org_`:`name`:`ver"
 )
 @DirectiveDescription("Add dependencies")
 @DirectiveLevel(SpecificationLevel.MUST)

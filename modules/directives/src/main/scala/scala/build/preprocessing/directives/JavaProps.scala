@@ -13,8 +13,10 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.javaProp foo3=bar foo4")
 @DirectiveUsage(
   "//> using javaProp _key=val_",
-  """`//> using javaProp `_key=value_
-    |`//> using javaProp `_key_""".stripMargin
+  """`//> using javaProp` _key=value_
+    |
+    |`//> using javaProp` _key_
+    |""".stripMargin
 )
 @DirectiveDescription("Add Java properties")
 @DirectiveLevel(SpecificationLevel.MUST)

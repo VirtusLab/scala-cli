@@ -15,7 +15,7 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveUsage(
   "//> using repository _repository_",
-  "`//> using repository `_repository_"
+  "`//> using repository` _repository_"
 )
 @DirectiveDescription(Repository.usageMsg)
 @DirectiveLevel(SpecificationLevel.SHOULD)

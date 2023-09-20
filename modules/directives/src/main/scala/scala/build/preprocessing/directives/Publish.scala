@@ -16,9 +16,12 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using publish.version 0.1.1")
 @DirectiveUsage(
   "//> using publish.(organization|name|version) [value]",
-  """`//> using publish.organization `value
-    |`//> using publish.name `value
-    |`//> using publish.version `value
+  """`//> using publish.organization` value
+    |
+    |`//> using publish.name` value
+    |
+    |`//> using publish.version` value
+    |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for publishing")

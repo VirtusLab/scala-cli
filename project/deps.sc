@@ -8,7 +8,7 @@ object Scala {
   def scala212     = "2.12.18"
   def scala213     = "2.13.12"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.3.0"
+  def scala3       = "3.3.1"
   val allScala2    = Seq(scala213, scala212)
   val all          = allScala2 ++ Seq(scala3)
   val mainVersions = Seq(scala3, scala213)
@@ -82,7 +82,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault      = "2.1.6"
+    def coursierDefault      = "2.1.7"
     def coursier             = coursierDefault
     def coursierCli          = coursierDefault
     def coursierM1Cli        = coursierDefault
@@ -119,7 +119,7 @@ object Deps {
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava         = ivy"com.google.guava:guava:32.1.2-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.6.1.202309021850-r"
+  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
@@ -174,7 +174,7 @@ object Deps {
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
-  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.7"
+  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.9"
   def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.0"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.10"

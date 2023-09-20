@@ -12,7 +12,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.javaOpt -Dsomething=a")
 @DirectiveUsage(
   "//> using javaOpt _options_",
-  "`//> using javaOpt `_options_"
+  "`//> using javaOpt` _options_"
 )
 @DirectiveDescription("Add Java options which will be passed when running an application.")
 @DirectiveLevel(SpecificationLevel.MUST)
