@@ -183,4 +183,11 @@ class BuildProjectTests extends munit.FunSuite {
 
     expect(project.workspace == inputs.workspace)
   }
+  test("skip passing release flag for java 8") {
+    val javaHome        = jvm(8)
+    val bloopJvmVersion = 17
+    val (_, javacOptions, _) =
+      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+    expect(!javacOptions.containsSlice(Seq("--release")))
+  }
 }
