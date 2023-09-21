@@ -1,8 +1,9 @@
 package scala.build.tests
 
-import com.eed3si9n.expecty.Expecty.{assert => expect}
+import com.eed3si9n.expecty.Expecty.assert as expect
 import coursier.Repositories
 import coursier.cache.FileCache
+import coursier.core.Version
 import dependency.ScalaParameters
 
 import scala.build.Ops.*
@@ -19,11 +20,12 @@ import scala.build.options.{
   InternalOptions,
   MaybeScalaVersion,
   ScalaOptions,
+  ScalaVersionUtil,
+  ScalacOpt,
   ShadowingSeq
 }
 import scala.build.{Build, BuildThreads, LocalRepo}
 import scala.build.Directories
-import scala.build.options.ScalacOpt
 import scala.build.Positioned
 import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
@@ -100,6 +102,7 @@ class BuildOptionsTests extends munit.FunSuite {
         scalaVersion = Some(MaybeScalaVersion("2.11.2"))
       )
     )
+
     assert(
       options.projectParams.swap.exists {
         case _: UnsupportedScalaVersionError => true; case _ => false
@@ -259,11 +262,7 @@ class BuildOptionsTests extends munit.FunSuite {
   }
 
   val expectedScalaVersions = Seq(
-    Some("3")      -> defaultScalaVersion,
     None           -> defaultScalaVersion,
-    Some("2.13")   -> defaultScala213Version,
-    Some("2.12")   -> defaultScala212Version,
-    Some("2")      -> defaultScala213Version,
     Some("2.13.2") -> "2.13.2",
     Some("3.0.1")  -> "3.0.1",
     Some("3.0")    -> "3.0.2"
@@ -271,7 +270,7 @@ class BuildOptionsTests extends munit.FunSuite {
 
   for ((prefix, expectedScalaVersion) <- expectedScalaVersions)
     test(
-      s"use expected default scala version for prefix scala version: ${prefix.getOrElse("empty")}"
+      s"use scala $expectedScalaVersion for prefix scala version: ${prefix.getOrElse("empty")}"
     ) {
       val options = BuildOptions(
         scalaOptions = ScalaOptions(
@@ -287,6 +286,39 @@ class BuildOptionsTests extends munit.FunSuite {
 
       expect(scalaParams == expectedScalaParams)
     }
+
+  for {
+    (prefix, defaultMatchingVersion) <- Seq(
+      "2.12" -> defaultScala212Version,
+      "2.13" -> defaultScala213Version,
+      "3"    -> defaultScalaVersion
+    )
+  } {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(prefix).map(MaybeScalaVersion(_))
+      ),
+      internal = InternalOptions(
+        cache = Some(FileCache().withTtl(0.seconds))
+      )
+    )
+
+    val latestMatchingVersion = ScalaVersionUtil
+      .allMatchingVersions(None, options.finalCache, options.finalRepositories.orThrow)
+      .filter(ScalaVersionUtil.isStable)
+      .filter(_.startsWith(prefix))
+      .maxBy(Version(_))
+
+    test(
+      s"-S $prefix should chose the latest version ($latestMatchingVersion), not necessarily the default ($defaultMatchingVersion)"
+    ) {
+      val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+
+      val expectedScalaParams = ScalaParameters(latestMatchingVersion)
+
+      expect(scalaParams == expectedScalaParams, s"expected $expectedScalaParams, got $scalaParams")
+    }
+  }
 
   test("User scalac options shadow internal ones") {
     val defaultOptions = BuildOptions(
