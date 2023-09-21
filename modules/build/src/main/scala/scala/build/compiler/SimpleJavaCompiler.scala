@@ -27,6 +27,9 @@ final case class SimpleJavaCompiler(
         project.javaHomeOpt.map(javaHome => SimpleJavaCompiler.javaCommand(javaHome, "javac"))
           .getOrElse(defaultJavaCommand)
 
+      // Java 8 doesn't automatically create a directory for the classes
+      if (!os.exists(project.classesDir)) os.makeDir.all(project.classesDir)
+
       val args = project.javacOptions ++
         Seq(
           "-d",
