@@ -177,7 +177,7 @@ object Deps {
   def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.9"
   def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.0"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval                  = ivy"com.swoval:file-tree-views:2.1.10"
+  def swoval                  = ivy"com.swoval:file-tree-views:2.1.11"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"
   val toolkitVersion          = "0.1.7"
   def toolkit                 = ivy"org.scala-lang:toolkit:$toolkitVersion"
