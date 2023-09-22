@@ -43,25 +43,35 @@ class ScalafmtTests extends munit.FunSuite {
     val url =
       s"https://api.github.com/repos/virtuslab/scalafmt-native-image/releases/tags/v$scalaFmtVersion"
 
+    val expectedAssets = Seq(
+      "scalafmt-x86_64-apple-darwin.gz",
+      "scalafmt-x86_64-pc-linux-mostly-static.gz",
+      "scalafmt-x86_64-pc-linux-static.gz",
+      "scalafmt-x86_64-pc-linux.gz",
+      "scalafmt-x86_64-pc-win32.zip"
+    )
+    val errorMsg =
+      s"""scalafmt native images missing for v$scalaFmtVersion, make a release at https://github.com/VirtusLab/scalafmt-native-image.
+         |Ensure that all expected assets are available in the release:
+         |  ${expectedAssets.mkString(", ")}
+         |for scalafmt-native-image under tag v$scalaFmtVersion.""".stripMargin
     try {
       val resp    = TestUtil.downloadFile(url).orThrow
       val release = readFromArray(resp)(releaseCodec)
       val assets  = release.assets.map(_.name)
 
-      val expectedAssets = Seq(
-        "scalafmt-x86_64-apple-darwin.gz",
-        "scalafmt-x86_64-pc-linux-mostly-static.gz",
-        "scalafmt-x86_64-pc-linux-static.gz",
-        "scalafmt-x86_64-pc-linux.gz",
-        "scalafmt-x86_64-pc-win32.zip"
+      assert(
+        expectedAssets.forall(assets.contains),
+        clue = errorMsg
       )
-      // if this test fails, you should do a release of https://github.com/VirtusLab/scalafmt-native-image with the same version as scalafmt
-      expect(assets.containsSlice(expectedAssets))
     }
     catch {
       case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
       case e: Throwable => throw new Exception(
-          s"Failed to check for the ScalaFmt native launcher assets: ${e.getMessage}",
+          s"""Failed to check for the ScalaFmt native launcher assets: ${e.getMessage}.
+             |
+             |$errorMsg
+             |""".stripMargin,
           e
         )
     }
