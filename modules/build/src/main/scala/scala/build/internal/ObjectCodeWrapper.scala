@@ -31,7 +31,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
                                     |  }
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    $funHashCodeMethod // hasCode to clear scalac warning about pure expression in statement position
+                                    |    val _ = $funHashCodeMethod // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |""".stripMargin)
