@@ -347,14 +347,7 @@ final case class BuildOptions(
         }
         Some(sv)
 
-      case None =>
-        val allStableVersions =
-          ScalaVersionUtil.allMatchingVersions(None, finalCache, value(finalRepositories))
-            .filter(ScalaVersionUtil.isStable)
-        val sv = value {
-          ScalaVersionUtil.default(allStableVersions)
-        }
-        Some(sv)
+      case None => Some(Constants.defaultScalaVersion)
     }
 
     svOpt match {

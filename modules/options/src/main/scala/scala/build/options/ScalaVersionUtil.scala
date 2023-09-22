@@ -31,11 +31,6 @@ object ScalaVersionUtil {
   def scala212Nightly       = "2.12.nightly"
   def scala213Nightly       = List("2.13.nightly", "2.nightly")
   def scala3Nightly         = "3.nightly"
-  def maxSupportedStableScalaVersions = Seq(
-    Constants.defaultScala212Version,
-    Constants.defaultScala213Version,
-    Constants.defaultScalaVersion
-  ).map(Version(_))
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
@@ -200,6 +195,7 @@ object ScalaVersionUtil {
     val versionPool =
       ScalaVersionUtil.allMatchingVersions(Some(scalaVersionStringArg), cache, repositories)
         .filter(ScalaVersionUtil.isStable)
+
     val prefix =
       if (Util.isFullScalaVersion(scalaVersionStringArg)) scalaVersionStringArg
       else if (scalaVersionStringArg.endsWith(".")) scalaVersionStringArg
@@ -208,32 +204,18 @@ object ScalaVersionUtil {
     if (matchingStableVersions.isEmpty)
       Left(new InvalidBinaryScalaVersionError(scalaVersionStringArg))
     else {
-      val validMaxVersions = maxSupportedStableScalaVersions
-        .filter(_.repr.startsWith(prefix))
-      val validMatchingVersions = {
-        val filtered = matchingStableVersions.filter(v => validMaxVersions.exists(v <= _))
-        if (filtered.isEmpty) matchingStableVersions
-        else filtered
-      }.filter(v => isSupportedVersion(v.repr))
+      val supportedMatchingStableVersions =
+        matchingStableVersions.filter(v => isSupportedVersion(v.repr))
 
-      validMatchingVersions.find(_.repr == scalaVersionStringArg) match {
-        case Some(v)                                => Right(v.repr)
-        case None if validMatchingVersions.nonEmpty => Right(validMatchingVersions.max.repr)
+      supportedMatchingStableVersions.find(_.repr == scalaVersionStringArg) match {
+        case Some(v) => Right(v.repr)
+        case None if supportedMatchingStableVersions.nonEmpty =>
+          Right(supportedMatchingStableVersions.max.repr)
         case _ => Left(
             new UnsupportedScalaVersionError(scalaVersionStringArg)
           )
       }
     }
-  }
-
-  def default(versionPool: Seq[String]): Either[ScalaVersionError, String] = {
-    val validVersions = versionPool
-      .map(Version(_))
-      .filter(v => maxSupportedStableScalaVersions.exists(v <= _))
-    if (validVersions.isEmpty)
-      Left(new NoValidScalaVersionFoundError(versionPool))
-    else
-      Right(validVersions.max.repr)
   }
 
   private def isSupportedVersion(version: String): Boolean =
