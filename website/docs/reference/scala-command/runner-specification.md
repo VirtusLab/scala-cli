@@ -3597,7 +3597,7 @@ Aliases: `--dialect`
 
 **--scalafmt-version**
 
-Pass scalafmt version before running it (3.7.12 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.14 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 Aliases: `--fmt-version`
 
