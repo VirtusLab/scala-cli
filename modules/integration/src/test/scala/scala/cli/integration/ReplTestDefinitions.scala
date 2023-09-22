@@ -10,11 +10,9 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
 
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected def versionNumberString: String =
-    if (actualScalaVersion.startsWith("2.")) actualScalaVersion
-    // Scala 3 gives the 2.13 version it depends on for its standard library.
-    // Assuming it's the same Scala 3 version as the integration tests here.
-    else Properties.versionNumberString
+  private val retrieveScalaVersionCode = if (actualScalaVersion.startsWith("2."))
+    "scala.util.Properties.versionNumberString"
+  else "dotty.tools.dotc.config.Properties.simpleVersionString"
 
   test("default dry run") {
     TestInputs.empty.fromRoot { root =>
@@ -26,7 +24,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
-        """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)"""
+        s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)"""
       )
         .map {
           if (Properties.isWin)
@@ -40,7 +38,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
           root
         )
       val output = res.out.trim()
-      expect(output == s"Hello from Scala $versionNumberString")
+      expect(output == s"Hello from Scala $actualScalaVersion")
     }
   }
 
@@ -58,10 +56,10 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     inputs.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
-        """println("Hello" + " from Scala " + scala.util.Properties.versionNumberString)
-          |val sth = py.module("foo.something")
-          |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
-          |""".stripMargin
+        s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)
+           |val sth = py.module("foo.something")
+           |py.Dynamic.global.applyDynamicNamed("print")("" -> sth.messageStart, "" -> sth.messageEnd, "flush" -> py.Any.from(true))
+           |""".stripMargin
       )
         .map {
           if (Properties.isWin)
@@ -99,7 +97,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         ammArgs
       ).call(cwd = root)
       val lines = res.out.trim().linesIterator.toVector
-      expect(lines == Seq(s"Hello from Scala $versionNumberString", "Hello from ScalaPy"))
+      expect(lines == Seq(s"Hello from Scala $actualScalaVersion", "Hello from ScalaPy"))
     }
   }
 
