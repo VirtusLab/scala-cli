@@ -69,7 +69,7 @@ class BuildProjectTests extends munit.FunSuite {
 
   def testJvmReleaseIsSetCorrectly(
     javaHome: String,
-    bloopJvmVersion: Int,
+    bloopJvmVersion: Option[Int],
     scalacOptions: Seq[String] = Nil
   ) = {
     val options = BuildOptions(
@@ -95,7 +95,7 @@ class BuildProjectTests extends munit.FunSuite {
       sources,
       Nil,
       options,
-      Some(Positioned(bloopJavaPath, bloopJvmVersion)),
+      bloopJvmVersion.map(bv => Positioned(bloopJavaPath, bv)),
       Scope.Test,
       logger,
       artifacts
@@ -114,7 +114,7 @@ class BuildProjectTests extends munit.FunSuite {
     val javaHome        = jvm(8)
     val bloopJvmVersion = 11
     val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
     expect(scalacOptions.containsSlice(Seq("-release", "8")))
     expect(javacOptions.containsSlice(Seq("--release", "8")))
     expect(diagnostics.isEmpty)
@@ -125,7 +125,7 @@ class BuildProjectTests extends munit.FunSuite {
     val javaHome        = jvm(8)
     val bloopJvmVersion = 8
     val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
     expect(!scalacOptions.containsSlice(Seq("-release")))
     expect(!javacOptions.containsSlice(Seq("--release")))
     expect(diagnostics.isEmpty)
@@ -135,7 +135,7 @@ class BuildProjectTests extends munit.FunSuite {
     val javaHome        = jvm(11)
     val bloopJvmVersion = 17
     val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
     expect(scalacOptions.containsSlice(Seq("-release", "11")))
     expect(javacOptions.containsSlice(Seq("--release", "11")))
     expect(diagnostics.isEmpty)
@@ -151,7 +151,7 @@ class BuildProjectTests extends munit.FunSuite {
     val javaHome        = jvm(17)
     val bloopJvmVersion = 11
     val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
     expect(!scalacOptions.containsSlice(Seq("-release")))
     expect(!javacOptions.containsSlice(Seq("--release")))
     expect(diagnostics == List(expectedDiagnostic))
@@ -161,7 +161,7 @@ class BuildProjectTests extends munit.FunSuite {
     val javaHome        = jvm(11)
     val bloopJvmVersion = 8
     val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion, List("-release", "17"))
+      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion), List("-release", "17"))
     expect(scalacOptions.containsSlice(Seq("-release", "17")))
     expect(!javacOptions.containsSlice(Seq("--release")))
     expect(diagnostics == List(expectedDiagnostic))
@@ -183,11 +183,11 @@ class BuildProjectTests extends munit.FunSuite {
 
     expect(project.workspace == inputs.workspace)
   }
-  test("skip passing release flag for java 8") {
+  test("skip passing release flag for java 8 for ScalaSimpleCompiler") {
     val javaHome        = jvm(8)
     val bloopJvmVersion = 17
     val (_, javacOptions, _) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion)
+      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion = None)
     expect(!javacOptions.containsSlice(Seq("--release")))
   }
 }
