@@ -90,16 +90,13 @@ class BuildServerProxy(
   override def workspaceReload(): CompletableFuture[AnyRef] =
     onReload()
 
-  override def onConnectWithClient(server: b.BuildClient): Unit =
-    bspServer().onConnectWithClient(server)
-
-  override def jvmRunEnvironment(params: b.JvmRunEnvironmentParams)
+  override def buildTargetJvmRunEnvironment(params: b.JvmRunEnvironmentParams)
     : CompletableFuture[b.JvmRunEnvironmentResult] =
-    bspServer().jvmRunEnvironment(params)
+    bspServer().buildTargetJvmRunEnvironment(params)
 
-  override def jvmTestEnvironment(params: b.JvmTestEnvironmentParams)
+  override def buildTargetJvmTestEnvironment(params: b.JvmTestEnvironmentParams)
     : CompletableFuture[b.JvmTestEnvironmentResult] =
-    bspServer().jvmTestEnvironment(params)
+    bspServer().buildTargetJvmTestEnvironment(params)
 
   def targetIds: List[b.BuildTargetIdentifier] = bspServer().targetIds
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =

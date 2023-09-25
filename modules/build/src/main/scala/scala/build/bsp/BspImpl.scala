@@ -314,7 +314,7 @@ final class BspImpl(
           val taskStartParams = new b.TaskStartParams(taskId)
           taskStartParams.setEventTime(System.currentTimeMillis())
           taskStartParams.setMessage(s"Preprocessing '$target'")
-          taskStartParams.setDataKind(b.TaskDataKind.COMPILE_TASK)
+          taskStartParams.setDataKind(b.TaskStartDataKind.COMPILE_TASK)
           taskStartParams.setData(new b.CompileTask(targetId))
 
           actualLocalClient.onBuildTaskStart(taskStartParams)
@@ -327,7 +327,7 @@ final class BspImpl(
           val taskFinishParams = new b.TaskFinishParams(taskId, b.StatusCode.ERROR)
           taskFinishParams.setEventTime(System.currentTimeMillis())
           taskFinishParams.setMessage(s"Preprocessed '$target'")
-          taskFinishParams.setDataKind(b.TaskDataKind.COMPILE_REPORT)
+          taskFinishParams.setDataKind(b.TaskFinishDataKind.COMPILE_REPORT)
 
           val errorSize = ex match {
             case c: CompositeBuildException => c.exceptions.size
@@ -494,9 +494,7 @@ final class BspImpl(
       .create()
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
-    actualLocalServer.onConnectWithClient(actualLocalClient)
 
-    localClient.onConnectWithServer(currentBloopSession.remoteServer.bloopServer.server)
     actualLocalClient.newInputs(initialInputs)
     currentBloopSession.resetDiagnostics(actualLocalClient)
 
@@ -573,7 +571,6 @@ final class BspImpl(
     bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
     currentBloopSession.dispose()
     actualLocalClient.newInputs(newInputs)
-    localClient.onConnectWithServer(newBloopSession0.remoteServer.bloopServer.server)
 
     newBloopSession0.resetDiagnostics(actualLocalClient)
     prepareBuild(newBloopSession0, reloadableOptions) match {

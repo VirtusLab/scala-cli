@@ -55,11 +55,11 @@ package object bsp {
     private val capabilities: b.BuildTargetCapabilities
   ) extends AnyVal {
     def duplicate(): b.BuildTargetCapabilities =
-      new b.BuildTargetCapabilities(
-        capabilities.getCanCompile,
-        capabilities.getCanTest,
-        capabilities.getCanRun
-      )
+      val buildTarget = new b.BuildTargetCapabilities()
+      buildTarget.setCanCompile(capabilities.getCanCompile)
+      buildTarget.setCanTest(capabilities.getCanTest)
+      buildTarget.setCanRun(capabilities.getCanRun)
+      buildTarget
   }
   implicit class BuildTargetExt(private val target: b.BuildTarget) extends AnyVal {
     def duplicate(): b.BuildTarget = {
