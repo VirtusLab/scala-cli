@@ -1385,14 +1385,14 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
 
           val jvmRunEnvironmentResult: b.JvmRunEnvironmentResult = await {
             remoteServer
-              .jvmRunEnvironment(new b.JvmRunEnvironmentParams(targets))
+              .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targets))
               .asScala
           }
           expect(jvmRunEnvironmentResult.getItems.asScala.toList.nonEmpty)
 
           val jvmTestEnvironmentResult: b.JvmTestEnvironmentResult = await {
             remoteServer
-              .jvmTestEnvironment(new JvmTestEnvironmentParams(targets))
+              .buildTargetJvmTestEnvironment(new JvmTestEnvironmentParams(targets))
               .asScala
           }
           expect(jvmTestEnvironmentResult.getItems.asScala.toList.nonEmpty)

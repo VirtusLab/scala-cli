@@ -34,8 +34,6 @@ class BspServer(
 
   def clientOpt: Option[BuildClient] = client
 
-  override def onConnectWithClient(client: BuildClient): Unit = this.client = Some(client)
-
   @volatile private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars

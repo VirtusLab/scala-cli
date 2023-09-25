@@ -7,11 +7,11 @@ import java.util.concurrent.CompletableFuture
 trait JvmBuildServerForwardStubs extends b.JvmBuildServer {
   protected def forwardTo: b.JvmBuildServer
 
-  override def jvmRunEnvironment(params: b.JvmRunEnvironmentParams)
+  override def buildTargetJvmRunEnvironment(params: b.JvmRunEnvironmentParams)
     : CompletableFuture[b.JvmRunEnvironmentResult] =
-    forwardTo.jvmRunEnvironment(params)
+    forwardTo.buildTargetJvmRunEnvironment(params)
 
-  override def jvmTestEnvironment(params: b.JvmTestEnvironmentParams)
+  override def buildTargetJvmTestEnvironment(params: b.JvmTestEnvironmentParams)
     : CompletableFuture[b.JvmTestEnvironmentResult] =
-    forwardTo.jvmTestEnvironment(params)
+    forwardTo.buildTargetJvmTestEnvironment(params)
 }

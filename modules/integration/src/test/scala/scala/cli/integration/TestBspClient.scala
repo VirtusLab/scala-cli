@@ -118,7 +118,6 @@ object TestBspClient {
       .setLocalService(localClient)
       .create()
     val remoteServer = launcher.getRemoteProxy
-    localClient.onConnectWithServer(remoteServer)
 
     val f  = launcher.startListening()
     val f0 = naiveJavaFutureToScalaFuture(f).map(_ => ())(ExecutionContext.fromExecutor(es))

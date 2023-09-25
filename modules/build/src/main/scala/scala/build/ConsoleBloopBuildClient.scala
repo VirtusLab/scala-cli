@@ -90,10 +90,10 @@ class ConsoleBloopBuildClient(
   override def onBuildLogMessage(params: bsp4j.LogMessageParams): Unit = {
     logger.debug("Received onBuildLogMessage from bloop: " + params)
     val prefix = params.getType match {
-      case bsp4j.MessageType.ERROR       => "Error: "
-      case bsp4j.MessageType.WARNING     => "Warning: "
-      case bsp4j.MessageType.INFORMATION => ""
-      case bsp4j.MessageType.LOG         => "" // discard those by default?
+      case bsp4j.MessageType.ERROR   => "Error: "
+      case bsp4j.MessageType.WARNING => "Warning: "
+      case bsp4j.MessageType.INFO    => ""
+      case bsp4j.MessageType.LOG     => "" // discard those by default?
     }
     logger.message(prefix + params.getMessage)
   }
@@ -133,8 +133,6 @@ class ConsoleBloopBuildClient(
         logger.message(gray + msg0 + reset)
       }
   }
-
-  override def onConnectWithServer(server: bsp4j.BuildServer): Unit = {}
 
   def clear(): Unit = {
     generatedSources.clear()
