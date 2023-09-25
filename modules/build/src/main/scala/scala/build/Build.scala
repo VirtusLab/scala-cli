@@ -779,6 +779,8 @@ object Build {
       )
     )
       None
+    else if (compilerJvmVersionOpt.isEmpty && javaHome.value.version == 8)
+      None
     else
       Some(javaHome.value.version)
   }
