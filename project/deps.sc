@@ -1,8 +1,4 @@
-import coursier.mavenRepositoryString
 import mill._, scalalib._
-
-import scala.util.Properties
-import $file.utils, utils.isArmArchitecture
 
 object Scala {
   def scala212     = "2.12.18"
@@ -103,19 +99,25 @@ object Deps {
   def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-56-1bcbe7f6"
   def asm      = ivy"org.ow2.asm:asm:9.6"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
+  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-2"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M26"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
-  def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierJvm        = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
-  def coursierLauncher   = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+  def coursier = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierJvm = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+  def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+    .exclude(("ai.kien", "python-native-libs_2.13"))
+    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
-  def dependency         = ivy"io.get-coursier::dependency:0.2.3"
-  def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
+  def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
+    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+  def dependency   = ivy"io.get-coursier::dependency:0.2.3"
+  def dockerClient = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
@@ -159,7 +161,9 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
   // Force using of 2.13 - is there a better way?
-  def scalametaTrees   = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
+  def scalametaTrees = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
+    .exclude(("com.lihaoyi", "sourcecode_2.13"))
+    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def scalaPackager    = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   def scalaPy          = ivy"dev.scalapy::scalapy-core::0.5.3"
@@ -178,6 +182,8 @@ object Deps {
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
+      .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.9"
   def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.1"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
