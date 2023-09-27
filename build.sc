@@ -329,7 +329,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.bloopRifle,
+    Deps.bloopRifle.exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
     Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
@@ -337,7 +337,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
       // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros"))
       // Let's favor our config module rather than the one coursier pulls
-      .exclude((organization, "config_2.13")),
+      .exclude((organization, "config_2.13"))
+      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.jgit,
@@ -622,7 +623,8 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     options,
     directives,
     `scala-cli-bsp`,
-    `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
+    // Depending on version compiled with Scala 3 pulls older stdlib
+    `test-runner`(Scala.runnerScala3),
     `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
@@ -812,7 +814,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
-    Deps.scalaPackager,
+    Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
     Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp
