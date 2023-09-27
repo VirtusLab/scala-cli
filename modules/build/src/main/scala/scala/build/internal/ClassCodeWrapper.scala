@@ -30,7 +30,7 @@ case object ClassCodeWrapper extends CodeWrapper {
                                     |
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    script.hashCode() // hashCode to clear scalac warning about pure expression in statement position
+                                    |    val _ = script.hashCode() // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |
