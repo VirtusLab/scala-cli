@@ -1,7 +1,6 @@
 package scala.build
 
 import java.io.File
-
 import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -10,12 +9,13 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   ExcludeDefinitionError,
-  MalformedDirectiveError
+  MalformedDirectiveError,
+  Severity
 }
 import scala.build.input.ElementsUtils.*
 import scala.build.input.*
 import scala.build.internal.Constants
-import scala.build.internal.util.RegexUtils
+import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
@@ -214,6 +214,9 @@ object CrossSources {
       value(preprocessSources(inputsElemFromDirectives.pipe(elements =>
         value(excludeSources(elements, inputs.workspace, allExclude))
       )))
+
+    warnAboutChainedUsingFileDirectives(preprocessedSourcesFromDirectives, logger)
+
     val allInputs = inputs.add(inputsElemFromDirectives).pipe(inputs =>
       val filteredElements = value(excludeSources(inputs.elements, inputs.workspace, allExclude))
       inputs.withElements(elements = filteredElements)
@@ -462,4 +465,21 @@ object CrossSources {
         ))
     }
   }
+
+  /** When a source file added by a `using file` directive, itself, contains `using file` directives
+    * there should be a warning printed that transitive `using file` directives are not supported.
+    */
+  def warnAboutChainedUsingFileDirectives(
+    sourcesAddedWithDirectives: Seq[PreprocessedSource],
+    logger: Logger
+  ): Unit = for {
+    additionalSource           <- sourcesAddedWithDirectives
+    buildOptions               <- additionalSource.options
+    transitiveAdditionalSource <- buildOptions.internal.extraSourceFiles
+  } do
+    logger.diagnostic(
+      WarningMessages.chainingUsingFileDirective,
+      Severity.Warning,
+      transitiveAdditionalSource.positions
+    )
 }
