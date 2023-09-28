@@ -17,4 +17,21 @@ class ReplTests extends ScalaCliSuite {
     expect(output.contains("parser") && output.contains("typer"))
   }
 
+  test("calling repl with a directory with no scala artifacts") {
+    val inputs = TestInputs(
+      os.rel / "Testing.java" -> "public class Testing {}"
+    )
+    val cmd = Seq[os.Shellable](
+      TestUtil.cli,
+      "repl",
+      "--repl-dry-run",
+      "."
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(cmd)
+        .call(cwd = root)
+      expect(res.exitCode == 0)
+    }
+  }
+
 }
