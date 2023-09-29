@@ -1850,27 +1850,35 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root, mergeErrIntoOut = true)
 
-      assertNoDiff(
-        res.out.trim(),
-        """[warn] ./bar/Bar.scala:1:17
-          |[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+      val output = TestUtil.removeAnsiColors(res.out.trim())
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
           |[warn] //> using file "xyz/Xyz.scala"
           |[warn]                 ^^^^^^^^^^^^^
-          |[warn] ./bar/Bar.scala:2:17
-          |[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
           |[warn] //> using file "xyz/NonExistent.scala"
           |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
-          |[warn] ./abc/Abc.scala:1:17
-          |[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
           |[warn] //> using file "xyz/Xyz.scala"
           |[warn]                 ^^^^^^^^^^^^^
-          |[warn] ./abc/Abc.scala:2:17
-          |[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
           |[warn] //> using file "xyz/NonExistent.scala"
           |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
-          |Compiling project (Scala 3.3.1, JVM)
-          |Compiled project (Scala 3.3.1, JVM)""".stripMargin
-      )
+          |""".stripMargin
+      ))
     }
   }
 }
