@@ -1,6 +1,7 @@
 package scala.build
 
 import java.io.File
+
 import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
