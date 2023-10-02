@@ -26,6 +26,8 @@ final case class PublishOptions(
     sharedPublish: SharedPublishOptions = SharedPublishOptions(),
   @Recurse
     signingCli: PgpScalaSigningOptions = PgpScalaSigningOptions(),
+ @Recurse
+  connectionOptions: PublishConnectionOptions = PublishConnectionOptions(),
 
   @Group(HelpGroup.Publishing.toString)
   @Tag(tags.restricted)

@@ -2092,6 +2092,39 @@ Available in commands:
 ### `--key`
 
 [Internal]
+### Publish connection options
+
+Available in commands:
+
+[`publish`](./commands.md#publish)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--connection-timeout-seconds`
+
+[Internal]
+Connection timeout, in seconds.
+
+### `--connection-timeout-retries`
+
+[Internal]
+How many times to retry establishing the connection on timeout.
+
+### `--response-timeout-seconds`
+
+[Internal]
+Waiting for response timeout, in seconds.
+
+### `--staging-repo-retries`
+
+[Internal]
+How many times to retry the staging repository operations on failure.
+
+### `--staging-repo-wait-time-milis`
+
+[Internal]
+Time to wait between staging repository operation retries, in milliseconds.
+
 ### Setup IDE options
 
 Available in commands:

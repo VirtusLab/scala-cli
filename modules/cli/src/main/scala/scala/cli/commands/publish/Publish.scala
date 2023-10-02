@@ -68,6 +68,7 @@ import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
 
 object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
@@ -91,6 +92,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
     scalaSigning: PgpScalaSigningOptions,
+    publishConnection: PublishConnectionOptions,
     mainClass: MainClassOptions,
     ivy2LocalLike: Option[Boolean]
   ): Either[BuildException, BuildOptions] = either {
@@ -122,7 +124,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         val input = sharedPublish.checksum.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
         if (input.isEmpty) None
         else Some(input)
-      }
+      },
+      connectionTimeoutRetries = publishConnection.connectionTimeoutRetries,
+      connectionTimeoutSeconds = publishConnection.connectionTimeoutSeconds,
+      responseTimeoutSeconds = publishConnection.responseTimeoutSeconds,
+      stagingRepoRetries = publishConnection.stagingRepoRetries,
+      stagingRepoWaitTimeMilis = publishConnection.stagingRepoWaitTimeMilis
     )
     baseOptions.copy(
       mainClass = mainClass.mainClass.filter(_.nonEmpty),
@@ -212,6 +219,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       options.sharedPublish,
       options.publishRepo,
       options.signingCli,
+      options.connectionOptions,
       options.mainClass,
       options.ivy2LocalLike
     ).orExit(logger)
@@ -819,7 +827,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                 ivy2HomeOpt,
                 publishOptions.contextual(isCi).repositoryIsIvy2LocalLike.getOrElse(false),
                 es,
-                logger
+                logger,
+                publishOptions.contextual(isCi).connectionTimeoutRetries,
+                publishOptions.contextual(isCi).connectionTimeoutSeconds,
+                publishOptions.contextual(isCi).stagingRepoRetries,
+                publishOptions.contextual(isCi).stagingRepoWaitTimeMilis
               )
           }
         }
@@ -1043,7 +1055,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val baseUpload =
       if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
-        HttpURLConnectionUpload.create()
+        HttpURLConnectionUpload.create(
+          publishOptions.contextual(isCi)
+            .connectionTimeoutSeconds.map(_.seconds.toMillis.toInt),
+          publishOptions.contextual(isCi)
+            .responseTimeoutSeconds.map(_.seconds.toMillis.toInt)
+        )
       else
         FileUpload(Paths.get(new URI(retainedRepo.root)))
 
