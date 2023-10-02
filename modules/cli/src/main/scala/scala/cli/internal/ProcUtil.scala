@@ -35,43 +35,6 @@ object ProcUtil {
     usesSh
   }
 
-  // from https://github.com/coursier/coursier/blob/7b7c2c312aea26e850f0cd2cf15e688d0777f819/modules/cache/jvm/src/main/scala/coursier/cache/CacheUrl.scala#L489-L497
-  private def closeConn(conn: URLConnection): Unit = {
-    Try(conn.getInputStream).toOption.filter(_ != null).foreach(_.close())
-    conn match {
-      case conn0: HttpURLConnection =>
-        Try(conn0.getErrorStream).toOption.filter(_ != null).foreach(_.close())
-        conn0.disconnect()
-      case _ =>
-    }
-  }
-
-  def download(
-    url: String,
-    headers: (String, String)*
-  ): Array[Byte] = {
-    var conn: URLConnection = null
-    val url0                = new URL(url)
-    try {
-      conn = url0.openConnection()
-      for ((k, v) <- headers)
-        conn.setRequestProperty(k, v)
-      conn.getInputStream.readAllBytes()
-    }
-    catch {
-      case NonFatal(ex) =>
-        throw new RuntimeException(s"Error downloading $url: $ex", ex)
-    }
-    finally
-      if (conn != null)
-        closeConn(conn)
-  }
-
-  def downloadFile(url: String): String = {
-    val data = download(url)
-    new String(data, StandardCharsets.UTF_8)
-  }
-
   def forceKillProcess(process: Process, logger: Logger): Unit = {
     if (process.isAlive) {
       process.destroyForcibly()

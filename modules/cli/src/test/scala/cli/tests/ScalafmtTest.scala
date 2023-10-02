@@ -51,7 +51,7 @@ class ScalafmtTests extends munit.FunSuite {
       "scalafmt-x86_64-pc-win32.zip"
     )
     val errorMsg =
-      s"""scalafmt native images missing for v$scalaFmtVersion, make a release at https://github.com/VirtusLab/scalafmt-native-image.
+      s"""scalafmt native images missing for v$scalaFmtVersion, make a release at https://github.com/VirtusLab/scalafmt-native-image
          |Ensure that all expected assets are available in the release:
          |  ${expectedAssets.mkString(", ")}
          |for scalafmt-native-image under tag v$scalaFmtVersion.""".stripMargin
@@ -68,7 +68,7 @@ class ScalafmtTests extends munit.FunSuite {
     catch {
       case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
       case e: Throwable => throw new Exception(
-          s"""Failed to check for the ScalaFmt native launcher assets: ${e.getMessage}.
+          s"""Failed to check for the ScalaFmt native launcher assets: ${e.getMessage}
              |
              |$errorMsg
              |""".stripMargin,
