@@ -6,17 +6,19 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.core
 
+import java.net.{HttpURLConnection, URL, URLConnection}
+import java.nio.charset.StandardCharsets
+
 import scala.build.Logger
 import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.internal.ProcUtil
 import scala.cli.signing.shared.Secret
 import scala.cli.util.ArgHelpers.*
-import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.util.{Properties, Try}
 
 object Update extends ScalaCommand[UpdateOptions] {
 
@@ -46,7 +48,7 @@ object Update extends ScalaCommand[UpdateOptions] {
         tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
 
     try {
-      val resp = ProcUtil.download(url, headers: _*)
+      val resp = download(url, headers: _*)
       readFromArray(resp)(releaseListCodec).filter(_.actualRelease)
         .maxByOption(_.version)
         .map(_.version.repr)
@@ -79,7 +81,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
 
     val installationScript =
-      ProcUtil.downloadFile("https://scala-cli.virtuslab.org/get")
+      downloadFile("https://scala-cli.virtuslab.org/get")
 
     // format: off
     val res = os.proc(
@@ -187,5 +189,42 @@ object Update extends ScalaCommand[UpdateOptions] {
     val binRepoDir = build.Directories.default().binRepoDir.toString()
 
     classesDir.contains(binRepoDir)
+  }
+
+  // from https://github.com/coursier/coursier/blob/7b7c2c312aea26e850f0cd2cf15e688d0777f819/modules/cache/jvm/src/main/scala/coursier/cache/CacheUrl.scala#L489-L497
+  private def closeConn(conn: URLConnection): Unit = {
+    Try(conn.getInputStream).toOption.filter(_ != null).foreach(_.close())
+    conn match {
+      case conn0: HttpURLConnection =>
+        Try(conn0.getErrorStream).toOption.filter(_ != null).foreach(_.close())
+        conn0.disconnect()
+      case _ =>
+    }
+  }
+
+  private def download(
+    url: String,
+    headers: (String, String)*
+  ): Array[Byte] = {
+    var conn: URLConnection = null
+    val url0                = new URL(url)
+    try {
+      conn = url0.openConnection()
+      for ((k, v) <- headers)
+        conn.setRequestProperty(k, v)
+      conn.getInputStream.readAllBytes()
+    }
+    catch {
+      case NonFatal(ex) =>
+        throw new RuntimeException(s"Error downloading $url: $ex", ex)
+    }
+    finally
+      if (conn != null)
+        closeConn(conn)
+  }
+
+  private def downloadFile(url: String): String = {
+    val data = download(url)
+    new String(data, StandardCharsets.UTF_8)
   }
 }
