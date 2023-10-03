@@ -101,4 +101,7 @@ object WarningMessages {
 
   val offlineModeBloopNotFound =
     "Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback"
+
+  val offlineModeBloopJvmNotFound =
+    "Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback"
 }
