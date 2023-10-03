@@ -1890,7 +1890,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     val depScalaVersion = actualScalaVersion match {
       case sv if sv.startsWith("2.12") => "2.12"
       case sv if sv.startsWith("2.13") => "2.13"
-      case _ => "3"
+      case _                           => "3"
     }
 
     val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.9.1"
@@ -1919,14 +1919,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val emptyCacheWalkSize = os.walk(cachePath).size
 
       val noArtifactsRes = os.proc(
-          TestUtil.cli,
-          "--power",
-          "NoDeps.scala",
-          extraOptions,
-          "--offline",
-          "--cache",
-          cachePath.toString
-        )
+        TestUtil.cli,
+        "--power",
+        "NoDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString
+      )
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       expect(noArtifactsRes.exitCode == 1)
 
@@ -1946,16 +1946,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val scalaJvmCacheWalkSize = os.walk(cachePath).size
 
       val scalaAndJvmRes = os.proc(
-          TestUtil.cli,
-          "--power",
-          "NoDeps.scala",
-          extraOptions,
-          "--offline",
-          "--cache",
-          cachePath.toString,
-          "-v",
-          "-v"
-        )
+        TestUtil.cli,
+        "--power",
+        "NoDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString,
+        "-v",
+        "-v"
+      )
         .call(cwd = root, mergeErrIntoOut = true)
       expect(scalaAndJvmRes.exitCode == 0)
       expect(scalaAndJvmRes.out.trim().contains(
@@ -1967,21 +1967,29 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(scalaJvmCacheWalkSize == os.walk(cachePath).size)
 
       // Missing dependencies
-      val missingDepsRes = os.proc(
+      for {
+        (cliOption, extraEnvMode) <- Seq(
+          "--offline"               -> Map.empty[String, String],
+          "-Dcoursier.mode=offline" -> Map.empty[String, String],
+          ""                        -> Map("COURSIER_MODE" -> "offline")
+        )
+      } {
+        val missingDepsRes = os.proc(
           TestUtil.cli,
           "--power",
+          cliOption,
           "WithDeps.scala",
           extraOptions,
-          "--offline",
           "--cache",
           cachePath.toString
         )
-        .call(cwd = root, check = false, mergeErrIntoOut = true)
-      expect(missingDepsRes.exitCode == 1)
-      expect(missingDepsRes.out.trim().contains("Error downloading com.lihaoyi:os-lib"))
+          .call(cwd = root, check = false, mergeErrIntoOut = true, env = extraEnvMode)
+        expect(missingDepsRes.exitCode == 1)
+        expect(missingDepsRes.out.trim().contains("Error downloading com.lihaoyi:os-lib"))
 
-      // Cache unchanged
-      expect(scalaJvmCacheWalkSize == os.walk(cachePath).size)
+        // Cache unchanged
+        expect(scalaJvmCacheWalkSize == os.walk(cachePath).size)
+      }
 
       // Download dependencies
       os.proc(TestUtil.cs, "fetch", dep)
@@ -1990,16 +1998,16 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val withDependencyCacheWalkSize = os.walk(cachePath).size
 
       val depsRes = os.proc(
-          TestUtil.cli,
-          "--power",
-          "WithDeps.scala",
-          extraOptions,
-          "--offline",
-          "--cache",
-          cachePath.toString,
-          "-v",
-          "-v"
-        )
+        TestUtil.cli,
+        "--power",
+        "WithDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString,
+        "-v",
+        "-v"
+      )
         .call(cwd = root, mergeErrIntoOut = true)
       expect(depsRes.exitCode == 0)
       expect(
