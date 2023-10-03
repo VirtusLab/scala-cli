@@ -47,11 +47,15 @@ final case class CoursierOptions(
       baseCache = baseCache.withTtl(ttl0)
     for (loc <- cache.filter(_.trim.nonEmpty))
       baseCache = baseCache.withLocation(loc)
-    for (isOffline <- offline if isOffline)
+    for (isOffline <- getOffline() if isOffline)
       baseCache = baseCache.withCachePolicies(Seq(CachePolicy.LocalOnly))
 
     baseCache
   }
+
+  def getOffline(): Option[Boolean] = offline
+    .orElse(Option(System.getenv("COURSIER_MODE")).map(_ == "offline"))
+    .orElse(Option(System.getProperty("coursier.mode")).map(_ == "offline"))
 }
 
 object CoursierOptions {

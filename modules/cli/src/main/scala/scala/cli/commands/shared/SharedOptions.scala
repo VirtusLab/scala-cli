@@ -403,7 +403,7 @@ final case class SharedOptions(
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
         exclude = exclude.map(Positioned.commandLine),
-        offline = coursier.offline
+        offline = coursier.getOffline()
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
@@ -552,9 +552,9 @@ final case class SharedOptions(
             config,
             threads.bloop,
             strictBloopJsonCheckOrDefault,
-            coursier.offline.getOrElse(false)
+            coursier.getOffline().getOrElse(false)
           ))
-        case Left(ex) if coursier.offline.contains(true) =>
+        case Left(ex) if coursier.getOffline().contains(true) =>
           logger.diagnostic(WarningMessages.offlineModeBloopJvmNotFound, Severity.Warning)
           Right(SimpleScalaCompilerMaker("java", Nil))
         case Left(ex) => Left(ex)
