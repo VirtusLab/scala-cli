@@ -18,11 +18,12 @@ import scala.build.Ops.EitherOptOps
 import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
-import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}
+import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
@@ -514,15 +515,19 @@ final case class SharedOptions(
 
   def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
     val options = value(buildOptions(false, None))
-    lazy val defaultJvmCmd =
-      JvmUtils.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
-    val javaCmd = compilationServer.bloopJvm.map(JvmUtils.downloadJvm(_, options)).orElse {
-      for (javaHome <- options.javaHomeLocationOpt()) yield {
-        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-        if (javaHomeVersion >= 17) javaHomeCmd
-        else defaultJvmCmd
-      }
-    }.getOrElse(defaultJvmCmd)
+    lazy val defaultJvmCmd = value {
+      JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
+    }
+
+    val javaCmd = compilationServer.bloopJvm
+      .map(jvmId => value(JvmUtils.downloadJvm(jvmId, options)))
+      .orElse {
+        for (javaHome <- options.javaHomeLocationOpt()) yield {
+          val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
+          if (javaHomeVersion >= 17) javaHomeCmd
+          else defaultJvmCmd
+        }
+      }.getOrElse(defaultJvmCmd)
 
     compilationServer.bloopRifleConfig(
       logging.logger,
@@ -537,19 +542,25 @@ final case class SharedOptions(
   def compilerMaker(
     threads: BuildThreads,
     scaladoc: Boolean = false
-  ): Either[BuildException, ScalaCompilerMaker] = either {
+  ): Either[BuildException, ScalaCompilerMaker] =
     if (scaladoc)
-      SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+      Right(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
     else if (compilationServer.server.getOrElse(true))
-      new BloopCompilerMaker(
-        value(bloopRifleConfig()),
-        threads.bloop,
-        strictBloopJsonCheckOrDefault,
-        coursier.offline.getOrElse(false)
-      )
+      bloopRifleConfig() match {
+        case Right(config) =>
+          Right(new BloopCompilerMaker(
+            config,
+            threads.bloop,
+            strictBloopJsonCheckOrDefault,
+            coursier.offline.getOrElse(false)
+          ))
+        case Left(ex) if coursier.offline.contains(true) =>
+          logger.diagnostic(WarningMessages.offlineModeBloopJvmNotFound, Severity.Warning)
+          Right(SimpleScalaCompilerMaker("java", Nil))
+        case Left(ex) => Left(ex)
+      }
     else
-      SimpleScalaCompilerMaker("java", Nil)
-  }
+      Right(SimpleScalaCompilerMaker("java", Nil))
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 

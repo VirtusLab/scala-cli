@@ -39,7 +39,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
       .map(JvmUtils.downloadJvm(_, options))
       .getOrElse {
         JvmUtils.getJavaCmdVersionOrHigher(17, options)
-      }
+      }.orExit(logger)
 
     opts.compilationServer.bloopRifleConfig(
       opts.global.logging.logger,
