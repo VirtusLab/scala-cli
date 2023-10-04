@@ -26,7 +26,7 @@ import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
-import scala.build.options.{ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
+import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
@@ -520,27 +520,28 @@ final case class SharedOptions(
 
   def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
     val options = value(buildOptions(false, None))
-    lazy val defaultJvmCmd = value {
+    lazy val defaultJvmHome = value {
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
     }
 
-    val javaCmd = compilationServer.bloopJvm
+    val javaHomeInfo = compilationServer.bloopJvm
       .map(jvmId => value(JvmUtils.downloadJvm(jvmId, options)))
       .orElse {
         for (javaHome <- options.javaHomeLocationOpt()) yield {
           val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-          if (javaHomeVersion >= 17) javaHomeCmd
-          else defaultJvmCmd
+          if (javaHomeVersion >= 17)
+            BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
+          else defaultJvmHome
         }
-      }.getOrElse(defaultJvmCmd)
+      }.getOrElse(defaultJvmHome)
 
     compilationServer.bloopRifleConfig(
       logging.logger,
       coursierCache,
       logging.verbosity,
-      javaCmd,
+      javaHomeInfo.javaCommand,
       Directories.directories,
-      Some(17)
+      Some(javaHomeInfo.version)
     )
   }
 

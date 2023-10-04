@@ -35,7 +35,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
     )
     val options = sharedOptions.buildOptions(false, None).orExit(opts.global.logging.logger)
 
-    val javaCmd = opts.compilationServer.bloopJvm
+    val javaHomeInfo = opts.compilationServer.bloopJvm
       .map(JvmUtils.downloadJvm(_, options))
       .getOrElse {
         JvmUtils.getJavaCmdVersionOrHigher(17, options)
@@ -45,9 +45,9 @@ object Bloop extends ScalaCommand[BloopOptions] {
       opts.global.logging.logger,
       sharedOptions.coursierCache,
       opts.global.logging.verbosity,
-      javaCmd,
+      javaHomeInfo.javaCommand,
       Directories.directories,
-      Some(17)
+      Some(javaHomeInfo.version)
     )
   }
 
