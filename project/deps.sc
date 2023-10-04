@@ -133,7 +133,7 @@ object Deps {
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
-    ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
+    ivy"com.geirsson::metaconfig-typesafe-config:0.12.0"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
