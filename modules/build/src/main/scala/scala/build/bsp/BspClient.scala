@@ -1,6 +1,8 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import ch.epfl.scala.bsp4j as b
+import com.google.gson.Gson
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
@@ -200,8 +202,8 @@ class BspClient(
         }
       }
         .groupBy(_.positions.headOption match
-          case Some(File(Right(path), _, _)) => Some(path)
-          case _                             => None
+          case Some(File(Right(path), _, _, _)) => Some(path)
+          case _                                => None
         )
         .filter(_._1.isDefined)
         .values
@@ -220,7 +222,7 @@ class BspClient(
     reset: Boolean = false
   )(diag: Diagnostic): Seq[os.Path] =
     diag.positions.flatMap {
-      case File(Right(path), (startLine, startC), (endL, endC)) =>
+      case File(Right(path), (startLine, startC), (endL, endC), _) =>
         val id       = new b.TextDocumentIdentifier(path.toNIO.toUri.toASCIIString)
         val startPos = new b.Position(startLine, startC)
         val endPos   = new b.Position(endL, endC)
@@ -229,9 +231,16 @@ class BspClient(
           new b.Diagnostic(range, diag.message)
 
         diag.textEdit.foreach { textEdit =>
-          val bTextEdit = TextEdit(range, textEdit.newText)
-          bDiag.setData(bTextEdit.toJsonTree())
+          val bScalaTextEdit      = new ScalaTextEdit(range, textEdit.newText)
+          val bScalaWorkspaceEdit = new ScalaWorkspaceEdit(List(bScalaTextEdit).asJava)
+          val bAction             = new ScalaAction(textEdit.title)
+          bAction.setEdit(bScalaWorkspaceEdit)
+          val bScalaDiagnostic = new ScalaDiagnostic
+          bScalaDiagnostic.setActions(List(bAction).asJava)
+          bDiag.setDataKind("scala")
+          bDiag.setData(new Gson().toJsonTree(bScalaDiagnostic))
         }
+
         bDiag.setSeverity(diag.severity.toBsp4j)
         bDiag.setSource("scala-cli")
         val params = new b.PublishDiagnosticsParams(

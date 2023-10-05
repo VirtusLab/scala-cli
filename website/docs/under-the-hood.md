@@ -48,5 +48,32 @@ scala-cli -Dfoo1=bar1 -Dfoo2=bar2 run ...
 
 :::note
 - `scala-cli run . -Dfoo=bar` would pass the java property into your Scala app
-- `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli.`
+- `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli`.
+:::
+
+The Scala CLI can also load Java properties from the `.scala-jvmopts` file present in the current working
+directory and import these Java properties into Scala CLI. Any java options in the `.scala-jvmopts` that are not
+recognizable as Java properties will be ignored.
+
+The example below shows that the Java properties `foo1` and `foo2` from the `.scala-jvmopts` file will be passed
+into the Scala CLI:
+
+```bash ignore
+$ cat .scala-jvmopts
+-Dfoo1=bar1 
+-Dfoo2=bar2
+$ scala-cli run ...
+```
+
+You can set Java properties globally for the Scala CLI launcher using the `config` command.
+The example below shows how to set the Java properties `-Djavax.net.ssl.trustStore=cacerts` and `-Dfoo=bar2`:
+
+```bash
+scala-cli config java.properties Djavax.net.ssl.trustStore=cacerts Dfoo=bar2
+```
+
+:::note
+Please note that if you need to modify the Java properties, you have to redefine all of them. It's not possible
+to update just a single value via the `config` command. Each update effectively replaces the entire Java properties
+list.
 :::

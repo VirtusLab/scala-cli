@@ -456,15 +456,17 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             if (showCommand)
               Left(Runner.jsCommand(outputPath.toIO, args, jsDom = jsDom))
             else {
-              val process = Runner.runJs(
-                outputPath.toIO,
-                args,
-                logger,
-                allowExecve = allowExecve,
-                jsDom = jsDom,
-                sourceMap = build.options.scalaJsOptions.emitSourceMaps,
-                esModule = esModule
-              )
+              val process = value {
+                Runner.runJs(
+                  outputPath.toIO,
+                  args,
+                  logger,
+                  allowExecve = allowExecve,
+                  jsDom = jsDom,
+                  sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                  esModule = esModule
+                )
+              }
               process.onExit().thenApply(_ => if (os.exists(jsDest)) os.remove(jsDest))
               Right((process, None))
             }

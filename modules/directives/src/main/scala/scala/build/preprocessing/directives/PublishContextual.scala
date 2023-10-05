@@ -4,15 +4,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedInputError}
-import scala.build.options.publish.{ComputeVersion, ConfigPasswordOption}
-import scala.build.options.{
-  BuildOptions,
-  JavaOpt,
-  PostBuildOptions,
-  PublishContextualOptions,
-  PublishOptions,
-  ShadowingSeq
-}
+import scala.build.options._
+import scala.build.options.publish.ConfigPasswordOption
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.cli.signing.shared.PasswordOption
@@ -28,6 +21,7 @@ trait PublishContextual {
   def user: Option[Positioned[String]]
   def password: Option[Positioned[String]]
   def realm: Option[String]
+  def doc: Option[Boolean]
 
   def buildOptions(isCi: Boolean): Either[BuildException, BuildOptions] = either {
 
@@ -84,6 +78,7 @@ trait PublishContextual {
     val publishContextualOptions = PublishContextualOptions(
       computeVersion = computeVersionOpt,
       repository = repository,
+      docJar = doc,
       gpgSignatureId = gpgKey,
       gpgOptions = gpgOptions,
       secretKey = secretKeyOpt,
@@ -113,11 +108,17 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.computeVersion git:tag")
   @DirectiveExamples("//> using publish.repository central-s01")
   @DirectiveExamples("//> using publish.secretKey env:PUBLISH_SECRET_KEY")
+  @DirectiveExamples("//> using publish.doc false")
   @DirectiveUsage(
     "//> using publish.(computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.computeVersion `value
-      |`//> using publish.repository `value
-      |`//> using publish.secretKey `value
+    """`//> using publish.computeVersion` value
+      |
+      |`//> using publish.repository` value
+      |
+      |`//> using publish.secretKey` value
+      |
+      |`//> using publish.doc` boolean
+      |
       |""".stripMargin
   )
   @DirectiveDescription("Set contextual parameters for publishing")
@@ -133,7 +134,8 @@ object PublishContextual {
     publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
-    realm: Option[String] = None
+    realm: Option[String] = None,
+    doc: Option[Boolean] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
     def buildOptions: Either[BuildException, BuildOptions] =
@@ -151,9 +153,12 @@ object PublishContextual {
   @DirectiveExamples("//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY")
   @DirectiveUsage(
     "//> using publish.[.ci](computeVersion|repository|secretKey|…) [value]",
-    """`//> using publish.ci.computeVersion `value
-      |`//> using publish.ci.repository `value
-      |`//> using publish.ci.secretKey `value
+    """`//> using publish.ci.computeVersion` value
+      |
+      |`//> using publish.ci.repository` value
+      |
+      |`//> using publish.ci.secretKey` value
+      |
       |""".stripMargin
   )
   @DirectiveDescription("Set CI parameters for publishing")
@@ -169,7 +174,8 @@ object PublishContextual {
     publicKey: Option[Positioned[String]] = None,
     user: Option[Positioned[String]] = None,
     password: Option[Positioned[String]] = None,
-    realm: Option[String] = None
+    realm: Option[String] = None,
+    doc: Option[Boolean] = None
   ) extends HasBuildOptions with PublishContextual {
     // format: on
     def buildOptions: Either[BuildException, BuildOptions] =

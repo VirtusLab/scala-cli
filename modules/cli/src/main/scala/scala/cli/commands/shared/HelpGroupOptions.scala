@@ -22,9 +22,9 @@ case class HelpGroupOptions(
   helpNative: Boolean = false,
   @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for Scaladoc")
+  @Name("helpDoc")
   @Name("scaladocHelp")
   @Name("docHelp")
-  @Name("helpDoc")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpScaladoc: Boolean = false,
@@ -36,9 +36,9 @@ case class HelpGroupOptions(
   helpRepl: Boolean = false,
   @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for Scalafmt")
+  @Name("helpFmt")
   @Name("scalafmtHelp")
   @Name("fmtHelp")
-  @Name("helpFmt")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
   helpScalafmt: Boolean = false

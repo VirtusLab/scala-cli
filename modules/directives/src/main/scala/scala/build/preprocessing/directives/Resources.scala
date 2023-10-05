@@ -14,9 +14,9 @@ import scala.cli.commands.SpecificationLevel
   """//> using resourceDir _path_
     |
     |//> using resourceDirs _path1_ _path2_ …""".stripMargin,
-  """`//> using resourceDir `_path_
+  """`//> using resourceDir` _path_
     |
-    |`//> using resourceDirs `_path1_ _path2_ …""".stripMargin
+    |`//> using resourceDirs` _path1_ _path2_ …""".stripMargin
 )
 @DirectiveDescription("Manually add a resource directory to the class path")
 @DirectiveLevel(SpecificationLevel.SHOULD)
@@ -25,6 +25,7 @@ final case class Resources(
   resourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil),
   @DirectiveName("test.resourceDir")
+  @DirectiveName("test.resourceDirs")
   testResourceDirs: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptionsWithRequirements {

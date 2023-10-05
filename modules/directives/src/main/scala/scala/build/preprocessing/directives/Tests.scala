@@ -10,12 +10,13 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using testFramework utest.runner.Framework")
 @DirectiveUsage(
   "using testFramework _class_name_",
-  "`//> using testFramework ` _class_name_"
+  "`//> using testFramework`  _class-name_"
 )
 @DirectiveDescription("Set the test framework")
 @DirectiveLevel(SpecificationLevel.SHOULD)
 // format: off
 final case class Tests(
+  @DirectiveName("test.framework")
   testFramework: Option[String] = None
 ) extends HasBuildOptions {
   // format: on

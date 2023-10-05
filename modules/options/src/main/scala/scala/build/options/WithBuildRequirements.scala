@@ -33,4 +33,10 @@ object WithBuildRequirements {
     def withScopeRequirement(scope: Scope): WithBuildRequirements[T] =
       t.withBuildRequirements(BuildRequirements(scope = Some(ScopeRequirement(scope = scope))))
   }
+  extension [T](t: WithBuildRequirements[Seq[T]]) {
+    def flatten: Seq[WithBuildRequirements[T]] =
+      t.value.map { v =>
+        WithBuildRequirements(t.requirements, v)
+      }
+  }
 }

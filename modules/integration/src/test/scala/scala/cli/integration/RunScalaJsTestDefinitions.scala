@@ -31,6 +31,32 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     simpleJsTest("--js-mode", "release")
   }
 
+  test("without node on the PATH") {
+    val fileName = "simple.sc"
+    val message  = "Hello"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val msg = "$message"
+           |console.log(msg)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val thrown = os.proc(TestUtil.cli, extraOptions, fileName, "--js", "--server=false")
+        .call(
+          cwd = root,
+          env = Map("PATH" -> "", "PATHEXT" -> ""),
+          check = false,
+          mergeErrIntoOut = true
+        )
+      val output = thrown.out.trim()
+
+      assert(thrown.exitCode == 1)
+      assert(output.contains("Node was not found on the PATH"))
+    }
+  }
+
   test("JS arguments") {
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
@@ -222,6 +248,21 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         .call(cwd = root)
         .out.trim()
       expect(output == message)
+    }
+  }
+  test("set es version to scala-js-cli") {
+    val inputs = TestInputs(
+      os.rel / "run.sc" ->
+        s"""//> using jsEsVersionStr "es2018"
+           |
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |console.log(\"\"\"(?m).\"\"\".r.findFirstIn("Hi").get)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js").call(cwd = root).out.trim()
+      expect(output == "H")
     }
   }
 }

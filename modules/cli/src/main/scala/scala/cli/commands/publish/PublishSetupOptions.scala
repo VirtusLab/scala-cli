@@ -16,6 +16,8 @@ final case class PublishSetupOptions(
   @Recurse
     coursier: CoursierOptions = CoursierOptions(),
   @Recurse
+    sharedVersionOptions: SharedVersionOptions = SharedVersionOptions(),
+  @Recurse
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),

@@ -195,60 +195,102 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           .map(_ => None)
       }
     else {
-      val packageType: PackageType = value {
-        val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
-        lazy val validPackageScalaJS =
-          Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
-        lazy val validPackageScalaNative =
-          Seq(
-            PackageType.LibraryJar,
-            PackageType.SourceJar,
-            PackageType.DocJar,
-            PackageType.Native.Application,
-            PackageType.Native.LibraryDynamic,
-            PackageType.Native.LibraryStatic
-          )
+// <<<<<<< HEAD
+//       val packageType: PackageType = value {
+//         val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
+//         lazy val validPackageScalaJS =
+//           Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+//         lazy val validPackageScalaNative =
+//           Seq(
+//             PackageType.LibraryJar,
+//             PackageType.SourceJar,
+//             PackageType.DocJar,
+//             PackageType.Native.Application,
+//             PackageType.Native.LibraryDynamic,
+//             PackageType.Native.LibraryStatic
+//           )
 
-        forcedPackageTypeOpt -> build.options.platform.value match {
-          case (Some(forcedPackageType), _) => Right(forcedPackageType)
-          case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
-            for (basePackageType <- basePackageTypeOpt)
-              Left(new MalformedCliInputError(
-                s"Unsupported package type: $basePackageType for Docker."
-              ))
-            Right(PackageType.Docker)
-          case (_, Platform.JS) =>
-            val validatedPackageType =
-              for (basePackageType <- basePackageTypeOpt)
-                yield
-                  if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
-                  else Left(new MalformedCliInputError(
-                    s"Unsupported package type: $basePackageType for Scala.js."
-                  ))
-            validatedPackageType.getOrElse(Right(PackageType.Js))
-          case (_, Platform.Native) =>
-            val specificNativePackageType =
-              import ScalaNativeTarget.*
-              build.options.scalaNativeOptions.buildTargetStr.flatMap(fromString).map {
-                case Application    => PackageType.Native.Application
-                case LibraryDynamic => PackageType.Native.LibraryDynamic
-                case LibraryStatic  => PackageType.Native.LibraryStatic
-              }
+//         forcedPackageTypeOpt -> build.options.platform.value match {
+//           case (Some(forcedPackageType), _) => Right(forcedPackageType)
+//           case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
+//             for (basePackageType <- basePackageTypeOpt)
+//               Left(new MalformedCliInputError(
+//                 s"Unsupported package type: $basePackageType for Docker."
+//               ))
+//             Right(PackageType.Docker)
+//           case (_, Platform.JS) =>
+//             val validatedPackageType =
+//               for (basePackageType <- basePackageTypeOpt)
+//                 yield
+//                   if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
+//                   else Left(new MalformedCliInputError(
+//                     s"Unsupported package type: $basePackageType for Scala.js."
+//                   ))
+//             validatedPackageType.getOrElse(Right(PackageType.Js))
+//           case (_, Platform.Native) =>
+//             val specificNativePackageType =
+//               import ScalaNativeTarget.*
+//               build.options.scalaNativeOptions.buildTargetStr.flatMap(fromString).map {
+//                 case Application    => PackageType.Native.Application
+//                 case LibraryDynamic => PackageType.Native.LibraryDynamic
+//                 case LibraryStatic  => PackageType.Native.LibraryStatic
+//               }
 
-            val validatedPackageType =
-              for
-                basePackageType <- specificNativePackageType orElse basePackageTypeOpt
-              yield
-                if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
-                else Left(new MalformedCliInputError(
-                  s"Unsupported package type: $basePackageType for Scala Native."
-                ))
+//             val validatedPackageType =
+//               for
+//                 basePackageType <- specificNativePackageType orElse basePackageTypeOpt
+//               yield
+//                 if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+//                 else Left(new MalformedCliInputError(
+//                   s"Unsupported package type: $basePackageType for Scala Native."
+//                 ))
 
-            validatedPackageType.getOrElse(Right(PackageType.Native.Application))
-          case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
-        }
-      }
+//             validatedPackageType.getOrElse(Right(PackageType.Native.Application))
+//           case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
+//         }
+//       }
 
+// ||||||| 9283e8749
+//       val packageType: PackageType = value {
+//         val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
+//         lazy val validPackageScalaJS =
+//           Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+//         lazy val validPackageScalaNative =
+//           Seq(PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+
+//         forcedPackageTypeOpt -> build.options.platform.value match {
+//           case (Some(forcedPackageType), _) => Right(forcedPackageType)
+//           case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
+//             for (basePackageType <- basePackageTypeOpt)
+//               Left(new MalformedCliInputError(
+//                 s"Unsupported package type: $basePackageType for Docker."
+//               ))
+//             Right(PackageType.Docker)
+//           case (_, Platform.JS) =>
+//             val validatedPackageType =
+//               for (basePackageType <- basePackageTypeOpt)
+//                 yield
+//                   if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
+//                   else Left(new MalformedCliInputError(
+//                     s"Unsupported package type: $basePackageType for Scala.js."
+//                   ))
+//             validatedPackageType.getOrElse(Right(PackageType.Js))
+//           case (_, Platform.Native) =>
+//             val validatedPackageType =
+//               for (basePackageType <- basePackageTypeOpt)
+//                 yield
+//                   if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+//                   else Left(new MalformedCliInputError(
+//                     s"Unsupported package type: $basePackageType for Scala Native."
+//                   ))
+//             validatedPackageType.getOrElse(Right(PackageType.Native))
+//           case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
+//         }
+//       }
+
+// =======
+      val packageType: PackageType = value(resolvePackageType(build, forcedPackageTypeOpt))
+// >>>>>>> main
       // TODO When possible, call alreadyExistsCheck() before compiling stuff
 
       def extension = packageType match {
@@ -641,7 +683,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
       val generated = (
         prefix / inMemSource.generatedRelPath,
-        inMemSource.generatedContent.getBytes(StandardCharsets.UTF_8),
+        inMemSource.content,
         lastModified
       )
       Iterator(generated) ++ originalOpt.iterator
@@ -811,8 +853,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val params =
       if (build.options.notForBloopOptions.doSetupPython.getOrElse(false)) {
         val res = value {
-          Artifacts.fetch(
-            Positioned.none(Seq(
+          Artifacts.fetchAnyDependencies(
+            Seq(Positioned.none(
               dep"${Constants.pythonInterfaceOrg}:${Constants.pythonInterfaceName}:${Constants.pythonInterfaceVersion}"
             )),
             Nil,
@@ -877,7 +919,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       .map(_._1)
       .filter(dep => modulesSet.contains(dep.module))
     val providedRes = res.subset(providedDeps)
-    val fileMap = build.artifacts.detailedArtifacts
+    val fileMap = build.artifacts.detailedRuntimeArtifacts
       .map {
         case (_, _, artifact, path) =>
           artifact -> path
@@ -919,7 +961,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
     val allFiles =
-      build.artifacts.artifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
+      build.artifacts.runtimeArtifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
     val files =
       if (provided.isEmpty) allFiles
       else {
@@ -1139,5 +1181,62 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     }
 
     dest
+  }
+  def resolvePackageType(
+    build: Build.Successful,
+    forcedPackageTypeOpt: Option[PackageType]
+  ): Either[BuildException, PackageType] = {
+    val basePackageTypeOpt = build.options.notForBloopOptions.packageOptions.packageTypeOpt
+    lazy val validPackageScalaJS =
+      Seq(PackageType.Js, PackageType.LibraryJar, PackageType.SourceJar, PackageType.DocJar)
+    lazy val validPackageScalaNative =
+      Seq(
+        PackageType.LibraryJar,
+        PackageType.SourceJar,
+        PackageType.DocJar,
+        PackageType.Native.Application,
+        PackageType.Native.LibraryDynamic,
+        PackageType.Native.LibraryStatic
+      )
+
+    forcedPackageTypeOpt -> build.options.platform.value match {
+      case (Some(forcedPackageType), _) => Right(forcedPackageType)
+      case (_, _) if build.options.notForBloopOptions.packageOptions.isDockerEnabled =>
+        basePackageTypeOpt match {
+          case Some(PackageType.Docker) | None => Right(PackageType.Docker)
+          case Some(packageType) => Left(new MalformedCliInputError(
+              s"Unsupported package type: $packageType for Docker."
+            ))
+        }
+      case (_, Platform.JS) =>
+        val validatedPackageType =
+          for (basePackageType <- basePackageTypeOpt)
+            yield
+              if (validPackageScalaJS.contains(basePackageType)) Right(basePackageType)
+              else Left(new MalformedCliInputError(
+                s"Unsupported package type: $basePackageType for Scala.js."
+              ))
+        validatedPackageType.getOrElse(Right(PackageType.Js))
+      case (_, Platform.Native) =>
+        val specificNativePackageType =
+          import ScalaNativeTarget.*
+          build.options.scalaNativeOptions.buildTargetStr.flatMap(fromString).map {
+            case Application    => PackageType.Native.Application
+            case LibraryDynamic => PackageType.Native.LibraryDynamic
+            case LibraryStatic  => PackageType.Native.LibraryStatic
+          }
+
+        val validatedPackageType =
+          for
+            basePackageType <- specificNativePackageType orElse basePackageTypeOpt
+          yield
+            if (validPackageScalaNative.contains(basePackageType)) Right(basePackageType)
+            else Left(new MalformedCliInputError(
+              s"Unsupported package type: $basePackageType for Scala Native."
+            ))
+
+        validatedPackageType.getOrElse(Right(PackageType.Native.Application))
+      case _ => Right(basePackageTypeOpt.getOrElse(PackageType.Bootstrap))
+    }
   }
 }

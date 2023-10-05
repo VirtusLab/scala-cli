@@ -135,15 +135,17 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test(
-    "target directives in files should not produce warnings about using directives in multiple files"
+    "having target + using directives in files should not produce warnings about using directives in multiple files"
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """//> using target.platform "jvm"
+          |//> using jvm "17"
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
         """//> using target.scala.>= "2.13"
+          |//> using dep "com.lihaoyi::os-lib::0.8.1"
           |class Foo {}
           |""".stripMargin
     )
@@ -162,12 +164,10 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
         """//> using jvm "17"
-          |//> using target.scope "test"
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using target.scala.>= "2.13"
-          |//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using dep "com.lihaoyi::os-lib::0.8.1"
           |class Foo {}
           |""".stripMargin
     )
@@ -182,14 +182,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
+      val projectFilePrefix = root.baseName + "_"
       os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
       val projDirs = os.list(root / Constants.workspaceDirName)
-        .filter(_.last.startsWith("project_"))
+        .filter(_.last.startsWith(projectFilePrefix))
         .filter(os.isDir(_))
       expect(projDirs.length == 1)
       val projDir     = projDirs.head
       val projDirName = projDir.last
-      val elems       = projDirName.stripPrefix("project_").split("[-_]").toSeq
+      val elems       = projDirName.stripPrefix(projectFilePrefix).split("[-_]").toSeq
       expect(elems.length == 1)
     }
   }
@@ -253,13 +254,15 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       expect(isDefinedTestPathInClassPath)
       checkIfCompileOutputIsCopied("Tests", tempOutput)
 
+      val projectFilePrefix = root.baseName + "_"
+
       val projDirs = os.list(root / Constants.workspaceDirName)
-        .filter(_.last.startsWith("project_"))
+        .filter(_.last.startsWith(projectFilePrefix))
         .filter(os.isDir(_))
       expect(projDirs.length == 1)
       val projDir     = projDirs.head
       val projDirName = projDir.last
-      val elems       = projDirName.stripPrefix("project_").split("[-_]").toSeq
+      val elems       = projDirName.stripPrefix(projectFilePrefix).split("[-_]").toSeq
       expect(elems.length == 2)
       expect(elems.toSet.size == 2)
     }
@@ -694,6 +697,52 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         )
           .call(cwd = root)
         expect(compileWithCompilerRes.out.trim().contains(compilerArtifactName))
+      }
+  }
+
+  test(s"reuse cached project file under .scala-build") {
+    TestInputs(os.rel / "main.scala" ->
+      """object Main extends App {
+        |  println("Hello")
+        |}""".stripMargin)
+      .fromRoot { root =>
+        val firstRes = os.proc(
+          TestUtil.cli,
+          "compile",
+          "main.scala"
+        ).call(cwd = root, mergeErrIntoOut = true)
+
+        expect(os.list(root / Constants.workspaceDirName).count(
+          _.baseName.startsWith(root.baseName)
+        ) == 1)
+        val firstOutput = TestUtil.normalizeConsoleOutput(firstRes.out.text())
+        expect(firstOutput.contains("Compiled project"))
+
+        val differentRes = os.proc(
+          TestUtil.cli,
+          "compile",
+          "main.scala",
+          "--jvm",
+          "8"
+        ).call(cwd = root, mergeErrIntoOut = true)
+
+        expect(os.list(root / Constants.workspaceDirName).count(
+          _.baseName.startsWith(root.baseName)
+        ) == 2)
+        val differentOutput = TestUtil.normalizeConsoleOutput(differentRes.out.text())
+        expect(differentOutput.contains("Compiled project"))
+
+        val secondRes = os.proc(
+          TestUtil.cli,
+          "compile",
+          "main.scala"
+        ).call(cwd = root, mergeErrIntoOut = true)
+
+        expect(os.list(root / Constants.workspaceDirName).count(
+          _.baseName.startsWith(root.baseName)
+        ) == 2)
+        val secondOutput = TestUtil.normalizeConsoleOutput(secondRes.out.text())
+        expect(!secondOutput.contains("Compiled project"))
       }
   }
 }

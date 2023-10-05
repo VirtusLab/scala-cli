@@ -99,3 +99,25 @@ various "mappings" are computed out of the generated sources list, and are used 
 - byte code: done using the ASM library
 - semantic DBs: we parse the semantic DBs, edit them in memory, and write them back on disk
 - TASTy files: we partly parse them in memory, edit names that contain source file paths, and write them back on disk
+
+## Publishing scalajs-cli
+
+### Maven Publishing
+
+- Version Synchronization: `scalajs-cli` will be published with the same version as Scala.js version, for
+  example `1.13.0`.
+- Updates & Fixes: For any subsequent fixes or patches in `scalajs-cli`, we will append a numeric value to the end,
+  like `1.13.0.1`.
+- GitHub Uploads
+    - Native Launchers: With the patch release of `scalajs-cli`, native launchers are automatically uploaded to both
+      versions, for
+      example `1.13.0.1` and `1.13.0` tags on GitHub.
+    - For instance: For release `1.13.0.2`, the launchers are uploaded to tags `1.13.0.2` and `1.13.0`.
+- ScalaCli dependency to `scalajs-cli`:
+    - For Coursier to retrieve the most recent scalajs-cli for a specific Scala.js version, the version is set
+      as `org.virtuslab:scalajscli_2.13:{Scala.js version}+`. For example `org.virtuslab:scalajscli_2.13:1.13.0+`.
+    - Native Version Download:
+        - The native version is downloaded from the Scala.js version tag. If there are updates or fixes to the
+          native `scalajs-cli` launchers, the updated launchers are uploaded to the `1.13.0` tag during the `1.13.0.1`
+          publishing.
+

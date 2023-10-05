@@ -1,5 +1,5 @@
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.4`
-import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.5.0.202303070854-r`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
+import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r`
 import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
@@ -139,7 +139,7 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   def publishVersion =
     finalPublishVersion()
   override def sourceJar = T {
-    import mill.modules.Jvm.createJar
+    import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
     createJar(
       allSources0 ++ resources().map(_.path).filter(os.exists),
@@ -193,6 +193,8 @@ def publishSonatype(
     readTimeout = timeout.toMillis.toInt,
     connectTimeout = timeout.toMillis.toInt,
     log = log,
+    workspace = os.pwd,
+    env = sys.env,
     awaitTimeout = timeout.toMillis.toInt,
     stagingRelease = isRelease
   )

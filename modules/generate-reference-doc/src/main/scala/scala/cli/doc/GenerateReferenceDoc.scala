@@ -11,6 +11,8 @@ import shapeless.tag
 import java.nio.charset.StandardCharsets
 import java.util
 
+import scala.build.info.{ArtifactId, BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
@@ -18,7 +20,6 @@ import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
 import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}
-
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
   implicit class PBUtils(sb: StringBuilder) {
@@ -481,6 +482,123 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     b.toString
   }
 
+  private def buildInfoContent: String = {
+    val b = new StringBuilder
+
+    b.section(
+      """---
+        |title: BuildInfo
+        |sidebar_position: 6
+        |---""".stripMargin
+    )
+    b.section(
+      """:::caution
+        |BuildInfo is a restricted feature and requires setting the `--power` option to be used.
+        |You can pass it explicitly or set it globally by running:
+        |
+        |    scala-cli config power true
+        |:::""".stripMargin
+    )
+
+    b.section(
+      """During the building process Scala CLI collects information about the project's configuration,
+        |both from the console options and `using directives` found in the project's sources.
+        |You can access this information from your code using the `BuildInfo` object, that's automatically generated for your
+        |build on compile when that information changes.""".stripMargin
+    )
+
+    b.section(
+      """To enable BuildInfo generation pass the `--build-info` option to Scala CLI or use a
+        |`//> using buildInfo` directive.""".stripMargin
+    )
+
+    b.section(
+      """## Usage
+        |
+        |The generated BuildInfo object is available on the project's classpath. To access it you need to import it first.
+        |It is available in the package `scala.cli.build` so use
+        |```scala
+        |import scala.cli.build.BuildInfo
+        |```
+        |to import it.
+        |
+        |Below you can find an example instance of the BuildInfo object, with all fields explained.
+        |Some of the values have been shortened for readability.""".stripMargin
+    )
+
+    val osLibDep = ExportDependencyFormat("com.lihaoyi", ArtifactId("os-lib", "os-lib_3"), "0.9.1")
+    val toolkitDep =
+      ExportDependencyFormat("org.scala-lang", ArtifactId("toolkit", "toolkit_3"), "latest.release")
+
+    val mainScopedBuildInfo = ScopedBuildInfo(BuildOptions(), Seq(".../Main.scala")).copy(
+      scalacOptions = Seq("-Werror"),
+      scalaCompilerPlugins = Nil,
+      dependencies = Seq(osLibDep),
+      resolvers = Seq("https://repo1.maven.org/maven2", "ivy:file:..."),
+      resourceDirs = Seq(".../resources"),
+      customJarsDecls = Seq(".../AwesomeJar1.jar", ".../AwesomeJar2.jar")
+    )
+
+    val testScopedBuildInfo = ScopedBuildInfo(BuildOptions(), Seq(".../MyTests.scala")).copy(
+      scalacOptions = Seq("-Vdebug"),
+      scalaCompilerPlugins = Nil,
+      dependencies = Seq(toolkitDep),
+      resolvers = Seq("https://repo1.maven.org/maven2", "ivy:file:..."),
+      resourceDirs = Seq(".../test/resources"),
+      customJarsDecls = Nil
+    )
+
+    val generatedBuildInfo = BuildInfo(BuildOptions(), os.pwd) match {
+      case Right(bv) => bv
+      case Left(exception) =>
+        System.err.println(s"Failed to generate BuildInfo: ${exception.message}")
+        sys.exit(1)
+    }
+
+    val buildInfo = generatedBuildInfo.copy(
+      scalaVersion = Some("3.3.0"),
+      platform = Some("JVM"),
+      jvmVersion = Some("11"),
+      scalaJsVersion = None,
+      jsEsVersion = None,
+      scalaNativeVersion = None,
+      mainClass = Some("Main"),
+      projectVersion = None
+    )
+      .withScope("main", mainScopedBuildInfo)
+      .withScope("test", testScopedBuildInfo)
+
+    b.section(
+      s"""```scala
+         |${buildInfo.generateContents().strip()}
+         |```""".stripMargin
+    )
+
+    b.section(
+      """## Project version
+        |
+        |A part of the BuildInfo object is the project version. By default, an attempt is made to deduce it using git tags
+        |of the workspace repository. If this fails (e.g. no git repository is present), the version is set to `0.1.0-SNAPSHOT`.
+        |You can override this behaviour by passing the `--project-version` option to Scala CLI or by using a
+        |`//> using projectVersion` directive.
+        |
+        |Please note that only tags that follow the semantic versioning are taken into consideration.
+        |
+        |Values available for project version configuration are:
+        |- `git:tag` or `git`: use the latest stable git tag, if it is older than HEAD then try to increment it
+        |    and add a suffix `-SNAPSHOT`, if no tag is available then use `0.1.0-SNAPSHOT`
+        |- `git:dynver`: use the latest (stable or unstable) git tag, if it is older than HEAD then use the output of
+        |    `-{distance from last tag}-g{shortened version of HEAD commit hash}-SNAPSHOT`, if no tag is available then use `0.1.0-SNAPSHOT`
+        |
+        |The difference between stable and unstable tags are, that the latter can contain letters, e.g. `v0.1.0-RC1`.
+        |It is also possible to specify the path to the repository, e.g. `git:tag:../my-repo`, `git:dynver:../my-repo`.
+        |
+        |""".stripMargin
+    )
+
+    b.mkString
+  }
+
   def run(options: InternalDocOptions, args: RemainingArgs): Unit = {
 
     val scalaCli = new ScalaCliCommands(
@@ -512,6 +630,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       requireDirectiveHandlers,
       onlyRestricted = false
     )
+
     val restrictedDirectivesContent = usingContent(
       allUsingDirectiveHandlers.filterNot(_.isRestricted),
       requireDirectiveHandlers.filterNot(_.isRestricted),
@@ -524,6 +643,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
         (os.rel / "cli-options.md")                           -> allCliOptionsContent,
         (os.rel / "commands.md")                              -> allCommandsContent,
         (os.rel / "directives.md")                            -> allDirectivesContent,
+        (os.rel / "build-info.md")                            -> buildInfoContent,
         (os.rel / restrictedDocsDir / "cli-options.md")       -> restrictedCliOptionsContent,
         (os.rel / restrictedDocsDir / "commands.md")          -> restrictedCommandsContent,
         (os.rel / restrictedDocsDir / "directives.md")        -> restrictedDirectivesContent,
@@ -551,6 +671,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       maybeWrite(options.outputPath / "cli-options.md", allCliOptionsContent)
       maybeWrite(options.outputPath / "commands.md", allCommandsContent)
       maybeWrite(options.outputPath / "directives.md", allDirectivesContent)
+      maybeWrite(options.outputPath / "build-info.md", buildInfoContent)
 
       maybeWrite(
         options.outputPath / restrictedDocsDir / "cli-options.md",

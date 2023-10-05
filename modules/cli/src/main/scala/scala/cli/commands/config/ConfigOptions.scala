@@ -75,7 +75,13 @@ final case class ConfigOptions(
   @HelpMessage("For repository.credentials, whether to use these credentials should be passed upon redirection")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    passOnRedirect: Option[Boolean] = None
+    passOnRedirect: Option[Boolean] = None,
+  @Group(HelpGroup.Config.toString)
+  @HelpMessage("Force overwriting values for key")
+  @ExtraName("f")
+  @Tag(tags.inShortHelp)
+  @Tag(tags.should)
+    force: Boolean = false
 ) extends HasGlobalOptions
 // format: on
 

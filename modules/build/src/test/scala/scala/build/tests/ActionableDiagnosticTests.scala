@@ -10,7 +10,7 @@ import scala.build.actionable.ActionableDiagnostic.*
 import scala.build.Position.File
 import coursier.core.Version
 
-import scala.build.errors.{BuildException, CompositeBuildException, UnsupportedAmmoniteImportError}
+import scala.build.errors.{BuildException, CompositeBuildException}
 
 class ActionableDiagnosticTests extends munit.FunSuite {
 

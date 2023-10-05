@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.util.Properties
 
 class ConfigTests extends ScalaCliSuite {
@@ -171,6 +173,91 @@ class ConfigTests extends ScalaCliSuite {
         createDefaultPgpKeyTest(pgpPasswordOption)
       }
 
+  if (TestUtil.isNativeCli)
+    test(s"Create a PGP key with external JVM process, java version too low") {
+      TestInputs().fromRoot { root =>
+        val configFile = {
+          val dir = root / "config"
+          os.makeDir.all(dir, perms = if (Properties.isWin) null else "rwx------")
+          dir / "config.json"
+        }
+
+        val java8Home =
+          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+
+        val extraEnv = Map(
+          "JAVA_HOME" -> java8Home.toString,
+          "PATH" -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH")),
+          "SCALA_CLI_CONFIG" -> configFile.toString
+        )
+
+        val pgpCreated = os.proc(
+          TestUtil.cli,
+          "--power",
+          "config",
+          "--create-pgp-key",
+          "--email",
+          "alex@alex.me",
+          "--pgp-password",
+          "none",
+          "--force-jvm-signing-cli",
+          "-v",
+          "-v",
+          "-v"
+        )
+          .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+        val javaCommandLine = pgpCreated.out.text()
+          .linesIterator
+          .dropWhile(!_.equals("  Running")).slice(1, 2)
+          .toSeq
+
+        expect(javaCommandLine.nonEmpty)
+        expect(javaCommandLine.head.contains("17"))
+
+        val passwordInConfig = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key-password")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+        expect(passwordInConfig.out.text().isEmpty())
+
+        val secretKey = os.proc(TestUtil.cli, "--power", "config", "pgp.secret-key")
+          .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+          .out.trim()
+        val rawPublicKey =
+          os.proc(TestUtil.cli, "--power", "config", "pgp.public-key", "--password-value")
+            .call(cwd = root, env = extraEnv, stderr = os.Pipe)
+            .out.trim()
+
+        val tmpFile    = root / "test-file"
+        val tmpFileAsc = root / "test-file.asc"
+        os.write(tmpFile, "Hello")
+
+        val q = "\""
+
+        def maybeEscape(arg: String): String =
+          if (Properties.isWin) q + arg + q
+          else arg
+
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "sign",
+          "--secret-key",
+          maybeEscape(secretKey),
+          tmpFile
+        ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+        val pubKeyFile = root / "key.pub"
+        os.write(pubKeyFile, rawPublicKey)
+        val verifyResult =
+          os.proc(TestUtil.cli, "--power", "pgp", "verify", "--key", pubKeyFile, tmpFileAsc)
+            .call(cwd = root, env = extraEnv, mergeErrIntoOut = true)
+
+        expect(verifyResult.out.text().contains("valid signature"))
+      }
+
+    }
+
   def createDefaultPgpKeyTest(pgpPasswordOption: String): Unit = {
     TestInputs().fromRoot { root =>
       val configFile = {
@@ -321,7 +408,7 @@ class ConfigTests extends ScalaCliSuite {
         testOrg,
         "--name",
         testName,
-        "--version",
+        "--project-version",
         testVersion
       )
         .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
@@ -433,6 +520,44 @@ class ConfigTests extends ScalaCliSuite {
           expect(res.err.trim().contains(invalidValue))
         }
       }
+  }
+
+  test("change value for key") {
+    val configFile              = os.rel / "config" / "config.json"
+    val configEnv               = Map("SCALA_CLI_CONFIG" -> configFile.toString)
+    val (props, props2, props3) = ("props=test", "props2=test2", "props3=test3")
+    val key                     = "java.properties"
+    TestInputs.empty.fromRoot { root =>
+      // set some values first time
+      os.proc(TestUtil.cli, "--power", "config", key, props, props2).call(
+        cwd = root,
+        env = configEnv
+      )
+
+      // override some values should throw error without force flag
+      val res = os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3).call(
+        cwd = root,
+        env = configEnv,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      expect(res.exitCode == 1)
+      expect(res.out.trim().contains("pass -f or --force"))
+
+      os.proc(TestUtil.cli, "--power", "config", key, props, props2, props3, "-f").call(
+        cwd = root,
+        env = configEnv,
+        check = false
+      )
+      val propertiesFromConfig = os.proc(TestUtil.cli, "--power", "config", key)
+        .call(cwd = root, env = configEnv)
+        .out.trim()
+
+      expect(propertiesFromConfig.contains(props))
+      expect(propertiesFromConfig.contains(props2))
+      expect(propertiesFromConfig.contains(props3))
+    }
   }
 
 }

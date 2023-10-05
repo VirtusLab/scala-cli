@@ -12,6 +12,7 @@ import scala.build.Directories
 import scala.build.internal.Constants
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
+import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
@@ -162,7 +163,56 @@ object ScalaCli {
       s"Java >= 17 is required to run $fullRunnerName (found Java $javaMajorVersion)"
     )
 
+  def loadJavaProperties(cwd: os.Path) = {
+    // load java properties from scala-cli-properties resource file
+    val prop = new java.util.Properties()
+    val cl   = getClass.getResourceAsStream("/java-properties/scala-cli-properties")
+    if cl != null then
+      prop.load(cl)
+      prop.stringPropertyNames().forEach(name => System.setProperty(name, prop.getProperty(name)))
+    // load java properties from .scala-jvmopts located in the current working directory and filter only java properties and warning if someone used other options
+    val jvmopts = cwd / Constants.jvmPropertiesFileName
+    if os.exists(jvmopts) && os.isFile(jvmopts) then
+      val jvmoptsContent        = os.read(jvmopts)
+      val jvmoptsLines          = jvmoptsContent.linesIterator.toSeq
+      val (javaOpts, otherOpts) = jvmoptsLines.partition(_.startsWith("-D"))
+      javaOpts.foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2) match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _                 => System.err.println(s"Warning: Invalid java property: $opt")
+        }
+      }
+      if otherOpts.nonEmpty then
+        System.err.println(
+          s"Warning: Only java properties are supported in .scala-jvmopts file. Other options are ignored: ${otherOpts.mkString(", ")} "
+        )
+    // load java properties from config
+    for {
+      configDb   <- ConfigDbUtils.configDb.toOption
+      properties <- configDb.get(Keys.javaProperties).getOrElse(Nil)
+    }
+      properties.foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2) match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _ => System.err.println(s"Warning: Invalid java property in config: $opt")
+        }
+      }
+
+    // load java properties from JAVA_OPTS and JDK_JAVA_OPTIONS environment variables
+    val javaOpts = sys.env.get("JAVA_OPTS").toSeq ++ sys.env.get("JDK_JAVA_OPTIONS").toSeq
+
+    javaOpts
+      .flatMap(_.split("\\s+"))
+      .foreach { opt =>
+        opt.stripPrefix("-D").split("=", 2) match {
+          case Array(key, value) => System.setProperty(key, value)
+          case _                 => // Ignore if not a Java property
+        }
+      }
+  }
+
   private def main0(args: Array[String]): Unit = {
+    loadJavaProperties(cwd = os.pwd) // load java properties to detect launcher kind
     val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
       case Left(e) =>
         System.err.println(e.message)
@@ -175,6 +225,10 @@ object ScalaCli {
               else Nil
             val newArgs = powerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
+          case _ if
+                javaMajorVersion < 17
+                && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
+            JavaLauncherCli.runAndExit(args)
           case None =>
             if (launcherOpts.power)
               isSipScala = false

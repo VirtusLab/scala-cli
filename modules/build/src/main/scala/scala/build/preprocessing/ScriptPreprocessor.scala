@@ -85,14 +85,11 @@ case object ScriptPreprocessor extends Preprocessor {
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, List[PreprocessedSource.UnwrappedScript]] =
     either {
-
-      val (contentIgnoredSheBangLines, _) = SheBang.ignoreSheBangLines(content)
-
       val (pkg, wrapper) = AmmUtil.pathToPackageWrapper(subPath)
 
       val processingOutput: ProcessingOutput =
         value(ScalaPreprocessor.process(
-          contentIgnoredSheBangLines,
+          content,
           reportingPath,
           scopePath / os.up,
           logger,
@@ -102,7 +99,8 @@ case object ScriptPreprocessor extends Preprocessor {
         ))
           .getOrElse(ProcessingOutput.empty)
 
-      val scriptCode = processingOutput.updatedContent.getOrElse(contentIgnoredSheBangLines)
+      val scriptCode =
+        processingOutput.updatedContent.getOrElse(SheBang.ignoreSheBangLines(content)._1)
       // try to match in multiline mode, don't match comment lines starting with '//'
       val containsMainAnnot = "(?m)^(?!//).*@main.*".r.findFirstIn(scriptCode).isDefined
 

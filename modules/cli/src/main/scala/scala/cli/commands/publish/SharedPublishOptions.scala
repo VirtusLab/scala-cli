@@ -75,11 +75,6 @@ final case class SharedPublishOptions(
   @Group(HelpGroup.Publishing.toString)
   @Hidden
   @Tag(tags.restricted)
-    forceSigningBinary: Boolean = false,
-
-  @Group(HelpGroup.Publishing.toString)
-  @Hidden
-  @Tag(tags.restricted)
     checksum: List[String] = Nil,
 
   @Group(HelpGroup.Publishing.toString)

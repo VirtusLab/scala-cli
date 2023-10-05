@@ -19,6 +19,9 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
         "ivy:file:.../.ivy2/local/"
       )
 
+  private def withEscapedBackslashes(s: os.Path): String =
+    s.toString.replaceAll("\\\\", "\\\\\\\\")
+
   test("export json") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
@@ -32,6 +35,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
     )
 
     inputs.fromRoot { root =>
+      TestUtil.initializeGit(root, "v1.1.2")
+
       val exportJsonProc =
         os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "adopt:11")
           .call(cwd = root)
@@ -40,12 +45,14 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
 
       expect(jsonContents ==
         s"""{
+          |"projectVersion":"1.1.2",
           |"scalaVersion":"${Constants.scala3}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["Main.scala"],
+          |"scopes": [[
+          | "main",
+          | {
+          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "dependencies": [
           |     {
           |       "groupId":"com.lihaoyi",
@@ -62,7 +69,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -93,23 +100,16 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root)
 
       val jsonContents = readJson(exportJsonProc.out.text())
-        .replaceAll(
-          "\"resourcesDirs\":\\[\"[^\"]*resources\"\\]",
-          "\"resourcesDirs\":[\"./resources\"]"
-        )
-        .replaceAll(
-          "\"customJarsDecls\":\\[\"[^\"]*TEST.jar\"\\]",
-          "\"customJarsDecls\":[\"./TEST.jar\"]"
-        )
 
       expect(jsonContents ==
         s"""{
           |"scalaVersion":"3.2.2",
           |"platform":"Native",
           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["Main.scala"],
+          |"scopes": [[
+          | "main",
+          | {
+          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
           |     {
@@ -136,9 +136,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../scalacli/local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
-          | },
-          | "test": {
-          |   "sources":["unit.test.scala"],
+          | }], [
+          | "test",
+          | {
+          |   "sources":["${withEscapedBackslashes(root / "unit.test.scala")}"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
           |     {
@@ -166,10 +167,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../scalacli/local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ],
-          |   "resourcesDirs":["./resources"],
-          |   "customJarsDecls":["./TEST.jar"]
+          |   "resourceDirs":["${withEscapedBackslashes(root / "resources")}"],
+          |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -215,9 +216,10 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |"platform": "JS",
           |"scalaJsVersion": "${Constants.scalaJsVersion}",
           |"jsEsVersion":"es2015",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["Main.scala"],
+          |"scopes": [[
+          | "main",
+          | {
+          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "scalacOptions": ["-Xasync"],
           |   "scalaCompilerPlugins": [
           |     {
@@ -245,7 +247,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |}
+          |]]
           |}
           |""".replaceAll("\\s|\\|", ""))
 

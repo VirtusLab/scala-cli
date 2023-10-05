@@ -30,7 +30,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     // ignoring errors related to sources themselves
     val maybeSourceBuildOptions = either {
-      val (crossSources, _) = value {
+      val (crossSources, allInputs) = value {
         CrossSources.forInputs(
           inputs,
           Sources.defaultPreprocessors(
@@ -44,12 +44,16 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         )
       }
 
-      val sharedOptions       = crossSources.sharedOptions(options)
-      val wrappedCrossOptions = crossSources.withWrappedScripts(sharedOptions)
+      val sharedOptions = crossSources.sharedOptions(options)
 
-      value(wrappedCrossOptions.scopedSources(options))
-        .sources(Scope.Main, crossSources.sharedOptions(options))
-        .buildOptions
+      val scopedSources = value(crossSources.scopedSources(options))
+      val mainSources = value(scopedSources.sources(
+        Scope.Main,
+        crossSources.sharedOptions(options),
+        allInputs.workspace
+      ))
+
+      mainSources.buildOptions
     }
 
     val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options orElse _).getOrElse(options)
@@ -116,7 +120,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val logger = options.shared.logger
 
-    if (buildOptions.classPathOptions.extraDependencies.toSeq.nonEmpty)
+    if (buildOptions.classPathOptions.allExtraDependencies.toSeq.nonEmpty)
       value(downloadDeps(
         inputs,
         buildOptions,

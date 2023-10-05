@@ -1,10 +1,11 @@
 package scala.build.actionable
 
-import scala.build.Ops._
-import scala.build.errors.{BuildException, CompositeBuildException}
+import scala.build.Logger
+import scala.build.Ops.*
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic}
 import scala.build.options.BuildOptions
 
-trait ActionableHandler[A <: ActionableDiagnostic] {
+trait ActionableHandler[A <: Diagnostic] {
 
   /** Type of setting used to generate actionable diagnostic
     */
@@ -29,14 +30,16 @@ trait ActionableHandler[A <: ActionableDiagnostic] {
     */
   def actionableDiagnostic(
     setting: Setting,
-    buildOptions: BuildOptions
+    buildOptions: BuildOptions,
+    loggerOpt: Option[Logger]
   ): Either[BuildException, Option[A]]
 
   final def createActionableDiagnostics(
-    buildOptions: BuildOptions
+    buildOptions: BuildOptions,
+    loggerOpt: Option[Logger] = None
   ): Either[BuildException, Seq[A]] =
     extractSettings(buildOptions)
-      .map(v => actionableDiagnostic(v, buildOptions))
+      .map(v => actionableDiagnostic(v, buildOptions, loggerOpt))
       .sequence
       .left.map(CompositeBuildException(_))
       .map(_.flatten)

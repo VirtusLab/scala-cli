@@ -12,13 +12,12 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.input.VirtualScript.VirtualScriptNameRegex
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
-import scala.build.internal.{Constants, MainClass, Util}
+import scala.build.internal.{Constants, MainClass, Name, Util}
 import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
@@ -77,12 +76,19 @@ object Build {
           case _ =>
             inferredMainClass(mainClasses, logger)
               .left.flatMap { mainClasses =>
+                // decode the names to present them to the user,
+                // but keep the link to each original name to account for package prefixes:
+                // "pack.Main$minus1" decodes to "pack.Main-1", which encodes back to "pack$u002EMain$minus1"
+                //  ^^^^^^^^^^^^^^^^----------------NOT THE SAME-----------------------^^^^^^^^^^^^^^^^^^^^^
+                val decodedToEncoded = mainClasses.map(mc => Name.decoded(mc) -> mc).toMap
+
                 options.interactive.flatMap { interactive =>
                   interactive
                     .chooseOne(
                       "Found several main classes. Which would you like to run?",
-                      mainClasses.toList
+                      decodedToEncoded.keys.toList
                     )
+                    .map(decodedToEncoded(_)) // encode back the name of the chosen class
                     .toRight {
                       SeveralMainClassesFoundError(
                         ::(mainClasses.head, mainClasses.tail.toList),
@@ -268,14 +274,12 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val wrappedScriptsSources = crossSources.withWrappedScripts(baseOptions)
+      val scopedSources = value(crossSources.scopedSources(baseOptions))
 
-      val scopedSources = value(wrappedScriptsSources.scopedSources(baseOptions))
-
-      val mainSources = scopedSources.sources(Scope.Main, baseOptions)
+      val mainSources = value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace))
       val mainOptions = mainSources.buildOptions
 
-      val testSources = scopedSources.sources(Scope.Test, baseOptions)
+      val testSources = value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace))
       val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
@@ -769,10 +773,13 @@ object Build {
     else if (compilerJvmVersionOpt.exists(_.value == 8))
       None
     else if (
-      options.scalaOptions.scalacOptions.values.exists(
-        _.headOption.exists(_.value.value == "-release")
+      options.scalaOptions.scalacOptions.values.exists(opt =>
+        opt.headOption.exists(_.value.value.startsWith("-release")) ||
+        opt.headOption.exists(_.value.value.startsWith("-java-output-version"))
       )
     )
+      None
+    else if (compilerJvmVersionOpt.isEmpty && javaHome.value.version == 8)
       None
     else
       Some(javaHome.value.version)

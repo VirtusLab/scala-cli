@@ -83,7 +83,7 @@ case object ScalaPreprocessor extends Preprocessor {
                 PreprocessedSource.InMemory(
                   originalPath = Right((f.subPath, f.path)),
                   relPath = f.subPath,
-                  code = updatedCode,
+                  content = updatedCode.getBytes(StandardCharsets.UTF_8),
                   wrapperParamsOpt = None,
                   options = Some(options),
                   optionsWithTargetRequirements = optionsWithReqs,
@@ -161,7 +161,7 @@ case object ScalaPreprocessor extends Preprocessor {
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
-            updatedContentOpt.getOrElse(content),
+            updatedContentOpt.map(_.getBytes(StandardCharsets.UTF_8)).getOrElse(v.content),
             wrapperParamsOpt = None,
             options = Some(options),
             optionsWithTargetRequirements = optionsWithTargetRequirements,
@@ -221,14 +221,15 @@ case object ScalaPreprocessor extends Preprocessor {
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
-      value(DirectivesPreprocessor.preprocess(
-        extractedDirectives,
+      value(DirectivesPreprocessor(
         path,
         scopeRoot,
         logger,
         allowRestrictedFeatures,
         suppressWarningOptions,
         maybeRecoverOnError
+      ).preprocess(
+        extractedDirectives
       ))
 
     if (preprocessedDirectives.isEmpty) None
@@ -239,7 +240,9 @@ case object ScalaPreprocessor extends Preprocessor {
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
       val lastContentOpt = preprocessedDirectives.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
-      val directivesPositions = preprocessedDirectives.directivesPositions
+      val directivesPositions = preprocessedDirectives.directivesPositions.map { pos =>
+        if (isSheBang) pos.copy(endPos = pos.endPos._1 + 1 -> pos.endPos._2) else pos
+      }
 
       val scopedRequirements = preprocessedDirectives.scopedReqs
       Some(ProcessingOutput(

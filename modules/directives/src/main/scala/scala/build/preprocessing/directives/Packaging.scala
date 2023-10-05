@@ -40,9 +40,9 @@ import scala.cli.commands.SpecificationLevel
     |using packaging.dockerImageRegistry [image registry]
     |using packaging.dockerImageRepository [image repository]
     |""".stripMargin,
-  """`//> using packaging.packageType package_type`
+  """`//> using packaging.packageType` _package-type_
     |
-    |`//> using packaging.output destination_path`
+    |`//> using packaging.output` _destination-path_
     |
     |""".stripMargin
 )

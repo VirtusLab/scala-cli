@@ -40,7 +40,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val (crossSources: UnwrappedCrossSources, _) = value {
+    val (crossSources: CrossSources, allInputs: Inputs) = value {
       CrossSources.forInputs(
         inputs,
         Sources.defaultPreprocessors(
@@ -54,11 +54,10 @@ object Export extends ScalaCommand[ExportOptions] {
       )
     }
 
-    val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
-
-    val scopedSources: ScopedSources = value(wrappedScriptsSources.scopedSources(buildOptions))
+    val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
     val sources: Sources =
-      scopedSources.sources(scope, wrappedScriptsSources.sharedOptions(buildOptions))
+      scopedSources.sources(scope, crossSources.sharedOptions(buildOptions), inputs.workspace)
+        .orExit(logger)
 
     if (verbosity >= 3)
       pprint.err.log(sources)
@@ -100,8 +99,12 @@ object Export extends ScalaCommand[ExportOptions] {
     MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
   }
 
-  def jsonProjectDescriptor(projectName: Option[String], logger: Logger): JsonProjectDescriptor =
-    JsonProjectDescriptor(projectName, logger)
+  def jsonProjectDescriptor(
+    projectName: Option[String],
+    workspace: os.Path,
+    logger: Logger
+  ): JsonProjectDescriptor =
+    JsonProjectDescriptor(projectName, workspace, logger)
 
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
@@ -183,13 +186,14 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (shouldExportJsonToStdout) {
-      val project = jsonProjectDescriptor(options.project, logger)
+      val project = jsonProjectDescriptor(options.project, inputs.workspace, logger)
         .`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+        .orExit(logger)
 
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.8.3")
+      val sbtVersion = options.sbtVersion.getOrElse("1.9.3")
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
@@ -198,11 +202,12 @@ object Export extends ScalaCommand[ExportOptions] {
         if (shouldExportToMill)
           millProjectDescriptor(options.shared.coursierCache, options.project, logger)
         else if (shouldExportToJson)
-          jsonProjectDescriptor(options.project, logger)
+          jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default
           sbtProjectDescriptor0
 
       val project = projectDescriptor.`export`(optionsMain0, optionsTest0, sourcesMain, sourcesTest)
+        .orExit(logger)
 
       os.makeDir.all(dest)
       project.writeTo(dest)

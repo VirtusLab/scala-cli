@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 class PgpTests extends ScalaCliSuite {
 
   private val pubKeyInputs = TestInputs(
@@ -85,11 +87,24 @@ class PgpTests extends ScalaCliSuite {
     }
   }
 
-  test("ensure the scala-cli-signing artifact is downloaded correctly for pgp push") {
+  test("pgp push with binary") {
     pubKeyInputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "pgp", "push", "-v", "-v", "-v", "key.pub")
-        .call(cwd = root, stderr = os.Pipe)
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "push",
+        "key.pub",
+        "--force-signing-externally",
+        "-v",
+        "-v",
+        "-v"
+      ).call(
+        cwd = root,
+        stderr = os.Pipe
+      )
       val errOutput = res.err.trim()
+
       expect(errOutput.contains(
         "Getting https://github.com/VirtusLab/scala-cli-signing/releases/download/"
       ))
@@ -103,14 +118,31 @@ class PgpTests extends ScalaCliSuite {
     }
   }
 
-  if (!TestUtil.isNativeCli)
-    test("pgp push with binary") {
-      pubKeyInputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "--power", "pgp", "push", "key.pub", "--force-signing-binary").call(
-          cwd = root
+  test("pgp push with external JVM process, java version too low") {
+    pubKeyInputs.fromRoot { root =>
+      val java8Home =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "pgp",
+        "push",
+        "key.pub",
+        "--force-signing-externally",
+        "--force-jvm-signing-cli",
+        "-v",
+        "-v",
+        "-v"
+      ).call(
+        cwd = root,
+        env = Map(
+          "JAVA_HOME" -> java8Home.toString,
+          "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
         )
-      }
+      )
     }
+  }
 
   test("pgp create") {
     pubKeyInputs.fromRoot { root =>

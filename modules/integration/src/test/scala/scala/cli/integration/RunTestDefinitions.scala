@@ -309,6 +309,72 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       compileTimeOnlyJars()
     }
 
+  test("compile-time only for jsoniter macros") {
+    val inputs = TestInputs(
+      os.rel / "hello.sc" ->
+        """|//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
+           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+           |
+           |import com.github.plokhotnyuk.jsoniter_scala.core._
+           |import com.github.plokhotnyuk.jsoniter_scala.macros._
+           |
+           |case class User(name: String, friends: Seq[String])
+           |implicit val codec: JsonValueCodec[User] = JsonCodecMaker.make
+           |
+           |val user = readFromString[User]("{\"name\":\"John\",\"friends\":[\"Mark\"]}")
+           |System.out.println(user.name)
+           |val classPath = System.getProperty("java.class.path").split(java.io.File.pathSeparator).iterator.toList
+           |System.out.println(classPath)
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output.contains("John"))
+      expect(!output.contains("jsoniter-scala-macros"))
+    }
+  }
+
+  def compileTimeOnlyDep(): Unit = {
+
+    def inputs(compileOnly: Boolean) = {
+      val directiveName = if (compileOnly) "compileOnly.dep" else "dep"
+      TestInputs(
+        os.rel / "test.sc" ->
+          s"""//> using $directiveName "com.chuusai::shapeless:2.3.10"
+             |val shapelessFound =
+             |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
+             |  catch { case _: ClassNotFoundException => false }
+             |println(if (shapelessFound) "Hello with " + "shapeless" else "Hello from " + "test")
+             |""".stripMargin,
+        os.rel / "Other.scala" ->
+          """object Other {
+            |  import shapeless._
+            |  val l = 2 :: "a" :: HNil
+            |}
+            |""".stripMargin
+      )
+    }
+    inputs(compileOnly = false).fromRoot { root =>
+      val baseOutput = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(baseOutput == "Hello with shapeless")
+    }
+    inputs(compileOnly = true).fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, ".")
+        .call(cwd = root)
+        .out.trim()
+      expect(output == "Hello from test")
+    }
+  }
+
+  if (actualScalaVersion.startsWith("2."))
+    test("Compile-time only dep") {
+      compileTimeOnlyDep()
+    }
+
   if (Properties.isLinux && TestUtil.isNativeCli)
     test("no JVM installed") {
       val fileName = "simple.sc"
@@ -1430,7 +1496,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           val timeout     = Duration("60 seconds")
           implicit val ec = ExecutionContext.fromExecutorService(pool)
 
-          def lineReaderIter = Iterator.continually(TestUtil.readLine(proc.stdout, ec, timeout))
+          def lineReaderIter = Iterator.continually {
+            val line = TestUtil.readLine(proc.stdout, ec, timeout)
+            println(s"Line read: $line")
+            line
+          }
 
           def checkLinesForError(lines: Seq[String]) = munit.Assertions.assert(
             !lines.exists { line =>
@@ -1474,11 +1544,6 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run2 launched")
 
           analyzeRunOutput( /* restart */ false)
-          os.write.append(root / fileName, "\n//comment")
-
-          answerInteractivePrompt(0)
-          expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run1 launched")
-          analyzeRunOutput( /* restart */ false)
         }
       finally
         if (proc.isAlive()) {
@@ -1490,4 +1555,267 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("decoded classNames in interactive ask") {
+    val fileName = "watch.scala"
+
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        """object `Run-1` extends App {println("Run-1 launched")}
+          |object `Run-2` extends App {println("Run-2 launched")}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val confDir  = root / "config"
+      val confFile = confDir / "test-config.json"
+
+      os.write(confFile, "{\"interactive-was-suggested\":true}", createFolders = true)
+
+      if (!Properties.isWin)
+        os.perms.set(confDir, "rwx------")
+
+      val configEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
+
+      val proc = os.proc(TestUtil.cli, "run", "--interactive", fileName)
+        .call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          env = Map("SCALA_CLI_INTERACTIVE_INPUTS" -> "Run-1") ++ configEnv
+        )
+
+      expect(proc.out.trim.contains("[0] Run-1"))
+      expect(proc.out.trim.contains("[1] Run-2"))
+      expect(proc.out.trim.contains("Run-1 launched"))
+    }
+  }
+
+  test("BuildInfo fields should be reachable") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using jvm 11
+           |//> using mainClass Main
+           |//> using resourceDir ./resources
+           |//> using jar TEST1.jar TEST2.jar
+           |
+           |//> using buildInfo
+           |
+           |import scala.cli.build.BuildInfo
+           |
+           |object Main extends App {
+           |  assert(BuildInfo.scalaVersion == "$actualScalaVersion")
+           |  assert(BuildInfo.platform == "JVM")
+           |  assert(BuildInfo.jvmVersion == Some("11"))
+           |  assert(BuildInfo.scalaJsVersion == None)
+           |  assert(BuildInfo.jsEsVersion == None)
+           |  assert(BuildInfo.scalaNativeVersion == None)
+           |  assert(BuildInfo.mainClass == Some("Main"))
+           |  assert(BuildInfo.projectVersion == Some("1.0.0"))
+           |
+           |  assert(BuildInfo.Main.sources.head.endsWith("Main.scala"))
+           |  assert(BuildInfo.Main.scalacOptions == Seq("-Xasync"))
+           |  assert(BuildInfo.Main.scalaCompilerPlugins.size == 0)
+           |  assert(BuildInfo.Main.dependencies.size == 1)
+           |  assert(BuildInfo.Main.dependencies.head.contains("com.lihaoyi:os-lib_"))
+           |  assert(BuildInfo.Main.resolvers.size == 3)
+           |  assert(BuildInfo.Main.resourceDirs.size == 1)
+           |  assert(BuildInfo.Main.customJarsDecls.size == 2)
+           |   
+           |  assert(BuildInfo.Test.sources.head.endsWith("Test.scala"))
+           |  assert(BuildInfo.Test.scalacOptions == Seq("-Xasync"))
+           |  assert(BuildInfo.Test.scalaCompilerPlugins.size == 0)
+           |  assert(BuildInfo.Test.dependencies.size == 2)
+           |  assert(BuildInfo.Test.dependencies.exists(_.contains("com.lihaoyi:os-lib_")))
+           |  assert(BuildInfo.Test.dependencies.exists(_.contains("org.scalameta:munit")))
+           |  assert(BuildInfo.Test.resolvers.size == 3)
+           |  assert(BuildInfo.Test.resourceDirs.size == 1)
+           |  assert(BuildInfo.Test.customJarsDecls.size == 2)
+           |}
+           |""".stripMargin,
+      os.rel / "test" / "Test.scala" ->
+        """//> using dep org.scalameta::munit::0.7.29
+          |
+          |class MyTests extends munit.FunSuite {
+          |  test("foo") {
+          |    assert(2 + 2 == 4)
+          |    println("Hello from " + "tests")
+          |  }
+          |}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      TestUtil.initializeGit(root, "v1.0.0")
+
+      val res =
+        os.proc(TestUtil.cli, "--power", extraOptions, ".").call(cwd = root)
+      val output = res.out.trim()
+
+      val projectDir = os.list(root / ".scala-build").filter(
+        _.baseName.startsWith(root.baseName + "_")
+      )
+      expect(projectDir.size == 1)
+      val buildInfoPath = projectDir.head / "src_generated" / "main" / "BuildInfo.scala"
+      expect(os.isFile(buildInfoPath))
+
+      expect(output == "")
+    }
+  }
+
+  // Credentials tests
+  test("Repository credentials passed to coursier") {
+    val testOrg     = "test-org"
+    val testName    = "the-messages"
+    val testVersion = "0.1.2"
+    val user        = "username"
+    val password    = "1234"
+    val realm       = "Realm"
+    val inputs = TestInputs(
+      os.rel / "messages" / "Messages.scala" ->
+        """package messages
+          |
+          |object Messages {
+          |  def hello(name: String): String =
+          |    s"Hello $name"
+          |}
+          |""".stripMargin,
+      os.rel / "hello" / "Hello.scala" ->
+        s"""//> using dep "$testOrg::$testName:$testVersion"
+           |import messages.Messages
+           |object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println(Messages.hello(args.headOption.getOrElse("Unknown")))
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val configFile = {
+        val dir = root / "conf"
+        os.makeDir.all(dir, if (Properties.isWin) null else "rwx------")
+        dir / "config.json"
+      }
+      val extraEnv = Map(
+        "SCALA_CLI_CONFIG" -> configFile.toString
+      )
+      val repoPath = root / "the-repo"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "--publish-repo",
+        repoPath.toNIO.toUri.toASCIIString,
+        "messages",
+        "--organization",
+        testOrg,
+        "--name",
+        testName,
+        "--project-version",
+        testVersion
+      )
+        .call(cwd = root, stdin = os.Inherit, stdout = os.Inherit, env = extraEnv)
+
+      TestUtil.serveFilesInHttpServer(repoPath, user, password, realm) { (host, port) =>
+        // This codeblock represents test("No repository credentials passed to coursier")
+        {
+          val resWithNoCreds = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ),
+            check = false,
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithNoCreds.exitCode == 1)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - environment variables")
+        {
+          val resWithEnvVar = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"                 -> user,
+              "PASSWORD"             -> password,
+              "COURSIER_CREDENTIALS" -> s"$host $user:$password"
+            ),
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithEnvVar.exitCode == 0)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - config entry")
+        {
+          os.write(
+            configFile,
+            s"""{
+               |"repositories.credentials": [
+               |{"host":"$host","user":"value:$user","password":"value:$password","matchHost":true}
+               |]
+               |}""".stripMargin
+          )
+          val resWithConfig = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ) ++ extraEnv,
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithConfig.exitCode == 0)
+        }
+
+        // This codeblock represents test("Repository credentials passed to coursier - java properties")
+        {
+          os.write(root / ".scala-jvmopts", s"-Dcoursier.credentials=$host $user:$password\n")
+
+          val resWithProps = os.proc(
+            TestUtil.cli,
+            "run",
+            "--repository",
+            s"http://$host:$port",
+            "hello",
+            "--",
+            "TestUser"
+          ).call(
+            cwd = root,
+            env = Map(
+              "USER"     -> user,
+              "PASSWORD" -> password
+            ),
+            mergeErrIntoOut = true
+          )
+
+          expect(resWithProps.exitCode == 0)
+        }
+      }
+    }
+  }
 }

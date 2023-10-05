@@ -4,12 +4,24 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.IOException
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
-import scala.build.options.{BuildOptions, InternalOptions, MaybeScalaVersion, ScalacOpt, Scope}
+import scala.build.options.{
+  BuildOptions,
+  InternalOptions,
+  MaybeScalaVersion,
+  ScalaOptions,
+  ScalacOpt,
+  Scope
+}
 import scala.build.tests.util.BloopServer
 import build.Ops.EitherThrowOps
 import dependency.AnyDependency
 
-import scala.build.errors.ToolkitDirectiveMissingVersionError
+import scala.build.errors.{
+  CompositeBuildException,
+  DependencyFormatError,
+  FetchingDependenciesError,
+  ToolkitDirectiveMissingVersionError
+}
 
 class DirectiveTests extends munit.FunSuite {
 
@@ -48,8 +60,8 @@ class DirectiveTests extends munit.FunSuite {
         assert(position.nonEmpty)
 
         val (startPos, endPos) = position.get match {
-          case Position.File(_, startPos, endPos) => (startPos, endPos)
-          case _                                  => sys.error("cannot happen")
+          case Position.File(_, startPos, endPos, _) => (startPos, endPos)
+          case _                                     => sys.error("cannot happen")
         }
 
         expect(startPos == (0, 15))
@@ -359,4 +371,133 @@ class DirectiveTests extends munit.FunSuite {
     )
   }
 
+  test("include test.resourceDir into sources for test scope") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using test.resourceDir foo
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Test) {
+      (root, _, maybeBuild) =>
+        val build =
+          maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        val resourceDirs = build.sources.resourceDirs
+
+        expect(resourceDirs.nonEmpty)
+        expect(resourceDirs.length == 1)
+        expect(resourceDirs == Seq(root / "foo"))
+    }
+  }
+  test("parse boolean for publish.doc") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using publish.doc false
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (_, _, maybeBuild) =>
+        val build = maybeBuild.orThrow
+        val publishOptionsCI =
+          build.options.notForBloopOptions.publishOptions.contextual(isCi = true)
+        val publishOptionsLocal =
+          build.options.notForBloopOptions.publishOptions.contextual(isCi = false)
+
+        expect(publishOptionsCI.docJar.contains(false))
+        expect(publishOptionsLocal.docJar.contains(false))
+    }
+  }
+
+  test("dependency parsing error with position") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using dep not-a-dep
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.isLeft)
+        val error = maybeBuild.left.toOption.get
+
+        error match {
+          case error: DependencyFormatError =>
+            expect(
+              error.message == "Error parsing dependency 'not-a-dep': malformed module: not-a-dep"
+            )
+            expect(error.positions.length == 1)
+            expect(error.positions.head == Position.File(
+              Right(root / "simple.sc"),
+              (0, 14),
+              (0, 23)
+            ))
+          case _ => fail("unexpected BuildException type")
+        }
+    }
+  }
+
+  test("separate dependency resolution errors for each dependency") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using dep org.xyz::foo:0.0.1
+          |//> using dep com.lihaoyi::os-lib:0.9.1 org.qwerty::bar:0.0.1
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.isLeft)
+        val errors = maybeBuild.left.toOption.get
+
+        errors match {
+          case error: CompositeBuildException =>
+            expect(error.exceptions.length == 2)
+            expect(error.exceptions.forall(_.isInstanceOf[FetchingDependenciesError]))
+            expect(error.exceptions.forall(_.positions.length == 1))
+
+            {
+              val xyzError = error.exceptions.find(_.message.contains("org.xyz")).get
+              expect(xyzError.message.startsWith("Error downloading org.xyz:foo"))
+              expect(!xyzError.message.contains("com.lihaoyi"))
+              expect(!xyzError.message.contains("org.qwerty"))
+              expect(xyzError.positions.head == Position.File(
+                Right(root / "simple.sc"),
+                (0, 14),
+                (0, 32)
+              ))
+            }
+
+            {
+              val qwertyError = error.exceptions.find(_.message.contains("org.qwerty")).get
+              expect(qwertyError.message.contains("Error downloading org.qwerty:bar"))
+              expect(!qwertyError.message.contains("com.lihaoyi"))
+              expect(!qwertyError.message.contains("org.xyz"))
+              expect(qwertyError.positions.head == Position.File(
+                Right(root / "simple.sc"),
+                (1, 40),
+                (1, 61)
+              ))
+            }
+          case _ => fail("unexpected BuildException type")
+        }
+    }
+  }
+
+  test("main scope dependencies propagate to test scope") {
+    val Scala322Options = baseOptions.copy(scalaOptions =
+      ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion("3.2.2"))
+      )
+    )
+
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using target.scala 3.2.2
+          |//> using dep com.lihaoyi::os-lib:0.9.1
+          |""".stripMargin,
+      os.rel / "test" / "test.sc" ->
+        """println(os.list(os.pwd))
+          |""".stripMargin
+    )
+    testInputs.withBuild(Scala322Options, buildThreads, bloopConfigOpt, scope = Scope.Test) {
+      (root, _, maybeBuild) => expect(maybeBuild.exists(_.success))
+    }
+  }
 }

@@ -14,6 +14,7 @@ import java.io.{File, InputStream}
 import java.nio.file.Paths
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.EitherOptOps
 import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
@@ -21,11 +22,10 @@ import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbExcep
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
-import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
-import scala.build.options.{Platform, ScalacOpt, ShadowingSeq}
+import scala.build.options.{ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
@@ -36,9 +36,11 @@ import scala.cli.commands.shared.{
   ScalaJsOptions,
   ScalaNativeOptions,
   SharedOptions,
+  SourceGeneratorOptions,
   SuppressWarningOptions
 }
 import scala.cli.commands.tags
+import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
@@ -50,6 +52,10 @@ import scala.util.control.NonFatal
 
 // format: off
 final case class SharedOptions(
+  @Recurse
+    sharedVersionOptions: SharedVersionOptions = SharedVersionOptions(),
+  @Recurse
+    sourceGenerator: SourceGeneratorOptions = SourceGeneratorOptions(),
   @Recurse
     suppress: SuppressWarningOptions = SuppressWarningOptions(),
   @Recurse
@@ -76,17 +82,17 @@ final case class SharedOptions(
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
   @ValueDescription("version")
-  @Name("scala")
   @Name("S")
+  @Name("scala")
   @Tag(tags.must)
     scalaVersion: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Set the Scala binary version")
   @ValueDescription("version")
   @Hidden
+  @Name("B")
   @Name("scalaBinary")
   @Name("scalaBin")
-  @Name("B")
   @Tag(tags.must)
     scalaBinaryVersion: Option[String] = None,
 
@@ -190,8 +196,8 @@ final case class SharedOptions(
     strictBloopJsonCheck: Option[Boolean] = None,
 
   @Group(HelpGroup.Scala.toString)
-  @Name("output-directory")
   @Name("d")
+  @Name("output-directory")
   @Name("destination")
   @Name("compileOutput")
   @Name("compileOut")
@@ -313,6 +319,15 @@ final case class SharedOptions(
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
     bo.BuildOptions(
+      sourceGeneratorOptions = bo.SourceGeneratorOptions(
+        useBuildInfo = sourceGenerator.useBuildInfo,
+        computeVersion = value {
+          sharedVersionOptions.computeVersion
+            .map(Positioned.commandLine)
+            .map(ComputeVersion.parse)
+            .sequence
+        }
+      ),
       suppressWarningOptions =
         bo.SuppressWarningOptions(
           suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
@@ -371,6 +386,12 @@ final case class SharedOptions(
         extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),
+            ignoreErrors
+          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+        ),
+        extraCompileOnlyDependencies = ShadowingSeq.from(
+          SharedOptions.parseDependencies(
+            dependencies.compileOnlyDependency.map(Positioned.none),
             ignoreErrors
           ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
         )
@@ -491,32 +512,11 @@ final case class SharedOptions(
         .getOrElse(None)
     )
 
-  def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
-    implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
-    val javaHomeManager = options.javaHomeManager
-      .withMessage(s"Downloading JVM $jvmId")
-    val logger = javaHomeManager.cache
-      .flatMap(_.archiveCache.cache.loggerOpt)
-      .getOrElse(_root_.coursier.cache.CacheLogger.nop)
-    val command = {
-      val path = logger.use {
-        try javaHomeManager.get(jvmId).unsafeRun()
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      os.Path(path)
-    }
-    val ext     = if (Properties.isWin) ".exe" else ""
-    val javaCmd = (command / "bin" / s"java$ext").toString
-    javaCmd
-  }
-
   def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
     val options = value(buildOptions(false, None))
     lazy val defaultJvmCmd =
-      downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
-    val javaCmd = compilationServer.bloopJvm.map(downloadJvm(_, options)).orElse {
+      JvmUtils.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
+    val javaCmd = compilationServer.bloopJvm.map(JvmUtils.downloadJvm(_, options)).orElse {
       for (javaHome <- options.javaHomeLocationOpt()) yield {
         val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
         if (javaHomeVersion >= 17) javaHomeCmd
@@ -636,6 +636,7 @@ object SharedOptions {
         path
       }
       .map(ResourceDirectory.apply)
+
     val maybeInputs = Inputs(
       args,
       Os.pwd,

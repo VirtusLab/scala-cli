@@ -17,15 +17,18 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Copy launcher
       run: ./mill -i copyJvmLauncher artifacts/
+      if: runner.os == 'Linux'
+    - name: Copy bootstrapped launcher
+      run: ./mill -i copyJvmBootstrappedLauncher artifacts/
       if: runner.os == 'Linux'
     - uses: actions/upload-artifact@v3
       if: runner.os == 'Linux'
@@ -43,27 +46,29 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
+    - name: Fat jar integration test
+      run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
 
   jvm-tests-2:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
@@ -75,11 +80,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
@@ -91,11 +96,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -118,11 +123,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -142,11 +147,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -166,11 +171,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -189,11 +194,11 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+      - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
         with:
           apps: ""
       - name: Generate native launcher and generate os packages
@@ -207,13 +212,13 @@ jobs:
 
   generate-macos-launcher:
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -234,13 +239,13 @@ jobs:
   native-macos-tests-1:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -258,13 +263,13 @@ jobs:
   native-macos-tests-2:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -282,13 +287,13 @@ jobs:
   native-macos-tests-3:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macos-latest"
+    runs-on: "macos-12"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -308,11 +313,11 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/setup-action@6a582d7f7292a865e72c497ca64c3ef447cdb6c7
+      - uses: coursier/setup-action@48280172a2c999022e42527711d6b28e4945e6f0
         with:
           apps: ""
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -337,11 +342,11 @@ jobs:
     runs-on: "macOS-m1"
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/setup-action@6a582d7f7292a865e72c497ca64c3ef447cdb6c7
+      - uses: coursier/setup-action@48280172a2c999022e42527711d6b28e4945e6f0
         with:
           apps: ""
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
@@ -358,13 +363,13 @@ jobs:
 
   generate-windows-launcher:
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -390,9 +395,9 @@ jobs:
   native-windows-tests-1:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -400,7 +405,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -422,9 +427,9 @@ jobs:
   native-windows-tests-2:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -432,7 +437,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -454,9 +459,9 @@ jobs:
   native-windows-tests-3:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-latest"
+    runs-on: "windows-2019"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
@@ -464,7 +469,7 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -487,11 +492,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -511,11 +516,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -535,7 +540,7 @@ jobs:
       run: ./mill integration.docker-slim.test
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -548,11 +553,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -572,11 +577,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -595,11 +600,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -619,11 +624,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -643,7 +648,7 @@ jobs:
       run: ./mill integration.docker.test
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
-      uses: docker/login-action@v2
+      uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -656,11 +661,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -682,11 +687,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -707,11 +712,11 @@ jobs:
     # for now, let's run those tests only on ubuntu
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "zulu:17"
     - uses: actions/setup-node@v3
@@ -726,11 +731,11 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Check Scala / Scala.js versions in doc
@@ -751,11 +756,11 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
         apps: scalafmt:3.0.0
@@ -765,11 +770,11 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
@@ -785,11 +790,11 @@ jobs:
     timeout-minutes: 120
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Java Version
@@ -807,11 +812,11 @@ jobs:
     timeout-minutes: 120
     runs-on: "ubuntu-20.04"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: Try to export to SBT
@@ -819,14 +824,14 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: windows-latest
+    runs-on: "windows-2019"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
@@ -842,12 +847,12 @@ jobs:
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - name: GPG setup
@@ -905,11 +910,11 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
@@ -964,11 +969,11 @@ jobs:
     runs-on: ubuntu-20.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+      - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1044,14 +1049,14 @@ jobs:
   update-windows-packages:
     name: Update Windows packages
     needs: launchers
-    runs-on: windows-latest
+    runs-on: "windows-2019"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@9bc68588ab2d49dae03e5395a5f411e20914f97e
+    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -1062,3 +1067,9 @@ jobs:
       run: ./mill -i ci.updateChocolateyPackage
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
+    - uses: vedantmgoyal2009/winget-releaser@v2
+      with:
+        identifier: VirtusLab.ScalaCLI
+        installers-regex: '\.msi$'
+        fork-user: scala-steward
+        token: ${{ secrets.STEWARD_WINGET_TOKEN }}

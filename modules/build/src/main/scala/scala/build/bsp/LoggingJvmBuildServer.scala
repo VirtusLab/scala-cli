@@ -7,11 +7,11 @@ import java.util.concurrent.CompletableFuture
 trait LoggingJvmBuildServer extends b.JvmBuildServer {
   protected def underlying: b.JvmBuildServer
 
-  override def jvmRunEnvironment(params: b.JvmRunEnvironmentParams)
+  override def buildTargetJvmRunEnvironment(params: b.JvmRunEnvironmentParams)
     : CompletableFuture[b.JvmRunEnvironmentResult] =
-    underlying.jvmRunEnvironment(pprint.err.log(params)).logF
+    underlying.buildTargetJvmRunEnvironment(pprint.err.log(params)).logF
 
-  override def jvmTestEnvironment(params: b.JvmTestEnvironmentParams)
+  override def buildTargetJvmTestEnvironment(params: b.JvmTestEnvironmentParams)
     : CompletableFuture[b.JvmTestEnvironmentResult] =
-    underlying.jvmTestEnvironment(pprint.err.log(params)).logF
+    underlying.buildTargetJvmTestEnvironment(pprint.err.log(params)).logF
 }

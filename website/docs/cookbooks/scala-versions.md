@@ -75,11 +75,11 @@ and this:
 scala-cli -S 2.12 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.12\.17
+Scala: 2\.12\.18
 -->
 
 In the first example (`-S 2`), the application picks up the latest Scala 2 stable release (`2.13.9` at the time of this writing).
-In the second example, the application picks up the latest stable release of `2.12` (which is `2.12.17` at the time of this writing).
+In the second example, the application picks up the latest stable release of `2.12` (which is `2.12.18` at the time of this writing).
 
 You can also pin the version of the language within a `.scala` file with `using` directives.
 
@@ -103,10 +103,10 @@ scala-cli ScalaVersion.scala version.scala
 ```
 
 <!-- Expected-regex:
-Scala: 2\.12\.17
+Scala: 2\.12\.18
 -->
 
-The output at the time of this writing is "`2.12.17`".
+The output at the time of this writing is "`2.12.18`".
 
 The Scala CLI philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 
@@ -114,7 +114,7 @@ The Scala CLI philosophy is “command line first,” so any configuration infor
 scala-cli -S 2.13.10 ScalaVersion.scala version.scala
 ```
 
-the result is "`2.13.10`" (as opposed to "`2.12.17`" in the previous example).
+the result is "`2.13.10`" (as opposed to "`2.12.18`" in the previous example).
 
 <!-- Expected-regex:
 Scala: 2\.13\.10

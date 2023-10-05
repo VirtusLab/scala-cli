@@ -86,7 +86,7 @@ class ExcludeTests extends munit.FunSuite {
       os.rel / "project.scala" ->
         s"""//> using exclude "Main.scala" """
     )
-    testInputs.withInputs { (_, inputs) =>
+    testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
@@ -94,10 +94,11 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val sources =
+        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+          .orThrow
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
@@ -114,7 +115,7 @@ class ExcludeTests extends munit.FunSuite {
       os.rel / "project.scala" ->
         s"""//> using exclude "$${.}${File.separator}Main.scala" """
     )
-    testInputs.withInputs { (_, inputs) =>
+    testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
@@ -122,10 +123,11 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val sources =
+        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+          .orThrow
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
@@ -142,7 +144,7 @@ class ExcludeTests extends munit.FunSuite {
       os.rel / "project.scala" ->
         """//> using exclude "src/*.scala" """
     )
-    testInputs.withInputs { (_, inputs) =>
+    testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
@@ -150,10 +152,11 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val sources =
+        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+          .orThrow
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
@@ -170,7 +173,7 @@ class ExcludeTests extends munit.FunSuite {
       os.rel / "project.scala" ->
         """//> using exclude "src/*.scala" """
     )
-    testInputs.withInputs { (_, inputs) =>
+    testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
         CrossSources.forInputs(
           inputs,
@@ -178,10 +181,11 @@ class ExcludeTests extends munit.FunSuite {
           TestLogger(),
           SuppressWarningOptions()
         )(using ScalaCliInvokeData.dummy).orThrow
-      val scopedSources = crossSources.withWrappedScripts(BuildOptions())
-        .scopedSources(BuildOptions())
+      val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
-      val sources = scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()))
+      val sources =
+        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+          .orThrow
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)

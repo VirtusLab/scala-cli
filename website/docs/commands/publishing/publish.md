@@ -81,6 +81,17 @@ To override this default value, set the `publish.computeVersion` directive, like
 //> using publish.computeVersion git:tag
 ```
 
+Please note that only tags that follow the semantic versioning are taken into consideration.
+
+Values available for project version configuration are:
+- `git:tag` or `git`: use the latest stable git tag, if it is older than HEAD then try to increment it
+  and add a suffix `-SNAPSHOT`, if no tag is available then use `0.1.0-SNAPSHOT`
+- `git:dynver`: use the latest (stable or unstable) git tag, if it is older than HEAD then use the output of
+  `-{distance from last tag}-g{shortened version of HEAD commit hash}-SNAPSHOT`, if no tag is available then use `0.1.0-SNAPSHOT`
+
+The difference between stable and unstable tags are, that the latter can contain letters, e.g. `v0.1.0-RC1`.
+It is also possible to specify the path to the repository, e.g. `git:tag:../my-repo`, `git:dynver:../my-repo`.
+
 ## Repository settings
 
 A repository is required for the `publish` command, and might need other settings to work fine
@@ -117,6 +128,7 @@ provided as a convenience.
 | URL | `publish.url` | `--url` | | |
 | VCS | `publish.vcs` | `--vcs` | `github:VirtusLab/scala-cli`, `https://github.com/VirtusLab/scala-cli.git` |scm:git:github.com/VirtusLab/scala-cli.git|scm:git:git@github.com:VirtusLab/scala-cli.git` | |
 | Developers | `publish.developer` | `--developer` | <code>alexme&vert;Alex Me&vert;https://alex.me</code> | Can be specified multiple times, using directives and CLI values add up |
+| Docs       | `publish.doc`       | `--doc`             | `--doc=false`, `//> using doc false`                                       | Use to disable publishing docs jar.                                     |
 
 ### Signing
 

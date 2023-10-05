@@ -3,6 +3,9 @@ package scala.build
 import coursier.cache.ArchiveCache
 import coursier.util.Task
 
+import java.nio.charset.StandardCharsets
+
+import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}
@@ -28,12 +31,17 @@ final case class Sources(
     )
   }
 
+  /** Write all in-memory sources to disk.
+    *
+    * @param generatedSrcRoot
+    *   the root directory where the sources should be written
+    */
   def generateSources(generatedSrcRoot: os.Path): Seq[GeneratedSource] = {
     val generated =
       for (inMemSource <- inMemory) yield {
         os.write.over(
           generatedSrcRoot / inMemSource.generatedRelPath,
-          inMemSource.generatedContent.getBytes("UTF-8"),
+          inMemSource.content,
           createFolders = true
         )
         (
@@ -69,7 +77,7 @@ object Sources {
   final case class InMemory(
     originalPath: Either[String, (os.SubPath, os.Path)],
     generatedRelPath: os.RelPath,
-    generatedContent: String,
+    content: Array[Byte],
     wrapperParamsOpt: Option[WrapperParams]
   )
 
@@ -80,14 +88,17 @@ object Sources {
   ) {
     def wrap(wrapper: CodeWrapper): InMemory = {
       val (content, wrapperParams) = wrapScriptFun(wrapper)
-      InMemory(originalPath, generatedRelPath, content, Some(wrapperParams))
+      InMemory(
+        originalPath,
+        generatedRelPath,
+        content.getBytes(StandardCharsets.UTF_8),
+        Some(wrapperParams)
+      )
     }
   }
 
   /** The default preprocessor list.
     *
-    * @param codeWrapper
-    *   used by the Scala script preprocessor to "wrap" user code
     * @param archiveCache
     *   used from native launchers by the Java preprocessor, to download a java-class-name binary,
     *   used to infer the class name of unnamed Java sources (like stdin)

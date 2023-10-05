@@ -15,7 +15,8 @@ object Position {
   final case class File(
     path: Either[String, os.Path],
     startPos: (Int, Int),
-    endPos: (Int, Int)
+    endPos: (Int, Int),
+    offset: Int = 0
   ) extends Position {
     def render(cwd: os.Path, sep: String): String = {
       val p = path match {

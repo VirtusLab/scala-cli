@@ -7,12 +7,13 @@ import dependency.NoAttributes
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
+import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
-import scala.cli.util.SeqHelpers._
+import scala.cli.util.SeqHelpers.*
 
 final case class MillProjectDescriptor(
   millVersion: String,
@@ -21,11 +22,9 @@ final case class MillProjectDescriptor(
   logger: Logger
 ) extends ProjectDescriptor {
 
-  private val charSet = StandardCharsets.UTF_8
-
   private def sourcesSettings(mainSources: Sources, testSources: Sources): MillProject = {
-    val mainSources0 = ProjectDescriptor.sources(mainSources, charSet)
-    val testSources0 = ProjectDescriptor.sources(testSources, charSet)
+    val mainSources0 = ProjectDescriptor.sources(mainSources)
+    val testSources0 = ProjectDescriptor.sources(testSources)
     MillProject(mainSources = mainSources0, testSources = testSources0)
   }
 
@@ -35,7 +34,7 @@ final case class MillProjectDescriptor(
       !options.scalaOptions.addScalaCompiler.contains(true) &&
       sources.paths.forall(_._1.last.endsWith(".java")) &&
       sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
-      options.classPathOptions.extraDependencies.toSeq
+      options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
     val sv = options.scalaOptions.scalaVersion
@@ -81,8 +80,17 @@ final case class MillProjectDescriptor(
     testOptions: BuildOptions
   ): MillProject = {
     val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val compileMainDeps =
+      mainOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
     val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
-    MillProject(mainDeps = mainDeps.toSeq, testDeps = testDeps.toSeq)
+    val compileTestDeps =
+      testOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
+    MillProject(
+      mainDeps = mainDeps.toSeq,
+      mainCompileOnlyDeps = compileMainDeps.toSeq,
+      testDeps = testDeps.toSeq,
+      testCompileOnlyDeps = compileTestDeps.toSeq
+    )
   }
 
   private def repositorySettings(options: BuildOptions): MillProject = {
@@ -166,7 +174,7 @@ final case class MillProjectDescriptor(
     optionsTest: BuildOptions,
     sourcesMain: Sources,
     sourcesTest: Sources
-  ): MillProject = {
+  ): Either[BuildException, MillProject] = {
 
     // FIXME Put a sensible value in MillProject.nameOpt
 
@@ -195,6 +203,6 @@ final case class MillProjectDescriptor(
       testFrameworkSettings(optionsTest)
     )
 
-    settings.foldLeft(MillProject())(_ + _)
+    Right(settings.foldLeft(MillProject())(_ + _))
   }
 }

@@ -47,8 +47,7 @@ final case class JavaPreprocessor(
           val content: String = value(PreprocessingUtil.maybeRead(j.path))
           val scopePath       = ScopePath.fromPath(j.path)
           val preprocessedDirectives: PreprocessedDirectives = value {
-            DirectivesPreprocessor.preprocess(
-              content,
+            DirectivesPreprocessor(
               Right(j.path),
               scopePath,
               logger,
@@ -56,6 +55,7 @@ final case class JavaPreprocessor(
               suppressWarningOptions,
               maybeRecoverOnError
             )
+              .preprocess(content)
           }
           Seq(PreprocessedSource.OnDisk(
             path = j.path,
@@ -89,20 +89,21 @@ final case class JavaPreprocessor(
             else v.subPath
           val content = new String(v.content, StandardCharsets.UTF_8)
           val preprocessedDirectives: PreprocessedDirectives = value {
-            DirectivesPreprocessor.preprocess(
-              content,
+            DirectivesPreprocessor(
               Left(relPath.toString),
               v.scopePath,
               logger,
               allowRestrictedFeatures,
               suppressWarningOptions,
               maybeRecoverOnError
+            ).preprocess(
+              content
             )
           }
           val s = PreprocessedSource.InMemory(
             originalPath = Left(v.source),
             relPath = relPath,
-            code = content,
+            content = v.content,
             wrapperParamsOpt = None,
             options = Some(preprocessedDirectives.globalUsings),
             optionsWithTargetRequirements = preprocessedDirectives.usingsWithReqs,

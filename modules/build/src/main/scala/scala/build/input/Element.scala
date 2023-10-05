@@ -28,12 +28,19 @@ sealed abstract class Virtual extends SingleElement {
 }
 
 object Virtual {
+  val urlPathWithQueryParamsRegex = "https?://.*/([^/^?]+)(/?.*)?$".r
   def apply(path: String, content: Array[Byte]): Virtual = {
-    val wrapperPath = os.sub / path.split("/").last
-    if path.endsWith(".scala") then VirtualScalaFile(content, path)
-    else if path.endsWith(".java") then VirtualJavaFile(content, path)
-    else if path.endsWith(".sc") then VirtualScript(content, path, wrapperPath)
-    else if path.endsWith(".md") then VirtualMarkdownFile(content, path, wrapperPath)
+    val filename = path match {
+      case urlPathWithQueryParamsRegex(name, _) => name
+      case _                                    => path.split("/").last
+    }
+
+    val wrapperPath = os.sub / filename
+
+    if filename.endsWith(".scala") then VirtualScalaFile(content, path)
+    else if filename.endsWith(".java") then VirtualJavaFile(content, path)
+    else if filename.endsWith(".sc") then VirtualScript(content, path, wrapperPath)
+    else if filename.endsWith(".md") then VirtualMarkdownFile(content, path, wrapperPath)
     else VirtualData(content, path)
   }
 }

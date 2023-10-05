@@ -141,8 +141,8 @@ object Doc extends ScalaCommand[DocOptions] {
         build.project.scaladocDir
       case Some(scalaParams) =>
         val res = value {
-          Artifacts.fetch(
-            Positioned.none(Seq(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
+          Artifacts.fetchAnyDependencies(
+            Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
             value(build.options.finalRepositories),
             Some(scalaParams),
             logger,

@@ -2,6 +2,10 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.charset.{Charset, StandardCharsets}
+
+import scala.cli.integration.TestInputs.compress
+
 trait RunZipTestDefinitions { _: RunTestDefinitions =>
   test("Zip with multiple Scala files") {
     val inputs = TestInputs(
@@ -22,6 +26,47 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
         .call(cwd = root)
         .out.trim()
       expect(output == message)
+    }
+  }
+  test("load virtual data with UTF_16 encoding") {
+    val zipInputs: Seq[(os.RelPath, String, Charset)] = Seq(
+      (
+        os.rel / "Hello.scala",
+        s"""//> using resourceDir "./"
+           |import scala.io.Source
+           |import java.nio.charset.StandardCharsets
+           |import java.io.{BufferedReader, InputStreamReader}
+           |import java.util.stream.Collectors
+           |
+           |object Hello extends App {
+           |    val inputStream = getClass().getResourceAsStream("input")
+           |    val nativeResourceText = new BufferedReader(
+           |      new InputStreamReader(inputStream, StandardCharsets.UTF_16)
+           |    ).lines().collect(Collectors.joining("\\n"));
+           |    println(nativeResourceText)
+           |}
+           |""".stripMargin,
+        StandardCharsets.UTF_8
+      ),
+      (
+        os.rel / "input",
+        s"""1
+           |2
+           |""".stripMargin,
+        StandardCharsets.UTF_16
+      )
+    )
+    TestInputs().fromRoot { root =>
+      val zipArchivePath = root / "hello.zip"
+      compress(zipArchivePath, zipInputs)
+
+      val output = os.proc(TestUtil.cli, extraOptions, zipArchivePath.toString)
+        .call(cwd = root)
+        .out.trim()
+
+      val expectedOutput = "1\n2"
+
+      expect(output == expectedOutput)
     }
   }
 

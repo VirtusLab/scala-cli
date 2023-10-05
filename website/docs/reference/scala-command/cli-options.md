@@ -178,6 +178,14 @@ Aliases: `--remove`
 
 Remove an entry from config
 
+### `--force`
+
+Aliases: `-f`
+
+`SHOULD have` per Scala Runner specification
+
+Force overwriting values for key
+
 ## Debug options
 
 Available in commands:
@@ -219,6 +227,14 @@ Aliases: `--dep`
 `MUST have` per Scala Runner specification
 
 Add dependencies
+
+### `--compile-only-dependency`
+
+Aliases: `--compile-dep`, `--compile-lib`
+
+`MUST have` per Scala Runner specification
+
+Add compile-only dependencies
 
 ### `--repository`
 
@@ -354,7 +370,7 @@ Aliases: `--fmt-version`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass scalafmt version before running it (3.7.4 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.14 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -676,7 +692,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 `SHOULD have` per Scala Runner specification
 
-The Scala.js version (1.13.1 by default).
+The Scala.js version (1.13.2 by default).
 
 ### `--js-mode`
 
@@ -764,7 +780,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.13.1 by default).
+Scala.js CLI version to use for linking (1.13.2 by default).
 
 ### `--js-cli-java-arg`
 
@@ -796,7 +812,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.4.12 by default).
+Set the Scala Native version (0.4.15 by default).
 
 ### `--native-mode`
 
@@ -918,7 +934,7 @@ Aliases: `-S`, `--scala`
 
 `MUST have` per Scala Runner specification
 
-Set the Scala version (3.3.0 by default)
+Set the Scala version (3.3.1 by default)
 
 ### `--scala-binary-version`
 
@@ -930,7 +946,7 @@ Set the Scala binary version
 
 ### `--extra-jars`
 
-Aliases: `--class`, `--class-path`, `--classes`, `--classpath`, `-classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
+Aliases: `--class`, `--class-path`, `--classes`, `-classpath`, `--classpath`, `-cp`, `--extra-class`, `--extra-class-path`, `--extra-classes`, `--extra-jar`, `--jar`, `--jars`
 
 `MUST have` per Scala Runner specification
 
@@ -1248,7 +1264,7 @@ Enable actionable diagnostics
 
 Available in commands:
 
-[`version`](./commands.md#version)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`version`](./commands.md#version)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 

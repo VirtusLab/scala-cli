@@ -7,6 +7,15 @@ import scala.util.Properties
 
 class SipScalaTests extends ScalaCliSuite {
 
+  implicit class StringEnrichment(s: String) {
+    def containsExperimentalWarningOf(featureNameAndType: String): Boolean =
+      s.contains(s"The $featureNameAndType is experimental") ||
+      s.linesIterator
+        .dropWhile(!_.endsWith("are marked as experimental:"))
+        .takeWhile(_ != "Please bear in mind that non-ideal user experience should be expected.")
+        .contains(s" - $featureNameAndType")
+  }
+
   implicit class BinaryNameOps(binaryName: String) {
     def prepareBinary(root: os.Path): os.Path = {
       val cliPath    = os.Path(TestUtil.cliPath, os.pwd)
@@ -32,7 +41,7 @@ class SipScalaTests extends ScalaCliSuite {
         os.proc(TestUtil.cli, "config", configKey, disableSetting)
           .call(cwd = root, env = homeEnv)
         testWhenDisabled(root, homeEnv)
-        os.proc(TestUtil.cli, "config", configKey, "true")
+        os.proc(TestUtil.cli, "config", configKey, "true", "-f")
           .call(cwd = root, env = homeEnv)
         testWhenEnabled(root, homeEnv)
       }
@@ -53,29 +62,38 @@ class SipScalaTests extends ScalaCliSuite {
       else expect(res.exitCode == 0)
     }
 
-  def testExportCommand(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
-    TestInputs.empty.fromRoot { root =>
+  def testExportCommand(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit = {
+    val inputs = TestInputs(
+      os.rel / "HelloWorld.scala" ->
+        """//> using scala 3.0.0
+          |object HelloWorld extends App { println(\"Hello World\") }
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
       val res = os.proc(
         TestUtil.cli,
         powerArgs(isPowerMode),
         "export",
-        suppressExperimentalWarningArgs(areWarningsSuppressed)
+        suppressExperimentalWarningArgs(areWarningsSuppressed),
+        "."
       ).call(
         cwd = root,
         check = false,
         stderr = os.Pipe
       )
       val errOutput = res.err.trim()
-      expect(res.exitCode == 1)
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
           expect(errOutput.contains("The `export` sub-command is experimental."))
+          expect(res.exitCode == 1)
         case (true, false) =>
-          expect(errOutput.contains("The `export` sub-command is experimental."))
+          expect(errOutput.containsExperimentalWarningOf("`export` sub-command"))
         case (true, true) =>
-          expect(!errOutput.contains("The `export` sub-command is experimental."))
+          expect(!errOutput.containsExperimentalWarningOf("`export` sub-command"))
       }
     }
+  }
 
   def testConfigCommand(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
@@ -101,8 +119,8 @@ class SipScalaTests extends ScalaCliSuite {
             "The `repositories.default` configuration key is restricted."
           ))
           expect(configPublishUserResult.exitCode == 1)
-          expect(configPublishUserErrOutput.contains(
-            "The `publish.user.name` configuration key is experimental."
+          expect(configPublishUserErrOutput.containsExperimentalWarningOf(
+            "`publish.user.name` configuration key"
           ))
         case (true, false) =>
           expect(configProxyResult.exitCode == 0)
@@ -110,8 +128,8 @@ class SipScalaTests extends ScalaCliSuite {
             "The `repositories.default` configuration key is restricted."
           ))
           expect(configPublishUserResult.exitCode == 0)
-          expect(configPublishUserErrOutput.contains(
-            "The `publish.user.name` configuration key is experimental."
+          expect(configPublishUserErrOutput.containsExperimentalWarningOf(
+            "`publish.user.name` configuration key"
           ))
         case (true, true) =>
           expect(configProxyResult.exitCode == 0)
@@ -120,7 +138,7 @@ class SipScalaTests extends ScalaCliSuite {
           ))
           expect(configPublishUserResult.exitCode == 0)
           expect(!configPublishUserErrOutput.contains(
-            "The `publish.user.name` configuration key is experimental."
+            "`publish.user.name` configuration key"
           ))
       }
     }
@@ -156,11 +174,12 @@ class SipScalaTests extends ScalaCliSuite {
       }
     }
 
-  def testPublishDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
+  def testExperimentalDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val code =
         """
           | //> using publish.name "my-library"
+          | //> using python
           | class A
           |""".stripMargin
 
@@ -180,20 +199,23 @@ class SipScalaTests extends ScalaCliSuite {
       )
 
       val errOutput = res.err.trim()
+
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
           expect(res.exitCode == 1)
           expect(errOutput.contains(s"directive is experimental"))
         case (true, false) =>
           expect(res.exitCode == 0)
-          expect(errOutput.contains(
-            """The `//> using publish.name "my-library"` directive is experimental."""
+          expect(errOutput.containsExperimentalWarningOf(
+            "`//> using publish.name \"my-library\"`"
           ))
+          expect(errOutput.containsExperimentalWarningOf("`//> using python`"))
         case (true, true) =>
           expect(res.exitCode == 0)
-          expect(!errOutput.contains(
-            """The `//> using publish.name "my-library"` directive is experimental."""
+          expect(!errOutput.containsExperimentalWarningOf(
+            "`//> using publish.name \"my-library\"`"
           ))
+          expect(!errOutput.containsExperimentalWarningOf("`//> using python`"))
       }
     }
 
@@ -225,14 +247,15 @@ class SipScalaTests extends ScalaCliSuite {
       isPowerMode -> areWarningsSuppressed match {
         case (false, _) =>
           expect(res.exitCode == 1)
-          expect(errOutput.contains(s"option is experimental"))
-          expect(errOutput.contains("--markdown"))
+          expect(
+            errOutput.contains("Unrecognized argument: The `--markdown` option is experimental.")
+          )
         case (true, false) =>
           expect(res.exitCode == 0)
-          expect(errOutput.contains("The `--markdown` option is experimental."))
+          expect(errOutput.containsExperimentalWarningOf("`--markdown` option"))
         case (true, true) =>
           expect(res.exitCode == 0)
-          expect(!errOutput.contains("The `--markdown` option is experimental."))
+          expect(!errOutput.containsExperimentalWarningOf("`--markdown` option"))
       }
     }
 
@@ -281,11 +304,11 @@ class SipScalaTests extends ScalaCliSuite {
       testWhenDisabled =
         (root, homeEnv) => {
           val errOutput = callExperimentalFeature(root, homeEnv).err.trim()
-          expect(errOutput.contains(s"$featureType is experimental."))
+          expect(errOutput.containsExperimentalWarningOf(featureType))
         },
       testWhenEnabled = (root, homeEnv) => {
         val errOutput = callExperimentalFeature(root, homeEnv).err.trim()
-        expect(!errOutput.contains(s"$featureType is experimental."))
+        expect(!errOutput.containsExperimentalWarningOf(featureType))
       }
     )
   }
@@ -308,9 +331,9 @@ class SipScalaTests extends ScalaCliSuite {
       warningsSuppressedString = if (warningsSuppressed) "suppressed" else "not suppressed"
     } {
       test(
-        s"test publish directives when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
+        s"test experimental directives when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
       ) {
-        testPublishDirectives(isPowerMode, warningsSuppressed)
+        testExperimentalDirectives(isPowerMode, warningsSuppressed)
       }
       test(
         s"test markdown options when power mode is $powerModeString and experimental warnings are $warningsSuppressedString"
@@ -341,7 +364,7 @@ class SipScalaTests extends ScalaCliSuite {
   }
 
   test("test global config suppressing warnings for an experimental sub-command") {
-    testConfigSuppressingExperimentalFeatureWarnings("sub-command") {
+    testConfigSuppressingExperimentalFeatureWarnings("`export` sub-command") {
       (root: os.Path, homeEnv: Map[String, String]) =>
         val res = os.proc(TestUtil.cli, "--power", "export")
           .call(cwd = root, check = false, env = homeEnv, stderr = os.Pipe)
@@ -350,14 +373,16 @@ class SipScalaTests extends ScalaCliSuite {
     }
   }
   test("test global config suppressing warnings for an experimental option") {
-    testConfigSuppressingExperimentalFeatureWarnings("option") {
+    testConfigSuppressingExperimentalFeatureWarnings("`--md` option") {
       (root: os.Path, homeEnv: Map[String, String]) =>
         os.proc(TestUtil.cli, "--power", "-e", "println()", "--md")
           .call(cwd = root, env = homeEnv, stderr = os.Pipe)
     }
   }
   test("test global config suppressing warnings for an experimental directive") {
-    testConfigSuppressingExperimentalFeatureWarnings("directive") {
+    testConfigSuppressingExperimentalFeatureWarnings(
+      "`//> using publish.name \"my-library\"` directive"
+    ) {
       (root: os.Path, homeEnv: Map[String, String]) =>
         val quote = TestUtil.argQuotationMark
         os.proc(TestUtil.cli, "--power", "-e", s"//> using publish.name ${quote}my-library$quote")
@@ -365,7 +390,7 @@ class SipScalaTests extends ScalaCliSuite {
     }
   }
   test("test global config suppressing warnings for an experimental configuration key") {
-    testConfigSuppressingExperimentalFeatureWarnings("configuration key") {
+    testConfigSuppressingExperimentalFeatureWarnings("`publish.user.name` configuration key") {
       (root: os.Path, homeEnv: Map[String, String]) =>
         os.proc(TestUtil.cli, "--power", "config", "publish.user.name")
           .call(cwd = root, env = homeEnv, stderr = os.Pipe)
@@ -391,4 +416,46 @@ class SipScalaTests extends ScalaCliSuite {
         }
       )
     }
+
+  test("test multiple sources of experimental features") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """//> using target.scope main
+          |//> using target.platform jvm
+          |//> using publish.name "my-library"
+          |
+          |object Main {
+          |  def main(args: Array[String]): Unit = {
+          |    println("Hello World!")
+          |  }
+          |}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      val output = res.out.trim
+
+      assertNoDiff(
+        output,
+        s"""Some utilized features are marked as experimental:
+           | - `export` sub-command
+           | - `--object-wrapper` option
+           | - `--md` option
+           |Please bear in mind that non-ideal user experience should be expected.
+           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+           |Exporting to a sbt project...
+           |Some utilized directives are marked as experimental:
+           | - `//> using publish.name "my-library"`
+           | - `//> using target.scope "main"`
+           | - `//> using target.platform "jvm"`
+           |Please bear in mind that non-ideal user experience should be expected.
+           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+           |Exported to: ${root / "dest"}
+           |""".stripMargin
+      )
+    }
+  }
 }

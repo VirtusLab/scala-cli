@@ -12,7 +12,7 @@ import scala.util.{Failure, Success, Try}
 @DirectiveExamples("//> using javaHome /Users/Me/jdks/11")
 @DirectiveUsage(
   "//> using javaHome _path_",
-  "`//> using javaHome `_path_"
+  "`//> using javaHome` _path_"
 )
 @DirectiveDescription("Sets Java home used to run your application or tests")
 @DirectiveLevel(SpecificationLevel.SHOULD)

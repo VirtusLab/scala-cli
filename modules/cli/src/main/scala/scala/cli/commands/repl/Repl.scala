@@ -112,8 +112,8 @@ object Repl extends ScalaCommand[ReplOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val threads = BuildThreads.create()
-
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    // compilerMaker should be a lazy val to prevent download a JAVA 17 for bloop when users run the repl without sources
+    lazy val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
 
     val directories = Directories.directories
 
@@ -283,11 +283,10 @@ object Repl extends ScalaCommand[ReplOptions] {
     val cache             = options.internal.cache.getOrElse(FileCache())
     val shouldUseAmmonite = options.notForBloopOptions.replOptions.useAmmonite
 
-    val scalaParams = artifacts.scalaOpt
-      .getOrElse {
-        sys.error("Expected Scala artifacts to be fetched")
-      }
-      .params
+    val scalaParams = artifacts.scalaOpt match {
+      case Some(artifacts) => artifacts.params
+      case None            => ScalaParameters(Constants.defaultScalaVersion)
+    }
 
     val (scalapyJavaOpts, scalapyExtraEnv) =
       if (setupPython) {

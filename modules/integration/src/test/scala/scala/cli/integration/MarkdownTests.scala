@@ -284,4 +284,21 @@ class MarkdownTests extends ScalaCliSuite {
       expect(result.out.trim() == expectedOutput)
     }
   }
+  test("source file name start with a number") {
+    val fileNameWithNumber = "01-intro.md"
+    TestInputs(
+      os.rel / fileNameWithNumber ->
+        s"""# Introduction
+           |
+           |Welcome to the tutorial!
+           |
+           |```scala
+           |println("Hello")
+           |```
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, fileNameWithNumber).call(cwd = root)
+      expect(result.out.trim() == "Hello")
+    }
+  }
 }

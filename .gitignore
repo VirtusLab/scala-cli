@@ -7,3 +7,4 @@ out/
 .bsp
 .scala-build
 dest/
+target/

@@ -17,6 +17,8 @@ case class Name(raw: String) {
 
 object Name {
 
+  def decoded(name: String) = NameTransformer.decode(name)
+
   val alphaKeywords = Set(
     "abstract",
     "case",

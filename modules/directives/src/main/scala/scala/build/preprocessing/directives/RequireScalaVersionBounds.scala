@@ -12,7 +12,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using target.scala.< 3.0.2")
 @DirectiveUsage(
   "//> using target.scala.>= _version_",
-  "`//> using target.scala.>= `_version_"
+  "`//> using target.scala.>=` _version_"
 )
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class RequireScalaVersionBounds(

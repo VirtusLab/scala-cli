@@ -1,12 +1,13 @@
 package scala.build
 
 import bloop.rifle.BloopRifleLogger
-import org.scalajs.logging.{Logger => ScalaJsLogger}
+import org.scalajs.logging.Logger as ScalaJsLogger
 
 import java.io.PrintStream
 
 import scala.build.errors.{BuildException, Diagnostic}
-import scala.scalanative.{build => sn}
+import scala.build.internals.FeatureType
+import scala.scalanative.build as sn
 
 class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   private val diagBuilder = List.newBuilder[Diagnostic]
@@ -39,4 +40,9 @@ class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   def compilerOutputStream: PrintStream = parent.compilerOutputStream
 
   def verbosity: Int = parent.verbosity
+
+  def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
+    parent.experimentalWarning(featureName, featureType)
+
+  def flushExperimentalWarnings: Unit = parent.flushExperimentalWarnings
 }

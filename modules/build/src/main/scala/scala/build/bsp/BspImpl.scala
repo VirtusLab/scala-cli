@@ -13,7 +13,6 @@ import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
-import scala.build.actionable.ActionablePreprocessor
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{
   BuildException,
@@ -112,21 +111,26 @@ final class BspImpl(
       ).left.map((_, Scope.Main))
     }
 
-    val wrappedScriptsSources = crossSources.withWrappedScripts(buildOptions)
+    val sharedOptions = crossSources.sharedOptions(buildOptions)
 
     if (verbosity >= 3)
-      pprint.err.log(wrappedScriptsSources)
+      pprint.err.log(crossSources)
 
     val scopedSources =
-      value(wrappedScriptsSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
+      value(crossSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
 
     if (verbosity >= 3)
       pprint.err.log(scopedSources)
 
-    val sourcesMain =
-      scopedSources.sources(Scope.Main, wrappedScriptsSources.sharedOptions(buildOptions))
-    val sourcesTest =
-      scopedSources.sources(Scope.Test, wrappedScriptsSources.sharedOptions(buildOptions))
+    val sourcesMain = value {
+      scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace)
+        .left.map((_, Scope.Main))
+    }
+
+    val sourcesTest = value {
+      scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace)
+        .left.map((_, Scope.Test))
+    }
 
     if (verbosity >= 3)
       pprint.err.log(sourcesMain)
@@ -310,7 +314,7 @@ final class BspImpl(
           val taskStartParams = new b.TaskStartParams(taskId)
           taskStartParams.setEventTime(System.currentTimeMillis())
           taskStartParams.setMessage(s"Preprocessing '$target'")
-          taskStartParams.setDataKind(b.TaskDataKind.COMPILE_TASK)
+          taskStartParams.setDataKind(b.TaskStartDataKind.COMPILE_TASK)
           taskStartParams.setData(new b.CompileTask(targetId))
 
           actualLocalClient.onBuildTaskStart(taskStartParams)
@@ -323,7 +327,7 @@ final class BspImpl(
           val taskFinishParams = new b.TaskFinishParams(taskId, b.StatusCode.ERROR)
           taskFinishParams.setEventTime(System.currentTimeMillis())
           taskFinishParams.setMessage(s"Preprocessed '$target'")
-          taskFinishParams.setDataKind(b.TaskDataKind.COMPILE_REPORT)
+          taskFinishParams.setDataKind(b.TaskFinishDataKind.COMPILE_REPORT)
 
           val errorSize = ex match {
             case c: CompositeBuildException => c.exceptions.size
@@ -490,9 +494,7 @@ final class BspImpl(
       .create()
     val remoteClient = launcher.getRemoteProxy
     actualLocalClient.forwardToOpt = Some(remoteClient)
-    actualLocalServer.onConnectWithClient(actualLocalClient)
 
-    localClient.onConnectWithServer(currentBloopSession.remoteServer.bloopServer.server)
     actualLocalClient.newInputs(initialInputs)
     currentBloopSession.resetDiagnostics(actualLocalClient)
 
@@ -569,7 +571,6 @@ final class BspImpl(
     bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
     currentBloopSession.dispose()
     actualLocalClient.newInputs(newInputs)
-    localClient.onConnectWithServer(newBloopSession0.remoteServer.bloopServer.server)
 
     newBloopSession0.resetDiagnostics(actualLocalClient)
     prepareBuild(newBloopSession0, reloadableOptions) match {

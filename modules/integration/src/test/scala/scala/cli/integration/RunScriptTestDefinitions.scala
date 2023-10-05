@@ -517,50 +517,32 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           .contains("Annotation @main in .sc scripts is not supported"))
       }
     }
+  }
 
-    test("object-wrapped script forced") {
-      val inputs = TestInputs(
-        os.rel / "script.sc" ->
-          """//> using dep "com.lihaoyi::os-lib:0.9.1"
-            |@main def main(args: String*): Unit = println("Hello")
-            |""".stripMargin,
-        os.rel / "script-with-directive.sc" ->
-          """//> using dep "com.lihaoyi::os-lib:0.9.1"
-            |//> using object.wrapper
-            |@main def main(args: String*): Unit = println("Hello")
-            |""".stripMargin,
-        os.rel / "munit.sc" ->
-          """//> using scala  "3.2.2"
-            |//> using dep "org.scalatest::scalatest:3.2.15"
-            |
-            |import org.scalatest.*, flatspec.*, matchers.*
-            |
-            |class PiTest extends AnyFlatSpec with should.Matchers {
-            |  "pi calculus" should "return a precise enough pi value" in {
-            |    math.Pi shouldBe 3.14158d +- 0.001d
-            |  }
-            |}
-            |org.scalatest.tools.Runner.main(Array("-oDF", "-s", classOf[PiTest].getName))""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "--power", "script.sc", "munit.sc", "--object-wrapper")
-          .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
+  test("script wrappers satisfy strict compiler flags") {
+    val inputs = TestInputs(
+      os.rel / "strictClassWrapper.sc" ->
+      """//> using scala 3.3.1
+        |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
+        |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
+        |//> using options -new-syntax -old-syntax -unchecked -no-indent
+        |
+        |println(strictObjectWrapper.Foo(42).x)
+        |""".stripMargin,
 
-        val outputNormalized: String = normalizeConsoleOutput(res.out.text())
-
-        expect(outputNormalized.contains(
-          "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
-        ))
-
-        val directiveRes = os.proc(TestUtil.cli, "--power", "script-with-directive.sc", "munit.sc")
-          .call(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
-
-        val directiveOutputNormalized: String = normalizeConsoleOutput(directiveRes.out.text())
-
-        expect(directiveOutputNormalized.contains(
-          "[warn]  Annotation @main in .sc scripts is not supported, it will be ignored, use .scala format instead"
-        ))
-      }
+      os.rel / "strictObjectWrapper.sc" ->
+      """//> using objectWrapper
+        |//> using scala 3.3.1
+        |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
+        |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
+        |//> using options -new-syntax -old-syntax -unchecked -no-indent
+        |
+        |case class Foo(x: Int)
+        |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val p = os.proc(TestUtil.cli, "--power", "strictClassWrapper.sc", "strictObjectWrapper.sc").call(cwd = root)
+      expect(p.out.trim() == "42")
     }
   }
 }

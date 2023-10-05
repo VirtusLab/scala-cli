@@ -31,9 +31,10 @@ import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassF
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{ComputeVersion, Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
+  ComputeVersion,
   ConfigMonoid,
   PublishContextualOptions,
   ScalaSigningCliOptions,
@@ -49,7 +50,8 @@ import scala.cli.commands.shared.{
   HelpGroup,
   MainClassOptions,
   SharedOptions,
-  SharedPythonOptions
+  SharedPythonOptions,
+  SharedVersionOptions
 }
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
@@ -84,6 +86,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
   def mkBuildOptions(
     baseOptions: BuildOptions,
+    sharedVersionOptions: SharedVersionOptions,
     publishParams: PublishParamsOptions,
     sharedPublish: SharedPublishOptions,
     publishRepo: PublishRepositoryOptions,
@@ -110,7 +113,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           .sequence
       },
       computeVersion = value {
-        publishParams.computeVersion
+        sharedVersionOptions.computeVersion
           .map(Positioned.commandLine)
           .map(ComputeVersion.parse)
           .sequence
@@ -131,7 +134,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           moduleName =
             publishParams.moduleName.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           version =
-            publishParams.version.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
+            sharedVersionOptions.projectVersion.map(_.trim).filter(_.nonEmpty).map(
+              Positioned.commandLine
+            ),
           url = publishParams.url.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
           license = value {
             publishParams.license
@@ -169,7 +174,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )),
           signingCli = ScalaSigningCliOptions(
             signingCliVersion = scalaSigning.signingCliVersion,
-            useJvm = scalaSigning.forceJvmSigningCli,
+            forceExternal = scalaSigning.forceSigningExternally,
+            forceJvm = scalaSigning.forceJvmSigningCli,
             javaArgs = scalaSigning.signingCliJavaArg
           )
         )
@@ -201,6 +207,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val initialBuildOptions = mkBuildOptions(
       baseOptions,
+      options.shared.sharedVersionOptions,
       options.publishParams,
       options.sharedPublish,
       options.publishRepo,
@@ -241,7 +248,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       workingDir,
       ivy2HomeOpt,
       publishLocal = false,
-      forceSigningBinary = options.sharedPublish.forceSigningBinary,
+      forceSigningExternally = options.signingCli.forceSigningExternally.getOrElse(false),
       parallelUpload = options.parallelUpload,
       options.watch.watch,
       isCi = options.publishParams.isCi,
@@ -263,7 +270,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     workingDir: => os.Path,
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     watch: Boolean,
     isCi: Boolean,
@@ -295,7 +302,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             publishLocal,
             logger,
             allowExit = false,
-            forceSigningBinary = forceSigningBinary,
+            forceSigningExternally = forceSigningExternally,
             parallelUpload = parallelUpload,
             isCi = isCi,
             configDb,
@@ -327,7 +334,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         publishLocal,
         logger,
         allowExit = true,
-        forceSigningBinary = forceSigningBinary,
+        forceSigningExternally = forceSigningExternally,
         parallelUpload = parallelUpload,
         isCi = isCi,
         configDb,
@@ -363,7 +370,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     name
   }
   def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
-    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false))
+    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
     else None
   def defaultVersionError =
     new MissingPublishOptionError("version", "--version", "publish.version")
@@ -380,7 +387,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     publishLocal: Boolean,
     logger: Logger,
     allowExit: Boolean,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -416,7 +423,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               ivy2HomeOpt,
               publishLocal,
               logger,
-              forceSigningBinary,
+              forceSigningExternally,
               parallelUpload,
               isCi,
               configDb,
@@ -722,7 +729,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     ivy2HomeOpt: Option[os.Path],
     publishLocal: Boolean,
     logger: Logger,
-    forceSigningBinary: Boolean,
+    forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
     isCi: Boolean,
     configDb: () => ConfigDb,
@@ -868,28 +875,20 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           fileCache,
           archiveCache,
           logger,
-          () => builds.head.options.javaHome().value.javaCommand,
-          publishOptions.signingCli
+          buildOptions.getOrElse(BuildOptions())
         ) match {
           case Left(e)              => throw new Exception(e)
           case Right(binaryCommand) => binaryCommand.toArray
         }
       }
 
-      if (forceSigningBinary)
-        (new scala.cli.internal.BouncycastleSignerMakerSubst).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
-      else
-        (new BouncycastleSignerMaker).get(
-          secretKeyPasswordOpt.fold(null)(_.toCliSigning),
-          secretKey.toCliSigning,
-          getLauncher,
-          logger
-        )
+      (new BouncycastleSignerMaker).get(
+        forceSigningExternally,
+        secretKeyPasswordOpt.fold(null)(_.toCliSigning),
+        secretKey.toCliSigning,
+        getLauncher,
+        logger
+      )
     }
 
     val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {

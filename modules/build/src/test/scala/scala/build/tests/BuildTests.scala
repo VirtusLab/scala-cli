@@ -2,6 +2,7 @@ package scala.build.tests
 
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
+import com.google.gson.Gson
 import coursier.cache.ArtifactError
 import dependency.parser.DependencyParser
 
@@ -28,6 +29,7 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo, Positioned}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
+import scala.jdk.CollectionConverters.*
 
 abstract class BuildTests(server: Boolean) extends munit.FunSuite {
 
@@ -373,6 +375,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         val d     = new bsp4j.Diagnostic(range, "not found: value zz")
         d.setSource("bloop")
         d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
+        val bScalaDiagnostic = new bsp4j.ScalaDiagnostic
+        bScalaDiagnostic.setActions(List().asJava)
+        d.setData(new Gson().toJsonTree(bScalaDiagnostic))
         d
       }
       val diagnostics = maybeBuild.orThrow.diagnostics
@@ -402,6 +407,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           val d     = new bsp4j.Diagnostic(range, "Not found: zz")
           d.setSource("bloop")
           d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
+          val bScalaDiagnostic = new bsp4j.ScalaDiagnostic
+          bScalaDiagnostic.setActions(List().asJava)
+          d.setData(new Gson().toJsonTree(bScalaDiagnostic))
           d
         }
         val diagnostics = maybeBuild.orThrow.diagnostics
@@ -603,7 +611,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
 
     val parsedCliDependency = DependencyParser.parse(cliDependency).getOrElse(
-      throw new DependencyFormatError(cliDependency, "")
+      throw new DependencyFormatError(cliDependency, "", Nil)
     )
 
     // Emulates options derived from cli

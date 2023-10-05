@@ -16,11 +16,18 @@ final case class SharedDependencyOptions(
     dependency: List[String] = Nil,
 
   @Group(HelpGroup.Dependency.toString)
+  @HelpMessage("Add compile-only dependencies")
+  @Tag(tags.must)
+  @Name("compileDep")
+  @Name("compileLib")
+    compileOnlyDependency: List[String] = Nil,
+
+  @Group(HelpGroup.Dependency.toString)
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
   @HelpMessage(Repository.usageMsg)
-  @Name("repo")
   @Name("r")
+  @Name("repo")
     repository: List[String] = Nil,
   @Group(HelpGroup.Scala.toString)
   @Name("P")

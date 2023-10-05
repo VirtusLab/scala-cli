@@ -66,6 +66,8 @@ scala-cli --power config publish.user.email "alex@alex.me"
 scala-cli --power config publish.user.url "https://alex.me"
 ```
 
+<!-- clear -->
+
 The email can be left empty if you'd rather not put your email in POM files:
 ```bash
 scala-cli --power config publish.user.email ""
