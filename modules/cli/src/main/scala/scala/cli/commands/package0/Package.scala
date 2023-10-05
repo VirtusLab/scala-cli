@@ -1123,7 +1123,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
          */
 
         destPath.flatMap(_.lastOpt).toSeq.flatMap { filename =>
-          Seq("--linking-option", s"-Wl,-install_name,$filename")
+          val linkerOption= 
+            if Properties.isLinux then  s"-Wl,-soname,$filename" else s"-Wl,-install_name,$filename"
+          Seq("--linking-option", linkerOption)
         }
       }.toSeq.flatten
 
