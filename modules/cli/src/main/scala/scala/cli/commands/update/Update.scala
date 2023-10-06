@@ -79,7 +79,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
 
     val installationScript =
-      ProcUtil.downloadFile("https://virtuslab.github.io/scala-cli-packages/scala-setup.sh")
+      ProcUtil.downloadFile("https://scala-cli.virtuslab.org/get")
 
     // format: off
     val res = os.proc(
@@ -128,7 +128,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     else if (isOutdated)
       println(
         s"""Your $fullRunnerName $currentVersion is outdated, please update $fullRunnerName to $newestScalaCliVersion0
-           |Run 'curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh' to update $fullRunnerName.""".stripMargin
+           |Run 'curl -sSLf https://scala-cli.virtuslab.org/get | sh' to update $fullRunnerName.""".stripMargin
       )
   }
 
