@@ -85,7 +85,7 @@ class BuildServerProxy(
     bspServer().buildTargetOutputPaths(params)
 
   /** As Bloop doesn't support `workspace/reload` requests and we have to reload it on Scala CLI's
-    * end, this is used instead of [[BspServer]]'s [[BspServerForwardStubs]].workspaceReload().
+    * end, this is used instead of [[BspServer]]'s [[BuildServerForwardStubs]].workspaceReload().
     */
   override def workspaceReload(): CompletableFuture[AnyRef] =
     onReload()

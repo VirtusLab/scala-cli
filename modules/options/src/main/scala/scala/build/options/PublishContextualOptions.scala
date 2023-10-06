@@ -19,7 +19,12 @@ final case class PublishContextualOptions(
   repoPassword: Option[PasswordOption] = None,
   repoRealm: Option[String] = None,
   computeVersion: Option[ComputeVersion] = None,
-  checksums: Option[Seq[String]] = None
+  checksums: Option[Seq[String]] = None,
+  connectionTimeoutRetries: Option[Int] = None,
+  connectionTimeoutSeconds: Option[Int] = None,
+  responseTimeoutSeconds: Option[Int] = None,
+  stagingRepoRetries: Option[Int] = None,
+  stagingRepoWaitTimeMilis: Option[Int] = None
 )
 
 object PublishContextualOptions {

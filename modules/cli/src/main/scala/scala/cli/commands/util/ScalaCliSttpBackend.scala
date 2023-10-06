@@ -1,10 +1,12 @@
 package scala.cli.commands.util
 
 import sttp.capabilities.Effect
-import sttp.client3._
+import sttp.client3.*
 import sttp.monad.MonadError
 
 import scala.build.Logger
+import scala.concurrent.duration
+import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
 
 class ScalaCliSttpBackend(
@@ -38,9 +40,14 @@ class ScalaCliSttpBackend(
 }
 
 object ScalaCliSttpBackend {
-  def httpURLConnection(logger: Logger): ScalaCliSttpBackend =
+  def httpURLConnection(logger: Logger, timeoutSeconds: Option[Int] = None): ScalaCliSttpBackend =
     new ScalaCliSttpBackend(
-      HttpURLConnectionBackend(),
+      HttpURLConnectionBackend(
+        options = timeoutSeconds
+          .fold(SttpBackendOptions.Default)(t =>
+            SttpBackendOptions.connectionTimeout(FiniteDuration(t, duration.SECONDS))
+          )
+      ),
       logger
     )
 }
