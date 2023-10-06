@@ -18,7 +18,9 @@ import scala.util.Try
     |`//> using files` _path1_ _path2_ …
     |""".stripMargin
 )
-@DirectiveDescription("Manually add sources to the project")
+@DirectiveDescription(
+  "Manually add sources to the project. Does not support chaining, sources are added only once, not recursively."
+)
 @DirectiveLevel(SpecificationLevel.SHOULD)
 // format: off
 final case class Sources(

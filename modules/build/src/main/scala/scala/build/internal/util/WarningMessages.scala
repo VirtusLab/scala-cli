@@ -95,4 +95,7 @@ object WarningMessages {
       "directive",
       handler.scalaSpecificationLevel
     )
+
+  val chainingUsingFileDirective: String =
+    "Chaining the 'using file' directive is not supported, the source won't be included in the build."
 }

@@ -1663,7 +1663,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   // Credentials tests
-  test("Repository credentials passed to coursier") {
+  test("repository credentials passed to coursier") {
     val testOrg     = "test-org"
     val testName    = "the-messages"
     val testVersion = "0.1.2"
@@ -1816,6 +1816,69 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(resWithProps.exitCode == 0)
         }
       }
+    }
+  }
+
+  test("warn about transitive `using file` directive") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """//> using file "bar/Bar.scala"
+          |//> using file "abc/Abc.scala"
+          |object Main extends App {
+          | println(Bar(42))
+          |}
+          |""".stripMargin,
+      os.rel / "bar" / "Bar.scala" ->
+        """//> using file "xyz/Xyz.scala"
+          |//> using file "xyz/NonExistent.scala"
+          |case class Bar(x: Int)
+          |""".stripMargin,
+      os.rel / "abc" / "Abc.scala" ->
+        """//> using file "xyz/Xyz.scala"
+          |//> using file "xyz/NonExistent.scala"
+          |case class Abc(x: Int)
+          |""".stripMargin,
+      os.rel / "xyz" / "Xyz.scala" ->
+        """val xyz = 42
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "Main.scala",
+        "--suppress-directives-in-multiple-files-warning"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      val output = TestUtil.removeAnsiColors(res.out.trim())
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/Xyz.scala"
+          |[warn]                 ^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/NonExistent.scala"
+          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/Xyz.scala"
+          |[warn]                 ^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/NonExistent.scala"
+          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
     }
   }
 }
