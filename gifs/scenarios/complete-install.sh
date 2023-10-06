@@ -25,7 +25,7 @@ else
 
   doSleep 2
   
-  pe "curl -sSLf https://virtuslab.github.io/scala-cli-packages/scala-setup.sh | sh"
+  pe "curl -sSLf https://scala-cli.virtuslab.org/get | sh"
   pe 'source ~/.profile'
   pe "echo 'println(\"Hello from scala-cli\")' | scala-cli -"
 
