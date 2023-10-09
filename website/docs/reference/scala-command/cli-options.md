@@ -648,6 +648,20 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
 
 List main classes available in the current context
 
+## Power options
+
+Available in commands:
+
+[`clean`](./commands.md#clean), [`config`](./commands.md#config), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--power`
+
+`MUST have` per Scala Runner specification
+
+When called as 'scala', allow to use power commands too
+
 ## Run options
 
 Available in commands:

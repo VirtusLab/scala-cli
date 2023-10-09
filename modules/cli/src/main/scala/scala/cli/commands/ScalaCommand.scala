@@ -41,6 +41,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   override def hasFullHelp = true
   override def hidden      = shouldExcludeInSip
   protected var argvOpt    = Option.empty[Array[String]]
+
   private val shouldExcludeInSip =
     (isRestricted || isExperimental) && !ScalaCli.allowRestrictedFeatures
   override def setArgv(argv: Array[String]): Unit = {

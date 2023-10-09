@@ -2,11 +2,19 @@ package scala.cli.commands.shared
 
 import caseapp.*
 
+import scala.cli.launcher.PowerOptions
+
 case class GlobalOptions(
   @Recurse
   logging: LoggingOptions = LoggingOptions(),
   @Recurse
-  globalSuppress: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions()
+  globalSuppress: GlobalSuppressWarningOptions = GlobalSuppressWarningOptions(),
+
+  /** Duplication of [[scala.cli.launcher.LauncherOptions.powerOptions]]. Thanks to this, our unit
+    * tests ensure that no subcommand defines an option that will clash with --power.
+    */
+  @Recurse
+  powerOptions: PowerOptions = PowerOptions()
 )
 
 object GlobalOptions {

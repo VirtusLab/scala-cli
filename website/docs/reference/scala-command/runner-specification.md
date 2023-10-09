@@ -628,6 +628,12 @@ Available keys:
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 ### SHOULD have options
 
 **--debug**
@@ -4183,6 +4189,12 @@ Scala version defined by the runner.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4795,6 +4807,12 @@ Passed inputs will establish the Scala CLI project, for which the workspace will
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4874,6 +4892,12 @@ Directory where .scala-build is written
 
 Print help message
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4940,6 +4964,12 @@ Aliases: `install-completions`
 Installs Scala CLI completions into your shell
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
+
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 <details><summary>
 
@@ -5031,6 +5061,12 @@ Print completions to stdout
 **IMPLEMENTATION specific for Scala Runner specification.**
 
 Install Scala CLI in a sub-directory of the home directory
+
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 <details><summary>
 
@@ -5660,6 +5696,12 @@ Uninstalls Scala CLI.
 Works only when installed with the installation script.
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5829,6 +5871,12 @@ Uninstalls Scala CLI completions from your shell.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5907,6 +5955,12 @@ Works only when installed with the installation script.
 If Scala CLI was installed with an external tool, refer to its update methods.
 
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
+
+### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 <details><summary>
 

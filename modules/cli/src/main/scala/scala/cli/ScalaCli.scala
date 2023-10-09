@@ -234,15 +234,13 @@ object ScalaCli {
               isSipScala = false
               args0.toArray
             else
-              // .ignoreUnrecognized drops '--'
-              val programArgs = args0.dropWhile(_ != "--")
-              val optionArgs  = args0.takeWhile(_ != "--")
-              // Parse again to consume --power at any position
-              PowerOptions.parser.ignoreUnrecognized.parse(optionArgs) match {
-                case Right((powerOptions, unrecognizedArgs)) =>
+              // Parse again to register --power at any position
+              // Don't consume it, GlobalOptions parsing will do it
+              PowerOptions.parser.ignoreUnrecognized.parse(args0) match {
+                case Right((powerOptions, _)) =>
                   if powerOptions.power then
                     isSipScala = false
-                  (unrecognizedArgs ++ programArgs).toArray
+                  args0.toArray
                 case Left(e) =>
                   System.err.println(e.message)
                   sys.exit(1)

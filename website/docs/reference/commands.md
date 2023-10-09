@@ -14,7 +14,7 @@ Passed inputs will establish the Scala CLI project, for which the workspace will
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
-Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
+Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
 ## compile
 
@@ -73,7 +73,7 @@ Available keys:
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
-Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## dependency-update
 
@@ -160,7 +160,7 @@ Accepts option groups: [compilation server](./cli-options.md#compilation-server-
 
 Print help message
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## install completions
 
@@ -170,7 +170,7 @@ Installs Scala CLI completions into your shell
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## new
 
@@ -184,7 +184,7 @@ The `new` sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## repl
 
@@ -275,7 +275,7 @@ The `publish-setup` sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
+Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [power](./cli-options.md#power-options), [publish params](./cli-options.md#publish-params-options), [publish repository](./cli-options.md#publish-repository-options), [publish setup](./cli-options.md#publish-setup-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
 
 ## run
 
@@ -316,7 +316,7 @@ The `secret-create` sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [secret](./cli-options.md#secret-options), [secret create](./cli-options.md#secret-create-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## github secret list
 
@@ -328,7 +328,7 @@ The `secret-list` sub-command is experimental.
 Please bear in mind that non-ideal user experience should be expected.
 If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [secret](./cli-options.md#secret-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## setup-ide
 
@@ -411,7 +411,7 @@ Uninstalls Scala CLI.
 Works only when installed with the installation script.
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [uninstall](./cli-options.md#uninstall-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [uninstall](./cli-options.md#uninstall-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## uninstall completions
 
@@ -421,7 +421,7 @@ Uninstalls Scala CLI completions from your shell.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## update
 
@@ -431,7 +431,7 @@ If Scala CLI was installed with an external tool, refer to its update methods.
 
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 
 ## version
 
@@ -445,7 +445,7 @@ Scala version defined by the runner.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
 ## Hidden commands
 
@@ -453,7 +453,7 @@ Accepts option groups: [global suppress warning](./cli-options.md#global-suppres
 
 Add entries to the PATH environment variable.
 
-Accepts option groups: [add path](./cli-options.md#add-path-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [add path](./cli-options.md#add-path-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop
 
@@ -465,7 +465,7 @@ If Bloop isn't currently running, it will be started.
 Bloop is the build server used by Scala CLI.
 For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
-Accepts option groups: [bloop](./cli-options.md#bloop-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [bloop](./cli-options.md#bloop-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop exit
 
@@ -474,7 +474,7 @@ Stop Bloop if an instance is running.
 Bloop is the build server used by Scala CLI.
 For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop output
 
@@ -483,7 +483,7 @@ Print Bloop output.
 Bloop is the build server used by Scala CLI.
 For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bloop start
 
@@ -492,7 +492,7 @@ Starts a Bloop instance, if none is running.
 Bloop is the build server used by Scala CLI.
 For more information about Bloop, refer to https://scalacenter.github.io/bloop/
 
-Accepts option groups: [bloop start](./cli-options.md#bloop-start-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [bloop start](./cli-options.md#bloop-start-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### bsp
 
@@ -514,27 +514,27 @@ Generates default files for a Scala CLI project (i.e. .gitignore).
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/misc/default-file
 
-Accepts option groups: [default file](./cli-options.md#default-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [default file](./cli-options.md#default-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### directories
 
 Prints directories used by Scala CLI.
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### install-home
 
 Install Scala CLI in a sub-directory of the home directory
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp pull
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp pull](./cli-options.md#pgp-pull-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [pgp pull](./cli-options.md#pgp-pull-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp push
 
-Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push](./cli-options.md#pgp-push-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp push](./cli-options.md#pgp-push-options), [pgp push pull](./cli-options.md#pgp-push-pull-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### pgp create
 

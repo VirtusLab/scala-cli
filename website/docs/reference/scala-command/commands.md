@@ -72,7 +72,7 @@ Available keys:
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
-Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [config](./cli-options.md#config-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [pgp scala signing](./cli-options.md#pgp-scala-signing-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### doc
 
@@ -222,7 +222,7 @@ Scala version defined by the runner.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options)
 
 ## Implementation-specific commands
 
@@ -250,13 +250,13 @@ Passed inputs will establish the Scala CLI project, for which the workspace will
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
-Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
+Accepts option groups: [bsp file](./cli-options.md#bsp-file-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options), [workspace](./cli-options.md#workspace-options)
 
 ### help
 
 Print help message
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### install completions
 
@@ -266,13 +266,13 @@ Installs Scala CLI completions into your shell
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install completions](./cli-options.md#install-completions-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### install-home
 
 Install Scala CLI in a sub-directory of the home directory
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [install home](./cli-options.md#install-home-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### setup-ide
 
@@ -300,7 +300,7 @@ Uninstalls Scala CLI.
 Works only when installed with the installation script.
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [uninstall](./cli-options.md#uninstall-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [uninstall](./cli-options.md#uninstall-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### uninstall completions
 
@@ -310,7 +310,7 @@ Uninstalls Scala CLI completions from your shell.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [uninstall completions](./cli-options.md#uninstall-completions-options), [verbosity](./cli-options.md#verbosity-options)
 
 ### update
 
@@ -320,5 +320,5 @@ If Scala CLI was installed with an external tool, refer to its update methods.
 
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
-Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
+Accepts option groups: [global suppress warning](./cli-options.md#global-suppress-warning-options), [logging](./cli-options.md#logging-options), [power](./cli-options.md#power-options), [update](./cli-options.md#update-options), [verbosity](./cli-options.md#verbosity-options)
 

@@ -932,6 +932,18 @@ Available in commands:
 
 Key server to push / pull keys from
 
+## Power options
+
+Available in commands:
+
+[`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`clean`](./commands.md#clean), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`directories`](./commands.md#directories), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`new`](./commands.md#new), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish setup`](./commands.md#publish-setup), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--power`
+
+When called as 'scala', allow to use power commands too
+
 ## Publish options
 
 Available in commands:
