@@ -152,6 +152,16 @@ Print the resulting class path
 
 Compile test scope
 
+### `--some-option`
+
+some option
+
+### `--duplicate-option`
+
+Aliases: `--some-option`
+
+duplicate
+
 ## Config options
 
 Available in commands:
@@ -1509,6 +1519,12 @@ Exclude sources
 ### `--object-wrapper`
 
 Force object wrapper for scripts
+
+### `--duplicate-option`
+
+Aliases: `--some-option`
+
+duplicate
 
 ## Snippet options
 

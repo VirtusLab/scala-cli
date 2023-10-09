@@ -35,7 +35,18 @@ final case class CompileOptions(
   @HelpMessage("Compile test scope")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
-    test: Boolean = false
+    test: Boolean = false,
+
+  @Group(HelpGroup.Compilation.toString)
+  @HelpMessage("some option")
+  @Tag(tags.should)
+    someOption: Boolean = false,
+
+  @Group(HelpGroup.Compilation.toString)
+  @HelpMessage("duplicate")
+  @Tag(tags.should)
+  @Name("someOption")
+    duplicateOption: Boolean = false
 ) extends HasSharedOptions
   // format: on
 

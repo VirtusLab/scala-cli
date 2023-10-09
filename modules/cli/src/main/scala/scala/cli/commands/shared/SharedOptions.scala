@@ -217,6 +217,12 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+
+  @Group(HelpGroup.Compilation.toString)
+  @HelpMessage("duplicate")
+  @Tag(tags.should)
+  @Name("someOption")
+   duplicateOption: Boolean = false
 ) extends HasGlobalOptions {
   // format: on
 

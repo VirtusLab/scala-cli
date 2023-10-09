@@ -156,6 +156,20 @@ Print the resulting class path
 
 Compile test scope
 
+### `--some-option`
+
+`SHOULD have` per Scala Runner specification
+
+some option
+
+### `--duplicate-option`
+
+Aliases: `--some-option`
+
+`SHOULD have` per Scala Runner specification
+
+duplicate
+
 ## Config options
 
 Available in commands:
@@ -1031,6 +1045,14 @@ Add toolkit to classPath
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Exclude sources
+
+### `--duplicate-option`
+
+Aliases: `--some-option`
+
+`SHOULD have` per Scala Runner specification
+
+duplicate
 
 ## Snippet options
 

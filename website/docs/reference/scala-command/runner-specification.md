@@ -264,6 +264,12 @@ Specify platform
 
 Generate SemanticDBs
 
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -285,6 +291,16 @@ Aliases: `-p` ,`--print-classpath`
 **--test**
 
 Compile test scope
+
+**--some-option**
+
+some option
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 <details><summary>
 
@@ -993,6 +1009,12 @@ Specify platform
 
 Generate SemanticDBs
 
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1531,6 +1553,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 **--watch**
 
@@ -2096,6 +2124,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 **--watch**
 
@@ -2681,6 +2715,12 @@ Specify platform
 
 Generate SemanticDBs
 
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -3240,6 +3280,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 **--check**
 
@@ -3837,6 +3883,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 **--watch**
 
@@ -4479,6 +4531,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 <details><summary>
 
@@ -5334,6 +5392,12 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+**--duplicate-option**
+
+duplicate
+
+Aliases: `--some-option`
 
 <details><summary>
 
