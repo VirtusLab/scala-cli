@@ -522,26 +522,30 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   test("script wrappers satisfy strict compiler flags") {
     val inputs = TestInputs(
       os.rel / "strictClassWrapper.sc" ->
-      """//> using scala 3.3.1
-        |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
-        |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
-        |//> using options -new-syntax -old-syntax -unchecked -no-indent
-        |
-        |println(strictObjectWrapper.Foo(42).x)
-        |""".stripMargin,
-
+        """//> using scala 3.3.1
+          |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
+          |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
+          |//> using options -new-syntax -old-syntax -unchecked -no-indent
+          |
+          |println(strictObjectWrapper.Foo(42).x)
+          |""".stripMargin,
       os.rel / "strictObjectWrapper.sc" ->
-      """//> using objectWrapper
-        |//> using scala 3.3.1
-        |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
-        |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
-        |//> using options -new-syntax -old-syntax -unchecked -no-indent
-        |
-        |case class Foo(x: Int)
-        |""".stripMargin
+        """//> using objectWrapper
+          |//> using scala 3.3.1
+          |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
+          |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
+          |//> using options -new-syntax -old-syntax -unchecked -no-indent
+          |
+          |case class Foo(x: Int)
+          |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val p = os.proc(TestUtil.cli, "--power", "strictClassWrapper.sc", "strictObjectWrapper.sc").call(cwd = root)
+      val p = os.proc(
+        TestUtil.cli,
+        "--power",
+        "strictClassWrapper.sc",
+        "strictObjectWrapper.sc"
+      ).call(cwd = root)
       expect(p.out.trim() == "42")
     }
   }

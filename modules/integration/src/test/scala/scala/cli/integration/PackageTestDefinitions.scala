@@ -469,14 +469,17 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def libraryNativeTest(shared: Boolean = false): Unit = {
-    val fileName     = "simple.sc"
-    val nativeTarget = if (shared) "dynamic" else "static"
+  def libraryNativeTest(
+    shared: Boolean = false,
+    commandLineShared: Option[Boolean] = None
+  ): Unit = {
+    val fileName              = "simple.sc"
+    val directiveNativeTarget = if (shared) "dynamic" else "static"
     val inputs = TestInputs(
       os.rel / fileName ->
         s"""
            |//> using platform scala-native
-           |//> using nativeTarget $nativeTarget
+           |//> using nativeTarget $directiveNativeTarget
            |import scala.scalanative.unsafe._
            |object myLib{
            |  @exported
@@ -495,8 +498,14 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       fileName.stripSuffix(".sc") + ext
     }
 
+    val nativeTargetOpts = commandLineShared match {
+      case Some(true)  => Seq("--native-target", "shared")
+      case Some(false) => Seq("--native-target", "dynamic")
+      case None        => Seq.empty
+    }
+
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, fileName).call(
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, nativeTargetOpts, fileName).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -513,6 +522,10 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
     test("dynamic library native") {
       libraryNativeTest(shared = true)
+    }
+
+    test("dynamic library native override from command line") {
+      libraryNativeTest(shared = false, commandLineShared = Some(false))
     }
 
     // To produce a static library, `LLVM_BIN` environment variable needs to be

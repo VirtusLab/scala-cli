@@ -273,7 +273,8 @@ final case class SharedOptions(
       nativeLinkingDefaults,
       nativeCompile,
       nativeCompileDefaults,
-      embedResources
+      embedResources,
+      nativeTarget
     )
   }
 
