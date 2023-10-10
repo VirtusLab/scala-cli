@@ -490,7 +490,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     )
     val destName = {
       val ext =
-        if (!shared)
+        if (!shared && !commandLineShared.getOrElse(false))
           if (Properties.isWin) ".lib" else ".a"
         else if (Properties.isWin) ".dll"
         else if (Properties.isMac) ".dylib"
@@ -499,8 +499,8 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
     val nativeTargetOpts = commandLineShared match {
-      case Some(true)  => Seq("--native-target", "shared")
-      case Some(false) => Seq("--native-target", "dynamic")
+      case Some(true)  => Seq("--native-target", "dynamic")
+      case Some(false) => Seq("--native-target", "static")
       case None        => Seq.empty
     }
 
@@ -525,7 +525,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
     test("dynamic library native override from command line") {
-      libraryNativeTest(shared = false, commandLineShared = Some(false))
+      libraryNativeTest(shared = false, commandLineShared = Some(true))
     }
 
     // To produce a static library, `LLVM_BIN` environment variable needs to be
