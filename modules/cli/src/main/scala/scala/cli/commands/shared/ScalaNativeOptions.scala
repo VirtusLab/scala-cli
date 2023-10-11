@@ -62,6 +62,12 @@ final case class ScalaNativeOptions(
     nativeCompileDefaults: Option[Boolean] = None, //TODO does it even work when we default it to true while handling?
 
   @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("Build target type")
+  @Tag(tags.should)
+  @ValueDescription("app|static|dynamic")
+    nativeTarget: Option[String] = None,
+
+  @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Embed resources into the Scala Native binary (can be read with the Java resources API)")
    @Tag(tags.should)
     embedResources: Option[Boolean] = None

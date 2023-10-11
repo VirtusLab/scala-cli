@@ -15,7 +15,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
-import scala.build.options.{BuildOptions, JavaOpt, Platform, ScalacOpt}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.publish.ConfigUtil.*
@@ -665,7 +665,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     mainClass: String,
     logger: Logger
   )(f: os.Path => T): Either[BuildException, T] =
-    Package.buildNative(build, mainClass, logger).map(f)
+    Package.buildNative(
+      build = build,
+      mainClass = Some(mainClass),
+      targetType = PackageType.Native.Application,
+      destPath = None,
+      logger = logger
+    ).map(f)
 
   final class PythonDetectionError(cause: Throwable) extends BuildException(
         s"Error detecting Python environment: ${cause.getMessage}",

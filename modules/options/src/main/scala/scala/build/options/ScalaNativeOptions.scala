@@ -9,6 +9,24 @@ import scala.build.internal.Constants
 import scala.scalanative.build.LTO
 import scala.scalanative.{build => sn}
 
+enum ScalaNativeTarget:
+  case Application, LibraryDynamic, LibraryStatic
+
+  def toBuildTarget: sn.BuildTarget =
+    this match
+      case Application    => sn.BuildTarget.application
+      case LibraryDynamic => sn.BuildTarget.libraryDynamic
+      case libraryStatic  => sn.BuildTarget.libraryStatic
+
+object ScalaNativeTarget:
+  import ScalaNativeTarget.*
+  def fromString(str: String): Option[ScalaNativeTarget] =
+    str match
+      case "application" | "app"                    => Some(Application)
+      case "library-dynamic" | "dynamic" | "shared" => Some(LibraryDynamic)
+      case "library-static" | "static"              => Some(LibraryStatic)
+      case _                                        => None
+
 final case class ScalaNativeOptions(
   version: Option[String] = None,
   modeStr: Option[String] = None,
@@ -20,12 +38,26 @@ final case class ScalaNativeOptions(
   linkingDefaults: Option[Boolean] = None,
   compileOptions: List[String] = Nil,
   compileDefaults: Option[Boolean] = None,
-  embedResources: Option[Boolean] = None
+  embedResources: Option[Boolean] = None,
+  buildTargetStr: Option[String] = None
 ) {
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
 
   def numeralVersion = SNNumeralVersion.parse(finalVersion)
+
+  def target(): Option[ScalaNativeTarget] =
+    buildTargetStr.flatMap(ScalaNativeTarget.fromString)
+
+  private def targetCliOption(): List[String] =
+    import ScalaNativeTarget.*
+    val targ = target().map {
+      case Application    => "application"
+      case LibraryDynamic => "library-dynamic"
+      case LibraryStatic  => "library-static"
+    }
+
+    targ.toList.flatMap(opt => List("--build-target", opt))
 
   private def gc(): sn.GC =
     gcStr.map(_.trim).filter(_.nonEmpty) match {
@@ -123,7 +155,8 @@ final case class ScalaNativeOptions(
       clangppCliOption() ++
       linkingCliOptions() ++
       compileCliOptions() ++
-      resourcesCliOptions(resourcesExist)
+      resourcesCliOptions(resourcesExist) ++
+      targetCliOption()
 
 }
 

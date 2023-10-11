@@ -868,6 +868,12 @@ List of compile options
 
 Use default compile options
 
+### `--native-target`
+
+`SHOULD have` per Scala Runner specification
+
+Build target type
+
 ### `--embed-resources`
 
 `SHOULD have` per Scala Runner specification

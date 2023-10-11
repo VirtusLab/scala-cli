@@ -469,10 +469,73 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  if (!Properties.isWin && actualScalaVersion.startsWith("2.13"))
+  def libraryNativeTest(
+    shared: Boolean = false,
+    commandLineShared: Option[Boolean] = None
+  ): Unit = {
+    val fileName              = "simple.sc"
+    val directiveNativeTarget = if (shared) "dynamic" else "static"
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        s"""
+           |//> using platform scala-native
+           |//> using nativeTarget $directiveNativeTarget
+           |import scala.scalanative.unsafe._
+           |object myLib{
+           |  @exported
+           |  def addLongs(l: Long, r: Long): Long = l + r
+           |  @exported("mylib_addInts")
+           |  def addInts(l: Int, r: Int): Int = l + r
+           |}""".stripMargin
+    )
+    val destName = {
+      val ext =
+        if (!shared && !commandLineShared.getOrElse(false))
+          if (Properties.isWin) ".lib" else ".a"
+        else if (Properties.isWin) ".dll"
+        else if (Properties.isMac) ".dylib"
+        else ".so"
+      fileName.stripSuffix(".sc") + ext
+    }
+
+    val nativeTargetOpts = commandLineShared match {
+      case Some(true)  => Seq("--native-target", "dynamic")
+      case Some(false) => Seq("--native-target", "static")
+      case None        => Seq.empty
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, nativeTargetOpts, fileName).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val library = root / destName
+      expect(os.isFile(library))
+    }
+  }
+
+  if (!Properties.isWin && actualScalaVersion.startsWith("2.13")) {
     test("simple native") {
       simpleNativeTest()
     }
+    test("dynamic library native") {
+      libraryNativeTest(shared = true)
+    }
+
+    test("dynamic library native override from command line") {
+      libraryNativeTest(shared = false, commandLineShared = Some(true))
+    }
+
+    // To produce a static library, `LLVM_BIN` environment variable needs to be
+    // present (for `llvm-ar` utility)
+    if (sys.env.contains("LLVM_BIN"))
+      test("shared library native") {
+        libraryNativeTest(shared = false)
+      }
+
+  }
 
   test("assembly") {
     val fileName = "simple.sc"

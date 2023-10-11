@@ -25,9 +25,18 @@ object PackageType {
   case object Spark extends PackageType {
     override def runnable = Some(false)
   }
-  case object Js extends PackageType
-  case object Native extends PackageType {
-    override def runnable = Some(true)
+  case object Js      extends PackageType
+  sealed trait Native extends PackageType
+  object Native {
+    case object Application extends Native {
+      override def runnable = Some(true)
+    }
+    case object LibraryDynamic extends Native {
+      override def runnable = Some(false)
+    }
+    case object LibraryStatic extends Native {
+      override def runnable = Some(false)
+    }
   }
   case object Docker extends PackageType {
     override def runnable = None
@@ -50,7 +59,7 @@ object PackageType {
     "doc"          -> DocJar,
     "spark"        -> Spark,
     "js"           -> Js,
-    "native"       -> Native,
+    "native"       -> Native.Application,
     "docker"       -> Docker,
     "graalvm"      -> GraalVMNativeImage,
     "deb"          -> Debian,

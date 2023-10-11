@@ -344,6 +344,8 @@ Add Scala Native options
 
 `//> using nativeEmbedResources` _true|false_
 
+`//> using nativeTarget` _application|library-dynamic|library-static_
+
 #### Examples
 `//> using nativeVersion 0.4.0`
 

@@ -1365,6 +1365,10 @@ List of compile options
 [Internal]
 Use default compile options
 
+### `--native-target`
+
+Build target type
+
 ### `--embed-resources`
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
