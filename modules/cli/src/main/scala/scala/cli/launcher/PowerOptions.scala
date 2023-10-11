@@ -14,7 +14,7 @@ import scala.cli.commands.tags
   */
 case class PowerOptions(
   @Group(HelpGroup.Launcher.toString)
-  @HelpMessage("When called as 'scala', allow to use power commands too")
+  @HelpMessage("Allows to use restricted & experimental features")
   @Tag(tags.must)
   power: Boolean = false
 )
