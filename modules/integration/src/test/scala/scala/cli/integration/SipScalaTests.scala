@@ -1,5 +1,6 @@
 package scala.cli.integration
 
+import com.eed3si9n.expecty.Expecty
 import com.eed3si9n.expecty.Expecty.expect
 import os.CommandResult
 
@@ -457,5 +458,15 @@ class SipScalaTests extends ScalaCliSuite {
            |""".stripMargin
       )
     }
+  }
+
+  test("--power flag anywhere") {
+    for (command <- Seq("run", "test", "compile", "repl", "package", "export"))
+    Expecty.assert(
+      os.proc(TestUtil.cli, command, "--power", "--help")
+      .call()
+      .exitCode == 0,
+      s"Expected --power flag to work after $command command"
+    )
   }
 }
