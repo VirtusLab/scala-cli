@@ -660,7 +660,7 @@ Available in commands:
 
 `MUST have` per Scala Runner specification
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 ## Run options
 

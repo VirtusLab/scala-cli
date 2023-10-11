@@ -64,7 +64,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -636,7 +636,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 ### SHOULD have options
 
@@ -791,7 +791,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -1340,7 +1340,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -1903,7 +1903,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -2491,7 +2491,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -3067,7 +3067,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -3662,7 +3662,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -4221,7 +4221,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -4320,7 +4320,7 @@ Detailed documentation can be found on our website: https://scala-cli.virtuslab.
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -4843,7 +4843,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -4928,7 +4928,7 @@ Print help message
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5001,7 +5001,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5098,7 +5098,7 @@ Install Scala CLI in a sub-directory of the home directory
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5203,7 +5203,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -5736,7 +5736,7 @@ For detailed installation instructions refer to our website: https://scala-cli.v
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5911,7 +5911,7 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5996,7 +5996,7 @@ For detailed installation instructions refer to our website: https://scala-cli.v
 
 **--power**
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 <details><summary>
 

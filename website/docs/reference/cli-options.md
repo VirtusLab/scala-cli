@@ -942,7 +942,7 @@ Available in commands:
 
 ### `--power`
 
-When called as 'scala', allow to use power commands too
+Allows to use restricted & experimental features
 
 ## Publish options
 
