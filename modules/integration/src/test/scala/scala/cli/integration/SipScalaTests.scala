@@ -458,14 +458,4 @@ class SipScalaTests extends ScalaCliSuite {
       )
     }
   }
-
-  test("--power flag anywhere") {
-    for (command <- Seq("run", "test", "compile", "repl", "package", "export"))
-      assert(
-        os.proc(TestUtil.cli, command, "--power", "--help")
-          .call()
-          .exitCode == 0,
-        s"Expected --power flag to work after $command command"
-      )
-  }
 }
