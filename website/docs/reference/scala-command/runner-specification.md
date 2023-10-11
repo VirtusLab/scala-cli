@@ -62,6 +62,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 **--dependency**
 
 Add dependencies
@@ -785,6 +789,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 **--dependency**
 
 Add dependencies
@@ -1329,6 +1337,10 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/repl
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
@@ -1888,6 +1900,10 @@ To pass arguments to the actual application, just add them after `--`, like:
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
@@ -2473,6 +2489,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+When called as 'scala', allow to use power commands too
+
 **--dependency**
 
 Add dependencies
@@ -3044,6 +3064,10 @@ All standard Scala CLI inputs are accepted, but only Scala sources will be forma
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
@@ -3635,6 +3659,10 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/test
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
@@ -4289,6 +4317,10 @@ It is normally supposed to be invoked by your IDE when a Scala CLI project is im
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
@@ -5168,6 +5200,10 @@ Using directives can be defined in all supported input source file types.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 ### MUST have options
+
+**--power**
+
+When called as 'scala', allow to use power commands too
 
 **--dependency**
 
