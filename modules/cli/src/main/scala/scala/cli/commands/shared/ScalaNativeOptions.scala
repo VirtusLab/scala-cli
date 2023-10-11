@@ -64,6 +64,7 @@ final case class ScalaNativeOptions(
   @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Build target type")
   @Tag(tags.should)
+  @ValueDescription("app|static|dynamic")
     nativeTarget: Option[String] = None,
 
   @Group(HelpGroup.ScalaNative.toString)

@@ -45,7 +45,7 @@ final case class ScalaNative(
   @DirectiveName("nativeClangPp")
     nativeClangPP: Option[String] = None,
   nativeEmbedResources: Option[Boolean] = None,
-    nativeTarget: Option[String] = None,
+  nativeTarget: Option[String] = None,
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
