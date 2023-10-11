@@ -1057,4 +1057,70 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       expect(outputAssembly == root.toString)
     }
   }
+
+  if (actualScalaVersion.startsWith("2")) {
+    test("resolution is kept for assemblies with provided spark deps (packaging.provided)") {
+      val msg       = "Hello"
+      val inputPath = os.rel / "Hello.scala"
+      TestInputs(
+        inputPath ->
+          s"""//> using lib org.apache.spark::spark-sql:3.3.2
+             |//> using lib org.apache.spark::spark-hive:3.3.2
+             |//> using lib org.apache.spark::spark-sql-kafka-0-10:3.3.2
+             |//> using packaging.packageType assembly
+             |//> using packaging.provided org.apache.spark::spark-sql
+             |//> using packaging.provided org.apache.spark::spark-hive
+             |
+             |object Main extends App {
+             |  println("$msg")
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val outputJarPath = root / "Hello.jar"
+        val res = os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          inputPath,
+          "-o",
+          outputJarPath,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(os.isFile(outputJarPath))
+        expect(res.err.trim().contains(s"Wrote $outputJarPath"))
+      }
+    }
+
+    test(
+      "resolution is kept for assemblies with provided spark deps (packaging.packageType spark)"
+    ) {
+      val msg       = "Hello"
+      val inputPath = os.rel / "Hello.scala"
+      TestInputs(
+        inputPath ->
+          s"""//> using lib org.apache.spark::spark-sql:3.3.2
+             |//> using lib org.apache.spark::spark-hive:3.3.2
+             |//> using lib org.apache.spark::spark-sql-kafka-0-10:3.3.2
+             |//> using packaging.packageType spark
+             |
+             |object Main extends App {
+             |  println("$msg")
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val outputJarPath = root / "Hello.jar"
+        val res = os.proc(
+          TestUtil.cli,
+          "--power",
+          "package",
+          inputPath,
+          "-o",
+          outputJarPath,
+          extraOptions
+        ).call(cwd = root, stderr = os.Pipe)
+        expect(os.isFile(outputJarPath))
+        expect(res.err.trim().contains(s"Wrote $outputJarPath"))
+      }
+    }
+  }
 }
