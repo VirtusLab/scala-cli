@@ -38,7 +38,8 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
       TestUtil.initializeGit(root, "v1.1.2")
 
       val exportJsonProc =
-        os.proc(TestUtil.cli, "--power", "export", "--json", ".", "--jvm", "adopt:11")
+        // Test --power placed after subcommand name
+        os.proc(TestUtil.cli, "export", "--power", "--json", ".", "--jvm", "adopt:11")
           .call(cwd = root)
 
       val jsonContents = readJson(exportJsonProc.out.text())

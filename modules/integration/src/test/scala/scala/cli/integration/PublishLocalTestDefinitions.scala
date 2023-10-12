@@ -112,12 +112,12 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
-          "--power",
           "publish",
           "local",
           ".",
           "--ivy2-home",
           os.rel / "ivy2",
+          "--power", // Test --power placed after subcommand name
           "--working-dir",
           os.rel / "work-dir",
           extraOptions

@@ -1,6 +1,7 @@
 package scala.cli.tests
 
 import scala.cli.ScalaCliCommands
+import scala.cli.commands.shared.HasGlobalOptions
 
 class OptionsCheck extends munit.FunSuite {
 
@@ -12,4 +13,10 @@ class OptionsCheck extends munit.FunSuite {
       command.ensureNoDuplicates()
     }
 
+    test(s"--power option present in $command") {
+      command.parser.stopAtFirstUnrecognized.parse(Seq("--power")) match {
+        case Right((_: HasGlobalOptions, _ +: _)) => fail("Expected --power to be recognized")
+        case _                                    => ()
+      }
+    }
 }

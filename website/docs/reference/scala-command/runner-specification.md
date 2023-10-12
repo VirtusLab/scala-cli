@@ -62,6 +62,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -632,6 +636,12 @@ Available keys:
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 ### SHOULD have options
 
 **--debug**
@@ -782,6 +792,10 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/doc
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -1331,6 +1345,10 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/repl
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -1894,6 +1912,10 @@ To pass arguments to the actual application, just add them after `--`, like:
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/run
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -2483,6 +2505,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -3058,6 +3084,10 @@ All standard Scala CLI inputs are accepted, but only Scala sources will be forma
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/fmt
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -3654,6 +3684,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -4211,6 +4245,12 @@ Scala version defined by the runner.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4305,6 +4345,10 @@ It is normally supposed to be invoked by your IDE when a Scala CLI project is im
 Detailed documentation can be found on our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -4827,6 +4871,12 @@ Passed inputs will establish the Scala CLI project, for which the workspace will
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4906,6 +4956,12 @@ Directory where .scala-build is written
 
 Print help message
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4972,6 +5028,12 @@ Aliases: `install-completions`
 Installs Scala CLI completions into your shell
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5063,6 +5125,12 @@ Print completions to stdout
 **IMPLEMENTATION specific for Scala Runner specification.**
 
 Install Scala CLI in a sub-directory of the home directory
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5164,6 +5232,10 @@ Using directives can be defined in all supported input source file types.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/setup-ide
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -5696,6 +5768,12 @@ Uninstalls Scala CLI.
 Works only when installed with the installation script.
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5865,6 +5943,12 @@ Uninstalls Scala CLI completions from your shell.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5943,6 +6027,12 @@ Works only when installed with the installation script.
 If Scala CLI was installed with an external tool, refer to its update methods.
 
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 

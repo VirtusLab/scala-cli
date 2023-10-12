@@ -45,6 +45,7 @@ import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.launcher.PowerOptions
 import scala.cli.util.ConfigDbUtils
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
@@ -61,6 +62,8 @@ final case class SharedOptions(
     suppress: SuppressWarningOptions = SuppressWarningOptions(),
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    powerOptions: PowerOptions = PowerOptions(),
   @Recurse
     js: ScalaJsOptions = ScalaJsOptions(),
   @Recurse
@@ -223,7 +226,7 @@ final case class SharedOptions(
 
   def logger: Logger = logging.logger
   override def global: GlobalOptions =
-    GlobalOptions(logging = logging, globalSuppress = suppress.global)
+    GlobalOptions(logging = logging, globalSuppress = suppress.global, powerOptions = powerOptions)
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._

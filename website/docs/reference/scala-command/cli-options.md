@@ -648,6 +648,20 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
 
 List main classes available in the current context
 
+## Power options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--power`
+
+`MUST have` per Scala Runner specification
+
+Allows to use restricted & experimental features
+
 ## Run options
 
 Available in commands:
