@@ -115,11 +115,19 @@ final case class ScalaNativeOptions(
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
 
-  def nativeDependencies(scalaVersion: String): Seq[AnyDependency] =
+  def nativeDependencies(scalaVersion: String): Seq[AnyDependency] = {
+    // https://github.com/scala-native/scala-native/pull/3326
+    val scalalibVersion =
+      if (finalVersion.startsWith("0.4.")) finalVersion
+      else s"$scalaVersion+$finalVersion"
+    // Since 0.5.x Scala Native requires explicit dependency on javalib
+    // See https://github.com/scala-native/scala-native/pull/3566
+    val javalib = dep"org.scala-native::javalib::$finalVersion"
     if (scalaVersion.startsWith("2."))
-      Seq(dep"org.scala-native::scalalib::$finalVersion")
+      Seq(dep"org.scala-native::scalalib::$scalalibVersion", javalib)
     else
-      Seq(dep"org.scala-native::scala3lib::$finalVersion")
+      Seq(dep"org.scala-native::scala3lib::$scalalibVersion", javalib)
+  }
 
   def compilerPlugins: Seq[AnyDependency] =
     Seq(dep"org.scala-native:::nscplugin:$finalVersion")
