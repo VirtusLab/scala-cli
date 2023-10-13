@@ -290,3 +290,18 @@ it accordingly before committing:
 For more info about reflection configuration in GraalVM,
 check [the relevant GraalVM Reflection docs](https://www.graalvm.org/latest/reference-manual/native-image/dynamic-features/Reflection/).
 
+## Overriding Scala versions in Scala CLI builds
+
+It's possible to override the internal Scala version used to build Scala CLI,
+as well as the default version used by the CLI itself with Java props.
+- `scala.version.internal` - overrides the internal Scala version used to build Scala CLI
+- `scala.version.user` - overrides the default Scala version used by the CLI itself
+
+NOTE: remember to run `./mill clean` to make sure the Scala versions aren't being cached anywhere.
+
+```bash
+./mill -i clean
+./mill -i --define scala.version.internal=3.4.0-RC1-bin-20231012-242ba21-NIGHTLY --define scala.version.user=3.4.0-RC1-bin-20231012-242ba21-NIGHTLY scala version --offline
+# Scala CLI version: 1.x.x-SNAPSHOT
+# Scala version (default): 3.4.0-RC1-bin-20231012-242ba21-NIGHTLY
+```
