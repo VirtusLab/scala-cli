@@ -23,12 +23,14 @@ object Scala {
     val max213 = patchVer(scala213)
     val max30  = 2
     val max31  = 3
-    val max32  = patchVer(scala3)
+    val max32  = 2
+    val max33  = patchVer(scala3)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
-      (0 until max32).map(i => s"3.2.$i") ++ Seq(scala3)
+      (0 to max32).map(i => s"3.2.$i") ++
+      (0 until max33).map(i => s"3.3.$i") ++ Seq(scala3)
   }
 
   def maxAmmoniteScala212Version = scala212
@@ -54,8 +56,6 @@ object Scala {
   }
 
   // The Scala version used to build the CLI itself.
-  // We should be able to switch to 3.x when it'll have CPS support
-  // (for the either { value(…) } stuff)
   def defaultInternal = scala3
 
   // The Scala version used by default to compile user input.
