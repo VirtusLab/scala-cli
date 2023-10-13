@@ -9,9 +9,17 @@ object Scala {
   def scala213     = "2.13.12"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3       = "3.3.1"
-  val allScala2    = Seq(scala213, scala212)
-  val all          = allScala2 ++ Seq(scala3)
-  val mainVersions = Seq(scala3, scala213)
+
+  // The Scala version used to build the CLI itself.
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3)
+
+  // The Scala version used by default to compile user input.
+  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3)
+
+  val allScala2           = Seq(scala213, scala212)
+  val defaults            = Seq(defaultInternal, defaultUser).distinct
+  val all                 = (allScala2 ++ Seq(scala3) ++ defaults).distinct
+  val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
 
   def scalaJs = "1.13.2"
@@ -54,12 +62,6 @@ object Scala {
         true
     }
   }
-
-  // The Scala version used to build the CLI itself.
-  def defaultInternal = scala3
-
-  // The Scala version used by default to compile user input.
-  def defaultUser = scala3
 }
 
 // Dependencies used in integration test fixtures
