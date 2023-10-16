@@ -97,6 +97,9 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
       val sharedOptions = getSharedOptions()
+      val bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
+        .orExit(sharedOptions.logger)
+
       BspReloadableOptions(
         buildOptions = buildOptions(sharedOptions),
         bloopRifleConfig = sharedOptions.bloopRifleConfig().orExit(sharedOptions.logger),

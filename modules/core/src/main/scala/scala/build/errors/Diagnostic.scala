@@ -14,7 +14,9 @@ object Diagnostic {
   case class TextEdit(title: String, newText: String)
   object Messages {
     val bloopTooOld =
-      "JVM that is hosting bloop is older than the requested runtime. Please run command `bloop exit`, and then use `--jvm` flag to restart Bloop"
+      """JVM that is hosting bloop is older than the requested runtime. Please restart the Build Server from your IDE.
+        |Or run the command `bloop exit`, and then use `--jvm` flag to request a sufficient JVM version.
+        |""".stripMargin
   }
 
   private case class ADiagnostic(
