@@ -29,7 +29,4 @@ object BspReloadableOptions {
     def get: BspReloadableOptions                   = ref
     def reload(): Unit                              = ref = getReloaded()
   }
-  object Reference {
-    def apply(getReloaded: () => BspReloadableOptions): Reference = new Reference(getReloaded)
-  }
 }

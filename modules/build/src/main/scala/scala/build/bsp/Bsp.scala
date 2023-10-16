@@ -7,7 +7,7 @@ import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.concurrent.Future
 
 trait Bsp {
-  def run(initialInputs: Inputs): Future[Unit]
+  def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit]
   def shutdown(): Unit
 }
 

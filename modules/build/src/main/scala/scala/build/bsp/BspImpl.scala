@@ -456,10 +456,9 @@ final class BspImpl(
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
     */
-  def run(initialInputs: Inputs): Future[Unit] = {
-    val reloadableOptions = bspReloadableOptionsReference.get
-    val logger            = reloadableOptions.logger
-    val verbosity         = reloadableOptions.verbosity
+  def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
+    val logger    = initialBspOptions.logger
+    val verbosity = initialBspOptions.verbosity
 
     actualLocalClient = new BspClient(
       threads.buildThreads.bloop.jsonrpc, // meh
@@ -467,7 +466,7 @@ final class BspImpl(
     )
     localClient = getLocalClient(verbosity)
 
-    val currentBloopSession = newBloopSession(initialInputs, reloadableOptions)
+    val currentBloopSession = newBloopSession(initialInputs, initialBspOptions)
     bloopSession.update(null, currentBloopSession, "BSP server already initialized")
 
     val actualLocalServer
@@ -507,7 +506,7 @@ final class BspImpl(
 
     prepareBuild(
       currentBloopSession,
-      reloadableOptions,
+      initialBspOptions,
       maybeRecoverOnError = recoverOnError
     ) match {
       case Left((ex, scope)) => recoverOnError(scope)(ex)
@@ -524,7 +523,7 @@ final class BspImpl(
     val f = launcher.startListening()
 
     val initiateFirstBuild: Runnable = { () =>
-      try build(currentBloopSession, actualLocalClient, notifyChanges = false, reloadableOptions)
+      try build(currentBloopSession, actualLocalClient, notifyChanges = false, initialBspOptions)
       catch {
         case t: Throwable =>
           logger.debug(s"Caught $t during initial BSP build, ignoring it")

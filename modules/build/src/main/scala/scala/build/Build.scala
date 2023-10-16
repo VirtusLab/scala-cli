@@ -197,6 +197,9 @@ object Build {
     def diagnostics: None.type   = None
   }
 
+  /** If some options are manually overridden, append a hash of the options to the project name
+    * Using only the command-line options not the ones from the sources.
+    */
   def updateInputs(
     inputs: Inputs,
     options: BuildOptions,

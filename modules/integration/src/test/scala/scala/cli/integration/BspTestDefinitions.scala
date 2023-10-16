@@ -1160,6 +1160,57 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("bsp should start bloop with correct JVM version from directives") {
+    val sourceFilePath = os.rel / "ReloadTest.java"
+    val inputs = TestInputs(
+      sourceFilePath ->
+        s"""//> using jvm 19
+           |//> using javacOpt --enable-preview
+           |
+           |public class ReloadTest {
+           |  public static void main(String[] args) {
+           |    String a = "Hello World";
+           |
+           |    switch (a) {
+           |      case String s when s.length() > 6 -> System.out.println(s.toUpperCase());
+           |      case String s -> System.out.println(s.toLowerCase());
+           |    }
+           |  }
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "--power", "bloop", "exit")
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      os.proc(TestUtil.cli, "--power", "bloop", "start", "--jvm", "17")
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      os.proc(TestUtil.cli, "setup-ide", ".", extraOptions)
+        .call(
+          cwd = root,
+          stdout = os.Inherit
+        )
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+
+            val resp =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(resp.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
+
   test("bloop projects are initialised properly for an invalid directive value") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
