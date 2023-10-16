@@ -8,7 +8,7 @@ import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 Scala CLI supports formatting your code using [Scalafmt](https://scalameta.org/scalafmt/):
 
 ```bash
-scala-cli fmt
+scala-cli fmt .
 ```
 
 Under the hood, Scala CLI downloads and runs Scalafmt on your code.
@@ -16,15 +16,15 @@ Under the hood, Scala CLI downloads and runs Scalafmt on your code.
 If you’re setting up a continuous integration (CI) server, Scala CLI also has you covered.
 You can check formatting correctness using a `--check` flag:
 
-```bash
-scala-cli fmt --check
+```bash fail
+scala-cli fmt --check .
 ```
 
 ### Scalafmt version and dialect
 
 Scala CLI `fmt` command supports passing the `scalafmt` **version** and **dialect** directly from the command line, using the `--scalafmt-dialect` and `--scalafmt-version` options respectively:
 ```
-scala-cli fmt --scalafmt-dialect scala3 --scalafmt-version 3.5.8
+scala-cli fmt . --scalafmt-dialect scala3 --scalafmt-version 3.5.8
 ```
 You can skip passing either of those, which will make Scala CLI infer a default value:
 - If a `.scalafmt.conf` file is present in the workspace and it has the field defined, the value will be read from there, unless explicitly specified with Scala CLI options.
@@ -40,7 +40,7 @@ runner.dialect = scala212
 ```
 
 ```bash
-scala-cli fmt --scalafmt-dialect scala213
+scala-cli fmt --scalafmt-dialect scala213 .
 ```
 
 For the setup above, `fmt` will use:
@@ -54,7 +54,7 @@ version = "2.7.5"
 ```
 
 ```bash
-scala-cli fmt --scalafmt-version 3.5.8
+scala-cli fmt --scalafmt-version 3.5.8 .
 ```
 
 For the setup above, `fmt` will use:

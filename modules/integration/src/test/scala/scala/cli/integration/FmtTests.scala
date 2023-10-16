@@ -85,7 +85,9 @@ class FmtTests extends ScalaCliSuite {
 
   test("with --check") {
     simpleInputs.fromRoot { root =>
-      val out = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false).out.text()
+      val res = os.proc(TestUtil.cli, "fmt", "--check").call(cwd = root, check = false)
+      expect(res.exitCode == 1)
+      val out            = res.out.text()
       val updatedContent = noCrLf(os.read(root / "Foo.scala"))
       expect(updatedContent == noCrLf(simpleInputsUnformattedContent))
       expect(noCrLf(out) == "error: --test failed\n")
