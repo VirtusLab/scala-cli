@@ -300,4 +300,17 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       expect(output2 == "Hello from Main2")
     }
   }
+
+  test("native defaults & toolkit latest") {
+    TestInputs(
+      os.rel / "script.sc" ->
+        """//> using toolkit latest
+          |//> using platform "scala-native"
+          |println(os.pwd)
+          |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "run", "script.sc").call(cwd = root)
+      expect(result.out.trim() == root.toString)
+    }
+  }
 }
