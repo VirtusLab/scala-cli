@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import bloop.rifle.BloopServer
+import bloop.rifle.{BloopRifleConfig, BloopServer}
 import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
 import dependency.ScalaParameters
@@ -566,9 +566,10 @@ final class BspImpl(
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
     val wasIntelliJ       = currentBloopSession.bspServer.isIntelliJ
-    val newBloopSession0  = newBloopSession(newInputs, reloadableOptions, wasIntelliJ)
-    bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
+
     currentBloopSession.dispose()
+    val newBloopSession0 = newBloopSession(newInputs, reloadableOptions, wasIntelliJ)
+    bloopSession.update(currentBloopSession, newBloopSession0, "Concurrent reload of workspace")
     actualLocalClient.newInputs(newInputs)
 
     newBloopSession0.resetDiagnostics(actualLocalClient)
@@ -580,9 +581,42 @@ final class BspImpl(
           )
         )
       case Right(preBuildProject) =>
+        lazy val projectJavaHome = preBuildProject.mainScope.buildOptions
+          .javaHome()
+          .value
+
+        val finalBloopSession =
+          if (
+            bloopSession.get().remoteServer.jvmVersion.exists(_.value < projectJavaHome.version)
+          ) {
+            reloadableOptions.logger.log(
+              s"Bloop JVM version too low, current ${bloopSession.get().remoteServer.jvmVersion.get.value} expected ${projectJavaHome.version}, restarting server"
+            )
+            // RelodableOptions don't take into account buildOptions from sources
+            val updatedReloadableOptions = reloadableOptions.copy(
+              buildOptions =
+                reloadableOptions.buildOptions orElse preBuildProject.mainScope.buildOptions,
+              bloopRifleConfig = reloadableOptions.bloopRifleConfig.copy(
+                javaPath = projectJavaHome.javaCommand,
+                minimumBloopJvm = projectJavaHome.version
+              )
+            )
+
+            newBloopSession0.dispose()
+            val bloopSessionWithJvmOkay =
+              newBloopSession(newInputs, updatedReloadableOptions, wasIntelliJ)
+            bloopSession.update(
+              newBloopSession0,
+              bloopSessionWithJvmOkay,
+              "Concurrent reload of workspace"
+            )
+            bloopSessionWithJvmOkay
+          }
+          else newBloopSession0
+
         if (previousInputs.projectName != preBuildProject.mainScope.project.projectName)
-          for (client <- newBloopSession0.bspServer.clientOpt) {
-            val newTargetIds = newBloopSession0.bspServer.targetIds
+          for (client <- finalBloopSession.bspServer.clientOpt) {
+            val newTargetIds = finalBloopSession.bspServer.targetIds
             val events =
               newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
                 previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
