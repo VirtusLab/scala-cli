@@ -518,8 +518,9 @@ final case class SharedOptions(
         .getOrElse(None)
     )
 
-  def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
-    val options = value(buildOptions(false, None))
+  def bloopRifleConfig(extraBuildOptions: Option[BuildOptions] = None)
+    : Either[BuildException, BloopRifleConfig] = either {
+    val options = extraBuildOptions.foldLeft(value(buildOptions(false, None)))(_ orElse _)
     lazy val defaultJvmHome = value {
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
     }

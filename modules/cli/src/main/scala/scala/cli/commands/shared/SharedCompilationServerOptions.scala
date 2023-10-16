@@ -276,7 +276,7 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger).getOrElse(Nil),
-      minimumBloopJvm = javaV.getOrElse(8),
+      minimumBloopJvm = javaV.getOrElse(17),
       retainedBloopVersion = retainedBloopVersion
     )
   }
