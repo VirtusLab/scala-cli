@@ -9,7 +9,7 @@ import ReactPlayer from 'react-player'
 
 ## [v1.0.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.4)
 
-## Hotfix for buildTarget/jvmRunEnvironment in BSP
+### Hotfix for buildTarget/jvmRunEnvironment in BSP
 
 We've addressed a bug that surfaced when opening your ScalaCLI projects in Metals or IntelliJ. If you encountered the following log:
 
@@ -20,14 +20,16 @@ We've addressed a bug that surfaced when opening your ScalaCLI projects in Metal
 2023.08.09 15:48:34 INFO  BSP server: 	... 36 more
 ```
 
-those logs should no longer appear. Thanks to [@lwronski](https://github.com/lwronski) for providing the fix in [#2342](https://github.com/VirtusLab/scala-cli/pull/2342).
+those logs should no longer appear.
+
+Thanks to [@lwronski](https://github.com/lwronski) for providing the fix in [#2342](https://github.com/VirtusLab/scala-cli/pull/2342).
 
 
 ## [v1.0.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.3)
 
 ## What's new
 
-## Access project configuration with the new `BuildInfo`
+### Access project configuration with the new `BuildInfo`
 
 `BuildInfo` access your project's build configuration within your Scala code. This feature automatically gathers and generates build information about your project, making project details instantly accessible at runtime.
 
@@ -43,7 +45,7 @@ This `BuildInfo` object encapsulates information such as the Scala version used,
 
 Added by [@MaciejG604](https://github.com/MaciejG604) in [#2249](https://github.com/VirtusLab/scala-cli/pull/2249).
 
-## CompileOnly Dependencies
+### CompileOnly Dependencies
 
 Now, users can declare dependencies that are exclusively included at the compile time. These dependencies are added to the classpath during compilation, but won't be included when the application is run, keeping your runtime environment lightweight.
 
@@ -61,7 +63,7 @@ scala-cli Hello.scala --compile-dep "com.github.plokhotnyuk.jsoniter-scala::json
 Added by @alexarchambault and [@lwronski](https://github.com/lwronski) in [#2299](https://github.com/VirtusLab/scala-cli/pull/2299), Thanks!
 
 
-## Set globally Java properties
+### Set globally Java properties
 
 Scala CLI allows users to globally set Java properties for its launcher using the `config` command. This will simplify the JVM properties management process, eliminating the need to pass these properties with each `scala-cli` execution.
 
@@ -77,7 +79,7 @@ Whenever overwriting existing Java properties Scala CLI will let you know what w
 
 Added by [@lwronski](https://github.com/lwronski) in [#2317](https://github.com/VirtusLab/scala-cli/pull/2317), Thanks!
 
-## Rename parameter for `publish` command
+### Rename parameter for `publish` command
 
 We've updated the `--version` parameter for the publish command. Now, when specifying the project version, use `--project-version` instead.
 
@@ -145,7 +147,7 @@ This release brings enhancements to Scala CLI:
 
 The release also includes numerous bug fixes, updates, and new contributors.
 
-## Installation via WinGet on Windows
+### Installation via WinGet on Windows
 
 Scala CLI can now be installed via [WinGet](https://learn.microsoft.com/en-gb/windows/package-manager/) on Windows, with
 a command such as
@@ -156,7 +158,7 @@ winget install virtuslab.scalacli
 
 Added by [@mimoguz](https://github.com/mimoguz) in [#2239](https://github.com/VirtusLab/scala-cli/pull/2239), Thanks!
 
-## Enhanced build target names
+### Enhanced build target names
 
 Now, the build target name will be derived from the workspace directory that contains it, making it easier for users to
 navigate between different projects within a multi-root workspace. Instead of a build target named as `project_XYZ-XYZ`,
@@ -177,7 +179,7 @@ you will now see the name like `workspace_XYZ-XYZ`, where `workspace` refers to 
 
 Added by [@MaciejG604](https://github.com/MaciejG604) in [#2201](https://github.com/VirtusLab/scala-cli/pull/2201)
 
-## Introducing 'new' command for Giter8 project generation
+### Introducing 'new' command for Giter8 project generation
 
 Giter8 is a project templating tool for Scala, and its integration within Scala CLI offers efficient way to set up new
 projects. By using the `new` command, users can generate new projects based on predefined or custom templates.
@@ -190,7 +192,7 @@ scala-cli --power new VirtusLab/scala-cli.g8
 
 Added by [@zetashift](https://github.com/zetashift) in [#2202](https://github.com/VirtusLab/scala-cli/pull/2202), Thanks!
 
-## Loading Java Properties from `.scalaopts` into ScalaCLI launcher
+### Loading Java Properties from `.scalaopts` into ScalaCLI launcher
 
 ScalaCLI allows to load Java properties into `scala-cli` launcher directly from a `.scalaopts` file located in your
 current working directory. This will simplify the JVM properties management process, eliminating the need to pass these
