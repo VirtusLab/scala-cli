@@ -115,12 +115,13 @@ object Fmt extends ScalaCommand[FmtOptions] {
         sourceFiles.map(_.toString) ++
         options.scalafmtCliOptions ++
         Seq("--config", scalaFmtConfPath.toString)
-      Runner.maybeExec(
+      val process = Runner.maybeExec(
         "scalafmt",
         command,
         logger,
         cwd = Some(workspace)
-      ).waitFor()
+      )
+      sys.exit(process.waitFor())
     }
   }
 }
