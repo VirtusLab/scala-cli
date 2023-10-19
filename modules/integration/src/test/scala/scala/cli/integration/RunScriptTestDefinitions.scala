@@ -176,6 +176,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       // format: on
       val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output         = res.out.lines()
+      pprint.err.log(TestUtil.removeAnsiColors(output.mkString("\n")))
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
       val expectedLines =
@@ -424,8 +425,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "script.sc")
+      val output = os.proc(TestUtil.cli, "script.sc")
         .call(cwd = root, mergeErrIntoOut = true)
+
+      output.out.trim().contains("Hello world")
     }
   }
 
