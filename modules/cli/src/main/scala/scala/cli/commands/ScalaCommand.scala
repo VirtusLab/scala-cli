@@ -23,7 +23,7 @@ import scala.build.internals.FeatureType
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
@@ -35,15 +35,19 @@ import scala.util.{Properties, Try}
 abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], help: Help[T])
     extends Command()(myParser, help)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
+  private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
+    new AtomicReference(GlobalOptions.default)
+
+  private def globalOptions: GlobalOptions = globalOptionsAtomic.get()
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
-  override def hasFullHelp = true
-  override def hidden      = shouldExcludeInSip
-  protected var argvOpt    = Option.empty[Array[String]]
-
-  private val shouldExcludeInSip =
-    (isRestricted || isExperimental) && !ScalaCli.allowRestrictedFeatures
+  override def hasFullHelp     = true
+  override def hidden: Boolean = shouldExcludeInSip
+  protected var argvOpt        = Option.empty[Array[String]]
+  protected def allowRestrictedFeatures: Boolean =
+    ScalaCli.allowRestrictedFeatures || globalOptions.powerOptions.power
+  private def shouldExcludeInSip = (isRestricted || isExperimental) && !allowRestrictedFeatures
   override def setArgv(argv: Array[String]): Unit = {
     argvOpt = Some(argv)
   }
@@ -316,10 +320,6 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       sharedOptions(options).foreach(_.logger.debug("build options could not be initialized"))
       sys.exit(1)
     }
-
-  private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
-    new AtomicReference(GlobalOptions.default)
-  private def globalOptions: GlobalOptions = globalOptionsAtomic.get()
   override def shouldSuppressExperimentalFeatureWarnings: Boolean =
     globalOptions.globalSuppress.suppressExperimentalFeatureWarning
       .orElse {

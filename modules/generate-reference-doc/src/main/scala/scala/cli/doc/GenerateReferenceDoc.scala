@@ -604,8 +604,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val scalaCli = new ScalaCliCommands(
       "scala-cli",
       ScalaCli.baseRunnerName,
-      ScalaCli.fullRunnerName,
-      isSipScala = false
+      ScalaCli.fullRunnerName
     )
     val commands = scalaCli.commands
     val restrictedCommands =

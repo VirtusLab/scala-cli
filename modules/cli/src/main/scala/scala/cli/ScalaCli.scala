@@ -265,7 +265,7 @@ object ScalaCli {
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
-    new ScalaCliCommands(progName, baseRunnerName, fullRunnerName, isSipScala)
+    new ScalaCliCommands(progName, baseRunnerName, fullRunnerName)
       .main(scalaCliArgs)
   }
 }
