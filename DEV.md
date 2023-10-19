@@ -142,24 +142,31 @@ a coursier bootstrap).
 ### Helper projects
 
 A number of features of Scala CLI are managed from external projects, living under
-the [`scala-cli` organization](https://github.com/scala-cli) on GitHub. These
+the [`scala-cli`](https://github.com/scala-cli) and [`VirtusLab`](https://github.com/VirtusLab) organizations on GitHub. These
 projects can be used by Scala CLI as libraries pulled before it's compiled, but also
 as binaries. In the latter case, Scala CLI downloads on-the-fly binaries from these
 repositories' GitHub release assets, and runs them as external processes.
 
-For example, here are a few external projects used by Scala CLI:
+Here's some of the more important external projects used by Scala CLI:
 
-- [scala-js-cli-native-image](https://github.com/scala-cli/scala-js-cli-native-image): provides a binary running the
+- [scala-js-cli-native-image](https://github.com/VirtusLab/scala-js-cli): provides a binary running the
   Scala.js linker
 - [scala-cli-signing](https://github.com/VirtusLab/scala-cli-signing): provides both libraries and binaries to handle
   PGP concerns in Scala CLI
-- [libsodiumjni](https://github.com/scala-cli/libsodiumjni): provides minimal JNI bindings for
+- [libsodiumjni](https://github.com/VirtusLab/libsodiumjni): provides minimal JNI bindings for
   [libsodium](https://github.com/jedisct1/libsodium), that is used by Scala CLI to encrypt secrets
   uploaded as GitHub repository secrets in the `publish setup` sub-command
-
-For the full list of those projects and their description, see the
-[scala-cli repository list](https://github.com/orgs/scala-cli/repositories) and the READMEs
-of each of these projects.
+- [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup): a GitHub Action to install Scala CLI.
+- [scalafmt-native-image](https://github.com/VirtusLab/scalafmt-native-image): GraalVM native-image launchers
+  for `scalafmt`.
+- [bloop-core](https://github.com/scala-cli/bloop-core): a fork of [bloop](https://github.com/scalacenter/bloop)
+  stripped up of its benchmark infrastructure and build integrations.
+- [no-crc32-zip-input-stream](https://github.com/scala-cli/no-crc32-zip-input-stream): A copy of `ZipInputStream` 
+  from OpenJDK, with CRC32 calculations disabled.
+- [lightweight-spark-distrib](https://github.com/scala-cli/lightweight-spark-distrib): a small application allowing
+  to make Spark distributions more lightweight.
+- [java-class-name](https://github.com/scala-cli/java-class-name): a small library to extract class names
+  from Java sources.
 
 The use of external binaries allows to make the Scala CLI binary slimmer and faster
 to generate, but also allow to lower memory requirements to generate it (allowing to
