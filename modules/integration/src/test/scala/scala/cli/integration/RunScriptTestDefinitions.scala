@@ -404,32 +404,32 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  if (actualScalaVersion.startsWith("3.")) {
-    test("no deadlock when running background threads") {
-      val inputs = TestInputs(
-        os.rel / "script.sc" ->
-          s"""//> using scala "$actualScalaVersion"
-             |
-             |import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
-             |import scala.concurrent.duration._
-             |
-             |implicit val ec: ExecutionContextExecutor = ExecutionContext.global
-             |
-             |val future =
-             |  for {
-             |    message <- Future("Hello world")
-             |    _ <- Future(println(message))
-             |  } yield ()
-             |
-             |Await.ready(future, Duration(5, SECONDS))
-             |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, "script.sc")
-          .call(cwd = root, mergeErrIntoOut = true)
-      }
+  test("no deadlock when running background threads") {
+    val inputs = TestInputs(
+      os.rel / "script.sc" ->
+        s"""//> using scala "$actualScalaVersion"
+           |
+           |import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
+           |import scala.concurrent.duration._
+           |
+           |implicit val ec: ExecutionContextExecutor = ExecutionContext.global
+           |
+           |val future =
+           |  for {
+           |    message <- Future("Hello world")
+           |    _ <- Future(println(message))
+           |  } yield ()
+           |
+           |Await.ready(future, Duration(5, SECONDS))
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "script.sc")
+        .call(cwd = root, mergeErrIntoOut = true)
     }
+  }
 
+  if (actualScalaVersion.startsWith("3.")) {
     test("user readable error when @main is used") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->

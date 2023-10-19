@@ -52,8 +52,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
 $packageDirective
 
 
-object ${indexedWrapperName.backticked} {
-def args = $name.args$$
+object ${indexedWrapperName.backticked} extends App {
 def scriptPath = \"\"\"$scriptPath\"\"\"
 """)
     val bottom = AmmUtil.normalizeNewlines(s"""
