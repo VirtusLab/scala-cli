@@ -172,4 +172,4 @@ unset MILL_VERSION
 unset MILL_VERSION_TAG
 unset MILL_REPO_URL
 
-exec "${MILL}" "$@"
+exec "${MILL}" "--disable-callgraph-invalidation" "$@"
