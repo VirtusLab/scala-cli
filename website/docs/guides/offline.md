@@ -15,7 +15,7 @@ The offline mode for Scala CLI was introduced to be used in two situations:
 - you want to have more control over the artifacts being downloaded
 - your development environment has restricted access to the Internet or certain web domains
 
-In this mode Scala CLI will only use local artifacts cached by coursier. Any attempts to download new artifacts will fail if they are not recoverable.
+In this mode Scala CLI will only use local artifacts cached by coursier. Any attempts to download artifacts will fail unless they're available locally in cache or there is a known fallback.
 This applies to everything that Scala CLI normally manages behind the scenes:
 - Scala language and compiler artifacts
 - JVM artifacts
@@ -42,7 +42,7 @@ scala-cli -Dcoursier.mode=offline run Main.scala
 ## Changes in behaviour
 
 ### Scala artifacts
-In offline mode Scala CLI will not perform any validation of the Scala version specified in the project.
+In offline mode Scala CLI will not perform any validation of the Scala version specified in the project, it will not be checked if such a version has been released.
 
 ### JVM artifacts
 System JVM will be used or it will be fetched from local cache.
@@ -85,6 +85,45 @@ If you want to use Bloop, you can get it with:
 cs fetch io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.11-sc-2 
 ```
 Note that Scala CLI uses a custom fork of Bloop, so simple `cs install bloop` won't work.
+
+### Setting up the environment manually
+
+It is possible to copy the Scala language artifacts and dependencies to the local Coursier's cache manually.
+This can be done by creating a directory structure like this:
+```text
+COURSIER_CACHE_PATH
+└── https
+    └── repo1.maven.org
+        └── maven2
+            └── org
+                └── scala-lang
+                    └── scala-compiler
+                        └── 2.13.12
+                            ├── scala-compiler-2.13.12-sources.jar (OPTIONAL)
+                            ├── scala-compiler-2.13.12.jar
+                            └── scala-compiler-2.13.12.pom
+```
+Path on MacOs `~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.13.12`
+
+Same for a library:
+```text
+COURSIER_CACHE_PATH
+└── https
+    └── repo1.maven.org
+        └── maven2
+            └── com
+                └── lihaoyi
+                    └── os-lib_3
+                        └── 0.9.1
+                            ├── os-lib_3-0.9.1-sources.jar (OPTIONAL)
+                            ├── os-lib_3-0.9.1.jar
+                            └── os-lib_3-0.9.1.pom
+```
+Path on MacOS `~/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/os-lib_3/0.9.1`
+
+The first segments after the `v1` directory are the address of the repository from which the artifact was downloaded.
+This part can effectively be `https/repo1.maven.org/maven2` since maven central is the default repository to use.
+The rest of the path is the artifact's organization (split by the '.' character) and version.
 
 ## Testing offline mode
 
