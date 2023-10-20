@@ -72,7 +72,7 @@ scala-cli Source1.scala Source2.scala -S 3.2 -- programArg1 programArg2
 ```
 
 :::note
-The exception to this rule are the launcher options, like `--power` or `--cli-version`.
+The exception to this rule are the launcher options, like `--cli-version` or `--cli-scala-version`.
 Those have to be passed before the inputs section (before any source inputs).
 
 For example, to explicitly specify the launcher should run Scala CLI `v0.1.20`, pass it like this:
@@ -82,13 +82,12 @@ scala-cli --cli-version 0.1.20 Source1.scala Source2.scala -- programArg1 progra
 ```
 
 Also, if a Scala CLI sub-command is being passed explicitly, all launcher options have to be passed before the
-sub-command. This is especially important for `power` mode commands, as those need to be called with the `--power`
-launcher option.
+sub-command.
 
-For example, to call [the `package` sub-command](../commands/package.md), do it like this:
+For example, to call [the `package` sub-command](../commands/package.md) using the nightly CLI version, do it like this:
 
 ```bash
-scala-cli --power package --help
+scala-cli --cli-version nightly package --help
 ```
 
 :::
