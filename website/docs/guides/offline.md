@@ -11,7 +11,7 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 on [GitHub](https://github.com/VirtusLab/scala-cli).
 :::
 
-The offline mode for Scala CLI has been introduced to be used in two situations:
+The offline mode for Scala CLI was introduced to be used in two situations:
 - you want to have more control over the artifacts being downloaded
 - your development environment has restricted access to the Internet or certain web domains
 
@@ -45,7 +45,7 @@ scala-cli -Dcoursier.mode=offline run Main.scala
 In offline mode Scala CLI will not perform any validation of the Scala version specified in the project.
 
 ### JVM artifacts
-System JVM will be used or a fetch from local cache performed.
+System JVM will be used or it will be fetched from local cache.
 If a different JVM version than the system one is required, it is best to export it to the `JAVA_HOME` environment variable.
 It is important to know, that currently if a version is specified with `--jvm` or `using jvm` Scala CLI will ignore the system JVM and try to fetch via coursier.
 
