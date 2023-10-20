@@ -11,11 +11,10 @@ import scala.cli.commands.shared.ScalaCliHelp
 class ScalaCliCommands(
   val progName: String,
   baseRunnerName: String,
-  fullRunnerName: String,
-  isSipScala: Boolean
+  fullRunnerName: String
 ) extends CommandsEntryPoint {
 
-  lazy val actualDefaultCommand = new default.Default(help, isSipScala)
+  lazy val actualDefaultCommand = new default.Default(help)
 
   // for debugging purposes - allows to run the scala-cli-signing binary from the Scala CLI JVM launcher
   private lazy val pgpUseBinaryCommands =

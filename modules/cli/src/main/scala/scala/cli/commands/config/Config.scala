@@ -11,7 +11,6 @@ import scala.build.errors.{BuildException, CompositeBuildException, MalformedCli
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.FeatureType
 import scala.build.{Directories, Logger}
-import scala.cli.ScalaCli.allowRestrictedFeatures
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.HelpGroup

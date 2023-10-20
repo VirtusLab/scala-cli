@@ -7,7 +7,7 @@ class OptionsCheck extends munit.FunSuite {
 
   for (
     command <-
-      (new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI", isSipScala = false)).commands
+      new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands
   )
     test(s"No duplicated options in ${command.names.head.mkString(" ")}") {
       command.ensureNoDuplicates()
