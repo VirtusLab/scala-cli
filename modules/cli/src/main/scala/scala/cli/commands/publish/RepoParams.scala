@@ -179,7 +179,10 @@ object RepoParams {
   }
 
   def ivy2Local(ivy2HomeOpt: Option[os.Path]) = {
-    val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
+    val home = ivy2HomeOpt
+      .orElse(sys.props.get("ivy.home").map(prop => os.Path(prop)))
+      .orElse(sys.props.get("user.home").map(prop => os.Path(prop) / ".ivy2"))
+      .getOrElse(os.home / ".ivy2")
     val base = home / "local"
     // not really a Maven repo…
     RepoParams(
