@@ -203,6 +203,9 @@ jobs:
           apps: ""
       - name: Generate native launcher and generate os packages
         run: .github/scripts/build-linux-aarch64.sh
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       - uses: actions/upload-artifact@v3
         with:
           name: linux-aarch64-launchers
