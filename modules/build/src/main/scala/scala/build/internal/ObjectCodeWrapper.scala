@@ -4,7 +4,7 @@ package scala.build.internal
   * or/and not using JS native prefer [[ClassCodeWrapper]], since it prevents deadlocks when running
   * threads from script
   */
-case object ObjectCodeWrapper extends CodeWrapper {
+case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -26,7 +26,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
     val mainObject = AmmUtil.normalizeNewlines(
       s"""object $mainObjectName {
       |  def main(args: Array[String]): Unit = {
-      |    val _ = $wrapperReference.run(args)
+      |    val _ = $wrapperReference${if isScala2 then ".run(args)" else ".hashCode()"}
       |  }
       |}
       |""".stripMargin)
@@ -42,7 +42,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
     val top = AmmUtil.normalizeNewlines(
       s"""$packageDirective
       |
-      |object $wrapperObjectName extends scala.cli.build.ScalaCliApp {
+      |object $wrapperObjectName ${if isScala2 then "extends scala.cli.build.ScalaCliApp " else ""}{
       |def scriptPath = \"\"\"$scriptPath\"\"\"
       |""".stripMargin)
     val bottom = AmmUtil.normalizeNewlines(
@@ -58,7 +58,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
     (top, bottom)
   }
 
-  override def additionalSourceCode: Option[String] = Some(
+  override def additionalSourceCode: Option[String] = Option.when(isScala2)(
     // This is copied from Scala 2 implementation of App trait, but with no main method
     """package scala.cli.build
       |
