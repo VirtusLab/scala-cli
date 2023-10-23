@@ -31,7 +31,6 @@ case object ObjectCodeWrapper extends CodeWrapper {
       |}
       |""".stripMargin)
 
-
     val aliasObject = if (wrapperObjectName == "main")
       AmmUtil.normalizeNewlines(
       s"""object $aliasedWrapperName {
@@ -40,33 +39,10 @@ case object ObjectCodeWrapper extends CodeWrapper {
         |""".stripMargin)
     else ""
 
-    // This is copied from Scala 2 implementation of App trait, but with no main method
-    val scalaCliAppTrait =
-      s"""@scala.annotation.nowarn("cat=deprecation&msg=DelayedInit semantics can be surprising")
-        |trait ScalaCliApp_$wrapperObjectName extends DelayedInit {
-        |  protected final def args: Array[String] = _args
-        |  private[this] var _args: Array[String] = _
-        |
-        |  private[this] val initCode = new scala.collection.mutable.ListBuffer[() => Unit]
-        |
-        |  override def delayedInit(body: => Unit): Unit = {
-        |    initCode += (() => body)
-        |  }
-        |
-        |  def run(args: Array[String]): Unit = {
-        |    _args = args
-        |    for (proc <- initCode) proc()
-        |  }
-        |}
-        |""".stripMargin
-
-
     val top = AmmUtil.normalizeNewlines(
       s"""$packageDirective
       |
-      |$scalaCliAppTrait
-      |
-      |object $wrapperObjectName extends ScalaCliApp_$wrapperObjectName {
+      |object $wrapperObjectName extends scala.cli.build.ScalaCliApp {
       |def scriptPath = \"\"\"$scriptPath\"\"\"
       |""".stripMargin)
     val bottom = AmmUtil.normalizeNewlines(
@@ -81,4 +57,27 @@ case object ObjectCodeWrapper extends CodeWrapper {
 
     (top, bottom)
   }
+
+  override def additionalSourceCode: Option[String] = Some(
+    // This is copied from Scala 2 implementation of App trait, but with no main method
+    """package scala.cli.build
+      |
+      |@scala.annotation.nowarn("cat=deprecation&msg=DelayedInit semantics can be surprising")
+      |trait ScalaCliApp extends DelayedInit {
+      |  protected final def args: Array[String] = _args
+      |  private[this] var _args: Array[String] = _
+      |
+      |  private[this] val initCode = new scala.collection.mutable.ListBuffer[() => Unit]
+      |
+      |  override def delayedInit(body: => Unit): Unit = {
+      |    initCode += (() => body)
+      |  }
+      |
+      |  def run(args: Array[String]): Unit = {
+      |    _args = args
+      |    for (proc <- initCode) proc()
+      |  }
+      |}
+      |""".stripMargin
+  )
 }

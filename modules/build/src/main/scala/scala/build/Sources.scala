@@ -86,14 +86,22 @@ object Sources {
     generatedRelPath: os.RelPath,
     wrapScriptFun: CodeWrapper => (String, WrapperParams)
   ) {
-    def wrap(wrapper: CodeWrapper): InMemory = {
+    def wrap(wrapper: CodeWrapper): Seq[InMemory] = {
       val (content, wrapperParams) = wrapScriptFun(wrapper)
-      InMemory(
-        originalPath,
-        generatedRelPath,
-        content.getBytes(StandardCharsets.UTF_8),
-        Some(wrapperParams)
-      )
+      Seq(
+        InMemory(
+          originalPath,
+          generatedRelPath,
+          content.getBytes(StandardCharsets.UTF_8),
+          Some(wrapperParams))
+      ) ++ wrapper.additionalSourceCode.map { sourceCode =>
+        InMemory(
+          Left("script-wrapper"),
+          generatedRelPath / os.up / "script-wrapper.scala",
+          sourceCode.getBytes(StandardCharsets.UTF_8),
+          None
+        )
+      }.toSeq
     }
   }
 
