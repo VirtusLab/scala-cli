@@ -86,7 +86,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple.class",
           "simple_sc.class",
           "simple$.class",
-          "simple_sc$.class"
+          "simple_sc$.class",
+          "simple$delayedInit$body.class",
+          "scala/cli/build/ScalaCliApp.class"
         )
     }
   }
@@ -186,12 +188,19 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
+
+      assert(build.successfulOpt.isDefined)
+      val projectName = build.successfulOpt.get.project.projectName
+
       build.assertGeneratedEquals(
         "simple.class",
         "simple_sc.class",
         "simple$.class",
         "simple_sc$.class",
-        "META-INF/semanticdb/simple.sc.semanticdb"
+        "simple$delayedInit$body.class",
+        "scala/cli/build/ScalaCliApp.class",
+        "META-INF/semanticdb/simple.sc.semanticdb",
+        s"META-INF/semanticdb/.scala-build/$projectName/src_generated/main/script-wrapper.scala.semanticdb"
       )
       maybeBuild.orThrow.assertNoDiagnostics
 
@@ -270,7 +279,11 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple_sc.sjsir",
           "simple$.class",
           "simple_sc$.class",
-          "simple_sc$.sjsir"
+          "simple_sc$.sjsir",
+          "simple$delayedInit$body.class",
+          "simple$delayedInit$body.sjsir",
+          "scala/cli/build/ScalaCliApp.class",
+          "scala/cli/build/ScalaCliApp.sjsir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -290,11 +303,15 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple$.nir",
           "simple.class",
           "simple.nir",
-          "simple_sc$$$Lambda$1.nir",
           "simple_sc$.class",
           "simple_sc$.nir",
           "simple_sc.class",
-          "simple_sc.nir"
+          "simple_sc.nir",
+          "simple$delayedInit$body.class",
+          "simple$delayedInit$body.nir",
+          "scala/cli/build/ScalaCliApp$$Lambda$1.nir",
+          "scala/cli/build/ScalaCliApp.class",
+          "scala/cli/build/ScalaCliApp.nir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -318,7 +335,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         "simple.class",
         "simple_sc.class",
         "simple$.class",
-        "simple_sc$.class"
+        "simple_sc$.class",
+        "simple$delayedInit$body.class",
+        "scala/cli/build/ScalaCliApp.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -349,7 +368,10 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         "simple2.class",
         "simple2_sc.class",
         "simple2$.class",
-        "simple2_sc$.class"
+        "simple2_sc$.class",
+        "simple$delayedInit$body.class",
+        "simple2$delayedInit$body.class",
+        "scala/cli/build/ScalaCliApp.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }

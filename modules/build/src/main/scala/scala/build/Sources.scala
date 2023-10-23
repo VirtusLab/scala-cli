@@ -93,7 +93,8 @@ object Sources {
           originalPath,
           generatedRelPath,
           content.getBytes(StandardCharsets.UTF_8),
-          Some(wrapperParams))
+          Some(wrapperParams)
+        )
       ) ++ wrapper.additionalSourceCode.map { sourceCode =>
         InMemory(
           Left("script-wrapper"),

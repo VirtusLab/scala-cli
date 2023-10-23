@@ -12,8 +12,8 @@ case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val mainObjectName = CodeWrapper.mainClassObject(indexedWrapperName).backticked
-    val wrapperObjectName = indexedWrapperName.backticked
+    val mainObjectName     = CodeWrapper.mainClassObject(indexedWrapperName).backticked
+    val wrapperObjectName  = indexedWrapperName.backticked
     val aliasedWrapperName = wrapperObjectName + "$$alias"
 
     val wrapperReference = if (wrapperObjectName == "main")
@@ -25,35 +25,41 @@ case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
 
     val mainObject = AmmUtil.normalizeNewlines(
       s"""object $mainObjectName {
-      |  def main(args: Array[String]): Unit = {
-      |    val _ = $wrapperReference${if isScala2 then ".run(args)" else ".hashCode()"}
-      |  }
-      |}
-      |""".stripMargin)
+         |  def main(args: Array[String]): Unit = {
+         |    val _ = $wrapperReference${if isScala2 then ".run(args)" else ".hashCode()"}
+         |  }
+         |}
+         |""".stripMargin
+    )
 
     val aliasObject = if (wrapperObjectName == "main")
       AmmUtil.normalizeNewlines(
-      s"""object $aliasedWrapperName {
-        |  val alias = $wrapperObjectName
-        |}
-        |""".stripMargin)
+        s"""object $aliasedWrapperName {
+           |  val alias = $wrapperObjectName
+           |}
+           |""".stripMargin
+      )
     else ""
 
     val top = AmmUtil.normalizeNewlines(
       s"""$packageDirective
-      |
-      |object $wrapperObjectName ${if isScala2 then "extends scala.cli.build.ScalaCliApp " else ""}{
-      |def scriptPath = \"\"\"$scriptPath\"\"\"
-      |""".stripMargin)
+         |
+         |object $wrapperObjectName ${
+          if isScala2 then "extends scala.cli.build.ScalaCliApp " else ""
+        }{
+         |def scriptPath = \"\"\"$scriptPath\"\"\"
+         |""".stripMargin
+    )
     val bottom = AmmUtil.normalizeNewlines(
       s"""
-      |$extraCode
-      |}
-      |
-      |$mainObject
-      |
-      |$aliasObject
-      |""".stripMargin)
+         |$extraCode
+         |}
+         |
+         |$mainObject
+         |
+         |$aliasObject
+         |""".stripMargin
+    )
 
     (top, bottom)
   }

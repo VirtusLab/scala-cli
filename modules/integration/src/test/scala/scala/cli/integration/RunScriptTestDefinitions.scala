@@ -174,8 +174,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
-      val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val output         = res.out.lines()
+      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output = res.out.lines()
       pprint.err.log(TestUtil.removeAnsiColors(output.mkString("\n")))
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"

@@ -168,7 +168,7 @@ case object ScriptPreprocessor extends Preprocessor {
   def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper =
     val scalaVersionOpt = for {
       maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
-      scalaVersion <- maybeScalaVersion.versionOpt
+      scalaVersion      <- maybeScalaVersion.versionOpt
     } yield scalaVersion
 
     val isScala2 = scalaVersionOpt.exists(_.startsWith("2"))

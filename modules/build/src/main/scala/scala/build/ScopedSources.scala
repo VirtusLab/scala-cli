@@ -64,7 +64,7 @@ final case class ScopedSources(
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .flatMap(_.wrap(codeWrapper))
-      .distinctBy(_.originalPath) //filter out duplicated script wrapper sources
+      .distinctBy(_.originalPath) // filter out duplicated script wrapper sources
 
     val needsBuildInfo = combinedOptions.sourceGeneratorOptions.useBuildInfo.getOrElse(false)
 
