@@ -93,7 +93,7 @@ object Deps {
     def scalaMeta            = "4.8.12"
     def scalaNative          = "0.4.16"
     def scalaPackager        = "0.1.29"
-    def signingCli           = "0.2.2"
+    def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
   }
   // DO NOT hardcode a Scala version in this dependency string
