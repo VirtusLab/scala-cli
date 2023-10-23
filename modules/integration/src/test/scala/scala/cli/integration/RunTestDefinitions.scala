@@ -2021,4 +2021,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(withDependencyCacheWalkSize == os.walk(cachePath).size)
     }
   }
+
+  test("JVM id is printed with compilation info correctly") {
+    val msg   = "Hello"
+    val input = "jvm.sc"
+    TestInputs(os.rel / input ->
+      s"""//> using jvm 11
+         |println("$msg")
+         |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, input).call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == msg)
+      expect(res.err.trim().contains("JVM (11)"))
+    }
+  }
 }
