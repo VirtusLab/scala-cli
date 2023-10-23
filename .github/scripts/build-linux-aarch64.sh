@@ -11,7 +11,6 @@ chmod +x utils/cs
 
 cp "$DIR/build-linux-aarch64-from-docker.sh" utils/
 
-docker login --username "$DOCKERHUB_USERNAME" --password "$DOCKERHUB_TOKEN"
 docker run $(if test -t 1; then echo "-it"; fi) --rm \
   --volume "$(pwd):/data" \
   -w /data \
