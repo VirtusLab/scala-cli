@@ -86,9 +86,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple.class",
           "simple_sc.class",
           "simple$.class",
-          "simple_sc$.class",
-          "simple$delayedInit$body.class",
-          "scala/cli/build/ScalaCliApp.class"
+          "simple_sc$.class"
         )
     }
   }
@@ -188,6 +186,82 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
+      build.assertGeneratedEquals(
+        "simple.class",
+        "simple_sc.class",
+        "simple$.class",
+        "simple_sc$.class",
+        "META-INF/semanticdb/simple.sc.semanticdb"
+      )
+      maybeBuild.orThrow.assertNoDiagnostics
+
+      val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
+      val semDb     = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
+      val doc       = TextDocuments.parseFrom(semDb)
+      val uris      = doc.documents.map(_.uri)
+      expect(uris == Seq("simple.sc"))
+
+      val occurences = doc.documents.flatMap(_.occurrences)
+      expect(occurences.forall(_.range.isDefined))
+
+      val sortedOccurences = doc.documents.flatMap(_.occurrences)
+        .sortBy(s =>
+          s.range.map(r => (r.startLine, r.startCharacter)).getOrElse((Int.MaxValue, Int.MaxValue))
+        )
+      val sortedExpectedOccurences = expectedSymbolOccurences
+        .sortBy(s =>
+          s.range.map(r => (r.startLine, r.startCharacter)).getOrElse((Int.MaxValue, Int.MaxValue))
+        )
+
+      munit.Assertions.assert(
+        sortedOccurences == sortedExpectedOccurences,
+        clue = doc.documents.flatMap(_.occurrences)
+      )
+    }
+  }
+
+  test("semantic DB for script wrapper with DelayedInit") {
+    import scala.meta.internal.semanticdb.*
+
+    val scriptContents =
+      """val n = 2
+        |println(s"n=$n")
+        |""".stripMargin
+
+    val expectedSymbolOccurences = Seq(
+      SymbolOccurrence(
+        Some(Range(0, 4, 0, 5)),
+        "_empty_/simple.n.",
+        SymbolOccurrence.Role.DEFINITION
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 8, 1, 9)),
+        "scala/StringContext#s().",
+        SymbolOccurrence.Role.REFERENCE
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 0, 1, 7)),
+        "scala/Predef.println(+1).",
+        SymbolOccurrence.Role.REFERENCE
+      ),
+      SymbolOccurrence(
+        Some(Range(1, 13, 1, 14)),
+        "_empty_/simple.n.",
+        SymbolOccurrence.Role.REFERENCE
+      )
+    )
+
+    val testInputs = TestInputs(os.rel / "simple.sc" -> scriptContents)
+    val buildOptions = defaultOptions.copy(
+      scalaOptions = defaultOptions.scalaOptions.copy(
+        generateSemanticDbs = Some(true)
+      ),
+      scriptOptions = ScriptOptions(
+        forceDelayedInitWrapper = Some(true)
+      )
+    )
+    testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val build = maybeBuild.orThrow
 
       assert(build.successfulOpt.isDefined)
       val projectName = build.successfulOpt.get.project.projectName
@@ -200,7 +274,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         "simple$delayedInit$body.class",
         "scala/cli/build/ScalaCliApp.class",
         "META-INF/semanticdb/simple.sc.semanticdb",
-        s"META-INF/semanticdb/.scala-build/$projectName/src_generated/main/script-wrapper.scala.semanticdb"
+        s"META-INF/semanticdb/.scala-build/$projectName/src_generated/main/delayed-init-wrapper.scala.semanticdb"
       )
       maybeBuild.orThrow.assertNoDiagnostics
 
@@ -279,11 +353,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple_sc.sjsir",
           "simple$.class",
           "simple_sc$.class",
-          "simple_sc$.sjsir",
-          "simple$delayedInit$body.class",
-          "simple$delayedInit$body.sjsir",
-          "scala/cli/build/ScalaCliApp.class",
-          "scala/cli/build/ScalaCliApp.sjsir"
+          "simple_sc$.sjsir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -303,15 +373,11 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
           "simple$.nir",
           "simple.class",
           "simple.nir",
+          "simple_sc$$$Lambda$1.nir",
           "simple_sc$.class",
           "simple_sc$.nir",
           "simple_sc.class",
-          "simple_sc.nir",
-          "simple$delayedInit$body.class",
-          "simple$delayedInit$body.nir",
-          "scala/cli/build/ScalaCliApp$$Lambda$1.nir",
-          "scala/cli/build/ScalaCliApp.class",
-          "scala/cli/build/ScalaCliApp.nir"
+          "simple_sc.nir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -335,9 +401,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         "simple.class",
         "simple_sc.class",
         "simple$.class",
-        "simple_sc$.class",
-        "simple$delayedInit$body.class",
-        "scala/cli/build/ScalaCliApp.class"
+        "simple_sc$.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -368,10 +432,7 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         "simple2.class",
         "simple2_sc.class",
         "simple2$.class",
-        "simple2_sc$.class",
-        "simple$delayedInit$body.class",
-        "simple2$delayedInit$body.class",
-        "scala/cli/build/ScalaCliApp.class"
+        "simple2_sc$.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
