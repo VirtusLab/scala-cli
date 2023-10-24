@@ -95,10 +95,10 @@ object Sources {
           content.getBytes(StandardCharsets.UTF_8),
           Some(wrapperParams)
         )
-      ) ++ wrapper.additionalSourceCode.map { sourceCode =>
+      ) ++ wrapper.additionalSourceCode.map { (relativePath, sourceCode) =>
         InMemory(
           Left("script-wrapper"),
-          generatedRelPath / os.up / "script-wrapper.scala",
+          generatedRelPath / os.up / relativePath,
           sourceCode.getBytes(StandardCharsets.UTF_8),
           None
         )

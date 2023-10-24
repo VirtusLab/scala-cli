@@ -341,7 +341,7 @@ object Fix extends ScalaCommand[FixOptions] {
         JavaProps.handler.keys,
         MainClass.handler.keys,
         scala.build.preprocessing.directives.Sources.handler.keys,
-        ObjectWrapper.handler.keys,
+        ScriptWrapper.handler.keys,
         Toolkit.handler.keys,
         Dependency.handler.keys
       )

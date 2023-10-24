@@ -35,7 +35,7 @@ abstract class CodeWrapper {
     (topWrapper0 + code + bottomWrapper0, wrapperParams)
   }
 
-  def additionalSourceCode: Option[String] = None
+  def additionalSourceCode: Option[(os.RelPath, String)] = None
 }
 
 object CodeWrapper {

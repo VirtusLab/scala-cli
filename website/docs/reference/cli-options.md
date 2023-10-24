@@ -1419,6 +1419,22 @@ Aliases: `--verbose-scalac`
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
+## Script options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--object-wrapper`
+
+Force object wrapper for scripts
+
+### `--delayed-init`
+
+Make script wrapper extend DelayedInit (this trait is deprecated since 2.11.0)
+
 ## Secret options
 
 Available in commands:
@@ -1548,10 +1564,6 @@ Add toolkit to classPath
 ### `--exclude`
 
 Exclude sources
-
-### `--object-wrapper`
-
-Force object wrapper for scripts
 
 ## Snippet options
 

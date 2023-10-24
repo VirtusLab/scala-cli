@@ -4,7 +4,7 @@ package scala.build.internal
   * or/and not using JS native prefer [[ClassCodeWrapper]], since it prevents deadlocks when running
   * threads from script
   */
-case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
+case class ObjectCodeWrapper(useDelayedInit: Boolean) extends CodeWrapper {
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -26,7 +26,7 @@ case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
     val mainObject = AmmUtil.normalizeNewlines(
       s"""object $mainObjectName {
          |  def main(args: Array[String]): Unit = {
-         |    val _ = $wrapperReference${if isScala2 then ".run(args)" else ".hashCode()"}
+         |    val _ = $wrapperReference${if useDelayedInit then ".run(args)" else ".hashCode()"}
          |  }
          |}
          |""".stripMargin
@@ -45,7 +45,7 @@ case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
       s"""$packageDirective
          |
          |object $wrapperObjectName ${
-          if isScala2 then "extends scala.cli.build.ScalaCliApp " else ""
+          if useDelayedInit then "extends scala.cli.build.ScalaCliApp " else ""
         }{
          |def scriptPath = \"\"\"$scriptPath\"\"\"
          |""".stripMargin
@@ -64,26 +64,26 @@ case class ObjectCodeWrapper(isScala2: Boolean) extends CodeWrapper {
     (top, bottom)
   }
 
-  override def additionalSourceCode: Option[String] = Option.when(isScala2)(
-    // This is copied from Scala 2 implementation of App trait, but with no main method
-    """package scala.cli.build
-      |
-      |@scala.annotation.nowarn("cat=deprecation&msg=DelayedInit semantics can be surprising")
-      |trait ScalaCliApp extends DelayedInit {
-      |  protected final def args: Array[String] = _args
-      |  private[this] var _args: Array[String] = _
-      |
-      |  private[this] val initCode = new scala.collection.mutable.ListBuffer[() => Unit]
-      |
-      |  override def delayedInit(body: => Unit): Unit = {
-      |    initCode += (() => body)
-      |  }
-      |
-      |  def run(args: Array[String]): Unit = {
-      |    _args = args
-      |    for (proc <- initCode) proc()
-      |  }
-      |}
-      |""".stripMargin
+  override def additionalSourceCode: Option[(os.RelPath, String)] = Option.when(useDelayedInit)(
+    os.RelPath("delayed-init-wrapper.scala") ->
+      // This is copied from Scala 2 implementation of App trait, but with no main method
+      """package scala.cli.build
+        |
+        |trait ScalaCliApp extends DelayedInit {
+        |  protected final def args: Array[String] = _args
+        |  private[this] var _args: Array[String] = _
+        |
+        |  private[this] val initCode = new scala.collection.mutable.ListBuffer[() => Unit]
+        |
+        |  override def delayedInit(body: => Unit): Unit = {
+        |    initCode += (() => body)
+        |  }
+        |
+        |  def run(args: Array[String]): Unit = {
+        |    _args = args
+        |    for (proc <- initCode) proc()
+        |  }
+        |}
+        |""".stripMargin
   )
 }

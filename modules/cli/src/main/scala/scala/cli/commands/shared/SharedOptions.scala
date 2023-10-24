@@ -82,6 +82,8 @@ final case class SharedOptions(
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
+  @Recurse
+    sharedScriptOptions: SharedScriptOptions = SharedScriptOptions(),
 
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
@@ -218,9 +220,6 @@ final case class SharedOptions(
     withToolkit: Option[String] = None,
   @HelpMessage("Exclude sources")
     exclude: List[String] = Nil,
-  @HelpMessage("Force object wrapper for scripts")
-  @Tag(tags.experimental)
-    objectWrapper: Option[Boolean] = None,
 ) extends HasGlobalOptions {
   // format: on
 
@@ -372,7 +371,8 @@ final case class SharedOptions(
         platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = bo.ScriptOptions(
-        forceObjectWrapper = objectWrapper
+        forceObjectWrapper = sharedScriptOptions.objectWrapper,
+        forceDelayedInitWrapper = sharedScriptOptions.delayedInit
       ),
       scalaJsOptions = scalaJsOptions(js),
       scalaNativeOptions = scalaNativeOptions(native),

@@ -6,15 +6,22 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class ScriptWrapperTests extends ScalaCliSuite {
-  def containsObjectWrapper(wrapperName: String, code: String) = {
-    code.contains(s"object $wrapperName {") ||
-      code.contains(s"object $wrapperName extends scala.cli.build.ScalaCliApp {")
-  }
-
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
-      containsObjectWrapper(wrapperName, generatedFileContent),
+      generatedFileContent.contains(s"object $wrapperName {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+    assert(
+      !generatedFileContent.contains(s"final class $wrapperName$$_"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+  }
+
+  def expectObjectScalaCliAppWrapper(wrapperName: String, path: os.Path) = {
+    val generatedFileContent = os.read(path)
+    assert(
+      generatedFileContent.contains(s"object $wrapperName extends scala.cli.build.ScalaCliApp {"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
@@ -30,7 +37,8 @@ class ScriptWrapperTests extends ScalaCliSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !containsObjectWrapper(wrapperName, generatedFileContent),
+      !(generatedFileContent.contains(s"object $wrapperName {") ||
+      generatedFileContent.contains(s"object $wrapperName extends scala.cli.build.ScalaCliApp {")),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
@@ -38,7 +46,8 @@ class ScriptWrapperTests extends ScalaCliSuite {
   test("BSP class wrapper for Scala 3") {
     val inputs = TestInputs(
       os.rel / "script.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using delayedInit.wrapper
+           |//> using dep "com.lihaoyi::os-lib:0.9.1"
            |
            |def main(args: String*): Unit = println("Hello")
            |""".stripMargin,
@@ -58,8 +67,9 @@ class ScriptWrapperTests extends ScalaCliSuite {
       TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
         val timeout     = Duration("60 seconds")
         implicit val ec = ExecutionContext.fromExecutorService(pool)
-        val bspProc = os.proc(TestUtil.cli, "--power", "bsp", "script.sc", "munit.sc")
-          .spawn(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
+        val bspProc =
+          os.proc(TestUtil.cli, "--power", "bsp", "script.sc", "munit.sc", "--delayed-init")
+            .spawn(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
 
         def lineReaderIter =
           Iterator.continually(TestUtil.readLine(bspProc.stdout, ec, timeout))
@@ -82,6 +92,9 @@ class ScriptWrapperTests extends ScalaCliSuite {
           "munit",
           projectDir.head / "src_generated" / "main" / "munit.scala"
         )
+        assert(
+          !os.exists(projectDir.head / "src_generated" / "main" / "delayed-init-wrapper.scala")
+        )
       }
     }
   }
@@ -90,28 +103,36 @@ class ScriptWrapperTests extends ScalaCliSuite {
     useDirectives <- Seq(true, false)
     (directive, options) <- Seq(
       ("//> using object.wrapper", Seq("--object-wrapper")),
-      ("//> using scala 2.13", Seq("--scala", "2.13")),
+      ("//> using scala 2.13.1", Seq("--scala", "2.13.1")),
       ("//> using platform js", Seq("--js"))
     )
   } {
+    // Test directives with options and options with directives
+    def script1Code(directiveOnUse: String, directiveOnNotUse: String = "") =
+      s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+         |${if (useDirectives) directiveOnUse else directiveOnNotUse}
+         |
+         |def main(args: String*): Unit = println("Hello")
+         |main()
+         |""".stripMargin
+
+    val script2Code =
+      """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        |
+        |println("Hello")
+        |""".stripMargin
+
     val inputs = TestInputs(
-      os.rel / "script1.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |${if (useDirectives) directive else ""}
-           |
-           |def main(args: String*): Unit = println("Hello")
-           |main()
-           |""".stripMargin,
-      os.rel / "script2.sc" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
-          |
-          |println("Hello")
-          |""".stripMargin
+      os.rel / "script1.sc" -> script1Code(directive),
+      os.rel / "script2.sc" -> script2Code
     )
 
-    test(
-      s"BSP object wrapper forced with ${if (useDirectives) directive else options.mkString(" ")}"
-    ) {
+    val testSuffixObject = if (useDirectives) directive else options.mkString(" ")
+    // Test directives with options and options with directives
+    val testSuffixDelayedInit =
+      if (useDirectives) "--delayed-init" else "//> using delayedInit.wrapper"
+
+    test(s"BSP object wrapper forced with $testSuffixObject") {
       inputs.fromRoot { root =>
         TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
           val timeout     = Duration("60 seconds")
@@ -147,6 +168,64 @@ class ScriptWrapperTests extends ScalaCliSuite {
           expectObjectWrapper(
             "script2",
             projectDir.head / "src_generated" / "main" / "script2.scala"
+          )
+          assert(
+            !os.exists(projectDir.head / "src_generated" / "main" / "delayed-init-wrapper.scala")
+          )
+        }
+      }
+    }
+
+    val delayedInitInputs = TestInputs(
+      if (useDirectives) // Test directives with options and options with directives
+        os.rel / "script1.sc" -> script1Code(directive)
+      else
+        os.rel / "script1.sc" -> script1Code(directive, "//> using delayedInit.wrapper"),
+      os.rel / "script2.sc" -> script2Code
+    )
+
+    test(
+      s"BSP object wrapper with ScalaCliApp forced with $testSuffixObject and $testSuffixDelayedInit"
+    ) {
+      delayedInitInputs.fromRoot { root =>
+        TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
+          val timeout     = Duration("60 seconds")
+          implicit val ec = ExecutionContext.fromExecutorService(pool)
+
+          val bspProc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "bsp",
+            "script1.sc",
+            "script2.sc",
+            // Test directives with options and options with directives
+            if (useDirectives) "--delayed-init" else options
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
+
+          def lineReaderIter =
+            Iterator.continually(TestUtil.readLine(bspProc.stdout, ec, timeout))
+
+          lineReaderIter.find(_.contains("\"build/taskFinish\""))
+
+          bspProc.destroy()
+          if (bspProc.isAlive())
+            bspProc.destroyForcibly()
+
+          val projectDir = os.list(root / Constants.workspaceDirName).filter(
+            _.baseName.startsWith(root.baseName + "_")
+          )
+          expect(projectDir.size == 1)
+          expectObjectScalaCliAppWrapper(
+            "script1",
+            projectDir.head / "src_generated" / "main" / "script1.scala"
+          )
+          expectObjectScalaCliAppWrapper(
+            "script2",
+            projectDir.head / "src_generated" / "main" / "script2.scala"
+          )
+          assert(
+            os.isFile(projectDir.head / "src_generated" / "main" / "delayed-init-wrapper.scala")
           )
         }
       }

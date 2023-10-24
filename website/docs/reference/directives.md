@@ -181,15 +181,6 @@ Specify default main class
 #### Examples
 `//> using mainClass HelloWorld`
 
-### ObjectWrapper
-
-Set the default code wrapper for scripts to object wrapper
-
-`//> using objectWrapper`
-
-#### Examples
-`//> using objectWrapper`
-
 ### Packaging
 
 Set parameters for packaging
@@ -398,6 +389,20 @@ Add Scala.js options
 
 #### Examples
 `//> using jsModuleKind common`
+
+### ScriptWrapper
+
+Set parameter for the code wrapper for scripts
+
+`//> using objectWrapper`
+
+`//> using delayedInitWrapper`
+
+
+#### Examples
+`//> using objectWrapper`
+
+`//> using delayedInitWrapper`
 
 ### Test framework
 
