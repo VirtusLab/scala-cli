@@ -142,7 +142,7 @@ case object ScriptPreprocessor extends Preprocessor {
     (codeWrapper: CodeWrapper) =>
       if (containsMainAnnot) logger.diagnostic(
         codeWrapper match {
-          case _: ObjectCodeWrapper.type =>
+          case _: ObjectCodeWrapper =>
             WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
           case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
         }
