@@ -20,10 +20,15 @@ import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Posit
 
 class ScriptWrapperTests extends munit.FunSuite {
 
+  def containsObjectWrapper(wrapperName: String, code: String) = {
+    code.contains(s"object $wrapperName {") ||
+      code.contains(s"object $wrapperName extends scala.cli.build.ScalaCliApp {")
+  }
+
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"object $wrapperName {"),
+      containsObjectWrapper(wrapperName, generatedFileContent),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
@@ -39,7 +44,7 @@ class ScriptWrapperTests extends munit.FunSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"object $wrapperName {"),
+      !containsObjectWrapper(wrapperName, generatedFileContent),
       clue(s"Generated file content: $generatedFileContent")
     )
   }

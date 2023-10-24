@@ -6,10 +6,15 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class ScriptWrapperTests extends ScalaCliSuite {
+  def containsObjectWrapper(wrapperName: String, code: String) = {
+    code.contains(s"object $wrapperName {") ||
+      code.contains(s"object $wrapperName extends scala.cli.build.ScalaCliApp {")
+  }
+
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"object $wrapperName {"),
+      containsObjectWrapper(wrapperName, generatedFileContent),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
@@ -25,7 +30,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"object $wrapperName {"),
+      !containsObjectWrapper(wrapperName, generatedFileContent),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
