@@ -58,7 +58,7 @@ final case class BuildOptions(
         val platform0 = platform.value match {
           case Platform.JVM =>
             val jvmIdSuffix =
-              javaOptions.jvmIdOpt
+              javaOptions.jvmIdOpt.map(_.value)
                 .orElse(Some(javaHome().value.version.toString))
                 .map(" (" + _ + ")").getOrElse("")
             s"JVM$jvmIdSuffix"
