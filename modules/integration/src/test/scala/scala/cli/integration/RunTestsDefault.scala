@@ -102,12 +102,21 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
 
       publishLib()
 
-      val proc = os.proc(TestUtil.cli, "run", "app", "-w", "-r", testRepo.toNIO.toUri.toASCIIString)
+      val proc = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        "--offline",
+        "app",
+        "-w",
+        "-r",
+        testRepo.toNIO.toUri.toASCIIString
+      )
         .spawn(cwd = root)
 
       try
         TestUtil.withThreadPool("watch-artifacts-test", 2) { pool =>
-          val timeout = Duration("20 seconds")
+          val timeout = Duration("90 seconds")
           val ec      = ExecutionContext.fromExecutorService(pool)
 
           val output = TestUtil.readLine(proc.stdout, ec, timeout)

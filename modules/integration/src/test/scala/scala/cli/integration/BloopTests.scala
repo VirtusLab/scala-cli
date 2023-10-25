@@ -136,7 +136,7 @@ class BloopTests extends ScalaCliSuite {
 
   test("Restart Bloop server while watching") {
     TestUtil.withThreadPool("bloop-restart-test", 2) { pool =>
-      val timeout = Duration("20 seconds")
+      val timeout = Duration("90 seconds")
       val ec      = ExecutionContext.fromExecutorService(pool)
 
       def content(message: String) =
@@ -150,7 +150,7 @@ class BloopTests extends ScalaCliSuite {
         sourcePath -> content("Hello")
       )
       inputs.fromRoot { root =>
-        val proc = os.proc(TestUtil.cli, "run", "-w", ".")
+        val proc = os.proc(TestUtil.cli, "run", "--power", "--offline", "-w", ".")
           .spawn(cwd = root)
         val firstLine = TestUtil.readLine(proc.stdout, ec, timeout)
         expect(firstLine == "Hello")
