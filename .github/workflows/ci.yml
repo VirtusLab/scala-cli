@@ -722,7 +722,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
       with:
         jvm: "zulu:17"
-    - uses: actions/setup-node@v3
+    - uses: actions/setup-node@v4
       with:
         node-version: '16.x'
     - name: Build documentation
