@@ -46,7 +46,7 @@ class JavaParserProxyBinary(
       else ("v" + version, false)
     val ext = if (Properties.isWin) ".zip" else ".gz"
     val url =
-      s"https://github.com/scala-cli/java-class-name/releases/download/$tag/java-class-name-$platformSuffix$ext"
+      s"https://github.com/VirtusLab/java-class-name/releases/download/$tag/java-class-name-$platformSuffix$ext"
 
     val params = ExternalBinaryParams(
       url,

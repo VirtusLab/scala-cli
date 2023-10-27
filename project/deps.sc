@@ -95,6 +95,7 @@ object Deps {
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
+    def javaClassName        = "0.1.3"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -116,14 +117,15 @@ object Deps {
   def dependency         = ivy"io.get-coursier::dependency:0.2.3"
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
-  def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
-  def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
-  def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = ivy"com.google.guava:guava:32.1.3-jre"
-  def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
-  def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
-  def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
+  def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
+  def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
+  def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
+  def guava   = ivy"com.google.guava:guava:32.1.3-jre"
+  def javaClassName =
+    ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
+  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
+  def jimfs    = ivy"com.google.jimfs:jimfs:1.3.0"
+  def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterCoreJava8 =
