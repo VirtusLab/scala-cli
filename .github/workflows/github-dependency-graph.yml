@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: coursier/cache-action@v6
-    - uses: VirtusLab/scala-cli-setup@a4c8b538a26205b4f92c3253f4661735b029f6e6
+    - uses: VirtusLab/scala-cli-setup@e661495714262ac8cb7968416d35bb19fa863a4a
       with:
         jvm: "temurin:17"
     - uses: ckipp01/mill-dependency-submission@v1
