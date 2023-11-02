@@ -74,14 +74,7 @@ object OsLibc {
   }
 
   def defaultJvm(os: String): String = {
-    val hasEmptyJavaHome = Option(System.getenv("JAVA_HOME")).exists(_.trim.isEmpty)
-    val defaultJvm0      = baseDefaultJvm(os, defaultJvmVersion)
-    if (hasEmptyJavaHome)
-      // Not using the system JVM if JAVA_HOME is set to an empty string
-      // (workaround for https://github.com/coursier/coursier/issues/2292)
-      defaultJvm0
-    else
-      s"${JavaHome.systemId}|$defaultJvm0"
+    baseDefaultJvm(os, defaultJvmVersion)
   }
 
   def javaVersion(javaCmd: String): Int = {
