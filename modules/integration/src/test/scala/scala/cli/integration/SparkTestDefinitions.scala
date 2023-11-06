@@ -9,7 +9,7 @@ import scala.util.Properties
 
 object SparkTestDefinitions {
 
-  def lightweightSparkDistribVersionOpt = Option("0.0.4")
+  def lightweightSparkDistribVersionOpt: Option[String] = Option("0.0.5")
 
   final class Spark(val sparkVersion: String, val scalaVersion: String) {
     private def sbv         = scalaVersion.split('.').take(2).mkString(".")
@@ -17,7 +17,7 @@ object SparkTestDefinitions {
     lazy val sparkHome: os.Path = {
       val url = lightweightSparkDistribVersionOpt match {
         case Some(lightweightSparkDistribVersion) =>
-          s"https://github.com/scala-cli/lightweight-spark-distrib/releases/download/v$lightweightSparkDistribVersion/spark-$sparkVersion-bin-hadoop2.7-scala$sbv.tgz"
+          s"https://github.com/VirtusLab/lightweight-spark-distrib/releases/download/v$lightweightSparkDistribVersion/spark-$sparkVersion-bin-hadoop2.7-scala$sbv.tgz"
         case None =>
           // original URL (too heavyweight, often fails / times out…)
           s"https://archive.apache.org/dist/spark/spark-$sparkVersion/spark-$sparkVersion-bin-hadoop2.7.tgz"
