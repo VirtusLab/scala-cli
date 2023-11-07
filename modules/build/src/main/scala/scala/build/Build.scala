@@ -705,8 +705,9 @@ object Build {
               val p           = os.Path(event.getTypedPath.getPath.toAbsolutePath)
               val relPath     = p.relativeTo(d.path)
               val isHidden    = relPath.segments.exists(_.startsWith("."))
-              def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-              def isJavaFile  = relPath.last.endsWith(".java")
+              val pathLast    = relPath.lastOpt.orElse(p.lastOpt).getOrElse("")
+              def isScalaFile = pathLast.endsWith(".sc") || pathLast.endsWith(".scala")
+              def isJavaFile  = pathLast.endsWith(".java")
               !isHidden && (isScalaFile || isJavaFile)
           case _ => _ => true
         }
