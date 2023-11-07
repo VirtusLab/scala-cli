@@ -1,6 +1,6 @@
 ---
 title: Scala CLI within Emacs
-sidebar_position: 2
+sidebar_position: 14
 ---
 
 Emacs users can make it easier to use Scala CLI from within their editor by
