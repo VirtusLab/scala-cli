@@ -1026,6 +1026,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         Severity.Warning
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
+    val isLegacySonatype        = isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
     val hooksDataOpt = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
@@ -1033,8 +1034,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r.unanchored.matches(
               e.getMessage
             ) =>
-          logger.exit(new WrongSonatypeServerError(
-            repoParams0.repo.releaseRepo.root.contains("s01")))
+          logger.exit(new WrongSonatypeServerError(isLegacySonatype))
         case NonFatal(e)
             if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r.unanchored.matches(
               e.getMessage
@@ -1096,7 +1096,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               s"""
                  |Uploading files failed!
                  |Possible causes:
-                 |- no rights to push to under this organization or organization name is misspelled
+                 |- no rights to publish under this organization
+                 |- organization name is misspelled
                  | -> have you registered your organisation yet?
                  |""".stripMargin
             )
@@ -1112,7 +1113,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              |Possible causes:
              |- incorrect Sonatype credentials
              |- your Sonatype password or username may contain unsupported characters
-             |- incorrect Sonatype server was used (legacy or s01)
+             |- incorrect Sonatype server was used, try ${
+              if isLegacySonatype then "'central-s01'" else "'central'"
+            }
              | -> consult publish subcommand documentation
              |""".stripMargin
         )
