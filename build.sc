@@ -834,7 +834,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       workingDir = os.pwd
     )
     val cp = res.out.trim()
-    cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
+    cp.split(File.pathSeparator).toSeq.map(p => PathRef(os.Path(p)))
   }
 
   def localRepoJar = `local-repo`.localRepoJar()
@@ -869,20 +869,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
   }
 
-  def modulesPath = T {
-    val name                = mainArtifactName().stripPrefix(prefix)
-    val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
-  }
-  def sources = T.sources {
-    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "scala")
-    super.sources() ++ Seq(mainPath)
-  }
-  def resources = T.sources {
-    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "resources")
-    super.resources() ++ Seq(mainPath)
-  }
-
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
@@ -909,25 +895,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       "SCALA_CLI_PRINT_STACK_TRACES" -> "1",
       "SCALA_CLI_CONFIG"             -> (tmpDirBase().path / "config" / "config.json").toString
     )
-    private def updateRef(name: String, ref: PathRef): PathRef = {
-      val rawPath = ref.path.toString.replace(
-        File.separator + name + File.separator,
-        File.separator
-      )
-      PathRef(os.Path(rawPath))
-    }
-    def sources = T.sources {
-      val name = mainArtifactName().stripPrefix(prefix)
-      super.sources().flatMap { ref =>
-        Seq(updateRef(name, ref), ref)
-      }
-    }
-    def resources = T.sources {
-      val name = mainArtifactName().stripPrefix(prefix)
-      super.resources().flatMap { ref =>
-        Seq(updateRef(name, ref), ref)
-      }
-    }
 
     def constantsFile = T.persistent {
       val dir  = T.dest / "constants"
