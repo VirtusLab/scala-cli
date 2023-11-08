@@ -11,15 +11,8 @@ import scala.build.errors.{
   MalformedInputError,
   ModuleFormatError
 }
+import scala.build.options._
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
-import scala.build.options.{
-  BuildOptions,
-  JavaOpt,
-  PackageOptions,
-  PackageType,
-  PostBuildOptions,
-  ShadowingSeq
-}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
@@ -100,6 +93,9 @@ final case class Packaging(
     }
 
     BuildOptions(
+      internal = InternalOptions(
+        keepResolution = provided0.nonEmpty || packageTypeOpt.contains(PackageType.Spark)
+      ),
       notForBloopOptions = PostBuildOptions(
         packageOptions = PackageOptions(
           packageTypeOpt = packageTypeOpt,

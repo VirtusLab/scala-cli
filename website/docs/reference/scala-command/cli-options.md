@@ -370,7 +370,7 @@ Aliases: `--fmt-version`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass scalafmt version before running it (3.7.14 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.15 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -648,6 +648,20 @@ Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
 
 List main classes available in the current context
 
+## Power options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--power`
+
+`MUST have` per Scala Runner specification
+
+Allows to use restricted & experimental features
+
 ## Run options
 
 Available in commands:
@@ -692,7 +706,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 `SHOULD have` per Scala Runner specification
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 ### `--js-mode`
 
@@ -780,7 +794,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 ### `--js-cli-java-arg`
 
@@ -812,7 +826,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 ### `--native-mode`
 
@@ -867,6 +881,12 @@ List of compile options
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Use default compile options
+
+### `--native-target`
+
+`SHOULD have` per Scala Runner specification
+
+Build target type
 
 ### `--embed-resources`
 

@@ -16,29 +16,30 @@ class ConfigTests extends ScalaCliSuite {
     val name       = "Alex"
     TestInputs.empty.fromRoot { root =>
       val before =
-        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+        // Test --power placed after subcommand name
+        os.proc(TestUtil.cli, "config", "publish.user.name", "--power").call(
           cwd = root,
           env = configEnv
         )
       expect(before.out.trim().isEmpty)
 
-      os.proc(TestUtil.cli, "--power", "config", "publish.user.name", name).call(
+      os.proc(TestUtil.cli, "config", "publish.user.name", name, "--power").call(
         cwd = root,
         env = configEnv
       )
       val res =
-        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+        os.proc(TestUtil.cli, "config", "publish.user.name", "--power").call(
           cwd = root,
           env = configEnv
         )
       expect(res.out.trim() == name)
 
-      os.proc(TestUtil.cli, "--power", "config", "publish.user.name", "--unset").call(
+      os.proc(TestUtil.cli, "config", "publish.user.name", "--unset", "--power").call(
         cwd = root,
         env = configEnv
       )
       val after =
-        os.proc(TestUtil.cli, "--power", "config", "publish.user.name").call(
+        os.proc(TestUtil.cli, "config", "publish.user.name", "--power").call(
           cwd = root,
           env = configEnv
         )

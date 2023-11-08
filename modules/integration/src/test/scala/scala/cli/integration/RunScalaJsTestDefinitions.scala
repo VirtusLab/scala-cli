@@ -265,4 +265,22 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
       expect(output == "H")
     }
   }
+
+  test("js defaults & toolkit latest") {
+    val msg = "Hello"
+    TestInputs(
+      os.rel / "script.sc" ->
+        s"""//> using toolkit latest
+           |//> using platform "scala-js"
+           |import scala.scalajs.js
+           |val console = js.Dynamic.global.console
+           |val jsonString = "{\\"msg\\": \\"$msg\\"}"
+           |val json: ujson.Value  = ujson.read(jsonString)
+           |console.log(json("msg").str)
+           |""".stripMargin
+    ).fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "run", "script.sc").call(cwd = root)
+      expect(result.out.trim() == msg)
+    }
+  }
 }

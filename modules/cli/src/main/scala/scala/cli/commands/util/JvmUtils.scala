@@ -4,15 +4,16 @@ package util
 import java.io.File
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, UnrecognizedDebugModeError}
+import scala.build.errors.{BuildException, JvmDownloadError, UnrecognizedDebugModeError}
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.OsLibc
+import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.{Os, Position, Positioned, options as bo}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions, SharedOptions}
 import scala.concurrent.ExecutionContextExecutorService
-import scala.util.Properties
 import scala.util.control.NonFatal
+import scala.util.{Failure, Properties, Success, Try}
 
 object JvmUtils {
   def javaOptions(opts: SharedJvmOptions): Either[BuildException, JavaOptions] = either {
@@ -67,49 +68,54 @@ object JvmUtils {
     )
   }
 
-  def downloadJvm(jvmId: String, options: bo.BuildOptions): String = {
+  def downloadJvm(jvmId: String, options: bo.BuildOptions): Either[BuildException, JavaHomeInfo] = {
     implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
     val javaHomeManager = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
     val logger = javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)
       .getOrElse(_root_.coursier.cache.CacheLogger.nop)
-    val command = {
-      val path = logger.use {
-        try javaHomeManager.get(jvmId).unsafeRun()
-        catch {
-          case NonFatal(e) => throw new Exception(e)
-        }
-      }
-      os.Path(path)
+
+    val javaHomeOrError = Try(javaHomeManager.get(jvmId).unsafeRun()) match {
+      case Success(path) => Right(path)
+      case Failure(e)    => Left(JvmDownloadError(jvmId, e))
     }
-    val ext     = if (Properties.isWin) ".exe" else ""
-    val javaCmd = (command / "bin" / s"java$ext").toString
-    javaCmd
+
+    for {
+      javaHome <- javaHomeOrError
+    } yield {
+      val javaHomePath           = os.Path(javaHome)
+      val (javaVersion, javaCmd) = OsLibc.javaHomeVersion(javaHomePath)
+      JavaHomeInfo(javaHomePath, javaCmd, javaVersion)
+    }
   }
 
   def getJavaCmdVersionOrHigher(
     javaVersion: Int,
     options: bo.BuildOptions
-  ): String = {
+  ): Either[BuildException, JavaHomeInfo] = {
     val javaHomeCmdOpt = for {
       javaHome <- options.javaHomeLocationOpt()
       (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
       if javaHomeVersion >= javaVersion
-    } yield javaHomeCmd
+    } yield JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
 
-    javaHomeCmdOpt.getOrElse(downloadJvm(javaVersion.toString, options))
+    javaHomeCmdOpt match {
+      case Some(cmd) => Right(cmd)
+      case None      => downloadJvm(javaVersion.toString, options)
+    }
   }
 
   def getJavaCmdVersionOrHigher(
     javaVersion: Int,
     jvmOpts: SharedJvmOptions,
     coursierOpts: CoursierOptions
-  ): Either[BuildException, String] = {
+  ): Either[BuildException, JavaHomeInfo] = {
     val sharedOpts = SharedOptions(jvm = jvmOpts, coursier = coursierOpts)
 
     for {
       options <- sharedOpts.buildOptions()
-    } yield getJavaCmdVersionOrHigher(javaVersion, options)
+      javaCmd <- getJavaCmdVersionOrHigher(javaVersion, options)
+    } yield javaCmd
   }
 }

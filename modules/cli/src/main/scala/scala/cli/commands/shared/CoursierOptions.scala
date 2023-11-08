@@ -3,7 +3,7 @@ package scala.cli.commands.shared
 import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.cache.{CacheLogger, FileCache}
+import coursier.cache.{CacheLogger, CachePolicy, FileCache}
 
 import scala.cli.commands.tags
 import scala.concurrent.duration.Duration
@@ -26,7 +26,12 @@ final case class CoursierOptions(
   @HelpMessage("Enable checksum validation of artifacts downloaded by coursier")
   @Tag(tags.implementation)
   @Hidden
-    coursierValidateChecksums: Option[Boolean] = None
+    coursierValidateChecksums: Option[Boolean] = None,
+
+  @Group(HelpGroup.Dependency.toString)
+  @HelpMessage("Disable using the network to download artifacts, use the local cache only")
+  @Tag(tags.experimental)
+    offline: Option[Boolean] = None
 ) {
   // format: on
 
@@ -42,8 +47,15 @@ final case class CoursierOptions(
       baseCache = baseCache.withTtl(ttl0)
     for (loc <- cache.filter(_.trim.nonEmpty))
       baseCache = baseCache.withLocation(loc)
+    for (isOffline <- getOffline() if isOffline)
+      baseCache = baseCache.withCachePolicies(Seq(CachePolicy.LocalOnly))
+
     baseCache
   }
+
+  def getOffline(): Option[Boolean] = offline
+    .orElse(Option(System.getenv("COURSIER_MODE")).map(_ == "offline"))
+    .orElse(Option(System.getProperty("coursier.mode")).map(_ == "offline"))
 }
 
 object CoursierOptions {

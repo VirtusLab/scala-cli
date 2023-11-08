@@ -95,4 +95,13 @@ object WarningMessages {
       "directive",
       handler.scalaSpecificationLevel
     )
+
+  val chainingUsingFileDirective: String =
+    "Chaining the 'using file' directive is not supported, the source won't be included in the build."
+
+  val offlineModeBloopNotFound =
+    "Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback"
+
+  val offlineModeBloopJvmNotFound =
+    "Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback"
 }

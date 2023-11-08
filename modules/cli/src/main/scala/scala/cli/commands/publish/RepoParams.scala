@@ -3,6 +3,7 @@ package scala.cli.commands.publish
 import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import coursier.publish.sonatype.SonatypeApi
+import coursier.publish.util.EmaRetryParams
 import coursier.publish.{Hooks, PublishRepository}
 
 import java.util.concurrent.ScheduledExecutorService
@@ -50,15 +51,35 @@ object RepoParams {
     ivy2HomeOpt: Option[os.Path],
     isIvy2LocalLike: Boolean,
     es: ScheduledExecutorService,
-    logger: Logger
+    logger: Logger,
+    connectionTimeoutRetries: Option[Int] = None,
+    connectionTimeoutSeconds: Option[Int] = None,
+    stagingRepoRetries: Option[Int] = None,
+    stagingRepoWaitTimeMilis: Option[Int] = None
   ): Either[BuildException, RepoParams] = either {
     repo match {
       case "ivy2-local" =>
         RepoParams.ivy2Local(ivy2HomeOpt)
       case "sonatype" | "central" | "maven-central" | "mvn-central" =>
-        RepoParams.centralRepo("https://oss.sonatype.org", es, logger)
+        RepoParams.centralRepo(
+          "https://oss.sonatype.org",
+          connectionTimeoutRetries,
+          connectionTimeoutSeconds,
+          stagingRepoRetries,
+          stagingRepoWaitTimeMilis,
+          es,
+          logger
+        )
       case "sonatype-s01" | "central-s01" | "maven-central-s01" | "mvn-central-s01" =>
-        RepoParams.centralRepo("https://s01.oss.sonatype.org", es, logger)
+        RepoParams.centralRepo(
+          "https://s01.oss.sonatype.org",
+          connectionTimeoutRetries,
+          connectionTimeoutSeconds,
+          stagingRepoRetries,
+          stagingRepoWaitTimeMilis,
+          es,
+          logger
+        )
       case "github" =>
         value(RepoParams.gitHubRepo(vcsUrlOpt, workspace, logger))
       case repoStr if repoStr.startsWith("github:") && repoStr.count(_ == '/') == 1 =>
@@ -89,10 +110,29 @@ object RepoParams {
     }
   }
 
-  def centralRepo(base: String, es: ScheduledExecutorService, logger: Logger) = {
+  def centralRepo(
+    base: String,
+    connectionTimeoutRetries: Option[Int],
+    connectionTimeoutSeconds: Option[Int],
+    stagingRepoRetries: Option[Int],
+    stagingRepoWaitTimeMilis: Option[Int],
+    es: ScheduledExecutorService,
+    logger: Logger
+  ) = {
     val repo0   = PublishRepository.Sonatype(MavenRepository(base))
-    val backend = ScalaCliSttpBackend.httpURLConnection(logger)
-    val api     = SonatypeApi(backend, base + "/service/local", None, logger.verbosity)
+    val backend = ScalaCliSttpBackend.httpURLConnection(logger, connectionTimeoutSeconds)
+    val api = SonatypeApi(
+      backend,
+      base + "/service/local",
+      None,
+      logger.verbosity,
+      retryOnTimeout = connectionTimeoutRetries.getOrElse(3),
+      stagingRepoRetryParams = EmaRetryParams(
+        stagingRepoRetries.getOrElse(3),
+        stagingRepoWaitTimeMilis.getOrElse(10 * 1000),
+        2.0f
+      )
+    )
     val hooks0 = Hooks.sonatype(
       repo0,
       api,
@@ -139,7 +179,10 @@ object RepoParams {
   }
 
   def ivy2Local(ivy2HomeOpt: Option[os.Path]) = {
-    val home = ivy2HomeOpt.getOrElse(os.home / ".ivy2")
+    val home = ivy2HomeOpt
+      .orElse(sys.props.get("ivy.home").map(prop => os.Path(prop)))
+      .orElse(sys.props.get("user.home").map(prop => os.Path(prop) / ".ivy2"))
+      .getOrElse(os.home / ".ivy2")
     val base = home / "local"
     // not really a Maven repo…
     RepoParams(

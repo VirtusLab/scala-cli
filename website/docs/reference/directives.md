@@ -73,7 +73,7 @@ Manually add JAR(s) to the class path
 
 ### Custom sources
 
-Manually add sources to the project
+Manually add sources to the project. Does not support chaining, sources are added only once, not recursively.
 
 `//> using file` _path_
 
@@ -343,6 +343,8 @@ Add Scala Native options
 `//> using nativeClangPP` _value_
 
 `//> using nativeEmbedResources` _true|false_
+
+`//> using nativeTarget` _application|library-dynamic|library-static_
 
 #### Examples
 `//> using nativeVersion 0.4.0`

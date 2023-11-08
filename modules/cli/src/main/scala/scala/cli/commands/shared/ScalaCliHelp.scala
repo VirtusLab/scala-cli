@@ -3,8 +3,6 @@ package scala.cli.commands.shared
 import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
-import scala.cli.ScalaCli.allowRestrictedFeatures
-import scala.cli.commands.shared.HelpGroup
 import scala.cli.util.ArgHelpers.*
 import scala.util.{Properties, Try}
 

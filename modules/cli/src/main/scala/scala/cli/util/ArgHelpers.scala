@@ -5,7 +5,7 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
-import scala.cli.ScalaCli.allowRestrictedFeatures
+import scala.cli.ScalaCli
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.{SpecificationLevel, tags}
 
@@ -17,7 +17,7 @@ object ArgHelpers {
 
     def isExperimentalOrRestricted: Boolean = arg.isRestricted || arg.isExperimental
 
-    def isSupported: Boolean = allowRestrictedFeatures || !arg.isExperimentalOrRestricted
+    def isSupported: Boolean = ScalaCli.allowRestrictedFeatures || !arg.isExperimentalOrRestricted
     def isImportant: Boolean = arg.hasTag(tags.inShortHelp)
 
     def isMust: Boolean = arg.hasTag(tags.must)

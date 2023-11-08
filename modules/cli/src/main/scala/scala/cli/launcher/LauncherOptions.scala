@@ -19,10 +19,8 @@ final case class LauncherOptions(
   @Hidden
   @Tag(tags.implementation)
   cliScalaVersion: Option[String] = None,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage("When called as 'scala', allow to use power commands too")
-  @Tag(tags.must)
-  power: Boolean = false
+  @Recurse
+  powerOptions: PowerOptions = PowerOptions()
 )
 
 object LauncherOptions {

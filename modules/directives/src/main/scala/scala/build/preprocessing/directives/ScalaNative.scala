@@ -26,7 +26,10 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using nativeClangPP` _value_
     |
-    |`//> using nativeEmbedResources` _true|false_""".stripMargin
+    |`//> using nativeEmbedResources` _true|false_
+    |
+    |`//> using nativeTarget` _application|library-dynamic|library-static_
+    """.stripMargin.trim
 )
 @DirectiveDescription("Add Scala Native options")
 @DirectiveLevel(SpecificationLevel.SHOULD)
@@ -41,7 +44,8 @@ final case class ScalaNative(
   nativeClang: Option[String] = None,
   @DirectiveName("nativeClangPp")
     nativeClangPP: Option[String] = None,
-  nativeEmbedResources: Option[Boolean] = None
+  nativeEmbedResources: Option[Boolean] = None,
+  nativeTarget: Option[String] = None,
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
@@ -54,7 +58,8 @@ final case class ScalaNative(
       linkingOptions = nativeLinking,
       clang = nativeClang,
       clangpp = nativeClangPP,
-      embedResources = nativeEmbedResources
+      embedResources = nativeEmbedResources,
+      buildTargetStr = nativeTarget
     )
     val buildOpt = BuildOptions(scalaNativeOptions = nativeOptions)
     Right(buildOpt)

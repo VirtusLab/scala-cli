@@ -9,12 +9,20 @@ object Scala {
   def scala213     = "2.13.12"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3       = "3.3.1"
-  val allScala2    = Seq(scala213, scala212)
-  val all          = allScala2 ++ Seq(scala3)
-  val mainVersions = Seq(scala3, scala213)
+
+  // The Scala version used to build the CLI itself.
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3)
+
+  // The Scala version used by default to compile user input.
+  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3)
+
+  val allScala2           = Seq(scala213, scala212)
+  val defaults            = Seq(defaultInternal, defaultUser).distinct
+  val all                 = (allScala2 ++ Seq(scala3) ++ defaults).distinct
+  val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
 
-  def scalaJs = "1.13.2"
+  def scalaJs = "1.14.0"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -23,12 +31,14 @@ object Scala {
     val max213 = patchVer(scala213)
     val max30  = 2
     val max31  = 3
-    val max32  = patchVer(scala3)
+    val max32  = 2
+    val max33  = patchVer(scala3)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
-      (0 until max32).map(i => s"3.2.$i") ++ Seq(scala3)
+      (0 to max32).map(i => s"3.2.$i") ++
+      (0 until max33).map(i => s"3.3.$i") ++ Seq(scala3)
   }
 
   def maxAmmoniteScala212Version = scala212
@@ -52,14 +62,6 @@ object Scala {
         true
     }
   }
-
-  // The Scala version used to build the CLI itself.
-  // We should be able to switch to 3.x when it'll have CPS support
-  // (for the either { value(…) } stuff)
-  def defaultInternal = scala3
-
-  // The Scala version used by default to compile user input.
-  def defaultUser = scala3
 }
 
 // Dependencies used in integration test fixtures
@@ -88,21 +90,21 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.11"
-    def scalaNative          = "0.4.15"
+    def scalaMeta            = "4.8.12"
+    def scalaNative          = "0.4.16"
     def scalaPackager        = "0.1.29"
-    def signingCli           = "0.2.2"
+    def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-53-084f7f4e"
-  def asm      = ivy"org.ow2.asm:asm:9.5"
+  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-56-1bcbe7f6"
+  def asm      = ivy"org.ow2.asm:asm:9.6"
   // Force using of 2.13 - is there a better way?
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-2"
-  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M6"
+  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M25"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
@@ -110,14 +112,14 @@ object Deps {
   def coursierJvm        = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
   def coursierLauncher   = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.5"
+  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
   def dependency         = ivy"io.get-coursier::dependency:0.2.3"
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = ivy"com.google.guava:guava:32.1.2-jre"
+  def guava         = ivy"com.google.guava:guava:32.1.3-jre"
   def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
   def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
   def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
@@ -133,7 +135,7 @@ object Deps {
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
-    ivy"com.geirsson::metaconfig-typesafe-config:0.11.1"
+    ivy"com.geirsson::metaconfig-typesafe-config:0.12.0"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
@@ -145,7 +147,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.14"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.7.15"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

@@ -51,9 +51,12 @@ or
 scala-cli --repository "https://maven-central.storage-download.googleapis.com/maven2"
 ```
 
+
+
 Both directive and command line option accept predefined repository definitions (see below) or a URL of the root of Maven repository.
 
 Repositories can also be resolved from the `COURSIER_REPOSITORIES` environment variable, but this is not recommended (more in [Coursier documentation](https://get-coursier.io/docs/other-repositories)).
+
 
 #### Predefined repositories
 
@@ -65,6 +68,7 @@ Repositories can also be resolved from the `COURSIER_REPOSITORIES` environment v
 | snapshots              | Maven [(root)](https://oss.sonatype.org/content/repositories/snapshots) and Maven S01 [(root)](https://s01.oss.sonatype.org/content/repositories/snapshots) | An alias for `sonatype:snapshots` and `sonatype-s01:snapshots`.                                                                                                                      
 | ivy2local              | Ivy                                                                                                                                                         | Local ivy repository, used to publish things locally (e.g. by `publishLocal`). Localized in `<ivy-home>/local`, usually `<user-home>/.ivy/local`.                                     |
 | m2Local                | Maven                                                                                                                                                       | Local maven repository, localized in `<user-home>/.m2/repository`                                                                                                                     |
+| jitpack | Maven | jitpack supports github repo as dependency. Syntax is `using repository "jitpack"`
 
 Scala CLI delegates parsing of predefined repositories to Coursier and full details can be obtained from Coursier source code ([here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/jvm/src/main/scala/coursier/LocalRepositories.scala) and [here](https://github.com/coursier/coursier/blob/2444eebcc151e0f6927e269137e8737c1f31cbe2/modules/coursier/shared/src/main/scala/coursier/internal/SharedRepositoryParser.scala))
 

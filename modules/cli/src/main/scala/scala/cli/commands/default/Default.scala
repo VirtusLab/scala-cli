@@ -1,26 +1,18 @@
 package scala.cli.commands.default
 
-import caseapp.core.help.{Help, HelpCompanion, RuntimeCommandsHelp}
+import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
-import scala.build.internal.Constants
-import scala.build.options.BuildOptions
-import scala.cli.CurrentParams
+import scala.cli.commands.ScalaCommandWithCustomHelp
 import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
-import scala.cli.commands.shared.ScalaCliHelp.helpFormat
 import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.commands.version.{Version, VersionOptions}
-import scala.cli.commands.{ScalaCommand, ScalaCommandWithCustomHelp}
-import scala.cli.launcher.LauncherOptions
 
-class Default(
-  actualHelp: => RuntimeCommandsHelp,
-  isSipScala: Boolean
-) extends ScalaCommandWithCustomHelp[DefaultOptions](actualHelp) {
-
+class Default(actualHelp: => RuntimeCommandsHelp)
+    extends ScalaCommandWithCustomHelp[DefaultOptions](actualHelp) {
   private lazy val defaultCommandHelp: String =
     s"""
        |When no subcommand is passed explicitly, an implicit subcommand is used based on context:

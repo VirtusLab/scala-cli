@@ -1,7 +1,7 @@
 package scala.build.options
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
-import coursier.cache.{ArchiveCache, FileCache}
+import coursier.cache.{ArchiveCache, FileCache, UnArchiver}
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
@@ -56,9 +56,19 @@ final case class BuildOptions(
     value(scalaParams) match {
       case Some(scalaParams0) =>
         val platform0 = platform.value match {
-          case Platform.JVM    => "JVM"
-          case Platform.JS     => "Scala.js"
-          case Platform.Native => "Scala Native"
+          case Platform.JVM =>
+            val jvmIdSuffix =
+              javaOptions.jvmIdOpt.map(_.value)
+                .orElse(Some(javaHome().value.version.toString))
+                .map(" (" + _ + ")").getOrElse("")
+            s"JVM$jvmIdSuffix"
+          case Platform.JS =>
+            val scalaJsVersion = scalaJsOptions.version.getOrElse(Constants.scalaJsVersion)
+            s"Scala.js $scalaJsVersion"
+          case Platform.Native =>
+            val scalaNativeVersion =
+              scalaNativeOptions.version.getOrElse(Constants.scalaNativeVersion)
+            s"Scala Native $scalaNativeVersion"
         }
         Seq(s"Scala ${scalaParams0.scalaVersion}", platform0)
       case None =>
@@ -305,6 +315,8 @@ final case class BuildOptions(
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
       case Some(MaybeScalaVersion(None)) =>
         None
+      case Some(MaybeScalaVersion(Some(svInput))) if internal.offline.getOrElse(false) =>
+        Some(svInput)
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {

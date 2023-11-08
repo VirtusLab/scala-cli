@@ -62,6 +62,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -124,7 +128,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -164,7 +168,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -185,6 +189,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -376,7 +384,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -628,6 +636,12 @@ Available keys:
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/config
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 ### SHOULD have options
 
 **--debug**
@@ -779,6 +793,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -853,7 +871,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -893,7 +911,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -914,6 +932,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -1089,7 +1111,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -1324,6 +1346,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -1392,7 +1418,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -1432,7 +1458,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -1453,6 +1479,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -1634,7 +1664,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -1883,6 +1913,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -1957,7 +1991,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -1997,7 +2031,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -2018,6 +2052,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -2209,7 +2247,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -2467,6 +2505,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -2541,7 +2583,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -2581,7 +2623,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -2602,6 +2644,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -2793,7 +2839,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -3039,6 +3085,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -3101,7 +3151,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -3141,7 +3191,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -3162,6 +3212,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -3335,7 +3389,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -3597,7 +3651,7 @@ Aliases: `--dialect`
 
 **--scalafmt-version**
 
-Pass scalafmt version before running it (3.7.14 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.15 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 Aliases: `--fmt-version`
 
@@ -3629,6 +3683,10 @@ All supported types of inputs can be mixed with each other.
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/test
 
 ### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 **--dependency**
 
@@ -3698,7 +3756,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -3738,7 +3796,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -3759,6 +3817,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -3952,7 +4014,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -4183,6 +4245,12 @@ Scala version defined by the runner.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/version
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4278,6 +4346,10 @@ Detailed documentation can be found on our website: https://scala-cli.virtuslab.
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -4340,7 +4412,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -4380,7 +4452,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -4401,6 +4473,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -4570,7 +4646,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -4795,6 +4871,12 @@ Passed inputs will establish the Scala CLI project, for which the workspace will
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/clean
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4874,6 +4956,12 @@ Directory where .scala-build is written
 
 Print help message
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4940,6 +5028,12 @@ Aliases: `install-completions`
 Installs Scala CLI completions into your shell
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5031,6 +5125,12 @@ Print completions to stdout
 **IMPLEMENTATION specific for Scala Runner specification.**
 
 Install Scala CLI in a sub-directory of the home directory
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 
@@ -5133,6 +5233,10 @@ For detailed documentation refer to our website: https://scala-cli.virtuslab.org
 
 ### MUST have options
 
+**--power**
+
+Allows to use restricted & experimental features
+
 **--dependency**
 
 Add dependencies
@@ -5195,7 +5299,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
@@ -5235,7 +5339,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 **--native-mode**
 
@@ -5256,6 +5360,10 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-target**
+
+Build target type
 
 **--embed-resources**
 
@@ -5425,7 +5533,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 **--js-cli-java-arg**
 
@@ -5660,6 +5768,12 @@ Uninstalls Scala CLI.
 Works only when installed with the installation script.
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5829,6 +5943,12 @@ Uninstalls Scala CLI completions from your shell.
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/completions
 
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5907,6 +6027,12 @@ Works only when installed with the installation script.
 If Scala CLI was installed with an external tool, refer to its update methods.
 
 For detailed installation instructions refer to our website: https://scala-cli.virtuslab.org/install
+
+### MUST have options
+
+**--power**
+
+Allows to use restricted & experimental features
 
 <details><summary>
 

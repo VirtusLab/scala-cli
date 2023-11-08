@@ -138,7 +138,7 @@ object PgpExternalCommand {
         scalaCliSigningJvmVersion,
         jvmOptions,
         coursierOptions
-      ).orThrow
+      ).orThrow.javaCommand
 
     launcher(
       cache,
@@ -159,7 +159,7 @@ object PgpExternalCommand {
       JvmUtils.getJavaCmdVersionOrHigher(
         scalaCliSigningJvmVersion,
         buildOptions
-      )
+      ).orThrow.javaCommand
 
     launcher(
       cache,

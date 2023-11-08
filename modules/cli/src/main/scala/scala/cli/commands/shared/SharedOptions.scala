@@ -18,14 +18,15 @@ import scala.build.Ops.EitherOptOps
 import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
-import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}
+import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
+import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
-import scala.build.options.{ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
+import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit
 import scala.build.options as bo
@@ -44,6 +45,7 @@ import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.launcher.PowerOptions
 import scala.cli.util.ConfigDbUtils
 import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
@@ -60,6 +62,8 @@ final case class SharedOptions(
     suppress: SuppressWarningOptions = SuppressWarningOptions(),
   @Recurse
     logging: LoggingOptions = LoggingOptions(),
+  @Recurse
+    powerOptions: PowerOptions = PowerOptions(),
   @Recurse
     js: ScalaJsOptions = ScalaJsOptions(),
   @Recurse
@@ -222,7 +226,7 @@ final case class SharedOptions(
 
   def logger: Logger = logging.logger
   override def global: GlobalOptions =
-    GlobalOptions(logging = logging, globalSuppress = suppress.global)
+    GlobalOptions(logging = logging, globalSuppress = suppress.global, powerOptions = powerOptions)
 
   private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
     import opts._
@@ -272,7 +276,9 @@ final case class SharedOptions(
       nativeLinking,
       nativeLinkingDefaults,
       nativeCompile,
-      nativeCompileDefaults
+      nativeCompileDefaults,
+      embedResources,
+      nativeTarget
     )
   }
 
@@ -401,7 +407,8 @@ final case class SharedOptions(
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
-        exclude = exclude.map(Positioned.commandLine)
+        exclude = exclude.map(Positioned.commandLine),
+        offline = coursier.getOffline()
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
@@ -511,43 +518,56 @@ final case class SharedOptions(
         .getOrElse(None)
     )
 
-  def bloopRifleConfig(): Either[BuildException, BloopRifleConfig] = either {
-    val options = value(buildOptions(false, None))
-    lazy val defaultJvmCmd =
-      JvmUtils.downloadJvm(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17"), options)
-    val javaCmd = compilationServer.bloopJvm.map(JvmUtils.downloadJvm(_, options)).orElse {
-      for (javaHome <- options.javaHomeLocationOpt()) yield {
-        val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-        if (javaHomeVersion >= 17) javaHomeCmd
-        else defaultJvmCmd
-      }
-    }.getOrElse(defaultJvmCmd)
+  def bloopRifleConfig(extraBuildOptions: Option[BuildOptions] = None)
+    : Either[BuildException, BloopRifleConfig] = either {
+    val options = extraBuildOptions.foldLeft(value(buildOptions(false, None)))(_ orElse _)
+    lazy val defaultJvmHome = value {
+      JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
+    }
+
+    val javaHomeInfo = compilationServer.bloopJvm
+      .map(jvmId => value(JvmUtils.downloadJvm(jvmId, options)))
+      .orElse {
+        for (javaHome <- options.javaHomeLocationOpt()) yield {
+          val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
+          if (javaHomeVersion >= 17)
+            BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
+          else defaultJvmHome
+        }
+      }.getOrElse(defaultJvmHome)
 
     compilationServer.bloopRifleConfig(
       logging.logger,
       coursierCache,
       logging.verbosity,
-      javaCmd,
+      javaHomeInfo.javaCommand,
       Directories.directories,
-      Some(17)
+      Some(javaHomeInfo.version)
     )
   }
 
   def compilerMaker(
     threads: BuildThreads,
     scaladoc: Boolean = false
-  ): Either[BuildException, ScalaCompilerMaker] = either {
+  ): Either[BuildException, ScalaCompilerMaker] =
     if (scaladoc)
-      SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
+      Right(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
     else if (compilationServer.server.getOrElse(true))
-      new BloopCompilerMaker(
-        value(bloopRifleConfig()),
-        threads.bloop,
-        strictBloopJsonCheckOrDefault
-      )
+      bloopRifleConfig() match {
+        case Right(config) =>
+          Right(new BloopCompilerMaker(
+            config,
+            threads.bloop,
+            strictBloopJsonCheckOrDefault,
+            coursier.getOffline().getOrElse(false)
+          ))
+        case Left(ex) if coursier.getOffline().contains(true) =>
+          logger.diagnostic(WarningMessages.offlineModeBloopJvmNotFound, Severity.Warning)
+          Right(SimpleScalaCompilerMaker("java", Nil))
+        case Left(ex) => Left(ex)
+      }
     else
-      SimpleScalaCompilerMaker("java", Nil)
-  }
+      Right(SimpleScalaCompilerMaker("java", Nil))
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 

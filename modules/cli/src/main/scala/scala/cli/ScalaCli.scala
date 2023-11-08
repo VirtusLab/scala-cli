@@ -13,7 +13,7 @@ import scala.build.internal.Constants
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
-import scala.cli.launcher.{LauncherCli, LauncherOptions}
+import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
@@ -221,7 +221,7 @@ object ScalaCli {
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
             val powerArgs =
-              if (launcherOpts.power) Seq("--power")
+              if (launcherOpts.powerOptions.power) Seq("--power")
               else Nil
             val newArgs = powerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
@@ -230,9 +230,21 @@ object ScalaCli {
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
-            if (launcherOpts.power)
+            if launcherOpts.powerOptions.power then
               isSipScala = false
-            args0.toArray
+              args0.toArray
+            else
+              // Parse again to register --power at any position
+              // Don't consume it, GlobalOptions parsing will do it
+              PowerOptions.parser.ignoreUnrecognized.parse(args0) match {
+                case Right((powerOptions, _)) =>
+                  if powerOptions.power then
+                    isSipScala = false
+                  args0.toArray
+                case Left(e) =>
+                  System.err.println(e.message)
+                  sys.exit(1)
+              }
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
@@ -253,7 +265,7 @@ object ScalaCli {
       // Enable ANSI output in Windows terminal
       coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
 
-    new ScalaCliCommands(progName, baseRunnerName, fullRunnerName, isSipScala)
+    new ScalaCliCommands(progName, baseRunnerName, fullRunnerName)
       .main(scalaCliArgs)
   }
 }

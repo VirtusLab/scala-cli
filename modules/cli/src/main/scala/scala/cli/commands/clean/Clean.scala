@@ -5,10 +5,10 @@ import caseapp.*
 import scala.build.input.Inputs
 import scala.build.internal.Constants
 import scala.build.{Logger, Os}
+import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.HelpCommandGroup
-import scala.cli.{CurrentParams, ScalaCli}
 
 object Clean extends ScalaCommand[CleanOptions] {
   override def group: String = HelpCommandGroup.Main.toString
@@ -21,7 +21,7 @@ object Clean extends ScalaCommand[CleanOptions] {
       Os.pwd,
       defaultInputs = () => Inputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
-      allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
+      allowRestrictedFeatures = allowRestrictedFeatures,
       extraClasspathWasPassed = false
     ) match {
       case Left(message) =>

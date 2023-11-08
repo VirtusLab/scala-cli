@@ -213,6 +213,33 @@ Aliases: `-f`
 
 Force overwriting values for key
 
+## Coursier options
+
+Available in commands:
+
+[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--ttl`
+
+[Internal]
+Specify a TTL for changing dependencies, such as snapshots
+
+### `--cache`
+
+[Internal]
+Set the coursier cache location
+
+### `--coursier-validate-checksums`
+
+[Internal]
+Enable checksum validation of artifacts downloaded by coursier
+
+### `--offline`
+
+Disable using the network to download artifacts, use the local cache only
+
 ## Cross options
 
 Available in commands:
@@ -418,7 +445,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.7.14 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.7.15 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -905,6 +932,18 @@ Available in commands:
 
 Key server to push / pull keys from
 
+## Power options
+
+Available in commands:
+
+[`add-path`](./commands.md#add-path), [`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop output`](./commands.md#bloop-output), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`clean`](./commands.md#clean), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`default-file`](./commands.md#default-file), [`dependency-update`](./commands.md#dependency-update), [`directories`](./commands.md#directories), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`help`](./commands.md#help), [`install completions` , `install-completions`](./commands.md#install-completions), [`install-home`](./commands.md#install-home), [`new`](./commands.md#new), [`package`](./commands.md#package), [`pgp pull`](./commands.md#pgp-pull), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`github secret list` , `gh secret list`](./commands.md#github-secret-list), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall), [`uninstall completions` , `uninstall-completions`](./commands.md#uninstall-completions), [`update`](./commands.md#update), [`version`](./commands.md#version)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--power`
+
+Allows to use restricted & experimental features
+
 ## Publish options
 
 Available in commands:
@@ -1137,7 +1176,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M0-53-084f7f4e by default)
+Set the Ammonite version (3.0.0-M0-56-1bcbe7f6 by default)
 
 ### `--ammonite-arg`
 
@@ -1212,7 +1251,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version (1.13.2 by default).
+The Scala.js version (1.14.0 by default).
 
 ### `--js-mode`
 
@@ -1272,7 +1311,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.13.2 by default).
+Scala.js CLI version to use for linking (1.14.0 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1298,7 +1337,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.4.15 by default).
+Set the Scala Native version (0.4.16 by default).
 
 ### `--native-mode`
 
@@ -1337,6 +1376,10 @@ List of compile options
 
 [Internal]
 Use default compile options
+
+### `--native-target`
+
+Build target type
 
 ### `--embed-resources`
 
@@ -1848,29 +1891,6 @@ Aliases: `--name`
 [Internal]
 Name of BSP
 
-### Coursier options
-
-Available in commands:
-
-[`bloop`](./commands.md#bloop), [`bloop exit`](./commands.md#bloop-exit), [`bloop start`](./commands.md#bloop-start), [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`config`](./commands.md#config), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`pgp push`](./commands.md#pgp-push), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`publish setup`](./commands.md#publish-setup), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`github secret create` , `gh secret create`](./commands.md#github-secret-create), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test), [`uninstall`](./commands.md#uninstall)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--ttl`
-
-[Internal]
-Specify a TTL for changing dependencies, such as snapshots
-
-### `--cache`
-
-[Internal]
-Set the coursier cache location
-
-### `--coursier-validate-checksums`
-
-[Internal]
-Enable checksum validation of artifacts downloaded by coursier
-
 ### Default file options
 
 Available in commands:
@@ -2042,7 +2062,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.2.2 by default)
+scala-cli-signing version when running externally (0.2.3 by default)
 
 ### `--signing-cli-java-arg`
 
@@ -2092,6 +2112,39 @@ Available in commands:
 ### `--key`
 
 [Internal]
+### Publish connection options
+
+Available in commands:
+
+[`publish`](./commands.md#publish)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--connection-timeout-seconds`
+
+[Internal]
+Connection timeout, in seconds.
+
+### `--connection-timeout-retries`
+
+[Internal]
+How many times to retry establishing the connection on timeout.
+
+### `--response-timeout-seconds`
+
+[Internal]
+Waiting for response timeout, in seconds.
+
+### `--staging-repo-retries`
+
+[Internal]
+How many times to retry the staging repository operations on failure.
+
+### `--staging-repo-wait-time-milis`
+
+[Internal]
+Time to wait between staging repository operation retries, in milliseconds.
+
 ### Setup IDE options
 
 Available in commands:

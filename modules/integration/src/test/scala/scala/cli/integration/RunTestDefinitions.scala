@@ -1663,7 +1663,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   // Credentials tests
-  test("Repository credentials passed to coursier") {
+  test("repository credentials passed to coursier") {
     val testOrg     = "test-org"
     val testName    = "the-messages"
     val testVersion = "0.1.2"
@@ -1816,6 +1816,222 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           expect(resWithProps.exitCode == 0)
         }
       }
+    }
+  }
+
+  test("warn about transitive `using file` directive") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """//> using file "bar/Bar.scala"
+          |//> using file "abc/Abc.scala"
+          |object Main extends App {
+          | println(Bar(42))
+          |}
+          |""".stripMargin,
+      os.rel / "bar" / "Bar.scala" ->
+        """//> using file "xyz/Xyz.scala"
+          |//> using file "xyz/NonExistent.scala"
+          |case class Bar(x: Int)
+          |""".stripMargin,
+      os.rel / "abc" / "Abc.scala" ->
+        """//> using file "xyz/Xyz.scala"
+          |//> using file "xyz/NonExistent.scala"
+          |case class Abc(x: Int)
+          |""".stripMargin,
+      os.rel / "xyz" / "Xyz.scala" ->
+        """val xyz = 42
+          |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "Main.scala",
+        "--suppress-directives-in-multiple-files-warning"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+
+      val output = TestUtil.removeAnsiColors(res.out.trim())
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/Xyz.scala"
+          |[warn]                 ^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/NonExistent.scala"
+          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/Xyz.scala"
+          |[warn]                 ^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+
+      expect(output.contains(
+        """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
+          |[warn] //> using file "xyz/NonExistent.scala"
+          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |""".stripMargin
+      ))
+    }
+  }
+
+  test("offline mode should fail on missing artifacts") {
+    // Kill bloop deamon to test scalac fallback
+    os.proc(TestUtil.cli, "--power", "bloop", "exit")
+      .call(cwd = os.pwd)
+
+    val depScalaVersion = actualScalaVersion match {
+      case sv if sv.startsWith("2.12") => "2.12"
+      case sv if sv.startsWith("2.13") => "2.13"
+      case _                           => "3"
+    }
+
+    val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.9.1"
+    val inputs = TestInputs(
+      os.rel / "NoDeps.scala" ->
+        """//> using jvm zulu:11
+          |object NoDeps extends App {
+          |  println("Hello from NoDeps")
+          |}
+          |""".stripMargin,
+      os.rel / "WithDeps.scala" ->
+        s"""//> using jvm zulu:11
+           |//> using dep $dep
+           |
+           |object WithDeps extends App {
+           |  println("Hello from WithDeps")
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val cachePath = root / ".cache"
+      os.makeDir(cachePath)
+
+      val extraEnv = Map("COURSIER_CACHE" -> cachePath.toString)
+
+      val emptyCacheWalkSize = os.walk(cachePath).size
+
+      val noArtifactsRes = os.proc(
+        TestUtil.cli,
+        "--power",
+        "NoDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(noArtifactsRes.exitCode == 1)
+
+      // Cache unchanged
+      expect(emptyCacheWalkSize == os.walk(cachePath).size)
+
+      // Download the artifacts for scala
+      os.proc(TestUtil.cs, "install", s"scala:$actualScalaVersion")
+        .call(cwd = root, env = extraEnv)
+      os.proc(TestUtil.cs, "install", s"scalac:$actualScalaVersion")
+        .call(cwd = root, env = extraEnv)
+
+      // Download JVM that won't suit Bloop, also no Bloop artifacts are present
+      os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:11")
+        .call(cwd = root, env = extraEnv)
+
+      val scalaJvmCacheWalkSize = os.walk(cachePath).size
+
+      val scalaAndJvmRes = os.proc(
+        TestUtil.cli,
+        "--power",
+        "NoDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString,
+        "-v",
+        "-v"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(scalaAndJvmRes.exitCode == 0)
+      expect(scalaAndJvmRes.out.trim().contains(
+        "Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback"
+      ))
+      expect(scalaAndJvmRes.out.trim().contains("Hello from NoDeps"))
+
+      // Cache unchanged
+      expect(scalaJvmCacheWalkSize == os.walk(cachePath).size)
+
+      // Missing dependencies
+      for {
+        (cliOption, extraEnvMode) <- Seq(
+          "--offline"               -> Map.empty[String, String],
+          "-Dcoursier.mode=offline" -> Map.empty[String, String],
+          ""                        -> Map("COURSIER_MODE" -> "offline")
+        )
+      } {
+        val missingDepsRes = os.proc(
+          TestUtil.cli,
+          "--power",
+          cliOption,
+          "WithDeps.scala",
+          extraOptions,
+          "--cache",
+          cachePath.toString
+        )
+          .call(cwd = root, check = false, mergeErrIntoOut = true, env = extraEnvMode)
+        expect(missingDepsRes.exitCode == 1)
+        expect(missingDepsRes.out.trim().contains("Error downloading com.lihaoyi:os-lib"))
+
+        // Cache unchanged
+        expect(scalaJvmCacheWalkSize == os.walk(cachePath).size)
+      }
+
+      // Download dependencies
+      os.proc(TestUtil.cs, "fetch", dep)
+        .call(cwd = root, env = extraEnv)
+
+      val withDependencyCacheWalkSize = os.walk(cachePath).size
+
+      val depsRes = os.proc(
+        TestUtil.cli,
+        "--power",
+        "WithDeps.scala",
+        extraOptions,
+        "--offline",
+        "--cache",
+        cachePath.toString,
+        "-v",
+        "-v"
+      )
+        .call(cwd = root, mergeErrIntoOut = true)
+      expect(depsRes.exitCode == 0)
+      expect(
+        depsRes.out.trim().contains(
+          "Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback"
+        )
+      )
+      expect(depsRes.out.trim().contains("Hello from WithDeps"))
+
+      // Cache changed
+      expect(withDependencyCacheWalkSize == os.walk(cachePath).size)
+    }
+  }
+
+  test("JVM id is printed with compilation info correctly") {
+    val msg   = "Hello"
+    val input = "jvm.sc"
+    TestInputs(os.rel / input ->
+      s"""//> using jvm 11
+         |println("$msg")
+         |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, input).call(cwd = root, stderr = os.Pipe)
+      expect(res.out.trim() == msg)
+      expect(res.err.trim().contains("JVM (11)"))
     }
   }
 }

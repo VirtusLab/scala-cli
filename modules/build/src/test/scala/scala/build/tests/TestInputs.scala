@@ -86,7 +86,12 @@ final case class TestInputs(
     withCustomInputs(fromDirectory, None, skipCreatingSources) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
         case Some(bloopConfig) =>
-          new BloopCompilerMaker(bloopConfig, buildThreads.bloop, strictBloopJsonCheck = true)
+          new BloopCompilerMaker(
+            bloopConfig,
+            buildThreads.bloop,
+            strictBloopJsonCheck = true,
+            offline = false
+          )
         case None =>
           SimpleScalaCompilerMaker("java", Nil)
       }

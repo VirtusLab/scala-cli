@@ -112,12 +112,12 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
       def publishLocal(): os.CommandResult =
         os.proc(
           TestUtil.cli,
-          "--power",
           "publish",
           "local",
           ".",
           "--ivy2-home",
           os.rel / "ivy2",
+          "--power", // Test --power placed after subcommand name
           "--working-dir",
           os.rel / "work-dir",
           extraOptions
@@ -142,6 +142,76 @@ abstract class PublishLocalTestDefinitions(val scalaVersionOpt: Option[String])
       publishLocal()
       val output2 = output()
       expect(output2 == "olleH")
+    }
+  }
+
+  test("publish local with ivy.home") {
+    PublishTestInputs.inputs().fromRoot { root =>
+      def publishLocal(): os.CommandResult =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--working-dir",
+          os.rel / "work-dir",
+          extraOptions
+        )
+          .call(
+            cwd = root,
+            env = Map(
+              "JAVA_OPTS" -> s"-Divy.home=${root / "ivyhome"} -Duser.home${root / "userhome"}"
+            ) // ivy.home takes precedence
+          )
+
+      def output(): String =
+        os.proc(
+          TestUtil.cs,
+          s"-J-Divy.home=${root / "ivyhome"}",
+          "launch",
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+        )
+          .call(cwd = root)
+          .out.trim()
+
+      publishLocal()
+      expect(output() == "Hello")
+    }
+  }
+
+  test("publish local with user.home") {
+    PublishTestInputs.inputs().fromRoot { root =>
+      def publishLocal(): os.CommandResult =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--working-dir",
+          os.rel / "work-dir",
+          extraOptions
+        )
+          .call(
+            cwd = root,
+            env = Map(
+              "JAVA_OPTS" -> s"-Duser.home=${root / "userhome"}"
+            )
+          )
+
+      def output(): String =
+        os.proc(
+          TestUtil.cs,
+          s"-J-Divy.home=${root / "userhome" / ".ivy2"}",
+          "launch",
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+        )
+          .call(cwd = root)
+          .out.trim()
+
+      publishLocal()
+      expect(output() == "Hello")
     }
   }
 

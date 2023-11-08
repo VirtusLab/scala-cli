@@ -1,5 +1,6 @@
 package scala.build.options
 
+import bloop.rifle.VersionUtil.jvmRelease
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
@@ -62,36 +63,41 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): Option[Positioned[os.Path]] =
+    lazy val javaHomeManager0 = javaHomeManager(archiveCache, cache, verbosity)
+
+    implicit val ec: ExecutionContextExecutorService = cache.ec
+
+    def isJvmVersion(jvmId: String): Boolean =
+      jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+
     javaHomeOpt
       .orElse {
         if (jvmIdOpt.isEmpty)
-          Option(System.getenv("JAVA_HOME")).map(p =>
-            Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, os.pwd))
-          ).orElse(
-            sys.props.get("java.home").map(p =>
-              Positioned(Position.Custom("java.home prop"), os.Path(p, os.pwd))
-            )
-          ).orElse(
-            if (Properties.isMac)
-              Try(os.proc("/usr/libexec/java_home").call(os.pwd, check = false).out.text().trim())
-                .toOption
-                .flatMap(p => Try(os.Path(p, os.pwd)).toOption)
-                .filter(os.exists(_))
-                .map(p => Positioned(Position.Custom("/usr/libexec/java_home"), p))
-            else None
+          findLocalDefaultJava()
+        else if (
+          Properties.isMac && jvmIdOpt.exists(jvmId =>
+            isJvmVersion(jvmId.value.stripPrefix("system|"))
           )
+        )
+          val jvmVersionOpt = for {
+            jvmId <- jvmIdOpt
+            maybeJvmVersion = jvmId.value.stripPrefix("system|")
+            jvmVersion <- jvmRelease(maybeJvmVersion)
+          } yield jvmVersion.toString
+
+          findLocalJavaOnMacOs(jvmVersionOpt)
         else None
       }
       .orElse {
         jvmIdOpt.map(_.value).map { jvmId =>
-          implicit val ec: ExecutionContextExecutorService = cache.ec
+
           cache.logger.use {
             val enforceLiberica =
               finalJvmIndexOs == "linux-musl" &&
-              jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+              isJvmVersion(jvmId)
             val enforceZulu =
               Os.isArmArchitecture &&
-              jvmId.forall(c => c.isDigit || c == '.' || c == '-')
+              isJvmVersion(jvmId)
             val jvmId0 =
               if (enforceLiberica)
                 s"liberica:$jvmId" // FIXME Workaround, until this is automatically handled by coursier-jvm
@@ -99,10 +105,11 @@ final case class JavaOptions(
                 s"zulu:$jvmId"
               else
                 jvmId
-            val javaHomeManager0 = javaHomeManager(archiveCache, cache, verbosity)
-              .withMessage(s"Downloading JVM $jvmId0")
+
             val path =
-              try javaHomeManager0.get(jvmId0).unsafeRun()
+              try javaHomeManager0
+                  .withMessage(s"Downloading JVM $jvmId0")
+                  .get(jvmId0).unsafeRun()
               catch {
                 case NonFatal(e) => throw new Exception(e)
               }
@@ -141,6 +148,34 @@ final case class JavaOptions(
       JavaHomeInfo(javaHome, javaCmd, javaVersion)
     }
 
+  private def findLocalDefaultJava(): Option[Positioned[os.Path]] =
+    Option(System.getenv("JAVA_HOME")).map(p =>
+      Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, os.pwd))
+    ).orElse(
+      sys.props.get("java.home").map(p =>
+        Positioned(Position.Custom("java.home prop"), os.Path(p, os.pwd))
+      )
+    ).orElse(
+      if (Properties.isMac)
+        findLocalJavaOnMacOs(None)
+      else None
+    )
+  private def findLocalJavaOnMacOs(jvmIdOpt: Option[String]): Option[Positioned[os.Path]] =
+    Try {
+      jvmIdOpt.fold(os.proc("/usr/libexec/java_home")) { jvmId =>
+        os.proc(
+          "/usr/libexec/java_home",
+          "-v",
+          jvmId.stripPrefix("system|"),
+          "--failfast"
+        )
+      }.call(os.pwd, check = true, mergeErrIntoOut = true)
+        .out.text().trim()
+    }
+      .toOption
+      .flatMap(p => Try(os.Path(p, os.pwd)).toOption)
+      .filter(os.exists(_))
+      .map(p => Positioned(Position.Custom("/usr/libexec/java_home -v"), p))
 }
 
 object JavaOptions {
