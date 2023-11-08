@@ -11,6 +11,7 @@
   create a PR.
     - [ ] Make sure the notes render correctly on [the website](https://scala-cli.virtuslab.org/docs/release_notes) - that
       includes swapping out GitHub-idiomatic @mentions of users, links to PRs, issues, etc.
+      When using IntelliJ you can do that using the regexes in [release-notes-regexes.md](release-notes-regexes.md).
     - [ ] Copy any fixes over to the draft after getting the PR reviewed and merged.
 - [ ] Mark the release draft as `pre-release` and then `Publish Release`
 - [ ] Wait for a green release CI build with all the updated versions.
