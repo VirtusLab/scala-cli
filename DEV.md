@@ -165,7 +165,7 @@ Here's some of the more important external projects used by Scala CLI:
   from OpenJDK, with CRC32 calculations disabled.
 - [lightweight-spark-distrib](https://github.com/VirtusLab/lightweight-spark-distrib): a small application allowing
   to make Spark distributions more lightweight.
-- [java-class-name](https://github.com/scala-cli/java-class-name): a small library to extract class names
+- [java-class-name](https://github.com/VirtusLab/java-class-name): a small library to extract class names
   from Java sources.
 
 The use of external binaries allows to make the Scala CLI binary slimmer and faster
