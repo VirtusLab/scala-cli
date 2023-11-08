@@ -1893,7 +1893,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       case _                           => "3"
     }
 
-    val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.9.1"
+    val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.9.2"
     val inputs = TestInputs(
       os.rel / "NoDeps.scala" ->
         """//> using jvm zulu:11
