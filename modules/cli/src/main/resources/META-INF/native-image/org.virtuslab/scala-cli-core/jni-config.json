@@ -27,8 +27,7 @@
     "methods": [
       {
         "name": "getPlatformClassLoader",
-        "parameterTypes": [
-        ]
+        "parameterTypes": []
       }
     ]
   },
