@@ -114,7 +114,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   def getFormat(format: Option[String]): Option[String] =
     format.map(_.trim).filter(_.nonEmpty)
       .orElse {
-        Option(System.getenv("SHELL")).map(_.split(File.separator).last).map {
+        Option(System.getenv("SHELL")).map(_.split("[\\/]+").last).map {
           case "bash" => Bash.id
           case "zsh"  => Zsh.id
           case other  => other

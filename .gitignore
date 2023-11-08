@@ -8,3 +8,6 @@ out/
 .scala-build
 dest/
 target/
+
+# ignore vim backup files
+*.sw[op]
