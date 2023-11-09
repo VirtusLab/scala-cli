@@ -29,6 +29,7 @@ To get started, try one of the cookbooks below:
 - [IDEA IntelliJ](./intellij.md)
 - [Scala CLI alongside SBT in IDEA IntelliJ](./intellij-sbt-with-bsp.md)
 - [Multiple Scala CLI projects as separate modules in IDEA IntelliJ](./intellij-multi-bsp.md)
+- [Scala CLI within Emacs](./emacs.md)
 
 ## Packaging ⚡️
 
