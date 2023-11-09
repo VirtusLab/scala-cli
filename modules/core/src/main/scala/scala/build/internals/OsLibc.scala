@@ -73,9 +73,8 @@ object OsLibc {
     else s"temurin:$jvmVersion"
   }
 
-  def defaultJvm(os: String): String = {
+  def defaultJvm(os: String): String =
     baseDefaultJvm(os, defaultJvmVersion)
-  }
 
   def javaVersion(javaCmd: String): Int = {
     val javaVersionOutput = os.proc(javaCmd, "-version").call(

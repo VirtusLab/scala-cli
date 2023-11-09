@@ -56,7 +56,14 @@ import scala.cli.commands.shared.{
 import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
-import scala.cli.errors._
+import scala.cli.errors.{
+  FailedToSignFileError,
+  InvalidSonatypePublishCredentials,
+  MalformedChecksumsError,
+  MissingPublishOptionError,
+  UploadError,
+  WrongSonatypeServerError
+}
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ArgHelpers.*
@@ -70,12 +77,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   import scala.cli.commands.shared.HelpGroup.*
+
   val primaryHelpGroups: Seq[HelpGroup] = Seq(Publishing, Signing, PGP)
   val hiddenHelpGroups: Seq[HelpGroup]  = Seq(Scala, Java, Entrypoint, Dependency, Watch)
+
   override def helpFormat: HelpFormat = super.helpFormat
     .withHiddenGroups(hiddenHelpGroups)
     .withPrimaryGroups(primaryHelpGroups)
+
   override def group: String = HelpCommandGroup.Main.toString
+
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
@@ -364,6 +375,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           "publish.organization"
         ))
     }
+
   private def defaultName(workspace: os.Path, logger: Logger): String = {
     val name = workspace.last
     logger.message(
@@ -371,11 +383,14 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     )
     name
   }
+
   def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
     if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
     else None
+
   def defaultVersionError =
     new MissingPublishOptionError("version", "--project-version", "publish.version")
+
   def defaultVersion: Either[BuildException, String] =
     Left(defaultVersionError)
 
@@ -490,7 +505,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case None =>
         val computeVer = publishOptions.contextual(isCi).computeVersion.orElse {
           def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
-          val default   = defaultComputeVersion(!isCi && isGitRepo)
+
+          val default = defaultComputeVersion(!isCi && isGitRepo)
           if (default.isDefined)
             logger.message(
               s"Using directive ${defaultVersionError.directiveName} not set, assuming git:tag as publish.computeVersion"
@@ -1018,8 +1034,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       if (repoParams.isIvy2LocalLike) fileSet2
       else fileSet2.order(ec).unsafeRun()(ec)
 
-    val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root, isSonatype))
+    val isSnapshot0       = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
+    val authOpt0          = value(authOpt(repoParams.repo.repo(isSnapshot0).root, isSonatype))
+    val asciiRegex        = """[\u0000-\u007f]*""".r
+    val usernameOnlyAscii = authOpt0.exists(auth => asciiRegex.matches(auth.user))
+    val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(pass => asciiRegex.matches(pass)))
+
     if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
       logger.diagnostic(
         "Publishing to a repository that needs authentication, but no credentials are available.",
@@ -1039,7 +1059,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r.unanchored.matches(
               e.getMessage
             ) =>
-          logger.exit(new InvalidPublishCredentials)
+          logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
         case NonFatal(e) =>
           throw new Exception(e)
       }
@@ -1112,7 +1132,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              |Uploading files failed!
              |Possible causes:
              |- incorrect Sonatype credentials
-             |- your Sonatype password or username may contain unsupported characters
              |- incorrect Sonatype server was used, try ${
               if isLegacySonatype then "'central-s01'" else "'central'"
             }
