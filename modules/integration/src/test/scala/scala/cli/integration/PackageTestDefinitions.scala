@@ -731,7 +731,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         if (actualScalaVersion.startsWith("2.")) actualScalaVersion
         else {
           val scalaLibJarName = scalaLibCp.split(File.pathSeparator)
-            .map(_.split(Pattern.quote("[\\/]+")).last).find(_.startsWith("scala-library-"))
+            .map(_.split("[\\\\/]+").last).find(_.startsWith("scala-library-"))
             .getOrElse {
               sys.error(s"scala-library not found in provided class path $scalaLibCp")
             }

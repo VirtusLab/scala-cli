@@ -585,7 +585,7 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
           "."
         ).call(cwd = root)
       val classPath          = res.out.trim().split(File.pathSeparator)
-      val classPathFileNames = classPath.map(_.split(Pattern.quote("[\\/]+")).last)
+      val classPathFileNames = classPath.map(_.split("[\\\\/]+").last)
       expect(classPathFileNames.exists(_.startsWith("spark-core_")))
       // usually a duplicate is there if we don't call .distrinct when necessary here or there
       expect(classPathFileNames.exists(_.startsWith("snappy-java")))
