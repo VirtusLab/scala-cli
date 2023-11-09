@@ -7,6 +7,80 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.0.6](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.6)
+
+### Scala CLI won't default to the system JVM if it's not supported anymore
+
+If your `JAVA_HOME` environment variable has been pointing to a JVM that is no longer supported by Scala CLI 
+(so anything below 17, really), you may have run into an error like this one with Scala CLI v1.0.5:
+
+```bash ignore
+scala-cli --power bloop exit 
+# Stopped Bloop server.  
+export JAVA_HOME=$(cs java-home --jvm zulu:8)
+scala-cli -e 'println(System.getProperty("java.version"))'                
+# Starting compilation server
+# Error: bloop.rifle.FailedToStartServerExitCodeException: Server failed with exit code 1
+# For more details, please see '/var/folders/5n/_ggj7kk93czdt_n0jzrk8s780000gn/T/1343202731019130640/.scala-build/stacktraces/1699527280-9858975811713766588.log'
+# Running
+#   scala-cli --power bloop output
+# might give more details.
+```
+
+This is because we no longer support JVM <17 with Scala CLI v1.0.5, but we still have been defaulting to whatever JVM 
+was defined in `JAVA_HOME`. As a result, Bloop has been failing to start when running with, say, `JAVA_HOME` pointing 
+to Java 8.
+
+This is no longer the case. Scala CLI will now automatically download Java 17 for Bloop in such a situation 
+(and still use the JVM from `JAVA_HOME` for running the code, while Bloop runs on 17).
+
+```bash
+scala-cli --power bloop exit 
+# Stopped Bloop server.  
+export JAVA_HOME=$(cs java-home --jvm zulu:8)
+scala-cli -e 'println(System.getProperty("java.version"))'                
+# Starting compilation server
+# Compiling project (Scala 3.3.1, JVM (8))
+# Compiled project (Scala 3.3.1, JVM (8))
+# 1.8.0_392
+```
+
+Added by [@tgodzik](https://github.com/tgodzik) in [#2508](https://github.com/VirtusLab/scala-cli/pull/2508).
+
+## Other changes
+
+### Fixes
+* Fix `--watch` failing on invalid `PathWatchers.Event` & skip wonky tests on Mac CI by [@Gedochao](https://github.com/Gedochao) in [#2515](https://github.com/VirtusLab/scala-cli/pull/2515)
+* bugfix: Don't try to always get system jvm first by [@tgodzik](https://github.com/tgodzik) in [#2508](https://github.com/VirtusLab/scala-cli/pull/2508)
+
+### Documentation changes
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2522](https://github.com/VirtusLab/scala-cli/pull/2522)
+* add cookbook about Emacs integration by [@ag91](https://github.com/ag91) in [#2506](https://github.com/VirtusLab/scala-cli/pull/2506)
+
+### Build and internal changes
+* Bump actions/setup-node from 3 to 4 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#2493](https://github.com/VirtusLab/scala-cli/pull/2493)
+* Update scala-cli.sh launcher for 1.0.5 by [@github-actions](https://github.com/features/actions) in [#2500](https://github.com/VirtusLab/scala-cli/pull/2500)
+* Simplify build by [@lolgab](https://github.com/lolgab) in [#2512](https://github.com/VirtusLab/scala-cli/pull/2512)
+* Fix wonky native MacOS CI on `stable` branch by [@Gedochao](https://github.com/Gedochao) in [#2518](https://github.com/VirtusLab/scala-cli/pull/2518)
+* Add regexes for release-notes github reference swapping by [@MaciejG604](https://github.com/MaciejG604) in [#2519](https://github.com/VirtusLab/scala-cli/pull/2519)
+
+### Updates and maintenance
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.15 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2498](https://github.com/VirtusLab/scala-cli/pull/2498)
+* Switch `lightweight-spark-distrib` to the VL fork & bump to `0.0.5` by [@Gedochao](https://github.com/Gedochao) in [#2503](https://github.com/VirtusLab/scala-cli/pull/2503)
+* Bump VirtusLab/scala-cli-setup from 1.0.4 to 1.0.5 by [@dependabot](https://docs.github.com/en/code-security/dependabot) in [#2504](https://github.com/VirtusLab/scala-cli/pull/2504)
+* Switch `java-class-name` to the VL fork & bump to `0.1.3` by [@Gedochao](https://github.com/Gedochao) in [#2502](https://github.com/VirtusLab/scala-cli/pull/2502)
+* Update sbt to 1.9.7 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2505](https://github.com/VirtusLab/scala-cli/pull/2505)
+* Update os-lib to 0.9.2 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2514](https://github.com/VirtusLab/scala-cli/pull/2514)
+* Update case-app to 2.1.0-M26 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2513](https://github.com/VirtusLab/scala-cli/pull/2513)
+* Update mill-main to 0.11.5 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) & [@MaciejG604](https://github.com/MaciejG604) in [#2446](https://github.com/VirtusLab/scala-cli/pull/2446)
+* Update core_2.13 to 3.9.1 by [@scala-steward](https://github.com/scala-steward-org/scala-steward) in [#2521](https://github.com/VirtusLab/scala-cli/pull/2521)
+* Switch `nocrc32-zip-input-stream` to the VL fork & bump it to `0.1.2` by [@Gedochao](https://github.com/Gedochao) in [#2520](https://github.com/VirtusLab/scala-cli/pull/2520)
+
+## New Contributors
+* [@ag91](https://github.com/ag91) made their first contribution in [#2506](https://github.com/VirtusLab/scala-cli/pull/2506)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.5...v1.0.6
+
 ## [v1.0.5](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.5)
 
 ## What's new
