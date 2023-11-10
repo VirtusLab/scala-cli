@@ -25,10 +25,10 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Copy launcher
-      run: ./mill -i copyJvmLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyJvmLauncher artifacts/
       if: runner.os == 'Linux'
     - name: Copy bootstrapped launcher
-      run: ./mill -i copyJvmBootstrappedLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyJvmBootstrappedLauncher artifacts/
       if: runner.os == 'Linux'
     - uses: actions/upload-artifact@v3
       if: runner.os == 'Linux'
@@ -38,9 +38,9 @@ jobs:
         if-no-files-found: error
         retention-days: 2
     - name: Compile everything
-      run: ./mill -i __.compile
+      run: ./mill -i --disable-callgraph-invalidation __.compile
     - name: Unit tests
-      run: ./mill -i unitTests
+      run: ./mill -i --disable-callgraph-invalidation unitTests
 
   jvm-tests-1:
     timeout-minutes: 120
@@ -54,11 +54,11 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
-      run: ./mill -i integration.test.jvm
+      run: ./mill -i --disable-callgraph-invalidation integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
     - name: Fat jar integration test
-      run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
+      run: ./mill --disable-callgraph-invalidation integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
 
   jvm-tests-2:
     timeout-minutes: 120
@@ -72,7 +72,7 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
-      run: ./mill -i integration.test.jvm
+      run: ./mill -i --disable-callgraph-invalidation integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 2
 
@@ -88,7 +88,7 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
-      run: ./mill -i integration.test.jvm
+      run: ./mill -i --disable-callgraph-invalidation integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 3
 
@@ -105,12 +105,12 @@ jobs:
         jvm: "temurin:17"
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
-    - run: ./mill -i ci.setShouldPublish
+    - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
     - name: Build OS packages
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyDefaultLauncher artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: linux-launchers
@@ -135,7 +135,7 @@ jobs:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -159,7 +159,7 @@ jobs:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -183,7 +183,7 @@ jobs:
         name: linux-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -226,12 +226,12 @@ jobs:
         jvm: "temurin:17"
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
-    - run: ./mill -i ci.setShouldPublish
+    - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
     - name: Build OS packages
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyDefaultLauncher artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: macos-launchers
@@ -256,7 +256,7 @@ jobs:
         name: macos-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -280,7 +280,7 @@ jobs:
         name: macos-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -304,7 +304,7 @@ jobs:
         name: macos-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -326,12 +326,12 @@ jobs:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - name: Generate native launcher
         run: .github/scripts/generate-native-image.sh
-      - run: ./mill -i ci.setShouldPublish
+      - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
       - name: Build OS packages
         if: env.SHOULD_PUBLISH == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
-        run: ./mill -i copyDefaultLauncher artifacts/
+        run: ./mill -i --disable-callgraph-invalidation copyDefaultLauncher artifacts/
       - uses: actions/upload-artifact@v3
         with:
           name: macos-m1-launchers
@@ -358,7 +358,7 @@ jobs:
           name: macos-m1-launchers
           path: artifacts/
       - name: Native integration tests
-        run: ./mill -i nativeIntegrationTests
+        run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
         env:
           UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -381,13 +381,13 @@ jobs:
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
       shell: bash
-    - run: ./mill -i ci.setShouldPublish
+    - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
     - name: Build OS packages
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyDefaultLauncher artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: windows-launchers
@@ -419,7 +419,7 @@ jobs:
         name: windows-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         COURSIER_JNI: force
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -451,7 +451,7 @@ jobs:
         name: windows-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         COURSIER_JNI: force
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -483,7 +483,7 @@ jobs:
         name: windows-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i nativeIntegrationTests
+      run: ./mill -i --disable-callgraph-invalidation nativeIntegrationTests
       env:
         COURSIER_JNI: force
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -506,7 +506,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh mostly-static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyMostlyStaticLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyMostlyStaticLauncher artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: mostly-static-launchers
@@ -533,7 +533,7 @@ jobs:
     - name: Build slim docker image
       run: .github/scripts/generate-slim-docker-image.sh
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeMostlyStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeMostlyStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -568,7 +568,7 @@ jobs:
         name: mostly-static-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeMostlyStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeMostlyStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -592,7 +592,7 @@ jobs:
         name: mostly-static-launchers
         path: artifacts/
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeMostlyStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeMostlyStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -614,7 +614,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyStaticLauncher artifacts/
+      run: ./mill -i --disable-callgraph-invalidation copyStaticLauncher artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: static-launchers
@@ -641,14 +641,14 @@ jobs:
     - name: Build docker image
       run: .github/scripts/generate-docker-image.sh
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
-      run: ./mill integration.docker.test
+      run: ./mill --disable-callgraph-invalidation integration.docker.test
     - name: Login to GitHub Container Registry
       if: startsWith(github.ref, 'refs/tags/v')
       uses: docker/login-action@v3
@@ -678,7 +678,7 @@ jobs:
     - name: Build docker image
       run: .github/scripts/generate-docker-image.sh
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -704,7 +704,7 @@ jobs:
     - name: Build docker image
       run: .github/scripts/generate-docker-image.sh
     - name: Native integration tests
-      run: ./mill -i integration.test.nativeStatic
+      run: ./mill -i --disable-callgraph-invalidation integration.test.nativeStatic
       env:
         UPDATE_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
@@ -728,7 +728,7 @@ jobs:
     - name: Build documentation
       run: .github/scripts/build-website.sh
     - name: Test documentation
-      run: ./mill -i docs-tests.test
+      run: ./mill -i --disable-callgraph-invalidation docs-tests.test
 
   checks:
     timeout-minutes: 15
@@ -742,16 +742,16 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Check Scala / Scala.js versions in doc
-      run: ./mill -i ci.checkScalaVersions
+      run: ./mill -i --disable-callgraph-invalidation ci.checkScalaVersions
     - name: Check native-image config format
-      run: ./mill -i __.checkNativeImageConfFormat
+      run: ./mill -i --disable-callgraph-invalidation __.checkNativeImageConfFormat
     - name: Check Ammonite availability
-      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps'
+      run: ./mill -i --disable-callgraph-invalidation 'dummy.amm[_].resolvedRunIvyDeps'
     - name: Scalafix check
       run: |
-        ./mill -i __.fix --check || (
+        ./mill -i --disable-callgraph-invalidation __.fix --check || (
           echo "To remove unused import run"
-          echo "  ./mill -i __.fix"
+          echo "  ./mill -i --disable-callgraph-invalidation __.fix"
           exit 1
         )
 
@@ -782,9 +782,9 @@ jobs:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
       run: |
-        ./mill -i generate-reference-doc.run --check || (
+        ./mill -i --disable-callgraph-invalidation generate-reference-doc.run --check || (
           echo "Reference doc is not up-to-date. Run"
-          echo "  ./mill -i generate-reference-doc.run"
+          echo "  ./mill -i --disable-callgraph-invalidation generate-reference-doc.run"
           echo "to update it, then commit the result."
           exit 1
         )
@@ -837,7 +837,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@e661495714262ac8cb7968416d35bb19fa863a4a
       with:
         jvm: "temurin:17"
-    - run: ./mill -i ci.copyVcRedist
+    - run: ./mill -i --disable-callgraph-invalidation ci.copyVcRedist
     - uses: actions/upload-artifact@v3
       with:
         name: launchers
@@ -862,8 +862,8 @@ jobs:
       run: .github/scripts/gpg-setup.sh
       env:
         PGP_SECRET: ${{ secrets.PGP_SECRET }}
-    - run: ./mill -i ci.setShouldPublish
-    - run: ./mill -i publishSonatype __.publishArtifacts
+    - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
+    - run: ./mill -i --disable-callgraph-invalidation publishSonatype __.publishArtifacts
       if: env.SHOULD_PUBLISH == 'true'
       env:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
@@ -920,7 +920,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@e661495714262ac8cb7968416d35bb19fa863a4a
       with:
         jvm: "temurin:17"
-    - run: ./mill -i ci.setShouldPublish
+    - run: ./mill -i --disable-callgraph-invalidation ci.setShouldPublish
     - uses: actions/download-artifact@v3
       if: env.SHOULD_PUBLISH == 'true'
       with:
@@ -961,7 +961,7 @@ jobs:
       with:
         name: launchers
         path: artifacts/
-    - run: ./mill -i uploadLaunchers artifacts/
+    - run: ./mill -i --disable-callgraph-invalidation uploadLaunchers artifacts/
       if: env.SHOULD_PUBLISH == 'true'
       env:
         UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -1021,23 +1021,23 @@ jobs:
             ${{ secrets.HOMEBREW_SCALA_CLI_KEY }}
             ${{ secrets.HOMEBREW_SCALA_EXPERIMENTAL_KEY }}
             ${{ secrets.SCALA_CLI_SETUP_KEY }}
-      - run: ./mill -i ci.updateInstallationScript
-      - run: ./mill -i ci.updateScalaCliBrewFormula
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateInstallationScript
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateScalaCliBrewFormula
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
-      - run: ./mill -i ci.updateDebianPackages
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateDebianPackages
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
-      - run: ./mill -i ci.updateCentOsPackages
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateCentOsPackages
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           KEYGRIP: ${{ secrets.KEYGRIP }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
-      - run: ./mill -i ci.updateStandaloneLauncher
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateStandaloneLauncher
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish to SDKMAN
@@ -1046,8 +1046,8 @@ jobs:
         env:
           SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
           SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
-      - run: ./mill -i ci.updateScalaCliSetup
-      - run: ./mill -i ci.updateScalaExperimentalBrewFormula
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateScalaCliSetup
+      - run: ./mill -i --disable-callgraph-invalidation ci.updateScalaExperimentalBrewFormula
 
   update-windows-packages:
     name: Update Windows packages
@@ -1067,7 +1067,7 @@ jobs:
         name: windows-launchers
         path: artifacts/
     - name: Publish to chocolatey
-      run: ./mill -i ci.updateChocolateyPackage
+      run: ./mill -i --disable-callgraph-invalidation ci.updateChocolateyPackage
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
     - uses: vedantmgoyal2009/winget-releaser@v2

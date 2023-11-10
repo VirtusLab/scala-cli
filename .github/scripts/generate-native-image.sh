@@ -10,12 +10,12 @@ export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
 
 if [[ "$OSTYPE" == "msys" ]]; then
-  ./mill.bat -i ci.copyJvm --dest jvm
+  ./mill.bat -i --disable-callgraph-invalidation ci.copyJvm --dest jvm
   export JAVA_HOME="$(pwd -W | sed 's,/,\\,g')\\jvm"
   export GRAALVM_HOME="$JAVA_HOME"
   export PATH="$(pwd)/bin:$PATH"
   echo "PATH=$PATH"
-  ./mill.bat -i "$COMMAND" generate-native-image.bat ""
+  ./mill.bat -i --disable-callgraph-invalidation "$COMMAND" generate-native-image.bat ""
   ./generate-native-image.bat
 else
   if [ $# == "0" ]; then
@@ -42,7 +42,7 @@ else
     esac
   fi
 
-  ./mill -i "$COMMAND" generate-native-image.sh ""
+  ./mill -i --disable-callgraph-invalidation "$COMMAND" generate-native-image.sh ""
   bash ./generate-native-image.sh
   "${CLEANUP[@]}"
 fi

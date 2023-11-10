@@ -13,6 +13,6 @@ git config --global --add safe.directory "$(pwd)"
 
 ./mill -i show cli.nativeImage
 ./mill -i copyDefaultLauncher ./artifacts
-if "true" == $(./mill -i ci.shouldPublish); then
+if "true" == $(./mill -i --disable-callgraph-invalidation ci.shouldPublish); then
   .github/scripts/generate-os-packages.sh
 fi

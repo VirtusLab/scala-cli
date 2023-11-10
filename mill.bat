@@ -118,4 +118,4 @@ if defined STRIP_VERSION_PARAMS (
     )
 )
 
-"%MILL%" "--disable-callgraph-invalidation" %MILL_PARAMS%
+"%MILL%" %MILL_PARAMS%

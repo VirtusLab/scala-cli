@@ -21,7 +21,7 @@ else
 fi
 
 packager() {
-  "$mill" -i packager.run "$@"
+  "$mill" -i --disable-callgraph-invalidation packager.run "$@"
 }
 
 launcher() {
@@ -34,17 +34,17 @@ launcher() {
     launcherName="scala"
   fi
 
-  "$mill" -i copyTo "$launcherMillCommand" "$launcherName" 1>&2
+  "$mill" -i --disable-callgraph-invalidation copyTo "$launcherMillCommand" "$launcherName" 1>&2
   echo "$launcherName"
 }
 
 version() {
-  "$mill" -i writePackageVersionTo scala-cli-version 1>&2
+  "$mill" -i --disable-callgraph-invalidation writePackageVersionTo scala-cli-version 1>&2
   cat scala-cli-version
 }
 
 shortVersion() {
-  "$mill" -i writeShortPackageVersionTo scala-cli-short-version 1>&2
+  "$mill" -i --disable-callgraph-invalidation writeShortPackageVersionTo scala-cli-short-version 1>&2
   cat scala-cli-short-version
 }
 

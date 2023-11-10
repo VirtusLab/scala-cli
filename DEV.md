@@ -14,8 +14,11 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 #### Running the CLI from sources
 
 ```bash
-./mill -i scala …arguments…
+./mill -i --disable-callgraph-invalidation scala …arguments…
 ```
+
+Do note that the `--disable-callgraph-invalidation` is temporarily necessary to work around issues with `mill` 0.11.2+
+More details at https://github.com/com-lihaoyi/mill/issues/2844
 
 #### Run unit tests
 
