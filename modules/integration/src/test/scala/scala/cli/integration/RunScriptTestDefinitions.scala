@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.cli.integration.TestUtil.normalizeConsoleOutput
 import scala.util.Properties
 
@@ -549,4 +551,65 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       expect(p.out.trim() == "42")
     }
   }
+
+  test("verify os.Path attributes") {
+    // requires os-lib 0.9.2 or later to succeed in Windows
+    val dr      = os.Path.driveRoot
+    val testStr = "/omg"
+    val p       = os.Path(testStr) // <<< must not throw Exception
+    val absPath = p.toString.replace('\\', '/')
+    val relPath = if (dr.nonEmpty) absPath.drop(2) else absPath
+    val synPath = s"${os.Path.driveRoot}$relPath"
+    printf("absPath[%s]\n", absPath)
+    printf("synPath[%s]\n", synPath)
+    printf("relPath[%s]\n", relPath)
+    expect(absPath == synPath)
+    expect(relPath == testStr)
+    expect(absPath endsWith testStr)
+  }
+
+  test("verify drive-relative JAVA_HOME works") {
+    val java8Home =
+      os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+
+    val dr = os.Path.driveRoot
+    printf("driveRoot: %s\n", dr)
+
+    // forward slash is legal in `Windows`
+    val javaHomeNoDriveRoot = java8Home.toString.drop(dr.length()).replace('\\', '/')
+    printf("java8HomeNoDriveRoot: %s\n", javaHomeNoDriveRoot)
+    expect(javaHomeNoDriveRoot.startsWith("/"))
+
+    val sysPath: String = System.getenv("PATH")
+    val newPath: String = s"$javaHomeNoDriveRoot/bin" + File.pathSeparator + sysPath
+
+    val extraEnv = Map(
+      "JAVA_HOME" -> javaHomeNoDriveRoot,
+      "PATH"      -> newPath
+    )
+
+    val inputs = TestInputs(
+      os.rel / "script-with-shebang" ->
+        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+            |//> using scala "$actualScalaVersion"
+            |println(args.toList)""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val proc = if (!Properties.isWin) {
+        os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
+        os.proc("./script-with-shebang", "1", "2", "3", "-v")
+      }
+      else
+        os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
+
+      val output = proc.call(cwd = root, env = extraEnv).out.trim()
+
+      val expectedOutput = "List(1, 2, 3, -v)"
+      if (output != expectedOutput)
+        printf("JAVA_HOME test: output is [%s]\n", output)
+
+      expect(output == expectedOutput)
+    }
+  }
+
 }

@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
-import java.util.regex.Pattern
 
 import scala.cli.integration.util.BloopUtil
 

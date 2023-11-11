@@ -127,7 +127,7 @@ class ConfigTests extends ScalaCliSuite {
           TestUtil.putCsInPathViaEnv(root / "bin")
 
       val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address")
-        .call(cwd = root, env = extraEnv)
+        .call(cwd = root, env = extraEnv, mergeErrIntoOut = false)
       val value = res.out.trim()
       expect(value == proxyAddr)
 
@@ -559,22 +559,6 @@ class ConfigTests extends ScalaCliSuite {
       expect(propertiesFromConfig.contains(props2))
       expect(propertiesFromConfig.contains(props3))
     }
-  }
-
-  test("verify os.Path attributes") {
-    // requires os-lib 0.9.2 or later to succeed in Windows
-    val dr      = os.Path.driveRoot
-    val testStr = "/omg"
-    val p       = os.Path(testStr) // <<< must not throw Exception
-    val absPath = p.toString.replace('\\', '/')
-    val relPath = if (dr.nonEmpty) absPath.drop(2) else absPath
-    val synPath = s"${os.Path.driveRoot}$relPath"
-    printf("absPath[%s]\n", absPath)
-    printf("synPath[%s]\n", synPath)
-    printf("relPath[%s]\n", relPath)
-    expect(absPath == synPath)
-    expect(relPath == testStr)
-    expect(absPath endsWith testStr)
   }
 
 }

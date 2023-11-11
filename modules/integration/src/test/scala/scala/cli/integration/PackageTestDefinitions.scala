@@ -6,7 +6,6 @@ import java.io.{File, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util
-import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
 import scala.cli.integration.TestUtil.removeAnsiColors
