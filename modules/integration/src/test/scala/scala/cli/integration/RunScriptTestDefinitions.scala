@@ -406,6 +406,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("no deadlock when running background threads") {
+    val extraWrapperOptions = if (actualScalaVersion.startsWith("2")) Seq("--power", "--delayed-init") else Nil
     val inputs = TestInputs(
       os.rel / "script.sc" ->
         s"""//> using scala "$actualScalaVersion"
@@ -425,7 +426,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "script.sc")
+      val output = os.proc(TestUtil.cli, "script.sc", extraWrapperOptions)
         .call(cwd = root, mergeErrIntoOut = true)
 
       output.out.trim().contains("Hello world")
