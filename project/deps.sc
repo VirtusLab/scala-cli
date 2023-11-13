@@ -197,7 +197,7 @@ object Deps {
   def zipInputStream = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
 }
 
-def graalVmVersion     = "22.3.1"
+def graalVmVersion     = "22.3.4"
 def graalVmJavaVersion = 17
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
