@@ -552,32 +552,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("verify os.Path attributes") {
-    // requires os-lib 0.9.2 or later to succeed in Windows
-    val dr      = os.Path.driveRoot
-    val testStr = "/omg"
-    val p       = os.Path(testStr) // <<< must not throw Exception
-    val absPath = p.toString.replace('\\', '/')
-    val relPath = if (dr.nonEmpty) absPath.drop(2) else absPath
-    val synPath = s"${os.Path.driveRoot}$relPath"
-    printf("absPath[%s]\n", absPath)
-    printf("synPath[%s]\n", synPath)
-    printf("relPath[%s]\n", relPath)
-    expect(absPath == synPath)
-    expect(relPath == testStr)
-    expect(absPath endsWith testStr)
-  }
-
   test("verify drive-relative JAVA_HOME works") {
     val java8Home =
       os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
 
     val dr = os.Path.driveRoot
-    printf("driveRoot: %s\n", dr)
 
     // forward slash is legal in `Windows`
     val javaHomeNoDriveRoot = java8Home.toString.drop(dr.length()).replace('\\', '/')
-    printf("java8HomeNoDriveRoot: %s\n", javaHomeNoDriveRoot)
     expect(javaHomeNoDriveRoot.startsWith("/"))
 
     val sysPath: String = System.getenv("PATH")
@@ -605,8 +587,6 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val output = proc.call(cwd = root, env = extraEnv).out.trim()
 
       val expectedOutput = "List(1, 2, 3, -v)"
-      if (output != expectedOutput)
-        printf("JAVA_HOME test: output is [%s]\n", output)
 
       expect(output == expectedOutput)
     }

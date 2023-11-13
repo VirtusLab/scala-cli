@@ -127,7 +127,7 @@ class ConfigTests extends ScalaCliSuite {
           TestUtil.putCsInPathViaEnv(root / "bin")
 
       val res = os.proc(TestUtil.cli, "--power", "config", "httpProxy.address")
-        .call(cwd = root, env = extraEnv, mergeErrIntoOut = false)
+        .call(cwd = root, env = extraEnv)
       val value = res.out.trim()
       expect(value == proxyAddr)
 
