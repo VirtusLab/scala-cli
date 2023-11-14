@@ -77,6 +77,7 @@ case class ObjectCodeWrapper(useDelayedInit: Boolean) extends CodeWrapper {
   override def additionalSourceCode: Option[(os.RelPath, String)] = Option.when(useDelayedInit)(
     os.RelPath("delayed-init-wrapper.scala") ->
       // This is copied from Scala 2 implementation of App trait, but with no main method and no argument handling
+      // https://github.com/scala/scala/blob/f927b4ca10be0212a989a73915c313884b08574e/src/library/scala/App.scala
       """package scala.cli.build
         |
         |trait ScalaCliApp extends DelayedInit {

@@ -174,9 +174,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         "--java-prop", "scala.colored-stack-traces=false"
       )
       // format: on
-      val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
-      val output = res.out.lines()
-      pprint.err.log(TestUtil.removeAnsiColors(output.mkString("\n")))
+      val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
+      val output         = res.out.lines()
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
       val expectedLines =
@@ -406,7 +405,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("no deadlock when running background threads") {
-    val extraWrapperOptions = if (actualScalaVersion.startsWith("2")) Seq("--power", "--delayed-init") else Nil
+    val extraWrapperOptions =
+      if (actualScalaVersion.startsWith("2")) Seq("--power", "--delayed-init") else Nil
     val inputs = TestInputs(
       os.rel / "script.sc" ->
         s"""//> using scala "$actualScalaVersion"
