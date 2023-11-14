@@ -392,7 +392,7 @@ Add Scala.js options
 
 ### ScriptWrapper
 
-Set parameter for the code wrapper for scripts
+Set parameters for the code wrapper for scripts
 
 `//> using objectWrapper`
 

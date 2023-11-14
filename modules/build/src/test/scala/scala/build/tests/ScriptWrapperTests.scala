@@ -134,7 +134,7 @@ class ScriptWrapperTests extends munit.FunSuite {
   for {
     useDirectives <- Seq(true, false)
     (directive, options, optionName) <- Seq(
-      ("//> using object.wrapper", objectWrapperOptions, "--object-wrapper"),
+      ("//> using wrapper.object", objectWrapperOptions, "--object-wrapper"),
       ("//> using scala 2.13.1", scala213Options, "--scala 2.13.1"),
       ("//> using platform js", platfromJsOptions, "--js")
     )
@@ -160,7 +160,7 @@ class ScriptWrapperTests extends munit.FunSuite {
 
     val testSuffixObject = if (useDirectives) directive else optionName
     val testSuffixDelayedInit =
-      if (useDirectives) "//> using delayedInit.wrapper" else "--delayed-init"
+      if (useDirectives) "//> using wrapper.delayedInit" else "--delayed-init"
 
     test(s"object wrapper forced with $testSuffixObject") {
       inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
@@ -187,7 +187,7 @@ class ScriptWrapperTests extends munit.FunSuite {
 
     val delayedInitInputs = TestInputs(
       if (useDirectives)
-        os.rel / "script1.sc"    -> script1Code(directive, "//> using delayedInit.wrapper")
+        os.rel / "script1.sc"    -> script1Code(directive, "//> using wrapper.delayedInit")
       else os.rel / "script1.sc" -> script1Code(directive),
       os.rel / "script2.sc" -> script2Code
     )

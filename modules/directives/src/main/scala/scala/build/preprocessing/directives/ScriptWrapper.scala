@@ -15,11 +15,12 @@ import scala.cli.commands.SpecificationLevel
     |""".stripMargin
 )
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
-@DirectiveDescription("Set parameter for the code wrapper for scripts")
+@DirectiveDescription("Set parameters for the code wrapper for scripts")
 final case class ScriptWrapper(
   @DirectiveName("object.wrapper")
+  @DirectiveName("wrapper.object")
   objectWrapper: Boolean = false,
-  @DirectiveName("delayedInit.wrapper")
+  @DirectiveName("wrapper.delayedInit")
   delayedInitWrapper: Boolean = false
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
