@@ -46,7 +46,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
   test("BSP class wrapper for Scala 3") {
     val inputs = TestInputs(
       os.rel / "script.sc" ->
-        s"""//> using delayedInit.wrapper
+        s"""//> using wrapper.delayedInit
            |//> using dep "com.lihaoyi::os-lib:0.9.1"
            |
            |def main(args: String*): Unit = println("Hello")
@@ -130,7 +130,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
     val testSuffixObject = if (useDirectives) directive else options.mkString(" ")
     // Test directives with options and options with directives
     val testSuffixDelayedInit =
-      if (useDirectives) "--delayed-init" else "//> using delayedInit.wrapper"
+      if (useDirectives) "--delayed-init" else "//> using wrapper.delayedInit"
 
     test(s"BSP object wrapper forced with $testSuffixObject") {
       inputs.fromRoot { root =>
@@ -180,7 +180,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
       if (useDirectives) // Test directives with options and options with directives
         os.rel / "script1.sc" -> script1Code(directive)
       else
-        os.rel / "script1.sc" -> script1Code(directive, "//> using delayedInit.wrapper"),
+        os.rel / "script1.sc" -> script1Code(directive, "//> using wrapper.delayedInit"),
       os.rel / "script2.sc" -> script2Code
     )
 
