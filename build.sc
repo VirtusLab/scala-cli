@@ -75,7 +75,7 @@ object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
 object runner                extends Cross[Runner](Scala.runnerScalaVersions)
-object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions)
+object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions :+ Scala.scala3)
 object `tasty-lib`           extends Cross[TastyLib](Scala.all)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
@@ -623,8 +623,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     options,
     directives,
     `scala-cli-bsp`,
-    // Depending on version compiled with Scala 3 pulls older stdlib
-    `test-runner`(Scala.runnerScala3),
+    `test-runner`(scalaVer),
     `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
