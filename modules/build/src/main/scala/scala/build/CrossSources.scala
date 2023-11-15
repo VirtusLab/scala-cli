@@ -346,10 +346,23 @@ object CrossSources {
         .values
         .flatten
         .filter((path, _) => ScopePath.fromPath(path) != ScopePath.fromPath(projectFilePath))
-        .foreach { (_, directivesPositions) =>
-          logger.diagnostic(
-            s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
-            positions = Seq(directivesPositions)
+        .pipe { pathsToReport =>
+          def coreMessage(paths: Iterable[String] = Nil) =
+            val detectedMsg = "Using directives detected in multiple files"
+            val recommendedMsg =
+              s"It is recommended to keep them centralized in the $projectFilePath file."
+            if paths.isEmpty then
+              s"$detectedMsg. $recommendedMsg"
+            else
+              s"""$detectedMsg:
+                 |${paths.mkString("- ", s"${System.lineSeparator}- ", "")}
+                 |$recommendedMsg
+                 |""".stripMargin
+
+          logger.cliFriendlyDiagnostic(
+            message = coreMessage(),
+            cliFriendlyMessage = coreMessage(pathsToReport.map(_._2.render())),
+            positions = pathsToReport.map(_._2).toSeq
           )
         }
     }
