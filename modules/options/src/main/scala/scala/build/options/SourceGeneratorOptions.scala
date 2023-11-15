@@ -2,6 +2,7 @@ package scala.build.options
 
 final case class SourceGeneratorOptions(
   useBuildInfo: Option[Boolean] = None,
+  projectVersion: Option[String] = None,
   computeVersion: Option[ComputeVersion] = None
 )
 

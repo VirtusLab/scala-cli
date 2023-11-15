@@ -1662,6 +1662,46 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("BuildInfo should take into account --project-version") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        s"""//> using buildInfo
+           |
+           |import scala.cli.build.BuildInfo
+           |
+           |object Main extends App {
+           |  assert(BuildInfo.projectVersion == Some("35.0.1"))
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      TestUtil.initializeGit(root, "v1.0.0")
+
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          extraOptions,
+          ".",
+          "--compute-version",
+          "git",
+          "--project-version",
+          "35.0.1"
+        ).call(cwd = root)
+      val output = res.out.trim()
+
+      val projectDir = os.list(root / ".scala-build").filter(
+        _.baseName.startsWith(root.baseName + "_")
+      )
+      expect(projectDir.size == 1)
+      val buildInfoPath = projectDir.head / "src_generated" / "main" / "BuildInfo.scala"
+      expect(os.isFile(buildInfoPath))
+
+      expect(output == "")
+    }
+  }
+
   // Credentials tests
   test("repository credentials passed to coursier") {
     val testOrg     = "test-org"

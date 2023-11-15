@@ -104,11 +104,13 @@ object BuildInfo {
     Seq(
       BuildInfo(
         mainClass = options.mainClass,
-        projectVersion = options.sourceGeneratorOptions.computeVersion
-          .map(cv => value(cv.get(workspace)))
-          .orElse(
-            ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil).get(workspace).toOption
-          )
+        projectVersion = options.sourceGeneratorOptions.projectVersion.orElse(
+          options.sourceGeneratorOptions.computeVersion
+            .map(cv => value(cv.get(workspace)))
+            .orElse(
+              ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil).get(workspace).toOption
+            )
+        )
       ),
       scalaVersionSettings(options),
       platformSettings(options)

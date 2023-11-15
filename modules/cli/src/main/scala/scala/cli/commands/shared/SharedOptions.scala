@@ -326,6 +326,7 @@ final case class SharedOptions(
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
+        projectVersion = sharedVersionOptions.projectVersion,
         computeVersion = value {
           sharedVersionOptions.computeVersion
             .map(Positioned.commandLine)
