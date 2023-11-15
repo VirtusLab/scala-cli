@@ -161,11 +161,11 @@ Here's some of the more important external projects used by Scala CLI:
   for `scalafmt`.
 - [bloop-core](https://github.com/scala-cli/bloop-core): a fork of [bloop](https://github.com/scalacenter/bloop)
   stripped up of its benchmark infrastructure and build integrations.
-- [no-crc32-zip-input-stream](https://github.com/scala-cli/no-crc32-zip-input-stream): A copy of `ZipInputStream` 
+- [no-crc32-zip-input-stream](https://github.com/VirtusLab/no-crc32-zip-input-stream): A copy of `ZipInputStream` 
   from OpenJDK, with CRC32 calculations disabled.
 - [lightweight-spark-distrib](https://github.com/VirtusLab/lightweight-spark-distrib): a small application allowing
   to make Spark distributions more lightweight.
-- [java-class-name](https://github.com/scala-cli/java-class-name): a small library to extract class names
+- [java-class-name](https://github.com/VirtusLab/java-class-name): a small library to extract class names
   from Java sources.
 
 The use of external binaries allows to make the Scala CLI binary slimmer and faster

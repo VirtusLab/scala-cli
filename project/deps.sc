@@ -90,11 +90,12 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.12"
+    def scalaMeta            = "4.8.13"
     def scalaNative          = "0.4.16"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
+    def javaClassName        = "0.1.3"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -105,7 +106,7 @@ object Deps {
   def bloopConfig      = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-2"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M25"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M26"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
   def coursier           = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
@@ -116,14 +117,15 @@ object Deps {
   def dependency         = ivy"io.get-coursier::dependency:0.2.3"
   def dockerClient       = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
-  def expecty       = ivy"com.eed3si9n.expecty::expecty:0.16.0"
-  def fansi         = ivy"com.lihaoyi::fansi:0.4.0"
-  def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = ivy"com.google.guava:guava:32.1.3-jre"
-  def javaClassName = ivy"io.github.alexarchambault.scala-cli:java-class-name_3:0.1.0"
-  def jgit          = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
-  def jimfs         = ivy"com.google.jimfs:jimfs:1.3.0"
-  def jniUtils      = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
+  def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
+  def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
+  def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
+  def guava   = ivy"com.google.guava:guava:32.1.3-jre"
+  def javaClassName =
+    ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
+  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
+  def jimfs    = ivy"com.google.jimfs:jimfs:1.3.0"
+  def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterCoreJava8 =
@@ -177,7 +179,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
   def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.9"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.0"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.1"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"
@@ -188,11 +190,11 @@ object Deps {
   def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.0"
-  // Lives at https://github.com/scala-cli/no-crc32-zip-input-stream, see #865
+  // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream = ivy"io.github.alexarchambault.scala-cli.tmp:zip-input-stream:0.1.1"
+  def zipInputStream = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
 }
 
 def graalVmVersion     = "22.3.1"

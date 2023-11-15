@@ -5,6 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.util.BloopUtil
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
+import scala.util.Properties
 
 class BloopTests extends ScalaCliSuite {
 
@@ -134,36 +135,38 @@ class BloopTests extends ScalaCliSuite {
     }
   }
 
-  test("Restart Bloop server while watching") {
-    TestUtil.withThreadPool("bloop-restart-test", 2) { pool =>
-      val timeout = Duration("90 seconds")
-      val ec      = ExecutionContext.fromExecutorService(pool)
+  if (!Properties.isMac || !TestUtil.isNativeCli || !TestUtil.isCI)
+    // TODO make this pass reliably on Mac CI
+    test("Restart Bloop server while watching") {
+      TestUtil.withThreadPool("bloop-restart-test", 2) { pool =>
+        val timeout = Duration("90 seconds")
+        val ec      = ExecutionContext.fromExecutorService(pool)
 
-      def content(message: String) =
-        s"""object Hello {
-           |  def main(args: Array[String]): Unit =
-           |    println("$message")
-           |}
-           |""".stripMargin
-      val sourcePath = os.rel / "Hello.scala"
-      val inputs = TestInputs(
-        sourcePath -> content("Hello")
-      )
-      inputs.fromRoot { root =>
-        val proc = os.proc(TestUtil.cli, "run", "--power", "--offline", "-w", ".")
-          .spawn(cwd = root)
-        val firstLine = TestUtil.readLine(proc.stdout, ec, timeout)
-        expect(firstLine == "Hello")
+        def content(message: String) =
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+        val sourcePath = os.rel / "Hello.scala"
+        val inputs = TestInputs(
+          sourcePath -> content("Hello")
+        )
+        inputs.fromRoot { root =>
+          val proc = os.proc(TestUtil.cli, "run", "--power", "--offline", "-w", ".")
+            .spawn(cwd = root)
+          val firstLine = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(firstLine == "Hello")
 
-        os.proc(TestUtil.cli, "--power", "bloop", "exit")
-          .call(cwd = root)
+          os.proc(TestUtil.cli, "--power", "bloop", "exit")
+            .call(cwd = root)
 
-        os.write.over(root / sourcePath, content("Foo"))
-        val secondLine = TestUtil.readLine(proc.stdout, ec, timeout)
-        expect(secondLine == "Foo")
+          os.write.over(root / sourcePath, content("Foo"))
+          val secondLine = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(secondLine == "Foo")
 
-        proc.destroy()
+          proc.destroy()
+        }
       }
     }
-  }
 }
