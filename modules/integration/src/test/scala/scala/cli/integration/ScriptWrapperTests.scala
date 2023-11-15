@@ -103,7 +103,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
     useDirectives <- Seq(true, false)
     (directive, options) <- Seq(
       ("//> using object.wrapper", Seq("--object-wrapper")),
-      ("//> using scala 2.13.1", Seq("--scala", "2.13.1")),
+      ("//> using scala 2.12", Seq("--scala", "2.12")),
       ("//> using platform js", Seq("--js"))
     )
   } {
