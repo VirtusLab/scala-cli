@@ -14,7 +14,7 @@ import scala.cli.commands.SpecificationLevel
     |`//> using delayedInitWrapper`
     |""".stripMargin
 )
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 @DirectiveDescription("Set parameters for the code wrapper for scripts")
 final case class ScriptWrapper(
   @DirectiveName("object.wrapper")
