@@ -429,9 +429,8 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: coursier/setup-action@48280172a2c999022e42527711d6b28e4945e6f0
+      - uses: VirtusLab/scala-cli-setup@e661495714262ac8cb7968416d35bb19fa863a4a
         with:
-          apps: ""
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
       - uses: actions/download-artifact@v3
         with:
