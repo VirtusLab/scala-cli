@@ -1,7 +1,6 @@
 package scala.build.internal
 
 abstract class CodeWrapper {
-  def wrapperPath: Seq[Name] = Nil
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -9,6 +8,8 @@ abstract class CodeWrapper {
     extraCode: String,
     scriptPath: String
   ): (String, String)
+
+  def mainClassObject(className: Name): Name
 
   def wrapCode(
     pkgName: Seq[Name],
@@ -30,16 +31,14 @@ abstract class CodeWrapper {
         nl + "/*</script>*/ /*<generated>*/" + bottomWrapper
       )
 
-    val wrapperParams = WrapperParams(topWrapper0.linesIterator.size, code.linesIterator.size)
+    val mainClassName =
+      (pkgName :+ mainClassObject(indexedWrapperName)).map(_.encoded).mkString(".")
+
+    val wrapperParams =
+      WrapperParams(topWrapper0.linesIterator.size, code.linesIterator.size, mainClassName)
 
     (topWrapper0 + code + bottomWrapper0, wrapperParams)
   }
-
 }
 
-object CodeWrapper {
-  def mainClassObject(className: Name): Name =
-    Name(className.raw ++ "_sc")
-}
-
-case class WrapperParams(topWrapperLineCount: Int, userCodeLineCount: Int)
+case class WrapperParams(topWrapperLineCount: Int, userCodeLineCount: Int, mainClass: String)

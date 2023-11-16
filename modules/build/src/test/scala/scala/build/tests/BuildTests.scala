@@ -13,7 +13,6 @@ import scala.build.errors.{
   InvalidBinaryScalaVersionError,
   ScalaNativeCompatibilityError
 }
-import scala.build.internal.{ClassCodeWrapper, ObjectCodeWrapper}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,

@@ -110,18 +110,11 @@ object Build {
       logger: Logger
     ): Either[Seq[String], String] = {
       val scriptInferredMainClasses =
-        sources.inMemory.map(im => im.originalPath.map(_._1))
-          .flatMap {
-            case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
-              Some {
-                originalRelPath
-                  .toString
-                  .replace(".", "_")
-                  .replace("/", ".")
-              }
-            case Left(VirtualScriptNameRegex(name)) => Some(s"${name}_sc")
-            case _                                  => None
-          }
+        sources.inMemory.collect {
+          case Sources.InMemory(_, _, _, Some(wrapperParams)) =>
+            wrapperParams.mainClass
+        }
+
       val filteredMainClasses =
         mainClasses.filter(!scriptInferredMainClasses.contains(_))
       if (filteredMainClasses.length == 1) {

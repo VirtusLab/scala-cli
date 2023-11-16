@@ -8,7 +8,6 @@ import dependency.*
 import java.nio.charset.StandardCharsets
 import scala.build.Ops.*
 import scala.build.{CrossSources, Position, Sources}
-import scala.build.internal.ObjectCodeWrapper
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}

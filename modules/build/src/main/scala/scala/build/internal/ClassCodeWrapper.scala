@@ -6,6 +6,9 @@ package scala.build.internal
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
 case object ClassCodeWrapper extends CodeWrapper {
+
+  override def mainClassObject(className: Name): Name =
+    Name(className.raw ++ "_sc")
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -13,7 +16,7 @@ case object ClassCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val name             = CodeWrapper.mainClassObject(indexedWrapperName).backticked
+    val name             = mainClassObject(indexedWrapperName).backticked
     val wrapperClassName = Name(indexedWrapperName.raw ++ "$_").backticked
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {

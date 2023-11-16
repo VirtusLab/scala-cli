@@ -28,7 +28,7 @@ import scala.build.preprocessing.ScriptPreprocessor
 final case class ScopedSources(
   paths: Seq[HasScope[(os.Path, os.RelPath)]],
   inMemory: Seq[HasScope[Sources.InMemory]],
-  defaultMainClass: Option[String],
+  defaultMainElemPath: Option[os.Path],
   resourceDirs: Seq[HasScope[os.Path]],
   buildOptions: Seq[HasScope[BuildOptions]],
   unwrappedScripts: Seq[HasScope[Sources.UnwrappedScript]]
@@ -64,6 +64,14 @@ final case class ScopedSources(
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .map(_.wrap(codeWrapper))
+
+    val defaultMainClass = defaultMainElemPath.flatMap { mainElemPath =>
+      wrappedScripts.collectFirst {
+        case Sources.InMemory(Right((_, path)), _, _, Some(wrapperParams))
+            if mainElemPath == path =>
+          wrapperParams.mainClass
+      }
+    }
 
     val needsBuildInfo = combinedOptions.sourceGeneratorOptions.useBuildInfo.getOrElse(false)
 

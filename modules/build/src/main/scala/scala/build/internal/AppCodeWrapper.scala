@@ -1,6 +1,8 @@
 package scala.build.internal
 
 case object AppCodeWrapper extends CodeWrapper {
+  override def mainClassObject(className: Name) = className
+
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -8,7 +10,7 @@ case object AppCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val wrapperObjectName  = indexedWrapperName.backticked
+    val wrapperObjectName = indexedWrapperName.backticked
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
@@ -16,7 +18,7 @@ case object AppCodeWrapper extends CodeWrapper {
       s"""$packageDirective
          |
          |object $wrapperObjectName extends App {
-         |def scriptPath = \"\"\"$scriptPath\"\"\"
+         |val scriptPath = \"\"\"$scriptPath\"\"\"
          |""".stripMargin
     )
     val bottom = AmmUtil.normalizeNewlines(
