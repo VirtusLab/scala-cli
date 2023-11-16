@@ -92,10 +92,13 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         s"""println(messages.msg)
            |""".stripMargin
     )
+
+    val mainClassName = if (actualScalaVersion.startsWith("3")) "print_sc" else "print"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
-        root
-      ).out.trim()
+      val output =
+        os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", mainClassName).call(cwd =
+          root
+        ).out.trim()
       expect(output == message)
     }
   }
