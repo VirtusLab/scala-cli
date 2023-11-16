@@ -768,14 +768,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / "Hello.java" -> "//> using jvm \"11\""
     )
     inputs.fromRoot { root =>
-      val warningMessage = "Using directives detected in"
-      val output1        = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
+      val warningMessage =
+        """Using directives detected in multiple files:
+          |- Foo.scala:1:1-24
+          |- Hello.java:1:1-19""".stripMargin
+      val output1 = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
       val output2 = os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
         cwd = root,
         stderr = os.Pipe
       ).err.trim()
       expect(output1.contains(warningMessage))
-      expect(!output2.contains(warningMessage))
+      expect(!output2.contains("Using directives detected in multiple files"))
     }
   }
 
