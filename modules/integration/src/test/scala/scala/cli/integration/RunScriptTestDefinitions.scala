@@ -276,10 +276,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello extends App {
-          |  println(s"Hello ${scripts.Script.world}")
+          |  println(s"Hello ${scripts.`Script-1`.world}")
           |}
           |""".stripMargin,
-      os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
+      os.rel / "scripts" / "Script-1.sc" -> """def world: String = "world"""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(

@@ -23,7 +23,7 @@ class ScriptWrapperTests extends munit.FunSuite {
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"object $wrapperName {"),
+      generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
@@ -39,7 +39,7 @@ class ScriptWrapperTests extends munit.FunSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"object $wrapperName {"),
+      !generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }

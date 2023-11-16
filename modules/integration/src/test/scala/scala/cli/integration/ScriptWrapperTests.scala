@@ -9,7 +9,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
-      generatedFileContent.contains(s"object $wrapperName {"),
+      generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
@@ -25,7 +25,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"object $wrapperName {"),
+      !generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
