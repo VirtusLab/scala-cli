@@ -83,9 +83,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
       if (checkResults)
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple.class",
-          "simple_sc.class",
           "simple$.class",
-          "simple_sc$.class"
+          "simple$delayedInit$body.class"
         )
     }
   }
@@ -186,10 +185,9 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val build = maybeBuild.orThrow
       build.assertGeneratedEquals(
-        "simple.class",
-        "simple_sc.class",
+        "simple$delayedInit$body.class",
         "simple$.class",
-        "simple_sc$.class",
+        "simple.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
       maybeBuild.orThrow.assertNoDiagnostics
@@ -262,14 +260,12 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     testInputs.withBuild(defaultOptions.enableJs, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
         maybeBuild.orThrow.assertGeneratedEquals(
-          "simple.class",
-          "simple_sc.class",
-          "simple.sjsir",
-          "simple$.sjsir",
-          "simple_sc.sjsir",
           "simple$.class",
-          "simple_sc$.class",
-          "simple_sc$.sjsir"
+          "simple$.sjsir",
+          "simple$delayedInit$body.class",
+          "simple$delayedInit$body.sjsir",
+          "simple.class",
+          "simple.sjsir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -287,13 +283,10 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
         maybeBuild.orThrow.assertGeneratedEquals(
           "simple$.class",
           "simple$.nir",
+          "simple$delayedInit$body.class",
+          "simple$delayedInit$body.nir",
           "simple.class",
-          "simple.nir",
-          "simple_sc$$$Lambda$1.nir",
-          "simple_sc$.class",
-          "simple_sc$.nir",
-          "simple_sc.class",
-          "simple_sc.nir"
+          "simple.nir"
         )
         maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -315,9 +308,8 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
         "simple.class",
-        "simple_sc.class",
         "simple$.class",
-        "simple_sc$.class"
+        "simple$delayedInit$body.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
@@ -341,14 +333,12 @@ abstract class BuildTests(server: Boolean) extends munit.FunSuite {
     )
     testInputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       maybeBuild.orThrow.assertGeneratedEquals(
-        "simple.class",
-        "simple_sc.class",
         "simple$.class",
-        "simple_sc$.class",
-        "simple2.class",
-        "simple2_sc.class",
+        "simple$delayedInit$body.class",
+        "simple.class",
         "simple2$.class",
-        "simple2_sc$.class"
+        "simple2$delayedInit$body.class",
+        "simple2.class"
       )
       maybeBuild.orThrow.assertNoDiagnostics
     }
