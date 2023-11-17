@@ -840,7 +840,7 @@ CF Bundle Identifier
 
 ### `--license`
 
-Licenses that are supported by the repository (list of licenses: https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing)
+Licenses that are supported by the repository (list of licenses: https://spdx.org/licenses/)
 
 ### `--release`
 
