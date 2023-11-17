@@ -82,7 +82,7 @@ Note that the dependency format is the same as for `--dep` and `using dep`. More
 
 If you want to use Bloop, you can get it with:
 ```bash ignore
-cs fetch io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.11-sc-2 
+cs fetch io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.11-sc-3 
 ```
 Note that Scala CLI uses a custom fork of Bloop, so simple `cs install bloop` won't work.
 
@@ -150,7 +150,7 @@ cs java --jvm 11
 # Should pass with a warning:
 # [warn]  Offline mode is ON and Bloop could not be fetched from the local cache, using scalac as fallback
 scala-cli run Main.scala --jvm 11 --offline
-cs fetch io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.11-sc-2 
+cs fetch io.github.alexarchambault.bleep:bloop-frontend_2.12:1.5.11-sc-3
 
 # Should pass with a warning:
 # [warn]  Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback
