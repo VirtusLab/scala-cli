@@ -46,6 +46,9 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         root
       ).out.trim()
       expect(output == message)
+      expect(
+        !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+      )
     }
   }
 
@@ -80,8 +83,34 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
           root
         ).out.trim()
         expect(output == message)
+        expect(
+          !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+        )
       }
     }
+
+  test("warn when main.sc file is used together with other scripts") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "message.sc" ->
+        s"""println(main.msg)
+           |""".stripMargin,
+      os.rel / "main.sc" ->
+        s"""def msg = "$message"
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "--power", extraOptions, "message.sc", "main.sc", "--object-wrapper")
+          .call(cwd = root, check = false, mergeErrIntoOut = true)
+
+      expect(res.exitCode == 1)
+      val output = res.out.trim()
+      expect(
+        output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+      )
+    }
+  }
 
   test("Directory") {
     val message = "Hello"

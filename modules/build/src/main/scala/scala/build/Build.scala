@@ -272,10 +272,12 @@ object Build {
 
       val scopedSources = value(crossSources.scopedSources(baseOptions))
 
-      val mainSources = value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace))
+      val mainSources =
+        value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace, logger))
       val mainOptions = mainSources.buildOptions
 
-      val testSources = value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace))
+      val testSources =
+        value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace, logger))
       val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
