@@ -244,10 +244,9 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      println(os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class-list")
-        .call(cwd = root)
-        .out.trim())
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", "print")
+      val mainClassName = if (actualScalaVersion.startsWith("3")) "print_sc" else "print"
+
+      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--js", "--main-class", mainClassName)
         .call(cwd = root)
         .out.trim()
       expect(output == message)

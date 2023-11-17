@@ -20,14 +20,28 @@ import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Posit
 
 class ScriptWrapperTests extends munit.FunSuite {
 
-  def expectObjectWrapper(wrapperName: String, path: os.Path) = {
+  def expectAppWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"final class $wrapperName$$_"),
+      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"object $wrapperName {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+  }
+
+  def expectObjectWrapper(wrapperName: String, path: os.Path) = {
+    val generatedFileContent = os.read(path)
+    assert(
+      generatedFileContent.contains(s"object $wrapperName {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+    assert(
+      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"object $wrapperName extends App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
@@ -39,7 +53,8 @@ class ScriptWrapperTests extends munit.FunSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"object $wrapperName extends App {"),
+      !generatedFileContent.contains(s"object $wrapperName extends App {") &&
+      !generatedFileContent.contains(s"object $wrapperName {"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
@@ -116,7 +131,6 @@ class ScriptWrapperTests extends munit.FunSuite {
     useDirectives <- Seq(true, false)
     (directive, options, optionName) <- Seq(
       ("//> using object.wrapper", objectWrapperOptions, "--object-wrapper"),
-      ("//> using scala 2.13", scala213Options, "--scala 2.13"),
       ("//> using platform js", platfromJsOptions, "--js")
     )
   } {
@@ -150,6 +164,49 @@ class ScriptWrapperTests extends munit.FunSuite {
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
           expectObjectWrapper(
+            "script2",
+            projectDir.head / "src_generated" / "main" / "script2.scala"
+          )
+      }
+    }
+  }
+
+  for {
+    useDirectives <- Seq(true, false)
+    (directive, options, optionName) <- Seq(
+      ("//> using scala 2.13", scala213Options, "--scala 2.13")
+    )
+  } {
+    val inputs = TestInputs(
+      os.rel / "script1.sc" ->
+        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |${if (useDirectives) directive else ""}
+           |
+           |def main(args: String*): Unit = println("Hello")
+           |main()
+           |""".stripMargin,
+      os.rel / "script2.sc" ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |
+          |println("Hello")
+          |""".stripMargin
+    )
+
+    test(
+      s"App object wrapper forced with ${if (useDirectives) directive else optionName}"
+    ) {
+      inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
+        (root, _, maybeBuild) =>
+          expect(maybeBuild.orThrow.success)
+          val projectDir = os.list(root / ".scala-build").filter(
+            _.baseName.startsWith(root.baseName + "_")
+          )
+          expect(projectDir.size == 1)
+          expectAppWrapper(
+            "script1",
+            projectDir.head / "src_generated" / "main" / "script1.scala"
+          )
+          expectAppWrapper(
             "script2",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )
