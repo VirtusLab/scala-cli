@@ -64,23 +64,24 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("use method from main.sc file") {
-    val message = "Hello"
-    val inputs = TestInputs(
-      os.rel / "message.sc" ->
-        s"""println(main.msg)
-           |""".stripMargin,
-      os.rel / "main.sc" ->
-        s"""def msg = "$message"
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
-        root
-      ).out.trim()
-      expect(output == message)
+  if (actualScalaVersion.startsWith("3"))
+    test("use method from main.sc file") {
+      val message = "Hello"
+      val inputs = TestInputs(
+        os.rel / "message.sc" ->
+          s"""println(main.msg)
+             |""".stripMargin,
+        os.rel / "main.sc" ->
+          s"""def msg = "$message"
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
+          root
+        ).out.trim()
+        expect(output == message)
+      }
     }
-  }
 
   test("Directory") {
     val message = "Hello"
