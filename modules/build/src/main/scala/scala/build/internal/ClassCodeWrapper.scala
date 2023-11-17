@@ -37,29 +37,27 @@ case object ClassCodeWrapper extends CodeWrapper {
                                     |  }
                                     |}
                                     |
-                                    |export $name.script as ${indexedWrapperName.backticked}
+                                    |export $name.script as `${indexedWrapperName.raw}`
                                     |""".stripMargin)
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
 
-    // indentation is important in the generated code, so we don't want scalafmt to touch that
-    // format: off
-    val top = AmmUtil.normalizeNewlines(s"""
-$packageDirective
-
-
-final class $wrapperClassName {
-def args = $name.args$$
-def scriptPath = \"\"\"$scriptPath\"\"\"
-""")
-    val bottom = AmmUtil.normalizeNewlines(s"""
-$extraCode
-}
-
-$mainObjectCode
-""")
-    // format: on
+    val top = AmmUtil.normalizeNewlines(
+      s"""$packageDirective
+         |
+         |final class $wrapperClassName {
+         |def args = $name.args$$
+         |def scriptPath = \"\"\"$scriptPath\"\"\"
+         |""".stripMargin
+    )
+    val bottom = AmmUtil.normalizeNewlines(
+      s"""$extraCode
+         |}
+         |
+         |$mainObjectCode
+         |""".stripMargin
+    )
 
     (top, bottom)
   }
