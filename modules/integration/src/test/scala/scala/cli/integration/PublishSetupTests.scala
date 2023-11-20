@@ -36,6 +36,16 @@ class PublishSetupTests extends ScalaCliSuite {
       "value:1234"
     )
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
+    os.proc(
+      TestUtil.cli,
+      "--power",
+      "config",
+      "publish.credentials",
+      "maven.pkg.github.com",
+      "value:uSeR",
+      "value:1234"
+    )
+      .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
     os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--pgp-password", "random")
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
   }
@@ -94,7 +104,16 @@ class PublishSetupTests extends ScalaCliSuite {
     testInputs.fromRoot { root =>
       configSetup(root / configFile, root)
       gitInit(root / projDir)
-      val res = os.proc(TestUtil.cli, "--power", "publish", "setup", "--dummy", projDir).call(
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "-R",
+        "central-s01",
+        projDir
+      ).call(
         cwd = root,
         mergeErrIntoOut = true,
         env = envs
@@ -138,7 +157,17 @@ class PublishSetupTests extends ScalaCliSuite {
       configSetup(root / configFile, root)
       gitInit(root / projDir)
       val res =
-        os.proc(TestUtil.cli, "--power", "publish", "setup", "--ci", "--dummy", projDir).call(
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "setup",
+          "--ci",
+          "--dummy",
+          "-R",
+          "central-s01",
+          projDir
+        ).call(
           cwd = root,
           mergeErrIntoOut = true,
           env = envs
@@ -153,6 +182,84 @@ class PublishSetupTests extends ScalaCliSuite {
       expect(directives0 == expectedDirectives)
       expect(ghSecrets == expectedGhSecrets)
     }
+  }
+
+  test("CI repository default") {
+
+    testInputs.fromRoot { root =>
+      configSetup(root / configFile, root)
+      gitInit(root / projDir)
+      val res =
+        os.proc(TestUtil.cli, "--power", "publish", "setup", "--ci", "--dummy", projDir).call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          check = false,
+          env = envs
+        )
+
+      expect(res.exitCode == 1)
+      expect(res.out.text().trim().contains("Missing repository for publishing"))
+    }
+
+    val expectedDirectives = Map(
+      "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
+      "publish.organization"      -> List(s"io.github.$ghUserName"),
+      "publish.developer"         -> List(s"$devName|$devMail|$devUrl"),
+      "publish.name"              -> List(projName),
+      "publish.license"           -> List("Apache-2.0"),
+      "publish.url"               -> List(s"https://github.com/$ghUserName/tests"),
+      "publish.repository"        -> List("github"),
+      "publish.ci.secretKey"      -> List("env:PUBLISH_SECRET_KEY"),
+      "publish.ci.user"           -> List("env:PUBLISH_USER"),
+      "publish.ci.password"       -> List("env:PUBLISH_PASSWORD"),
+      "publish.ci.publicKey"      -> List("env:PUBLISH_PUBLIC_KEY"),
+      "publish.ci.repository"     -> List("github"),
+      "publish.ci.computeVersion" -> List("git:tag")
+    )
+    val expectedGhSecrets =
+      Set(
+        "PUBLISH_USER",
+        "PUBLISH_PASSWORD",
+        "PUBLISH_SECRET_KEY",
+        "PUBLISH_PUBLIC_KEY"
+      )
+
+    testInputs.add(
+      os.rel / projDir / "publish-conf.scala" ->
+        """//> using publish.repository github
+          |""".stripMargin
+    )
+      .fromRoot { root =>
+        configSetup(root / configFile, root)
+        gitInit(root / projDir)
+        val res =
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "setup",
+            "-v",
+            "-v",
+            "-v",
+            "--ci",
+            "--dummy",
+            projDir
+          ).call(
+            cwd = root,
+            mergeErrIntoOut = true,
+            env = envs
+          )
+
+        expect(res.exitCode == 0)
+        val ghSecrets = res.out.text()
+          .linesIterator
+          .filter(_.startsWith("Would have set GitHub secret "))
+          .map(_.stripPrefix("Would have set GitHub secret "))
+          .toSet
+        val directives0 = directives(os.read(root / projDir / "publish-conf.scala"))
+        expect(directives0 == expectedDirectives)
+        expect(ghSecrets == expectedGhSecrets)
+      }
   }
 
   test("local GitHub") {
@@ -295,6 +402,8 @@ class PublishSetupTests extends ScalaCliSuite {
         "publish",
         "setup",
         "--dummy",
+        "-R",
+        "central-s01",
         "--secret-key",
         "file:key.skr",
         "--secret-key-password",
@@ -374,6 +483,8 @@ class PublishSetupTests extends ScalaCliSuite {
         "publish",
         "setup",
         "--dummy",
+        "-R",
+        "central-s01",
         "--secret-key",
         "file:key.skr",
         projDir
@@ -453,6 +564,8 @@ class PublishSetupTests extends ScalaCliSuite {
         "publish",
         "setup",
         "--dummy",
+        "-R",
+        "central-s01",
         "--secret-key",
         "value:whatever",
         projDir
@@ -478,5 +591,4 @@ class PublishSetupTests extends ScalaCliSuite {
       expect(res.contains("Warning: no public key passed, not checking"))
     }
   }
-
 }

@@ -22,24 +22,31 @@ final case class UserCheck(
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".user"
 
   private def hostOpt(pubOpt: BPublishOptions): Option[String] = {
-    val repo = pubOpt.contextual(options.publishParams.setupCi).repository.getOrElse(
-      RepositoryCheck.defaultRepository
-    )
-    RepoParams(
-      repo,
-      pubOpt.versionControl.map(_.url),
-      workspace,
-      None,
-      false,
-      null,
-      logger
-    ) match {
-      case Left(ex) =>
-        logger.debug("Caught exception when trying to compute host to check user credentials")
-        logger.debug(ex)
-        None
-      case Right(params) =>
-        Some(new URI(params.repo.snapshotRepo.root).getHost)
+    val repoOpt = pubOpt.contextual(options.publishParams.setupCi).repository
+      .orElse {
+        if (options.publishParams.setupCi)
+          pubOpt.contextual(isCi = false).repository
+        else
+          None
+      }
+
+    repoOpt.flatMap { repo =>
+      RepoParams(
+        repo,
+        pubOpt.versionControl.map(_.url),
+        workspace,
+        None,
+        false,
+        null,
+        logger
+      ) match {
+        case Left(ex) =>
+          logger.debug("Caught exception when trying to compute host to check user credentials")
+          logger.debug(ex)
+          None
+        case Right(params) =>
+          Some(new URI(params.repo.snapshotRepo.root).getHost)
+      }
     }
   }
 

@@ -2,8 +2,9 @@ package scala.cli.commands.publish.checks
 
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.build.options.PublishOptions as BPublishOptions
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions}
+import scala.cli.errors.MissingPublishOptionError
 
 final case class RepositoryCheck(
   options: PublishSetupOptions,
@@ -15,16 +16,31 @@ final case class RepositoryCheck(
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.retained(options.publishParams.setupCi).repository.nonEmpty
   def defaultValue(pubOpt: BPublishOptions): Either[BuildException, OptionCheck.DefaultValue] = {
-    val repo = options.publishRepo.publishRepository.getOrElse {
-      logger.message("repository:")
-      logger.message(s"  using ${RepositoryCheck.defaultRepositoryDescription}")
-      RepositoryCheck.defaultRepository
-    }
-    Right(OptionCheck.DefaultValue.simple(repo, Nil, Nil))
+    val maybeRepo = options.publishRepo.publishRepository
+      .toRight(RepositoryCheck.missingValueError)
+      .orElse {
+        if (options.publishParams.setupCi) {
+          val repoFromLocal = pubOpt.retained(isCi = false)
+            .repository
+            .toRight(RepositoryCheck.missingValueError)
+          repoFromLocal.foreach { repoName =>
+            logger.message("repository:")
+            logger.message(s"  using repository from local configuration: $repoName")
+          }
+          repoFromLocal
+        }
+        else Left(RepositoryCheck.missingValueError)
+      }
+
+    maybeRepo.map(repo => OptionCheck.DefaultValue.simple(repo, Nil, Nil))
   }
 }
 
 object RepositoryCheck {
-  def defaultRepository            = "central-s01"
-  def defaultRepositoryDescription = "Maven Central via its s01 server"
+  def missingValueError = new MissingPublishOptionError(
+    "repository",
+    "--publish-repository",
+    "publish.repository",
+    extraMessage = "use 'central' or 'central-s01' to publish to Maven Central via Sonatype."
+  )
 }
