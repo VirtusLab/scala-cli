@@ -80,16 +80,19 @@ Generate a PGP key pair for publishing with
 scala-cli --power config --create-pgp-key --pgp-password MY_CHOSEN_PASSWORD
 ```
 
-It's not mandatory, although recomended, to use a password to encrypt your keychains.
-To store the private keychain in an unencrypted form use `--pgp-password none`.
-To randomly generate a pasword, use `--pgp-password random` instead.
-
-This sets 3 entries in the Scala CLI configuration, that you can print with
+This sets 2 entries in the Scala CLI configuration, that you can print with
 ```bash
 scala-cli --power config pgp.public-key
 scala-cli --power config pgp.secret-key
-scala-cli --power config pgp.secret-key-password
 ```
+
+It's not mandatory, although recommended, to use a password to encrypt your keychains.
+To store the private keychain in an unencrypted form use `--pgp-password none`.
+To randomly generate a password, use `--pgp-password random` instead.
+
+:::caution
+If a password is used, it should be kept safe, as it is needed to later decrypt and use the generated keychains.
+:::
 
 ### Sonatype credentials
 
