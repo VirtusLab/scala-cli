@@ -164,7 +164,7 @@ case object ScriptPreprocessor extends Preprocessor {
     } yield scalaVersion
 
     def objectCodeWrapperForScalaVersion =
-      // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it
+      // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it with Scala 3
       if (scalaVersionOpt.exists(_.startsWith("2")))
         AppCodeWrapper
       else
