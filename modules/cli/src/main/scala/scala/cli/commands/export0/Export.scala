@@ -56,7 +56,12 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
     val sources: Sources =
-      scopedSources.sources(scope, crossSources.sharedOptions(buildOptions), inputs.workspace)
+      scopedSources.sources(
+        scope,
+        crossSources.sharedOptions(buildOptions),
+        inputs.workspace,
+        logger
+      )
         .orExit(logger)
 
     if (verbosity >= 3)

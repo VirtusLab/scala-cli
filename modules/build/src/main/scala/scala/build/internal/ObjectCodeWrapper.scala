@@ -5,6 +5,9 @@ package scala.build.internal
   * threads from script
   */
 case object ObjectCodeWrapper extends CodeWrapper {
+
+  override def mainClassObject(className: Name): Name =
+    Name(className.raw ++ "_sc")
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -12,7 +15,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val name               = CodeWrapper.mainClassObject(indexedWrapperName).backticked
+    val name               = mainClassObject(indexedWrapperName).backticked
     val aliasedWrapperName = name + "$$alias"
     val funHashCodeMethod =
       if (name == "main_sc")
@@ -46,23 +49,22 @@ case object ObjectCodeWrapper extends CodeWrapper {
            |}""".stripMargin
       else ""
 
-    // indentation is important in the generated code, so we don't want scalafmt to touch that
-    // format: off
-    val top = AmmUtil.normalizeNewlines(s"""
-$packageDirective
+    val top = AmmUtil.normalizeNewlines(
+      s"""$packageDirective
+         |
+         |object ${indexedWrapperName.backticked} {
+         |def args = $name.args$$
+         |def scriptPath = \"\"\"$scriptPath\"\"\"
+         |""".stripMargin
+    )
 
-
-object ${indexedWrapperName.backticked} {
-def args = $name.args$$
-def scriptPath = \"\"\"$scriptPath\"\"\"
-""")
-    val bottom = AmmUtil.normalizeNewlines(s"""
-$extraCode
-}
-$aliasObject
-$mainObjectCode
-""")
-    // format: on
+    val bottom = AmmUtil.normalizeNewlines(
+      s"""$extraCode
+         |}
+         |$aliasObject
+         |$mainObjectCode
+         |""".stripMargin
+    )
 
     (top, bottom)
   }

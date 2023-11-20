@@ -6,15 +6,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
+import scala.build.internal.*
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.{
-  AmmUtil,
-  ClassCodeWrapper,
-  CodeWrapper,
-  Name,
-  ObjectCodeWrapper,
-  WrapperParams
-}
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessedSource
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
@@ -123,7 +116,6 @@ case object ScriptPreprocessor extends Preprocessor {
         optionsWithTargetRequirements = processingOutput.optsWithReqs,
         requirements = Some(processingOutput.globalReqs),
         scopedRequirements = processingOutput.scopedReqs,
-        mainClassOpt = Some(CodeWrapper.mainClassObject(Name(className)).backticked),
         scopePath = scopePath,
         directivesPositions = processingOutput.directivesPositions,
         wrapScriptFun = wrapScriptFun
@@ -142,7 +134,7 @@ case object ScriptPreprocessor extends Preprocessor {
     (codeWrapper: CodeWrapper) =>
       if (containsMainAnnot) logger.diagnostic(
         codeWrapper match {
-          case _: ObjectCodeWrapper.type =>
+          case _: AppCodeWrapper.type =>
             WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
           case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
         }
@@ -165,18 +157,27 @@ case object ScriptPreprocessor extends Preprocessor {
     * @return
     *   code wrapper compatible with provided BuildOptions
     */
-  def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper =
+  def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper = {
+    val scalaVersionOpt = for {
+      maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
+      scalaVersion      <- maybeScalaVersion.versionOpt
+    } yield scalaVersion
+
+    def objectCodeWrapperForScalaVersion =
+      // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it with Scala 3
+      if (scalaVersionOpt.exists(_.startsWith("2")))
+        AppCodeWrapper
+      else
+        ObjectCodeWrapper
+
     buildOptions.scriptOptions.forceObjectWrapper match {
-      case Some(true) => ObjectCodeWrapper
+      case Some(true) => objectCodeWrapperForScalaVersion
       case _ =>
-        val scalaVersionOpt = for {
-          maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
-          scalaVersion      <- maybeScalaVersion.versionOpt
-        } yield scalaVersion
         buildOptions.scalaOptions.platform.map(_.value) match {
-          case Some(_: Platform.JS.type)                      => ObjectCodeWrapper
-          case _ if scalaVersionOpt.exists(_.startsWith("2")) => ObjectCodeWrapper
+          case Some(_: Platform.JS.type)                      => objectCodeWrapperForScalaVersion
+          case _ if scalaVersionOpt.exists(_.startsWith("2")) => AppCodeWrapper
           case _                                              => ClassCodeWrapper
         }
     }
+  }
 }

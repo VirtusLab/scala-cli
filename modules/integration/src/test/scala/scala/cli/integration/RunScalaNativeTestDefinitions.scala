@@ -240,7 +240,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val output =
-        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print_sc", "-q")
+        os.proc(TestUtil.cli, extraOptions, "dir", "--native", "--main-class", "print", "-q")
           .call(cwd = root)
           .out.trim()
       expect(output == message)

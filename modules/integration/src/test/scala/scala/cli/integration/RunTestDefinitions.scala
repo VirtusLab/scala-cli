@@ -1056,8 +1056,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val errorMessage =
         output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
       val extraOptionsString = extraOptions.mkString(" ")
-      val expectedMainClassNames =
-        Seq(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc").sorted
+      val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
+        s"$scriptsDir.${scriptName}_sc"
+      else
+        s"$scriptsDir.$scriptName"
+
+      val expectedMainClassNames = Seq(scalaFile1, scalaFile2, scriptMainClassName).sorted
       val expectedErrorMessage =
         s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${expectedMainClassNames.mkString(
             ", "
@@ -1108,7 +1112,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root)
       val output      = res.out.trim()
       val mainClasses = output.split(" ").toSet
-      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+
+      val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
+        s"$scriptsDir.${scriptName}_sc"
+      else
+        s"$scriptsDir.$scriptName"
+
+      expect(mainClasses == Set(scalaFile1, scalaFile2, scriptMainClassName))
     }
   }
 

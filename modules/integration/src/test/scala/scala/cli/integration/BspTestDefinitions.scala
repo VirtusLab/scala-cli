@@ -1899,8 +1899,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           val change = edit.getChanges.asScala.head
 
           val expectedRange = new b.Range(
-            new b.Position(11, 19),
-            new b.Position(11, 19)
+            new b.Position(9, 19),
+            new b.Position(9, 19)
           )
           expect(change.getRange == expectedRange)
           expect(change.getNewText == "()")

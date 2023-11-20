@@ -6,6 +6,9 @@ package scala.build.internal
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
 case object ClassCodeWrapper extends CodeWrapper {
+
+  override def mainClassObject(className: Name): Name =
+    Name(className.raw ++ "_sc")
   def apply(
     code: String,
     pkgName: Seq[Name],
@@ -13,7 +16,7 @@ case object ClassCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
-    val name             = CodeWrapper.mainClassObject(indexedWrapperName).backticked
+    val name             = mainClassObject(indexedWrapperName).backticked
     val wrapperClassName = Name(indexedWrapperName.raw ++ "$_").backticked
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
@@ -34,29 +37,27 @@ case object ClassCodeWrapper extends CodeWrapper {
                                     |  }
                                     |}
                                     |
-                                    |export $name.script as ${indexedWrapperName.backticked}
+                                    |export $name.script as `${indexedWrapperName.raw}`
                                     |""".stripMargin)
 
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
 
-    // indentation is important in the generated code, so we don't want scalafmt to touch that
-    // format: off
-    val top = AmmUtil.normalizeNewlines(s"""
-$packageDirective
-
-
-final class $wrapperClassName {
-def args = $name.args$$
-def scriptPath = \"\"\"$scriptPath\"\"\"
-""")
-    val bottom = AmmUtil.normalizeNewlines(s"""
-$extraCode
-}
-
-$mainObjectCode
-""")
-    // format: on
+    val top = AmmUtil.normalizeNewlines(
+      s"""$packageDirective
+         |
+         |final class $wrapperClassName {
+         |def args = $name.args$$
+         |def scriptPath = \"\"\"$scriptPath\"\"\"
+         |""".stripMargin
+    )
+    val bottom = AmmUtil.normalizeNewlines(
+      s"""$extraCode
+         |}
+         |
+         |$mainObjectCode
+         |""".stripMargin
+    )
 
     (top, bottom)
   }

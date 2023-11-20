@@ -376,7 +376,13 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       val outputLocal = resLocal.out.trim()
       expect(output == outputLocal)
       val mainClasses = output.linesIterator.toSeq.last.split(" ").toSet
-      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+
+      val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
+        s"$scriptsDir.${scriptName}_sc"
+      else
+        s"$scriptsDir.$scriptName"
+
+      expect(mainClasses == Set(scalaFile1, scalaFile2, scriptMainClassName))
     }
   }
 
