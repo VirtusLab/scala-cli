@@ -42,6 +42,7 @@ jobs:
     - name: Unit tests
       run: ./mill -i unitTests
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -66,8 +67,10 @@ jobs:
       env:
         SCALA_CLI_IT_GROUP: 1
     - name: Fat jar integration test
+      if: success() || failure()
       run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -92,6 +95,7 @@ jobs:
       env:
         SCALA_CLI_IT_GROUP: 2
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-2 'Scala CLI JVM Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -116,6 +120,7 @@ jobs:
       env:
         SCALA_CLI_IT_GROUP: 3
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-3 'Scala CLI JVM Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -174,6 +179,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -206,6 +212,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-2 'Scala CLI Linux Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -238,6 +245,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-3 'Scala CLI Linux Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -319,6 +327,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-1 'Scala CLI MacOS Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -351,6 +360,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-2 'Scala CLI MacOS Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -383,6 +393,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-3 'Scala CLI MacOS Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -444,6 +455,7 @@ jobs:
           SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY: artifacts/
           SCALA_CLI_SODIUM_JNI_ALLOW: false
       - name: Convert Mill test reports to JUnit XML format
+        if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests 'Scala CLI MacOS M1 Tests' test-report.xml out/
       - name: Upload test report
         uses: actions/upload-artifact@v3
@@ -515,6 +527,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-1 'Scala CLI Windows Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -555,6 +568,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-2 'Scala CLI Windows Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -595,6 +609,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-3 'Scala CLI Windows Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -652,8 +667,10 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
+      if: success() || failure()
       run: ./mill integration.docker-slim.test
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-1 'Scala CLI Native Mostly Static Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -695,6 +712,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-2 'Scala CLI Native Mostly Static Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -727,6 +745,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-3 'Scala CLI Native Mostly Static Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -784,8 +803,10 @@ jobs:
         SCALA_CLI_IT_GROUP: 1
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Docker integration tests
+      if: success() || failure()
       run: ./mill integration.docker.test
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-1 'Scala CLI Native Static Tests (1)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -829,6 +850,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 2
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-2 'Scala CLI Native Static Tests (2)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -863,6 +885,7 @@ jobs:
         SCALA_CLI_IT_GROUP: 3
         SCALA_CLI_SODIUM_JNI_ALLOW: false
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-3 'Scala CLI Native Static Tests (3)' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
@@ -890,6 +913,7 @@ jobs:
     - name: Test documentation
       run: ./mill -i docs-tests.test
     - name: Convert Mill test reports to JUnit XML format
+      if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
       uses: actions/upload-artifact@v3
