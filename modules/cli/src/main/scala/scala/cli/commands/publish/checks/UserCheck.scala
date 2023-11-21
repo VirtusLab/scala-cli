@@ -22,7 +22,10 @@ final case class UserCheck(
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".user"
 
   private def hostOpt(pubOpt: BPublishOptions): Option[String] = {
-    val repoOpt = pubOpt.contextual(options.publishParams.setupCi).repository
+    val repoOpt = options.publishRepo.publishRepository
+      .orElse {
+        pubOpt.contextual(options.publishParams.setupCi).repository
+      }
       .orElse {
         if (options.publishParams.setupCi)
           pubOpt.contextual(isCi = false).repository

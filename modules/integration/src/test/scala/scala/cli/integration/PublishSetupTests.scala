@@ -37,14 +37,14 @@ class PublishSetupTests extends ScalaCliSuite {
     )
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
     os.proc(
-      TestUtil.cli,
-      "--power",
-      "config",
-      "publish.credentials",
-      "maven.pkg.github.com",
-      "value:uSeR",
-      "value:1234"
-    )
+        TestUtil.cli,
+        "--power",
+        "config",
+        "publish.credentials",
+        "maven.pkg.github.com",
+        "value:uSeR",
+        "value:1234"
+      )
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
     os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--pgp-password", "random")
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
@@ -522,7 +522,6 @@ class PublishSetupTests extends ScalaCliSuite {
         env = envs
       )
 
-      System.err.write(res2.out.bytes)
       val ghSecrets2 = res2.out.text()
         .linesIterator
         .filter(_.startsWith("Would have set GitHub secret "))
