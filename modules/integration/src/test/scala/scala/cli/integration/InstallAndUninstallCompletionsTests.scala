@@ -37,7 +37,8 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
     }
   }
 
-  if (!Properties.isWin)
+  def isWinShell: Boolean = Option(System.getenv("OSTYPE")).nonEmpty
+  if (!Properties.isWin || isWinShell)
     test("installing and uninstalling completions") {
       runInstallAndUninstallCompletions()
     }

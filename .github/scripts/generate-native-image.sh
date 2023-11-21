@@ -10,7 +10,9 @@ export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
 
 if [[ "$OSTYPE" == "msys" ]]; then
-  ./mill.bat -i ci.copyJvm --dest jvm
+  if [ ! -d jvm ]; then
+    ./mill.bat -i ci.copyJvm --dest jvm
+  fi
   export JAVA_HOME="$(pwd -W | sed 's,/,\\,g')\\jvm"
   export GRAALVM_HOME="$JAVA_HOME"
   export PATH="$(pwd)/bin:$PATH"

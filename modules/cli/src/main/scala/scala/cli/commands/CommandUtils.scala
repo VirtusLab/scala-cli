@@ -18,7 +18,7 @@ object CommandUtils {
 
   // Ensure the path to the CLI is absolute
   def getAbsolutePathToScalaCli(programName: String): String =
-    if (programName.contains(File.separator))
+    if (programName.replace('\\', '/').contains("/"))
       os.Path(programName, Os.pwd).toString
     else
       /*
