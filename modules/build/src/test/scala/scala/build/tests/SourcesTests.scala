@@ -14,7 +14,7 @@ import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.internal.ScalaJsLinkerConfig
 
-class SourcesTests extends munit.FunSuite {
+class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
   def scalaVersion       = "2.13.5"
   def scalaParams        = ScalaParameters(scalaVersion)

@@ -6,7 +6,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.build.input.{Inputs, MarkdownFile, ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
 
-class PreprocessingTests extends munit.FunSuite {
+class PreprocessingTests extends TestUtil.ScalaCliBuildSuite {
 
   test("Report error if scala file not exists") {
     val logger    = TestLogger()

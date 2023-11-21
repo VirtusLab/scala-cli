@@ -21,7 +21,7 @@ import scala.build.options.{
 }
 import scala.build.{Build, LocalRepo, Logger, Position, Positioned, Sources}
 
-class BuildProjectTests extends munit.FunSuite {
+class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
 
   class LoggerMock extends Logger {
 

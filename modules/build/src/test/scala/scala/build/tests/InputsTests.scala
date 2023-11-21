@@ -17,7 +17,7 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.build.internal.Constants
 
-class InputsTests extends munit.FunSuite {
+class InputsTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads: BuildThreads               = BuildThreads.create()
   val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories: Directories                 = Directories.under(extraRepoTmpDir)

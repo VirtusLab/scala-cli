@@ -7,7 +7,7 @@ import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 
-class ScalaNativeUsingDirectiveTests extends munit.FunSuite {
+class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
   val buildThreads = BuildThreads.create()
   def bloopConfig  = Some(BloopServer.bloopConfig)

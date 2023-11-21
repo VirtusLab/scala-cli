@@ -6,7 +6,7 @@ import scala.build.input.{ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.{PreprocessedSource, ScalaPreprocessor, ScriptPreprocessor}
 
-class ScalaPreprocessorTests extends munit.FunSuite {
+class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
 
   test("should respect using directives in a .scala file with the shebang line") {
     val lastUsingLine =
