@@ -110,18 +110,11 @@ object Build {
       logger: Logger
     ): Either[Seq[String], String] = {
       val scriptInferredMainClasses =
-        sources.inMemory.map(im => im.originalPath.map(_._1))
-          .flatMap {
-            case Right(originalRelPath) if originalRelPath.toString.endsWith(".sc") =>
-              Some {
-                originalRelPath
-                  .toString
-                  .replace(".", "_")
-                  .replace("/", ".")
-              }
-            case Left(VirtualScriptNameRegex(name)) => Some(s"${name}_sc")
-            case _                                  => None
-          }
+        sources.inMemory.collect {
+          case Sources.InMemory(_, _, _, Some(wrapperParams)) =>
+            wrapperParams.mainClass
+        }
+
       val filteredMainClasses =
         mainClasses.filter(!scriptInferredMainClasses.contains(_))
       if (filteredMainClasses.length == 1) {
@@ -279,10 +272,12 @@ object Build {
 
       val scopedSources = value(crossSources.scopedSources(baseOptions))
 
-      val mainSources = value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace))
+      val mainSources =
+        value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace, logger))
       val mainOptions = mainSources.buildOptions
 
-      val testSources = value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace))
+      val testSources =
+        value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace, logger))
       val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
@@ -705,8 +700,9 @@ object Build {
               val p           = os.Path(event.getTypedPath.getPath.toAbsolutePath)
               val relPath     = p.relativeTo(d.path)
               val isHidden    = relPath.segments.exists(_.startsWith("."))
-              def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-              def isJavaFile  = relPath.last.endsWith(".java")
+              val pathLast    = relPath.lastOpt.orElse(p.lastOpt).getOrElse("")
+              def isScalaFile = pathLast.endsWith(".sc") || pathLast.endsWith(".scala")
+              def isJavaFile  = pathLast.endsWith(".java")
               !isHidden && (isScalaFile || isJavaFile)
           case _ => _ => true
         }

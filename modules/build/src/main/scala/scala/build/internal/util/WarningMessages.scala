@@ -104,4 +104,23 @@ object WarningMessages {
 
   val offlineModeBloopJvmNotFound =
     "Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback"
+
+  def directivesInMultipleFilesWarning(
+    projectFilePath: String,
+    pathsToReport: Iterable[String] = Nil
+  ) = {
+    val detectedMsg = "Using directives detected in multiple files"
+    val recommendedMsg =
+      s"It is recommended to keep them centralized in the $projectFilePath file."
+    if pathsToReport.isEmpty then
+      s"$detectedMsg. $recommendedMsg"
+    else
+      s"""$detectedMsg:
+         |${pathsToReport.mkString("- ", s"${System.lineSeparator}- ", "")}
+         |$recommendedMsg
+         |""".stripMargin
+  }
+
+  val mainScriptNameClashesWithAppWrapper =
+    "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
 }

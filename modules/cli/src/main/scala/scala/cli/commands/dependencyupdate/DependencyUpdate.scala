@@ -47,7 +47,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
 
     def generateActionableUpdateDiagnostic(scope: Scope)
       : Seq[ActionableDependencyUpdateDiagnostic] = {
-      val sources = scopedSources.sources(scope, sharedOptions, inputs.workspace).orExit(logger)
+      val sources =
+        scopedSources.sources(scope, sharedOptions, inputs.workspace, logger).orExit(logger)
 
       if (verbosity >= 3)
         pprint.err.log(sources)

@@ -24,7 +24,7 @@ import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.{Constants, FetchExternalBinary, ObjectCodeWrapper, OsLibc, Util}
+import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
@@ -326,6 +326,7 @@ final case class SharedOptions(
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
+        projectVersion = sharedVersionOptions.projectVersion,
         computeVersion = value {
           sharedVersionOptions.computeVersion
             .map(Positioned.commandLine)

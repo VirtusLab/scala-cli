@@ -557,7 +557,7 @@ object BuildOptions {
     def envUpdates(currentEnv: Map[String, String]): Map[String, String] = {
       // On Windows, AFAIK, env vars are "case-insensitive but case-preserving".
       // If PATH was defined as "Path", we need to update "Path", not "PATH".
-      // Same for JAVA_HOME.
+      // Same for JAVA_HOME
       def keyFor(name: String) =
         if (Properties.isWin)
           currentEnv.keys.find(_.equalsIgnoreCase(name)).getOrElse(name)

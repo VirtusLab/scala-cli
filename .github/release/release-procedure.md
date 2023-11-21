@@ -11,6 +11,7 @@
   create a PR.
     - [ ] Make sure the notes render correctly on [the website](https://scala-cli.virtuslab.org/docs/release_notes) - that
       includes swapping out GitHub-idiomatic @mentions of users, links to PRs, issues, etc.
+      When using IntelliJ you can do that using the regexes in [release-notes-regexes.md](release-notes-regexes.md).
     - [ ] Copy any fixes over to the draft after getting the PR reviewed and merged.
 - [ ] Mark the release draft as `pre-release` and then `Publish Release`
 - [ ] Wait for a green release CI build with all the updated versions.
@@ -33,8 +34,8 @@
       git push origin v1 -f
       ```
 - [ ] Submit Scala CLI MSI installer `scala-cli-x86_64-pc-win32.msi` for malware analysis. The Msi file must be uploaded
-  using this [service](https://www.microsoft.com/en-us/wdsi/filesubmission). If you have any questions, please contact
-  with [lwronski](https://github.com/lwronski).
+  using this [service](https://www.microsoft.com/en-us/wdsi/filesubmission). For more information on this process, refer
+  [here](windows-antimalware-analysis.md).
 - [ ] Unmark release as `pre-release`.
 - [ ] Announce the new release
     - [ ] announce on Twitter

@@ -61,7 +61,7 @@ final case class PackagerOptions(
     identifier: Option[String] = None,
   @Group(HelpGroup.RedHat.toString)
   @HelpMessage(
-    "Licenses that are supported by the repository (list of licenses: https://fedoraproject.org/wiki/Licensing:Main?rd=Licensing)"
+    "Licenses that are supported by the repository (list of licenses: https://spdx.org/licenses/)"
   )
   @Tag(tags.restricted)
     license: Option[String] = None,

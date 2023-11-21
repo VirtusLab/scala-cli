@@ -75,7 +75,7 @@ object directives            extends Directives
 object core                  extends Core
 object `build-module`        extends Build
 object runner                extends Cross[Runner](Scala.runnerScalaVersions)
-object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions)
+object `test-runner`         extends Cross[TestRunner](Scala.runnerScalaVersions :+ Scala.scala3)
 object `tasty-lib`           extends Cross[TastyLib](Scala.all)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Scala3Runtime
@@ -329,7 +329,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
-    Deps.bloopRifle,
+    Deps.bloopRifle.exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
     Deps.collectionCompat,
     Deps.coursierJvm
       // scalaJsEnvNodeJs brings a guava version that conflicts with this
@@ -337,7 +337,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
       // Coursier is not cross-compiled and pulls jsoniter-scala-macros in 2.13
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros"))
       // Let's favor our config module rather than the one coursier pulls
-      .exclude((organization, "config_2.13")),
+      .exclude((organization, "config_2.13"))
+      .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
     Deps.dependency,
     Deps.guava, // for coursierJvm / scalaJsEnvNodeJs, see above
     Deps.jgit,
@@ -622,7 +623,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     options,
     directives,
     `scala-cli-bsp`,
-    `test-runner`(Scala.scala213), // Depending on version compiled with Scala 3 pulls older stdlib
+    `test-runner`(scalaVer),
     `tasty-lib`(scalaVer)
   )
   def scalacOptions = T {
@@ -812,7 +813,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     Deps.libsodiumjni,
     Deps.metaconfigTypesafe,
     Deps.pythonNativeLibs,
-    Deps.scalaPackager,
+    Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
     Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp
@@ -834,7 +835,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
       workingDir = os.pwd
     )
     val cp = res.out.trim()
-    cp.split(File.pathSeparator).toSeq.map(p => mill.PathRef(os.Path(p)))
+    cp.split(File.pathSeparator).toSeq.map(p => PathRef(os.Path(p)))
   }
 
   def localRepoJar = `local-repo`.localRepoJar()
@@ -869,20 +870,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
   }
 
-  def modulesPath = T {
-    val name                = mainArtifactName().stripPrefix(prefix)
-    val baseIntegrationPath = os.Path(millSourcePath.toString.stripSuffix(name))
-    baseIntegrationPath.toString.stripSuffix(baseIntegrationPath.baseName)
-  }
-  def sources = T.sources {
-    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "scala")
-    super.sources() ++ Seq(mainPath)
-  }
-  def resources = T.sources {
-    val mainPath = PathRef(os.Path(modulesPath()) / "integration" / "src" / "main" / "resources")
-    super.resources() ++ Seq(mainPath)
-  }
-
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
@@ -909,25 +896,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       "SCALA_CLI_PRINT_STACK_TRACES" -> "1",
       "SCALA_CLI_CONFIG"             -> (tmpDirBase().path / "config" / "config.json").toString
     )
-    private def updateRef(name: String, ref: PathRef): PathRef = {
-      val rawPath = ref.path.toString.replace(
-        File.separator + name + File.separator,
-        File.separator
-      )
-      PathRef(os.Path(rawPath))
-    }
-    def sources = T.sources {
-      val name = mainArtifactName().stripPrefix(prefix)
-      super.sources().flatMap { ref =>
-        Seq(updateRef(name, ref), ref)
-      }
-    }
-    def resources = T.sources {
-      val name = mainArtifactName().stripPrefix(prefix)
-      super.resources().flatMap { ref =>
-        Seq(updateRef(name, ref), ref)
-      }
-    }
 
     def constantsFile = T.persistent {
       val dir  = T.dest / "constants"

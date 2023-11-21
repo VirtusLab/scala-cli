@@ -233,6 +233,14 @@ class CliLogger(
     } yield featureType -> (names ++ reportedNames)
     experimentalWarnings = Map.empty
   }
+
+  override def cliFriendlyDiagnostic(
+    message: String,
+    cliFriendlyMessage: String,
+    severity: Severity,
+    positions: Seq[Position]
+  ): Unit =
+    diagnostic(cliFriendlyMessage, severity, Nil)
 }
 
 object CliLogger {

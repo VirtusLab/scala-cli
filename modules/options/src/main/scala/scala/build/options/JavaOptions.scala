@@ -149,7 +149,7 @@ final case class JavaOptions(
     }
 
   private def findLocalDefaultJava(): Option[Positioned[os.Path]] =
-    Option(System.getenv("JAVA_HOME")).map(p =>
+    Option(System.getenv("JAVA_HOME")).filter(_.nonEmpty).map(p =>
       Positioned(Position.Custom("JAVA_HOME env"), os.Path(p, os.pwd))
     ).orElse(
       sys.props.get("java.home").map(p =>

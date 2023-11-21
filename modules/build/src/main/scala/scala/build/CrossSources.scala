@@ -47,7 +47,7 @@ import scala.util.chaining.*
 final case class CrossSources(
   paths: Seq[WithBuildRequirements[(os.Path, os.RelPath)]],
   inMemory: Seq[WithBuildRequirements[Sources.InMemory]],
-  defaultMainClass: Option[String],
+  defaultMainElemPath: Option[os.Path],
   resourceDirs: Seq[WithBuildRequirements[os.Path]],
   buildOptions: Seq[WithBuildRequirements[BuildOptions]],
   unwrappedScripts: Seq[WithBuildRequirements[Sources.UnwrappedScript]]
@@ -130,7 +130,7 @@ final case class CrossSources(
     ScopedSources(
       crossSources0.paths.map(_.scopedValue(defaultScope)),
       crossSources0.inMemory.map(_.scopedValue(defaultScope)),
-      defaultMainClass,
+      defaultMainElemPath,
       crossSources0.resourceDirs.map(_.scopedValue(defaultScope)),
       crossSources0.buildOptions.map(_.scopedValue(defaultScope)),
       crossSources0.unwrappedScripts.map(_.scopedValue(defaultScope))
@@ -273,12 +273,9 @@ object CrossSources {
       )
     }).flatten
 
-    val defaultMainClassOpt: Option[String] = for {
-      mainClassPath <- allInputs.defaultMainClassElement
-        .map(s => ScopePath.fromPath(s.path).subPath)
-      processedMainClass <- preprocessedSources.find(_.scopePath.subPath == mainClassPath)
-      mainClass          <- processedMainClass.mainClassOpt
-    } yield mainClass
+    val defaultMainElemPath = for {
+      defaultMainElem <- allInputs.defaultMainClassElement
+    } yield defaultMainElem.path
 
     val pathsWithDirectivePositions
       : Seq[(WithBuildRequirements[(os.Path, os.RelPath)], Option[Position.File])] =
@@ -346,10 +343,18 @@ object CrossSources {
         .values
         .flatten
         .filter((path, _) => ScopePath.fromPath(path) != ScopePath.fromPath(projectFilePath))
-        .foreach { (_, directivesPositions) =>
-          logger.diagnostic(
-            s"Using directives detected in multiple files. It is recommended to keep them centralized in the $projectFilePath file.",
-            positions = Seq(directivesPositions)
+        .pipe { pathsToReport =>
+          val diagnosticMessage = WarningMessages
+            .directivesInMultipleFilesWarning(projectFilePath.toString)
+          val cliFriendlyMessage = WarningMessages.directivesInMultipleFilesWarning(
+            projectFilePath.toString,
+            pathsToReport.map(_._2.render())
+          )
+
+          logger.cliFriendlyDiagnostic(
+            message = diagnosticMessage,
+            cliFriendlyMessage = cliFriendlyMessage,
+            positions = pathsToReport.map(_._2).toSeq
           )
         }
     }
@@ -361,7 +366,7 @@ object CrossSources {
       CrossSources(
         paths,
         inMemory,
-        defaultMainClassOpt,
+        defaultMainElemPath,
         resourceDirs,
         buildOptions,
         unwrappedScripts

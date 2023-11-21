@@ -12,7 +12,7 @@ import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
 import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.upload.logger.InteractiveUploadLogger
-import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload}
+import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
 import coursier.publish.{Content, Hooks, Pom, PublishRepository}
 
 import java.io.{File, OutputStreamWriter}
@@ -58,10 +58,11 @@ import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
 import scala.cli.errors.{
   FailedToSignFileError,
+  InvalidSonatypePublishCredentials,
   MalformedChecksumsError,
-  MissingConfigEntryError,
   MissingPublishOptionError,
-  UploadError
+  UploadError,
+  WrongSonatypeServerError
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
@@ -76,12 +77,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   import scala.cli.commands.shared.HelpGroup.*
+
   val primaryHelpGroups: Seq[HelpGroup] = Seq(Publishing, Signing, PGP)
   val hiddenHelpGroups: Seq[HelpGroup]  = Seq(Scala, Java, Entrypoint, Dependency, Watch)
+
   override def helpFormat: HelpFormat = super.helpFormat
     .withHiddenGroups(hiddenHelpGroups)
     .withPrimaryGroups(primaryHelpGroups)
+
   override def group: String = HelpCommandGroup.Main.toString
+
   override def sharedOptions(options: PublishOptions): Option[SharedOptions] =
     Some(options.shared)
 
@@ -370,6 +375,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           "publish.organization"
         ))
     }
+
   private def defaultName(workspace: os.Path, logger: Logger): String = {
     val name = workspace.last
     logger.message(
@@ -377,11 +383,14 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     )
     name
   }
+
   def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
     if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
     else None
+
   def defaultVersionError =
     new MissingPublishOptionError("version", "--project-version", "publish.version")
+
   def defaultVersion: Either[BuildException, String] =
     Left(defaultVersionError)
 
@@ -496,7 +505,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case None =>
         val computeVer = publishOptions.contextual(isCi).computeVersion.orElse {
           def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
-          val default   = defaultComputeVersion(!isCi && isGitRepo)
+
+          val default = defaultComputeVersion(!isCi && isGitRepo)
           if (default.isDefined)
             logger.message(
               s"Using directive ${defaultVersionError.directiveName} not set, assuming git:tag as publish.computeVersion"
@@ -757,51 +767,50 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val ec = builds.head.options.finalCache.ec
 
-    def authOpt(repo: String): Either[BuildException, Option[Authentication]] = either {
-      val isHttps = {
-        val uri = new URI(repo)
-        uri.getScheme == "https"
-      }
-      val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
-      val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
-        case None => Right(None)
-        case Some(host) =>
-          configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
-            credListOpt.flatMap { credList =>
-              credList.find { cred =>
-                cred.host == host &&
-                (isHttps || cred.httpsOnly.contains(false))
+    def authOpt(repo: String, isSonatype: Boolean): Either[BuildException, Option[Authentication]] =
+      either {
+        val isHttps = {
+          val uri = new URI(repo)
+          uri.getScheme == "https"
+        }
+        val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
+        val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
+          case None => Right(None)
+          case Some(host) =>
+            configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
+              credListOpt.flatMap { credList =>
+                credList.find { cred =>
+                  cred.host == host &&
+                  (isHttps || cred.httpsOnly.contains(false))
+                }
               }
             }
-          }
+        }
+        val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
+          case None  => value(maybeCredentials).flatMap(_.password)
+          case other => other.map(_.toConfig)
+        }
+        passwordOpt.map(_.get()) match {
+          case None => None
+          case Some(password) =>
+            val userOpt = publishOptions.contextual(isCi).repoUser match {
+              case None  => value(maybeCredentials).flatMap(_.user)
+              case other => other.map(_.toConfig)
+            }
+            val realmOpt = publishOptions.contextual(isCi).repoRealm match {
+              case None =>
+                value(maybeCredentials)
+                  .flatMap(_.realm)
+                  .orElse {
+                    if (isSonatype) Some("Sonatype Nexus Repository Manager")
+                    else None
+                  }
+              case other => other
+            }
+            val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
+            Some(realmOpt.fold(auth)(auth.withRealm))
+        }
       }
-      val isSonatype =
-        hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
-      val passwordOpt = publishOptions.contextual(isCi).repoPassword match {
-        case None  => value(maybeCredentials).flatMap(_.password)
-        case other => other.map(_.toConfig)
-      }
-      passwordOpt.map(_.get()) match {
-        case None => None
-        case Some(password) =>
-          val userOpt = publishOptions.contextual(isCi).repoUser match {
-            case None  => value(maybeCredentials).flatMap(_.user)
-            case other => other.map(_.toConfig)
-          }
-          val realmOpt = publishOptions.contextual(isCi).repoRealm match {
-            case None =>
-              value(maybeCredentials)
-                .flatMap(_.realm)
-                .orElse {
-                  if (isSonatype) Some("Sonatype Nexus Repository Manager")
-                  else None
-                }
-            case other => other
-          }
-          val auth = Authentication(userOpt.fold("")(_.get().value), password.value)
-          Some(realmOpt.fold(auth)(auth.withRealm))
-      }
-    }
 
     val repoParams = {
 
@@ -837,6 +846,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
 
+    val isSonatype: Boolean = {
+      val uri     = new URI(repoParams.repo.snapshotRepo.root)
+      val hostOpt = Option.when(uri.getScheme == "https")(uri.getHost)
+
+      hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
+    }
+
     val now = Instant.now()
     val (fileSet0, modVersionOpt) = value {
       it
@@ -844,17 +860,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         .filter(_._1.scope != Scope.Test)
         .map {
           case (build, docBuildOpt) =>
-            val isSonatype = {
-              val hostOpt = {
-                val repo = repoParams.repo.snapshotRepo.root
-                val uri  = new URI(repo)
-                if (uri.getScheme == "https") Some(uri.getHost)
-                else None
-              }
-              hostOpt.exists(host =>
-                host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org")
-              )
-            }
             buildFileSet(
               build,
               docBuildOpt,
@@ -862,7 +867,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
-              isSonatype = isSonatype,
+              isSonatype,
               logger
             )
         }
@@ -1029,17 +1034,32 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       if (repoParams.isIvy2LocalLike) fileSet2
       else fileSet2.order(ec).unsafeRun()(ec)
 
-    val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val authOpt0    = value(authOpt(repoParams.repo.repo(isSnapshot0).root))
+    val isSnapshot0       = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
+    val authOpt0          = value(authOpt(repoParams.repo.repo(isSnapshot0).root, isSonatype))
+    val asciiRegex        = """[\u0000-\u007f]*""".r
+    val usernameOnlyAscii = authOpt0.exists(auth => asciiRegex.matches(auth.user))
+    val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(pass => asciiRegex.matches(pass)))
+
     if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
       logger.diagnostic(
         "Publishing to a repository that needs authentication, but no credentials are available.",
         Severity.Warning
       )
-    val repoParams0 = repoParams.withAuth(authOpt0)
+    val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
+    val isLegacySonatype        = isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
     val hooksDataOpt = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
+        case NonFatal(e)
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r.unanchored.matches(
+              e.getMessage
+            ) =>
+          logger.exit(new WrongSonatypeServerError(isLegacySonatype))
+        case NonFatal(e)
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r.unanchored.matches(
+              e.getMessage
+            ) =>
+          logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
         case NonFatal(e) =>
           throw new Exception(e)
       }
@@ -1087,6 +1107,37 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       }
 
     errors.toList match {
+      case (h @ (_, _, e: Upload.Error.HttpError)) :: _
+          if isSonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
+        val httpCodeRegex = "HTTP (\\d+)\n.*".r
+        e.getMessage() match {
+          case httpCodeRegex("403") =>
+            logger.error(
+              s"""
+                 |Uploading files failed!
+                 |Possible causes:
+                 |- no rights to publish under this organization
+                 |- organization name is misspelled
+                 | -> have you registered your organisation yet?
+                 |""".stripMargin
+            )
+          case _ => throw new UploadError(::(h, Nil))
+        }
+      case _ :: _ if isSonatype && errors.forall {
+            case (_, _, _: Upload.Error.Unauthorized) => true
+            case _                                    => false
+          } =>
+        logger.error(
+          s"""
+             |Uploading files failed!
+             |Possible causes:
+             |- incorrect Sonatype credentials
+             |- incorrect Sonatype server was used, try ${
+              if isLegacySonatype then "'central-s01'" else "'central'"
+            }
+             | -> consult publish subcommand documentation
+             |""".stripMargin
+        )
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>

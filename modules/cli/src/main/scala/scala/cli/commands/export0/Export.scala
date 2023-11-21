@@ -56,7 +56,12 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
     val sources: Sources =
-      scopedSources.sources(scope, crossSources.sharedOptions(buildOptions), inputs.workspace)
+      scopedSources.sources(
+        scope,
+        crossSources.sharedOptions(buildOptions),
+        inputs.workspace,
+        logger
+      )
         .orExit(logger)
 
     if (verbosity >= 3)
@@ -193,7 +198,7 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.9.3")
+      val sbtVersion = options.sbtVersion.getOrElse("1.9.7")
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)

@@ -383,16 +383,6 @@ class FixTests extends ScalaCliSuite {
 
         assertNoDiff(withUsedTargetContents, withUsedTargetContentsRead)
         assertNoDiff(withUnusedTargetContents, withUnusedTargetContentsRead)
-
-        val runProc = os.proc(TestUtil.cli, "--power", "compile", ".")
-          .call(cwd = root, stderr = os.Pipe)
-
-        val runErrOut = TestUtil.removeAnsiColors(runProc.err.trim)
-        expect(runErrOut.contains("Using directives detected in multiple files"))
-        expect(runErrOut.linesIterator.count(_.startsWith("[warn] //> using")) == 2)
-        expect(runErrOut.contains("[warn] //> using options -Werror"))
-        // TODO: Warning about using directives in multiple files for the test scope should not be displayed
-        expect(runErrOut.contains("[warn] //> using scala \"3.2.2\""))
       }
 
       assertNoDiff(
