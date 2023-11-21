@@ -12,9 +12,10 @@ import scala.build.preprocessing.{
   PreprocessedMarkdown,
   PreprocessedMarkdownCodeBlocks
 }
+import scala.build.tests.TestUtil
 import scala.build.tests.markdown.MarkdownTestUtil.*
 
-class MarkdownCodeWrapperTests extends munit.FunSuite {
+class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   test("empty markdown produces no wrapped code") {
     val result = MarkdownCodeWrapper(os.sub / "Example.md", PreprocessedMarkdown.empty)

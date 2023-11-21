@@ -30,8 +30,7 @@ import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.jdk.CollectionConverters.*
 
-abstract class BuildTests(server: Boolean) extends munit.FunSuite {
-
+abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
 
   val buildThreads = BuildThreads.create()

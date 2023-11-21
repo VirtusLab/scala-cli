@@ -15,7 +15,7 @@ import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.preprocessing.Preprocessor
 import scala.concurrent.ExecutionContext
 
-class ExcludeTests extends munit.FunSuite {
+class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
   val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
     archiveCache = ArchiveCache().withCache(

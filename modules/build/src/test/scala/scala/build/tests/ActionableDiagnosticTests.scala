@@ -12,7 +12,7 @@ import coursier.core.Version
 
 import scala.build.errors.{BuildException, CompositeBuildException}
 
-class ActionableDiagnosticTests extends munit.FunSuite {
+class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
   val directories     = Directories.under(extraRepoTmpDir)

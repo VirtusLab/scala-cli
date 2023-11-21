@@ -23,7 +23,7 @@ import scala.build.errors.{
   ToolkitDirectiveMissingVersionError
 }
 
-class DirectiveTests extends munit.FunSuite {
+class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
   val buildThreads = BuildThreads.create()
 

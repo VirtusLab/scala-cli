@@ -30,7 +30,7 @@ import scala.build.Positioned
 import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
 
-class BuildOptionsTests extends munit.FunSuite {
+class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)

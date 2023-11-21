@@ -6,7 +6,7 @@ import dependency.ScalaParameters
 
 import scala.build.{Directories, Logger, ReplArtifacts}
 
-class ReplArtifactsTests extends munit.FunSuite {
+class ReplArtifactsTests extends TestUtil.ScalaCliBuildSuite {
 
   def scalaPyTest(version: String, usesFormerOrg: Boolean = false): Unit =
     TestInputs.withTmpDir("replartifactstests") { root =>

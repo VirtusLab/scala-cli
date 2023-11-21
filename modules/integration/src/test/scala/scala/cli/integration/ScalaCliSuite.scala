@@ -1,7 +1,27 @@
 package scala.cli.integration
 
 abstract class ScalaCliSuite extends munit.FunSuite {
-  def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.Third
+
+  val testStartEndLogger = new Fixture[Unit]("files") {
+    def apply(): Unit = ()
+
+    override def beforeEach(context: BeforeEach): Unit = {
+      val fileName = os.Path(context.test.location.path).baseName
+      System.err.println(
+        s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
+      )
+    }
+
+    override def afterEach(context: AfterEach): Unit = {
+      val fileName = os.Path(context.test.location.path).baseName
+      System.err.println(
+        s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
+      )
+    }
+  }
+
+  override def munitFixtures: List[Fixture[Unit]] = List(testStartEndLogger)
+  def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.Third
 
   override def munitIgnore: Boolean =
     Option(System.getenv("SCALA_CLI_IT_GROUP"))

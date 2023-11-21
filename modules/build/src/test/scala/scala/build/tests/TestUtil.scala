@@ -5,6 +5,26 @@ import scala.build.options.{BuildOptions, Platform}
 import munit.Assertions.assertEquals
 
 object TestUtil {
+  abstract class ScalaCliBuildSuite extends munit.FunSuite {
+    val testStartEndLogger = new Fixture[Unit]("files") {
+      def apply(): Unit = ()
+
+      override def beforeEach(context: BeforeEach): Unit = {
+        val fileName = os.Path(context.test.location.path).baseName
+        System.err.println(
+          s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
+        )
+      }
+
+      override def afterEach(context: AfterEach): Unit = {
+        val fileName = os.Path(context.test.location.path).baseName
+        System.err.println(
+          s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
+        )
+      }
+    }
+    override def munitFixtures = List(testStartEndLogger)
+  }
 
   val isCI = System.getenv("CI") != null
 

@@ -19,7 +19,7 @@ import scala.build.options.{
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
-class SourceGeneratorTests extends munit.FunSuite {
+class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
 
   val buildThreads = BuildThreads.create()
 

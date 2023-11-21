@@ -6,9 +6,10 @@ import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.preprocessing.MarkdownCodeBlockProcessor
+import scala.build.tests.TestUtil
 import scala.build.tests.markdown.MarkdownTestUtil.*
 
-class MarkdownCodeBlockTests extends munit.FunSuite {
+class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   test("no code blocks are extracted from markdown if none are present") {
     val markdown: String =
       """
