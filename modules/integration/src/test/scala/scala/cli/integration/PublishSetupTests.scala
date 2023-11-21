@@ -37,14 +37,14 @@ class PublishSetupTests extends ScalaCliSuite {
     )
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
     os.proc(
-        TestUtil.cli,
-        "--power",
-        "config",
-        "publish.credentials",
-        "maven.pkg.github.com",
-        "value:uSeR",
-        "value:1234"
-      )
+      TestUtil.cli,
+      "--power",
+      "config",
+      "publish.credentials",
+      "maven.pkg.github.com",
+      "value:uSeR",
+      "value:1234"
+    )
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
     os.proc(TestUtil.cli, "--power", "config", "--create-pgp-key", "--pgp-password", "random")
       .call(cwd = root, stdout = os.Inherit, env = envs, stderr = os.Pipe)
@@ -588,6 +588,30 @@ class PublishSetupTests extends ScalaCliSuite {
       expect(ghSecrets.isEmpty)
       expect(!res.contains("found keys in config"))
       expect(res.contains("Warning: no public key passed, not checking"))
+    }
+  }
+
+  test("Mistyped repo") {
+    testInputs.fromRoot { root =>
+      configSetup(root / configFile, root)
+      gitInit(root / projDir)
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "setup",
+        "--dummy",
+        "-R",
+        "central-s02",
+        projDir
+      ).call(
+        cwd = root,
+        mergeErrIntoOut = true,
+        check = false,
+        env = envs
+      )
+      expect(res.out.text().contains("Missing publish user for central-s02 for publishing"))
+      expect(res.out.text().contains("Missing publish password for central-s02 for publishing"))
     }
   }
 }

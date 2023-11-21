@@ -21,8 +21,8 @@ final case class PasswordCheck(
   def fieldName     = "password"
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".password"
 
-  private def hostOpt(pubOpt: BPublishOptions): Option[String] = {
-    val repoOpt = options.publishRepo.publishRepository
+  def repoOpt(pubOpt: BPublishOptions): Option[String] =
+    options.publishRepo.publishRepository
       .orElse {
         pubOpt.contextual(options.publishParams.setupCi).repository
       }
@@ -32,7 +32,9 @@ final case class PasswordCheck(
         else
           None
       }
-    repoOpt.flatMap { repo =>
+
+  private def hostOpt(pubOpt: BPublishOptions): Option[String] =
+    repoOpt(pubOpt).flatMap { repo =>
       RepoParams(
         repo,
         pubOpt.versionControl.map(_.url),
@@ -50,7 +52,6 @@ final case class PasswordCheck(
           Some(new URI(params.repo.snapshotRepo.root).getHost)
       }
     }
-  }
 
   private def passwordOpt(pubOpt: BPublishOptions) = hostOpt(pubOpt) match {
     case None => Right(None)
@@ -127,17 +128,20 @@ final case class PasswordCheck(
               )
               OptionCheck.DefaultValue.empty
             }
-            else
+            else {
+              val optionName =
+                repoOpt(pubOpt).map(r => s"publish password for $r").getOrElse("publish password")
               value {
                 Left {
                   new MissingPublishOptionError(
-                    "publish password",
+                    optionName,
                     "",
                     "publish.credentials",
                     configKeys = Seq(Keys.publishCredentials.fullName)
                   )
                 }
               }
+            }
         }
     }
 }

@@ -21,8 +21,8 @@ final case class UserCheck(
   def fieldName     = "user"
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".user"
 
-  private def hostOpt(pubOpt: BPublishOptions): Option[String] = {
-    val repoOpt = options.publishRepo.publishRepository
+  private def repoOpt(pubOpt: BPublishOptions): Option[String] =
+    options.publishRepo.publishRepository
       .orElse {
         pubOpt.contextual(options.publishParams.setupCi).repository
       }
@@ -33,7 +33,8 @@ final case class UserCheck(
           None
       }
 
-    repoOpt.flatMap { repo =>
+  private def hostOpt(pubOpt: BPublishOptions): Option[String] =
+    repoOpt(pubOpt).flatMap { repo =>
       RepoParams(
         repo,
         pubOpt.versionControl.map(_.url),
@@ -51,7 +52,6 @@ final case class UserCheck(
           Some(new URI(params.repo.snapshotRepo.root).getHost)
       }
     }
-  }
 
   private def userOpt(pubOpt: BPublishOptions) = hostOpt(pubOpt) match {
     case None => Right(None)
@@ -128,17 +128,20 @@ final case class UserCheck(
               )
               OptionCheck.DefaultValue.empty
             }
-            else
+            else {
+              val optionName =
+                repoOpt(pubOpt).map(r => s"publish user for $r").getOrElse("publish user")
               value {
                 Left {
                   new MissingPublishOptionError(
-                    "publish user",
+                    optionName,
                     "",
                     "publish.credentials",
                     configKeys = Seq(Keys.publishCredentials.fullName)
                   )
                 }
               }
+            }
         }
     }
 }
