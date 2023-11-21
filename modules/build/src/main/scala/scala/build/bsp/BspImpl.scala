@@ -123,12 +123,12 @@ final class BspImpl(
       pprint.err.log(scopedSources)
 
     val sourcesMain = value {
-      scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace)
+      scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace, persistentLogger)
         .left.map((_, Scope.Main))
     }
 
     val sourcesTest = value {
-      scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace)
+      scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace, persistentLogger)
         .left.map((_, Scope.Test))
     }
 

@@ -6,6 +6,20 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class ScriptWrapperTests extends ScalaCliSuite {
+
+  def expectAppWrapper(wrapperName: String, path: os.Path) = {
+    val generatedFileContent = os.read(path)
+    assert(
+      generatedFileContent.contains(s"object $wrapperName extends App {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+    assert(
+      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"object $wrapperName {"),
+      clue(s"Generated file content: $generatedFileContent")
+    )
+  }
+
   def expectObjectWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(
@@ -13,7 +27,8 @@ class ScriptWrapperTests extends ScalaCliSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
-      !generatedFileContent.contains(s"final class $wrapperName$$_"),
+      !generatedFileContent.contains(s"final class $wrapperName$$_") &&
+      !generatedFileContent.contains(s"object $wrapperName wraps App {"),
       clue(s"Generated file content: $generatedFileContent")
     )
   }
@@ -25,6 +40,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
       clue(s"Generated file content: $generatedFileContent")
     )
     assert(
+      !generatedFileContent.contains(s"object $wrapperName extends App {") &&
       !generatedFileContent.contains(s"object $wrapperName {"),
       clue(s"Generated file content: $generatedFileContent")
     )
@@ -85,7 +101,6 @@ class ScriptWrapperTests extends ScalaCliSuite {
     useDirectives <- Seq(true, false)
     (directive, options) <- Seq(
       ("//> using object.wrapper", Seq("--object-wrapper")),
-      ("//> using scala 2.13", Seq("--scala", "2.13")),
       ("//> using platform js", Seq("--js"))
     )
   } {
@@ -140,6 +155,72 @@ class ScriptWrapperTests extends ScalaCliSuite {
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
           expectObjectWrapper(
+            "script2",
+            projectDir.head / "src_generated" / "main" / "script2.scala"
+          )
+        }
+      }
+    }
+  }
+
+  for {
+    useDirectives <- Seq(true, false)
+    (directive, options) <- Seq(
+      ("//> using scala 2.13", Seq("--scala", "2.13"))
+    )
+  } {
+    val inputs = TestInputs(
+      os.rel / "script1.sc" ->
+        s"""//> using platform js
+           |//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |${if (useDirectives) directive else ""}
+           |
+           |def main(args: String*): Unit = println("Hello")
+           |main()
+           |""".stripMargin,
+      os.rel / "script2.sc" ->
+        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          |
+          |println("Hello")
+          |""".stripMargin
+    )
+
+    test(
+      s"BSP App object wrapper forced with ${if (useDirectives) directive else options.mkString(" ")}"
+    ) {
+      inputs.fromRoot { root =>
+        TestUtil.withThreadPool("script-wrapper-bsp-test", 2) { pool =>
+          val timeout     = Duration("60 seconds")
+          implicit val ec = ExecutionContext.fromExecutorService(pool)
+
+          val bspProc = os.proc(
+            TestUtil.cli,
+            "--power",
+            "bsp",
+            "script1.sc",
+            "script2.sc",
+            if (useDirectives) Nil else options
+          )
+            .spawn(cwd = root, mergeErrIntoOut = true, stdout = os.Pipe)
+
+          def lineReaderIter =
+            Iterator.continually(TestUtil.readLine(bspProc.stdout, ec, timeout))
+
+          lineReaderIter.find(_.contains("\"build/taskFinish\""))
+
+          bspProc.destroy()
+          if (bspProc.isAlive())
+            bspProc.destroyForcibly()
+
+          val projectDir = os.list(root / Constants.workspaceDirName).filter(
+            _.baseName.startsWith(root.baseName + "_")
+          )
+          expect(projectDir.size == 1)
+          expectAppWrapper(
+            "script1",
+            projectDir.head / "src_generated" / "main" / "script1.scala"
+          )
+          expectAppWrapper(
             "script2",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )

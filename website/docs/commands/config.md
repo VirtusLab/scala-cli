@@ -114,5 +114,5 @@ Configuration values are stored in a directory under your home directory, with r
 
 - on macOS: `~/Library/Application Support/ScalaCli/secrets/config.json`
 - on Linux: `~/.config/scala-cli/secrets/config.json`
-- on Windows: `%LOCALAPPDATA%\ScalaCli\secrets\config.json` (
-  typically `C:\Users\username\AppData\Local\ScalaCli\secrets\config.json`)
+- on Windows: `%LOCALAPPDATA%\ScalaCli\data\secrets\config.json` (
+  typically `C:\Users\username\AppData\Local\ScalaCli\data\secrets\config.json`)

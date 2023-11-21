@@ -768,14 +768,17 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.rel / "Hello.java" -> "//> using jvm \"11\""
     )
     inputs.fromRoot { root =>
-      val warningMessage = "Using directives detected in"
-      val output1        = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
+      val warningMessage =
+        """Using directives detected in multiple files:
+          |- Foo.scala:1:1-24
+          |- Hello.java:1:1-19""".stripMargin
+      val output1 = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
       val output2 = os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
         cwd = root,
         stderr = os.Pipe
       ).err.trim()
       expect(output1.contains(warningMessage))
-      expect(!output2.contains(warningMessage))
+      expect(!output2.contains("Using directives detected in multiple files"))
     }
   }
 
@@ -1053,8 +1056,12 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val errorMessage =
         output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
       val extraOptionsString = extraOptions.mkString(" ")
-      val expectedMainClassNames =
-        Seq(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc").sorted
+      val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
+        s"$scriptsDir.${scriptName}_sc"
+      else
+        s"$scriptsDir.$scriptName"
+
+      val expectedMainClassNames = Seq(scalaFile1, scalaFile2, scriptMainClassName).sorted
       val expectedErrorMessage =
         s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${expectedMainClassNames.mkString(
             ", "
@@ -1105,7 +1112,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         .call(cwd = root)
       val output      = res.out.trim()
       val mainClasses = output.split(" ").toSet
-      expect(mainClasses == Set(scalaFile1, scalaFile2, s"$scriptsDir.${scriptName}_sc"))
+
+      val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
+        s"$scriptsDir.${scriptName}_sc"
+      else
+        s"$scriptsDir.$scriptName"
+
+      expect(mainClasses == Set(scalaFile1, scalaFile2, scriptMainClassName))
     }
   }
 

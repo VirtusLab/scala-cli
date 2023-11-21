@@ -44,6 +44,13 @@ trait Logger {
     */
   def experimentalWarning(featureName: String, featureType: FeatureType): Unit
   def flushExperimentalWarnings: Unit
+
+  def cliFriendlyDiagnostic(
+    message: String,
+    cliFriendlyMessage: String,
+    severity: Severity = Severity.Warning,
+    positions: Seq[Position] = Nil
+  ): Unit = diagnostic(message, severity, positions)
 }
 
 object Logger {

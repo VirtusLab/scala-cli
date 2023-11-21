@@ -13,10 +13,10 @@ sealed abstract class PreprocessedSource extends Product with Serializable {
   def scopePath: ScopePath
   def directivesPositions: Option[Position.File]
   def distinctPathOrSource: String = this match {
-    case PreprocessedSource.OnDisk(p, _, _, _, _, _, _)                   => p.toString
-    case PreprocessedSource.InMemory(op, rp, _, _, _, _, _, _, _, _, _)   => s"$op; $rp"
-    case PreprocessedSource.UnwrappedScript(p, _, _, _, _, _, _, _, _, _) => p.toString
-    case PreprocessedSource.NoSourceCode(_, _, _, _, p)                   => p.toString
+    case p: PreprocessedSource.OnDisk          => p.path.toString
+    case p: PreprocessedSource.InMemory        => s"${p.originalPath}; ${p.relPath}"
+    case p: PreprocessedSource.UnwrappedScript => p.originalPath.toString
+    case p: PreprocessedSource.NoSourceCode    => p.path.toString
   }
 }
 
@@ -58,11 +58,12 @@ object PreprocessedSource {
     optionsWithTargetRequirements: List[WithBuildRequirements[BuildOptions]],
     requirements: Option[BuildRequirements],
     scopedRequirements: Seq[Scoped[BuildRequirements]],
-    mainClassOpt: Option[String],
     scopePath: ScopePath,
     directivesPositions: Option[Position.File],
     wrapScriptFun: CodeWrapper => (String, WrapperParams)
-  ) extends PreprocessedSource
+  ) extends PreprocessedSource {
+    override def mainClassOpt: Option[String] = None
+  }
 
   final case class NoSourceCode(
     options: Option[BuildOptions],

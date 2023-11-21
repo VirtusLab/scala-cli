@@ -50,7 +50,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       val mainSources = value(scopedSources.sources(
         Scope.Main,
         crossSources.sharedOptions(options),
-        allInputs.workspace
+        allInputs.workspace,
+        logger
       ))
 
       mainSources.buildOptions

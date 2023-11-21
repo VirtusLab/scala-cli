@@ -48,6 +48,9 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         root
       ).out.trim()
       expect(output == message)
+      expect(
+        !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+      )
     }
   }
 
@@ -66,23 +69,49 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("use method from main.sc file") {
-    val message = "Hello"
-    val inputs = TestInputs(
-      os.rel / "message.sc" ->
-        s"""println(main.msg)
-           |""".stripMargin,
-      os.rel / "main.sc" ->
-        s"""def msg = "$message"
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
-        root
-      ).out.trim()
-      expect(output == message)
+  if (actualScalaVersion.startsWith("3"))
+    test("use method from main.sc file") {
+      val message = "Hello"
+      val inputs = TestInputs(
+        os.rel / "message.sc" ->
+          s"""println(main.msg)
+             |""".stripMargin,
+        os.rel / "main.sc" ->
+          s"""def msg = "$message"
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc").call(cwd =
+          root
+        ).out.trim()
+        expect(output == message)
+        expect(
+          !output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+        )
+      }
     }
-  }
+  else
+    test("warn when main.sc file is used together with other scripts") {
+      val message = "Hello"
+      val inputs = TestInputs(
+        os.rel / "message.sc" ->
+          s"""println(main.msg)
+             |""".stripMargin,
+        os.rel / "main.sc" ->
+          s"""def msg = "$message"
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val res = os.proc(TestUtil.cli, extraOptions, "message.sc", "main.sc")
+          .call(cwd = root, check = false, mergeErrIntoOut = true)
+
+        expect(res.exitCode == 1)
+        val output = res.out.trim()
+        expect(
+          output.contains("Script file named 'main.sc' detected, keep in mind that accessing it")
+        )
+      }
+    }
 
   test("Directory") {
     val message = "Hello"
@@ -94,10 +123,13 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
         s"""println(messages.msg)
            |""".stripMargin
     )
+
+    val mainClassName = if (actualScalaVersion.startsWith("3")) "print_sc" else "print"
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", "print_sc").call(cwd =
-        root
-      ).out.trim()
+      val output =
+        os.proc(TestUtil.cli, extraOptions, "dir", "--main-class", mainClassName).call(cwd =
+          root
+        ).out.trim()
       expect(output == message)
     }
   }
@@ -182,30 +214,44 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val tab            = "\t"
       val expectedLines =
         if (actualScalaVersion.startsWith("2.12."))
-          s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:24)
-             |${tab}at throws_sc.main(throws.sc)
-             |Caused by: java.lang.Exception: Caught exception during processing
-             |${tab}at throws$$.<init>(throws.sc:6)
-             |${tab}at throws$$.<clinit>(throws.sc)
-             |$tab... 2 more
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
+             |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
+             |${tab}at scala.Function0.apply$$mcV$$sp(Function0.scala:39)
+             |${tab}at scala.Function0.apply$$mcV$$sp$$(Function0.scala:39)
+             |${tab}at scala.runtime.AbstractFunction0.apply$$mcV$$sp(AbstractFunction0.scala:17)
+             |${tab}at scala.App.$$anonfun$$main$$1$$adapted(App.scala:80)
+             |${tab}at scala.collection.immutable.List.foreach(List.scala:431)
+             |${tab}at scala.App.main(App.scala:80)
+             |${tab}at scala.App.main$$(App.scala:78)
+             |${tab}at throws$$.main(throws.sc:65534)
+             |${tab}at throws.main(throws.sc)
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:30)
              |${tab}at throws$$.something(throws.sc:2)
-             |${tab}at throws$$.<init>(throws.sc:3)
-             |$tab... 3 more""".stripMargin.linesIterator.toVector
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
+             |$tab... 10 more""".stripMargin.linesIterator.toVector
         else
-          s"""Exception in thread "main" java.lang.ExceptionInInitializerError
-             |${tab}at throws_sc$$.main(throws.sc:24)
-             |${tab}at throws_sc.main(throws.sc)
-             |Caused by: java.lang.Exception: Caught exception during processing
-             |${tab}at throws$$.<clinit>(throws.sc:6)
-             |$tab... 2 more
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
+             |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
+             |${tab}at scala.Function0.apply$$mcV$$sp(Function0.scala:42)
+             |${tab}at scala.Function0.apply$$mcV$$sp$$(Function0.scala:42)
+             |${tab}at scala.runtime.AbstractFunction0.apply$$mcV$$sp(AbstractFunction0.scala:17)
+             |${tab}at scala.App.$$anonfun$$main$$1(App.scala:98)
+             |${tab}at scala.App.$$anonfun$$main$$1$$adapted(App.scala:98)
+             |${tab}at scala.collection.IterableOnceOps.foreach(IterableOnce.scala:576)
+             |${tab}at scala.collection.IterableOnceOps.foreach$$(IterableOnce.scala:574)
+             |${tab}at scala.collection.AbstractIterable.foreach(Iterable.scala:933)
+             |${tab}at scala.App.main(App.scala:98)
+             |${tab}at scala.App.main$$(App.scala:96)
+             |${tab}at throws$$.main(throws.sc:65534)
+             |${tab}at throws.main(throws.sc)
              |Caused by: java.lang.RuntimeException: nope
              |${tab}at scala.sys.package$$.error(package.scala:27)
              |${tab}at throws$$.something(throws.sc:2)
-             |${tab}at throws$$.<clinit>(throws.sc:3)
-             |$tab... 2 more
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
+             |$tab... 13 more
              |""".stripMargin.linesIterator.toVector
       if (exceptionLines != expectedLines) {
         println(exceptionLines.mkString("\n"))
@@ -278,10 +324,10 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
         """object Hello extends App {
-          |  println(s"Hello ${scripts.Script.world}")
+          |  println(s"Hello ${scripts.`Script-1`.world}")
           |}
           |""".stripMargin,
-      os.rel / "scripts" / "Script.sc" -> """def world: String = "world"""".stripMargin
+      os.rel / "scripts" / "Script-1.sc" -> """def world: String = "world"""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(

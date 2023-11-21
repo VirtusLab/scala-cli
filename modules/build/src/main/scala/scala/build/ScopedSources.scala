@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.info.{BuildInfo, ScopedBuildInfo}
+import scala.build.internal.AppCodeWrapper
+import scala.build.internal.util.WarningMessages
 import scala.build.options.{BuildOptions, HasScope, Scope}
 import scala.build.preprocessing.ScriptPreprocessor
 
@@ -28,7 +30,7 @@ import scala.build.preprocessing.ScriptPreprocessor
 final case class ScopedSources(
   paths: Seq[HasScope[(os.Path, os.RelPath)]],
   inMemory: Seq[HasScope[Sources.InMemory]],
-  defaultMainClass: Option[String],
+  defaultMainElemPath: Option[os.Path],
   resourceDirs: Seq[HasScope[os.Path]],
   buildOptions: Seq[HasScope[BuildOptions]],
   unwrappedScripts: Seq[HasScope[Sources.UnwrappedScript]]
@@ -55,7 +57,8 @@ final case class ScopedSources(
   def sources(
     scope: Scope,
     baseOptions: BuildOptions,
-    workspace: os.Path
+    workspace: os.Path,
+    logger: Logger
   ): Either[BuildException, Sources] = either {
     val combinedOptions = combinedBuildOptions(scope, baseOptions)
 
@@ -64,6 +67,21 @@ final case class ScopedSources(
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .map(_.wrap(codeWrapper))
+
+    codeWrapper match {
+      case _: AppCodeWrapper.type if wrappedScripts.size > 1 =>
+        wrappedScripts.find(_.originalPath.exists(_._1.toString == "main.sc"))
+          .foreach(_ => logger.diagnostic(WarningMessages.mainScriptNameClashesWithAppWrapper))
+      case _ => ()
+    }
+
+    val defaultMainClass = defaultMainElemPath.flatMap { mainElemPath =>
+      wrappedScripts.collectFirst {
+        case Sources.InMemory(Right((_, path)), _, _, Some(wrapperParams))
+            if mainElemPath == path =>
+          wrapperParams.mainClass
+      }
+    }
 
     val needsBuildInfo = combinedOptions.sourceGeneratorOptions.useBuildInfo.getOrElse(false)
 

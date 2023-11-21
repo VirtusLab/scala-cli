@@ -597,6 +597,77 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
+  test("directives in multiple files diagnostics") {
+    val inputs = TestInputs(
+      os.rel / "Foo.scala" ->
+        s"""//> using scala "3.3.0"
+           |
+           |object Foo extends App {
+           |  println("Foo")
+           |}
+           |""".stripMargin,
+      os.rel / "Bar.scala"  -> "",
+      os.rel / "Hello.java" -> "//> using jvm \"11\""
+    )
+
+    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+      async {
+        await(remoteServer.workspaceBuildTargets().asScala)
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val target = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 2)
+          extractMainTargets(targets)
+        }
+
+        val targetUri = TestUtil.normalizeUri(target.getUri)
+        checkTargetUri(root, targetUri)
+
+        val targets = List(target).asJava
+
+        val compileResp = await {
+          remoteServer
+            .buildTargetCompile(new b.CompileParams(targets))
+            .asScala
+        }
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+        def checkDirectivesInMultipleFilesWarnings(
+          fileName: String,
+          expectedStartLine: Int,
+          expectedStartCharacter: Int,
+          expectedEndLine: Int,
+          expectedEndCharacter: Int
+        ): Unit = {
+          val diagnosticsParams = localClient.diagnostics().collectFirst {
+            case diag
+                if !diag.getDiagnostics.isEmpty &&
+                TestUtil.normalizeUri(diag.getTextDocument.getUri) ==
+                  TestUtil.normalizeUri((root / fileName).toNIO.toUri.toASCIIString) => diag
+          }
+          expect(diagnosticsParams.isDefined)
+          val diagnostics = diagnosticsParams.get.getDiagnostics.asScala.toSeq
+
+          val expectedMessage =
+            "Using directives detected in multiple files. It is recommended to keep them centralized in the"
+          checkDiagnostic(
+            diagnostic = diagnostics.head,
+            expectedMessage = expectedMessage,
+            expectedSeverity = b.DiagnosticSeverity.WARNING,
+            expectedStartLine = expectedStartLine,
+            expectedStartCharacter = expectedStartCharacter,
+            expectedEndLine = expectedEndLine,
+            expectedEndCharacter = expectedEndCharacter,
+            strictlyCheckMessage = false
+          )
+        }
+
+        checkDirectivesInMultipleFilesWarnings("Foo.scala", 0, 0, 0, 23)
+        checkDirectivesInMultipleFilesWarnings("Hello.java", 0, 0, 0, 18)
+      }
+    }
+  }
+
   test("workspace update") {
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
@@ -1828,8 +1899,8 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
           val change = edit.getChanges.asScala.head
 
           val expectedRange = new b.Range(
-            new b.Position(11, 19),
-            new b.Position(11, 19)
+            new b.Position(9, 19),
+            new b.Position(9, 19)
           )
           expect(change.getRange == expectedRange)
           expect(change.getNewText == "()")

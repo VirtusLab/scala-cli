@@ -136,8 +136,8 @@ object Fix extends ScalaCommand[FixOptions] {
     val sharedOptions = crossSources.sharedOptions(buildOptions)
     val scopedSources = crossSources.scopedSources(sharedOptions).orExit(logger)
 
-    val mainSources = scopedSources.sources(Scope.Main, sharedOptions, inputs.workspace)
-    val testSources = scopedSources.sources(Scope.Test, sharedOptions, inputs.workspace)
+    val mainSources = scopedSources.sources(Scope.Main, sharedOptions, inputs.workspace, logger)
+    val testSources = scopedSources.sources(Scope.Test, sharedOptions, inputs.workspace, logger)
 
     (mainSources, testSources).traverseN
   }

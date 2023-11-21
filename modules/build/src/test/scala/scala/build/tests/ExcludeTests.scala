@@ -97,7 +97,12 @@ class ExcludeTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources =
-        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
           .orThrow
 
       expect(sources.paths.nonEmpty)
@@ -126,7 +131,12 @@ class ExcludeTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources =
-        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
           .orThrow
 
       expect(sources.paths.nonEmpty)
@@ -155,7 +165,12 @@ class ExcludeTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources =
-        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
           .orThrow
 
       expect(sources.paths.nonEmpty)
@@ -184,7 +199,12 @@ class ExcludeTests extends munit.FunSuite {
       val scopedSources = crossSources.scopedSources(BuildOptions())
         .orThrow
       val sources =
-        scopedSources.sources(Scope.Main, crossSources.sharedOptions(BuildOptions()), root)
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        )
           .orThrow
 
       expect(sources.paths.nonEmpty)
