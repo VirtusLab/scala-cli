@@ -20,6 +20,11 @@ import scala.util.Properties
 
 object ScalaCli {
 
+  if (scala.util.Try(os.Path(System.getProperty("user.home"))).isFailure) {
+    System.err.println("Warning: user.home property is not set, setting it to user.dir")
+    System.setProperty("user.home", System.getProperty("user.dir"))
+  }
+
   if (Properties.isWin && isGraalvmNativeImage)
     // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
     // The DLL loaded by LoadWindowsLibrary is statically linke/d in
