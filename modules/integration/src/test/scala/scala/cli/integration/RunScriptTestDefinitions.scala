@@ -605,11 +605,11 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     val dr = os.Path.driveRoot
 
     // forward slash is legal in `Windows`
-    val javaHomeNoDriveRoot = java8Home.toString.replace('\\', '/')
-    expect(javaHomeNoDriveRoot.drop(dr.length).startsWith("/"))
+    val javaHome = java8Home.toString.replace('\\', '/')
+    expect(javaHome.drop(dr.length).startsWith("/"))
 
     val sysPath: String = System.getenv("PATH").replace('\\', '/')
-    val newPath: String = s"$javaHomeNoDriveRoot/bin" + File.pathSeparator + sysPath
+    val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
 
     val extraEnv = Map(
       "JAVA_HOME" -> java8Home.toString,
@@ -623,8 +623,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
             |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
-      printf("TestUtil.cli: [%s]\nroot: [%s]", TestUtil.cli, root)
-      printf("javaHome.cli: [%s]\nroot: [%s]", TestUtil.cli, root)
+      printf("TestUtil.cli: [%s]\njavaHome: [%s]\nnewPath: [%s]\n", TestUtil.cli, javaHome, newPath)
       val proc = if (!Properties.isWin) {
         os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
         os.proc("./script-with-shebang", "1", "2", "3", "-v")
