@@ -4,8 +4,7 @@
     "methods": [
       {
         "name": "collectionClassName",
-        "parameterTypes": [
-        ]
+        "parameterTypes": []
       }
     ]
   }
