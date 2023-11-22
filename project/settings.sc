@@ -540,13 +540,12 @@ trait HasTests extends SbtModule {
       else Nil
     super.scalacOptions() ++ extraOptions
   }
-  trait ScalaCliTests extends ScalaCliModule with super.SbtModuleTests {
+  trait ScalaCliTests extends ScalaCliModule with super.SbtModuleTests with TestModule.Munit {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
     )
-    def testFramework = "munit.Framework"
-    def forkArgs      = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+    def forkArgs = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
 
     def repositoriesTask =
       T.task(super.repositoriesTask() ++ deps.customRepositories)

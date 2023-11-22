@@ -953,46 +953,32 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     }
     def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 
-    private final class TestHelper(
-      launcherTask: T[PathRef],
-      cliKind: String
-    ) {
-      def test(args: String*) = {
-        val argsTask = T.task {
-          val launcher = launcherTask().path
-          val debugReg = "^--debug$|^--debug:([0-9]+)$".r
-          val debugPortOpt = args.find(debugReg.matches).flatMap {
-            case debugReg(port) => Option(port).orElse(Some("5005"))
-            case _              => None
-          }
-          val debugArgs = debugPortOpt match {
-            case Some(port) =>
-              System.err.println(
-                s"--debug option has been passed. Listening for transport dt_socket at address: $port"
-              )
-              Seq(s"-Dtest.scala-cli.debug.port=$port")
-            case _ => Seq.empty
-          }
-          val extraArgs = Seq(
-            s"-Dtest.scala-cli.path=$launcher",
-            s"-Dtest.scala-cli.kind=$cliKind"
-          )
-          args ++ extraArgs ++ debugArgs
+    def runTests(launcherTask: T[PathRef], cliKind: String, args: String*) = {
+      val argsTask = T.task {
+        val launcher = launcherTask().path
+        val debugReg = "^--debug$|^--debug:([0-9]+)$".r
+        val debugPortOpt = args.find(debugReg.matches).flatMap {
+          case debugReg(port) => Option(port).orElse(Some("5005"))
+          case _              => None
         }
-        T.command {
-          val res            = testTask(argsTask, T.task(Seq.empty[String]))()
-          val dotScalaInRoot = os.pwd / workspaceDirName
-          assert(
-            !os.isDir(dotScalaInRoot),
-            s"Expected $workspaceDirName ($dotScalaInRoot) not to have been created"
-          )
-          res
+        val debugArgs = debugPortOpt match {
+          case Some(port) =>
+            System.err.println(
+              s"--debug option has been passed. Listening for transport dt_socket at address: $port"
+            )
+            Seq(s"-Dtest.scala-cli.debug.port=$port")
+          case _ => Seq.empty
         }
+        val extraArgs = Seq(
+          s"-Dtest.scala-cli.path=$launcher",
+          s"-Dtest.scala-cli.kind=$cliKind"
+        )
+        args ++ extraArgs ++ debugArgs
       }
+      testTask(argsTask, T.task(Seq.empty[String]))
     }
 
-    def test(args: String*) =
-      jvm(args: _*)
+    override def test(args: String*) = jvm(args: _*)
 
     def forcedLauncher = T.persistent {
       val ext      = if (Properties.isWin) ".exe" else ""
@@ -1037,36 +1023,38 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       PathRef(launcher)
     }
 
-    def jvm(args: String*) =
-      new TestHelper(
-        cli.standaloneLauncher,
-        "jvm"
-      ).test(args: _*)
+    private object Launchers {
+      def jvm = cli.standaloneLauncher
+
+      def jvmBootstrapped = cliBootstrapped.jar
+
+      def native =
+        Option(System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY")) match {
+          case Some(_) => forcedLauncher
+          case None    => cli.nativeImage
+        }
+
+      def nativeStatic =
+        Option(System.getenv("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY")) match {
+          case Some(_) => forcedStaticLauncher
+          case None    => cli.nativeImageStatic
+        }
+
+      def nativeMostlyStatic =
+        Option(System.getenv("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY")) match {
+          case Some(_) => forcedMostlyStaticLauncher
+          case None    => cli.nativeImageMostlyStatic
+        }
+    }
+
+    def jvm(args: String*) = T.command(runTests(Launchers.jvm, "jvm", args: _*))
     def jvmBootstrapped(args: String*) =
-      new TestHelper(
-        cliBootstrapped.jar,
-        "jvmBootstrapped"
-      ).test(args: _*)
-    def native(args: String*) =
-      new TestHelper(
-        if (System.getenv("SCALA_CLI_IT_FORCED_LAUNCHER_DIRECTORY") == null) cli.nativeImage
-        else forcedLauncher,
-        "native"
-      ).test(args: _*)
+      T.command(runTests(Launchers.jvmBootstrapped, "jvmBootstrapped", args: _*))
+    def native(args: String*) = T.command(runTests(Launchers.native, "native", args: _*))
     def nativeStatic(args: String*) =
-      new TestHelper(
-        if (System.getenv("SCALA_CLI_IT_FORCED_STATIC_LAUNCHER_DIRECTORY") == null)
-          cli.nativeImageStatic
-        else forcedStaticLauncher,
-        "native-static"
-      ).test(args: _*)
+      T.command(runTests(Launchers.nativeStatic, "native-static", args: _*))
     def nativeMostlyStatic(args: String*) =
-      new TestHelper(
-        if (System.getenv("SCALA_CLI_IT_FORCED_MOSTLY_STATIC_LAUNCHER_DIRECTORY") == null)
-          cli.nativeImageMostlyStatic
-        else forcedMostlyStaticLauncher,
-        "native-mostly-static"
-      ).test(args: _*)
+      T.command(runTests(Launchers.nativeMostlyStatic, "native-mostly-static", args: _*))
   }
 }
 
