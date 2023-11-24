@@ -22,7 +22,7 @@ import scala.build.bsp.{WrappedSourcesItem, WrappedSourcesResult}
 import scala.build.internal.ClassCodeWrapper
 
 class BspServerTests extends TestUtil.ScalaCliBuildSuite {
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
+  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
   val directories     = Directories.under(extraRepoTmpDir)
   val baseOptions = BuildOptions(
     internal = InternalOptions(
