@@ -1,5 +1,5 @@
 ---
-title: Repositories and HTTP Proxies ⚡️
+title: Repositories and HTTP Proxy ⚡️
 sidebar_position: 51
 ---
 
