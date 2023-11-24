@@ -2,7 +2,7 @@ package scala.cli.integration
 
 abstract class ScalaCliSuite extends munit.FunSuite {
 
-  val testStartEndLogger = new Fixture[Unit]("files") {
+  val testStartEndLogger = new Fixture[Unit]("logs") {
     def apply(): Unit = ()
 
     override def beforeEach(context: BeforeEach): Unit = {
