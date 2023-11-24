@@ -288,6 +288,18 @@ Specify publish repository authentication either on the command-line or via
 using directives. See user / password / realm in the [settings table](#settings)
 and the [CI overrides](#ci-overrides).
 
+### Connection parameters configuration
+
+When publishing large packages or when the internet connection is spotty one may use the following options to configure the connection parameters:
+- `--connection-timeout-seconds` - the connection timeout in seconds
+- `--response-timeout-seconds` - the response timeout in seconds
+- `--connection-timeout-retries` - the number of times to retry the connection on timeout
+
+Publishing to Sonatype uses a staging repository which may sometimes cause problems when transitioning through states.
+If a publishing process fails with status `500` and message `"Staging repository is already transitioning"` you can try to tweak the following parameters taht are Sonatype specific:
+- `--staging-repo-retries` - the number of times to retry the staging repository transition
+- `--staging-repo-wait-time-milis` - the base time to wait between retries in milliseconds
+
 ## Publishing
 
 Once all the necessary settings are set, publish a Scala CLI project with a command
