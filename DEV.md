@@ -74,6 +74,18 @@ The debug option uses 5005 port by default. It is possible to change it as follo
 ./mill integration.test.native 'scala.cli.integration.RunTestsDefault.*'
 ```
 
+#### Generate JUnit test reports
+
+As running tests with mill generates output in a non-standard JSON format, we have a script for converting it to the 
+more well known JUnit XML test report format which we can then process and view on the CI.
+In case you want to generate a test report locally, you can run the following command:
+
+```bash
+.github/scripts/generate-junit-reports.sc <test suite title> <test report title> <output-path out/
+```
+
+The test should fail when no test reports were found or if no tests were actually run.
+
 #### Generate native packages
 
 Build native packagers:
