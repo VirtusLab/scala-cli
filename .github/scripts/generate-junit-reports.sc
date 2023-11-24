@@ -27,7 +27,7 @@ def findFiles(paths: Seq[os.Path], result: Seq[os.Path] = Nil): Seq[os.Path] =
     case Nil => result
     case head :: tail =>
       val newFiles =
-        if head.last == "test.dest" && os.isDir(head) then
+        if head.segments.contains("test") && head.last.endsWith(".dest") && os.isDir(head) then
           os.list(head).filter(f => f.last == "out.json").toList
         else Seq.empty
       val newDirs = os.list(head).filter(p => os.isDir(p)).toList
