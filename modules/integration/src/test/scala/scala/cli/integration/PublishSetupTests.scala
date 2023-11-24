@@ -10,6 +10,7 @@ import scala.jdk.CollectionConverters.*
 import scala.util.matching.Regex
 
 class PublishSetupTests extends ScalaCliSuite {
+  override def munitFixtures: List[this.Fixture[Unit]] = Nil
 
   private def ghUserName = "foo"
   private def projName   = "project-name"

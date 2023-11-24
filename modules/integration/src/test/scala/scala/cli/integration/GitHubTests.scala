@@ -14,8 +14,8 @@ import java.util.{Base64, Locale}
 import scala.util.Properties
 
 class GitHubTests extends ScalaCliSuite {
-
-  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
+  override def munitFixtures: List[this.Fixture[Unit]] = Nil
+  override def group: ScalaCliSuite.TestGroup          = ScalaCliSuite.TestGroup.First
 
   def createSecretTest(): Unit = {
     GitHubTests.initSodium()
