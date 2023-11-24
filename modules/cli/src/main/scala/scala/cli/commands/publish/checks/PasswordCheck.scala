@@ -21,43 +21,27 @@ final case class PasswordCheck(
   def fieldName     = "password"
   def directivePath = "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".password"
 
-  private def hostOpt(pubOpt: BPublishOptions): Option[String] = {
-    val repo = pubOpt.contextual(options.publishParams.setupCi).repository.getOrElse(
-      RepositoryCheck.defaultRepository
-    )
-    RepoParams(
-      repo,
-      pubOpt.versionControl.map(_.url),
+  private def passwordOpt(pubOpt: BPublishOptions) =
+    CheckUtils.getHostOpt(
+      options,
+      pubOpt,
       workspace,
-      None,
-      false,
-      null,
       logger
     ) match {
-      case Left(ex) =>
-        logger.debug("Caught exception when trying to compute host to check user credentials")
-        logger.debug(ex)
-        None
-      case Right(params) =>
-        Some(new URI(params.repo.snapshotRepo.root).getHost)
-    }
-  }
-
-  private def passwordOpt(pubOpt: BPublishOptions) = hostOpt(pubOpt) match {
-    case None => Right(None)
-    case Some(host) =>
-      configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
-        credListOpt.flatMap { credList =>
-          credList
-            .iterator
-            .filter(_.host == host)
-            .map(_.password)
-            .collectFirst {
-              case Some(p) => p
-            }
+      case None => Right(None)
+      case Some(host) =>
+        configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
+          credListOpt.flatMap { credList =>
+            credList
+              .iterator
+              .filter(_.host == host)
+              .map(_.password)
+              .collectFirst {
+                case Some(p) => p
+              }
+          }
         }
-      }
-  }
+    }
 
   def check(pubOpt: BPublishOptions): Boolean =
     pubOpt.retained(options.publishParams.setupCi).repoPassword.nonEmpty || {
@@ -106,7 +90,12 @@ final case class PasswordCheck(
         )
       }
       else
-        hostOpt(pubOpt) match {
+        CheckUtils.getHostOpt(
+          options,
+          pubOpt,
+          workspace,
+          logger
+        ) match {
           case None =>
             logger.debug("No host, not checking for publish repository password")
             OptionCheck.DefaultValue.empty
@@ -118,17 +107,22 @@ final case class PasswordCheck(
               )
               OptionCheck.DefaultValue.empty
             }
-            else
+            else {
+              val optionName =
+                CheckUtils.getRepoOpt(options, pubOpt).map(r =>
+                  s"publish password for $r"
+                ).getOrElse("publish password")
               value {
                 Left {
                   new MissingPublishOptionError(
-                    "publish password",
+                    optionName,
                     "",
                     "publish.credentials",
                     configKeys = Seq(Keys.publishCredentials.fullName)
                   )
                 }
               }
+            }
         }
     }
 }
