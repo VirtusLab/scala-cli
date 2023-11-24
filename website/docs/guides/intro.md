@@ -49,3 +49,4 @@ Less introductory guides on specific topics.
   you need a more powerful build tool).
 - [proxies](./repositories.md) - learn how to configure Scala CLI to work with proxies.
 - [Markdown](./markdown.md) - learn how to work with `.md` sources.
+- [Python/ScalaPy](./python.md) - learn how to use Python libraries in Scala CLI projects.
