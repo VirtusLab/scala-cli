@@ -678,6 +678,10 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
            |  def toolkitVersion = "${Deps.toolkitTest.dep.version}"
            |  def typelevelToolkitOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
            |  def typelevelToolkitVersion = "${Deps.typelevelToolkit.dep.version}"
+           |
+           |  def defaultScalaVersion = "${Scala.defaultUser}"
+           |  def defaultScala212Version = "${Scala.scala212}"
+           |  def defaultScala213Version = "${Scala.scala213}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

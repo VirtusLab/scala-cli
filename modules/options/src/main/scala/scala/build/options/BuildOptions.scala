@@ -312,10 +312,20 @@ final case class BuildOptions(
     repositories: Seq[Repository] = Nil
   ): Either[BuildException, Option[ScalaParameters]] = either {
 
+    val defaultVersions = Set(
+      Constants.defaultScalaVersion,
+      Constants.defaultScala212Version,
+      Constants.defaultScala213Version
+    )
+
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
       case Some(MaybeScalaVersion(None)) =>
         None
+      // Do not validate Scala version in offline mode
       case Some(MaybeScalaVersion(Some(svInput))) if internal.offline.getOrElse(false) =>
+        Some(svInput)
+      // Do not validate Scala version if it is a default one
+      case Some(MaybeScalaVersion(Some(svInput))) if defaultVersions.contains(svInput) =>
         Some(svInput)
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
