@@ -53,7 +53,21 @@ elif [[ "$cache_dest" == *.zip ]]; then
   fi
 fi
 
-eval "$("$cs" java --env --jvm temurin:17 || "$cs" java --env --jvm openjdk:1.17.0)"
+function to_bash_syntax {
+  local S
+  for S in "$@" ; do
+    echo "$S" | sed -E -e 's#^set #export #' -e 's#%([A-Z_][A-Z_0-9]*)%#${\1}#g' | tr '\\' '/'
+  done
+}
+# necessary for Windows various shell environments
+if [[ `uname | grep -E 'CYG*|MSYS*|MING*|UCRT*|ClANG*|GIT*'` ]]; then
+  # needed for coursier version < 2.1.8, harmless otherwise
+  IFS=$'\n'
+  eval "$(to_bash_syntax `"$cs" java --env --jvm temurin:17` || to_bash_syntax `"$cs" java --env --jvm openjdk:1.17.0`)"
+  unset IFS
+else
+  eval "$("$cs" java --env --jvm temurin:17 || "$cs" java --env --jvm openjdk:1.17.0)"
+fi
 
 # temporary, until we pass JPMS options to native-image,
 # see https://www.graalvm.org/release-notes/22_2/#native-image

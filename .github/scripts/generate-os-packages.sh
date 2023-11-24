@@ -14,7 +14,7 @@ fi
 ARTIFACTS_DIR="artifacts/"
 mkdir -p "$ARTIFACTS_DIR"
 
-if [[ "$OSTYPE" == "msys" ]]; then
+if [[ -z "$OSTYPE" ]]; then
   mill="./mill.bat"
 else
   mill="./mill"
@@ -28,7 +28,7 @@ launcher() {
   local launcherMillCommand="cli.nativeImage"
   local launcherName
 
-  if [[ "$OSTYPE" == "msys" ]]; then
+  if [[ "${OS-}" == "Windows_NT" ]]; then
     launcherName="scala.exe"
   else
     launcherName="scala"

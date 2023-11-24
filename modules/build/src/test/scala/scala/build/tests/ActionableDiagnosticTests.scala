@@ -221,7 +221,9 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     )
     val withRepoBuildOptions = baseOptions.copy(
       classPathOptions =
-        baseOptions.classPathOptions.copy(extraRepositories = Seq(s"file:${repoTmpDir.toString}"))
+        baseOptions.classPathOptions.copy(extraRepositories =
+          Seq(s"file:${repoTmpDir.toString.replace('\\', '/')}")
+        )
     )
     testInputs.withBuild(withRepoBuildOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>

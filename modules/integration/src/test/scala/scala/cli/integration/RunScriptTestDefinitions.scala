@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.io.File
+
 import scala.cli.integration.TestUtil.normalizeConsoleOutput
 import scala.util.Properties
 
@@ -595,4 +597,46 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       expect(p.out.trim() == "42")
     }
   }
+
+  test("verify drive-relative JAVA_HOME works") {
+    val java8Home =
+      os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+
+    val dr = os.Path.driveRoot
+
+    // forward slash is legal in `Windows`
+    val javaHome = java8Home.toString.replace('\\', '/')
+    expect(javaHome.drop(dr.length).startsWith("/"))
+
+    val sysPath: String = System.getenv("PATH").replace('\\', '/')
+    val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
+
+    val extraEnv = Map(
+      "JAVA_HOME" -> java8Home.toString,
+      "PATH"      -> newPath
+    )
+
+    val inputs = TestInputs(
+      os.rel / "script-with-shebang" ->
+        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+            |//> using scala "$actualScalaVersion"
+            |println(args.toList)""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      printf("TestUtil.cli: [%s]\njavaHome: [%s]\nnewPath: [%s]\n", TestUtil.cli, javaHome, newPath)
+      val proc = if (!Properties.isWin) {
+        os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
+        os.proc("./script-with-shebang", "1", "2", "3", "-v")
+      }
+      else
+        os.proc(TestUtil.cli, "shebang", "script-with-shebang", "1", "2", "3", "-v")
+
+      val output = proc.call(cwd = root, env = extraEnv).out.trim()
+
+      val expectedOutput = "List(1, 2, 3, -v)"
+
+      expect(output == expectedOutput)
+    }
+  }
+
 }

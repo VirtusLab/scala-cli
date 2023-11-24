@@ -6,7 +6,6 @@ import java.io.{File, InputStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util
-import java.util.regex.Pattern
 import java.util.zip.ZipFile
 
 import scala.cli.integration.TestUtil.removeAnsiColors
@@ -731,7 +730,7 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
         if (actualScalaVersion.startsWith("2.")) actualScalaVersion
         else {
           val scalaLibJarName = scalaLibCp.split(File.pathSeparator)
-            .map(_.split(Pattern.quote(File.separator)).last).find(_.startsWith("scala-library-"))
+            .map(_.split("[\\\\/]+").last).find(_.startsWith("scala-library-"))
             .getOrElse {
               sys.error(s"scala-library not found in provided class path $scalaLibCp")
             }
