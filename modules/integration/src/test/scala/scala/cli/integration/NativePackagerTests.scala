@@ -64,7 +64,9 @@ class NativePackagerTests extends ScalaCliSuite {
       }
     }
 
-    test("building dmg package") {
+    // building dmg package sometimes fails with:
+    // 'hdiutil: couldn't eject "disk2" - Resource busy'
+    test("building dmg package".flaky) {
 
       testInputs.fromRoot { root =>
 
