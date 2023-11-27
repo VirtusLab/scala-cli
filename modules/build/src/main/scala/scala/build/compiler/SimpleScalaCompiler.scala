@@ -1,8 +1,7 @@
 package scala.build.compiler
 
 import java.io.File
-
-import scala.build.internal.Runner
+import scala.build.internal.{Constants, Runner}
 import scala.build.{Logger, Positioned, Project}
 
 /** A simple Scala compiler designed to handle scaladocs, Java projects & get `scalac` outputs.
@@ -51,6 +50,8 @@ final case class SimpleScalaCompiler(
     *   sources to be passed when running `scalac` (optional)
     * @param outputDir
     *   output directory for the compiler (optional)
+    * @param argsFileDir
+    *   output directory for the args file (optional)
     * @param cwd
     *   working directory for running the compiler
     * @param logger
@@ -67,6 +68,7 @@ final case class SimpleScalaCompiler(
     compilerClassPath: Seq[os.Path],
     sources: Seq[String],
     outputDir: Option[os.Path],
+    argsFilePath: Option[os.Path],
     cwd: os.Path,
     logger: Logger
   ): Int = {
@@ -80,7 +82,16 @@ final case class SimpleScalaCompiler(
         Seq("-cp", classPath.map(_.toString).mkString(File.pathSeparator))
       else Nil
 
-    val args = scalacOptions ++ outputDirArgs ++ classPathArgs ++ sources
+    val args = {
+      val freeArgs = scalacOptions ++ outputDirArgs ++ classPathArgs ++ sources
+
+      if (freeArgs.size > Constants.maxScalacArgumentsCount)
+        argsFilePath.fold(freeArgs) { path =>
+          os.write(path, freeArgs.mkString(System.lineSeparator()))
+          Seq(s"@$path")
+        }
+      else freeArgs
+    }
 
     val javaCommand =
       javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
@@ -130,6 +141,7 @@ final case class SimpleScalaCompiler(
       compilerClassPath = project.scalaCompiler.map(_.compilerClassPath).getOrElse(Nil),
       sources = project.sources.map(_.toString),
       outputDir = Some(outputDir),
+      argsFilePath = Some(project.argsFilePath),
       cwd = project.workspace,
       logger = logger
     )
@@ -176,6 +188,7 @@ final case class SimpleScalaCompiler(
           compilerClassPath = compilerClassPath,
           sources = Nil,
           outputDir = None,
+          argsFilePath = None,
           cwd = os.pwd,
           logger = logger
         )

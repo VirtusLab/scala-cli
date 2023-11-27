@@ -431,6 +431,8 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
          |  def jvmPropertiesFileName = "$jvmPropertiesFileName"
+         |  def scalacArgumentsFileName = "scalac.args.txt"
+         |  def maxScalacArgumentsCount = 5000
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
