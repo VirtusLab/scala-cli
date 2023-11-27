@@ -20,6 +20,7 @@ import scala.util.Properties
 
 object ScalaCli {
 
+  // TODO: Remove this part once fix is released in os-lib (Issue #2585)
   if (scala.util.Try(os.Path(System.getProperty("user.home"))).isFailure) {
     System.err.println("Warning: user.home property is not set, setting it to user.dir")
     System.setProperty("user.home", System.getProperty("user.dir"))
