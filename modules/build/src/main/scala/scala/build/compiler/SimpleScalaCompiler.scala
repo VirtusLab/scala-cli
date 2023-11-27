@@ -1,6 +1,7 @@
 package scala.build.compiler
 
 import java.io.File
+
 import scala.build.internal.{Constants, Runner}
 import scala.build.{Logger, Positioned, Project}
 

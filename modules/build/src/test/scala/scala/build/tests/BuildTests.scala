@@ -53,7 +53,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  def sv2 = "2.13.5"
+  def sv2 = Constants.defaultScala213Version
   val defaultOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
@@ -62,7 +62,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     scriptOptions = ScriptOptions(Some(true))
   )
 
-  def sv3 = "3.0.0"
+  def sv3 = Constants.defaultScalaVersion
   val defaultScala3Options = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),
@@ -390,10 +390,11 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       (root, _, maybeBuild) =>
         val expectedDiag = {
           val start = new bsp4j.Position(2, 0)
-          val end   = new bsp4j.Position(2, 0) // would have expected (2, 2) here :|
+          val end   = new bsp4j.Position(2, 2)
           val range = new bsp4j.Range(start, end)
           val d     = new bsp4j.Diagnostic(range, "Not found: zz")
           d.setSource("bloop")
+          d.setCode("6")
           d.setSeverity(bsp4j.DiagnosticSeverity.ERROR)
           val bScalaDiagnostic = new bsp4j.ScalaDiagnostic
           bScalaDiagnostic.setActions(List().asJava)
@@ -930,4 +931,24 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       }
     }
   }
+
+  for (options <- Seq(defaultOptions, defaultScala3Options))
+    test(s"compile 12k sources for Scala ${options.scalaOptions.scalaVersion.get.asString}") {
+      val mainInput = os.rel / "main.sc" ->
+        """//> using jvm 11
+          |println("Hello from big build")
+          |""".stripMargin
+
+      val additionalInputs = 1 to 12000 map { i =>
+        os.rel / s"Foo$i.scala" ->
+          s"""object Foo$i
+             |""".stripMargin
+      }
+
+      val testInputs = TestInputs(mainInput +: additionalInputs: _*)
+
+      testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        expect(maybeBuild.exists(_.success))
+      }
+    }
 }
