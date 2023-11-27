@@ -63,11 +63,7 @@ class NativePackagerTests extends ScalaCliSuite {
         }
       }
     }
-
-    // building dmg package sometimes fails with:
-    // 'hdiutil: couldn't eject "disk2" - Resource busy'
-    test("building dmg package".flaky) {
-
+    def testBuildingDmgPackage(): Unit =
       testInputs.fromRoot { root =>
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
@@ -109,6 +105,15 @@ class NativePackagerTests extends ScalaCliSuite {
           )
         }
       }
+
+    // FIXME: building dmg package sometimes fails with:
+    // 'hdiutil: couldn't eject "disk2" - Resource busy'
+    if (TestUtil.isM1 || !TestUtil.isCI)
+      test("building dmg package") {
+        testBuildingDmgPackage()
+      }
+    else test("building dmg package".flaky) {
+      testBuildingDmgPackage()
     }
   }
 

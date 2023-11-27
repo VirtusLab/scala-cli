@@ -18,6 +18,7 @@ object TestUtil {
   val isNativeCli: Boolean         = cliKind.startsWith("native")
   val isJvmCli: Boolean            = cliKind.startsWith("jvm")
   val isCI: Boolean                = System.getenv("CI") != null
+  val isM1: Boolean                = sys.props.get("os.arch").contains("aarch64")
   val cliPath: String              = sys.props("test.scala-cli.path")
   val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
   val detectCliPath                = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
