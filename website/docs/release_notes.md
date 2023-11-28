@@ -7,6 +7,99 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.1.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.0)
+
+### Breaking update to Scala 2 scripts
+
+**Keep in mind that it ONLY applies to Scala 2! Scala 3 script wrappers are not affected!**
+
+Scala CLI now uses the different kind of script wrappers for Scala 2, which support running background threads.
+However, the new solution brings some incompatibilities with the old behaviour:
+- main classes are now named the same as the file they are defined in, they do not have the '_sc' suffix anymore, so any calls like:
+```bash ignore
+scala-cli foo.sc bar.sc --main-class foo_sc
+```
+should be replaced with
+```bash ignore
+scala-cli foo.sc bar.sc --main-class foo
+```
+- it is impossible to access the contents of a script named `main.sc` from another source, any references to the script object `main` will result in a compilation error.
+E.g. Accessing the contents of `main.sc` using the following code:
+```scala
+println(main.somethingDefinedInMainScript)
+```
+Will result in the following compilation error:
+```bash ignore
+[error] ./foo.sc:2:11
+[error] missing argument list for method main in trait App
+[error] Unapplied methods are only converted to functions when a function type is expected.
+[error] You can make this conversion explicit by writing `main _` or `main(_)` instead of `main`.
+```
+When `main.sc` is passed as argument together with other scripts, a warning will be displayed:
+```bash ignore
+[warn]  Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols
+```
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#2556](https://github.com/VirtusLab/scala-cli/pull/2556)
+
+### "Drive relative" paths on Windows
+
+Scala CLI now correctly recognizes "drive relative" paths on Windows, so paths like `/foo/bar` will be treated as relative to the root of a drive you're on - e.g. `C:/foo/bar`.
+This allows for compatibility of programs referencing paths with e.g. `//> using file /foo/bar` with Windows.
+
+Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/VirtusLab/scala-cli/pull/2516)
+
+### UX improvements
+* React to some HTTP responses by [@MaciejG604](https://github.com/MaciejG604) in [#2007](https://github.com/VirtusLab/scala-cli/pull/2007)
+* Chore/group warnings about directives in multiple files by [@MaciejG604](https://github.com/MaciejG604) in [#2550](https://github.com/VirtusLab/scala-cli/pull/2550)
+
+### Enhancements
+* Default to publish repository configured for local machine when infering publish.ci.repository by [@MaciejG604](https://github.com/MaciejG604) in [#2571](https://github.com/VirtusLab/scala-cli/pull/2571)
+* Skip validation for default Scala versions, add build test by [@MaciejG604](https://github.com/MaciejG604) in [#2576](https://github.com/VirtusLab/scala-cli/pull/2576)
+
+### Fixes
+* Take into consideration --project-version when creating BuildInfo by [@MaciejG604](https://github.com/MaciejG604) in [#2548](https://github.com/VirtusLab/scala-cli/pull/2548)
+* Workaround for home.dir property not being set by [@MaciejG604](https://github.com/MaciejG604) in [#2573](https://github.com/VirtusLab/scala-cli/pull/2573)
+* Pass scalac arguments as file by [@MaciejG604](https://github.com/MaciejG604) in [#2584](https://github.com/VirtusLab/scala-cli/pull/2584)
+
+### Documentation changes
+* Add a doc on Windows anti-malware submission procedure by [@Gedochao](https://github.com/Gedochao) in [#2546](https://github.com/VirtusLab/scala-cli/pull/2546)
+* Fix list of licenses URL by [@JD557](https://github.com/JD557) in [#2552](https://github.com/VirtusLab/scala-cli/pull/2552)
+* Fix Windows secrets path in the documentation by [@JD557](https://github.com/JD557) in [#2561](https://github.com/VirtusLab/scala-cli/pull/2561)
+* Update the pgp-pair section of publish setup docs by [@MaciejG604](https://github.com/MaciejG604) in [#2565](https://github.com/VirtusLab/scala-cli/pull/2565)
+* Back port of documentation changes to main by @github-actions in [#2569](https://github.com/VirtusLab/scala-cli/pull/2569)
+* Document --python flag by [@MaciejG604](https://github.com/MaciejG604) in [#2574](https://github.com/VirtusLab/scala-cli/pull/2574)
+* Document publishing process configuration by [@MaciejG604](https://github.com/MaciejG604) in [#2580](https://github.com/VirtusLab/scala-cli/pull/2580)
+
+### Build and internal changes
+* Exclude conflicting dependencies by [@MaciejG604](https://github.com/MaciejG604) in [#2541](https://github.com/VirtusLab/scala-cli/pull/2541)
+* Generate test reports on the CI by [@Gedochao](https://github.com/Gedochao) in [#2543](https://github.com/VirtusLab/scala-cli/pull/2543)
+* Use the latest `scala-cli` in `macos-m1-tests` by [@Gedochao](https://github.com/Gedochao) in [#2554](https://github.com/VirtusLab/scala-cli/pull/2554)
+* Install `scala-cli` with `cs` on M1 by [@Gedochao](https://github.com/Gedochao) in [#2555](https://github.com/VirtusLab/scala-cli/pull/2555)
+* Fix generating test reports for failed suites by [@Gedochao](https://github.com/Gedochao) in [#2564](https://github.com/VirtusLab/scala-cli/pull/2564)
+* Pin `scala-cli-setup` version to be M1-compatible & use it in `native-macos-m1-tests` by [@Gedochao](https://github.com/Gedochao) in [#2568](https://github.com/VirtusLab/scala-cli/pull/2568)
+* Add log separators for integration and build tests by [@MaciejG604](https://github.com/MaciejG604) in [#2570](https://github.com/VirtusLab/scala-cli/pull/2570)
+* Adjust test report generation to mill 0.11.6 bump changes by [@Gedochao](https://github.com/Gedochao) in [#2577](https://github.com/VirtusLab/scala-cli/pull/2577)
+* Bump MacOS CI to `macOS-13` by [@Gedochao](https://github.com/Gedochao) in [#2579](https://github.com/VirtusLab/scala-cli/pull/2579)
+
+### Updates and maintenance
+* Update trees_2.13 to 4.8.13 by [@scala-steward](https://github.com/scala-steward) in [#2532](https://github.com/VirtusLab/scala-cli/pull/2532)
+* Update scala-cli.sh launcher for 1.0.6 by @github-actions in [#2542](https://github.com/VirtusLab/scala-cli/pull/2542)
+* chore: Update Bloop to v1.5.11-sc by [@tgodzik](https://github.com/tgodzik) in [#2557](https://github.com/VirtusLab/scala-cli/pull/2557)
+* Update trees_2.13 to 4.8.14 by [@scala-steward](https://github.com/scala-steward) in [#2560](https://github.com/VirtusLab/scala-cli/pull/2560)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.7.17 by [@scala-steward](https://github.com/scala-steward) in [#2559](https://github.com/VirtusLab/scala-cli/pull/2559)
+* Bump VirtusLab/scala-cli-setup from 1.0.5 to 1.0.6 by [@dependabot](https://github.com/dependabot) in [#2567](https://github.com/VirtusLab/scala-cli/pull/2567)
+* Update ammonite to 3.0.0-M0-59-cdeaa580 by [@scala-steward](https://github.com/scala-steward) in [#2558](https://github.com/VirtusLab/scala-cli/pull/2558)
+* Update mill-main to 0.11.6 by [@scala-steward](https://github.com/scala-steward) in [#2572](https://github.com/VirtusLab/scala-cli/pull/2572)
+* Update coursier-jvm_2.13, ... to 2.1.8 by [@scala-steward](https://github.com/scala-steward) in [#2575](https://github.com/VirtusLab/scala-cli/pull/2575)
+* Update ammonite to 3.0.0-M0-60-89836cd8 by [@scala-steward](https://github.com/scala-steward) in [#2586](https://github.com/VirtusLab/scala-cli/pull/2586)
+* Bump `coursier` to `v2.1.8` where it wasn't consistent by [@Gedochao](https://github.com/Gedochao) in [#2588](https://github.com/VirtusLab/scala-cli/pull/2588)
+
+## New Contributors
+* [@philwalk](https://github.com/philwalk) made their first contribution in [#2516](https://github.com/VirtusLab/scala-cli/pull/2516)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.0.6...v1.1.0
+
 ## [v1.0.6](https://github.com/VirtusLab/scala-cli/releases/tag/v1.0.6)
 
 ### Scala CLI won't default to the system JVM if it's not supported anymore
