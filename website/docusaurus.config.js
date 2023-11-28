@@ -13,14 +13,9 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'Virtuslab',
   projectName: 'scala-cli',
-  plugins: ['docusaurus-plugin-sass'],
+  plugins: ['docusaurus-plugin-sass', "@easyops-cn/docusaurus-search-local"],
   themeConfig: {
     image: "img/logo.png",
-    algolia: {
-      apiKey: '254542739498a46e1392862504c0b4a1',
-      indexName: 'scala-cli',
-      appId: 'BH4D9OD16A',
-    },
     prism: {
       theme: lightCodeTheme,
       darkTheme: darkCodeTheme,
