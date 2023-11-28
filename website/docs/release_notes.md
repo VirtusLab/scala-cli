@@ -2,6 +2,7 @@
 title: Release notes
 sidebar_position: 99
 ---
+import {ChainedSnippets} from "../src/components/MarkdownComponents.js";
 import ReactPlayer from 'react-player'
 
 
@@ -27,7 +28,7 @@ scala-cli -e 'println(System.getProperty("java.version"))'
 # might give more details.
 ```
 
-This is because we no longer support JVM <17 with Scala CLI v1.0.5, but we still have been defaulting to whatever JVM 
+This is because we no longer support JVM \<17 with Scala CLI v1.0.5, but we still have been defaulting to whatever JVM 
 was defined in `JAVA_HOME`. As a result, Bloop has been failing to start when running with, say, `JAVA_HOME` pointing 
 to Java 8.
 
@@ -2159,7 +2160,7 @@ Added in [#1347](https://github.com/VirtusLab/scala-cli/pull/1347) by [@wleczny]
 #### Fixes
 
 * Ensure directories are created recursively when the `package` sub-command is called by [@Gedochao](https://github.com/Gedochao) in [#1371](https://github.com/VirtusLab/scala-cli/pull/1371)
-* Fix calculation of Scala version and turn off the `-release` flag for 2.12.x < 2.12.5 by [@Gedochao](https://github.com/Gedochao) in [#1377](https://github.com/VirtusLab/scala-cli/pull/1377)
+* Fix calculation of Scala version and turn off the `-release` flag for 2.12.x \< 2.12.5 by [@Gedochao](https://github.com/Gedochao) in [#1377](https://github.com/VirtusLab/scala-cli/pull/1377)
 * Fix finding main classes in external jars by [@Gedochao](https://github.com/Gedochao) in [#1380](https://github.com/VirtusLab/scala-cli/pull/1380)
 * Fix Js split style SmallModulesFor in pure JVM by [@lwronski](https://github.com/lwronski) in [#1394](https://github.com/VirtusLab/scala-cli/pull/1394)
 
@@ -2187,7 +2188,7 @@ Added in [#1347](https://github.com/VirtusLab/scala-cli/pull/1347) by [@wleczny]
 
 ## [v0.1.14](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.14)
 
-### Hotfix printing stacktraces from Scala CLI runner for Scala 3.x < 3.2.0
+### Hotfix printing stacktraces from Scala CLI runner for Scala 3.x /< 3.2.0
 We fixed a nasty bug breaking any Scala CLI run using any Scala 3 version earlier than 3.2.0 on printing stacktraces.
 Only Scala CLI 0.1.13 was affected.
 ```

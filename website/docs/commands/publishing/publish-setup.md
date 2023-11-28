@@ -66,7 +66,7 @@ scala-cli --power config publish.user.email "alex@alex.me"
 scala-cli --power config publish.user.url "https://alex.me"
 ```
 
-<!-- clear -->
+\<!-- clear -->
 
 The email can be left empty if you'd rather not put your email in POM files:
 ```bash
@@ -151,7 +151,7 @@ scala-cli config github.token "command:xclip -selection clipboard -o" --password
 `publish setup` infers some publishing parameters from the GitHub URL of your project.
 It also uploads repository secrets there, when setting up publishing on GitHub actions.
 
-To create a new repository from a project, head to <https://repo.new>, pick a name
+To create a new repository from a project, head to `https://repo.new`, pick a name
 for your project and create the repository. Note its URL, and do
 ```bash ignore
 scala-cli default-file .gitignore --write # if you don't have a .gitignore already

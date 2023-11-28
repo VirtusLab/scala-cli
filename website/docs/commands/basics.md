@@ -2,8 +2,8 @@
 title: Basics
 sidebar_position: 3
 ---
-
 import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+
 
 Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
 given [configuration](/docs/guides/configuration.md) to produce a result.
@@ -174,7 +174,7 @@ Make sure that you trust the code that you are about to run.
 Scala CLI accepts input via URLs pointing at `.scala` files.
 It downloads their content, and runs them:
 
-<ChainedSnippet>
+<ChainedSnippets>
 
 ```bash
 scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.scala
@@ -184,7 +184,7 @@ scala-cli https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d63
 Hello from Scala GitHub Gist
 ```
 
-</ChainedSnippet>
+</ChainedSnippets>
 
 ### GitHub Gist
 

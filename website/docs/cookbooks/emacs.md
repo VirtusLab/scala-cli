@@ -4,7 +4,7 @@ sidebar_position: 14
 ---
 
 Emacs users can make it easier to use Scala CLI from within their editor by
-loading an extension: <https://github.com/ag91/scala-cli-repl>.
+loading an extension: [https://github.com/ag91/scala-cli-repl](https://github.com/ag91/scala-cli-repl).
 
 That lets you send Scala code directly from your buffer to the Scala REPL.
 
