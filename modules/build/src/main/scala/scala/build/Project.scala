@@ -15,6 +15,7 @@ import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
 final case class Project(
   workspace: os.Path,
   directory: os.Path,
+  argsFilePath: os.Path,
   classesDir: os.Path,
   scaladocDir: os.Path,
   scalaCompiler: Option[ScalaCompilerParams],

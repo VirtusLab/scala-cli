@@ -472,8 +472,10 @@ object Build {
     }
   }
 
+  def projectRootDir(root: os.Path, projectName: String): os.Path =
+    root / Constants.workspaceDirName / projectName
   def classesRootDir(root: os.Path, projectName: String): os.Path =
-    root / Constants.workspaceDirName / projectName / "classes"
+    projectRootDir(root, projectName) / "classes"
   def classesDir(root: os.Path, projectName: String, scope: Scope, suffix: String = ""): os.Path =
     classesRootDir(root, projectName) / s"${scope.name}$suffix"
 
@@ -948,6 +950,8 @@ object Build {
 
     val project = Project(
       directory = inputs.workspace / Constants.workspaceDirName,
+      argsFilePath =
+        projectRootDir(inputs.workspace, inputs.projectName) / Constants.scalacArgumentsFileName,
       workspace = inputs.workspace,
       classesDir = classesDir0,
       scaladocDir = scaladocDir,
@@ -1026,14 +1030,24 @@ object Build {
 
       val projectChanged = compiler.prepareProject(project, logger)
 
-      if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
-        logger.debug(s"Clearing $classesDir0")
-        os.list(classesDir0).foreach { p =>
-          logger.debug(s"Removing $p")
-          try os.remove.all(p)
+      if (projectChanged) {
+        if (compiler.usesClassDir && os.isDir(classesDir0)) {
+          logger.debug(s"Clearing $classesDir0")
+          os.list(classesDir0).foreach { p =>
+            logger.debug(s"Removing $p")
+            try os.remove.all(p)
+            catch {
+              case ex: FileSystemException =>
+                logger.debug(s"Ignoring $ex while cleaning up $p")
+            }
+          }
+        }
+        if (os.exists(project.argsFilePath)) {
+          logger.debug(s"Removing ${project.argsFilePath}")
+          try os.remove(project.argsFilePath)
           catch {
             case ex: FileSystemException =>
-              logger.debug(s"Ignoring $ex while cleaning up $p")
+              logger.debug(s"Ignoring $ex while cleaning up ${project.argsFilePath}")
           }
         }
       }
@@ -1071,18 +1085,6 @@ object Build {
         logger,
         buildClient
       )
-    }
-
-    if (compiler.usesClassDir && projectChanged && os.isDir(classesDir0)) {
-      logger.debug(s"Clearing $classesDir0")
-      os.list(classesDir0).foreach { p =>
-        logger.debug(s"Removing $p")
-        try os.remove.all(p)
-        catch {
-          case ex: FileSystemException =>
-            logger.debug(s"Ignore $ex while removing $p")
-        }
-      }
     }
 
     buildClient.clear()
