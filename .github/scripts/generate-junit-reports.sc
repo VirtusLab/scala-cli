@@ -27,7 +27,7 @@ def findFiles(paths: Seq[os.Path], result: Seq[os.Path] = Nil): Seq[os.Path] =
     case Nil => result
     case head :: tail =>
       val newFiles =
-        if head.last == "test.dest" && os.isDir(head) then
+        if head.segments.contains("test") && head.last.endsWith(".dest") && os.isDir(head) then
           os.list(head).filter(f => f.last == "out.json").toList
         else Seq.empty
       val newDirs = os.list(head).filter(p => os.isDir(p)).toList
@@ -62,6 +62,10 @@ if !os.isDir(rootPath) then {
 val reports: Seq[os.Path] = findFiles(Seq(rootPath))
 println(s"Found ${reports.length} mill json reports:")
 println(reports.mkString("\n"))
+if reports.isEmpty then {
+  println("Error: no reports found!")
+  System.exit(1)
+}
 println("Reading reports...")
 val tests: Seq[Test] = reports.map(x => ujson.read(x.toNIO)).flatMap { json =>
   json(1).value.asInstanceOf[ArrayBuffer[ujson.Obj]].map { test =>
@@ -87,6 +91,10 @@ val tests: Seq[Test] = reports.map(x => ujson.read(x.toNIO)).flatMap { json =>
   }
 }
 println(s"Found ${tests.length} tests.")
+if tests.isEmpty then {
+  println("Error: no tests found!")
+  System.exit(1)
+}
 println("Generating JUnit XML report...")
 val suites = tests.groupBy(_.fullyQualifiedName).map { case (suit, tests) =>
   val testcases = tests.map { test =>
