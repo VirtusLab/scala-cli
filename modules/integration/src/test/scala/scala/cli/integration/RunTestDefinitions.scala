@@ -2101,6 +2101,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       val input = "script.sc"
       TestInputs(os.rel / input -> s"println(\"$msg\")")
         .fromRoot { root =>
+          expect(!os.isDir(root / getCoursierCacheRelPath))
           val res = os.proc(customCall, "run", extraOptions, "--server=false", input)
             .call(
               cwd = root,
@@ -2112,7 +2113,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
               "user.home property is not valid: ?, setting it to user.dir value"
             )
           )
-          expect(os.isDir(root / getCoursierCacheRelPath))
+          if (!Properties.isWin) // coursier cache location on Windows does not depend on home dir
+            expect(os.isDir(root / getCoursierCacheRelPath))
         }
     }
 
@@ -2124,7 +2126,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       .fromRoot { root =>
         val newHomePath = root / "home"
         os.makeDir(newHomePath)
-        expect(!os.isDir(newHomePath / "Library" / "Caches" / "Coursier"))
+        expect(!os.isDir(newHomePath / getCoursierCacheRelPath))
         val extraEnv = Map("SCALA_CLI_HOME_DIR_OVERRIDE" -> newHomePath.toString())
 
         val res = os.proc(TestUtil.cli, "run", extraOptions, "--server=false", input)
@@ -2139,7 +2141,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             "user.home property overridden with the SCALA_CLI_HOME_DIR_OVERRIDE"
           )
         )
-        expect(os.isDir(newHomePath / getCoursierCacheRelPath))
+        if (!Properties.isWin) // coursier cache location on Windows does not depend on home dir
+          expect(os.isDir(newHomePath / getCoursierCacheRelPath))
       }
   }
 }
