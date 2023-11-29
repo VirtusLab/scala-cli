@@ -2087,4 +2087,62 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(res.err.trim().contains("JVM (11)"))
     }
   }
+
+  // TODO: Remove this part once fix is released in os-lib (Issue #2585)
+  def getCoursierCacheRelPath: os.RelPath =
+    if (Properties.isWin) os.rel / "Coursier" / "Cache"
+    else if (Properties.isMac) os.rel / "Library" / "Caches" / "Coursier"
+    else os.rel / ".cache" / "coursier"
+  if (TestUtil.isJvmCli) // can't reproduce on native image launchers
+    test("user.home is overridden with user.dir") {
+      val customCall =
+        Seq("java", "-Xmx512m", "-Xms128m", "-Duser.home=?", "-jar", TestUtil.cliPath)
+      val msg   = "Hello"
+      val input = "script.sc"
+      TestInputs(os.rel / input -> s"println(\"$msg\")")
+        .fromRoot { root =>
+          expect(!os.isDir(root / getCoursierCacheRelPath))
+          val res = os.proc(customCall, "run", extraOptions, "--server=false", input)
+            .call(
+              cwd = root,
+              stderr = os.Pipe
+            )
+          expect(res.out.trim() == msg)
+          expect(
+            res.err.trim().contains(
+              "user.home property is not valid: ?, setting it to user.dir value"
+            )
+          )
+          if (!Properties.isWin) // coursier cache location on Windows does not depend on home dir
+            expect(os.isDir(root / getCoursierCacheRelPath))
+        }
+    }
+
+  // TODO: Remove this part once fix is released in os-lib (Issue #2585)
+  test("user.home is overridden by SCALA_CLI_HOME_DIR_OVERRIDE") {
+    val msg   = "Hello"
+    val input = "script.sc"
+    TestInputs(os.rel / input -> s"println(\"$msg\")")
+      .fromRoot { root =>
+        val newHomePath = root / "home"
+        os.makeDir(newHomePath)
+        expect(!os.isDir(newHomePath / getCoursierCacheRelPath))
+        val extraEnv = Map("SCALA_CLI_HOME_DIR_OVERRIDE" -> newHomePath.toString())
+
+        val res = os.proc(TestUtil.cli, "run", extraOptions, "--server=false", input)
+          .call(
+            cwd = root,
+            stderr = os.Pipe,
+            env = extraEnv
+          )
+        expect(res.out.trim() == msg)
+        expect(
+          res.err.trim().contains(
+            "user.home property overridden with the SCALA_CLI_HOME_DIR_OVERRIDE"
+          )
+        )
+        if (!Properties.isWin) // coursier cache location on Windows does not depend on home dir
+          expect(os.isDir(newHomePath / getCoursierCacheRelPath))
+      }
+  }
 }
