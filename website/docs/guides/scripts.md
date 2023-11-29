@@ -241,5 +241,5 @@ On the other hand:
 
 - You can pass a single "entry point" script as input to Ammonite, and Ammonite finds the scripts it depends on via
   the `import $file` directives
-- Scala CLI requires all scripts to be passed beforehand, either one-by-one, or by putting them in a directory, and
+- Scala CLI requires all scripts to be added with `//> using file ...` or to be passed beforehand, either one-by-one, or by putting them in a directory, and
   passing the directory to Scala CLI
