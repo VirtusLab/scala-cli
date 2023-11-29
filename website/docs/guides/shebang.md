@@ -2,6 +2,7 @@
 title: Shebang
 sidebar_position: 31
 ---
+import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 
 This guide explains the differences between the `run` and `shebang` sub-commands, mainly covering how each of them
