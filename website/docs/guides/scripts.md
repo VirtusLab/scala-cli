@@ -29,37 +29,52 @@ Hello from Scala script
 
 </ChainedSnippets>
 
-The way this works is that a script is wrapped in an `object` before it's passed to the Scala compiler, and a `main`
-method is added to it.
-In the previous example, when the `hello.sc` script is passed to the compiler, the altered code looks like this:
+## Using multiple scripts together
 
-```scala
-object hello {
-  val message = "Hello from Scala script"
-  println(message)
+When you pass multiple scripts to Scala CLI at once ([or add them with `>// using file ...`](#define-source-files-in-using-directives), they are all compiled together and can reference each other.
+Their names are inferred from the file name e.g. `hello.sc` becomes `hello` and `main.sc` becomes `main`.
 
-  def main(args: Array[String]): Unit = ()
-}
+:::caution
+Referencing a script from `main.sc` is not always possible.
+More in [Scala 2 scripts wrapper](#scala-2-scripts-wrapper).
+:::
+
+```scala title=message.sc
+def msg = "from Scala script"
 ```
 
-The name `hello` comes from the file name, `hello.sc`.
+```scala title=hello.sc
+println("Hello " + message.msg)
+```
+
+<ChainedSnippets>
+
+```bash
+scala-cli hello.sc message.sc
+```
+
+```text
+Hello from Scala script
+```
+
+</ChainedSnippets>
 
 When a script is in a sub-directory, a package name is also inferred:
 
-```scala title=my-app/constants/messages.sc
-def hello = "Hello from Scala scripts"
+```scala title=my-app/constants/message.sc
+def msg = "Hello from Scala scripts"
 ```
 
 ```scala title=my-app/main.sc
-import constants.messages
-println(messages.hello)
+import constants.message
+println("Hello " + message.msg)
 ```
 
 Please note: when referring to code from another script, the actual relative path from the project root is used for the
-package path. In the example above, as `messages.sc` is located in the `my-app/constants/` directory, to use the `hello`
-function you have to call `constants.messages.hello`.
+package path. In the example above, as `message.sc` is located in the `my-app/constants/` directory, to use the `msg`
+function you have to call `constants.message.msg`.
 
-When referring to code from a piped script, just use its wrapper name: `stdin`.
+When referencing code from a piped script, just use `stdin`.
 
 <ChainedSnippets>
 
@@ -88,6 +103,11 @@ Hello from Scala scripts
 
 </ChainedSnippets>
 
+:::caution
+When specifying a main class from Scala 2 scripts, you need to use the script file name without the `_sc` suffix.
+More in [Scala 2 scripts wrapper](#scala-2-scripts-wrapper).
+:::
+
 Both of the previous scripts (`hello.sc` and `main.sc`) automatically get a main class, so this is required to
 disambiguate them. If a main class coming from a regular `.scala` file is present in your app's context, that will be
 run by default if the `--main-class` param is not explicitly specified.
@@ -109,7 +129,41 @@ stdin_sc script_sc main2 main1
 
 </ChainedSnippets>
 
-### Self executable Scala Script
+## Define source files in using directives
+
+You can also add source files with the using directive `//> using file` in Scala scripts:
+
+```scala title=main.sc
+//> using file Utils.scala
+
+println(Utils.message)
+```
+
+```scala title=Utils.scala
+object Utils {
+  val message = "Hello World"
+}
+```
+
+Scala CLI takes into account and compiles `Utils.scala`.
+
+<ChainedSnippets>
+
+```bash
+scala-cli main.sc
+```
+
+```text
+Hello World
+```
+
+</ChainedSnippets>
+
+<!-- Expected:
+Hello World
+-->
+
+## Self executable Scala Script
 
 You can define a file with the “shebang” header to be self-executable. Please remember to use `scala-cli shebang`
 command, which makes Scala CLI compatible with Unix shebang interpreter directive. For example, given this script:
@@ -144,7 +198,7 @@ The command `shebang` also allows script files to be executed even if they have 
 provided they start with the [`shebang` header](../guides/shebang.md#shebang-script-headers).
 Note that those files are always run as scripts even though they may contain e.g. valid `.scala` program.
 
-### Arguments
+## Arguments
 
 You may also pass arguments to your script, and they are referenced with the special `args` variable:
 
@@ -167,7 +221,7 @@ world
 
 </ChainedSnippets>
 
-### The name of script
+## The name of script
 
 You can access the name of the running script inside the script itself using the special `scriptPath` variable:
 
@@ -194,41 +248,64 @@ chmod +x script.sc
 
 </ChainedSnippets>
 
-### Define source files in using directives
+## Script wrappers
 
-You can also add source files with the using directive `//> using file` in Scala scripts:
+The compilation and execution of a source file containing top-level definitions is possible due to the script's code being wrapper in an additional construct and given a `main` method.
+Scala CLI as of version v1.1.0 uses three kinds of script wrappers depending on the project's configuration.
+They each differ slightly and have different capabilities and limitations.
 
-```scala title=main.sc
-//> using file Utils.scala
+### Scala 2 scripts wrapper
 
-println(Utils.message)
-```
+For scripts compiled with Scala 2.12 and 2.13 there's only a single wrapper available.
+It uses an object extending the `App` trait to wrap the user's code.
 
-```scala title=Utils.scala
-object Utils {
-  val message = "Hello World"
-}
-```
+**Limitations**  
+Thanks to the mechanics of `App` in Scala 2, this wrapper has no reported limitations when it comes to the code that can be run in it. 
 
-Scala CLI takes into account and compiles `Utils.scala`.
+**Differences in behaviour**  
+- It is not possible to reference contents of a script from a file called `main.sc`, as the name `main` clashes with a `main` method each wrapper contains.
+- The main class name is the name of the script file without the `.sc` suffix. For example, `hello.sc` becomes `hello`.
 
-<ChainedSnippets>
+### Scala 3 scripts wrappers
 
-```bash
-scala-cli main.sc
-```
+For Scala 3 there are two wrappers available:
+- Class Wrapper - default wrapper for Scala 3 scripts
+- Object Wrapper - extra wrapper that can be forced with `--object-wrapper` flag and `>// using  objectWrapper` directive
 
-```text
-Hello World
-```
+#### Class Wrapper
+This wrapper is the default for scripts in Scala 3, however, it cannot be used when the script is compiled for the JS platform, [Object Wrapper](#object-wrapper) is then used.
+Due to the usage of `export` keyword it is not possible to use it in Scala 2.
 
-</ChainedSnippets>
+**Limitations**  
+- Can't be used with scripts compiled for the JS platform
+- Can't be used in Scala 2
+- When referencing types defined in the script, the type's path can be different from expected and compilation may fail with:  
+`Error: Unexpected error when compiling project: 'assertion failed: asTerm called on not-a-Term val <none>'`
 
-<!-- Expected:
-Hello World
--->
+**Differences in behaviour**  
+The Class Wrapper's behaviour is the default described throughout the documentation.
 
-### Difference with Ammonite scripts
+#### Object Wrapper
+This wrapper is an alternative to the [Class Wrapper](#class-wrapper) and can be forced with `--object-wrapper` flag and `>// using  objectWrapper` directive.
+It is used by default for Scala 3 scripts compiled for JS platform. Can suffer from deadlocks then using multithreaded code.
+
+**Limitations**  
+- When running background threads from the script and using e.g. `scala.concurrent.Await` on them may result in a deadlock due to unfinished initialization of the wrapper object.
+
+**Differences in behaviour**  
+The Object Wrapper's behaviour is the default described throughout the documentation.
+
+### Summary
+The wrapper type used according to the configuration used ((platform + forced type) X Scala version) is summarized in the table below:
+
+|                             | Scala 2.12  | Scala 2.13  | Scala 3        |
+|-----------------------------|-------------|-------------|----------------|
+| `>// using platform jvm`    | App Wrapper | App Wrapper | Class Wrapper  |
+| `>// using platform native` | App Wrapper | App Wrapper | Class Wrapper  |
+| `>// using platform js`     | App Wrapper | App Wrapper | Object Wrapper |
+| `>// using objectWrapper`   | App Wrapper | App Wrapper | Object Wrapper |
+
+## Differences with Ammonite scripts
 
 [Ammonite](http://ammonite.io) is a popular REPL for Scala that can also compile and run `.sc` files.
 
