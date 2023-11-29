@@ -2188,7 +2188,7 @@ Added in [#1347](https://github.com/VirtusLab/scala-cli/pull/1347) by [@wleczny]
 
 ## [v0.1.14](https://github.com/VirtusLab/scala-cli/releases/tag/v0.1.14)
 
-### Hotfix printing stacktraces from Scala CLI runner for Scala 3.x /< 3.2.0
+### Hotfix printing stacktraces from Scala CLI runner for Scala 3.x \< 3.2.0
 We fixed a nasty bug breaking any Scala CLI run using any Scala 3 version earlier than 3.2.0 on printing stacktraces.
 Only Scala CLI 0.1.13 was affected.
 ```
