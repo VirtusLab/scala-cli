@@ -55,9 +55,10 @@ Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/
 ### UX improvements
 * React to some HTTP responses by [@MaciejG604](https://github.com/MaciejG604) in [#2007](https://github.com/VirtusLab/scala-cli/pull/2007)
 * Chore/group warnings about directives in multiple files by [@MaciejG604](https://github.com/MaciejG604) in [#2550](https://github.com/VirtusLab/scala-cli/pull/2550)
+* Migrate to Docusaurus v3, add local search plugin by [@MaciejG604](https://github.com/MaciejG604) in [#2590](https://github.com/VirtusLab/scala-cli/pull/2590)
 
 ### Enhancements
-* Default to publish repository configured for local machine when infering publish.ci.repository by [@MaciejG604](https://github.com/MaciejG604) in [#2571](https://github.com/VirtusLab/scala-cli/pull/2571)
+* Default to publish repository configured for local machine when inferring publish.ci.repository by [@MaciejG604](https://github.com/MaciejG604) in [#2571](https://github.com/VirtusLab/scala-cli/pull/2571)
 * Skip validation for default Scala versions, add build test by [@MaciejG604](https://github.com/MaciejG604) in [#2576](https://github.com/VirtusLab/scala-cli/pull/2576)
 
 ### Fixes
@@ -73,6 +74,7 @@ Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/
 * Back port of documentation changes to main by @github-actions in [#2569](https://github.com/VirtusLab/scala-cli/pull/2569)
 * Document --python flag by [@MaciejG604](https://github.com/MaciejG604) in [#2574](https://github.com/VirtusLab/scala-cli/pull/2574)
 * Document publishing process configuration by [@MaciejG604](https://github.com/MaciejG604) in [#2580](https://github.com/VirtusLab/scala-cli/pull/2580)
+* Back port of documentation changes to main by @github-actions in [#2593](https://github.com/VirtusLab/scala-cli/pull/2593)
 
 ### Build and internal changes
 * Exclude conflicting dependencies by [@MaciejG604](https://github.com/MaciejG604) in [#2541](https://github.com/VirtusLab/scala-cli/pull/2541)
@@ -84,6 +86,7 @@ Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/
 * Add log separators for integration and build tests by [@MaciejG604](https://github.com/MaciejG604) in [#2570](https://github.com/VirtusLab/scala-cli/pull/2570)
 * Adjust test report generation to mill 0.11.6 bump changes by [@Gedochao](https://github.com/Gedochao) in [#2577](https://github.com/VirtusLab/scala-cli/pull/2577)
 * Bump MacOS CI to `macOS-13` by [@Gedochao](https://github.com/Gedochao) in [#2579](https://github.com/VirtusLab/scala-cli/pull/2579)
+* Add env for configuring home directory overriding by [@MaciejG604](https://github.com/MaciejG604) in [#2587](https://github.com/VirtusLab/scala-cli/pull/2587)
 
 ### Updates and maintenance
 * Update trees_2.13 to 4.8.13 by [@scala-steward](https://github.com/scala-steward) in [#2532](https://github.com/VirtusLab/scala-cli/pull/2532)
