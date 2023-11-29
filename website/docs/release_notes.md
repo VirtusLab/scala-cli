@@ -13,7 +13,10 @@ import ReactPlayer from 'react-player'
 
 **Keep in mind that it ONLY applies to Scala 2! Scala 3 script wrappers are not affected!**
 
-Scala CLI now uses the different kind of script wrappers for Scala 2, which support running background threads.
+Scala CLI now uses a different kind of script wrappers for Scala 2 by default, which support running background threads.
+This has been introduces as an answer to the [issue #2470](https://github.com/VirtusLab/scala-cli/issues/2470), where a running a script in Scala 2 would end up in a deadlock due to background threads being run.
+Also the change makes the Scala 2 scripts run significantly faster, as the code can be optimized due to not residing in the object's initialization clause.
+
 However, the new solution brings some incompatibilities with the old behaviour:
 - main classes are now named the same as the file they are defined in, they do not have the '_sc' suffix anymore, so any calls like:
 ```bash ignore
@@ -44,7 +47,7 @@ Added by [@MaciejG604](https://github.com/MaciejG604) in [#2556](https://github.
 
 ### "Drive relative" paths on Windows
 
-Scala CLI now correctly recognizes "drive relative" paths on Windows, so paths like `/foo/bar` will be treated as relative to the root of a drive you're on - e.g. `C:/foo/bar`.
+Scala CLI now correctly recognizes "drive relative" paths on Windows, so paths like `/foo/bar` will be treated as relative from the root of the current drive - e.g. `C:\foo\bar`.
 This allows for compatibility of programs referencing paths with e.g. `//> using file /foo/bar` with Windows.
 
 Added by [@philwalk](https://github.com/philwalk) in [#2516](https://github.com/VirtusLab/scala-cli/pull/2516)
