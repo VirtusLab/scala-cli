@@ -17,7 +17,7 @@ There are a couple ways to specify them:
 ```
 - set them globally using `scala-cli config`, e.g. 
 ```bash ignore
-    scala-cli config -i java.properties "http.proxy=4.4.4.4" "http.user=User2" "coursier.credentials=..."
+    scala-cli --power config -i java.properties "http.proxy=4.4.4.4" "http.user=User2" "coursier.credentials=..."
 ```
 - set them globally in `JAVA_OPTS` or `JDK_JAVA_OPTIONS` environment variable, e.g. 
 ```bash ignore
