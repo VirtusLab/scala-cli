@@ -31,7 +31,7 @@ Hello from Scala script
 
 ## Using multiple scripts together
 
-When you pass multiple scripts to Scala CLI at once ([or add them with `>// using file ...`](#define-source-files-in-using-directives), they are all compiled together and can reference each other.
+When you pass multiple scripts to Scala CLI at once ([or add them with `//> using file ...`](#define-source-files-in-using-directives), they are all compiled together and can reference each other.
 Their names are inferred from the file name e.g. `hello.sc` becomes `hello` and `main.sc` becomes `main`.
 
 :::caution
