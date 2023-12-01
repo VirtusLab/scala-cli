@@ -130,7 +130,7 @@ object Keys {
     prefix = Nil,
     name = "java.properties",
     description =
-      "Java properties",
+      "Java properties for Scala CLI's execution.",
     specificationLevel = SpecificationLevel.SHOULD
   )
 
