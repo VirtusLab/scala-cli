@@ -744,4 +744,33 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         expect(!secondOutput.contains("Compiled project"))
       }
   }
+
+  test("pass java options to scalac when server=false") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "--scalac-option=-J-XX:MaxHeapSize=1k",
+        "--server=false",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode == 1)
+      assertNoDiff(
+        res.out.text(),
+        """Error occurred during initialization of VM
+          |Too small maximum heap
+          |Compilation failed
+          |""".stripMargin
+      )
+    }
+  }
 }
