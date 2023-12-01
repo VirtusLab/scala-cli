@@ -98,6 +98,9 @@ final case class SimpleScalaCompiler(
       javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
 
     val javaOptions = defaultJavaOptions ++
+      scalacOptions
+        .filter(_.startsWith("-J"))
+        .map(_.stripPrefix("-J")) ++
       javacOptions
         .filter(_.startsWith("-J"))
         .map(_.stripPrefix("-J"))
