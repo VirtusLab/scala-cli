@@ -110,7 +110,7 @@ You can also add java options with the using directive `//> using javaOpt`:
 //> using javaOpt -Xmx1g -Dfoo=bar
 ```
 
-Additionally, java properties can be passed to Scala CLI without `--java-prop`:
+Additionally, Java properties can be passed to the executed code without `--java-prop`:
 
 ```bash
 scala-cli Hello.scala -Dfoo=bar
