@@ -18,6 +18,8 @@ only requires the [Visual C++ Redistributable Runtime](https://www.microsoft.com
 on Windows.
 Native Image lets us build Scala CLI as a native image for each platform, and lets Scala CLI be responsive, as a command line application should be.
 
+However, Scala CLI is still a JVM application, so it is possible to e.g. set [Java properties](./guides/java-properties.md).
+
 ### Caching and incrementality
 
 Since most of the tasks require compilation or dependency resolution under the hood, Scala CLI heavily uses caches and incrementality under the hood to provide output as quickly as possible.
@@ -37,43 +39,3 @@ The main point to know is that Scala CLI takes care of fetching and starting Blo
 Scala CLI uses [Coursier](https://get-coursier.io/) to manage dependencies.
 It automatically downloads and unpacks a JVM if none is installed on your system, so that all its commands work fine even if a JVM isn't already installed.
 Scala CLI shares Coursier caches with other tools like [sbt](https://www.scala-sbt.org/), [Mill](https://github.com/com-lihaoyi/mill), or [Metals](https://scalameta.org/metals/).
-
-### scala-cli's JVM
-Scala CLI is a JVM application. Although by default it is distributed as a GraalVM native image, it is still possible to set Java properties.
-In order set them, the `-D` command-line flags must be placed as the first options to scala-cli, for example:
-
-``` bash
-scala-cli -Dfoo1=bar1 -Dfoo2=bar2 run ...
-```
-
-:::note
-- `scala-cli run . -Dfoo=bar` would pass the java property into your Scala app
-- `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli`.
-:::
-
-The Scala CLI can also load Java properties from the `.scala-jvmopts` file present in the current working
-directory and import these Java properties into Scala CLI. Any java options in the `.scala-jvmopts` that are not
-recognizable as Java properties will be ignored.
-
-The example below shows that the Java properties `foo1` and `foo2` from the `.scala-jvmopts` file will be passed
-into the Scala CLI:
-
-```bash ignore
-$ cat .scala-jvmopts
--Dfoo1=bar1 
--Dfoo2=bar2
-$ scala-cli run ...
-```
-
-You can set Java properties globally for the Scala CLI launcher using the `config` command.
-The example below shows how to set the Java properties `-Djavax.net.ssl.trustStore=cacerts` and `-Dfoo=bar2`:
-
-```bash
-scala-cli config java.properties Djavax.net.ssl.trustStore=cacerts Dfoo=bar2
-```
-
-:::note
-Please note that if you need to modify the Java properties, you have to redefine all of them. It's not possible
-to update just a single value via the `config` command. Each update effectively replaces the entire Java properties
-list.
-:::
