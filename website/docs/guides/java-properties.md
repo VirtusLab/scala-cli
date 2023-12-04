@@ -4,8 +4,10 @@ sidebar_position: 8
 ---
 
 Although the Scala CLI runner can be used as a native image and thus will not always be run on the JVM it still supports Java properties.
-There are a couple ways to specify them:
-- as command line arguments, before the sub-command name and sources, when invoking `scala-cli`, e.g.
+There are a couple ways to specify them.
+
+### On the Command line
+Java properties can be passed as arguments, before the sub-command name and sources, when invoking `scala-cli`, e.g.
 ```bash ignore
     scala-cli '-Dcoursier.credentials=maven.pkg.github.com Private_Token:gh_token1234' run .
 ```
@@ -14,13 +16,16 @@ There are a couple ways to specify them:
 - `scala-cli -Dfoo=bar run .` would pass the java property into `scala-cli`.
   :::
 
-- save them in `.scala-jvmopts` file in the project's root, e.g.
+### File named `.scala-jvmopts` 
+You can also use a `.scala-jvmopts` file placed in the project's root, example file content:
 ```text
 -Dcoursier.credentials=maven.pkg.github.com Private_Token:gh_token1234
 -Dhttp.proxy=4.4.4.4
 -Dhttp.user=User2
 ```
-- set them globally using `scala-cli config`, e.g. 
+
+### Scala CLI's `config`
+It's also possible to use the `config` subcommand to set the properties globally:
 ```bash ignore
     scala-cli --power config -i java.properties "http.proxy=4.4.4.4" "http.user=User2" "coursier.credentials=..."
 ```
@@ -30,7 +35,8 @@ to update just a single value via the `config` command. Each update effectively 
 list.
 :::
 
-- set them globally in `JAVA_OPTS` or `JDK_JAVA_OPTIONS` environment variable, e.g. 
+### `JAVA_OPTS` and `JDK_JAVA_OPTIONS`
+Scala CLI will also read environment variables `JAVA_OPTS` and `JDK_JAVA_OPTIONS` and scan them for Java properties:
 ```bash ignore
     export JAVA_OPTS="-Dhttp.proxy=4.4.4.4 -Dhttp.user=User2"
 ```
