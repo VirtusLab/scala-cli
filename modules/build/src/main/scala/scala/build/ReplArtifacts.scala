@@ -11,20 +11,21 @@ import scala.build.internal.CsLoggerUtil._
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, os.Path)],
+  depArtifacts: Seq[(String, os.Path)],
   extraClassPath: Seq[os.Path],
   extraSourceJars: Seq[os.Path],
   replMainClass: String,
   replJavaOpts: Seq[String],
-  addSourceJars: Boolean
+  addSourceJars: Boolean,
+  includeExtraCpOnReplCp: Boolean = false
 ) {
-  lazy val replClassPath: Seq[os.Path] = {
-    val cp =
-      if (addSourceJars)
-        extraClassPath ++ extraSourceJars ++ replArtifacts.map(_._2)
-      else
-        extraClassPath ++ replArtifacts.map(_._2)
-    cp.distinct
-  }
+  private lazy val fullExtraClassPath: Seq[os.Path] =
+    if addSourceJars then extraClassPath ++ extraSourceJars else extraClassPath
+  lazy val replClassPath: Seq[os.Path] =
+    (if includeExtraCpOnReplCp then fullExtraClassPath ++ replArtifacts.map(_._2).distinct
+     else replArtifacts.map(_._2))
+      .distinct
+  lazy val depsClassPath: Seq[os.Path] = (fullExtraClassPath ++ depArtifacts.map(_._2)).distinct
 }
 
 object ReplArtifacts {
@@ -68,12 +69,16 @@ object ReplArtifacts {
       classifiersOpt = Some(Set("sources"))
     )
     ReplArtifacts(
-      value(replArtifacts) ++ value(replSourceArtifacts),
-      extraClassPath,
-      extraSourceJars,
-      "ammonite.Main",
-      Nil,
-      addSourceJars = true
+      replArtifacts = value(replArtifacts) ++ value(replSourceArtifacts),
+      depArtifacts =
+        Nil, // amm does not support a -cp option, deps are passed directly to Ammonite cp
+      extraClassPath = extraClassPath,
+      extraSourceJars = extraSourceJars,
+      replMainClass = "ammonite.Main",
+      replJavaOpts = Nil,
+      addSourceJars = true,
+      includeExtraCpOnReplCp =
+        true // extra cp & source jars have to be passed directly to Ammonite cp
     )
   }
 
@@ -92,24 +97,32 @@ object ReplArtifacts {
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
-    val allDeps = dependencies ++ Seq(replDep) ++ scalapyDeps
+    val externalDeps = dependencies ++ scalapyDeps
     val replArtifacts =
       Artifacts.artifacts(
-        allDeps.map(Positioned.none),
+        Seq(replDep).map(Positioned.none),
         repositories,
         Some(scalaParams),
         logger,
         cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}")
       )
+    val depArtifacts = Artifacts.artifacts(
+      externalDeps.map(Positioned.none),
+      repositories,
+      Some(scalaParams),
+      logger,
+      cache.withMessage(s"Downloading REPL dependencies")
+    )
     val mainClass =
       if (isScala2) "scala.tools.nsc.MainGenericRunner"
       else "dotty.tools.repl.Main"
     ReplArtifacts(
-      value(replArtifacts),
-      extraClassPath,
-      Nil,
-      mainClass,
-      Seq("-Dscala.usejavacp=true"),
+      replArtifacts = value(replArtifacts),
+      depArtifacts = value(depArtifacts),
+      extraClassPath = extraClassPath,
+      extraSourceJars = Nil,
+      replMainClass = mainClass,
+      replJavaOpts = Seq("-Dscala.usejavacp=true"),
       addSourceJars = false
     )
   }
