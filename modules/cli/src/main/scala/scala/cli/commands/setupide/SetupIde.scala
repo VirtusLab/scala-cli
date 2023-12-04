@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.google.gson.GsonBuilder
 
-import java.nio.charset.Charset
+import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
@@ -160,11 +160,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       List("scala", "java").asJava
     )
 
-    val charset = options.charset
-      .map(_.trim)
-      .filter(_.nonEmpty)
-      .map(Charset.forName)
-      .getOrElse(Charset.defaultCharset()) // Should it be UTF-8?
+    val charset =
+      options.charset
+        .map(_.trim)
+        .filter(_.nonEmpty)
+        .map(Charset.forName)
+        .getOrElse(StandardCharsets.UTF_8)
 
     val gson = new GsonBuilder().setPrettyPrinting().create()
 
