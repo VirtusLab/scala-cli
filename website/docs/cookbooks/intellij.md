@@ -1,5 +1,5 @@
 ---
-title: Setup a Scala CLI project in IDEA IntelliJ
+title: IntelliJ IDEA setup
 sidebar_position: 11
 ---
 

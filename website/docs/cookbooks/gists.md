@@ -1,5 +1,5 @@
 ---
-title: Sharing and testing code with GitHub gists
+title: GitHub gists
 sidebar_position: 8
 ---
 

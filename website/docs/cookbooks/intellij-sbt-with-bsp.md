@@ -1,5 +1,5 @@
 ---
-title: Setup a Scala CLI project in IntelliJ alongside your existing SBT project
+title: Scala CLI project in IntelliJ alongside your existing SBT project
 sidebar_position: 12
 ---
 
