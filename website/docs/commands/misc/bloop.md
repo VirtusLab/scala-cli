@@ -25,10 +25,10 @@ The default location of the file is `.scala-build/bloop/project_name.json`.
 
 The last thing before launching the server is downloading its artifacts from Maven Central via Coursier if they are not already present in the local cache.
 :::tip
-When working in an environment with restricted access to the web, using Bloop can be disabled with the `--server=false` flag. Also, see the [section about the Offline mode](../guides/offline.md).
+When working in an environment with restricted access to the web, using Bloop can be disabled with the `--server=false` flag. Also, see the [section about the Offline mode](../../guides/offline.md).
 :::
 
-Bloop is started as a separate JVM process, parameters of this process can be configured using arguments passed to the invoked subcommand ([see compilation server options](cli-options.md#compilation-server-options)).
+Bloop is started as a separate JVM process, parameters of this process can be configured using arguments passed to the invoked subcommand ([see compilation server options](../../reference/cli-options.md#compilation-server-options)).
 They also depend on the JVM version chosen for building the project, it cannot be higher than the version of the JVM running Bloop. If such a case is detected, the build server has to be restarted with a sufficiently high JVM.
 Note that the default version of the JVM for Bloop is 17, so if your `JAVA_HOME` contains something with a lower version Scala CLI will fetch the needed.
 
