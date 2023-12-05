@@ -30,11 +30,13 @@ For this reason Scala CLI has the [clean](./commands/clean.md) command, which in
 
 We provide a more in-depth overview about how caching works in the [Scala CLI internals guide](./guides/internals.md).
 
-### Bloop and Coursier
+### Bloop
 
 To ensure the quickest compilation, Scala CLI uses and manages the [Bloop](https://scalacenter.github.io/bloop/) compilation server.
-We have a [detailed guide](./reference/bloop.md) that describes how Scala CLI interacts with the local Bloop server.
+We have a [guide](./commands/misc/bloop.md) that describes how Scala CLI interacts with the local Bloop server and how a user can do the same.
 The main point to know is that Scala CLI takes care of fetching and starting Bloop if needed, so you don't have to worry about it.
+
+### Coursier
 
 Scala CLI uses [Coursier](https://get-coursier.io/) to manage dependencies.
 It automatically downloads and unpacks a JVM if none is installed on your system, so that all its commands work fine even if a JVM isn't already installed.
