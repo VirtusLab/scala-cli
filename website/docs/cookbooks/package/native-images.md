@@ -1,5 +1,5 @@
 ---
-title: Packaging as GraalVM native images
+title: Packaging as GraalVM native images ⚡
 sidebar_position: 16
 ---
 

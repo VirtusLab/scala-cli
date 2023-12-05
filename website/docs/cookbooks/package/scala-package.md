@@ -1,5 +1,5 @@
 ---
-title: Packaging as executable files
+title: Packaging as executable files ⚡
 sidebar_position: 14
 ---
 
