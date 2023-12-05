@@ -1,5 +1,5 @@
 ---
-title: Using Scala CLI to run Scala Scripts
+title: Running Scala Scripts
 sidebar_position: 6
 ---
 

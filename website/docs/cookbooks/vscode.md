@@ -1,5 +1,5 @@
 ---
-title: Setup a Scala CLI project in VSCode
+title: VSCode setup
 sidebar_position: 10
 ---
 

@@ -1,5 +1,5 @@
 ---
-title: Testing your code with different Java versions
+title: Changing Java versions
 sidebar_position: 3
 ---
 

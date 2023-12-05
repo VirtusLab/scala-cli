@@ -1,5 +1,5 @@
 ---
-title: Debugging with Scala CLI
+title: Debugging
 sidebar_position: 4
 ---
 

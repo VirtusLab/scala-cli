@@ -1,5 +1,5 @@
 ---
-title: Use Scala CLI in GitHub Actions
+title: GitHub Actions
 sidebar_position: 9
 ---
 

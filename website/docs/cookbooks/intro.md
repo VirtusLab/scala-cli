@@ -19,20 +19,20 @@ To get started, try one of the cookbooks below:
 - [Debugging with Scala CLI](./debugging.md)
 - [Filter the test suites to run](./test-only.md)
 - [Running scripts](./scala-scripts.md)
-- [Scripts with instant startup](./instant-startup-scala-scripts.md)
+- [Scripts with instant startup](instant-startup-scala-scripts.md)
 - [Sharing and testing code with GitHub gists](./gists.md)
 - [Use Scala CLI in GitHub Actions](./gh-action.md)
 
 ## Working with Scala CLI in IDEs
 
-- [Metals with VS Code](./vscode.md)
-- [IDEA IntelliJ](./intellij.md)
-- [Scala CLI alongside SBT in IDEA IntelliJ](./intellij-sbt-with-bsp.md)
-- [Multiple Scala CLI projects as separate modules in IDEA IntelliJ](./intellij-multi-bsp.md)
-- [Scala CLI within Emacs](./emacs.md)
+- [Metals with VS Code](vscode.md)
+- [IDEA IntelliJ](intellij.md)
+- [Scala CLI alongside SBT in IDEA IntelliJ](intellij-sbt-with-bsp.md)
+- [Multiple Scala CLI projects as separate modules in IDEA IntelliJ](intellij-multi-bsp.md)
+- [Scala CLI within Emacs](emacs.md)
 
 ## Packaging ⚡️
 
-- [Packaging Scala applications as executable files](./scala-package.md)
-- [Packaging Scala applications as Docker images](./scala-docker.md)
-- [Packaging Scala applications as GraalVM native images](./native-images.md)
+- [Packaging Scala applications as executable files](scala-package.md)
+- [Packaging Scala applications as Docker images](scala-docker.md)
+- [Packaging Scala applications as GraalVM native images](native-images.md)
