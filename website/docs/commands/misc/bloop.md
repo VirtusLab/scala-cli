@@ -1,13 +1,18 @@
 ---
-title: Interaction with Bloop server
+title: Bloop ⚡️
 sidebar_position: 10
 ---
 
 Scala CLI by default uses Bloop as a build server for compiling code. This approach has its advantages over the `scalac` compiler such as advanced caching and fast compile times, but the process is more complex.
 Fortunately for the users, Scala CLI fully manages the Bloop build server. This includes its whole lifecycle, which starts with fetching the artifacts.
-This document will go through this lifecycle and the interactions that Scala CLI has with Bloop.
-:::tip
-As a user you can also take part in this interaction, using the `bloop` subcommand. More information in the [commands reference](../reference/commands.md#bloop).
+This document showcases the `bloop` subcommand that allows you manually manage the Bloop server.
+It also goes through the server's lifecycle and the interactions that Scala CLI has with it.
+
+:::caution
+The `bloop` sub-command is restricted and requires setting the `--power` option to be used.
+You can pass it explicitly or set it globally by running:
+
+    scala-cli config power true
 :::
 
 ### Starting the server
@@ -26,6 +31,11 @@ When working in an environment with restricted access to the web, using Bloop ca
 Bloop is started as a separate JVM process, parameters of this process can be configured using arguments passed to the invoked subcommand ([see compilation server options](cli-options.md#compilation-server-options)).
 They also depend on the JVM version chosen for building the project, it cannot be higher than the version of the JVM running Bloop. If such a case is detected, the build server has to be restarted with a sufficiently high JVM.
 Note that the default version of the JVM for Bloop is 17, so if your `JAVA_HOME` contains something with a lower version Scala CLI will fetch the needed.
+
+To start the Bloop server manually you can use the `bloop start` subcommand:
+```bash
+scala-cli --power bloop start
+```
 
 ### Communicating with the server
 
