@@ -1,5 +1,5 @@
 ---
-title: Scala CLI within Emacs
+title: Emacs
 sidebar_position: 14
 ---
 

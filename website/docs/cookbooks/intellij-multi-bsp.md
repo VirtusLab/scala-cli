@@ -1,5 +1,5 @@
 ---
-title: Setup multiple Scala CLI projects in IDEA IntelliJ as separate modules
+title: Setup multiple projects in IDEA IntelliJ as separate modules
 sidebar_position: 13
 ---
 

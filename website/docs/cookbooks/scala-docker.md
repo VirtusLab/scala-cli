@@ -1,5 +1,5 @@
 ---
-title: Packaging Scala applications as Docker images
+title: Packaging as Docker images
 sidebar_position: 15
 ---
 

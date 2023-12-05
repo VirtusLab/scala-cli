@@ -1,5 +1,5 @@
 ---
-title: Scala Scripts with instant startup
+title: Scripts with instant startup
 sidebar_position: 7
 ---
 
