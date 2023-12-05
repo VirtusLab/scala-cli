@@ -11,7 +11,7 @@ If you encounter any bugs or have feedback to share, make sure to reach out to t
 on [GitHub](https://github.com/VirtusLab/scala-cli).
 :::
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 Scala CLI can compile, run, test, and package markdown (`.md`) sources.
 
@@ -97,7 +97,7 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on running GitHub Gists in the [gists cookbook](/docs/cookbooks/gists.md).
+You can find more information on running GitHub Gists in the [gists cookbook](/docs/cookbooks/introduction/gists.md).
 
 ### Piped Markdown code
 
@@ -118,7 +118,7 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on piped sources in the [piping guide](./piping.md).
+You can find more information on piped sources in the [piping guide](../advanced/piping.md).
 
 ### Markdown code as a command line snippet
 
@@ -140,7 +140,7 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on command line snippets in the [snippets guide](./snippets.md).
+You can find more information on command line snippets in the [snippets guide](../advanced/snippets.md).
 
 ## Markdown code blocks
 

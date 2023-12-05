@@ -3,7 +3,7 @@ title: GitHub gists
 sidebar_position: 8
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 ## Running code from gists
 
@@ -116,4 +116,4 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on working with Markdown in the [Markdown guide](/docs/guides/markdown.md).
+You can find more information on working with Markdown in the [Markdown guide](/docs/guides/power/markdown.md).

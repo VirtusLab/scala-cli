@@ -3,7 +3,7 @@ title: IntelliJ IDEA setup
 sidebar_position: 11
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 It is possible to import a Scala CLI project into IDEA IntelliJ. The import is done
 through [BSP](https://build-server-protocol.github.io/) and the relevant files can be seen in the hidden `.bsp`

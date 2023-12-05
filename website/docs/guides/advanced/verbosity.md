@@ -3,7 +3,7 @@ title: Verbosity
 sidebar_position: 44
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 Logging in Scala CLI can be controlled in a number of ways.
 

@@ -3,7 +3,7 @@ title: Migrating from the old Scala runner
 sidebar_position: 15
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Migrating from the old `scala` runner
 
@@ -14,15 +14,15 @@ In that context, the purpose of this guide is to highlight the key differences b
 and Scala CLI to make the migration as smooth as possible for users.
 
 :::note
-If you are looking for an overview of Scala CLI basics, refer to [the Basics page](../commands/basics.md).
+If you are looking for an overview of Scala CLI basics, refer to [the Basics page](../../commands/basics.md).
 If you merely want to get started with Scala CLI, you might want to first look
-at [the Getting started page](../getting_started.md).
+at [the Getting started page](../../getting_started.md).
 :::
 
 ## How to test Scala CLI as the new `scala` command?
 
 There is a dedicated `scala-experimental` distribution of Scala CLI, which can install it as `scala` on your machine.
-For instructions on how to try it out, refer to [the relevant doc](../reference/scala-command/index.md).
+For instructions on how to try it out, refer to [the relevant doc](../../reference/scala-command/index.md).
 
 ## How has the passing of arguments been changed from the old `scala` runner to Scala CLI?
 
@@ -60,7 +60,7 @@ For example, to call the above example specifying the `run` sub-command explicit
 scala-cli run Source1.scala Source2.scala -- programArg1 programArg2
 ```
 
-More on sub-commands can be found [here](../commands/basics.md).
+More on sub-commands can be found [here](../../commands/basics.md).
 
 Runner options can be passed on whatever position in the inputs section (before `--`).
 For example, all the following examples are correct ways to specify the Scala version explicitly as `3.2`
@@ -84,7 +84,7 @@ scala-cli --cli-version 0.1.20 Source1.scala Source2.scala -- programArg1 progra
 Also, if a Scala CLI sub-command is being passed explicitly, all launcher options have to be passed before the
 sub-command.
 
-For example, to call [the `package` sub-command](../commands/package.md) using the nightly CLI version, do it like this:
+For example, to call [the `package` sub-command](../../commands/package.md) using the nightly CLI version, do it like this:
 
 ```bash
 scala-cli --cli-version nightly package --help
@@ -95,7 +95,7 @@ scala-cli --cli-version nightly package --help
 ### The Scala CLI `shebang` sub-command
 
 To provide better support for shebang scripts, Scala CLI
-has [a dedicated `shebang` sub-command](../commands/shebang.md), which handles arguments similarly to the old `scala`
+has [a dedicated `shebang` sub-command](../../commands/shebang.md), which handles arguments similarly to the old `scala`
 script.
 
 ```bash ignore
@@ -104,7 +104,7 @@ scala-cli shebang Source.scala programArg1 programArg2
 
 The purpose of the `shebang` sub-command is essentially to only be used in a shebang header (more
 details on that can be found [in a later section of this guide](#example-shebang-script-with-scala-cli) or in the
-separate [shebang scripts' guide](./shebang.md)), but nothing is really stopping you from using it from the command
+separate [shebang scripts' guide](../scripting/shebang.md)), but nothing is really stopping you from using it from the command
 line, if you're used to how the old `scala` runner handled arguments. Just bear in mind that it is not the intended user
 experience.
 
@@ -120,10 +120,10 @@ The following old `scala` runner options are fully supported by Scala CLI, meani
 functionalities with backwards-compatible syntax:
 
 - `-e`, which is an alias for Scala CLI's `--execute-script` and a close synonym
-  for [`--script-snippet`](../guides/snippets.md#examples)
+  for [`--script-snippet`](../advanced/snippets.md#examples)
 - `-v` / `-verbose` / `--verbose`, which can be passed multiple times with Scala CLI, increasing the verbosity
 - `-cp` / `-classpath` / `--class-path`, which adds compiled classes and jars to the class path
-- `-version` / `--version`, which prints the currently run Scala CLI [version information](../commands/version.md)
+- `-version` / `--version`, which prints the currently run Scala CLI [version information](../../commands/version.md)
 - `-with-compiler`, which adds the Scala compiler dependency to the Scala CLI project
 - Scala compiler options (with some requiring to be passed with `-O`, more info
   in [the section below](#scala-compiler-options))
@@ -135,31 +135,31 @@ functionalities with backwards-compatible syntax:
 The following old `scala` runner options not only are not supported with their old functionalities, but have a different
 meaning in Scala CLI:
 
-- `-i`, which is now an alias for Scala CLI's [`--interactive` mode](../reference/cli-options.md#--interactive)
+- `-i`, which is now an alias for Scala CLI's [`--interactive` mode](../../reference/cli-options.md#--interactive)
 - `-h` / `-help`
     - in the old Scala `2.13.x` `scala` runner, it used to print the help of the runner
     - in the old Scala `3.x` `scala` runner however, it used to print the Scala compiler help instead
     - Scala CLI takes an approach similar to the old Scala `2.13.x` runner, and it prints Scala CLI help
     - to view the Scala compiler help with Scala CLI, pass
-      the [--scalac-help](../commands/compile.md#scala-compiler-help) option instead
+      the [--scalac-help](../../commands/compile.md#scala-compiler-help) option instead
 
 ### Deprecated and unsupported old `scala` runner options
 
 The following old `scala` runner options have been deprecated and even though they are accepted by Scala CLI (passing
 them will not cause an error), they are ignored with an appropriate warning:
 
-- `-save`, refer to [the `package` sub-command](../commands/package.md#library-jars) on how to package a Scala CLI
+- `-save`, refer to [the `package` sub-command](../../commands/package.md#library-jars) on how to package a Scala CLI
   project to a JAR
-- `-nosave`, a JAR file is now never saved unless [the `package` sub-command](../commands/package.md) is called
+- `-nosave`, a JAR file is now never saved unless [the `package` sub-command](../../commands/package.md) is called
 - `-howtorun` / `--how-to-run`
     - Scala CLI assumes how a file is to be run based on its file extension (and optionally its shebang header). This
       cannot be overridden with a command line option, so ensure your inputs use the correct file extension or have
       the [shebang header](#example-shebang-script-with-scala-cli) defined. This is sort of the equivalent of the
       old `-howtorun guess`.
-    - To run the `REPL`, refer to [the `repl` sub-command](../commands/repl.md)
-    - This option has been largely replaced with Scala CLI's [sub-commands](../commands/basics.md)
+    - To run the `REPL`, refer to [the `repl` sub-command](../../commands/repl.md)
+    - This option has been largely replaced with Scala CLI's [sub-commands](../../commands/basics.md)
 - `-I`, to preload the extra files for the `REPL`, try passing them as inputs
-  for [the repl sub-command](../commands/repl.md)
+  for [the repl sub-command](../../commands/repl.md)
 - `-nc` / `nocompdaemon`, the underlying script runner class can no longer be picked explicitly, as with the old `scala`
   runner
 - `-run` - Scala CLI does not support explicitly forcing the old run mode. Just pass your sources as inputs and ensure
@@ -170,7 +170,7 @@ them will not cause an error), they are ignored with an appropriate warning:
 All compiler options are supported when passed with the `--scalac-option` flag (or the `-O` alias for short).
 However, many compiler options can also be passed directly.
 For more information, refer
-to [the Scala compiler options section of the `compile` sub-command doc](../commands/compile.md#scala-compiler-options).
+to [the Scala compiler options section of the `compile` sub-command doc](../../commands/compile.md#scala-compiler-options).
 
 ## How does Scala CLI detect if it's running a script or a main method?
 
@@ -198,7 +198,7 @@ additional flexibility.
 
 The only exception would be files with no file extension, but with a shebang header, ran with the `shebang` sub-command.
 Those are always treated as scripts (more details about this can be
-found [in [the shebang scripts' guide](./shebang.md)]).
+found [in [the shebang scripts' guide](../scripting/shebang.md)]).
 
 Now, to give some examples.
 
@@ -379,5 +379,5 @@ If you have Scala CLI installed as `scala`, then that should be changed to the f
 println("Args: " + args.mkString(" "))
 ```
 
-For more information about the `shebang` sub-command, refer to [the appropriate doc](../commands/shebang.md).
-For more details on how to use Scala CLI in shebang scripts, refer to [the relevant guide](../guides/shebang.md).
+For more information about the `shebang` sub-command, refer to [the appropriate doc](../../commands/shebang.md).
+For more details on how to use Scala CLI in shebang scripts, refer to [the relevant guide](../scripting/shebang.md).

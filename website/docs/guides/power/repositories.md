@@ -1,6 +1,6 @@
 ---
 title: Repositories ⚡️
-sidebar_position: 51
+sidebar_position: 52
 ---
 
 Scala CLI downloads the dependencies declared in your projects using [Coursier](https://get-coursier.io/).
@@ -41,7 +41,7 @@ scala-cli config power true
 :::
 
 Repository authentication is also supported and there are a couple ways of using it:
-- specifying credentials for each host in `COURSIER_CREDENTIALS` environment variable or in the `coursier.credentials` java property ([read more here](/docs/guides/java-properties.md)),
+- specifying credentials for each host in `COURSIER_CREDENTIALS` environment variable or in the `coursier.credentials` java property ([read more here](/docs/guides/advanced/java-properties.md)),
     the supported format in this case is `host-address username:password`, e.g. `my_domain.com MyUserName:myPasswOrd`
 - adding config entries for each host, this can be done using `scala-cli --power config repositories.credentials host _username_ _password_`,
     username and password values should follow the [password option format](/docs/reference/password-options.md), e.g. 

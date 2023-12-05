@@ -78,7 +78,7 @@ For fetching code dependencies run:
 ```bash ignore
 cs fetch com.lihaoyi::os-lib::0.9.1
 ```
-Note that the dependency format is the same as for `--dep` and `using dep`. More information about it [here](./dependencies.md).
+Note that the dependency format is the same as for `--dep` and `using dep`. More information about it [here](../introduction/dependencies.md).
 
 If you want to use Bloop, you can get it with:
 ```bash ignore

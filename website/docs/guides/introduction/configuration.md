@@ -3,7 +3,7 @@ title: Configuration
 sidebar_position: 2
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 Scala CLI can be configured in two ways:
 - on the command-line
@@ -84,7 +84,7 @@ Those can be useful when defining configuration specific to your test runs.
 //> using test.dep com.lihaoyi::utest::0.8.1
 ```
 
-More details can be found in the [`using` directives guide](./using-directives.md#directives-with-a-test-scope-equivalent).
+More details can be found in the [`using` directives guide](using-directives.md#directives-with-a-test-scope-equivalent).
 
 ### Special imports
 

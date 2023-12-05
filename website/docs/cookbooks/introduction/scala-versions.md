@@ -121,7 +121,7 @@ Scala: 2\.13\.10
 -->
 
 :::note
-See our [Using Directives Guide](/docs/guides/using-directives.md) for more details on `using` directives.
+See our [Using Directives Guide](/docs/guides/introduction/using-directives.md) for more details on `using` directives.
 :::
 
 

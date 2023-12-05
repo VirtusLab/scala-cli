@@ -3,7 +3,7 @@ title: Setup multiple projects in IDEA IntelliJ as separate modules
 sidebar_position: 13
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 If you've read through [the basic IDEA IntelliJ cookbook](intellij.md), then you already know how to import a Scala CLI
 project using `BSP`. However, in some cases importing a single project just does not fit the bill.

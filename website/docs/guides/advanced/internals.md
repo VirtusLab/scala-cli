@@ -79,7 +79,7 @@ This is the case for:
 In all of those cases, Scala CLI parses the top of those files, and looks for `using` directives.
 It then replaces the non-commented `using` directives with space characters.
 
-As described in [Scripts](scripts.md), `.sc` files are also "wrapped" in an `object`, and a `main` class is added to them, so that `.sc` files can be run as-is, and can access arguments via a special `args` variable.
+As described in [Scripts](../scripting/scripts.md), `.sc` files are also "wrapped" in an `object`, and a `main` class is added to them, so that `.sc` files can be run as-is, and can access arguments via a special `args` variable.
 
 In all cases, the resulting processed sources are written in the `.scala-build/project_…/src_generated` directory, and passed to Bloop from there.
 

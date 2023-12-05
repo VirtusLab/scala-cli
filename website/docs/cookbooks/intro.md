@@ -1,5 +1,5 @@
 ---
-title: Introduction
+title: Index
 sidebar_position: 1
 ---
 
@@ -14,25 +14,25 @@ To get started, try one of the cookbooks below:
 
 ## Introductory cookbooks
 
-- [Picking the Scala version](./scala-versions.md)
-- [Picking the Java version](./scala-jvm)
-- [Debugging with Scala CLI](./debugging.md)
-- [Filter the test suites to run](./test-only.md)
-- [Running scripts](./scala-scripts.md)
-- [Scripts with instant startup](instant-startup-scala-scripts.md)
-- [Sharing and testing code with GitHub gists](./gists.md)
-- [Use Scala CLI in GitHub Actions](./gh-action.md)
+- [Picking the Scala version](introduction/scala-versions.md)
+- [Picking the Java version](introduction/scala-jvm.md)
+- [Debugging with Scala CLI](introduction/debugging.md)
+- [Filter the test suites to run](introduction/test-only.md)
+- [Running scripts](introduction/scala-scripts.md)
+- [Scripts with instant startup](introduction/instant-startup-scala-scripts.md)
+- [Sharing and testing code with GitHub gists](introduction/gists.md)
+- [Use Scala CLI in GitHub Actions](introduction/gh-action.md)
 
 ## Working with Scala CLI in IDEs
 
-- [Metals with VS Code](vscode.md)
-- [IDEA IntelliJ](intellij.md)
-- [Scala CLI alongside SBT in IDEA IntelliJ](intellij-sbt-with-bsp.md)
-- [Multiple Scala CLI projects as separate modules in IDEA IntelliJ](intellij-multi-bsp.md)
-- [Scala CLI within Emacs](emacs.md)
+- [Metals with VS Code](ide/vscode.md)
+- [IDEA IntelliJ](ide/intellij.md)
+- [Scala CLI alongside SBT in IDEA IntelliJ](ide/intellij-sbt-with-bsp.md)
+- [Multiple Scala CLI projects as separate modules in IDEA IntelliJ](ide/intellij-multi-bsp.md)
+- [Scala CLI within Emacs](ide/emacs.md)
 
 ## Packaging ⚡️
 
-- [Packaging Scala applications as executable files](scala-package.md)
-- [Packaging Scala applications as Docker images](scala-docker.md)
-- [Packaging Scala applications as GraalVM native images](native-images.md)
+- [Packaging Scala applications as executable files](package/scala-package.md)
+- [Packaging Scala applications as Docker images](package/scala-docker.md)
+- [Packaging Scala applications as GraalVM native images](package/native-images.md)

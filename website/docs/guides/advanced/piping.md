@@ -3,7 +3,7 @@ title: Piping
 sidebar_position: 42
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Piping
 

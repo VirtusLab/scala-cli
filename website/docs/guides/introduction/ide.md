@@ -50,15 +50,15 @@ being said, proper IDE integration is our top priority at this moment!)
 
 ### VS Code with Metals
 
-Check the cookbook on [how to set up a Scala CLI project in VSCode with Metals](/docs/cookbooks/vscode.md).
+Check the cookbook on [how to set up a Scala CLI project in VSCode with Metals](/docs/cookbooks/ide/vscode.md).
 
 ### IntelliJ
 
 Cookbooks on how to work with IntelliJ:
 
-- [set up a simple Scala CLI project in IDEA IntelliJ](/docs/cookbooks/intellij.md)
-- [set up a Scala CLI project in IntelliJ alongside an existing SBT project](/docs/cookbooks/intellij-sbt-with-bsp.md)
-- [set up multiple Scala CLI projects in IDEA IntelliJ as separate modules](/docs/cookbooks/intellij-multi-bsp.md)
+- [set up a simple Scala CLI project in IDEA IntelliJ](/docs/cookbooks/ide/intellij.md)
+- [set up a Scala CLI project in IntelliJ alongside an existing SBT project](/docs/cookbooks/ide/intellij-sbt-with-bsp.md)
+- [set up multiple Scala CLI projects in IDEA IntelliJ as separate modules](/docs/cookbooks/ide/intellij-multi-bsp.md)
 
 ## Directories vs single files when working with an IDE
 
@@ -110,10 +110,10 @@ without the need to jump into the command line whenever you create a new file.
 
 Do note that IDEs do not yet support working with Scala CLI's remote and virtual inputs. That includes:
 
-- [piped sources](./piping.md),
-- URLs and [GitHub gists](/docs/cookbooks/gists.md),
-- [code snippets](./snippets.md).
+- [piped sources](../advanced/piping.md),
+- URLs and [GitHub gists](/docs/cookbooks/introduction/gists.md),
+- [code snippets](../advanced/snippets.md).
 
 Beyond that, IDE support for some non-standard (like `.c` and `.h` resources used
-with [Scala Native](./scala-native.md)) and experimental inputs (like i.e. [`.md` sources](./markdown.md)) may not yet
+with [Scala Native](../advanced/scala-native.md)) and experimental inputs (like i.e. [`.md` sources](../power/markdown.md)) may not yet
 be on par with on-disk Scala and Java source files.

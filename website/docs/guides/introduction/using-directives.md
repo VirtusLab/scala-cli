@@ -51,7 +51,7 @@ the [Reference section of this documentation](/docs/reference/directives.md).
 
 - `//> using scala <scala-version>` - defines version of Scala used
 - `//> using dep org::name:version` - defines dependency to a given
-  library [more in dedicated guide](/docs/guides/dependencies.md)
+  library [more in dedicated guide](/docs/guides/introduction/dependencies.md)
 - `//> using dep org:name:version`  - defines dependency to a given **java** library, note the `:` instead of `::`
 - `//> using dep org::name:version,url=url` - defines dependency to a given library with a fallback to its jar url
 - `//> using resourceDir dir` - marks directory as source of resources. Resources accessible at runtime and packaged

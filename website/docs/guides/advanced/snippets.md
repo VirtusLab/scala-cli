@@ -3,7 +3,7 @@ title: Snippets
 sidebar_position: 43
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Snippets
 
@@ -213,7 +213,7 @@ Hello world!
 </ChainedSnippets>
 
 This is similar to how you refer to code from piped scripts through their wrapper name (`stdin`), more on which can be
-found in [the scripts guide](scripts.md).
+found in [the scripts guide](../scripting/scripts.md).
 
 In fact, you can refer to both kinds of scripts at one time, just keep in mind that you need to pick which script is to
 actually be run with the `--main-class` option when multiple scripts are present on the classpath (and no non-script

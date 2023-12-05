@@ -1,6 +1,6 @@
 ---
 title: Java properties
-sidebar_position: 8
+sidebar_position: 45
 ---
 
 Although the Scala CLI runner can be used as a native image and thus will not always be run on the JVM it still supports Java properties.

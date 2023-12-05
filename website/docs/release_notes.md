@@ -717,7 +717,7 @@ this version is going to become the official `scala` runner, replacing the old `
 For a deeper understanding of Scala CLI as the new `scala` runner and to explore its benefits and features,
 we encourage you to check out our [blogpost](https://virtuslab.com/blog/scala-cli-the-new-scala-runner/).
 
-Also be sure to get familiar with all the differences introduced by this change in our [migration guide](docs/guides/old-runner-migration.md).
+Also be sure to get familiar with all the differences introduced by this change in our [migration guide](docs/guides/introduction/old-runner-migration.md).
 
 ## What's Changed
 
@@ -1171,7 +1171,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/
 ### Add a guide for migrating from the old `scala` runner to Scala CLI
 
 As of [SIP-46](https://github.com/scala/improvement-proposals/pull/46), Scala CLI has been accepted as the new `scala`
-command. To make the transition smooth we added a [guide](docs/guides/old-runner-migration.md) highlighting
+command. To make the transition smooth we added a [guide](docs/guides/introduction/old-runner-migration.md) highlighting
 the differences between the two runners.
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#1900](https://github.com/VirtusLab/scala-cli/pull/1900)

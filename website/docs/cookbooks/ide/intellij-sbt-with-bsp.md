@@ -3,7 +3,7 @@ title: Scala CLI project in IntelliJ alongside your existing SBT project
 sidebar_position: 12
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 If you've read through [the basic IDEA IntelliJ cookbook](intellij.md), then you already know how to import a Scala CLI
 project using `BSP`. However, did you know that it's possible to import one alongside an `SBT` project? (Or any other

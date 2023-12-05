@@ -3,7 +3,7 @@ title: Scala Toolkit
 sidebar_position: 7
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Scala Toolkit
 
@@ -85,7 +85,7 @@ scala-cli test Another.test.scala project.scala
 </ChainedSnippets>
 
 More details about test scope directives can be found in
-the [`using` directives guide](./using-directives#directives-with-a-test-scope-equivalent).
+the [`using` directives guide](using-directives.md#directives-with-a-test-scope-equivalent).
 
 ## Other toolkits
 

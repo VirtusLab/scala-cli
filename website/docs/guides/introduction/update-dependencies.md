@@ -3,7 +3,7 @@ title: Updating dependencies
 sidebar_position: 4
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 To check if dependencies in using directives are up-to-date, use `dependency-update` command:
 

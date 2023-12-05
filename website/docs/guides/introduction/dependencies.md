@@ -3,7 +3,7 @@ title: Managing dependencies
 sidebar_position: 3
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Managing dependencies
 
@@ -138,7 +138,7 @@ It is possible to declare dependencies limited to the test scope with the `using
 `````
 
 More details can be found in
-the [`using` directives guide](./using-directives#directives-with-a-test-scope-equivalent).
+the [`using` directives guide](using-directives.md#directives-with-a-test-scope-equivalent).
 
 ## Specifying dependencies from the command line
 
@@ -161,7 +161,7 @@ scala-cli compile Sample.sc \
 ```
 
 Note that `--dependency` is only meant as a convenience. You should favor adding dependencies in the sources themselves
-via [using directives](./configuration#special-imports). However, the `--dependency` CLI option takes
+via [using directives](configuration.md#special-imports). However, the `--dependency` CLI option takes
 precedence over `using` directives, so it can be used to override a `using` directive, such as when you want to work
 with a different dependency version.
 

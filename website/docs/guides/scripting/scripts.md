@@ -3,7 +3,7 @@ title: Scripts
 sidebar_position: 30
 ---
 
-import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
+import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
 # Scripts
 
@@ -195,7 +195,7 @@ It is also possible to set Scala CLI command-line options in the shebang line, f
 ```
 
 The command `shebang` also allows script files to be executed even if they have no file extension,
-provided they start with the [`shebang` header](../guides/shebang.md#shebang-script-headers).
+provided they start with the [`shebang` header](shebang.mdcript-headers).
 Note that those files are always run as scripts even though they may contain e.g. valid `.scala` program.
 
 ## Arguments

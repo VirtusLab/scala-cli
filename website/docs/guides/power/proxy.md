@@ -9,7 +9,7 @@ Scala CLI can download dependencies via HTTP proxies. Proxies can be setup in se
 - via Scala CLI or coursier configuration files (soon)
 
 ## Java properties
-It is possible to specify the proxy settings using Java properties. There are several ways to pass those to Scala CLI, [more information here](java-properties.md).
+It is possible to specify the proxy settings using Java properties. There are several ways to pass those to Scala CLI, [more information here](../advanced/java-properties.md).
 
 The most basic way is to pass the Java properties directly to Scala CLI on the command line.
 Keep in mind that properties, put before the sub-command name and sources, are only passed to Scala CLI and not to the JVM executing user's code.
