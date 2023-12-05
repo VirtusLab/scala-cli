@@ -6,11 +6,11 @@ sidebar_position: 1
 The Scala CLI makes it easier to compile, run, test, and package Scala code.
 
 It can:
-- [compile](./commands/compile.md) Scala code
-- [run](./commands/run.md) it
-- [package](./commands/package.md) it as a JAR file, or in formats such as deb, rpm, MSI, ...
-- fire up a [REPL](./commands/repl.md), letting you quickly play with the code
-- compile and run [tests](./commands/test.md) suites
+- [compile](commands/compile.md) Scala code
+- [run](commands/run.md) it
+- [package](commands/package.md) it as a JAR file, or in formats such as deb, rpm, MSI, ...
+- fire up a [REPL](commands/repl.md), letting you quickly play with the code
+- compile and run [tests](commands/test.md) suites
 
 ... and more!
 
@@ -30,10 +30,10 @@ Prefer another way to install Scala CLI? See our [Advanced installation guide](/
 ## What’s next?
 
 Scala-CLI documentation is split into three main sections:
-- [Getting started](./getting_started.md), where you learn how to start with Scala CLI
-- [Commands](./commands/basics.md), where you learn the most important Scala CLI commands
-- [Guides](./guides/intro.md), where you can read about the core aspects of Scala CLI, and learn how Scala CLI interacts with other tools, like your IDE
-- Scala CLI [Cookbook](./cookbooks/intro.md), where you can learn how to solve specific problems with Scala CLI
+- [Getting started](getting_started.md), where you learn how to start with Scala CLI
+- [Commands](commands/basics.md), where you learn the most important Scala CLI commands
+- [Guides](guides/intro.md), where you can read about the core aspects of Scala CLI, and learn how Scala CLI interacts with other tools, like your IDE
+- Scala CLI [Cookbook](cookbooks/intro.md), where you can learn how to solve specific problems with Scala CLI
 
 **Happy hacking with Scala CLI!**
 

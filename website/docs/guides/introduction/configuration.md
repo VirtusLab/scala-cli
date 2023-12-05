@@ -55,7 +55,7 @@ test
 
 </ChainedSnippets>
 
-The reference documentation lists [all of the available options](/docs/reference/cli-options.md).
+The reference documentation lists [all of the available options](../../reference/cli-options.md).
 
 
 ## In .scala and .sc files

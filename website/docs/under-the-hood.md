@@ -6,7 +6,7 @@ sidebar_position: 32
 :::note
 This page is for people who are already familiar with the Scala/JVM ecosystem.
 
-If you just want to learn Scala CLI, head out to the [Commands section](./commands/basics.md).
+If you just want to learn Scala CLI, head out to the [Commands section](commands/basics.md).
 :::
 
 
@@ -33,7 +33,7 @@ We provide a more in-depth overview about how caching works in the [Scala CLI in
 ### Bloop
 
 To ensure the quickest compilation, Scala CLI uses and manages the [Bloop](https://scalacenter.github.io/bloop/) compilation server.
-We have a [guide](./commands/misc/bloop.md) that describes how Scala CLI interacts with the local Bloop server and how a user can do the same.
+We have a [guide](commands/misc/bloop.md) that describes how Scala CLI interacts with the local Bloop server and how a user can do the same.
 The main point to know is that Scala CLI takes care of fetching and starting Bloop if needed, so you don't have to worry about it.
 
 ### Coursier

@@ -3,7 +3,7 @@ title: Picking the Scala version
 sidebar_position: 2
 ---
 
-By default, Scala CLI runs the latest supported scala version. See our list of [Supported Scala Versions](/docs/reference/scala-versions) in Scala CLI.
+By default, Scala CLI runs the latest supported scala version. See our list of [Supported Scala Versions](../../reference/scala-versions) in Scala CLI.
 
 To demonstrate how this works, here’s a universal piece of code that detects the Scala version at runtime.
 The code is a bit complicated, so we suggest that you skip reading the whole file, and just focus on what it prints:
@@ -121,7 +121,7 @@ Scala: 2\.13\.10
 -->
 
 :::note
-See our [Using Directives Guide](/docs/guides/introduction/using-directives.md) for more details on `using` directives.
+See our [Using Directives Guide](../../guides/introduction/using-directives.md) for more details on `using` directives.
 :::
 
 

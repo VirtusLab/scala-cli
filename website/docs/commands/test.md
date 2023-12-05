@@ -10,8 +10,8 @@ Test sources are compiled separately (after the 'main' sources), and may use dif
 and other configurations.
 
 By default, all command line options apply to both the main and test sources,
-so [using directives](/docs/guides/introduction/using-directives.md) (
-or [special imports](/docs/guides/introduction/configuration#special-imports)) can be used to provide test-specific configurations.
+so [using directives](../guides/introduction/using-directives.md) (
+or [special imports](../guides/introduction/configuration#special-imports)) can be used to provide test-specific configurations.
 
 ## Test sources
 
@@ -88,7 +88,7 @@ the `test.dep` directive:
 ```
 
 For more details on test directives,
-see [the `using` directives guide](/docs/guides/introduction/using-directives.md#directives-with-a-test-scope-equivalent).
+see [the `using` directives guide](../guides/introduction/using-directives.md#directives-with-a-test-scope-equivalent).
 
 ## Test framework
 

@@ -8,7 +8,7 @@ sidebar_position: 1
 This section of the documentation contains a set of recipes that show how to use Scala CLI in particular situations.
 The recipes are intended to provide a solution to the task at hand, but also without going into great detail.
 
-For a more in-depth analysis, please check out our [Guides](/docs/guides/intro.md).
+For a more in-depth analysis, please check out our [Guides](../guides/intro.md).
 
 To get started, try one of the cookbooks below:
 

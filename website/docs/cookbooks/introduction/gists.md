@@ -116,4 +116,4 @@ Hello
 
 </ChainedSnippets>
 
-You can find more information on working with Markdown in the [Markdown guide](/docs/guides/power/markdown.md).
+You can find more information on working with Markdown in the [Markdown guide](../../guides/power/markdown.md).

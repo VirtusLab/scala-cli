@@ -41,10 +41,10 @@ scala-cli config power true
 :::
 
 Repository authentication is also supported and there are a couple ways of using it:
-- specifying credentials for each host in `COURSIER_CREDENTIALS` environment variable or in the `coursier.credentials` java property ([read more here](/docs/guides/advanced/java-properties.md)),
+- specifying credentials for each host in `COURSIER_CREDENTIALS` environment variable or in the `coursier.credentials` java property ([read more here](../../guides/advanced/java-properties.md)),
     the supported format in this case is `host-address username:password`, e.g. `my_domain.com MyUserName:myPasswOrd`
 - adding config entries for each host, this can be done using `scala-cli --power config repositories.credentials host _username_ _password_`,
-    username and password values should follow the [password option format](/docs/reference/password-options.md), e.g. 
+    username and password values should follow the [password option format](../../reference/password-options.md), e.g. 
 ```bash ignore
   scala-cli --power config repositories.credentials maven.pkg.github.com value:PrivateToken env:GH_TOKEN
 ```

@@ -6,7 +6,7 @@ import {ChainedSnippets} from "../../src/components/MarkdownComponents.js";
 
 
 Scala CLI is a command line tool that executes a given sub-command on the inputs it’s provided with, using a
-given [configuration](/docs/guides/introduction/configuration.md) to produce a result.
+given [configuration](../guides/introduction/configuration.md) to produce a result.
 
 The most important sub-commands are:
 
@@ -44,11 +44,11 @@ Note that all of these input formats can be used alongside each other.
 Scala CLI accepts the following types of source code:
 
 - `.scala` files, containing Scala code
-- `.sc` files, containing Scala scripts (see more in the [Scripts guide](/docs/guides/scripting/scripts.md))
+- `.sc` files, containing Scala scripts (see more in the [Scripts guide](../guides/scripting/scripts.md))
 - `.java` files, containing Java code
-- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](/docs/guides/power/markdown.md))
+- `.md` files, containing Markdown code (experimental, see more in the [Markdown guide](../guides/power/markdown.md))
 - `.c` and `.h` files, containing C code (only as resources for Scala Native, see more in
-  the [Scala Native guide](/docs/guides/advanced/scala-native.md))
+  the [Scala Native guide](../guides/advanced/scala-native.md))
 - `.jar` files, (see more in the [Run docs](run#jar))
 
 The following example shows the simplest input format.
@@ -203,7 +203,7 @@ Hello
 
 </ChainedSnippets>
 
-More details in the [GitHub gists cookbook](/docs/cookbooks/introduction/gists.md).
+More details in the [GitHub gists cookbook](../cookbooks/introduction/gists.md).
 
 ### Zip archive
 
@@ -304,7 +304,7 @@ You can also pipe code to Scala CLI for execution:
 
   </ChainedSnippets>
 
-More details in the [Piping guide](/docs/guides/advanced/piping.md).
+More details in the [Piping guide](../guides/advanced/piping.md).
 
 ## Scala CLI version
 
@@ -407,4 +407,4 @@ about the start of compilation, and so on.
 
 Some particular warning logs can be suppressed, either for a particular command by passing an option or with a global
 config.
-More details can be found in the [verbosity guide](/docs/guides/advanced/verbosity.md)
+More details can be found in the [verbosity guide](..//guides/advanced/verbosity.md)
