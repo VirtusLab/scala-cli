@@ -6,6 +6,7 @@ import dependency._
 import java.util.Locale
 
 import scala.build.Logger
+import scala.build.errors.UnrecognizedJsOptModeError
 import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
@@ -25,7 +26,27 @@ final case class ScalaJsOptions(
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None
 ) {
-  def fullOpt: Boolean = mode.contains("release")
+  private val validFullLinkAliases = Set(
+    "release",
+    "fullLinkJs",
+    "full"
+  )
+  private val validFastLinkAliases = Set(
+    "dev",
+    "fastLinkJs",
+    "fast"
+  )
+
+  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
+    if (mode.isEmpty || mode.exists(validFullLinkAliases.union(validFastLinkAliases).contains))
+      Right(mode.exists(validFullLinkAliases.contains))
+    else
+      Left(UnrecognizedJsOptModeError(
+        mode.get,
+        validFullLinkAliases.toSeq,
+        validFastLinkAliases.toSeq
+      ))
+
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
@@ -128,13 +149,13 @@ final case class ScalaJsOptions(
     )
 
     ScalaJsLinkerConfig(
-      moduleKind(logger),
-      checkIr.getOrElse(false), // meh
-      emitSourceMaps,
-      moduleSplitStyle(logger),
-      smallModuleForPackage,
-      esFeatures,
-      header
+      moduleKind = moduleKind(logger),
+      checkIR = checkIr.getOrElse(false), // meh
+      sourceMap = emitSourceMaps,
+      moduleSplitStyle = moduleSplitStyle(logger),
+      smallModuleForPackage = smallModuleForPackage,
+      esFeatures = esFeatures,
+      jsHeader = header
     )
   }
 }

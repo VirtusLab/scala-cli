@@ -447,7 +447,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             Some(mainClass),
             addTestInitializer = false,
             linkerConfig,
-            build.options.scalaJsOptions.fullOpt,
+            value(build.options.scalaJsOptions.fullOpt),
             build.options.scalaJsOptions.noOpt.getOrElse(false),
             logger,
             scratchDirOpt

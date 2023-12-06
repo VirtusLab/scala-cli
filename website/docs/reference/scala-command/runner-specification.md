@@ -132,7 +132,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -875,7 +875,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -1422,7 +1422,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -1995,7 +1995,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -2587,7 +2587,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -3155,7 +3155,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -3760,7 +3760,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -4416,7 +4416,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -5303,7 +5303,7 @@ The Scala.js version (1.14.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
