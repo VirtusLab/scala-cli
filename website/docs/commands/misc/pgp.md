@@ -1,6 +1,6 @@
 ---
 title: PGP ⚡️
-sidebar_position: 18
+sidebar_position: 30
 ---
 
 :::caution
