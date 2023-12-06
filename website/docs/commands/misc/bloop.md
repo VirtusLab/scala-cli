@@ -30,8 +30,7 @@ When working in an environment with restricted access to the web, using Bloop ca
 
 Bloop is started as a separate JVM process, parameters of this process can be configured using arguments passed to the invoked subcommand ([see compilation server options](../../reference/cli-options.md#compilation-server-options)).
 They also depend on the JVM version chosen for building the project, it cannot be higher than the version of the JVM running Bloop. If such a case is detected, the build server has to be restarted with a sufficiently high JVM.
-Note that the default version of the JVM for Bloop is 17, so if your `JAVA_HOME` contains something with a lower version Scala CLI will fetch the needed.
-
+Note that the default version of the JVM for Bloop is 17, so if your `JAVA_HOME` refers to an older version of Java, Scala CLI will fetch the one you need. You can also override the JVM version Bloop runs on with the `--bloop-jvm` option.
 To start the Bloop server manually you can use the `bloop start` subcommand:
 ```bash
 scala-cli --power bloop start
