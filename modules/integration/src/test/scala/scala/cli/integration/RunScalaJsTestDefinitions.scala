@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 
 trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
-  def simpleJsTest(extraArgs: String*): Unit = {
+  def simpleJsTestOutput(extraArgs: String*): String = {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
@@ -17,18 +17,31 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
-        root
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(
+        cwd = root,
+        mergeErrIntoOut = true
       ).out.trim()
       expect(output.linesIterator.toSeq.last == message)
+      output
     }
   }
 
   test("simple script JS") {
-    simpleJsTest()
+    simpleJsTestOutput()
   }
-  test("simple script JS in release mode") {
-    simpleJsTest("--js-mode", "release")
+
+  test(s"simple script JS in fullLinkJs mode") {
+    val output = simpleJsTestOutput("--js-mode", "fullLinkJs", "-v", "-v", "-v")
+    expect(output.contains("--fullOpt"))
+    expect(!output.contains("--fastOpt"))
+    expect(!output.contains("--noOpt"))
+  }
+
+  test(s"simple script JS in fastLinkJs mode") {
+    val output = simpleJsTestOutput("--js-mode", "fastLinkJs", "-v", "-v", "-v")
+    expect(output.contains("--fastOpt"))
+    expect(!output.contains("--fullOpt"))
+    expect(!output.contains("--noOpt"))
   }
 
   test("without node on the PATH") {

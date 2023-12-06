@@ -690,19 +690,20 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     destPath: os.Path,
     mainClass: Option[String],
     logger: Logger
-  ): Either[BuildException, os.Path] = {
-    val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-    linkJs(
+  ): Either[BuildException, os.Path] = for {
+    isFullOpt <- build.options.scalaJsOptions.fullOpt
+    linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+    linkResult <- linkJs(
       build,
       destPath,
       mainClass,
       addTestInitializer = false,
       linkerConfig,
-      build.options.scalaJsOptions.fullOpt,
+      isFullOpt,
       build.options.scalaJsOptions.noOpt.getOrElse(false),
       logger
     )
-  }
+  } yield linkResult
 
   private def bootstrap(
     build: Build.Successful,

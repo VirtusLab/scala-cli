@@ -10,19 +10,9 @@ final case class ScalaJsLinkerConfig(
   esFeatures: ScalaJsLinkerConfig.ESFeatures = ScalaJsLinkerConfig.ESFeatures(),
   jsHeader: Option[String] = None,
   prettyPrint: Boolean = false,
-  relativizeSourceMapBase: Option[String] = None,
-  semantics: ScalaJsLinkerConfig.Semantics = ScalaJsLinkerConfig.Semantics()
+  relativizeSourceMapBase: Option[String] = None
 ) {
   def linkerCliArgs: Seq[String] = {
-
-    // FIXME Fatal asInstanceOfs should be the default, but it seems we can't
-    // pass Unchecked via the CLI here
-    // It seems we can't pass the other semantics fields either.
-    val semanticsArgs =
-      if (semantics.asInstanceOfs == ScalaJsLinkerConfig.CheckedBehavior.Compliant)
-        Seq("--compliantAsInstanceOfs")
-      else
-        Nil
     val moduleKindArgs       = Seq("--moduleKind", moduleKind)
     val moduleSplitStyleArgs = Seq("--moduleSplitStyle", moduleSplitStyle)
     val smallModuleForPackageArgs =
@@ -41,7 +31,6 @@ final case class ScalaJsLinkerConfig(
       else Nil
     val jsHeaderArg = if (jsHeader.nonEmpty) Seq("--jsHeader", jsHeader.getOrElse("")) else Nil
     val configArgs = Seq[os.Shellable](
-      semanticsArgs,
       moduleKindArgs,
       moduleSplitStyleArgs,
       smallModuleForPackageArgs,
@@ -88,13 +77,5 @@ object ScalaJsLinkerConfig {
     val ES2021 = "ES2021"
 
     def default = ES2015
-  }
-
-  final case class Semantics(
-    asInstanceOfs: String = CheckedBehavior.Compliant
-  )
-
-  object CheckedBehavior {
-    val Compliant = "Compliant"
   }
 }
