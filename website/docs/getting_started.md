@@ -72,9 +72,9 @@ Hello Jenny, Jake!
 
 </ChainedSnippets>
 
-You may wonder what kind of Scala version was used under the hood. The answer is the latest stable version which was tested in Scala CLI. If you want to specify the Scala version you can use `-S` or `--scala` option. More about setting Scala version in the dedicated [cookbook](./cookbooks/scala-versions.md).
+You may wonder what kind of Scala version was used under the hood. The answer is the latest stable version which was tested in Scala CLI. If you want to specify the Scala version you can use `-S` or `--scala` option. More about setting Scala version in the dedicated [cookbook](./cookbooks/introduction/scala-versions.md).
 
-Scala CLI offers many more features dedicated for scripting, as described in the [dedicated guide](./guides/scripts.md).
+Scala CLI offers many more features dedicated for scripting, as described in the [dedicated guide](guides/scripting/scripts.md).
 
 ## Dependencies
 
@@ -129,7 +129,7 @@ def filesByExtension(
     }
 ```
 
-As you may have noticed, we specified a dependency within `files.scala` using the `//> using dep com.lihaoyi::os-lib:0.9.0` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](./guides/using-directives.md).
+As you may have noticed, we specified a dependency within `files.scala` using the `//> using dep com.lihaoyi::os-lib:0.9.0` syntax. With Scala CLI, you can provide configuration information with `using` directives — a dedicated syntax that can be embedded in any `.scala` file. For more details, see our dedicated [guide for `using` directives](guides/introduction/using-directives.md).
 
 Now let's check if our code compiles. We do that by running:
 
@@ -147,7 +147,7 @@ Some people are fine using the command line only, but most Scala developers use 
 
 At the present moment, support for IntelliJ is often problematic. But know that we are working on making it as rock-solid as Metals.
 
-Actually, in this case, we cheated a bit by running the compilation first. In order for Metals or IntelliJ to pick up a Scala CLI project, we need to generate a BSP connection detail file. Scala CLI generates these details by default every time `compile`, `run`, or `test` are run. We also expose a `setup-ide` command to manually control creation of the connection details file. For more information on this, see our [IDE guide](./guides/ide.md).
+Actually, in this case, we cheated a bit by running the compilation first. In order for Metals or IntelliJ to pick up a Scala CLI project, we need to generate a BSP connection detail file. Scala CLI generates these details by default every time `compile`, `run`, or `test` are run. We also expose a `setup-ide` command to manually control creation of the connection details file. For more information on this, see our [IDE guide](guides/introduction/ide.md).
 
 ## Tests
 
@@ -244,7 +244,7 @@ The default binary name is `app`, so in this example we provide the `-o` flag to
 
 This time it only took 350 milliseconds, so this is a big improvement. When you create a binary file (a runnable jar) like this, it's self-contained, and can be shipped to your colleagues or deployed.
 
-We can reduce the startup time even further using [Scala Native](./guides/scala-native.md), or by packaging our application to other formats like [Docker container](./commands/package.md#docker-container), [assembly](./commands/package.md#assemblies), or even [OS-specific packages](./commands/package.md#os-specific-packages) (.dep, .pkg, etc.). See those resources for more information.
+We can reduce the startup time even further using [Scala Native](guides/advanced/scala-native.md), or by packaging our application to other formats like [Docker container](./commands/package.md#docker-container), [assembly](./commands/package.md#assemblies), or even [OS-specific packages](./commands/package.md#os-specific-packages) (.dep, .pkg, etc.). See those resources for more information.
 
 
 ## Summary

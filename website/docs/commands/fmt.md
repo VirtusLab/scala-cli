@@ -162,13 +162,13 @@ At the beginning `fmt` looks for the configuration inside the file specified in 
 3. Configuration file is not found.
 
 - In the **first** case `fmt` uses the found `.scalafmt.conf` file to run `scalafmt`.
-- In the **second** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory. Content of the previously found file is copied into the newly created file, missing parameters are [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) and written into the same file. Created file is used to run `scalafmt`. 
-- In the **third** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
+- In the **second** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory. Content of the previously found file is copied into the newly created file, missing parameters are [inferred](#scalafmt-version-and-dialect) and written into the same file. Created file is used to run `scalafmt`. 
+- In the **third** case `fmt` creates a `.scalafmt.conf` file inside the `.scala-build` directory, writes [inferred](#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
 
 If the `--save-scalafmt-conf` option is passed, then `fmt` command behaves as follows:
 - In the **first** case `fmt` uses the found `.scalafmt.conf` file to run `scalafmt`.
-- In the **second** case `fmt` [infers](/docs/commands/fmt#scalafmt-version-and-dialect) missing parameters, writes them directly into the previously found file and then uses this file to run `scalafmt`.
-- In the **third** case `fmt` creates a `.scalafmt.conf` file in the current workspace directory, writes [inferred](/docs/commands/fmt#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
+- In the **second** case `fmt` [infers](#scalafmt-version-and-dialect) missing parameters, writes them directly into the previously found file and then uses this file to run `scalafmt`.
+- In the **third** case `fmt` creates a `.scalafmt.conf` file in the current workspace directory, writes [inferred](#scalafmt-version-and-dialect) version and dialect into it and uses it to run `scalafmt`.
 
 :::note
 If the configuration is passed in the `--scalafmt-conf-str` option, Scala CLI will behave exactly the same as if it found the specified configuration in a `.scalafmt.conf` file in the workspace.

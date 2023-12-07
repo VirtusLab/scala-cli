@@ -717,7 +717,7 @@ this version is going to become the official `scala` runner, replacing the old `
 For a deeper understanding of Scala CLI as the new `scala` runner and to explore its benefits and features,
 we encourage you to check out our [blogpost](https://virtuslab.com/blog/scala-cli-the-new-scala-runner/).
 
-Also be sure to get familiar with all the differences introduced by this change in our [migration guide](docs/guides/old-runner-migration.md).
+Also be sure to get familiar with all the differences introduced by this change in our [migration guide](guides/introduction/old-runner-migration.md).
 
 ## What's Changed
 
@@ -1171,7 +1171,7 @@ Added by [@lwronski](https://github.com/lwronski) in [#1964](https://github.com/
 ### Add a guide for migrating from the old `scala` runner to Scala CLI
 
 As of [SIP-46](https://github.com/scala/improvement-proposals/pull/46), Scala CLI has been accepted as the new `scala`
-command. To make the transition smooth we added a [guide](docs/guides/old-runner-migration.md) highlighting
+command. To make the transition smooth we added a [guide](docs/guides/introduction/old-runner-migration.md) highlighting
 the differences between the two runners.
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#1900](https://github.com/VirtusLab/scala-cli/pull/1900)
@@ -2649,7 +2649,7 @@ The configuration used can be saved in the workspace by passing the `--save-scal
 Added in [#1192](https://github.com/VirtusLab/scala-cli/pull/1192) by [wleczny](https://github.com/wleczny)
 
 ### Define `output` option for `package` command with using directives
-It is now possible to pass the `output` option of the `package` command with [using directives](/docs/guides/using-directives) instead of passing it directly from bash.
+It is now possible to pass the `output` option of the `package` command with [using directives](guides/introduction/using-directives) instead of passing it directly from bash.
 
 Added in [#1213](https://github.com/VirtusLab/scala-cli/pull/1213) by [wleczny](https://github.com/wleczny)
 

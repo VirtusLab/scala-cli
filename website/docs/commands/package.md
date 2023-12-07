@@ -443,7 +443,7 @@ scala-cli --power package --msi --output path.msi Hello.scala
 
 ## Using directives
 
-Instead of passing the `package` options directly from bash, it is possible to pass some of them with [using directives](/docs/guides/using-directives).
+Instead of passing the `package` options directly from bash, it is possible to pass some of them with [using directives](../guides/introduction/using-directives).
 
 ### packaging.packageType
 
