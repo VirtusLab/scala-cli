@@ -35,7 +35,7 @@ Wrote public key e259e7e8a23475b3 to key.pub
 Wrote secret key to key.skr
 ```
 
-See [the dedicated page](docs/reference/password-options.md) for the various formats
+See [the dedicated page](../../reference/password-options.md) for the various formats
 accepted by the `--password` option.
 
 ## Get the fingerprint of a public key

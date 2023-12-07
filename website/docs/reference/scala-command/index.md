@@ -46,4 +46,4 @@ Alternatively, you can rename your `scala-cli` executable or alias it as `scala`
 ## Migrating from the old `scala` runner to Scala CLI
 
 If you have been using the old `scala` runner and want to migrate to Scala CLI, refer
-to [the migration guide](../../guides/old-runner-migration.md).
+to [the migration guide](../../guides/introduction/old-runner-migration.md).

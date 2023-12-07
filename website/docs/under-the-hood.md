@@ -6,7 +6,7 @@ sidebar_position: 32
 :::note
 This page is for people who are already familiar with the Scala/JVM ecosystem.
 
-If you just want to learn Scala CLI, head out to the [Commands section](./commands/basics.md).
+If you just want to learn Scala CLI, head out to the [Commands section](commands/basics.md).
 :::
 
 
@@ -18,7 +18,7 @@ only requires the [Visual C++ Redistributable Runtime](https://www.microsoft.com
 on Windows.
 Native Image lets us build Scala CLI as a native image for each platform, and lets Scala CLI be responsive, as a command line application should be.
 
-However, Scala CLI is still a JVM application, so it is possible to e.g. set [Java properties](./guides/java-properties.md).
+However, Scala CLI is still a JVM application, so it is possible to e.g. set [Java properties](guides/advanced/java-properties.md).
 
 ### Caching and incrementality
 
@@ -28,12 +28,12 @@ But note that incremental compilation and caching are not perfect.
 In some cases, when there's a compilation problem and you don't think it's a problem with the code, it may be the stale state of the project - cleaning the project state might help.
 For this reason Scala CLI has the [clean](./commands/clean.md) command, which invalidates local caches and forces the next compilation to be a total rebuild from a clean slate.
 
-We provide a more in-depth overview about how caching works in the [Scala CLI internals guide](./guides/internals.md).
+We provide a more in-depth overview about how caching works in the [Scala CLI internals guide](guides/advanced/internals.md).
 
 ### Bloop
 
 To ensure the quickest compilation, Scala CLI uses and manages the [Bloop](https://scalacenter.github.io/bloop/) compilation server.
-We have a [guide](./commands/misc/bloop.md) that describes how Scala CLI interacts with the local Bloop server and how a user can do the same.
+We have a [guide](commands/misc/bloop.md) that describes how Scala CLI interacts with the local Bloop server and how a user can do the same.
 The main point to know is that Scala CLI takes care of fetching and starting Bloop if needed, so you don't have to worry about it.
 
 ### Coursier
