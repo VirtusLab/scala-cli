@@ -289,11 +289,10 @@ Certain compiler options allow to view relevant help. Inputs aren't required whe
 Those include:
 
 - `-help`
-- all options prefixed with:
-    - `-V`
-    - `-W`
-    - `-X`
-    - `-Y`
+- `-V`
+- `-W`
+- `-X`
+- `-Y`
 
 <ChainedSnippets>
 
