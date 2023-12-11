@@ -16,13 +16,13 @@ import scala.build.errors.*
 import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
 import scala.build.options.*
-import scala.build.preprocessing.directives
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,
   PreprocessedDirectives,
   ScopedDirective
 }
+import scala.build.preprocessing.{DeprecatedDirectives, directives}
 import scala.build.{Logger, Position, Positioned}
 
 case object ScalaPreprocessor extends Preprocessor {
@@ -219,6 +219,8 @@ case object ScalaPreprocessor extends Preprocessor {
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
+    DeprecatedDirectives.issueWarnings(path, extractedDirectives.directives, logger)
+
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
       value(DirectivesPreprocessor(

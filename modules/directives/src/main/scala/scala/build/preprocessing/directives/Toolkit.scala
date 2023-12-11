@@ -39,6 +39,7 @@ final case class Toolkit(
 }
 
 object Toolkit {
+  val typelevel = "typelevel"
 
   /** @param toolkitCoords
     *   the toolkit coordinates
@@ -49,14 +50,21 @@ object Toolkit {
     : List[WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]]] =
     toolkitCoords match
       case Positioned(positions, coords) =>
-        val tokens  = coords.split(':')
-        val version = tokens.last
-        val v       = if version == "latest" then "latest.release" else version
-        val flavor  = tokens.dropRight(1).headOption
-        val org = flavor match {
-          case Some("typelevel") => Constants.typelevelOrganization
-          case Some(org)         => org
-          case None              => Constants.toolkitOrganization
+        val tokens            = coords.split(':')
+        val rawVersion        = tokens.last
+        def isDefault         = rawVersion == "default"
+        val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
+        val flavor            = tokens.dropRight(1).headOption
+        val (org, v) = flavor match {
+          case Some(Toolkit.typelevel) => Constants.typelevelOrganization -> {
+              if isDefault then Constants.typelevelToolkitDefaultVersion
+              else notDefaultVersion
+            }
+          case Some(org) => org -> notDefaultVersion
+          case None => Constants.toolkitOrganization -> {
+              if isDefault then Constants.toolkitDefaultVersion
+              else notDefaultVersion
+            }
         }
         List(
           Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")

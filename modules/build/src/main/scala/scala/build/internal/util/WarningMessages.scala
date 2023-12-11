@@ -123,4 +123,7 @@ object WarningMessages {
 
   val mainScriptNameClashesWithAppWrapper =
     "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
+
+  def deprecatedWarning(old: String, `new`: String) =
+    s"Using `$old` is deprecated, use `${`new`}` instead"
 }

@@ -449,8 +449,8 @@ class SipScalaTests extends ScalaCliSuite {
            |Exporting to a sbt project...
            |Some utilized directives are marked as experimental:
            | - `//> using publish.name "my-library"`
-           | - `//> using target.scope "main"`
            | - `//> using target.platform "jvm"`
+           | - `//> using target.scope "main"`
            |Please bear in mind that non-ideal user experience should be expected.
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exported to: ${root / "dest"}

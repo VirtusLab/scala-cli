@@ -123,8 +123,7 @@ case class DirectivesPreprocessor(
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
         Left(DirectiveErrors(
           ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
-          // TODO: use positions from ExtractedDirectives to get the full directive underlined
-          DirectiveUtil.positions(scopedDirective.directive.values, path)
+          Seq(scopedDirective.directive.position(scopedDirective.maybePath))
         ))
       else
         if handler.isExperimental && !shouldSuppressExperimentalFeatures then
@@ -142,7 +141,7 @@ case class DirectivesPreprocessor(
     val res = directives
       .iterator
       .flatMap {
-        case d @ StrictDirective(k, _) =>
+        case d @ StrictDirective(k, _, _) =>
           handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
       }
       .toVector
