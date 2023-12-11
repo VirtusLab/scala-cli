@@ -24,7 +24,7 @@ class FixTests extends ScalaCliSuite {
            |}
            |""".stripMargin,
       os.rel / projectFileName ->
-        s"""//> using lib "com.lihaoyi::pprint:0.6.6"
+        s"""//> using deps "com.lihaoyi::pprint:0.6.6"
            |""".stripMargin
     )
 
@@ -85,7 +85,7 @@ class FixTests extends ScalaCliSuite {
            |println(os.pwd)
            |""".stripMargin,
       os.rel / projectFileName ->
-        s"""//> using lib "com.lihaoyi::pprint:0.6.6"
+        s"""//> using deps "com.lihaoyi::pprint:0.6.6"
            |""".stripMargin
     )
 
@@ -162,7 +162,7 @@ class FixTests extends ScalaCliSuite {
            |}
            |""".stripMargin,
       os.rel / projectFileName ->
-        s"""//> using lib com.lihaoyi::pprint:0.6.6
+        s"""//> using deps com.lihaoyi::pprint:0.6.6
            |""".stripMargin
     )
 
@@ -289,7 +289,7 @@ class FixTests extends ScalaCliSuite {
              |}
              |""".stripMargin,
         os.rel / projectFileName ->
-          s"""//> using lib com.lihaoyi::pprint:0.6.6
+          s"""//> using deps com.lihaoyi::pprint:0.6.6
              |
              |//> using publish.ci.password env:PUBLISH_PASSWORD
              |//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY
@@ -305,7 +305,7 @@ class FixTests extends ScalaCliSuite {
           "fix",
           ".",
           "--script-snippet",
-          "//> using toolkit latest",
+          "//> using toolkit default",
           "-v",
           "-v",
           extraOptions
@@ -341,7 +341,7 @@ class FixTests extends ScalaCliSuite {
              |//> using options "-Werror"
              |//> using files "$includePath"
              |//> using objectWrapper
-             |//> using toolkit "latest"
+             |//> using toolkit "default"
              |//> using dependency "com.lihaoyi::os-lib:0.9.1" "com.lihaoyi::pprint:0.6.6"
              |
              |//> using publish.ci.password "env:PUBLISH_PASSWORD"

@@ -3,7 +3,7 @@ package scala.build.preprocessing
 import scala.build.Logger
 import scala.build.errors.Diagnostic.TextEdit
 import scala.build.internal.Constants
-import scala.build.internal.util.WarningMessages.deprecatedWarning
+import scala.build.internal.util.WarningMessages.{deprecatedToolkitLatest, deprecatedWarning}
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,
@@ -58,18 +58,18 @@ object DeprecatedDirectives {
     DirectiveTemplate(
       allKeysFrom(directives.Toolkit.handler),
       Some(Seq("latest"))
-    ) -> valueReplacement("default")(deprecatedWarning("latest", "default")),
+    ) -> valueReplacement("default")(deprecatedToolkitLatest()),
     DirectiveTemplate(
       allKeysFrom(directives.Toolkit.handler),
       Some(Seq(s"${Toolkit.typelevel}:latest"))
     ) -> valueReplacement(s"${Toolkit.typelevel}:default")(
-      deprecatedWarning("latest", "default")
+      deprecatedToolkitLatest()
     ),
     DirectiveTemplate(
       allKeysFrom(directives.Toolkit.handler),
       Some(Seq(s"${Constants.typelevelOrganization}:latest"))
     ) -> valueReplacement(s"${Toolkit.typelevel}:default")(
-      deprecatedWarning("latest", "default")
+      deprecatedToolkitLatest()
     )
   )
 

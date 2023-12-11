@@ -393,13 +393,13 @@ final case class SharedOptions(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+          ) ++ SharedOptions.resolveToolkitDependency(withToolkit, logger)
         ),
         extraCompileOnlyDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.compileOnlyDependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+          ) ++ SharedOptions.resolveToolkitDependency(withToolkit, logger)
         )
       ),
       internal = bo.InternalOptions(
@@ -719,8 +719,21 @@ object SharedOptions {
         }
       }
 
-  private def resolveToolkitDependency(toolkitVersion: Option[String])
-    : Seq[Positioned[AnyDependency]] =
+  private def resolveToolkitDependency(
+    toolkitVersion: Option[String],
+    logger: Logger
+  ): Seq[Positioned[AnyDependency]] = {
+    if (
+      toolkitVersion.contains("latest")
+      || toolkitVersion.contains(Toolkit.typelevel + ":latest")
+      || toolkitVersion.contains(Constants.typelevelOrganization + ":latest")
+    ) logger.message(
+      WarningMessages.deprecatedToolkitLatest(
+        s"--toolkit ${toolkitVersion.map(_.replace("latest", "default")).getOrElse("default")}"
+      )
+    )
+
     toolkitVersion.toList.map(Positioned.commandLine)
       .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map(_.value))
+  }
 }
