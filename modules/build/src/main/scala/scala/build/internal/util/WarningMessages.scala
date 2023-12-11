@@ -125,5 +125,12 @@ object WarningMessages {
     "Script file named 'main.sc' detected, keep in mind that accessing it from other scripts is impossible due to a clash of `main` symbols"
 
   def deprecatedWarning(old: String, `new`: String) =
-    s"Using `$old` is deprecated, use `${`new`}` instead"
+    s"Using '$old' is deprecated, use '${`new`}' instead"
+
+  def deprecatedToolkitLatest(updatedValue: String = "") =
+    if updatedValue.isEmpty then
+      """Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour"""
+    else
+      s"""Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
+         | $updatedValue""".stripMargin
 }

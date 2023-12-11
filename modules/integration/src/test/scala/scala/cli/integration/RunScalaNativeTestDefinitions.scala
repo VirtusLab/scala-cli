@@ -301,15 +301,22 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("native defaults & toolkit latest") {
+  test("native defaults & toolkit default") {
     TestInputs(
-      os.rel / "script.sc" ->
-        """//> using toolkit latest
-          |//> using platform "scala-native"
-          |println(os.pwd)
+      os.rel / "toolkit.scala" ->
+        """//> using toolkit default
+          |//> using toolkit typelevel:default
+          |
+          |//> using platform native
+          |
+          |import cats.effect.*
+          |
+          |object Hello extends IOApp.Simple {
+          |  def run =  IO.println(os.pwd)
+          |}
           |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "run", "script.sc").call(cwd = root)
+      val result = os.proc(TestUtil.cli, "run", "toolkit.scala").call(cwd = root)
       expect(result.out.trim() == root.toString)
     }
   }
