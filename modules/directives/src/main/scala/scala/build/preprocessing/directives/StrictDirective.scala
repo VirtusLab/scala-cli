@@ -2,17 +2,31 @@ package scala.build.preprocessing.directives
 
 import com.virtuslab.using_directives.custom.model.{EmptyValue, StringValue, Value}
 
+import scala.build.Position
+
+/** Represents a directive with a key and a sequence of values.
+  *
+  * @param key
+  *   the key of the directive
+  * @param values
+  *   the sequence of values of the directive
+  * @param startColumn
+  *   the column where the key of the directive starts
+  */
+
 case class StrictDirective(
   key: String,
-  values: Seq[Value[_]]
+  values: Seq[Value[_]],
+  startColumn: Int = 0
 ) {
   override def toString: String = {
-    val validValues = values.filter {
-      case _: EmptyValue => false
-      case _             => true
-    }
     val suffix = if validValues.isEmpty then "" else s" \"${validValues.mkString("\",  \"")}\""
     s"//> using $key$suffix"
+  }
+
+  private def validValues = values.filter {
+    case _: EmptyValue => false
+    case _             => true
   }
 
   /** Checks whether the directive with the sequence of values will fit into the given column limit,
@@ -43,9 +57,23 @@ case class StrictDirective(
     }
   }
 
-  def stringValuesCount: Int =
-    values.count {
-      case _: StringValue => true
-      case _              => false
-    }
+  def stringValuesCount: Int = validValues.length
+
+  def toStringValues: Seq[String] = validValues.map(_.toString)
+
+  def position(path: Either[String, os.Path]): Position.File =
+    values.lastOption
+      .map { v =>
+        val position = DirectiveUtil.position(v, path)
+        v match
+          case _: EmptyValue => position.startPos
+          case _             => position.endPos
+      }.map { (line, endColumn) =>
+        Position.File(
+          path,
+          (line, startColumn),
+          (line, endColumn)
+        )
+      }.getOrElse(Position.File(path, (0, 0), (0, 0)))
+
 }

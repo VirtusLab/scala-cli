@@ -41,8 +41,8 @@ final case class Dependency(
   @DirectiveName("test.deps")
   @DirectiveName("test.dependencies")
   testDependency: List[Positioned[String]] = Nil,
-  @DirectiveName("compileOnly.lib")
-  @DirectiveName("compileOnly.libs")
+  @DirectiveName("compileOnly.lib")  // backwards compat
+  @DirectiveName("compileOnly.libs") // backwards compat
   @DirectiveName("compileOnly.dep")
   @DirectiveName("compileOnly.deps")
   @DirectiveName("compileOnly.dependencies")

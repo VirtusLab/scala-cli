@@ -1,8 +1,14 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.UsingDirectivesProcessor
-import com.virtuslab.using_directives.custom.model.UsingDirectives
-import com.virtuslab.using_directives.custom.utils.ast.{UsingDef, UsingDefs}
+import com.virtuslab.using_directives.custom.model.{
+  BooleanValue,
+  EmptyValue,
+  StringValue,
+  UsingDirectives,
+  Value
+}
+import com.virtuslab.using_directives.custom.utils.ast._
 
 import scala.annotation.targetName
 import scala.build.errors.*
@@ -14,19 +20,16 @@ import scala.jdk.CollectionConverters.*
 
 case class ExtractedDirectives(
   directives: Seq[StrictDirective],
-  positions: Option[Position.File]
+  position: Option[Position.File]
 ) {
   @targetName("append")
   def ++(other: ExtractedDirectives): ExtractedDirectives =
-    ExtractedDirectives(directives ++ other.directives, positions)
+    ExtractedDirectives(directives ++ other.directives, position)
 }
 
 object ExtractedDirectives {
 
   def empty: ExtractedDirectives = ExtractedDirectives(Seq.empty, None)
-
-  val changeToSpecialCommentMsg =
-    "Using directive using plain comments are deprecated. Please use a special comment syntax: '//> ...'"
 
   def from(
     contentChars: Array[Char],
@@ -60,14 +63,26 @@ object ExtractedDirectives {
         case None             => None
       }
 
-      val flattened = directivesOpt.map(_.getFlattenedMap.asScala.toSeq).getOrElse(Seq.empty)
-      val strictDirectives =
-        flattened.map {
-          case (k, l) =>
-            StrictDirective(k.getPath.asScala.mkString("."), l.asScala.toSeq)
+      val strictDirectives = directivesOpt.toSeq.flatMap { directives =>
+        def toStrictValue(value: UsingValue): Seq[Value[_]] = value match {
+          case uvs: UsingValues   => uvs.values.asScala.toSeq.flatMap(toStrictValue)
+          case el: EmptyLiteral   => Seq(EmptyValue(el))
+          case sl: StringLiteral  => Seq(StringValue(sl.getValue(), sl))
+          case bl: BooleanLiteral => Seq(BooleanValue(bl.getValue(), bl))
         }
+        def toStrictDirective(ud: UsingDef) = StrictDirective(
+          ud.getKey(),
+          toStrictValue(ud.getValue()),
+          ud.getPosition().getColumn()
+        )
 
-      Right(ExtractedDirectives(strictDirectives, directivesPositionOpt))
+        directives.getAst match
+          case uds: UsingDefs => uds.getUsingDefs.asScala.toSeq.map(toStrictDirective)
+          case ud: UsingDef   => Seq(toStrictDirective(ud))
+          case _              => Nil // There should be nothing else here than UsingDefs or UsingDef
+      }
+
+      Right(ExtractedDirectives(strictDirectives.reverse, directivesPositionOpt))
     }
     else
       maybeCompositeMalformedDirectiveError match {
