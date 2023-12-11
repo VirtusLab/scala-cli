@@ -25,8 +25,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions {
 
-  protected lazy val extraOptions: Seq[String]     = scalaVersionArgs ++ TestUtil.extraOptions
-  protected val emptyInputs: TestInputs            = TestInputs(os.rel / ".placeholder" -> "")
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
+
   override def warmUpExtraTestOptions: Seq[String] = extraOptions
 
   protected val ciOpt: Seq[String] =
@@ -188,7 +189,8 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  private lazy val ansiRegex                 = "\u001B\\[[;\\d]*m".r
+  private lazy val ansiRegex = "\u001B\\[[;\\d]*m".r
+
   protected def stripAnsi(s: String): String = ansiRegex.replaceAllIn(s, "")
 
   test("stack traces") {
@@ -356,6 +358,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             |""".stripMargin
       )
     }
+
     inputs(compileOnly = false).fromRoot { root =>
       val baseOutput = os.proc(TestUtil.cli, extraOptions, ".")
         .call(cwd = root)
@@ -395,7 +398,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         val script =
           s"""#!/usr/bin/env sh
              |set -e
-             |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee -a output
+             |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName| tee -a output
              |""".stripMargin
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
@@ -506,6 +509,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         |}
         |""".stripMargin
   )
+
   private def nonWritableTest(): Unit = {
     simpleDirInputs.fromRoot { root =>
       def run(): String = {
@@ -524,6 +528,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       finally os.perms.set(root / "dir", "rwxr-xr-x")
     }
   }
+
   if (!Properties.isWin)
     test("no .scala in non-writable directory") {
       nonWritableTest()
@@ -543,6 +548,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(!classDirAfter.startsWith(root))
     }
   }
+
   if (!Properties.isWin)
     test("no .scala in forbidden directory") {
       forbiddenDirTest()
@@ -565,6 +571,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
   }
+
   test("resources") {
     resourcesInputs().fromRoot { root =>
       os.proc(TestUtil.cli, "run", "src", "--resource-dirs", "./src/proj/resources").call(cwd =
@@ -604,6 +611,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       expect(res.out.trim() == "Hello from tests")
     }
   }
+
   if (TestUtil.isNativeCli && !Properties.isWin)
     test("should pass arguments as is") {
       argsAsIsTest()
@@ -647,13 +655,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
   if (!Properties.isWin)
     test("CLI args passed to shebang in Scala file") {
       val inputs = TestInputs(
-        os.rel / "f.scala" -> s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
-                                  |object Hello {
-                                  |    def main(args: Array[String]) = {
-                                  |        println(args.toList)
-                                  |    }
-                                  |}
-                                  |""".stripMargin
+        os.rel / "f.scala" ->
+          s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
+              |object Hello {
+              |    def main(args: Array[String]) = {
+              |        println(args.toList)
+              |    }
+              |}
+              |""".stripMargin
       )
       inputs.fromRoot { root =>
         os.perms.set(root / "f.scala", os.PermSet.fromString("rwx------"))
@@ -701,9 +710,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   test("-D.. options passed to the child app") {
     val inputs = TestInputs(
-      os.rel / "Hello.scala" -> """object ClassHello extends App {
-                                  |  print(System.getProperty("foo"))
-                                  |}""".stripMargin
+      os.rel / "Hello.scala" ->
+        """object ClassHello extends App {
+          |  print(System.getProperty("foo"))
+          |}""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "Hello.scala", "--java-opt", "-Dfoo=bar").call(
@@ -853,11 +863,13 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |useradd --create-home --shell /bin/bash test
            |apt update
            |apt install -y sudo
-           |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName | tee output-root
+           |./scala ${extraOptions.mkString(" ") /* meh escaping */} $fileName| tee output-root
            |sudo -u test ./scala clean $fileName
-           |sudo -u test ./scala ${extraOptions.mkString(
-            " "
-          ) /* meh escaping */} $fileName | tee output-user
+           |sudo -u test ./scala ${
+            extraOptions.mkString(
+              " "
+            ) /* meh escaping */
+          } $fileName| tee output-user
            |""".stripMargin
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
@@ -901,6 +913,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         )
       }*
     )
+
     def authProperties(host: String, port: Int, user: String, password: String): Seq[String] =
       Seq("http", "https").flatMap { scheme =>
         Seq(
@@ -911,12 +924,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           s"-D$scheme.proxyProtocol=http"
         )
       }
+
     val proxyArgs =
       if (legacySetup) authProperties("localhost", 9083, "jack", "insecure")
       else Nil
     val wrongProxyArgs =
       if (legacySetup) authProperties("localhost", 9084, "wrong", "nope")
       else Nil
+
     def setupProxyConfig(
       cwd: os.Path,
       env: Map[String, String],
@@ -932,6 +947,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.proc(TestUtil.cli, "--power", "config", "httpProxy.password", s"value:$password")
         .call(cwd = cwd, env = env)
     }
+
     val image = Constants.authProxyTestImage
     inputs.fromRoot { root =>
       val configDir = root / "configs"
@@ -992,6 +1008,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
   def runAuthProxyTests: Boolean =
     Properties.isLinux || (Properties.isMac && !TestUtil.isCI)
+
   if (runAuthProxyTests) {
     test("auth proxy (legacy)") {
       TestUtil.retry() {
@@ -1063,9 +1080,11 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
 
       val expectedMainClassNames = Seq(scalaFile1, scalaFile2, scriptMainClassName).sorted
       val expectedErrorMessage =
-        s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${expectedMainClassNames.mkString(
-            ", "
-          )}
+        s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${
+            expectedMainClassNames.mkString(
+              ", "
+            )
+          }
            |You can run one of them by passing it with the --main-class option, e.g.
            |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --main-class ${expectedMainClassNames.head}${Console.RESET}
            |
@@ -1540,7 +1559,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
             checkLinesForError(runResultLines)
             if (restart)
               proc.stdin.write("\n")
-              proc.stdin.flush()
+            proc.stdin.flush()
           }
 
           // You have run the current scala-cli command with the --interactive mode turned on.
@@ -2093,6 +2112,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     if (Properties.isWin) os.rel / "Coursier" / "Cache"
     else if (Properties.isMac) os.rel / "Library" / "Caches" / "Coursier"
     else os.rel / ".cache" / "coursier"
+
   if (TestUtil.isJvmCli) // can't reproduce on native image launchers
     test("user.home is overridden with user.dir") {
       val customCall =
@@ -2144,5 +2164,55 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         if (!Properties.isWin) // coursier cache location on Windows does not depend on home dir
           expect(os.isDir(newHomePath / getCoursierCacheRelPath))
       }
+  }
+
+  test("toolkit default") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """//> using toolkit default
+          |//> using toolkit typelevel:default
+          |//> using toolkit org.typelevel:default
+          |
+          |import cats.effect.IOApp
+          |import cats.effect.IO
+          |
+          |object Hello extends IOApp.Simple {
+          |  def run =  IO.println(os.pwd)
+          |}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val result =
+        os.proc(TestUtil.cli, extraOptions, ".").call(cwd = root, stderr = os.Pipe, check = false)
+      if (actualScalaVersion.startsWith("2.12")) {
+        expect(result.exitCode == 1)
+        expect(result.err.trim().contains("Toolkits do not support Scala 2.12"))
+      }
+      else {
+        expect(result.exitCode == 0)
+        expect(result.out.trim() == root.toString)
+      }
+    }
+  }
+
+  test("warning about using toolkit latest in options should be reported") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main {
+          |  def main(args: Array[String]): Unit = {
+          |    println(os.pwd)
+          |  }
+          |}
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val resLatest = os.proc(TestUtil.cli, extraOptions, ".", "--toolkit", "latest").call(
+        cwd = root,
+        mergeErrIntoOut = true
+      )
+      expect(resLatest.out.text().contains("WARNING: using 'latest' for toolkit"))
+    }
   }
 }

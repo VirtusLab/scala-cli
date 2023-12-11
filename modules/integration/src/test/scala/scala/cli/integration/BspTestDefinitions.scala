@@ -1908,6 +1908,136 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
+  if (!actualScalaVersion.startsWith("2.12"))
+    test("actionable diagnostics on deprecated using directives") {
+      val inputs = TestInputs(
+        os.rel / "test.sc" ->
+          """//> using toolkit latest
+            |//> using test.toolkit typelevel:latest
+            |
+            |//> using lib org.typelevel::cats-core:2.6.1
+            |
+            |object Test extends App {
+            | println("Hello")
+            |}
+            |""".stripMargin
+      )
+
+      withBsp(inputs, Seq(".", "--actions=false")) { (root, localClient, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val target = {
+            val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+            expect(targets.length == 2)
+            extractMainTargets(targets)
+          }
+
+          val targetUri = TestUtil.normalizeUri(target.getUri)
+          checkTargetUri(root, targetUri)
+
+          val targets = List(target).asJava
+
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+
+          val diagnosticsParams = {
+            val diagnostics = localClient.diagnostics()
+              .filter(_.getReset == false)
+            expect(diagnostics.size == 3)
+            val params = diagnostics.head
+            expect(params.getBuildTarget.getUri == targetUri)
+            expect(
+              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
+                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
+            )
+            diagnostics
+          }
+
+          val diagnostics = diagnosticsParams.flatMap(_.getDiagnostics.asScala)
+            .sortBy(_.getRange().getEnd().getCharacter())
+
+          {
+            checkDiagnostic(
+              diagnostic = diagnostics.apply(0),
+              expectedMessage =
+                "Using `latest` is deprecated, use `default` instead",
+              expectedSeverity = b.DiagnosticSeverity.WARNING,
+              expectedStartLine = 0,
+              expectedStartCharacter = 10,
+              expectedEndLine = 0,
+              expectedEndCharacter = 24
+            )
+
+            checkScalaAction(
+              diagnostic = diagnostics.apply(0),
+              expectedActionsSize = 1,
+              expectedTitle = "Change to: toolkit default",
+              expectedChanges = 1,
+              expectedStartLine = 0,
+              expectedStartCharacter = 10,
+              expectedEndLine = 0,
+              expectedEndCharacter = 24,
+              expectedNewText = "toolkit default"
+            )
+          }
+
+          {
+            checkDiagnostic(
+              diagnostic = diagnostics.apply(1),
+              expectedMessage =
+                "Using `latest` is deprecated, use `default` instead",
+              expectedSeverity = b.DiagnosticSeverity.WARNING,
+              expectedStartLine = 1,
+              expectedStartCharacter = 10,
+              expectedEndLine = 1,
+              expectedEndCharacter = 39
+            )
+
+            checkScalaAction(
+              diagnostic = diagnostics.apply(1),
+              expectedActionsSize = 1,
+              expectedTitle = "Change to: test.toolkit typelevel:default",
+              expectedChanges = 1,
+              expectedStartLine = 1,
+              expectedStartCharacter = 10,
+              expectedEndLine = 1,
+              expectedEndCharacter = 39,
+              expectedNewText = "test.toolkit typelevel:default"
+            )
+          }
+
+          {
+            checkDiagnostic(
+              diagnostic = diagnostics.apply(2),
+              expectedMessage =
+                "Using `lib` is deprecated, use `dep` instead",
+              expectedSeverity = b.DiagnosticSeverity.WARNING,
+              expectedStartLine = 3,
+              expectedStartCharacter = 10,
+              expectedEndLine = 3,
+              expectedEndCharacter = 44
+            )
+
+            checkScalaAction(
+              diagnostic = diagnostics.apply(2),
+              expectedActionsSize = 1,
+              expectedTitle = "Change to: dep org.typelevel::cats-core:2.6.1",
+              expectedChanges = 1,
+              expectedStartLine = 3,
+              expectedStartCharacter = 10,
+              expectedEndLine = 3,
+              expectedEndCharacter = 44,
+              expectedNewText = "dep org.typelevel::cats-core:2.6.1"
+            )
+          }
+        }
+      }
+    }
+
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,
     buildTargetsResp: b.WorkspaceBuildTargetsResult
@@ -1967,6 +2097,45 @@ abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
       expect(diagnostic.getMessage.contains(expectedMessage))
     for (es <- expectedSource)
       expect(diagnostic.getSource == es)
+  }
+
+  private def checkScalaAction(
+    diagnostic: b.Diagnostic,
+    expectedActionsSize: Int,
+    expectedTitle: String,
+    expectedChanges: Int,
+    expectedStartLine: Int,
+    expectedStartCharacter: Int,
+    expectedEndLine: Int,
+    expectedEndCharacter: Int,
+    expectedNewText: String
+  ) = {
+    expect(diagnostic.getDataKind == "scala")
+
+    val gson = new com.google.gson.Gson()
+
+    val scalaDiagnostic: b.ScalaDiagnostic = gson.fromJson(
+      diagnostic.getData.toString,
+      classOf[b.ScalaDiagnostic]
+    )
+
+    val actions = scalaDiagnostic.getActions.asScala
+
+    expect(actions.size == expectedActionsSize)
+
+    val action = actions.head
+    expect(action.getTitle == expectedTitle)
+
+    val edit = action.getEdit
+    expect(edit.getChanges.asScala.size == expectedChanges)
+    val change = edit.getChanges.asScala.head
+
+    val expectedRange = new b.Range(
+      new b.Position(expectedStartLine, expectedStartCharacter),
+      new b.Position(expectedEndLine, expectedEndCharacter)
+    )
+    expect(change.getRange == expectedRange)
+    expect(change.getNewText == expectedNewText)
   }
 
   private def extractWorkspaceReloadResponse(workspaceReloadResult: AnyRef): Option[ResponseError] =

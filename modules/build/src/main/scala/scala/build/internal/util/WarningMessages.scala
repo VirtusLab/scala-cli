@@ -126,4 +126,8 @@ object WarningMessages {
 
   def deprecatedWarning(old: String, `new`: String) =
     s"Using `$old` is deprecated, use `${`new`}` instead"
+
+  def deprecatedToolkitLatest(updatedValue: String) =
+    s"""using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
+       | $updatedValue""".stripMargin
 }

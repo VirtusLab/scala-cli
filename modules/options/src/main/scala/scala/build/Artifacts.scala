@@ -2,8 +2,7 @@ package scala.build
 
 import coursier.cache.FileCache
 import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
-import coursier.error.{CoursierError, ResolutionError}
-import coursier.parse.RepositoryParser
+import coursier.error.ResolutionError
 import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
 import dependency.*
@@ -18,7 +17,7 @@ import scala.build.errors.{
   CompositeBuildException,
   FetchingDependenciesError,
   NoScalaVersionProvidedError,
-  RepositoryFormatError
+  ToolkitVersionError
 }
 import scala.build.internal.Constants
 import scala.build.internal.Constants.*
@@ -654,6 +653,17 @@ object Artifacts {
     dependencies: Seq[Positioned[coursier.Dependency]],
     resolutionError: coursier.error.ResolutionError.Simple
   ) = resolutionError match {
+    // FIXME This if may not be enough when new toolkits are added
+    case ex: ResolutionError.CantDownloadModule
+        if ex.module.name.value == s"${Constants.toolkitName}_2.12" || ex.module.name.value == s"${Constants.toolkitTestName}_2.12" =>
+      val errorPositions = dependencies.collect {
+        case Positioned(pos, dep)
+            if ex.module == dep.module => pos
+      }.flatten
+      new ToolkitVersionError(
+        "Toolkits do not support Scala 2.12",
+        errorPositions
+      )
     case ex: ResolutionError.CantDownloadModule =>
       val errorPositions = dependencies.collect {
         case Positioned(pos, dep)

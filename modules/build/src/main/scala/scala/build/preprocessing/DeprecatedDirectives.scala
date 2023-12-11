@@ -2,7 +2,8 @@ package scala.build.preprocessing
 
 import scala.build.Logger
 import scala.build.errors.Diagnostic.TextEdit
-import scala.build.internal.util.WarningMessages.deprecatedWarning
+import scala.build.internal.Constants
+import scala.build.internal.util.WarningMessages.{deprecatedWarning, deprecatedToolkitLatest}
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,
@@ -43,8 +44,8 @@ object DeprecatedDirectives {
     handler.keys.flatMap(_.nameAliases)
 
   private val deprecatedCombinationsAndReplacements = Map[DirectiveTemplate, WarningAndReplacement](
-    DirectiveTemplate(Seq("lib"), None) -> keyReplacement("dep")(deprecatedWarning("lib", "dep")),
-    DirectiveTemplate(Seq("lib"), None) -> keyReplacement("dep")(deprecatedWarning("libs", "dep")),
+    DirectiveTemplate(Seq("lib"), None)  -> keyReplacement("dep")(deprecatedWarning("lib", "dep")),
+    DirectiveTemplate(Seq("libs"), None) -> keyReplacement("dep")(deprecatedWarning("libs", "dep")),
     DirectiveTemplate(Seq("compileOnly.lib"), None) -> keyReplacement("compileOnly.dep")(
       deprecatedWarning("compileOnly.lib", "compileOnly.dep")
     ),
@@ -54,11 +55,13 @@ object DeprecatedDirectives {
     DirectiveTemplate(
       allKeysFrom(directives.Toolkit.handler),
       Some(Seq("latest"))
-    ) -> valueReplacement("default")(deprecatedWarning("latest", "default")),
+    ) -> valueReplacement("default")(deprecatedToolkitLatest("//> using toolkit default")),
     DirectiveTemplate(
       allKeysFrom(directives.Toolkit.handler),
-      Some(Seq(s"${Toolkit.typelevel}:latest"))
-    ) -> valueReplacement(s"${Toolkit.typelevel}:default")(deprecatedWarning("latest", "default"))
+      Some(Seq(s"${Toolkit.typelevel}:latest", s"${Constants.typelevelOrganization}:latest"))
+    ) -> valueReplacement(s"${Toolkit.typelevel}:default")(
+      deprecatedToolkitLatest(s"//> using toolkit ${Toolkit.typelevel}:default")
+    )
   )
 
   def warningAndReplacement(directive: StrictDirective): Option[WarningAndReplacement] =

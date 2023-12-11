@@ -951,4 +951,28 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         expect(maybeBuild.exists(_.success))
       }
     }
+
+  for (dirValue <- Seq("default", "typelevel:default"))
+    test(s"error when toolkit $dirValue is used with Scala 2.12") {
+      val testInputs = TestInputs(
+        os.rel / "simple.sc" ->
+          s"""//> using toolkit $dirValue
+             |
+             |val n = 2
+             |println(s"n=$$n")
+             |""".stripMargin
+      )
+
+      val scala212Options = baseOptions.copy(
+        scalaOptions = baseOptions.scalaOptions.copy(
+          scalaVersion = Some(MaybeScalaVersion(Constants.defaultScala212Version)),
+          scalaBinaryVersion = None
+        ),
+        scriptOptions = ScriptOptions(Some(true))
+      )
+
+      testInputs.withBuild(scala212Options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+        expect(maybeBuild.left.exists(_.message.startsWith("Toolkits do not support Scala 2.12")))
+      }
+    }
 }

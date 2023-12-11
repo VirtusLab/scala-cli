@@ -41,6 +41,11 @@ final case class Toolkit(
 object Toolkit {
   val typelevel = "typelevel"
 
+  object TypelevelToolkit {
+    def unapply(s: Option[String]): Boolean =
+      s.contains(typelevel) || s.contains(Constants.typelevelOrganization)
+  }
+
   /** @param toolkitCoords
     *   the toolkit coordinates
     * @return
@@ -56,7 +61,7 @@ object Toolkit {
         val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
         val flavor            = tokens.dropRight(1).headOption
         val (org, v) = flavor match {
-          case Some(Toolkit.typelevel) => Constants.typelevelOrganization -> {
+          case TypelevelToolkit() => Constants.typelevelOrganization -> {
               if isDefault then Constants.typelevelToolkitDefaultVersion
               else notDefaultVersion
             }
