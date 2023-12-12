@@ -210,8 +210,8 @@ final case class SharedOptions(
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
-  @HelpMessage("Add toolkit to classPath")
-  @ValueDescription("version|latest")
+  @HelpMessage(s"Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: ${Constants.toolkitDefaultVersion}, 'default' version for typelevel toolkit: ${Constants.typelevelToolkitDefaultVersion}")
+  @ValueDescription("version|default")
   @Name("toolkit")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)

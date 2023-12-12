@@ -20,13 +20,15 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
 @DirectiveExamples("//> using toolkit 0.1.0")
-@DirectiveExamples("//> using toolkit latest")
-@DirectiveExamples("//> using test.toolkit latest")
+@DirectiveExamples("//> using toolkit default")
+@DirectiveExamples("//> using test.toolkit default")
 @DirectiveUsage(
   "//> using toolkit _version_",
   "`//> using toolkit` _version_"
 )
-@DirectiveDescription("Use a toolkit as dependency")
+@DirectiveDescription(
+  s"Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: ${Constants.toolkitDefaultVersion}, 'default' version for typelevel toolkit: ${Constants.typelevelToolkitDefaultVersion}"
+)
 @DirectiveLevel(SpecificationLevel.SHOULD)
 final case class Toolkit(
   toolkit: Option[Positioned[String]] = None,
