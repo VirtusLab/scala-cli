@@ -5,6 +5,10 @@ sidebar_position: 7
 
 import {ChainedSnippets} from "../../../src/components/MarkdownComponents.js";
 
+:::caution
+Newer versions of toolkits dropped support for Scala 2.12
+:::
+
 # Scala Toolkit
 
 [Scala Toolkit](https://github.com/scala/toolkit) is an ongoing
@@ -20,7 +24,7 @@ println(os.pwd)
 ```
 
 ```bash
-scala-cli UseOsLib.sc --toolkit latest
+scala-cli UseOsLib.sc --toolkit default
 ```
 
 </ChainedSnippets>
@@ -28,7 +32,7 @@ scala-cli UseOsLib.sc --toolkit latest
 Similarly, you can achieve the same with the `using toolkit` directive:
 
 ```scala compile
-//> using toolkit latest
+//> using toolkit default
 @main def printPwd: Unit = println(os.pwd)
 ```
 
@@ -47,7 +51,7 @@ And so, you can use it like this:
 <ChainedSnippets>
 
 ```scala title=Something.test.scala
-//> using toolkit latest
+//> using toolkit default
 class Something extends munit.FunSuite {
   test("foo") {
     assert(true)
@@ -67,7 +71,7 @@ you can always use the `using test.toolkit` directive.
 <ChainedSnippets>
 
 ```scala title=project.scala
-//> using test.toolkit latest
+//> using test.toolkit default
 ```
 
 ```scala title=Another.test.scala
@@ -110,8 +114,8 @@ object Hello extends IOApp.Simple {
 ```
 
 ```bash
-scala-cli UseTypelevel.scala --toolkit org.typelevel:latest
-scala-cli UseTypelevel.scala --toolkit typelevel:latest # typelevel has a shorter alias defined
+scala-cli UseTypelevel.scala --toolkit org.typelevel:default
+scala-cli UseTypelevel.scala --toolkit typelevel:default # typelevel has a shorter alias defined
 ```
 
 </ChainedSnippets>
@@ -119,7 +123,7 @@ scala-cli UseTypelevel.scala --toolkit typelevel:latest # typelevel has a shorte
 Similarly, you can achieve the same with the `using toolkit` directive:
 
 ```scala compile
-//> using toolkit org.typelevel:latest
+//> using toolkit org.typelevel:default
 
 import cats.effect.*
 import fs2.io.file.Files
@@ -134,7 +138,7 @@ object Hello extends IOApp.Simple {
 Or with the alias:
 
 ```scala compile
-//> using toolkit typelevel:latest
+//> using toolkit typelevel:default
 
 import cats.effect.*
 import fs2.io.file.Files
