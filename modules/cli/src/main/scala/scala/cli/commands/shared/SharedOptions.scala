@@ -244,7 +244,8 @@ final case class SharedOptions(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyle,
       smallModuleForPackage = jsSmallModuleForPackage,
-      esVersionStr = jsEsVersion
+      esVersionStr = jsEsVersion,
+      noOpt = jsNoOpt
     )
   }
 

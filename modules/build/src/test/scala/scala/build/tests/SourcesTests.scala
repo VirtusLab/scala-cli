@@ -494,6 +494,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       os.rel / "something.sc" ->
         """//> using jsVersion "1.8.0"
           |//> using jsMode "mode"
+          |//> using jsNoOpt
           |//> using jsModuleKind "commonjs"
           |//> using jsCheckIr true
           |//> using jsEmitSourceMaps true
@@ -533,7 +534,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         jsOptions.moduleKindStr == Some("commonjs"),
         jsOptions.checkIr == Some(true),
         jsOptions.emitSourceMaps == true,
-        jsOptions.dom == Some(true)
+        jsOptions.dom == Some(true),
+        jsOptions.noOpt == Some(true)
       )
       expect(
         jsConfig.moduleKind == ScalaJsLinkerConfig.ModuleKind.CommonJSModule,

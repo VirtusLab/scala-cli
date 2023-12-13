@@ -714,6 +714,12 @@ The Scala.js version (1.14.0 by default).
 
 The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
+### `--js-no-opt`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 ### `--js-module-kind`
 
 `SHOULD have` per Scala Runner specification

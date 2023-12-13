@@ -26,8 +26,18 @@ final case class ScalaJsOptions(
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None
 ) {
-
-  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] = mode.fullOpt
+  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
+    if (mode.isValid)
+      if (noOpt.contains(true))
+        Right(false)
+      else
+        Right(mode.nameOpt.exists(ScalaJsMode.validFullLinkAliases.contains))
+    else
+      Left(UnrecognizedJsOptModeError(
+        mode.nameOpt.getOrElse("None"), // shouldn't happen since None is valid
+        ScalaJsMode.validFullLinkAliases.toSeq,
+        ScalaJsMode.validFastLinkAliases.toSeq
+      ))
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
@@ -95,7 +105,7 @@ final case class ScalaJsOptions(
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
   private def configUnsafe(logger: Logger): Either[BuildException, BloopConfig.JsConfig] = for {
-    isFullOpt <- mode.fullOpt
+    isFullOpt <- fullOpt
   } yield {
     val kind = moduleKind(logger) match {
       case ScalaJsLinkerConfig.ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
@@ -144,28 +154,22 @@ final case class ScalaJsOptions(
 }
 
 case class ScalaJsMode(nameOpt: Option[String] = None) {
-  private val validFullLinkAliases = Set(
+  lazy val isValid = nameOpt.isEmpty ||
+    nameOpt.exists(
+      ScalaJsMode.validFullLinkAliases.union(ScalaJsMode.validFastLinkAliases).contains
+    )
+}
+object ScalaJsMode {
+  val validFullLinkAliases = Set(
     "release",
     "fullLinkJs",
     "full"
   )
-  private val validFastLinkAliases = Set(
+  val validFastLinkAliases = Set(
     "dev",
     "fastLinkJs",
     "fast"
   )
-
-  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
-    if (
-      nameOpt.isEmpty || nameOpt.exists(validFullLinkAliases.union(validFastLinkAliases).contains)
-    )
-      Right(nameOpt.exists(validFullLinkAliases.contains))
-    else
-      Left(UnrecognizedJsOptModeError(
-        nameOpt.get,
-        validFullLinkAliases.toSeq,
-        validFastLinkAliases.toSeq
-      ))
 }
 
 object ScalaJsOptions {

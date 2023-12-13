@@ -16,6 +16,8 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using jsMode` _value_
     |
+    |`//> using jsNoOpt` _true|false_
+    |
     |`//> using jsModuleKind` _value_
     |
     |`//> using jsSmallModuleForPackage` _value1_ _value2_ …
@@ -45,6 +47,7 @@ import scala.cli.commands.SpecificationLevel
 final case class ScalaJs(
   jsVersion: Option[String] = None,
   jsMode: Option[String] = None,
+  jsNoOpt: Option[Boolean] = None,
   jsModuleKind: Option[String] = None,
   jsCheckIr: Option[Boolean] = None,
   jsEmitSourceMaps: Option[Boolean] = None,
@@ -72,7 +75,8 @@ final case class ScalaJs(
       avoidClasses = jsAvoidClasses,
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
-      esVersionStr = jsEsVersionStr
+      esVersionStr = jsEsVersionStr,
+      noOpt = jsNoOpt
     )
     BuildOptions(
       scalaJsOptions = scalaJsOptions

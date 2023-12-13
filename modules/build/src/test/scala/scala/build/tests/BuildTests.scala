@@ -982,7 +982,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     (modeStr, bloopMode) <-
       Seq("fastLinkJs" -> LinkerMode.Debug, "fullLinkJs" -> LinkerMode.Release)
     if server
-  }
+  } do {
     test(s"bloop config for $modeStr") {
       val testInputs = TestInputs(
         os.rel / "Simple.scala" ->
@@ -990,7 +990,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
             |def foo(): String = "foo"
             |""".stripMargin
       )
-      val fastLinkBuildOptions = defaultOptions.copy(
+      val jsLinkBuildOptions = defaultOptions.copy(
         scalaOptions = defaultOptions.scalaOptions.copy(
           scalaVersion = None
         ),
@@ -998,7 +998,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           mode = ScalaJsMode(Some(modeStr))
         )
       )
-      testInputs.withBuild(fastLinkBuildOptions, buildThreads, bloopConfigOpt) {
+      testInputs.withBuild(jsLinkBuildOptions, buildThreads, bloopConfigOpt) {
         (_, _, maybeBuild) =>
           maybeBuild match {
             case Right(b: Build.Successful) =>
@@ -1008,4 +1008,31 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
       }
     }
+
+    test(s"bloop config for noOpt and $modeStr") {
+      val testInputs = TestInputs(
+        os.rel / "Simple.scala" ->
+          """//> using platform js
+            |def foo(): String = "foo"
+            |""".stripMargin
+      )
+      val noOptBuildOptions = defaultOptions.copy(
+        scalaOptions = defaultOptions.scalaOptions.copy(
+          scalaVersion = None
+        ),
+        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
+          mode = ScalaJsMode(Some(modeStr)),
+          noOpt = Some(true)
+        )
+      )
+      testInputs.withBuild(noOptBuildOptions, buildThreads, bloopConfigOpt) {
+        (_, _, maybeBuild) =>
+          maybeBuild match {
+            case Right(b: Build.Successful) =>
+              assert(b.project.scalaJsOptions.exists(_.mode == LinkerMode.Debug))
+            case _ => fail("Build failed")
+          }
+      }
+    }
+  }
 }
