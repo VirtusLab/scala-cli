@@ -6,12 +6,12 @@ import dependency._
 import java.util.Locale
 
 import scala.build.Logger
-import scala.build.errors.UnrecognizedJsOptModeError
+import scala.build.errors.{BuildException, UnrecognizedJsOptModeError}
 import scala.build.internal.{Constants, ScalaJsLinkerConfig}
 
 final case class ScalaJsOptions(
   version: Option[String] = None,
-  mode: Option[String] = None,
+  mode: ScalaJsMode = ScalaJsMode(),
   moduleKindStr: Option[String] = None,
   checkIr: Option[Boolean] = None,
   emitSourceMaps: Boolean = false,
@@ -26,27 +26,8 @@ final case class ScalaJsOptions(
   esVersionStr: Option[String] = None,
   noOpt: Option[Boolean] = None
 ) {
-  private val validFullLinkAliases = Set(
-    "release",
-    "fullLinkJs",
-    "full"
-  )
-  private val validFastLinkAliases = Set(
-    "dev",
-    "fastLinkJs",
-    "fast"
-  )
 
-  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
-    if (mode.isEmpty || mode.exists(validFullLinkAliases.union(validFastLinkAliases).contains))
-      Right(mode.exists(validFullLinkAliases.contains))
-    else
-      Left(UnrecognizedJsOptModeError(
-        mode.get,
-        validFullLinkAliases.toSeq,
-        validFastLinkAliases.toSeq
-      ))
-
+  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] = mode.fullOpt
   def platformSuffix: String =
     "sjs" + ScalaVersion.jsBinary(finalVersion).getOrElse(finalVersion)
   def jsDependencies(scalaVersion: String): Seq[AnyDependency] =
@@ -113,7 +94,9 @@ final case class ScalaJsOptions(
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
-  private def configUnsafe(logger: Logger): BloopConfig.JsConfig = {
+  private def configUnsafe(logger: Logger): Either[BuildException, BloopConfig.JsConfig] = for {
+    isFullOpt <- mode.fullOpt
+  } yield {
     val kind = moduleKind(logger) match {
       case ScalaJsLinkerConfig.ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
       case ScalaJsLinkerConfig.ModuleKind.ESModule       => BloopConfig.ModuleKindJS.ESModule
@@ -124,7 +107,7 @@ final case class ScalaJsOptions(
     BloopConfig.JsConfig(
       version = finalVersion,
       mode =
-        if (mode.contains("release")) BloopConfig.LinkerMode.Release
+        if isFullOpt then BloopConfig.LinkerMode.Release
         else BloopConfig.LinkerMode.Debug,
       kind = kind,
       emitSourceMaps = emitSourceMaps,
@@ -135,7 +118,7 @@ final case class ScalaJsOptions(
     )
   }
 
-  def config(logger: Logger): BloopConfig.JsConfig =
+  def config(logger: Logger): Either[BuildException, BloopConfig.JsConfig] =
     configUnsafe(logger)
 
   def linkerConfig(logger: Logger): ScalaJsLinkerConfig = {
@@ -158,6 +141,31 @@ final case class ScalaJsOptions(
       jsHeader = header
     )
   }
+}
+
+case class ScalaJsMode(nameOpt: Option[String] = None) {
+  private val validFullLinkAliases = Set(
+    "release",
+    "fullLinkJs",
+    "full"
+  )
+  private val validFastLinkAliases = Set(
+    "dev",
+    "fastLinkJs",
+    "fast"
+  )
+
+  def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
+    if (
+      nameOpt.isEmpty || nameOpt.exists(validFullLinkAliases.union(validFastLinkAliases).contains)
+    )
+      Right(nameOpt.exists(validFullLinkAliases.contains))
+    else
+      Left(UnrecognizedJsOptModeError(
+        nameOpt.get,
+        validFullLinkAliases.toSeq,
+        validFastLinkAliases.toSeq
+      ))
 }
 
 object ScalaJsOptions {

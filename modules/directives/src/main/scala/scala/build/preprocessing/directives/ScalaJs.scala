@@ -3,7 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt, ScalaJsOptions, ShadowingSeq}
+import scala.build.options.{BuildOptions, JavaOpt, ScalaJsMode, ScalaJsOptions, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
@@ -61,7 +61,7 @@ final case class ScalaJs(
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,
-      mode = jsMode,
+      mode = ScalaJsMode(jsMode),
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps.getOrElse(ScalaJsOptions().emitSourceMaps),

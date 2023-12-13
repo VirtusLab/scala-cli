@@ -529,7 +529,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       val jsConfig  = jsOptions.linkerConfig(TestLogger())
       expect(
         jsOptions.version == Some("1.8.0"),
-        jsOptions.mode == Some("mode"),
+        jsOptions.mode.nameOpt.contains("mode"),
         jsOptions.moduleKindStr == Some("commonjs"),
         jsOptions.checkIr == Some(true),
         jsOptions.emitSourceMaps == true,

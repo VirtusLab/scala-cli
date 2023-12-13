@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import bloop.config.Config.LinkerMode
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.Gson
@@ -18,6 +19,7 @@ import scala.build.options.{
   InternalOptions,
   JavaOpt,
   MaybeScalaVersion,
+  ScalaJsMode,
   ScalacOpt,
   ScriptOptions,
   ShadowingSeq
@@ -25,7 +27,7 @@ import scala.build.options.{
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil.*
 import scala.build.tests.util.BloopServer
-import scala.build.{BuildThreads, Directories, LocalRepo, Positioned}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned}
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
 import scala.jdk.CollectionConverters.*
@@ -973,6 +975,37 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
       testInputs.withBuild(scala212Options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
         expect(maybeBuild.left.exists(_.message.startsWith("Toolkits do not support Scala 2.12")))
+      }
+    }
+
+  for {
+    (modeStr, bloopMode) <-
+      Seq("fastLinkJs" -> LinkerMode.Debug, "fullLinkJs" -> LinkerMode.Release)
+    if server
+  }
+    test(s"bloop config for $modeStr") {
+      val testInputs = TestInputs(
+        os.rel / "Simple.scala" ->
+          """//> using platform js
+            |def foo(): String = "foo"
+            |""".stripMargin
+      )
+      val fastLinkBuildOptions = defaultOptions.copy(
+        scalaOptions = defaultOptions.scalaOptions.copy(
+          scalaVersion = None
+        ),
+        scalaJsOptions = defaultOptions.scalaJsOptions.copy(
+          mode = ScalaJsMode(Some(modeStr))
+        )
+      )
+      testInputs.withBuild(fastLinkBuildOptions, buildThreads, bloopConfigOpt) {
+        (_, _, maybeBuild) =>
+          maybeBuild match {
+            case Right(b: Build.Successful) =>
+              assert(b.project.scalaJsOptions.exists(_.mode == bloopMode))
+            case _ => fail("Build failed")
+          }
+
       }
     }
 }
