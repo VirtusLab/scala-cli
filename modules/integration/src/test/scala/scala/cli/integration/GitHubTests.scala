@@ -132,6 +132,8 @@ object GitHubTests {
     val dir = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
       .fold(e => throw new Exception(e), os.Path(_, os.pwd))
     val lib = dir / relPath
+    assert(os.exists(lib))
+    System.err.println(lib)
     System.load(lib.toString)
 
     LoadLibrary.initializeFromResources()

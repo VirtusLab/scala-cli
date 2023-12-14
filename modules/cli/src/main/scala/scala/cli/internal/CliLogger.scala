@@ -46,15 +46,15 @@ class CliLogger(
     if (verbosity >= 0)
       out.println(message)
   def log(message: => String) =
-    if (verbosity >= 1)
+    if (verbosity >= 0)
       out.println(message)
   def log(message: => String, debugMessage: => String) =
-    if (verbosity >= 2)
+    if (verbosity >= 0)
       out.println(debugMessage)
     else if (verbosity >= 1)
       out.println(message)
   def debug(message: => String) =
-    if (verbosity >= 2)
+    if (verbosity >= 0)
       out.println(message)
 
   def printDiagnostic(
@@ -131,7 +131,7 @@ class CliLogger(
       printEx(ex, new mutable.HashMap)
 
   def debug(ex: BuildException): Unit =
-    if (verbosity >= 2)
+    if (verbosity >= 0)
       printEx(ex, new mutable.HashMap)
   def exit(ex: BuildException): Nothing =
     flushExperimentalWarnings

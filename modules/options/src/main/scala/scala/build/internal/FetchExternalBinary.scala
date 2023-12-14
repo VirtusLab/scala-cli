@@ -70,7 +70,7 @@ object FetchExternalBinary {
 
     val artifact = Artifact(url).withChanging(changing)
     val res = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
-      logger.log(s"Getting $url")
+      logger.message(s"Getting $url")
       archiveCache.get(artifact)
         .unsafeRun()(archiveCache.cache.ec)
     }
@@ -85,7 +85,8 @@ object FetchExternalBinary {
     }
 
     fileOpt.map { f =>
-      logger.debug(s"$url is available locally at $f")
+      assert(os.exists(f))
+      logger.message(s"$url is available locally at $f")
 
       val launcher = launcherPathOpt match {
         case Some(launcherPath) =>

@@ -99,9 +99,12 @@ object LibSodiumJni {
       }
     }
     files match {
-      case Seq()     => sys.error(s"Cannot find $dep")
-      case Seq(file) => file
-      case other     => sys.error(s"Unexpectedly got too many files while resolving $dep: $other")
+      case Seq() => sys.error(s"Cannot find $dep")
+      case Seq(file) =>
+        assert(file.exists())
+        System.err.println(s"$dep is available locally at $file")
+        file
+      case other => sys.error(s"Unexpectedly got too many files while resolving $dep: $other")
     }
   }
 
