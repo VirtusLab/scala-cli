@@ -134,7 +134,7 @@ final case class JavaOptions(
           catch {
             case NonFatal(e) => throw new Exception(e)
           }
-        Positioned(Position.Custom("OsLibc.defaultJvm"), os.Path(path))
+        Positioned(Position.Custom("default JVM"), os.Path(path))
       }
     }
 

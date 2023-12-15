@@ -3,11 +3,17 @@ package scala.cli.packaging
 import java.io.File
 
 import scala.annotation.tailrec
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.{ManifestJar, Runner}
+import scala.build.options.BuildOptions
+import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.{Build, Logger, Positioned}
+import scala.cli.commands.util.JvmUtils
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
 import scala.cli.internal.CachedBinary
+import scala.concurrent.ExecutionContext
 import scala.util.Properties
 
 object NativeImage {
@@ -33,6 +39,94 @@ object NativeImage {
     }
 
     nativeImage
+  }
+
+  /** Check whether the JVM used for compilation is compatible with the chosen GraalVM */
+  private def getCompatibleGraalVmId(
+    build: Build.Successful,
+    logger: Logger
+  ): Either[GraalVMNativeImageError, String] = {
+    def defaultError(details: String) =
+      new GraalVMNativeImageError("Couldn't fetch a correct GraalVM JVM: " + details)
+
+    val options                                   = build.options
+    val cacheEc                                   = options.finalCache.ec
+    val Positioned(buildJvmSource, buildJavaHome) = options.javaHome()
+    val buildJvmVersion                           = buildJavaHome.version
+
+    val forcedGraalJvmVersion =
+      build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmJavaVersion
+
+    if (forcedGraalJvmVersion.exists(_ < buildJvmVersion))
+      Left(GraalVMNativeImageError(
+        s"""Cannot build a native image with a JVM older than the one used for compilation.
+           |Specified Versions:
+           | - compilation JVM: $buildJvmVersion, taken from ${buildJvmSource.mkString(", ")}
+           | - graalVM JVM specified: ${forcedGraalJvmVersion.get}
+           |""".stripMargin
+      ))
+    else {
+      val availableGraalVMJavaVersions = JvmUtils.getJvmsById(options, "graalvm-java\\d\\d?".r)
+        .map(_.stripPrefix("graalvm-java").toInt)
+        .sorted
+
+      val maybeFinalJavaVersion: Either[GraalVMNativeImageError, Int] = forcedGraalJvmVersion
+        .orElse {
+          def isLtsJava(version: Int): Boolean = Seq(8, 11, 17, 21).contains(version)
+          availableGraalVMJavaVersions.filter(_ >= buildJvmVersion) match
+            case Nil => None
+            case versions if versions.forall(v => !isLtsJava(v)) =>
+              logger.diagnostic("Using a GraalVM for non-LTS Java version")
+              Some(versions.min)
+            // Prefer LTS Java versions
+            case versions => versions.find(isLtsJava)
+        }
+        .toRight(defaultError(
+          s"""The JVM version used for compiling is too high to find a compatible GraalVM JVM.
+             | - compilation JVM: $buildJvmVersion, taken from ${buildJvmSource.mkString(", ")}
+             |""".stripMargin
+        ))
+
+      val deducedOrSpecified = forcedGraalJvmVersion.fold("deduced")(_ => "specified")
+
+      val graalVmJvmId = for {
+        finalJavaVersion <- maybeFinalJavaVersion
+        cache <- build.options.javaHomeManager.cache
+          .toRight(defaultError("No JVM cache found"))
+
+        graalVmIndexEntries <- cache.entries(s"graalvm-java$finalJavaVersion")
+          .map(_.left.map(defaultError))
+          .unsafeRun()(cacheEc)
+
+        _ <- if graalVmIndexEntries.isEmpty then
+          Left(defaultError(
+            s"""A release of GraalVM compatible with the $deducedOrSpecified JVM version could not be found.
+               | - GraalVM JVM $deducedOrSpecified: $finalJavaVersion
+               | - compilation JVM: $buildJvmVersion, taken from ${buildJvmSource.mkString(", ")}
+               |Use '--graalvm-java-version' to force a different JVM version.
+               |""".stripMargin
+          ))
+        else Right(())
+
+        forcedGraalVersion =
+          build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmVersion
+        finalIndexEntry <-
+          forcedGraalVersion.fold(Right(graalVmIndexEntries.maxBy(_.version))) { forcedV =>
+            graalVmIndexEntries.find(_.version == forcedV)
+              .toRight(defaultError(
+                s"""No GraalVM found with version ${forcedGraalVersion.getOrElse("")}
+                   |Available versions for the $deducedOrSpecified JVM $finalJavaVersion:
+                   | - ${graalVmIndexEntries.map(_.version).mkString("\n - ")}
+                   |Use '--graalvm-version' to force a different GraalVM version.
+                   |Use '--graalvm-java-version' to force a different JVM version.
+                   |Or Use '--graalvm-jvm-id' to specify both, e.g. '--graalvm-jvm-id graalvm-java17:22.0.0'.
+                   |""".stripMargin
+              ))
+          }
+      } yield finalIndexEntry.id
+
+      graalVmJvmId
+    }
   }
 
   private def vcVersions = Seq("2022", "2019", "2017")
@@ -172,14 +266,19 @@ object NativeImage {
     nativeImageWorkDir: os.Path,
     extraOptions: Seq[String],
     logger: Logger
-  ): Unit = {
-
+  ): Either[BuildException, Unit] = either {
     os.makeDir.all(nativeImageWorkDir)
 
-    val jvmId = build.options.notForBloopOptions.packageOptions.nativeImageOptions.jvmId
+    val graalVmId =
+      build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmJvmId.getOrElse {
+        value(getCompatibleGraalVmId(build, logger))
+      }
+
+    logger.message(s"Using GraalVM JVM: $graalVmId")
+
     val options = build.options.copy(
       javaOptions = build.options.javaOptions.copy(
-        jvmIdOpt = Some(Positioned.none(jvmId))
+        jvmIdOpt = Some(Positioned.none(graalVmId))
       )
     )
 
@@ -240,6 +339,8 @@ object NativeImage {
             mainClass
           ) ++ nativeImageArgs
 
+          pprint.err.log(args)
+
           maybeWithShorterGraalvmHome(javaHome.javaHome, logger) { graalVMHome =>
 
             val nativeImageCommand = ensureHasNativeImageCommand(graalVMHome, logger)
@@ -269,7 +370,7 @@ object NativeImage {
               )
             }
             else
-              throw new GraalVMNativeImageError
+              throw new GraalVMNativeImageError()
           }
         }
         finally util.Try(toClean.foreach(os.remove.all))

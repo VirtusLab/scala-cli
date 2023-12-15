@@ -867,6 +867,19 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
+  def packageProc(extraArgs: os.Shellable*) =
+    os.proc(
+      TestUtil.cli,
+      "--power",
+      "package",
+      extraOptions,
+      ".",
+      extraArgs,
+      "--native-image",
+      "--",
+      "--no-fallback"
+    )
+
   test("native image") {
     val message = "Hello from native-image"
     val dest    = "hello"
@@ -882,18 +895,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "package",
-        extraOptions,
-        ".",
-        "--native-image",
-        "-o",
-        dest,
-        "--",
-        "--no-fallback"
-      ).call(
+      packageProc("-o", dest).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -906,6 +908,117 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val res    = os.proc(root / actualDest).call(cwd = root)
       val output = res.out.trim()
       expect(output == message)
+    }
+  }
+
+  for (jvmVersion <- Seq(8, 11, 17, 21))
+    test(s"native image with JVM $jvmVersion") {
+      val message = "Hello from native-image"
+      val dest    = "hello"
+      val actualDest =
+        if (Properties.isWin) "hello.exe"
+        else "hello"
+      val inputs = TestInputs(
+        os.rel / "Hello.scala" ->
+          s"""object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println("$message")
+             |}
+             |""".stripMargin
+      )
+
+      val extraEnv: Map[String, String] = if (jvmVersion == 21)
+        Map("USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM" -> "true")
+      else Map.empty
+
+      inputs.fromRoot { root =>
+        packageProc("--jvm", jvmVersion, "-o", dest).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          env = extraEnv
+        )
+
+        expect(os.isFile(root / actualDest))
+
+        val res    = os.proc(root / actualDest).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == message)
+      }
+    }
+
+  test(s"native image with --jvm 21 and --graalvm-java-version 17") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("nope")
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val res = packageProc("--jvm", 21, "--graalvm-java-version", 17)
+        .call(
+          cwd = root,
+          stderr = os.Pipe,
+          check = false
+        )
+
+      expect(res.exitCode == 1)
+
+      val errOutput = res.err.text().trim()
+        .linesIterator
+        .dropWhile(!_.contains("error"))
+        .mkString(System.lineSeparator())
+        .replace("Custom(/usr/libexec/java_home -v)", "CommandLine(--jvm)")
+
+      assertNoDiff(
+        errOutput,
+        """[error]  Cannot build a native image with a JVM older than the one used for compilation.
+          |Specified Versions:
+          | - compilation JVM: 21, taken from CommandLine(--jvm)
+          | - graalVM JVM specified: 17
+          |""".stripMargin
+      )
+    }
+  }
+
+  test(s"native image with --graalvm-vm-version 99") {
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello {
+           |  def main(args: Array[String]): Unit =
+           |    println("nope")
+           |}
+           |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val res = packageProc("--jvm", 17, "--graalvm-version", 99)
+        .call(
+          cwd = root,
+          stderr = os.Pipe,
+          check = false
+        )
+
+      expect(res.exitCode == 1)
+
+      val errOutput = res.err.text().trim()
+        .linesIterator
+        .dropWhile(!_.contains("error"))
+        .filterNot(_.startsWith(" - "))
+        .mkString(System.lineSeparator())
+      assertNoDiff(
+        errOutput,
+        """[error]  Couldn't fetch a correct GraalVM JVM: No GraalVM found with version 99
+          |Available versions for the deduced JVM 17:
+          |Use '--graalvm-version' to force a different GraalVM version.
+          |Use '--graalvm-java-version' to force a different JVM version.
+          |Or Use '--graalvm-jvm-id' to specify both, e.g. '--graalvm-jvm-id graalvm-java17:22.0.0'.
+          |""".stripMargin,
+        clue = res.err.text().trim()
+      )
     }
   }
 

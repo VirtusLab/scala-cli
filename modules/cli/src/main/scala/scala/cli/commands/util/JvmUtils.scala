@@ -1,6 +1,8 @@
 package scala.cli.commands
 package util
 
+import coursier.jvm.JvmIndexEntry
+
 import java.io.File
 
 import scala.build.EitherCps.{either, value}
@@ -13,6 +15,7 @@ import scala.build.{Os, Position, Positioned, options as bo}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions, SharedOptions}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NonFatal
+import scala.util.matching.Regex
 import scala.util.{Failure, Properties, Success, Try}
 
 object JvmUtils {
@@ -118,4 +121,35 @@ object JvmUtils {
       javaCmd <- getJavaCmdVersionOrHigher(javaVersion, options)
     } yield javaCmd
   }
+
+  /** Returns the available JVMs for the given version and name. At least one of the two must be
+    * specified (otherwise, an empty sequence is returned).
+    */
+  def getMatchingJvms(
+    buildOptions: bo.BuildOptions,
+    versionOpt: Option[String],
+    nameOpt: Option[String] = None
+  ): Seq[JvmIndexEntry] =
+    for {
+      jvmCache <- buildOptions.javaHomeManager.cache.toSeq
+      jvmId <-
+        nameOpt.fold(versionOpt.toSeq)(n => Seq(s"$n${versionOpt.fold("")(_.prepended('@'))}"))
+      entry <- jvmCache.entries(jvmId)
+        .unsafeRun()(buildOptions.finalCache.ec)
+        .toSeq
+        .flatten
+    } yield entry
+
+  /** Returns the IDs of the available JVMs that match the specified Id regex. */
+  def getJvmsById(
+    buildOptions: bo.BuildOptions,
+    regex: Regex
+  ): Seq[String] = for {
+    jvmCache     <- buildOptions.javaHomeManager.cache.toSeq
+    jvmIndexTask <- jvmCache.index.toSeq
+    jvmIndex = jvmIndexTask.unsafeRun()(buildOptions.finalCache.ec)
+    index                    <- jvmIndex.available().toSeq
+    (id, /*versionIndex*/ _) <- index
+    if regex.matches(id)
+  } yield id
 }
