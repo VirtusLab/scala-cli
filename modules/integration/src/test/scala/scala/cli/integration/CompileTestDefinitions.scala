@@ -7,7 +7,9 @@ import java.io.File
 import scala.cli.integration.util.BloopUtil
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite
+    with TestScalaVersionArgs
+    with CompilerPluginTestDefinitions {
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 

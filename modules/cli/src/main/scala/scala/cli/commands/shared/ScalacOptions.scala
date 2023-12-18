@@ -58,7 +58,7 @@ object ScalacOptions {
     * message instead.
     */
   val ScalacPrintOptions: Set[String] =
-    scalacOptionsPurePrefixes ++ Set("-help", "-Xshow-phases", "-Vphases")
+    scalacOptionsPurePrefixes ++ Set("-help", "-Xshow-phases", "-Xplugin-list", "-Vphases")
 
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
   val ScalaCliRedirectedOptions = Set(

@@ -382,7 +382,10 @@ object Repl extends ScalaCommand[ReplOptions] {
         logger.message("Dry run, not running REPL.")
       else {
         val depClassPathArgs: Seq[String] =
-          if replArtifacts.depsClassPath.nonEmpty && !replArtifacts.replMainClass.startsWith("ammonite") then
+          if replArtifacts.depsClassPath.nonEmpty && !replArtifacts.replMainClass.startsWith(
+              "ammonite"
+            )
+          then
             Seq(
               "-classpath",
               replArtifacts.depsClassPath.map(_.toString).mkString(File.pathSeparator)
