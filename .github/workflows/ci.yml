@@ -279,7 +279,7 @@ jobs:
 
   generate-macos-launcher:
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
       with:
@@ -288,6 +288,8 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
+    - name: Downgrade the version of xcode used
+      run: .github/scripts/pick-macos-xcode-sdk.sh
     - name: Generate native launcher
       run: .github/scripts/generate-native-image.sh
     - run: ./mill -i ci.setShouldPublish
@@ -306,7 +308,7 @@ jobs:
   native-macos-tests-1:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
       with:
@@ -319,6 +321,8 @@ jobs:
       with:
         name: macos-launchers
         path: artifacts/
+    - name: Downgrade the version of xcode used
+      run: .github/scripts/pick-macos-xcode-sdk.sh
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
@@ -339,7 +343,7 @@ jobs:
   native-macos-tests-2:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
       with:
@@ -352,6 +356,8 @@ jobs:
       with:
         name: macos-launchers
         path: artifacts/
+    - name: Downgrade the version of xcode used
+      run: .github/scripts/pick-macos-xcode-sdk.sh
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
@@ -372,7 +378,7 @@ jobs:
   native-macos-tests-3:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: macos-12
     steps:
     - uses: actions/checkout@v4
       with:
@@ -385,6 +391,8 @@ jobs:
       with:
         name: macos-launchers
         path: artifacts/
+    - name: Downgrade the version of xcode used
+      run: .github/scripts/pick-macos-xcode-sdk.sh
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
