@@ -17,6 +17,16 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 ./mill -i scala …arguments…
 ```
 
+#### Debugging the CLI from sources
+
+```bash
+./mill -i debug debug-port …arguments…
+```
+E.g:
+```bash
+./mill -i cli.debug 5050 ~/Main.scala -S 3.3.0
+```
+
 #### Run unit tests
 
 This command runs the unit tests from the `build-module` module.
