@@ -888,7 +888,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
   )
 
   private def mainArtifactName = T(artifactName())
-  trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule {
+  trait IntegrationScalaTests extends super.ScalaCliTests with ScalaCliScalafixModule
+      with ScalaCliPublishModule {
     def ivyDeps = super.ivyDeps() ++ Agg(
       Deps.bsp4j,
       Deps.coursier
@@ -1071,6 +1072,9 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
   def scalaVersion = Scala.scala213
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.osLib
+  )
+  def moduleDeps = Seq(
+    integration.test
   )
 }
 
