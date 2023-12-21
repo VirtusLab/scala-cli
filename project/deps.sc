@@ -136,7 +136,7 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
+  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.12.0"
