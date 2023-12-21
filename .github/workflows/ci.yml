@@ -325,6 +325,7 @@ jobs:
     - name: Downgrade the version of xcode used
       run: .github/scripts/pick-macos-xcode-sdk.sh
       shell: bash
+    - run: brew install libsodium && brew link --overwrite libsodium
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
@@ -397,6 +398,7 @@ jobs:
     - name: Downgrade the version of xcode used
       run: .github/scripts/pick-macos-xcode-sdk.sh
       shell: bash
+    - run: brew install libsodium && brew link --overwrite libsodium
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
