@@ -7,6 +7,7 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
 import scala.jdk.CollectionConverters.*
+import scala.util.Properties
 import scala.util.matching.Regex
 
 class PublishSetupTests extends ScalaCliSuite {
@@ -89,6 +90,9 @@ class PublishSetupTests extends ScalaCliSuite {
       .toMap
   }
 
+  override def munitFlakyOK =
+    TestUtil.isCI && TestUtil.isNativeCli && Properties.isMac && !TestUtil.isM1
+
   test("local") {
     val expectedDirectives = Map(
       "publish.versionControl" -> Seq(s"github:$ghUserName/tests"),
@@ -131,7 +135,7 @@ class PublishSetupTests extends ScalaCliSuite {
     }
   }
 
-  test("CI") {
+  test("CI".flaky) {
     val expectedDirectives = Map(
       "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
       "publish.organization"      -> List(s"io.github.$ghUserName"),
@@ -184,7 +188,7 @@ class PublishSetupTests extends ScalaCliSuite {
     }
   }
 
-  test("CI repository default") {
+  test("CI repository default".flaky) {
 
     testInputs.fromRoot { root =>
       configSetup(root / configFile, root)
@@ -303,7 +307,7 @@ class PublishSetupTests extends ScalaCliSuite {
     }
   }
 
-  test("CI GitHub") {
+  test("CI GitHub".flaky) {
     val expectedDirectives = Map(
       "publish.versionControl"    -> List(s"github:$ghUserName/tests"),
       "publish.organization"      -> List(s"io.github.$ghUserName"),

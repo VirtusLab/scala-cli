@@ -11,10 +11,10 @@ trait CompilerPluginTestDefinitions { _: CompileTestDefinitions =>
     else CompilerPluginUtil.compilerPluginForScala2(pluginName, pluginErrorMsg)
 
   test("build a custom compiler plugin and use it") {
-    val pluginName       = "divbyzero"
-    val usePluginFile    = "Main.scala"
-    val outputJar        = "div-by-zero.jar"
-    val pluginErrorMsg   = "definitely division by zero"
+    val pluginName     = "divbyzero"
+    val usePluginFile  = "Main.scala"
+    val outputJar      = "div-by-zero.jar"
+    val pluginErrorMsg = "definitely division by zero"
     compilerPluginInputs(pluginName, pluginErrorMsg)
       .add(os.rel / usePluginFile ->
         s"""//> using option -Xplugin:$outputJar
