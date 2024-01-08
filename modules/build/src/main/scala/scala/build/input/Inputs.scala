@@ -102,7 +102,8 @@ final case class Inputs(
           case dirInput: Directory =>
             Seq("dir:") ++ dirInput.singleFilesFromDirectory(enableMarkdown)
               .map(file => s"${file.path}:" + os.read(file.path))
-          case _ => Seq(os.read(elem.path))
+          case _: ResourceDirectory => Nil
+          case _                    => Seq(os.read(elem.path))
         }
         (Iterator(elem.path.toString) ++ content.iterator ++ Iterator("\n")).map(bytes)
       case v: Virtual =>
