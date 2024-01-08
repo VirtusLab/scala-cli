@@ -96,8 +96,8 @@ In order to run tests with a test framework, add the framework dependency to you
 Some of the most popular test frameworks in Scala are:
 
 - [munit](https://scalameta.org/munit): `org.scalameta::munit::0.7.29`
-- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.1`
-- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.15`
+- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.2`
+- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.17`
 - [JUnit 4](https://junit.org/junit4), which can be used via
   a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.3`
 - [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.3`. You may need to
