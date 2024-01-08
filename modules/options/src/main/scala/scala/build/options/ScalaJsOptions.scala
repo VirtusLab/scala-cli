@@ -154,22 +154,23 @@ final case class ScalaJsOptions(
 }
 
 case class ScalaJsMode(nameOpt: Option[String] = None) {
-  lazy val isValid = nameOpt.isEmpty ||
-    nameOpt.exists(
-      ScalaJsMode.validFullLinkAliases.union(ScalaJsMode.validFastLinkAliases).contains
-    )
+  lazy val isValid: Boolean = nameOpt.isEmpty || nameOpt.exists(ScalaJsMode.allAliases.contains)
 }
 object ScalaJsMode {
   val validFullLinkAliases = Set(
     "release",
     "fullLinkJs",
+    "fullLinkJS",
     "full"
   )
   val validFastLinkAliases = Set(
     "dev",
     "fastLinkJs",
+    "fastLinkJS",
     "fast"
   )
+  def allAliases: Set[String] =
+    ScalaJsMode.validFullLinkAliases.union(ScalaJsMode.validFastLinkAliases)
 }
 
 object ScalaJsOptions {
