@@ -1191,4 +1191,52 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
   }
+
+  test("pass resource dir with command line option") {
+    val child       = "<name>exampleResource</name>"
+    val mainClass   = "Hello"
+    val xmlFileName = "example.xml"
+    val resourceDir = "resources"
+    TestInputs(
+      os.rel / resourceDir / xmlFileName -> s"<example>$child</example>",
+      os.rel / s"$mainClass.scala" ->
+        s"""//> using dep org.scala-lang.modules::scala-xml:2.2.0
+           |object $mainClass {
+           |  def main(args: Array[String]): Unit = {
+           |    val xml = scala.xml.XML.load(getClass.getResourceAsStream("$xmlFileName"))
+           |    xml.child.foreach(println)
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val outputJarPath = root / "hello.jar"
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--library",
+        s"$mainClass.scala",
+        "--resource-dir",
+        resourceDir,
+        "-o",
+        outputJarPath
+      )
+        .call(cwd = root)
+      expect(os.isFile(outputJarPath))
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "run",
+          "--jar",
+          outputJarPath,
+          "--main-class",
+          mainClass,
+          "--dep",
+          "org.scala-lang.modules::scala-xml:2.2.0",
+          extraOptions
+        ).call(cwd = root)
+      expect(res.out.trim() == child)
+    }
+  }
 }
