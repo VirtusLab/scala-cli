@@ -33,6 +33,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test(s"simple script JS in fullLinkJs mode") {
     val output = simpleJsTestOutput("--js-mode", "fullLinkJs", "-v", "-v", "-v")
     expect(output.contains("--fullOpt"))
+
     expect(!output.contains("--fastOpt"))
     expect(!output.contains("--noOpt"))
   }
@@ -40,8 +41,17 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test(s"simple script JS in fastLinkJs mode") {
     val output = simpleJsTestOutput("--js-mode", "fastLinkJs", "-v", "-v", "-v")
     expect(output.contains("--fastOpt"))
+
     expect(!output.contains("--fullOpt"))
     expect(!output.contains("--noOpt"))
+  }
+
+  test(s"simple script JS with noOpt") {
+    val output = simpleJsTestOutput("--js-mode", "fullLinkJs", "--js-no-opt", "-v", "-v", "-v")
+    expect(output.contains("--noOpt"))
+
+    expect(!output.contains("--fastOpt"))
+    expect(!output.contains("--fullOpt"))
   }
 
   test("without node on the PATH") {

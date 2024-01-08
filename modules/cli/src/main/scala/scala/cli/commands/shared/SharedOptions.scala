@@ -232,7 +232,7 @@ final case class SharedOptions(
     import opts._
     options.ScalaJsOptions(
       version = jsVersion,
-      mode = jsMode,
+      mode = options.ScalaJsMode(jsMode),
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
@@ -244,7 +244,8 @@ final case class SharedOptions(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyle,
       smallModuleForPackage = jsSmallModuleForPackage,
-      esVersionStr = jsEsVersion
+      esVersionStr = jsEsVersion,
+      noOpt = jsNoOpt
     )
   }
 

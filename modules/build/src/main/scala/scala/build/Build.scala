@@ -957,7 +957,8 @@ object Build {
       scaladocDir = scaladocDir,
       scalaCompiler = scalaCompilerParamsOpt,
       scalaJsOptions =
-        if (options.platform.value == Platform.JS) Some(options.scalaJsOptions.config(logger))
+        if (options.platform.value == Platform.JS)
+          Some(value(options.scalaJsOptions.config(logger)))
         else None,
       scalaNativeOptions =
         if (options.platform.value == Platform.Native)

@@ -54,7 +54,7 @@ object ProjectDescriptor {
     for (checkIr <- options.checkIr)
       calls = calls :+ s".withCheckIR($checkIr)"
 
-    val withOptimizer = options.mode.contains("release")
+    val withOptimizer = options.fullOpt.getOrElse(false)
     calls = calls :+ s".withOptimizer($withOptimizer)"
     calls = calls :+ s".withClosureCompiler($withOptimizer)"
 

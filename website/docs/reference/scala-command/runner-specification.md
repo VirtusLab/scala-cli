@@ -358,6 +358,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -1085,6 +1089,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -1637,6 +1645,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 
@@ -2220,6 +2232,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 
@@ -2813,6 +2829,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -3362,6 +3382,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 
@@ -3987,6 +4011,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 
@@ -4619,6 +4647,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 
@@ -5506,6 +5538,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 **--js-allow-big-ints-for-longs**
 

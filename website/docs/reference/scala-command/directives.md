@@ -259,6 +259,8 @@ Add Scala.js options
 
 `//> using jsMode` _value_
 
+`//> using jsNoOpt` _true|false_
+
 `//> using jsModuleKind` _value_
 
 `//> using jsSmallModuleForPackage` _value1_ _value2_ …
