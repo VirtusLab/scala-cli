@@ -1614,9 +1614,9 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
           env = Map("SCALA_CLI_INTERACTIVE_INPUTS" -> "Run-1") ++ configEnv
         )
 
-      expect(proc.out.trim.contains("[0] Run-1"))
-      expect(proc.out.trim.contains("[1] Run-2"))
-      expect(proc.out.trim.contains("Run-1 launched"))
+      expect(proc.out.trim().contains("[0] Run-1"))
+      expect(proc.out.trim().contains("[1] Run-2"))
+      expect(proc.out.trim().contains("Run-1 launched"))
     }
   }
 
