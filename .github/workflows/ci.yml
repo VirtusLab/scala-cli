@@ -30,7 +30,7 @@ jobs:
     - name: Copy bootstrapped launcher
       run: ./mill -i copyJvmBootstrappedLauncher artifacts/
       if: runner.os == 'Linux'
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       if: runner.os == 'Linux'
       with:
         name: launchers
@@ -45,7 +45,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc unit-tests 'Scala CLI Unit Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-unit-tests
@@ -73,7 +73,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-jvm-tests-1
@@ -98,7 +98,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-2 'Scala CLI JVM Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-jvm-tests-2
@@ -123,7 +123,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-3 'Scala CLI JVM Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-jvm-tests-3
@@ -148,7 +148,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: linux-launchers
         path: artifacts/
@@ -182,7 +182,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-1 'Scala CLI Linux Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-linux-tests-1
@@ -215,7 +215,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-2 'Scala CLI Linux Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-linux-tests-2
@@ -248,7 +248,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc linux-tests-3 'Scala CLI Linux Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-linux-tests-3
@@ -270,7 +270,7 @@ jobs:
         env:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: linux-aarch64-launchers
           path: artifacts/
@@ -296,7 +296,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: macos-launchers
         path: artifacts/
@@ -330,7 +330,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-1 'Scala CLI MacOS Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-macos-tests-1
@@ -363,7 +363,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-2 'Scala CLI MacOS Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-macos-tests-2
@@ -396,7 +396,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc macos-tests-3 'Scala CLI MacOS Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-macos-tests-3
@@ -423,7 +423,7 @@ jobs:
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
         run: ./mill -i copyDefaultLauncher artifacts/
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -459,7 +459,7 @@ jobs:
         if: success() || failure()
         run: .github/scripts/generate-junit-reports.sc macos-m1-tests 'Scala CLI MacOS M1 Tests' test-report.xml out/
       - name: Upload test report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: success() || failure()
         with:
           name: test-results-macos-m1-tests
@@ -489,7 +489,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyDefaultLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: windows-launchers
         path: artifacts/
@@ -531,7 +531,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-1 'Scala CLI Windows Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-windows-tests-1
@@ -572,7 +572,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-2 'Scala CLI Windows Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-windows-tests-2
@@ -613,7 +613,7 @@ jobs:
       if: success() || failure()
       run:  scala-cli shebang .github/scripts/generate-junit-reports.sc windows-tests-3 'Scala CLI Windows Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-windows-tests-3
@@ -635,7 +635,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyMostlyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -674,7 +674,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-1 'Scala CLI Native Mostly Static Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-1
@@ -716,7 +716,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-2 'Scala CLI Native Mostly Static Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-2
@@ -749,7 +749,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-mostly-static-tests-3 'Scala CLI Native Mostly Static Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-mostly-static-tests-3
@@ -771,7 +771,7 @@ jobs:
       shell: bash
     - name: Copy artifacts
       run: ./mill -i copyStaticLauncher artifacts/
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: static-launchers
         path: artifacts/
@@ -810,7 +810,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-1 'Scala CLI Native Static Tests (1)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-static-tests-1
@@ -854,7 +854,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-2 'Scala CLI Native Static Tests (2)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-static-tests-2
@@ -889,7 +889,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc native-static-tests-3 'Scala CLI Native Static Tests (3)' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-native-static-tests-3
@@ -917,7 +917,7 @@ jobs:
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
     - name: Upload test report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: success() || failure()
       with:
         name: test-results-docs-tests
@@ -1031,7 +1031,7 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: launchers
         path: artifacts/
