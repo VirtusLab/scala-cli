@@ -2212,7 +2212,10 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         cwd = root,
         mergeErrIntoOut = true
       )
-      expect(resLatest.out.text().contains("Using 'latest' for toolkit is deprecated"))
+      val warningText = "Using 'latest' for toolkit is deprecated"
+      expect(resLatest.out.text().contains(warningText))
+      val warningCount = resLatest.out.text().sliding(warningText.length).count(_ == warningText)
+      expect(warningCount == 1)
     }
   }
 }
