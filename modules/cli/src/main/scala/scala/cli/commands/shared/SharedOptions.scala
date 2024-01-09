@@ -12,6 +12,7 @@ import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
@@ -324,6 +325,7 @@ final case class SharedOptions(
         s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole.GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
+    val resolvedToolkitDependency = SharedOptions.resolveToolkitDependency(withToolkit, logger)
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
@@ -394,13 +396,13 @@ final case class SharedOptions(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit, logger)
+          ) ++ resolvedToolkitDependency
         ),
         extraCompileOnlyDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.compileOnlyDependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit, logger)
+          ) ++ resolvedToolkitDependency
         )
       ),
       internal = bo.InternalOptions(
@@ -720,14 +722,18 @@ object SharedOptions {
         }
       }
 
+  // TODO: remove this state after resolving https://github.com/VirtusLab/scala-cli/issues/2658
+  private val loggedDeprecatedToolkitWarning: AtomicBoolean = AtomicBoolean(false)
   private def resolveToolkitDependency(
     toolkitVersion: Option[String],
     logger: Logger
   ): Seq[Positioned[AnyDependency]] = {
     if (
-      toolkitVersion.contains("latest")
+      (toolkitVersion.contains("latest")
       || toolkitVersion.contains(Toolkit.typelevel + ":latest")
-      || toolkitVersion.contains(Constants.typelevelOrganization + ":latest")
+      || toolkitVersion.contains(
+        Constants.typelevelOrganization + ":latest"
+      )) && !loggedDeprecatedToolkitWarning.getAndSet(true)
     ) logger.message(
       WarningMessages.deprecatedToolkitLatest(
         s"--toolkit ${toolkitVersion.map(_.replace("latest", "default")).getOrElse("default")}"
