@@ -167,7 +167,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: linux-launchers
         path: artifacts/
@@ -200,7 +200,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: linux-launchers
         path: artifacts/
@@ -233,7 +233,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: linux-launchers
         path: artifacts/
@@ -315,7 +315,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: macos-launchers
         path: artifacts/
@@ -348,7 +348,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: macos-launchers
         path: artifacts/
@@ -381,7 +381,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: macos-launchers
         path: artifacts/
@@ -445,7 +445,7 @@ jobs:
           COURSIER_BIN_DIR: ${{ github.workspace }}/cs/bin # necessary for our M1 runner setup
         with:
           jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: macos-m1-launchers
           path: artifacts/
@@ -515,7 +515,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows-launchers
         path: artifacts/
@@ -556,7 +556,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows-launchers
         path: artifacts/
@@ -597,7 +597,7 @@ jobs:
     - name: Get latest coursier launcher
       run: .github/scripts/get-latest-cs.sh
       shell: bash
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows-launchers
         path: artifacts/
@@ -654,7 +654,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -701,7 +701,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -734,7 +734,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: mostly-static-launchers
         path: artifacts/
@@ -790,7 +790,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static-launchers
         path: artifacts/
@@ -837,7 +837,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static-launchers
         path: artifacts/
@@ -872,7 +872,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: static-launchers
         path: artifacts/
@@ -1114,42 +1114,42 @@ jobs:
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: linux-aarch64-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: macos-m1-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: windows-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: mostly-static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: static-launchers
         path: artifacts/
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
         name: launchers
@@ -1172,35 +1172,35 @@ jobs:
       - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
         with:
           jvm: "temurin:17"
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: linux-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: linux-aarch64-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: macos-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: macos-m1-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: windows-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: mostly-static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: static-launchers
           path: artifacts/
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: launchers
           path: artifacts/
@@ -1255,7 +1255,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: windows-launchers
         path: artifacts/
