@@ -436,7 +436,7 @@ class SipScalaTests extends ScalaCliSuite {
       val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
         .call(cwd = root, mergeErrIntoOut = true)
 
-      val output = res.out.trim
+      val output = res.out.trim()
 
       assertNoDiff(
         output,

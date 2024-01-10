@@ -69,7 +69,7 @@ class FixTests extends ScalaCliSuite {
       val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
         .call(cwd = root, stderr = os.Pipe)
 
-      expect(!runProc.err.trim.contains("Using directives detected in multiple files"))
+      expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
     }
   }
 
@@ -128,7 +128,7 @@ class FixTests extends ScalaCliSuite {
       val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
         .call(cwd = root, stderr = os.Pipe)
 
-      expect(!runProc.err.trim.contains("Using directives detected in multiple files"))
+      expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
     }
   }
 
@@ -223,7 +223,7 @@ class FixTests extends ScalaCliSuite {
       val runProc = os.proc(TestUtil.cli, "--power", "compile", ".", extraOptions)
         .call(cwd = root, stderr = os.Pipe)
 
-      expect(!runProc.err.trim.contains("Using directives detected in multiple files"))
+      expect(!runProc.err.trim().contains("Using directives detected in multiple files"))
     }
   }
 
