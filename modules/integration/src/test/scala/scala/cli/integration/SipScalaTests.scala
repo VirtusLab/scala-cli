@@ -458,4 +458,41 @@ class SipScalaTests extends ScalaCliSuite {
       )
     }
   }
+
+  test(s"code using scala-continuations should compile for Scala 2.12.2") {
+    val sourceFileName = "example.scala"
+    TestInputs(os.rel / sourceFileName ->
+      """import scala.util.continuations._
+        |
+        |object ContinuationsExample extends App {
+        |  def generator(init: Int): Int @cps[Unit] = {
+        |    shift { k: (Int => Unit) =>
+        |      for (i <- init to 10) k(i)
+        |    }
+        |    0 // We never reach this point, but it enables the function to compile.
+        |  }
+        |
+        |  reset {
+        |    val result = generator(1)
+        |    println(result)
+        |  }
+        |}
+        |""".stripMargin).fromRoot { root =>
+      val continuationsVersion = "1.0.3"
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        sourceFileName,
+        "--compiler-plugin",
+        s"org.scala-lang.plugins:::scala-continuations-plugin:$continuationsVersion",
+        "--dependency",
+        s"org.scala-lang.plugins::scala-continuations-library:$continuationsVersion",
+        "-P:continuations:enable",
+        "-S",
+        "2.12.2"
+      )
+        .call(cwd = root)
+      expect(res.exitCode == 0)
+    }
+  }
 }
