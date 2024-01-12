@@ -1,6 +1,7 @@
 package scala.cli.commands.util
 
 import scala.build.Logger
+import scala.build.options.ScalacOpt.filterScalacOptionKeys
 import scala.build.options.{ScalacOpt, ShadowingSeq}
 import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.default.LegacyScalaOptions
@@ -31,8 +32,6 @@ object ScalacOptionsUtil {
   }
 
   extension (opts: ShadowingSeq[ScalacOpt]) {
-    def filterScalacOptionKeys(f: String => Boolean): ShadowingSeq[ScalacOpt] =
-      opts.filterKeys(_.key.exists(f))
     def filterNonRedirected: ShadowingSeq[ScalacOpt] =
       opts.filterScalacOptionKeys(!ScalacOptions.ScalaCliRedirectedOptions.contains(_))
     def filterNonDeprecated: ShadowingSeq[ScalacOpt] =
