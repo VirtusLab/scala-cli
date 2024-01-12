@@ -911,7 +911,10 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
-  for (jvmVersion <- Seq(8, 11, 17, 21))
+  for {
+    jvmVersion <- Seq(8, 11, 17, 21)
+    if !Properties.isWin || jvmVersion != 21 // our Windows GitHub runner can't use graalVmJvm 21
+  }
     test(s"native image with JVM $jvmVersion") {
       val message = "Hello from native-image"
       val dest    = "hello"
