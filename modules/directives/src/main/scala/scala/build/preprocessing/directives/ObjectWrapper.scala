@@ -11,6 +11,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class ObjectWrapper(
   @DirectiveName("object.wrapper")
+  @DirectiveName("wrapper.object")
   objectWrapper: Boolean = false
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
