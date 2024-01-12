@@ -15,7 +15,8 @@ final case class ScalacOpt(value: String) {
 object ScalacOpt {
   private val repeatingKeys = Set(
     "-Xplugin:",
-    "-P" // plugin options
+    "-P", // plugin options
+    "-language:"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {

@@ -495,4 +495,23 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.exitCode == 0)
     }
   }
+
+  test("consecutive -language:* flags are not ignored") {
+    val sourceFileName = "example.scala"
+    TestInputs(os.rel / sourceFileName ->
+      """//> using scala 3.3.1
+        |//> using options -Yexplicit-nulls -language:fewerBraces -language:strictEquality
+        |def repro[A](as: List[A]): List[A] =
+        |  as match
+        |    case Nil => Nil
+        |    case _ => ???
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", sourceFileName)
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 1)
+      val expectedError =
+        "Values of types object scala.collection.immutable.Nil and List[A] cannot be compared with == or !="
+      expect(res.err.trim().contains(expectedError))
+    }
+  }
 }
