@@ -198,7 +198,7 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.9.7")
+      val sbtVersion = options.sbtVersion.getOrElse("1.9.8")
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
