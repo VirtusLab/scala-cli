@@ -122,7 +122,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:32.1.3-jre"
+  def guava   = ivy"com.google.guava:guava:33.0.0-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
   def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
