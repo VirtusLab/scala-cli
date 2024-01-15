@@ -52,8 +52,7 @@ class GitHubTests extends ScalaCliSuite {
     }
   }
 
-  override def munitFlakyOK =
-    TestUtil.isCI && TestUtil.isNativeCli && Properties.isMac && !TestUtil.isM1
+  override def munitFlakyOK: Boolean = TestUtil.isCI && Properties.isMac
 
   // currently having issues loading libsodium from the static launcher
   // that launcher is mainly meant to be used on CIs or from docker, missing
