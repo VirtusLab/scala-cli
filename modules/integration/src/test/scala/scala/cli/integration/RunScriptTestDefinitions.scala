@@ -567,36 +567,59 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("script wrappers satisfy strict compiler flags") {
-    val inputs = TestInputs(
-      os.rel / "strictClassWrapper.sc" ->
-        """//> using scala 3.3.1
-          |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
-          |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
-          |//> using options -new-syntax -old-syntax -unchecked -no-indent
-          |
-          |println(strictObjectWrapper.Foo(42).x)
-          |""".stripMargin,
-      os.rel / "strictObjectWrapper.sc" ->
-        """//> using objectWrapper
-          |//> using scala 3.3.1
-          |//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
-          |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
-          |//> using options -new-syntax -old-syntax -unchecked -no-indent
-          |
-          |case class Foo(x: Int)
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val p = os.proc(
-        TestUtil.cli,
-        "--power",
-        "strictClassWrapper.sc",
-        "strictObjectWrapper.sc"
-      ).call(cwd = root)
-      expect(p.out.trim() == "42")
+  if (actualScalaVersion.startsWith("3"))
+    for {
+      useObjectWrapper <- Seq(true, false)
+      wrapperType = if (useObjectWrapper) "object" else "class"
     }
-  }
+      test(s"$wrapperType script wrapper satisfies strict compiler flags") {
+        val expectedMessage = "Hello"
+        val sourceFileName  = "strictClassWrapper.sc"
+        TestInputs(
+          os.rel / sourceFileName ->
+            s"""//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
+               |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
+               |//> using options -new-syntax -old-syntax -unchecked -no-indent
+               |
+               |println("$expectedMessage")
+               |""".stripMargin
+        )
+          .fromRoot { root =>
+            val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
+            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
+              .call(cwd = root)
+            expect(r.out.trim() == expectedMessage)
+          }
+      }
+
+  if (actualScalaVersion.startsWith("2"))
+    for {
+      useObjectWrapper <- Seq(true, false)
+      wrapperType = if (useObjectWrapper) "object" else "App"
+    }
+      test(s"$wrapperType script wrapper satisfies strict compiler flags") {
+        val expectedMessage = "Hello"
+        val sourceFileName  = "strictClassWrapper.sc"
+        val warningOptions =
+          if (actualScalaVersion.startsWith("2.13"))
+            Seq("-Werror", "-Wdead-code", "-Wextra-implicit")
+          else Seq("-Werror")
+        TestInputs(
+          os.rel / sourceFileName ->
+            s"""//> using options ${warningOptions.mkString(" ")}
+               |//> using options -deprecation -feature
+               |//> using options -unchecked
+               |
+               |println("$expectedMessage")
+               |""".stripMargin
+        )
+          .fromRoot { root =>
+            val wrapperOptions = if (useObjectWrapper) Seq("--power", "--object-wrapper") else Nil
+            val r = os.proc(TestUtil.cli, "run", sourceFileName, wrapperOptions, extraOptions)
+              .call(cwd = root)
+            expect(r.out.trim() == expectedMessage)
+          }
+      }
 
   test("verify drive-relative JAVA_HOME works") {
     val java8Home =

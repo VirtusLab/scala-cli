@@ -8,9 +8,10 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using objectWrapper")
 @DirectiveUsage("//> using objectWrapper", "`//> using objectWrapper`")
 @DirectiveDescription("Set the default code wrapper for scripts to object wrapper")
-@DirectiveLevel(SpecificationLevel.RESTRICTED)
+@DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class ObjectWrapper(
   @DirectiveName("object.wrapper")
+  @DirectiveName("wrapper.object")
   objectWrapper: Boolean = false
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
