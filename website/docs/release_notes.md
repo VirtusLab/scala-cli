@@ -8,6 +8,38 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.1.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.2)
+
+### Support for Scala.js 1.15.0
+
+This version adds Scala CLI support for Scala.js 1.15.0.
+Added by [@scala-steward](https://github.com/scala-steward) in [#2672](https://github.com/VirtusLab/scala-cli/pull/2672) & [@Gedochao](https://github.com/Gedochao) in [scala-js-cli#43](https://github.com/VirtusLab/scala-js-cli/pull/43).
+
+### Fixes
+* Fix repeatable compiler options handling from the command line by [@Gedochao](https://github.com/Gedochao) in [#2666](https://github.com/VirtusLab/scala-cli/pull/2666)
+* Fix script wrapper tests & script object wrapper `using` directive by [@Gedochao](https://github.com/Gedochao) in [#2668](https://github.com/VirtusLab/scala-cli/pull/2668)
+* Prevent consecutive `-language:*` options from being ignored by [@Gedochao](https://github.com/Gedochao) in [#2667](https://github.com/VirtusLab/scala-cli/pull/2667)
+
+### Documentation changes
+* Fix test.md by [@MaciejG604](https://github.com/MaciejG604) in [#2679](https://github.com/VirtusLab/scala-cli/pull/2679)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2681](https://github.com/VirtusLab/scala-cli/pull/2681)
+
+### Build and internal changes
+* Update release procedure steps for `v1.1.x` by [@Gedochao](https://github.com/Gedochao) in [#2665](https://github.com/VirtusLab/scala-cli/pull/2665)
+* Tag `GitHubTests.create secret` as flaky on all Mac tests (including M1) by [@Gedochao](https://github.com/Gedochao) in [#2677](https://github.com/VirtusLab/scala-cli/pull/2677)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.1.1 by [@github-actions](https://github.com/features/actions) in [#2662](https://github.com/VirtusLab/scala-cli/pull/2662)
+* Bump libsodiumjni to 0.0.4 by [@MaciejG604](https://github.com/MaciejG604) in [#2651](https://github.com/VirtusLab/scala-cli/pull/2651)
+* Update guava to 33.0.0-jre by [@scala-steward](https://github.com/scala-steward) in [#2670](https://github.com/VirtusLab/scala-cli/pull/2670)
+* Update os-lib to 0.9.3 by [@scala-steward](https://github.com/scala-steward) in [#2671](https://github.com/VirtusLab/scala-cli/pull/2671)
+* Update sbt to 1.9.8 by [@scala-steward](https://github.com/scala-steward) in [#2673](https://github.com/VirtusLab/scala-cli/pull/2673)
+* Update trees_2.13 to 4.8.15 by [@scala-steward](https://github.com/scala-steward) in [#2674](https://github.com/VirtusLab/scala-cli/pull/2674)
+* Update slf4j-nop to 2.0.11 by [@scala-steward](https://github.com/scala-steward) in [#2675](https://github.com/VirtusLab/scala-cli/pull/2675)
+* Update Scala.js to 1.15.0 by [@scala-steward](https://github.com/scala-steward) in [#2672](https://github.com/VirtusLab/scala-cli/pull/2672)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.1.1...v1.1.2
+
 ## [v1.1.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.1)
 
 ### Deprecate Scala Toolkit `latest` version in favour of `default`
