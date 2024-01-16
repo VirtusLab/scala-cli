@@ -38,8 +38,14 @@ final case class Project(
       case (None, None) =>
         val baseJvmConf = bloopJvmPlatform
         baseJvmConf.copy(
-          // We don't pass jvm home here, because it applies only to java files compilation
-          config = baseJvmConf.config.copy(home = None)
+          // We don't pass jvm home to the general config
+          // it applies only to java files compilation
+          config = baseJvmConf.config.copy(home = None),
+          runtimeConfig = baseJvmConf.runtimeConfig
+            .orElse(Some(BloopConfig.JvmConfig.empty))
+            // the java home used here is not truly necessary, as we don't use Bloop for JVM runtime
+            // we only pass it here to make the Bloop JSON valid for BSP/external tools
+            .map(_.copy(home = javaHomeOpt.map(_.toNIO)))
         )
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
