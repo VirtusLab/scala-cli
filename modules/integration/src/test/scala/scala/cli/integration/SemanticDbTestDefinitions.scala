@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
-  test("Manual javac SemanticDB") {
+  test("Java SemanticDB (manual)") {
     val inputs = TestInputs(
       os.rel / "foo" / "Test.java" ->
         """package foo;
@@ -49,31 +49,58 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
     }
   }
 
-  test("Javac SemanticDB") {
-    val inputs = TestInputs(
-      os.rel / "foo" / "Test.java" ->
-        """package foo;
-          |
-          |public class Test {
-          |  public static void main(String[] args) {
-          |    System.err.println("Hello");
-          |  }
-          |}
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".")
-        .call(cwd = root)
-
-      val files = os.walk(root / Constants.workspaceDirName)
-      val semDbFiles = files
-        .filter(_.last.endsWith(".semanticdb"))
-        .filter(!_.segments.exists(_ == "bloop-internal-classes"))
-      expect(semDbFiles.length == 1)
-      val semDbFile = semDbFiles.head
-      expect(
-        semDbFile.endsWith(os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb")
-      )
-    }
+  for {
+    language <- Seq("Java", "Scala")
+    sourceFileName = if (language == "Java") "Test.java" else "Test.scala"
+    inputs =
+      if (language == "Java")
+        TestInputs(
+          os.rel / "foo" / sourceFileName ->
+            """package foo;
+              |
+              |public class Test {
+              |  public static void main(String[] args) {
+              |    System.err.println("Hello");
+              |  }
+              |}
+              |""".stripMargin
+        )
+      else
+        TestInputs(
+          os.rel / "foo" / sourceFileName ->
+            """package foo;
+              |
+              |object Test {
+              |  def main(args: Array[String]): Unit = {
+              |    println("Hello")
+              |  }
+              |}
+              |""".stripMargin
+        )
+    semanticDbTargetDir <- Seq(None, Some("semanticdb-target"))
+    targetDirString = semanticDbTargetDir.map(_ => "with forced target root").getOrElse("")
   }
+    test(s"$language SemanticDB $targetDirString") {
+      inputs.fromRoot { root =>
+        val targetDirOptions =
+          semanticDbTargetDir match {
+            case Some(targetDir) => Seq("--semantic-db-target-root", targetDir)
+            case None            => Nil
+          }
+        os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".", targetDirOptions)
+          .call(cwd = root)
+        val files = os.walk(root)
+        val semDbFiles = files
+          .filter(_.last.endsWith(".semanticdb"))
+          .filter(!_.segments.exists(_ == "bloop-internal-classes"))
+        expect(semDbFiles.length == 1)
+        val semDbFile = semDbFiles.head
+        val expectedSemanticDbPath =
+          if (semanticDbTargetDir.isDefined)
+            os.rel / semanticDbTargetDir.get / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
+          else
+            os.rel / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
+        expect(semDbFile.endsWith(expectedSemanticDbPath))
+      }
+    }
 }

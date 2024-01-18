@@ -190,7 +190,15 @@ final case class SharedOptions(
   @Hidden
   @Tag(tags.should)
   @HelpMessage("Generate SemanticDBs")
+  @Name("semanticdb")
     semanticDb: Option[Boolean] = None,
+
+  @Hidden
+  @Tag(tags.should)
+  @HelpMessage("Force SemanticDB target root (default follows the compiled classes destination directory)")
+  @Name("semanticdbTargetRoot")
+  @Name("semanticdbTargetroot")
+    semanticDbTargetRoot: Option[String] = None,
 
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
@@ -361,6 +369,7 @@ final case class SharedOptions(
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         addScalaCompiler = withCompiler,
         generateSemanticDbs = semanticDb,
+        semanticDbTargetRoot = semanticDbTargetRoot.map(os.Path(_, os.pwd)),
         scalacOptions = scalac
           .scalacOption
           .withScalacExtraOptions(scalacExtra)

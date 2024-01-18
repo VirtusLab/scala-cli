@@ -1028,9 +1028,19 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 ### `--semantic-db`
 
+Aliases: `--semanticdb`
+
 `SHOULD have` per Scala Runner specification
 
 Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+`SHOULD have` per Scala Runner specification
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
 
 ### `--strict-bloop-json-check`
 

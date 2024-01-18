@@ -10,6 +10,7 @@ final case class ScalaOptions(
   addScalaLibrary: Option[Boolean] = None,
   addScalaCompiler: Option[Boolean] = None,
   generateSemanticDbs: Option[Boolean] = None,
+  semanticDbTargetRoot: Option[os.Path] = None,
   scalacOptions: ShadowingSeq[Positioned[ScalacOpt]] = ShadowingSeq.empty,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,

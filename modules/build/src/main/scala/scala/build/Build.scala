@@ -825,7 +825,8 @@ object Build {
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
     val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
-    val generateSemanticDbs = options.scalaOptions.generateSemanticDbs.getOrElse(false)
+    val generateSemanticDbs  = options.scalaOptions.generateSemanticDbs.getOrElse(false)
+    val semanticDbTargetRoot = options.scalaOptions.semanticDbTargetRoot
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
@@ -842,21 +843,25 @@ object Build {
             ScalacOpt(s"-Xplugin:$path")
         }
 
-        val semanticDbScalacOptions =
-          if (generateSemanticDbs)
-            if (params.scalaVersion.startsWith("2."))
-              Seq(
-                "-Yrangepos",
-                "-P:semanticdb:failures:warning",
-                "-P:semanticdb:synthetics:on",
-                s"-P:semanticdb:sourceroot:${inputs.workspace}"
-              ).map(ScalacOpt(_))
-            else
-              Seq(
-                "-Xsemanticdb",
-                "-sourceroot",
-                inputs.workspace.toString
-              ).map(ScalacOpt(_))
+        val semanticDbTargetRootOptions: Seq[ScalacOpt] =
+          (semanticDbTargetRoot match
+            case Some(targetRoot) if params.scalaVersion.startsWith("2.") =>
+              Seq(s"-P:semanticdb:targetroot:$targetRoot")
+            case Some(targetRoot) => Seq("-semanticdb-target", targetRoot.toString)
+            case None             => Nil
+          ).map(ScalacOpt(_))
+        val semanticDbScalacOptions: Seq[ScalacOpt] =
+          if generateSemanticDbs then
+            semanticDbTargetRootOptions ++ (
+              if params.scalaVersion.startsWith("2.") then
+                Seq(
+                  "-Yrangepos",
+                  "-P:semanticdb:failures:warning",
+                  "-P:semanticdb:synthetics:on",
+                  s"-P:semanticdb:sourceroot:${inputs.workspace}"
+                )
+              else Seq("-Xsemanticdb", "-sourceroot", inputs.workspace.toString)
+            ).map(ScalacOpt(_))
           else Nil
 
         val sourceRootScalacOptions =
@@ -924,7 +929,7 @@ object Build {
 
           Seq(
             // does the path need to be escaped somehow?
-            s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:javac-classes-directory"
+            s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:${semanticDbTargetRoot.getOrElse("javac-classes-directory")}"
           ) ++ exports
         }
         else

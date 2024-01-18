@@ -272,6 +272,14 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1019,6 +1027,14 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1569,6 +1585,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 **--watch**
 
@@ -2146,6 +2170,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 **--watch**
 
@@ -2743,6 +2775,14 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -3314,6 +3354,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 **--check**
 
@@ -3923,6 +3971,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 **--watch**
 
@@ -4583,6 +4639,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 <details><summary>
 
@@ -5474,6 +5538,14 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+Force SemanticDB target root (default follows the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
 <details><summary>
 
