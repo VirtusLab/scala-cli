@@ -825,8 +825,9 @@ object Build {
     val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
     val scaladocDir = classesDir(inputs.workspace, inputs.projectName, scope, suffix = "-doc")
 
-    val generateSemanticDbs  = options.scalaOptions.generateSemanticDbs.getOrElse(false)
-    val semanticDbTargetRoot = options.scalaOptions.semanticDbTargetRoot
+    val generateSemanticDbs =
+      options.scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
+    val semanticDbTargetRoot = options.scalaOptions.semanticDbOptions.semanticDbTargetRoot
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 

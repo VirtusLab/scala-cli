@@ -276,7 +276,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -1031,7 +1031,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -1590,7 +1590,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -2175,7 +2175,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -2779,7 +2779,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -3359,7 +3359,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -3976,7 +3976,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -4644,7 +4644,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
@@ -5543,7 +5543,7 @@ Aliases: `--semanticdb`
 
 **--semantic-db-target-root**
 
-Force SemanticDB target root (default follows the compiled classes destination directory)
+SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 

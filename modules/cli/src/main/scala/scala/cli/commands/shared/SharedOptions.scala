@@ -187,18 +187,8 @@ final case class SharedOptions(
   @Hidden
     runner: Option[Boolean] = None,
 
-  @Hidden
-  @Tag(tags.should)
-  @HelpMessage("Generate SemanticDBs")
-  @Name("semanticdb")
-    semanticDb: Option[Boolean] = None,
-
-  @Hidden
-  @Tag(tags.should)
-  @HelpMessage("Force SemanticDB target root (default follows the compiled classes destination directory)")
-  @Name("semanticdbTargetRoot")
-  @Name("semanticdbTargetroot")
-    semanticDbTargetRoot: Option[String] = None,
+  @Recurse
+    semanticDbOptions: SemanticDbOptions = SemanticDbOptions(),
 
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
@@ -368,8 +358,10 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         addScalaCompiler = withCompiler,
-        generateSemanticDbs = semanticDb,
-        semanticDbTargetRoot = semanticDbTargetRoot.map(os.Path(_, os.pwd)),
+        semanticDbOptions = bo.SemanticDbOptions(
+          generateSemanticDbs = semanticDbOptions.semanticDb,
+          semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd))
+        ),
         scalacOptions = scalac
           .scalacOption
           .withScalacExtraOptions(scalacExtra)
