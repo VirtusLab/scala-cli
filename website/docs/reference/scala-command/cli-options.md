@@ -1491,6 +1491,14 @@ Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
 
 SemanticDB target root (default to the compiled classes destination directory)
 
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+`SHOULD have` per Scala Runner specification
+
+SemanticDB source root (default to the project root directory)
+
 ### Setup IDE options
 
 Available in commands:

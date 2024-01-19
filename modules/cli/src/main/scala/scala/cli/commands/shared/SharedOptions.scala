@@ -360,7 +360,8 @@ final case class SharedOptions(
         addScalaCompiler = withCompiler,
         semanticDbOptions = bo.SemanticDbOptions(
           generateSemanticDbs = semanticDbOptions.semanticDb,
-          semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd))
+          semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
+          semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
         ),
         scalacOptions = scalac
           .scalacOption

@@ -828,6 +828,8 @@ object Build {
     val generateSemanticDbs =
       options.scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
     val semanticDbTargetRoot = options.scalaOptions.semanticDbOptions.semanticDbTargetRoot
+    val semanticDbSourceRoot =
+      options.scalaOptions.semanticDbOptions.semanticDbSourceRoot.getOrElse(inputs.workspace)
 
     val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
@@ -859,9 +861,9 @@ object Build {
                   "-Yrangepos",
                   "-P:semanticdb:failures:warning",
                   "-P:semanticdb:synthetics:on",
-                  s"-P:semanticdb:sourceroot:${inputs.workspace}"
+                  s"-P:semanticdb:sourceroot:$semanticDbSourceRoot"
                 )
-              else Seq("-Xsemanticdb", "-sourceroot", inputs.workspace.toString)
+              else Seq("-Xsemanticdb", "-sourceroot", semanticDbSourceRoot.toString)
             ).map(ScalacOpt(_))
           else Nil
 
@@ -928,9 +930,10 @@ object Build {
             Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
           }
 
+          val javacTargetRoot = semanticDbTargetRoot.getOrElse("javac-classes-directory")
           Seq(
             // does the path need to be escaped somehow?
-            s"-Xplugin:semanticdb -sourceroot:${inputs.workspace} -targetroot:${semanticDbTargetRoot.getOrElse("javac-classes-directory")}"
+            s"-Xplugin:semanticdb -sourceroot:$semanticDbSourceRoot -targetroot:$javacTargetRoot"
           ) ++ exports
         }
         else

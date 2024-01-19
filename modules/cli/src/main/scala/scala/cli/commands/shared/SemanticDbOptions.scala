@@ -17,7 +17,13 @@ case class SemanticDbOptions(
   @HelpMessage("SemanticDB target root (default to the compiled classes destination directory)")
   @Name("semanticdbTargetRoot")
   @Name("semanticdbTargetroot")
-  semanticDbTargetRoot: Option[String] = None
+  semanticDbTargetRoot: Option[String] = None,
+  @Hidden
+  @Tag(tags.should)
+  @HelpMessage("SemanticDB source root (default to the project root directory)")
+  @Name("semanticdbSourceRoot")
+  @Name("semanticdbSourceroot")
+  semanticDbSourceRoot: Option[String] = None
 )
 
 object SemanticDbOptions {

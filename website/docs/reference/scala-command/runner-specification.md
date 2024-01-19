@@ -280,6 +280,12 @@ SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1035,6 +1041,12 @@ SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1593,6 +1605,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -2178,6 +2196,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -2783,6 +2807,12 @@ SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -3362,6 +3392,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--check**
 
@@ -3979,6 +4015,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -4647,6 +4689,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 <details><summary>
 
@@ -5546,6 +5594,12 @@ Aliases: `--semanticdb`
 SemanticDB target root (default to the compiled classes destination directory)
 
 Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 <details><summary>
 

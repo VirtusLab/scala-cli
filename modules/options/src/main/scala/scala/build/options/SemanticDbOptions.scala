@@ -2,7 +2,8 @@ package scala.build.options
 
 case class SemanticDbOptions(
   generateSemanticDbs: Option[Boolean] = None,
-  semanticDbTargetRoot: Option[os.Path] = None
+  semanticDbTargetRoot: Option[os.Path] = None,
+  semanticDbSourceRoot: Option[os.Path] = None
 )
 
 object SemanticDbOptions {

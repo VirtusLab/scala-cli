@@ -2167,6 +2167,13 @@ Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
 [Internal]
 SemanticDB target root (default to the compiled classes destination directory)
 
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+[Internal]
+SemanticDB source root (default to the project root directory)
+
 ### Setup IDE options
 
 Available in commands:
