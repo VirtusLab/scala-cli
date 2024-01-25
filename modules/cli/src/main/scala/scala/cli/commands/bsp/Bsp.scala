@@ -138,7 +138,10 @@ object Bsp extends ScalaCommand[BspOptions] {
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))
       ),
       scalaOptions = baseOptions.scalaOptions.copy(
-        generateSemanticDbs = baseOptions.scalaOptions.generateSemanticDbs.orElse(Some(true))
+        semanticDbOptions = baseOptions.scalaOptions.semanticDbOptions.copy(
+          generateSemanticDbs =
+            baseOptions.scalaOptions.semanticDbOptions.generateSemanticDbs.orElse(Some(true))
+        )
       ),
       notForBloopOptions = baseOptions.notForBloopOptions.copy(
         addRunnerDependencyOpt =

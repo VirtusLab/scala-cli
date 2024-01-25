@@ -1026,12 +1026,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-### `--semantic-db`
-
-`SHOULD have` per Scala Runner specification
-
-Generate SemanticDBs
-
 ### `--strict-bloop-json-check`
 
 `IMPLEMENTATION specific` per Scala Runner specification
@@ -1472,6 +1466,38 @@ Available in commands:
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Don't actually run the REPL, just fetch it
+
+### Semantic db options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--semantic-db`
+
+Aliases: `--semanticdb`
+
+`SHOULD have` per Scala Runner specification
+
+Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+`SHOULD have` per Scala Runner specification
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+`SHOULD have` per Scala Runner specification
+
+SemanticDB source root (default to the project root directory)
 
 ### Setup IDE options
 

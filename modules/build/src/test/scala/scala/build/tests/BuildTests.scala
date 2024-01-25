@@ -180,7 +180,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val testInputs = TestInputs(os.rel / "simple.sc" -> scriptContents)
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
-        generateSemanticDbs = Some(true)
+        semanticDbOptions = defaultOptions.scalaOptions.semanticDbOptions.copy(
+          generateSemanticDbs = Some(true)
+        )
       )
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
@@ -227,7 +229,9 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
     val buildOptions = defaultScala3Options.copy(
       scalaOptions = defaultScala3Options.scalaOptions.copy(
-        generateSemanticDbs = Some(true)
+        semanticDbOptions = defaultScala3Options.scalaOptions.semanticDbOptions.copy(
+          generateSemanticDbs = Some(true)
+        )
       )
     )
     testInputs.withBuild(buildOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>

@@ -272,6 +272,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1019,6 +1033,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1569,6 +1597,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -2146,6 +2188,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -2743,6 +2799,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -3314,6 +3384,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--check**
 
@@ -3923,6 +4007,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 **--watch**
 
@@ -4583,6 +4681,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 <details><summary>
 
@@ -5474,6 +5586,20 @@ Specify platform
 **--semantic-db**
 
 Generate SemanticDBs
+
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 <details><summary>
 

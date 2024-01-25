@@ -1530,11 +1530,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 [Internal]
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-### `--semantic-db`
-
-[Internal]
-Generate SemanticDBs
-
 ### `--strict-bloop-json-check`
 
 [Internal]
@@ -2149,6 +2144,35 @@ How many times to retry the staging repository operations on failure.
 
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
+
+### Semantic db options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--semantic-db`
+
+Aliases: `--semanticdb`
+
+[Internal]
+Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+[Internal]
+SemanticDB target root (default to the compiled classes destination directory)
+
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+[Internal]
+SemanticDB source root (default to the project root directory)
 
 ### Setup IDE options
 
