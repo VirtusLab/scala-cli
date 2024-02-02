@@ -19,16 +19,6 @@ import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object ScalaCli {
-  // TODO: Remove this part once fix is released in os-lib (Issue #2585)
-  sys.env.get("SCALA_CLI_HOME_DIR_OVERRIDE")
-    .filter(_.nonEmpty)
-    .filter(homeDir => scala.util.Try(os.Path(homeDir)).isSuccess)
-    .foreach { homeDirOverride =>
-      System.err.println(
-        s"Warning: user.home property overridden with the SCALA_CLI_HOME_DIR_OVERRIDE env var to: $homeDirOverride"
-      )
-      System.setProperty("user.home", homeDirOverride)
-    }
   private def getInvalidPropMessage(homeDirOpt: Option[String]): String = homeDirOpt match {
     case Some(value) => s"not valid: $value"
     case None        => "not set"
