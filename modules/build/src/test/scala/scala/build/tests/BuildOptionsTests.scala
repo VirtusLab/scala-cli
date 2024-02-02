@@ -29,6 +29,8 @@ import scala.build.Directories
 import scala.build.Positioned
 import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
+import scala.build.internal.Regexes.scala3LtsRegex
+import scala.build.errors.ScalaVersionError
 
 class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -92,6 +94,21 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         case _: InvalidBinaryScalaVersionError => true; case _ => false
       },
       s"specifying the 3.${Int.MaxValue} scala version does not lead to the Invalid Binary Scala Version Error"
+    )
+  }
+
+  test(s"Scala 2.lts shows Scala Version Error") {
+
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion(s"3.${Int.MaxValue}"))
+      )
+    )
+    assert(
+      options.projectParams.swap.exists {
+        case _: ScalaVersionError => true; case _ => false
+      },
+      s"specifying 2.lts scala version does not lead to Scala Version Error"
     )
   }
 
@@ -223,6 +240,19 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.13.nightly argument does not lead to scala2 nightly build option"
+    )
+  }
+
+  test("-S 3.lts option works") {
+    val options = BuildOptions(
+      scalaOptions = ScalaOptions(
+        scalaVersion = Some(MaybeScalaVersion("3.lts"))
+      )
+    )
+    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    assert(
+      scala3LtsRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
+      "-S 3.lts argument does not lead to scala3 LTS"
     )
   }
 

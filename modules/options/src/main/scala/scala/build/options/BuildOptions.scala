@@ -330,6 +330,14 @@ final case class BuildOptions(
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {
+            case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
+              ScalaVersionUtil.validateStable(
+                Constants.scala3Lts,
+                cache,
+                repositories
+              )
+            case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
+              Left(new ScalaVersionError(s"Invalid Scala version: ${sv}. There is no official LTS version for Scala 2."))
             case sv if sv == ScalaVersionUtil.scala3Nightly =>
               ScalaVersionUtil.GetNightly.scala3(cache)
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>

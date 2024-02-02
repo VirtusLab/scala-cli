@@ -31,6 +31,9 @@ object ScalaVersionUtil {
   def scala212Nightly       = "2.12.nightly"
   def scala213Nightly       = List("2.13.nightly", "2.nightly")
   def scala3Nightly         = "3.nightly"
+  def scala3Lts             = List("3.lts", "lts")
+  // not valid versions, defined only for informative error messages
+  def scala2Lts            = List("2.13.lts", "2.12.lts", "2.lts")
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
