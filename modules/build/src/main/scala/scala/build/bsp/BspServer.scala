@@ -20,7 +20,7 @@ class BspServer(
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   presetIntelliJ: Boolean = false
-) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with BuildServerForwardStubs
+) extends BuildServerForwardStubs
     with ScalaScriptBuildServer
     with ScalaBuildServerForwardStubs
     with JavaBuildServerForwardStubs

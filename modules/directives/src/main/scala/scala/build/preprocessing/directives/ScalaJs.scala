@@ -3,7 +3,7 @@ package scala.build.preprocessing.directives
 import scala.build.EitherCps.{either, value}
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt, ScalaJsOptions, ShadowingSeq}
+import scala.build.options.{BuildOptions, JavaOpt, ScalaJsMode, ScalaJsOptions, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
@@ -15,6 +15,8 @@ import scala.cli.commands.SpecificationLevel
     |`//> using jsVersion` _value_
     |
     |`//> using jsMode` _value_
+    |
+    |`//> using jsNoOpt` _true|false_
     |
     |`//> using jsModuleKind` _value_
     |
@@ -45,6 +47,7 @@ import scala.cli.commands.SpecificationLevel
 final case class ScalaJs(
   jsVersion: Option[String] = None,
   jsMode: Option[String] = None,
+  jsNoOpt: Option[Boolean] = None,
   jsModuleKind: Option[String] = None,
   jsCheckIr: Option[Boolean] = None,
   jsEmitSourceMaps: Option[Boolean] = None,
@@ -61,7 +64,7 @@ final case class ScalaJs(
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,
-      mode = jsMode,
+      mode = ScalaJsMode(jsMode),
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps.getOrElse(ScalaJsOptions().emitSourceMaps),
@@ -72,7 +75,8 @@ final case class ScalaJs(
       avoidClasses = jsAvoidClasses,
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
-      esVersionStr = jsEsVersionStr
+      esVersionStr = jsEsVersionStr,
+      noOpt = jsNoOpt
     )
     BuildOptions(
       scalaJsOptions = scalaJsOptions

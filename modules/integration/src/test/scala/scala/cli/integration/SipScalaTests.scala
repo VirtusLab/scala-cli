@@ -436,7 +436,7 @@ class SipScalaTests extends ScalaCliSuite {
       val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
         .call(cwd = root, mergeErrIntoOut = true)
 
-      val output = res.out.trim
+      val output = res.out.trim()
 
       assertNoDiff(
         output,
@@ -449,13 +449,69 @@ class SipScalaTests extends ScalaCliSuite {
            |Exporting to a sbt project...
            |Some utilized directives are marked as experimental:
            | - `//> using publish.name "my-library"`
-           | - `//> using target.scope "main"`
            | - `//> using target.platform "jvm"`
+           | - `//> using target.scope "main"`
            |Please bear in mind that non-ideal user experience should be expected.
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exported to: ${root / "dest"}
            |""".stripMargin
       )
+    }
+  }
+
+  test(s"code using scala-continuations should compile for Scala 2.12.2") {
+    val sourceFileName = "example.scala"
+    TestInputs(os.rel / sourceFileName ->
+      """import scala.util.continuations._
+        |
+        |object ContinuationsExample extends App {
+        |  def generator(init: Int): Int @cps[Unit] = {
+        |    shift { k: (Int => Unit) =>
+        |      for (i <- init to 10) k(i)
+        |    }
+        |    0 // We never reach this point, but it enables the function to compile.
+        |  }
+        |
+        |  reset {
+        |    val result = generator(1)
+        |    println(result)
+        |  }
+        |}
+        |""".stripMargin).fromRoot { root =>
+      val continuationsVersion = "1.0.3"
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        sourceFileName,
+        "--compiler-plugin",
+        s"org.scala-lang.plugins:::scala-continuations-plugin:$continuationsVersion",
+        "--dependency",
+        s"org.scala-lang.plugins::scala-continuations-library:$continuationsVersion",
+        "-P:continuations:enable",
+        "-S",
+        "2.12.2"
+      )
+        .call(cwd = root)
+      expect(res.exitCode == 0)
+    }
+  }
+
+  test("consecutive -language:* flags are not ignored") {
+    val sourceFileName = "example.scala"
+    TestInputs(os.rel / sourceFileName ->
+      """//> using scala 3.3.1
+        |//> using options -Yexplicit-nulls -language:fewerBraces -language:strictEquality
+        |def repro[A](as: List[A]): List[A] =
+        |  as match
+        |    case Nil => Nil
+        |    case _ => ???
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "compile", sourceFileName)
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(res.exitCode == 1)
+      val expectedError =
+        "Values of types object scala.collection.immutable.Nil and List[A] cannot be compared with == or !="
+      expect(res.err.trim().contains(expectedError))
     }
   }
 }

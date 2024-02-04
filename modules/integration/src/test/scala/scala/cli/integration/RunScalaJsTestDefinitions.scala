@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 
 trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
-  def simpleJsTest(extraArgs: String*): Unit = {
+  def simpleJsTestOutput(extraArgs: String*): String = {
     val fileName = "simple.sc"
     val message  = "Hello"
     val inputs = TestInputs(
@@ -17,18 +17,41 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(cwd =
-        root
+      val output = os.proc(TestUtil.cli, extraOptions, fileName, "--js", extraArgs).call(
+        cwd = root,
+        mergeErrIntoOut = true
       ).out.trim()
       expect(output.linesIterator.toSeq.last == message)
+      output
     }
   }
 
   test("simple script JS") {
-    simpleJsTest()
+    simpleJsTestOutput()
   }
-  test("simple script JS in release mode") {
-    simpleJsTest("--js-mode", "release")
+
+  test(s"simple script JS in fullLinkJS mode") {
+    val output = simpleJsTestOutput("--js-mode", "fullLinkJS", "-v", "-v", "-v")
+    expect(output.contains("--fullOpt"))
+
+    expect(!output.contains("--fastOpt"))
+    expect(!output.contains("--noOpt"))
+  }
+
+  test(s"simple script JS in fastLinkJS mode") {
+    val output = simpleJsTestOutput("--js-mode", "fastLinkJS", "-v", "-v", "-v")
+    expect(output.contains("--fastOpt"))
+
+    expect(!output.contains("--fullOpt"))
+    expect(!output.contains("--noOpt"))
+  }
+
+  test(s"simple script JS with noOpt") {
+    val output = simpleJsTestOutput("--js-mode", "fullLinkJS", "--js-no-opt", "-v", "-v", "-v")
+    expect(output.contains("--noOpt"))
+
+    expect(!output.contains("--fastOpt"))
+    expect(!output.contains("--fullOpt"))
   }
 
   test("without node on the PATH") {
@@ -268,20 +291,30 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("js defaults & toolkit latest") {
+  test("js defaults & toolkit default") {
     val msg = "Hello"
     TestInputs(
-      os.rel / "script.sc" ->
-        s"""//> using toolkit latest
+      os.rel / "toolkit.scala" ->
+        s"""//> using toolkit default
+           |//> using toolkit typelevel:default
+           |
            |//> using platform "scala-js"
+           |
+           |import cats.effect.*
            |import scala.scalajs.js
-           |val console = js.Dynamic.global.console
-           |val jsonString = "{\\"msg\\": \\"$msg\\"}"
-           |val json: ujson.Value  = ujson.read(jsonString)
-           |console.log(json("msg").str)
+           |
+           |object Hello extends IOApp.Simple {
+           |
+           |  def run =  IO {
+           |    val console = js.Dynamic.global.console
+           |    val jsonString = "{\\"msg\\": \\"$msg\\"}"
+           |    val json: ujson.Value  = ujson.read(jsonString)
+           |    console.log(json("msg").str)
+           |  }
+           |}
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "run", "script.sc").call(cwd = root)
+      val result = os.proc(TestUtil.cli, "run", "toolkit.scala").call(cwd = root)
       expect(result.out.trim() == msg)
     }
   }

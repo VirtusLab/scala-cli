@@ -171,7 +171,7 @@ object ScalaCli {
           case _: FailedToStartServerException =>
             System.err.println(
               s"""Running
-                 |  $progName bloop output
+                 |  $progName --power bloop output
                  |might give more details.""".stripMargin
             )
           case ex: java.util.zip.ZipException

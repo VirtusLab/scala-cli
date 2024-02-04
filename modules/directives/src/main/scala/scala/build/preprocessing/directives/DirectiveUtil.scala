@@ -13,11 +13,8 @@ import scala.build.{Position, Positioned}
 
 object DirectiveUtil {
 
-  def position(
-    v: Value[_],
-    path: Either[String, os.Path]
-  ): Position.File = {
-    val skipQuotes: Boolean = v match {
+  def isWrappedInDoubleQuotes(v: Value[_]): Boolean =
+    v match {
       case stringValue: StringValue =>
         stringValue.getRelatedASTNode match {
           case literal: StringLiteral => literal.getIsWrappedDoubleQuotes()
@@ -25,9 +22,14 @@ object DirectiveUtil {
         }
       case _ => false
     }
-    val line       = v.getRelatedASTNode.getPosition.getLine
-    val column     = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
-    val endLinePos = column + v.toString.length
+  def position(
+    v: Value[_],
+    path: Either[String, os.Path]
+  ): Position.File = {
+    val skipQuotes: Boolean = isWrappedInDoubleQuotes(v)
+    val line                = v.getRelatedASTNode.getPosition.getLine
+    val column              = v.getRelatedASTNode.getPosition.getColumn + (if (skipQuotes) 1 else 0)
+    val endLinePos          = column + v.toString.length
     Position.File(path, (line, column), (line, endLinePos))
   }
 

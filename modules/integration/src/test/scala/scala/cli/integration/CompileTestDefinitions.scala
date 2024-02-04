@@ -7,7 +7,10 @@ import java.io.File
 import scala.cli.integration.util.BloopUtil
 
 abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
+    extends ScalaCliSuite
+    with TestScalaVersionArgs
+    with CompilerPluginTestDefinitions
+    with SemanticDbTestDefinitions {
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -465,80 +468,6 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       }
     }
 
-  test("Manual javac SemanticDB") {
-    val inputs = TestInputs(
-      os.rel / "foo" / "Test.java" ->
-        """package foo;
-          |
-          |public class Test {
-          |  public static void main(String[] args) {
-          |    System.err.println("Hello");
-          |  }
-          |}
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val compilerPackages = Seq(
-        "com.sun.tools.javac.api",
-        "com.sun.tools.javac.code",
-        "com.sun.tools.javac.model",
-        "com.sun.tools.javac.tree",
-        "com.sun.tools.javac.util"
-      )
-      val exports = compilerPackages
-        .flatMap { pkg =>
-          Seq("-J--add-exports", s"-Jjdk.compiler/$pkg=ALL-UNNAMED")
-        }
-        .flatMap(opt => List("--javac-opt", opt))
-      val javaSemDbOptions = Seq(
-        "--javac-plugin",
-        "com.sourcegraph:semanticdb-javac:0.7.4",
-        "--javac-opt",
-        s"-Xplugin:semanticdb -sourceroot:$root -targetroot:javac-classes-directory"
-      ) ++ exports
-      os.proc(TestUtil.cli, "compile", extraOptions, javaSemDbOptions, ".")
-        .call(cwd = root)
-
-      val files = os.walk(root / Constants.workspaceDirName)
-      val semDbFiles = files
-        .filter(_.last.endsWith(".semanticdb"))
-        .filter(!_.segments.exists(_ == "bloop-internal-classes"))
-      expect(semDbFiles.length == 1)
-      val semDbFile = semDbFiles.head
-      expect(
-        semDbFile.endsWith(os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb")
-      )
-    }
-  }
-
-  test("Javac SemanticDB") {
-    val inputs = TestInputs(
-      os.rel / "foo" / "Test.java" ->
-        """package foo;
-          |
-          |public class Test {
-          |  public static void main(String[] args) {
-          |    System.err.println("Hello");
-          |  }
-          |}
-          |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".")
-        .call(cwd = root)
-
-      val files = os.walk(root / Constants.workspaceDirName)
-      val semDbFiles = files
-        .filter(_.last.endsWith(".semanticdb"))
-        .filter(!_.segments.exists(_ == "bloop-internal-classes"))
-      expect(semDbFiles.length == 1)
-      val semDbFile = semDbFiles.head
-      expect(
-        semDbFile.endsWith(os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb")
-      )
-    }
-  }
-
   if (actualScalaVersion.startsWith("3"))
     test("generate scoverage.coverage file") {
       val fileName = "Hello.scala"
@@ -743,5 +672,34 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
         val secondOutput = TestUtil.normalizeConsoleOutput(secondRes.out.text())
         expect(!secondOutput.contains("Compiled project"))
       }
+  }
+
+  test("pass java options to scalac when server=false") {
+    val inputs = TestInputs(
+      os.rel / "Main.scala" ->
+        """object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "--scalac-option=-J-XX:MaxHeapSize=1k",
+        "--server=false",
+        extraOptions,
+        "."
+      )
+        .call(cwd = root, check = false, mergeErrIntoOut = true)
+      expect(res.exitCode == 1)
+      assertNoDiff(
+        res.out.text(),
+        """Error occurred during initialization of VM
+          |Too small maximum heap
+          |Compilation failed
+          |""".stripMargin
+      )
+    }
   }
 }

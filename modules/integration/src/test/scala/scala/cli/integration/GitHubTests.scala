@@ -52,12 +52,19 @@ class GitHubTests extends ScalaCliSuite {
     }
   }
 
+  override def munitFlakyOK: Boolean = TestUtil.isCI && Properties.isMac
+
   // currently having issues loading libsodium from the static launcher
   // that launcher is mainly meant to be used on CIs or from docker, missing
   // that feature shouldn't be a big deal there
   if (TestUtil.cliKind != "native-static")
-    test("create secret") {
-      createSecretTest()
+    test("create secret".flaky) {
+      try
+        createSecretTest()
+      catch {
+        case e: UnsatisfiedLinkError if e.getMessage.contains("libsodium") =>
+          fail("libsodium, couldn't be loaded")
+      }
     }
 
 }

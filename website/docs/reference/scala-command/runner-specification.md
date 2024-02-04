@@ -128,11 +128,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -168,7 +168,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -272,6 +272,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -358,6 +372,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -384,7 +402,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -584,7 +602,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -871,11 +889,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -911,7 +929,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -1015,6 +1033,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--default-scaladoc-options**
 
 Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
@@ -1085,6 +1117,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -1111,7 +1147,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -1311,7 +1347,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -1418,11 +1454,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -1458,7 +1494,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -1562,6 +1598,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1638,6 +1688,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -1664,7 +1718,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -1864,7 +1918,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -1991,11 +2045,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -2031,7 +2085,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -2135,6 +2189,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2221,6 +2289,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -2247,7 +2319,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -2447,7 +2519,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -2583,11 +2655,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -2623,7 +2695,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -2727,6 +2799,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2813,6 +2899,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -2839,7 +2929,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -3039,7 +3129,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -3151,11 +3241,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -3191,7 +3281,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -3295,6 +3385,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--check**
 
 Check if sources are well formatted
@@ -3363,6 +3467,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -3389,7 +3497,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -3589,7 +3697,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -3756,11 +3864,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -3796,7 +3904,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -3900,6 +4008,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -3988,6 +4110,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -4014,7 +4140,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -4214,7 +4340,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -4412,11 +4538,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -4452,7 +4578,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -4556,6 +4682,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 <details><summary>
 
 ### Implementantation specific options
@@ -4620,6 +4760,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -4646,7 +4790,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -4846,7 +4990,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 
@@ -5299,11 +5443,11 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 **--js-mode**
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
 
 **--js-module-kind**
 
@@ -5339,7 +5483,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 **--native-mode**
 
@@ -5443,6 +5587,20 @@ Specify platform
 
 Generate SemanticDBs
 
+Aliases: `--semanticdb`
+
+**--semantic-db-target-root**
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
+
+**--semantic-db-source-root**
+
+SemanticDB source root (default to the project root directory)
+
+Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
 <details><summary>
 
 ### Implementantation specific options
@@ -5507,6 +5665,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--js-no-opt**
+
+Disable optimalisation for Scala.js, overrides `--js-mode`
+
 **--js-allow-big-ints-for-longs**
 
 Primitive Longs *may* be compiled as primitive JavaScript bigints
@@ -5533,7 +5695,7 @@ Path to the Scala.js linker
 
 **--js-cli-version**
 
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 **--js-cli-java-arg**
 
@@ -5733,7 +5895,7 @@ Aliases: `--help-fmt` ,`--scalafmt-help` ,`--fmt-help`
 
 **--with-toolkit**
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 Aliases: `--toolkit`
 

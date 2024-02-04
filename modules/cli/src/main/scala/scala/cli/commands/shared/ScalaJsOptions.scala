@@ -21,8 +21,15 @@ final case class ScalaJsOptions(
 
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
-  @HelpMessage("The Scala.js mode, either `dev` or `release`")
+  @HelpMessage("The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]")
     jsMode: Option[String] = None,
+
+  @Group(HelpGroup.ScalaJs.toString)
+  @HelpMessage("Disable optimalisation for Scala.js, overrides `--js-mode`")
+  @Tag(tags.implementation)
+  @Hidden
+    jsNoOpt: Option[Boolean] = None,
+
   @HelpMessage("The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none")
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)

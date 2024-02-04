@@ -37,7 +37,28 @@ import _root_.scala.util.{Properties, Using}
 implicit def millModuleBasePath: define.Ctx.BasePath =
   define.Ctx.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cli
+object cli extends Cli {
+  // Copied from Mill: https://github.com/com-lihaoyi/mill/blob/ea367c09bd31a30464ca901cb29863edde5340be/scalalib/src/mill/scalalib/JavaModule.scala#L792
+  def debug(port: Int, args: Task[Args] = T.task(Args())): Command[Unit] = T.command {
+    try mill.api.Result.Success(
+        mill.util.Jvm.runSubprocess(
+          finalMainClass(),
+          runClasspath().map(_.path),
+          forkArgs() ++ Seq(
+            s"-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=$port,quiet=y"
+          ),
+          forkEnv(),
+          args().value,
+          workingDir = forkWorkingDir(),
+          useCpPassingJar = runUseArgsFile()
+        )
+      )
+    catch {
+      case e: Exception =>
+        mill.api.Result.Failure("subprocess failed")
+    }
+  }
+}
 
 // Publish a bootstrapped, executable jar for a restricted environments
 object cliBootstrapped extends ScalaCliPublishModule {
@@ -422,7 +443,10 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def toolkitOrganization = "${Deps.toolkit.dep.module.organization.value}"
          |  def toolkitName = "${Deps.toolkit.dep.module.name.value}"
          |  def toolkitTestName = "${Deps.toolkitTest.dep.module.name.value}"
+         |  def toolkitDefaultVersion = "${Deps.toolkitVersion}"
+         |
          |  def typelevelOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
+         |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
@@ -1813,7 +1837,9 @@ object ci extends Module {
 
   def checkScalaVersions() = T.command {
     website.checkMainScalaVersions(os.pwd / "website" / "docs" / "reference" / "scala-versions.md")
-    website.checkScalaJsVersions(os.pwd / "website" / "docs" / "guides" / "advanced" / "scala-js.md")
+    website.checkScalaJsVersions(
+      os.pwd / "website" / "docs" / "guides" / "advanced" / "scala-js.md"
+    )
   }
 }
 

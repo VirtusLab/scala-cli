@@ -20,13 +20,15 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
 @DirectiveExamples("//> using toolkit 0.1.0")
-@DirectiveExamples("//> using toolkit latest")
-@DirectiveExamples("//> using test.toolkit latest")
+@DirectiveExamples("//> using toolkit default")
+@DirectiveExamples("//> using test.toolkit default")
 @DirectiveUsage(
   "//> using toolkit _version_",
   "`//> using toolkit` _version_"
 )
-@DirectiveDescription("Use a toolkit as dependency")
+@DirectiveDescription(
+  s"Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: ${Constants.toolkitDefaultVersion}, 'default' version for typelevel toolkit: ${Constants.typelevelToolkitDefaultVersion}"
+)
 @DirectiveLevel(SpecificationLevel.SHOULD)
 final case class Toolkit(
   toolkit: Option[Positioned[String]] = None,
@@ -39,6 +41,12 @@ final case class Toolkit(
 }
 
 object Toolkit {
+  val typelevel = "typelevel"
+
+  object TypelevelToolkit {
+    def unapply(s: Option[String]): Boolean =
+      s.contains(typelevel) || s.contains(Constants.typelevelOrganization)
+  }
 
   /** @param toolkitCoords
     *   the toolkit coordinates
@@ -49,14 +57,21 @@ object Toolkit {
     : List[WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]]] =
     toolkitCoords match
       case Positioned(positions, coords) =>
-        val tokens  = coords.split(':')
-        val version = tokens.last
-        val v       = if version == "latest" then "latest.release" else version
-        val flavor  = tokens.dropRight(1).headOption
-        val org = flavor match {
-          case Some("typelevel") => Constants.typelevelOrganization
-          case Some(org)         => org
-          case None              => Constants.toolkitOrganization
+        val tokens            = coords.split(':')
+        val rawVersion        = tokens.last
+        def isDefault         = rawVersion == "default"
+        val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
+        val flavor            = tokens.dropRight(1).headOption
+        val (org, v) = flavor match {
+          case TypelevelToolkit() => Constants.typelevelOrganization -> {
+              if isDefault then Constants.typelevelToolkitDefaultVersion
+              else notDefaultVersion
+            }
+          case Some(org) => org -> notDefaultVersion
+          case None => Constants.toolkitOrganization -> {
+              if isDefault then Constants.toolkitDefaultVersion
+              else notDefaultVersion
+            }
         }
         List(
           Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")

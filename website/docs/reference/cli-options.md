@@ -1251,11 +1251,16 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 ### `--js-version`
 
-The Scala.js version (1.14.0 by default).
+The Scala.js version (1.15.0 by default).
 
 ### `--js-mode`
 
-The Scala.js mode, either `dev` or `release`
+The Scala.js mode, for `fastLinkJS` use one of [`dev`, `fastLinkJS` or `fast`], for `fullLinkJS` use one of [`release`, `fullLinkJS`, `full`]
+
+### `--js-no-opt`
+
+[Internal]
+Disable optimalisation for Scala.js, overrides `--js-mode`
 
 ### `--js-module-kind`
 
@@ -1311,7 +1316,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.14.0 by default).
+Scala.js CLI version to use for linking (1.15.0 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1337,7 +1342,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 ### `--native-mode`
 
@@ -1525,11 +1530,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 [Internal]
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
 
-### `--semantic-db`
-
-[Internal]
-Generate SemanticDBs
-
 ### `--strict-bloop-json-check`
 
 [Internal]
@@ -1543,7 +1543,7 @@ Copy compilation results to output directory using either relative or absolute p
 
 Aliases: `--toolkit`
 
-Add toolkit to classPath
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 ### `--exclude`
 
@@ -2144,6 +2144,35 @@ How many times to retry the staging repository operations on failure.
 
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
+
+### Semantic db options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--semantic-db`
+
+Aliases: `--semanticdb`
+
+[Internal]
+Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+[Internal]
+SemanticDB target root (default to the compiled classes destination directory)
+
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+[Internal]
+SemanticDB source root (default to the project root directory)
 
 ### Setup IDE options
 

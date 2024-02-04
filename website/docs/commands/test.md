@@ -10,8 +10,7 @@ Test sources are compiled separately (after the 'main' sources), and may use dif
 and other configurations.
 
 By default, all command line options apply to both the main and test sources,
-so [using directives](../guides/introduction/using-directives.md) (
-or [special imports](../guides/introduction/configuration#special-imports)) can be used to provide test-specific configurations.
+so [using directives](../guides/introduction/using-directives.md) can be used to provide test-specific configurations.
 
 ## Test sources
 
@@ -19,14 +18,14 @@ A source file is treated as test source if:
 
 - the file name ends with `.test.scala`, or
 - the file comes from a directory that is provided as input, and the relative path from that file to its original
-  directory contains a `test` directory
-- it contains the `//> using target.scope test` directive, or
+  directory contains a `test` directory, or
+- it contains the `//> using target.scope test` directive
 
 :::caution
 The `using target` directives are an experimental feature, and may change in future versions of Scala CLI.
 :::
 
-The last rule may sound a bit complicated, so let's explain it using following directory structure:
+The second rule may sound a bit complicated, so let's explain it using following directory structure:
 
 <ChainedSnippets>
 
@@ -96,8 +95,8 @@ In order to run tests with a test framework, add the framework dependency to you
 Some of the most popular test frameworks in Scala are:
 
 - [munit](https://scalameta.org/munit): `org.scalameta::munit::0.7.29`
-- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.1`
-- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.15`
+- [utest](https://github.com/com-lihaoyi/utest): `com.lihaoyi::utest::0.8.2`
+- [ScalaTest](https://www.scalatest.org): `org.scalatest::scalatest::3.2.17`
 - [JUnit 4](https://junit.org/junit4), which can be used via
   a [dedicated interface](https://github.com/sbt/junit-interface): `com.github.sbt:junit-interface:0.13.3`
 - [Weaver](https://disneystreaming.github.io/weaver-test/): `com.disneystreaming::weaver-cats:0.8.3`. You may need to

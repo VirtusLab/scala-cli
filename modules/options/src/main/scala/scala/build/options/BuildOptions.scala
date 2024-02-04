@@ -138,7 +138,7 @@ final case class BuildOptions(
   private def semanticDbPlugins(logger: Logger): Either[BuildException, Seq[AnyDependency]] =
     either {
       val scalaVersion: Option[String] = value(scalaParams).map(_.scalaVersion)
-      val generateSemDbs               = scalaOptions.generateSemanticDbs.getOrElse(false)
+      val generateSemDbs = scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
       scalaVersion match {
         case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
           val semanticDbVersion = findSemanticDbVersion(sv, logger)
@@ -194,7 +194,7 @@ final case class BuildOptions(
     }
 
   private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false)
+    val generateSemDbs = scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
     if (generateSemDbs)
       Seq(
         dep"$semanticDbJavacPluginOrganization:$semanticDbJavacPluginModuleName:$semanticDbJavacPluginVersion"

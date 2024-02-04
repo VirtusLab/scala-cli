@@ -8,6 +8,118 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.1.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.2)
+
+### Support for Scala.js 1.15.0
+
+This version adds Scala CLI support for Scala.js 1.15.0.
+Added by [@scala-steward](https://github.com/scala-steward) in [#2672](https://github.com/VirtusLab/scala-cli/pull/2672) & [@Gedochao](https://github.com/Gedochao) in [scala-js-cli#43](https://github.com/VirtusLab/scala-js-cli/pull/43).
+
+### Fixes
+* Fix repeatable compiler options handling from the command line by [@Gedochao](https://github.com/Gedochao) in [#2666](https://github.com/VirtusLab/scala-cli/pull/2666)
+* Fix script wrapper tests & script object wrapper `using` directive by [@Gedochao](https://github.com/Gedochao) in [#2668](https://github.com/VirtusLab/scala-cli/pull/2668)
+* Prevent consecutive `-language:*` options from being ignored by [@Gedochao](https://github.com/Gedochao) in [#2667](https://github.com/VirtusLab/scala-cli/pull/2667)
+
+### Documentation changes
+* Fix test.md by [@MaciejG604](https://github.com/MaciejG604) in [#2679](https://github.com/VirtusLab/scala-cli/pull/2679)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2681](https://github.com/VirtusLab/scala-cli/pull/2681)
+
+### Build and internal changes
+* Update release procedure steps for `v1.1.x` by [@Gedochao](https://github.com/Gedochao) in [#2665](https://github.com/VirtusLab/scala-cli/pull/2665)
+* Tag `GitHubTests.create secret` as flaky on all Mac tests (including M1) by [@Gedochao](https://github.com/Gedochao) in [#2677](https://github.com/VirtusLab/scala-cli/pull/2677)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.1.1 by [@github-actions](https://github.com/features/actions) in [#2662](https://github.com/VirtusLab/scala-cli/pull/2662)
+* Bump libsodiumjni to 0.0.4 by [@MaciejG604](https://github.com/MaciejG604) in [#2651](https://github.com/VirtusLab/scala-cli/pull/2651)
+* Update guava to 33.0.0-jre by [@scala-steward](https://github.com/scala-steward) in [#2670](https://github.com/VirtusLab/scala-cli/pull/2670)
+* Update os-lib to 0.9.3 by [@scala-steward](https://github.com/scala-steward) in [#2671](https://github.com/VirtusLab/scala-cli/pull/2671)
+* Update sbt to 1.9.8 by [@scala-steward](https://github.com/scala-steward) in [#2673](https://github.com/VirtusLab/scala-cli/pull/2673)
+* Update trees_2.13 to 4.8.15 by [@scala-steward](https://github.com/scala-steward) in [#2674](https://github.com/VirtusLab/scala-cli/pull/2674)
+* Update slf4j-nop to 2.0.11 by [@scala-steward](https://github.com/scala-steward) in [#2675](https://github.com/VirtusLab/scala-cli/pull/2675)
+* Update Scala.js to 1.15.0 by [@scala-steward](https://github.com/scala-steward) in [#2672](https://github.com/VirtusLab/scala-cli/pull/2672)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.1.1...v1.1.2
+
+## [v1.1.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.1)
+
+### Deprecate Scala Toolkit `latest` version in favour of `default`
+Using toolkits with the `latest` version is now deprecated and will cause a warning. 
+It will likely be removed completely in a future release.
+```bash
+scala-cli --toolkit latest -e 'println(os.pwd)'
+# Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
+#  --toolkit default
+# Compiling project (Scala 3.3.1, JVM (17))
+# Compiled project (Scala 3.3.1, JVM (17))
+# /home
+```
+
+It is now advised to either use an explicit toolkit version or rely on the new `default` alias.
+```bash
+scala-cli --toolkit default -e 'println(os.pwd)'
+# Compiling project (Scala 3.3.1, JVM (17))
+# Compiled project (Scala 3.3.1, JVM (17))
+# /home
+```
+
+The `default` version for toolkits is tied to a particular Scala CLI version.
+You can check which version is used by referring to Scala CLI help.
+```bash ignore
+scala-cli version                 
+# Scala CLI version: 1.1.1
+# Scala version (default): 3.3.1
+scala-cli run -h|grep toolkit         
+#   --toolkit, --with-toolkit version|default  Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
+```
+
+Added by [@MaciejG604](https://github.com/MaciejG604) in [#2622](https://github.com/VirtusLab/scala-cli/pull/2622)
+
+### Enhancements
+* Remove semantics Compliant for asInstaceOf by [@MaciejG604](https://github.com/MaciejG604) in [#2614](https://github.com/VirtusLab/scala-cli/pull/2614)
+* Scala js mode validation by [@MaciejG604](https://github.com/MaciejG604) in [#2630](https://github.com/VirtusLab/scala-cli/pull/2630)
+* Add missing Scala.js mode aliases by [@Gedochao](https://github.com/Gedochao) in [#2655](https://github.com/VirtusLab/scala-cli/pull/2655)
+* Add deprecation reporting mechanism for using directives by [@MaciejG604](https://github.com/MaciejG604) in [#2622](https://github.com/VirtusLab/scala-cli/pull/2622)
+* Pass java opts to scalac by [@MaciejG604](https://github.com/MaciejG604) in [#2601](https://github.com/VirtusLab/scala-cli/pull/2601)
+
+### Fixes
+* Fallback to UTF-8 in setup-ide by [@JD557](https://github.com/JD557) in [#2599](https://github.com/VirtusLab/scala-cli/pull/2599)
+* Separate Scala REPL classpath from user dependencies by [@Gedochao](https://github.com/Gedochao) in [#2607](https://github.com/VirtusLab/scala-cli/pull/2607)
+* Prevent resource directories from breaking sources hash by [@Gedochao](https://github.com/Gedochao) in [#2654](https://github.com/VirtusLab/scala-cli/pull/2654)
+* Fix special handling for the `-Xplugin-list` compiler option by [@Gedochao](https://github.com/Gedochao) in [#2635](https://github.com/VirtusLab/scala-cli/pull/2635)
+* Remove superfluous traits by [@MaciejG604](https://github.com/MaciejG604) in [#2618](https://github.com/VirtusLab/scala-cli/pull/2618)
+* Prevent the toolkit latest deprecation warning from being logged more than once by [@Gedochao](https://github.com/Gedochao) in [#2657](https://github.com/VirtusLab/scala-cli/pull/2657)
+
+### Documentation changes
+* Unify mentions of Java properties and link to the correct section of guides. by [@MaciejG604](https://github.com/MaciejG604) in [#2603](https://github.com/VirtusLab/scala-cli/pull/2603)
+* Document script wrappers by [@MaciejG604](https://github.com/MaciejG604) in [#2596](https://github.com/VirtusLab/scala-cli/pull/2596)
+* Shorten titles of cookbooks by [@MaciejG604](https://github.com/MaciejG604) in [#2609](https://github.com/VirtusLab/scala-cli/pull/2609)
+* Add docs for bloop interaction by [@MaciejG604](https://github.com/MaciejG604) in [#2608](https://github.com/VirtusLab/scala-cli/pull/2608)
+* Docs/java opts for compiler by [@MaciejG604](https://github.com/MaciejG604) in [#2619](https://github.com/VirtusLab/scala-cli/pull/2619)
+* Add a subcategories layer for guides & cookbooks by [@Gedochao](https://github.com/Gedochao) in [#2612](https://github.com/VirtusLab/scala-cli/pull/2612)
+* Merge documentations about proxy setup by [@MaciejG604](https://github.com/MaciejG604) in [#2597](https://github.com/VirtusLab/scala-cli/pull/2597)
+* Update test framework versions by [@mbovel](https://github.com/mbovel) in [#2625](https://github.com/VirtusLab/scala-cli/pull/2625)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2604](https://github.com/VirtusLab/scala-cli/pull/2604)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2611](https://github.com/VirtusLab/scala-cli/pull/2611)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2615](https://github.com/VirtusLab/scala-cli/pull/2615)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2617](https://github.com/VirtusLab/scala-cli/pull/2617)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2620](https://github.com/VirtusLab/scala-cli/pull/2620)
+
+### Build and internal changes
+* Add debug mode by [@MaciejG604](https://github.com/MaciejG604) in [#2643](https://github.com/VirtusLab/scala-cli/pull/2643)
+* Downgrade Xcode on macos CI runners by [@MaciejG604](https://github.com/MaciejG604) in [#2632](https://github.com/VirtusLab/scala-cli/pull/2632)
+* Revert xcode version downgrade by [@MaciejG604](https://github.com/MaciejG604) in [#2650](https://github.com/VirtusLab/scala-cli/pull/2650)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.1.0 by [@github-actions](https://github.com/features/actions) in [#2594](https://github.com/VirtusLab/scala-cli/pull/2594)
+* Update org.eclipse.jgit to 6.8.0.202311291450-r by [@scala-steward](https://github.com/scala-steward) in [#2613](https://github.com/VirtusLab/scala-cli/pull/2613)
+* Bump docusaurus version by [@MaciejG604](https://github.com/MaciejG604) in [#2610](https://github.com/VirtusLab/scala-cli/pull/2610)
+* Bump actions/setup-python from 4 to 5 by [@dependabot](https://github.com/dependabot) in [#2624](https://github.com/VirtusLab/scala-cli/pull/2624)
+
+## New Contributors
+* [@mbovel](https://github.com/mbovel) made their first contribution in [#2625](https://github.com/VirtusLab/scala-cli/pull/2625)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.1.0...v1.1.1
+
 ## [v1.1.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.0)
 
 ### Breaking update to Scala 2 scripts

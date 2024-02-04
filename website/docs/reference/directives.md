@@ -373,6 +373,8 @@ Add Scala.js options
 
 `//> using jsMode` _value_
 
+`//> using jsNoOpt` _true|false_
+
 `//> using jsModuleKind` _value_
 
 `//> using jsSmallModuleForPackage` _value1_ _value2_ …
@@ -410,16 +412,16 @@ Set the test framework
 
 ### Toolkit
 
-Use a toolkit as dependency
+Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.2.1, 'default' version for typelevel toolkit: 0.1.20
 
 `//> using toolkit` _version_
 
 #### Examples
 `//> using toolkit 0.1.0`
 
-`//> using toolkit latest`
+`//> using toolkit default`
 
-`//> using test.toolkit latest`
+`//> using test.toolkit default`
 
 
 ## target directives

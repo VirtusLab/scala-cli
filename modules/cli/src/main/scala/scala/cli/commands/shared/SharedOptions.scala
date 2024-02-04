@@ -12,6 +12,7 @@ import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
+import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
@@ -186,10 +187,8 @@ final case class SharedOptions(
   @Hidden
     runner: Option[Boolean] = None,
 
-  @Hidden
-  @Tag(tags.should)
-  @HelpMessage("Generate SemanticDBs")
-    semanticDb: Option[Boolean] = None,
+  @Recurse
+    semanticDbOptions: SemanticDbOptions = SemanticDbOptions(),
 
   @Recurse
     input: SharedInputOptions = SharedInputOptions(),
@@ -210,8 +209,8 @@ final case class SharedOptions(
   @Tag(tags.must)
     compilationOutput: Option[String] = None,
   @Group(HelpGroup.Scala.toString)
-  @HelpMessage("Add toolkit to classPath")
-  @ValueDescription("version|latest")
+  @HelpMessage(s"Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: ${Constants.toolkitDefaultVersion}, 'default' version for typelevel toolkit: ${Constants.typelevelToolkitDefaultVersion}")
+  @ValueDescription("version|default")
   @Name("toolkit")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)
@@ -232,7 +231,7 @@ final case class SharedOptions(
     import opts._
     options.ScalaJsOptions(
       version = jsVersion,
-      mode = jsMode,
+      mode = options.ScalaJsMode(jsMode),
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
@@ -244,7 +243,8 @@ final case class SharedOptions(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyle,
       smallModuleForPackage = jsSmallModuleForPackage,
-      esVersionStr = jsEsVersion
+      esVersionStr = jsEsVersion,
+      noOpt = jsNoOpt
     )
   }
 
@@ -323,6 +323,7 @@ final case class SharedOptions(
         s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole.GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
+    val resolvedToolkitDependency = SharedOptions.resolveToolkitDependency(withToolkit, logger)
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
@@ -357,7 +358,11 @@ final case class SharedOptions(
         scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
         addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
         addScalaCompiler = withCompiler,
-        generateSemanticDbs = semanticDb,
+        semanticDbOptions = bo.SemanticDbOptions(
+          generateSemanticDbs = semanticDbOptions.semanticDb,
+          semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
+          semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
+        ),
         scalacOptions = scalac
           .scalacOption
           .withScalacExtraOptions(scalacExtra)
@@ -393,13 +398,13 @@ final case class SharedOptions(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+          ) ++ resolvedToolkitDependency
         ),
         extraCompileOnlyDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.compileOnlyDependency.map(Positioned.none),
             ignoreErrors
-          ) ++ SharedOptions.resolveToolkitDependency(withToolkit)
+          ) ++ resolvedToolkitDependency
         )
       ),
       internal = bo.InternalOptions(
@@ -719,8 +724,25 @@ object SharedOptions {
         }
       }
 
-  private def resolveToolkitDependency(toolkitVersion: Option[String])
-    : Seq[Positioned[AnyDependency]] =
+  // TODO: remove this state after resolving https://github.com/VirtusLab/scala-cli/issues/2658
+  private val loggedDeprecatedToolkitWarning: AtomicBoolean = AtomicBoolean(false)
+  private def resolveToolkitDependency(
+    toolkitVersion: Option[String],
+    logger: Logger
+  ): Seq[Positioned[AnyDependency]] = {
+    if (
+      (toolkitVersion.contains("latest")
+      || toolkitVersion.contains(Toolkit.typelevel + ":latest")
+      || toolkitVersion.contains(
+        Constants.typelevelOrganization + ":latest"
+      )) && !loggedDeprecatedToolkitWarning.getAndSet(true)
+    ) logger.message(
+      WarningMessages.deprecatedToolkitLatest(
+        s"--toolkit ${toolkitVersion.map(_.replace("latest", "default")).getOrElse("default")}"
+      )
+    )
+
     toolkitVersion.toList.map(Positioned.commandLine)
       .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map(_.value))
+  }
 }

@@ -72,7 +72,7 @@ object Fix extends ScalaCommand[FixOptions] {
       createFormattedLinesAndAppend(allMainDirectives, projectFileContents, isTest = false)
 
       (
-        transformedMainDirectives.filter(d => isExtractedFromWritableInput(d.positions)),
+        transformedMainDirectives.filter(d => isExtractedFromWritableInput(d.position)),
         testScopeDirectives
       )
     }
@@ -111,8 +111,8 @@ object Fix extends ScalaCommand[FixOptions] {
 
     // Remove directives from their original files, skip the project.scala file
     directivesFromWritableMainInputs
-      .filterNot(e => isProjectFile(e.positions))
-      .foreach(d => removeDirectivesFrom(d.positions))
+      .filterNot(e => isProjectFile(e.position))
+      .foreach(d => removeDirectivesFrom(d.position))
     directivesFromWritableTestInputs
       .filterNot(ttd => isProjectFile(ttd.positions))
       .foreach(ttd => removeDirectivesFrom(ttd.positions, toKeep = ttd.noTestPrefixAvailable))
@@ -233,13 +233,13 @@ object Fix extends ScalaCommand[FixOptions] {
       }
 
       val transformedToTestEquivalents = withTestEquivalent.map {
-        case StrictDirective(key, values) => StrictDirective("test." + key, values)
+        case StrictDirective(key, values, _) => StrictDirective("test." + key, values)
       }
 
       TransformedTestDirectives(
         withTestPrefix = transformedToTestEquivalents,
         noTestPrefixAvailable = noTestEquivalent,
-        positions = extractedFromSingleElement.positions
+        positions = extractedFromSingleElement.position
       )
     }
 

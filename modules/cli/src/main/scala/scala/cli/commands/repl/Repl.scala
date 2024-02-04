@@ -7,6 +7,7 @@ import coursier.cache.FileCache
 import coursier.error.{FetchError, ResolutionError}
 import dependency.*
 
+import java.io.File
 import java.util.zip.ZipFile
 
 import scala.build.EitherCps.{either, value}
@@ -29,7 +30,7 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] {
@@ -380,16 +381,26 @@ object Repl extends ScalaCommand[ReplOptions] {
       if (dryRun)
         logger.message("Dry run, not running REPL.")
       else {
+        val depClassPathArgs: Seq[String] =
+          if replArtifacts.depsClassPath.nonEmpty && !replArtifacts.replMainClass.startsWith(
+              "ammonite"
+            )
+          then
+            Seq(
+              "-classpath",
+              replArtifacts.depsClassPath.map(_.toString).mkString(File.pathSeparator)
+            )
+          else Nil
         val retCode = Runner.runJvm(
-          options.javaHome().value.javaCommand,
-          scalapyJavaOpts ++
+          javaCommand = options.javaHome().value.javaCommand,
+          javaArgs = scalapyJavaOpts ++
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
-          mainJarOrClassDir.toSeq ++ replArtifacts.replClassPath,
-          replArtifacts.replMainClass,
-          maybeAdaptForWindows(replArgs),
-          logger,
+          classPath = mainJarOrClassDir.toSeq ++ replArtifacts.replClassPath,
+          mainClass = replArtifacts.replMainClass,
+          args = maybeAdaptForWindows(depClassPathArgs ++ replArgs),
+          logger = logger,
           allowExecve = allowExit,
           extraEnv = scalapyExtraEnv ++ extraEnv
         ).waitFor()

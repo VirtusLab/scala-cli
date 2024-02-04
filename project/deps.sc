@@ -18,7 +18,7 @@ object Scala {
   val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
 
-  def scalaJs = "1.14.0"
+  def scalaJs = "1.15.0"
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -86,8 +86,8 @@ object Deps {
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.14"
-    def scalaNative          = "0.4.16"
+    def scalaMeta            = "4.8.15"
+    def scalaNative          = "0.4.17"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
@@ -102,7 +102,7 @@ object Deps {
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-3"
-  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
+  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M26"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
@@ -122,10 +122,10 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:32.1.3-jre"
+  def guava   = ivy"com.google.guava:guava:33.0.0-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
-  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.7.0.202309050840-r"
+  def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
   def jimfs    = ivy"com.google.jimfs:jimfs:1.3.0"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
@@ -136,7 +136,7 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.3"
+  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
     ivy"com.geirsson::metaconfig-typesafe-config:0.12.0"
@@ -144,7 +144,7 @@ object Deps {
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.9.2"
+  def osLib                      = ivy"com.lihaoyi::os-lib:0.9.3"
   def pprint                     = ivy"com.lihaoyi::pprint:0.8.1"
   def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
@@ -184,15 +184,15 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.9"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.1"
+  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.11"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.2"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"
-  val toolkitVersion          = "0.1.7"
+  val toolkitVersion          = "0.2.1"
   def toolkit                 = ivy"org.scala-lang:toolkit:$toolkitVersion"
   def toolkitTest             = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion = "0.0.11"
+  val typelevelToolkitVersion = "0.1.20"
   def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.0"

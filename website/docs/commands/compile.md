@@ -269,6 +269,13 @@ but they will not be recognised if they're not supported in a given Scala versio
 In such a case, refer to the `--scalac-help` output while passing the appropriate version with `-S`.
 :::
 
+### Java options for the compiler
+
+There are two ways to pass Java options to the compiler:
+- `--bloop-java-opt` when using the build server, which is the default, e.g. `--bloop-java-opt -XX:MaxHeapSize=8g`
+- `//> using options` or `--scalac-opt` with arguments prefixed by `-J`, e.g. `//> using options -J-XX:MaxHeapSize=8g`,
+this will work only when the build server is disabled (with `--server=false`).
+
 ### Compiler options redirected to Scala CLI alternatives
 
 In a few cases, certain compiler options are being auto-redirected to a corresponding Scala CLI-specific option for
@@ -289,11 +296,10 @@ Certain compiler options allow to view relevant help. Inputs aren't required whe
 Those include:
 
 - `-help`
-- all options prefixed with:
-    - `-V`
-    - `-W`
-    - `-X`
-    - `-Y`
+- `-V`
+- `-W`
+- `-X`
+- `-Y`
 
 <ChainedSnippets>
 
