@@ -127,6 +127,25 @@ Hello
 Hello
 -->
 
+By default assemblies are self-executable, just like the default package format. With the argument ```--preamble=false``` you can build an assembly that just contains the JAR and does not contain any built-in Bash code, and therefore can be launched directly with Java and is more portable:
+
+<ChainedSnippets>
+
+```bash
+scala-cli --power package Hello.scala -o hello.jar --assembly --preamble=false
+java -jar hello.jar
+```
+
+```text
+Hello
+```
+
+</ChainedSnippets>
+
+<!-- Expected:
+Hello
+-->
+
 ## Docker container
 
 Scala CLI can create an executable application and package it into a docker image.
@@ -506,4 +525,3 @@ The using directive allows you to define the image repository.
 ```scala compile power
 //> using packaging.dockerImageRepository scala-cli
 ```
-
