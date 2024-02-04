@@ -43,6 +43,7 @@ Less introductory guides on specific topics.
 - [Verbosity](advanced/verbosity.md) - learn how to control logs verbosity in Scala CLI.
 - [Java properties](advanced/java-properties.md) - learn how to pass Java properties to Scala CLI.
 - [Internals](advanced/internals.md) - learn about how Scala CLI works under the hood.
+- [Custom Toolkit](advanced/custom-toolkit.md) - learn how to create custom toolkits
 
 ## ⚡️ `--power` mode guides
 
