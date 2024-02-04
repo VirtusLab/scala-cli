@@ -33,7 +33,7 @@ object ScalaVersionUtil {
   def scala3Nightly         = "3.nightly"
   def scala3Lts             = List("3.lts", "lts")
   // not valid versions, defined only for informative error messages
-  def scala2Lts            = List("2.13.lts", "2.12.lts", "2.lts")
+  def scala2Lts = List("2.13.lts", "2.12.lts", "2.lts")
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
@@ -65,8 +65,7 @@ object ScalaVersionUtil {
   extension (versionsResult: Versions.Result) {
     def verify(versionString: String): Either[BuildException, Unit] =
       if versionsResult.versions.available.contains(versionString) then Right(())
-      else
-        Left(new NoValidScalaVersionFoundError(versionsResult.versions.available))
+      else Left(NoValidScalaVersionFoundError(versionString))
   }
 
   object GetNightly {
@@ -129,8 +128,8 @@ object ScalaVersionUtil {
         .versions.available.filter(_.endsWith("-NIGHTLY"))
 
       val threeXNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
-      if (threeXNightlies.nonEmpty) Right(threeXNightlies.max.repr)
-      else Left(new NoValidScalaVersionFoundError(res))
+      if threeXNightlies.nonEmpty then Right(threeXNightlies.max.repr)
+      else Left(NoValidScalaVersionFoundError())
     }
 
     /** @return

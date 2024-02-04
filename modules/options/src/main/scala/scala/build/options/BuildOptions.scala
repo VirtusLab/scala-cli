@@ -337,7 +337,9 @@ final case class BuildOptions(
                 repositories
               )
             case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
-              Left(new ScalaVersionError(s"Invalid Scala version: ${sv}. There is no official LTS version for Scala 2."))
+              Left(new ScalaVersionError(
+                s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
+              ))
             case sv if sv == ScalaVersionUtil.scala3Nightly =>
               ScalaVersionUtil.GetNightly.scala3(cache)
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
