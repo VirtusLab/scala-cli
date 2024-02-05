@@ -16,6 +16,7 @@ import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.Properties
 import scala.util.matching.Regex
+import scala.util.Try
 
 final case class Inputs(
   elements: Seq[Element],
@@ -88,9 +89,10 @@ final case class Inputs(
     def reallyOwnedByUser(p: os.Path): Boolean =
       if (Properties.isWin)
         p.toIO.canWrite // Wondering if there's a better way to do that…
-      else
-        os.owner(p) == os.owner(os.home) &&
-        p.toIO.canWrite
+      else {
+        val maybeUserHome = Try(os.owner(os.home)).toOption
+        maybeUserHome.exists(_ == os.owner(p)) && p.toIO.canWrite
+      }
     val canWrite = existingParent(workspace).exists(reallyOwnedByUser)
     if canWrite then this else inHomeDir(directories)
   }
