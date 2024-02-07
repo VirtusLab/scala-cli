@@ -19,39 +19,6 @@ import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
 object ScalaCli {
-  // TODO: Remove this part once fix is released in os-lib (Issue #2585)
-  sys.env.get("SCALA_CLI_HOME_DIR_OVERRIDE")
-    .filter(_.nonEmpty)
-    .filter(homeDir => scala.util.Try(os.Path(homeDir)).isSuccess)
-    .foreach { homeDirOverride =>
-      System.err.println(
-        s"Warning: user.home property overridden with the SCALA_CLI_HOME_DIR_OVERRIDE env var to: $homeDirOverride"
-      )
-      System.setProperty("user.home", homeDirOverride)
-    }
-  private def getInvalidPropMessage(homeDirOpt: Option[String]): String = homeDirOpt match {
-    case Some(value) => s"not valid: $value"
-    case None        => "not set"
-  }
-  sys.props.get("user.home") -> sys.props.get("user.dir") match {
-    case (Some(homeDir), _)
-        if scala.util.Try(os.Path(homeDir)).isSuccess => // all is good, do nothing
-    case (invalidHomeDirOpt, Some(userDir)) if scala.util.Try(os.Path(userDir)).isSuccess =>
-      System.err.println(
-        s"Warning: user.home property is ${getInvalidPropMessage(invalidHomeDirOpt)}, setting it to user.dir value: $userDir"
-      )
-      System.setProperty("user.home", userDir)
-    case (invalidHomeDirOpt, invalidUserDirOpt) =>
-      System.err.println(
-        s"Error: user.home property is ${getInvalidPropMessage(invalidHomeDirOpt)}"
-      )
-      System.err.println(s"Error: user.dir property is ${getInvalidPropMessage(invalidUserDirOpt)}")
-      System.err.println("Scala CLI cannot work correctly without a valid home or user directory.")
-      System.err.println(
-        "Consider overriding it to a valid directory path with the SCALA_CLI_HOME_DIR_OVERRIDE environment variable."
-      )
-      sys.exit(1)
-  }
 
   if (Properties.isWin && isGraalvmNativeImage)
     // have to be initialized before running (new Argv0).get because Argv0SubstWindows uses csjniutils library
