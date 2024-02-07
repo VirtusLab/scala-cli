@@ -1,7 +1,7 @@
 title: Custom Toolkit
 sidebar_position: 44
 ---
-Similar to the Scala Toolkit and Typelevel toolkit, it is possible to create our own custom toolkit. 
+Similar to the Scala Toolkit and Typelevel toolkit, it is possible to create your own, custom toolkit. 
 Having a custom toolkit with common libraries can speed up the development using scala-cli. 
 
 Let's look at how we can create a new toolkit. 
