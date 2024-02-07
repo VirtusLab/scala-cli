@@ -8,7 +8,7 @@ Let's look at how we can create a new toolkit.
 
 For example, to create a LiHaoyi ecosystem toolkit, we can name the file as `LiHaoyiToolkit.scala` and add the required libraries as dependency directives:
 
-```
+```scala
 //> using scala 2.13, 3
 //> using publish.name toolkit
 //> using dep com.lihaoyi::upickle::3.1.3
