@@ -43,7 +43,7 @@ The toolkit can be published locally using the command:
 scala-cli --power publish local --cross LiHaoyiToolkit.scala publish-conf.scala
 ```
 
-In the similar way, it is also possible to publish to a central repository. Refer to the [GitHub Action workflow](https://github.com/scala/toolkit/blob/main/.github/workflows/deploy.yaml) for more details.
+Similarly, it is also possible to publish to a central repository. Refer to the [GitHub Action workflow](https://github.com/scala/toolkit/blob/main/.github/workflows/deploy.yaml) for more details.
 
 Once it is published, it can be accessed using the org-name with which it got published. For example, with the published toolkit under the organization `com.yadavan88`, it can be accessed as:
 
