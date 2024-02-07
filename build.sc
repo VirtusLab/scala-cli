@@ -451,6 +451,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
+         |  def scala3Lts = "${Scala.scala3Lts}"
          |
          |  def workspaceDirName = "$workspaceDirName"
          |  def projectFileName = "$projectFileName"
