@@ -127,7 +127,7 @@ Hello
 Hello
 -->
 
-By default assemblies are self-executable, just like the default package format. With the argument ```--preamble=false``` you can build an assembly that just contains the JAR and does not contain any built-in Bash code, and therefore can be launched directly with Java and is more portable:
+By default assemblies are self-executable, just like the default package format. With the `--preamble=false` option, you can build an assembly that just contains the JAR and does not contain any built-in Bash code, and therefore can be launched directly with Java and is more portable:
 
 <ChainedSnippets>
 
