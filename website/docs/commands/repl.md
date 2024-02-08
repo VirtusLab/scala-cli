@@ -84,6 +84,7 @@ scala> :quit
 It is also possible to start the scala-cli REPL with [toolkit](https://scala-cli.virtuslab.org/docs/guides/introduction/toolkit/) enabled
 
 <ChainedSnippets>
+    
 ```bash ignore
 scala-cli repl --toolkit default
 ```
