@@ -80,6 +80,29 @@ scala> :quit
 
 </ChainedSnippets>
 
+## Using Toolkit in REPL
+It is also possible to start the scala-cli REPL with [toolkit](https://scala-cli.virtuslab.org/docs/guides/introduction/toolkit/) enabled
+
+<ChainedSnippets>
+```bash ignore
+scala-cli repl --toolkit default
+```
+
+```text
+Welcome to Scala 3.3.1 (17, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                
+scala> import os._
+                                                                                
+scala> os.pwd
+val res0: os.Path = /Users/yadukrishnan/test
+scala> :quit
+
+```
+</ChainedSnippets>
+
+Since we started the repl with toolkit enbled, we can use the libraries included in the toolkit direclty. In the above example, `os-lib` library from the toolkit is used to print the current path. 
+
 ## Inject code as JAR file in class path
 
 If your application inspects its class path, and requires only JAR files in it, use `--as-jar` to
