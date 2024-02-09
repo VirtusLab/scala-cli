@@ -102,7 +102,7 @@ scala> :quit
 ```
 </ChainedSnippets>
 
-Since we started the repl with toolkit enbled, we can use the libraries included in the toolkit direclty. In the above example, `os-lib` library from the toolkit is used to print the current path. 
+Since we started the repl with toolkit enabled, we can use the libraries included in the toolkit directly. In the above example, the `os-lib` library from the toolkit is used to print the current path. 
 
 ## Inject code as JAR file in class path
 
