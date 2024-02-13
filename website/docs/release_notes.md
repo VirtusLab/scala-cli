@@ -40,17 +40,17 @@ Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#2710](https://github.
 It is now possible to set the SemanticDB target root and source root directories with unified syntax,
 independent of the target Scala and/or Java versions.
 
-<ChainedSnippets>
+For a given `semanticdb-example.sc` script:
 
 ```scala title=src/semanticdb-example.sc
 println("SemanticDB targetroot gets set to ./targetRootDir, while sourceroot gets set to the current working directory.")
 ```
 
+You now can specify the `targetroot` and `sourceroot` directories like this:
+
 ```bash 
 scala-cli compile src/semanticdb-example.sc --semanticdb-targetroot ./targetRootDir --semanticdb-sourceroot .
 ```
-
-</ChainedSnippets>
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#2692](https://github.com/VirtusLab/scala-cli/pull/2692)
 
