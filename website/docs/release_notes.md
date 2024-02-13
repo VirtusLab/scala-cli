@@ -8,6 +8,79 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.1.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.3)
+
+### Support for LTS Scala version aliases
+It is now possible to use `lts` and `3.lts` as Scala version aliases in Scala CLI. 
+They refer to the latest LTS version of Scala (the `3.3.x` line at the time of this release).`
+
+```bash
+scala-cli run -S lts --with-compiler -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)'
+# Compiling project (Scala 3.3.1, JVM (17))
+# Compiled project (Scala 3.3.1, JVM (17))
+# 3.3.1
+```
+
+Using the `2.lts`, `2.13.lts` & `2.12.lts` aliases returns a meaningful error, too.
+
+```bash fail
+scala-cli run -S 2.lts -e 'println(scala.util.Properties.versionString)'                                 
+# [error]  Invalid Scala version: 2.lts. There is no official LTS version for Scala 2.
+# You can only choose one of the 3.x, 2.13.x, and 2.12.x. versions.
+# The latest supported stable versions are 2.12.18, 2.13.12, 3.3.1.
+# In addition, you can request compilation with the last nightly versions of Scala,
+# by passing the 2.nightly, 2.12.nightly, 2.13.nightly, or 3.nightly arguments.
+# Specific Scala 2 or Scala 3 nightly versions are also accepted.
+# You can also request the latest Scala 3 LTS by passing lts or 3.lts.
+```
+
+Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#2710](https://github.com/VirtusLab/scala-cli/pull/2710)
+
+### `--semanticdb-targetroot` and `--semanticdb-sourceroot` options
+It is now possible to set the SemanticDB target root and source root directories with unified syntax,
+independent of the target Scala and/or Java versions.
+
+<ChainedSnippets>
+
+```scala title=src/semanticdb-example.sc
+println("SemanticDB targetroot gets set to ./targetRootDir, while sourceroot gets set to the current working directory.")
+```
+
+```bash 
+scala-cli compile src/semanticdb-example.sc --semanticdb-targetroot ./targetRootDir --semanticdb-sourceroot .
+```
+
+</ChainedSnippets>
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2692](https://github.com/VirtusLab/scala-cli/pull/2692)
+
+### Fixes
+* remove `user.home` hack by [@kasiaMarek](https://github.com/kasiaMarek) in [#2710](https://github.com/VirtusLab/scala-cli/pull/2710)
+* Fix ultra-long invalid Scala version errors by [@Gedochao](https://github.com/Gedochao) in [#2724](https://github.com/VirtusLab/scala-cli/pull/2724)
+
+### Documentation changes
+* Add information about --preamble in assembly packaging documentation by [@spacebanana420](https://github.com/spacebanana420) in [#2713](https://github.com/VirtusLab/scala-cli/pull/2713)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2717](https://github.com/VirtusLab/scala-cli/pull/2717)
+* Documentation for creation of custom toolkit by [@yadavan88](https://github.com/yadavan88) in [#2715](https://github.com/VirtusLab/scala-cli/pull/2715)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2718](https://github.com/VirtusLab/scala-cli/pull/2718)
+* Fix formatting in custom toolkit doc by [@yadavan88](https://github.com/yadavan88) in [#2719](https://github.com/VirtusLab/scala-cli/pull/2719)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2720](https://github.com/VirtusLab/scala-cli/pull/2720)
+* Added info about repl with toolkit by [@yadavan88](https://github.com/yadavan88) in [#2721](https://github.com/VirtusLab/scala-cli/pull/2721)
+* Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2723](https://github.com/VirtusLab/scala-cli/pull/2723)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.1.2 by [@github-actions](https://github.com/features/actions) in [#2688](https://github.com/VirtusLab/scala-cli/pull/2688)
+* Update bsp4j to 2.1.1 by [@scala-steward](https://github.com/scala-steward) in [#2700](https://github.com/VirtusLab/scala-cli/pull/2700)
+* Update Scala Native to 0.4.17 by [@scala-steward](https://github.com/scala-steward) in [#2696](https://github.com/VirtusLab/scala-cli/pull/2696)
+* Bump coursier/setup-action from 1.3.4 to 1.3.5 by [@dependabot](https://github.com/dependabot) in [#2716](https://github.com/VirtusLab/scala-cli/pull/2716)
+
+### New Contributors
+* [@kasiaMarek](https://github.com/kasiaMarek) made their first contribution in [#2710](https://github.com/VirtusLab/scala-cli/pull/2710)
+* [@spacebanana420](https://github.com/spacebanana420) made their first contribution in [#2713](https://github.com/VirtusLab/scala-cli/pull/2713)
+* [@yadavan88](https://github.com/yadavan88) made their first contribution in [#2715](https://github.com/VirtusLab/scala-cli/pull/2715)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.1.2...v1.1.3
+
 ## [v1.1.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.2)
 
 ### Support for Scala.js 1.15.0
