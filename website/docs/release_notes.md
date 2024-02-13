@@ -12,7 +12,7 @@ import ReactPlayer from 'react-player'
 
 ### Support for LTS Scala version aliases
 It is now possible to use `lts` and `3.lts` as Scala version aliases in Scala CLI. 
-They refer to the latest LTS version of Scala (the `3.3.x` line at the time of this release).`
+They refer to the latest LTS version of Scala (the `3.3.x` line at the time of this release).
 
 ```bash
 scala-cli run -S lts --with-compiler -e 'println(dotty.tools.dotc.config.Properties.simpleVersionString)'
@@ -59,7 +59,7 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#2692](https://github.com/
 * Fix ultra-long invalid Scala version errors by [@Gedochao](https://github.com/Gedochao) in [#2724](https://github.com/VirtusLab/scala-cli/pull/2724)
 
 ### Documentation changes
-* Add information about --preamble in assembly packaging documentation by [@spacebanana420](https://github.com/spacebanana420) in [#2713](https://github.com/VirtusLab/scala-cli/pull/2713)
+* Add information about `--preamble` in assembly packaging documentation by [@spacebanana420](https://github.com/spacebanana420) in [#2713](https://github.com/VirtusLab/scala-cli/pull/2713)
 * Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2717](https://github.com/VirtusLab/scala-cli/pull/2717)
 * Documentation for creation of custom toolkit by [@yadavan88](https://github.com/yadavan88) in [#2715](https://github.com/VirtusLab/scala-cli/pull/2715)
 * Back port of documentation changes to main by [@github-actions](https://github.com/features/actions) in [#2718](https://github.com/VirtusLab/scala-cli/pull/2718)
