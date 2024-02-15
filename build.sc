@@ -407,6 +407,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
          |  def ghName = "$ghName"
          |
          |  def scalaJsVersion = "${Scala.scalaJs}"
+         |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
          |  def scalajsEnvJsdomNodejsVersion = "${Deps.scalaJsEnvJsdomNodejs.dep.version}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |
@@ -768,6 +769,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def scalaJsVersion = "${Scala.scalaJs}"
+         |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
@@ -954,6 +956,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def defaultScala = "${Scala.defaultUser}"
            |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
            |  def scalaJsVersion = "${Scala.scalaJs}"
+           |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
            |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
            |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
            |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"

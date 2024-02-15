@@ -12,7 +12,7 @@ final case class ScalaJsLinkerOptions(
   linkerPath: Option[os.Path] = None
 ) {
   def finalScalaJsCliVersion = scalaJsCliVersion.orElse(scalaJsVersion).getOrElse {
-    Constants.scalaJsVersion
+    Constants.scalaJsCliVersion
   }
 
   /** If right, use JVM, if left, use the value as architecture */

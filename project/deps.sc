@@ -19,7 +19,8 @@ object Scala {
   val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
 
-  def scalaJs = "1.15.0"
+  def scalaJs    = "1.15.0"
+  def scalaJsCli = "1.15.0.1" // this must be compatible with the Scala.js version
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
