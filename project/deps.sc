@@ -4,7 +4,7 @@ object Scala {
   def scala212     = "2.12.18"
   def scala213     = "2.13.12"
   def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.3.1"
+  def scala3       = "3.4.0"
   def scala3Lts    = "3.3"   // the full version should be resolved later
 
   // The Scala version used to build the CLI itself.
@@ -41,7 +41,7 @@ object Scala {
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = scala3
+  def maxAmmoniteScala3Version   = "3.3.1"
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {

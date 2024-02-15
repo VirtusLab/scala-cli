@@ -1,5 +1,7 @@
 package scala.cli
 
+import coursier.core.Version
+
 import java.util.concurrent.CompletableFuture
 
 import scala.concurrent.{Future, Promise}
@@ -18,6 +20,10 @@ package object integration {
       }
       p.future
     }
+  }
+
+  implicit class VersionString(private val s: String) {
+    def coursierVersion: Version = Version(s)
   }
 
 }

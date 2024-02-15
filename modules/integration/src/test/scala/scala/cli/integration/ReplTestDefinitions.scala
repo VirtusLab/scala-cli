@@ -14,6 +14,23 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     "scala.util.Properties.versionNumberString"
   else "dotty.tools.dotc.config.Properties.simpleVersionString"
 
+  def expectedAmmoniteVersion: String =
+    actualScalaVersion match {
+      case s
+          if s.startsWith("2.12") &&
+          Constants.maxAmmoniteScala212Version.coursierVersion < s.coursierVersion =>
+        Constants.maxAmmoniteScala212Version
+      case s
+          if s.startsWith("2.13") &&
+          Constants.maxAmmoniteScala213Version.coursierVersion < s.coursierVersion =>
+        Constants.maxAmmoniteScala213Version
+      case s
+          if s.startsWith("3") &&
+          Constants.maxAmmoniteScala3Version.coursierVersion < s.coursierVersion =>
+        Constants.maxAmmoniteScala3Version
+      case s => s
+    }
+
   test("default dry run") {
     TestInputs.empty.fromRoot { root =>
       os.proc(TestUtil.cli, "repl", extraOptions, "--repl-dry-run").call(cwd = root)
@@ -38,7 +55,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
           root
         )
       val output = res.out.trim()
-      expect(output == s"Hello from Scala $actualScalaVersion")
+      expect(output == s"Hello from Scala $expectedAmmoniteVersion")
     }
   }
 
@@ -97,7 +114,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         ammArgs
       ).call(cwd = root)
       val lines = res.out.trim().linesIterator.toVector
-      expect(lines == Seq(s"Hello from Scala $actualScalaVersion", "Hello from ScalaPy"))
+      expect(lines == Seq(s"Hello from Scala $expectedAmmoniteVersion", "Hello from ScalaPy"))
     }
   }
 
