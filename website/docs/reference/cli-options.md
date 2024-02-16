@@ -1276,6 +1276,10 @@ Emit source maps
 
 Set the destination path of source maps
 
+### `--js-es-module-import-map`
+
+A file relative to the root directory containing import maps for ES module imports
+
 ### `--js-dom`
 
 Enable jsdom

@@ -397,6 +397,8 @@ Add Scala.js options
 
 `//> using jsEsVersionStr` _value_
 
+`//> using jsEsModuleImportMap` _value_
+
 
 #### Examples
 `//> using jsModuleKind common`
