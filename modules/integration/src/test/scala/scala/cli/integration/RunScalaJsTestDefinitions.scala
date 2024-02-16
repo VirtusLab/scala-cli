@@ -332,7 +332,6 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         fileName,
         "--js",
         "--js-module-kind", "ESModule",
-        "--js-cli-version", "1.15.0.1",
         "-o", outFile,
         "-f"
       ).call(cwd = root).out.trim()
@@ -378,7 +377,6 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         fileName,
         "--js",
         "--js-module-kind", "ESModule",
-        "--js-cli-version", "1.15.0.1",
         "-o", outFile,
         "-f"
       ).call(cwd = root,check = false, mergeErrIntoOut = true).out.trim()
@@ -428,7 +426,6 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         fileName,
         "--js",
         "--js-module-kind", "ESModule",
-        "--js-cli-version", "1.15.0.1",
         "-o", outFile,
         "-f",
         "--js-es-module-import-map", importmapFile

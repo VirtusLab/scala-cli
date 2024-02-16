@@ -51,7 +51,7 @@ final case class ScalaJsOptions(
 
   @Group(HelpGroup.ScalaJs.toString)
   @HelpMessage("A file relative to the root directory containing import maps for ES module imports")
-  @Tag(tags.experimental)
+  @Tag(tags.restricted)
     jsEsModuleImportMap: Option[String] = None,
 
   @Group(HelpGroup.ScalaJs.toString)

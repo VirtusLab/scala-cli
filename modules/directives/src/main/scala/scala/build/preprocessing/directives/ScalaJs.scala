@@ -87,13 +87,7 @@ final case class ScalaJs(
     )
 
     def absFilePath(pathStr: String): Either[ImportMapNotFound, Path] = {
-      Try {
-        os.Path(pathStr)
-      }.orElse(
-        Try{
-          os.Path(pathStr, base = os.pwd)
-        }
-      ).toEither.fold(ex =>
+      Try(os.Path(pathStr, os.pwd)).toEither.fold(ex =>
         Left(ImportMapNotFound(s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""", ex)),
         path =>
           os.isFile(path) && os.exists(path) match {
