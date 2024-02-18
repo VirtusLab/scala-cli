@@ -16,6 +16,7 @@ final case class ScalaJsOptions(
   checkIr: Option[Boolean] = None,
   emitSourceMaps: Boolean = false,
   sourceMapsDest: Option[os.Path] = None,
+  remapEsModuleImportMap: Option[os.Path] = None,
   dom: Option[Boolean] = None,
   header: Option[String] = None,
   allowBigIntsForLongs: Option[Boolean] = None,
@@ -148,7 +149,8 @@ final case class ScalaJsOptions(
       moduleSplitStyle = moduleSplitStyle(logger),
       smallModuleForPackage = smallModuleForPackage,
       esFeatures = esFeatures,
-      jsHeader = header
+      jsHeader = header,
+      remapEsModuleImportMap = remapEsModuleImportMap
     )
   }
 }

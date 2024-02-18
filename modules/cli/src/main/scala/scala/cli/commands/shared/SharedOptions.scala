@@ -244,7 +244,8 @@ final case class SharedOptions(
       moduleSplitStyleStr = jsModuleSplitStyle,
       smallModuleForPackage = jsSmallModuleForPackage,
       esVersionStr = jsEsVersion,
-      noOpt = jsNoOpt
+      noOpt = jsNoOpt,
+      remapEsModuleImportMap = jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
     )
   }
 

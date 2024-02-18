@@ -1,11 +1,15 @@
 package scala.build.preprocessing.directives
 
+import os.Path
+
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.EitherOptOps
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, JavaOpt, ScalaJsMode, ScalaJsOptions, ShadowingSeq}
 import scala.build.{Logger, Positioned, options}
 import scala.cli.commands.SpecificationLevel
+import scala.util.Try
 
 @DirectiveGroupName("Scala.js options")
 @DirectiveExamples("//> using jsModuleKind common")
@@ -39,6 +43,8 @@ import scala.cli.commands.SpecificationLevel
     |`//> using jsModuleSplitStyleStr` _value_
     |
     |`//> using jsEsVersionStr` _value_
+    |
+    |`//> using jsEsModuleImportMap` _value_
     |""".stripMargin
 )
 @DirectiveDescription("Add Scala.js options")
@@ -51,6 +57,7 @@ final case class ScalaJs(
   jsModuleKind: Option[String] = None,
   jsCheckIr: Option[Boolean] = None,
   jsEmitSourceMaps: Option[Boolean] = None,
+  jsEsModuleImportMap: Option[String] = None,
   jsSmallModuleForPackage: List[String] = Nil,
   jsDom: Option[Boolean] = None,
   jsHeader: Option[String] = None,
@@ -61,7 +68,7 @@ final case class ScalaJs(
   jsEsVersionStr: Option[String] = None
 ) extends HasBuildOptions {
   // format: on
-  def buildOptions: Either[BuildException, BuildOptions] = either {
+  def buildOptions: Either[BuildException, BuildOptions] =
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,
       mode = ScalaJsMode(jsMode),
@@ -76,13 +83,30 @@ final case class ScalaJs(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
       esVersionStr = jsEsVersionStr,
-      noOpt = jsNoOpt
+      noOpt = jsNoOpt,
     )
-    BuildOptions(
-      scalaJsOptions = scalaJsOptions
+
+    def absFilePath(pathStr: String): Either[ImportMapNotFound, Path] = {
+      Try(os.Path(pathStr, os.pwd)).toEither.fold(ex =>
+        Left(ImportMapNotFound(s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""", ex)),
+        path =>
+          os.isFile(path) && os.exists(path) match {
+            case false => Left(ImportMapNotFound(s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""", null))
+            case true => Right(path)
+          }
+        )
+    }
+    val jsImportMapAsPath = jsEsModuleImportMap.map(absFilePath).sequence
+    jsImportMapAsPath.map( _ match
+      case None => BuildOptions(scalaJsOptions = scalaJsOptions)
+      case Some(importmap) =>
+        BuildOptions(
+          scalaJsOptions = scalaJsOptions.copy(remapEsModuleImportMap = Some(importmap))
+        )
     )
-  }
 }
+
+class ImportMapNotFound(message: String, cause: Throwable) extends BuildException(message, cause = cause)
 
 object ScalaJs {
   val handler: DirectiveHandler[ScalaJs] = DirectiveHandler.derive
