@@ -83,21 +83,27 @@ final case class ScalaJs(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
       esVersionStr = jsEsVersionStr,
-      noOpt = jsNoOpt,
+      noOpt = jsNoOpt
     )
 
-    def absFilePath(pathStr: String): Either[ImportMapNotFound, Path] = {
-      Try(os.Path(pathStr, os.pwd)).toEither.fold(ex =>
-        Left(ImportMapNotFound(s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""", ex)),
+    def absFilePath(pathStr: String): Either[ImportMapNotFound, Path] =
+      Try(os.Path(pathStr, os.pwd)).toEither.fold(
+        ex =>
+          Left(ImportMapNotFound(
+            s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""",
+            ex
+          )),
         path =>
           os.isFile(path) && os.exists(path) match {
-            case false => Left(ImportMapNotFound(s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""", null))
+            case false => Left(ImportMapNotFound(
+                s"""Invalid path to EsImportMap. Please check your "using jsEsModuleImportMap xxxx" directive. Does this file exist $pathStr ?""",
+                null
+              ))
             case true => Right(path)
           }
-        )
-    }
+      )
     val jsImportMapAsPath = jsEsModuleImportMap.map(absFilePath).sequence
-    jsImportMapAsPath.map( _ match
+    jsImportMapAsPath.map(_ match
       case None => BuildOptions(scalaJsOptions = scalaJsOptions)
       case Some(importmap) =>
         BuildOptions(
@@ -106,7 +112,8 @@ final case class ScalaJs(
     )
 }
 
-class ImportMapNotFound(message: String, cause: Throwable) extends BuildException(message, cause = cause)
+class ImportMapNotFound(message: String, cause: Throwable)
+    extends BuildException(message, cause = cause)
 
 object ScalaJs {
   val handler: DirectiveHandler[ScalaJs] = DirectiveHandler.derive

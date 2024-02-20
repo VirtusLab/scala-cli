@@ -62,8 +62,7 @@ object ComputeVersion {
                   val stableAcc0 = stableAcc.orElse {
                     if (name.forall(c => c == '.' || c.isDigit)) Some(v)
                     else None
-                  }
-                  (acc0, stableAcc0)
+                  }(acc0, stableAcc0)
               }
             var lastTagOpt0       = Option.empty[(Ref, String)]
             var lastStableTagOpt0 = Option.empty[(Ref, String)]

@@ -143,8 +143,7 @@ final case class SharedCompilationServerOptions(
           .merge
         val path = dir / fileName
         if (os.exists(path)) // isFile is false for domain sockets
-          os.remove(path)
-        (path, true)
+          os.remove(path)(path, true)
     }
     if (deleteOnExit)
       Runtime.getRuntime.addShutdownHook(

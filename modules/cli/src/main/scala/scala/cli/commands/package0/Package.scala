@@ -571,8 +571,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     def fromSimpleSources = build.sources.paths.iterator.map {
       case (path, relPath) =>
         val lastModified = os.mtime(path)
-        val content      = os.read.bytes(path)
-        (relPath, content, lastModified)
+        val content      = os.read.bytes(path)(relPath, content, lastModified)
     }
 
     def fromGeneratedSources = build.sources.inMemory.iterator.flatMap { inMemSource =>
@@ -582,8 +581,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
       val originalOpt = inMemSource.originalPath.toOption.collect {
         case (subPath, origPath) if subPath != inMemSource.generatedRelPath =>
-          val origContent = os.read.bytes(origPath)
-          (subPath, origContent, lastModified)
+          val origContent = os.read.bytes(origPath)(subPath, origContent, lastModified)
       }
       val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
       val generated = (

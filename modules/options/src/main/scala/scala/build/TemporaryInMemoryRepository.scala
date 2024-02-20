@@ -205,8 +205,7 @@ final class TemporaryInMemoryRepository private (
             Type(ext),
             Extension(ext),
             Classifier.empty
-          )
-          (pub, Artifact(url0, Map.empty, Map.empty, changing, optional = false, None))
+          )(pub, Artifact(url0, Map.empty, Map.empty, changing, optional = false, None))
       }
 
 }

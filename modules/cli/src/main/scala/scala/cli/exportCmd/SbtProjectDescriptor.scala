@@ -295,8 +295,7 @@ final case class SbtProjectDescriptor(
               val suffixOpt0 =
                 if (s.fullCrossVersion.getOrElse(false)) Some(".cross(CrossVersion.full)")
                 else None
-              val sep = "%%"
-              (sep, suffixOpt0)
+              val sep = "%%" (sep, suffixOpt0)
           }
           val scope0 =
             // FIXME This ignores the isCompileOnly when scope == Scope.Test

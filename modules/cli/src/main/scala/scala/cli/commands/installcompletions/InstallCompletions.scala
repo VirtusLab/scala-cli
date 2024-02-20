@@ -53,8 +53,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     val (rcScript, defaultRcFile) = format match {
       case Bash.id | "bash" =>
         val script        = Bash.script(name)
-        val defaultRcFile = os.home / ".bashrc"
-        (script, defaultRcFile)
+        val defaultRcFile = os.home / ".bashrc" (script, defaultRcFile)
       case Zsh.id | "zsh" =>
         val completionScript = Zsh.script(name)
         val zDotDir = Option(System.getenv("ZDOTDIR"))
@@ -73,8 +72,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         val script = Seq(
           s"""fpath=("$dir" $$fpath)""",
           "compinit"
-        ).map(_ + System.lineSeparator()).mkString
-        (script, defaultRcFile)
+        ).map(_ + System.lineSeparator()).mkString(script, defaultRcFile)
       case _ =>
         System.err.println(s"Unrecognized or unsupported shell: $format")
         sys.exit(1)

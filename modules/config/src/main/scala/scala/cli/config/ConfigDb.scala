@@ -85,8 +85,7 @@ final class ConfigDb private (
             val v0 = v.map {
               case (k1, v1) =>
                 (k1.stripPrefix(k).stripPrefix("."), v1)
-            }
-            (k, serialize(v0, level + 1))
+            }(k, serialize(v0, level + 1))
         }
       val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
       val b =

@@ -12,8 +12,7 @@ object NativeResourceMapper {
       .collect {
         case cfile: CFile =>
           val inputPath = cfile.path
-          val destPath  = os.rel / "scala-native" / cfile.subPath
-          (inputPath, destPath)
+          val destPath  = os.rel / "scala-native" / cfile.subPath(inputPath, destPath)
       }
       .toMap
 

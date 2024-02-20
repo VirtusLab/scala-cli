@@ -23,8 +23,8 @@ object ProjectDescriptor {
         val language =
           if (path.last.endsWith(".java")) "java"
           else "scala" // FIXME Others
-        // FIXME asSubPath might throw… Make it a SubPath earlier in the API?
-        (relPath.asSubPath, language, os.read.bytes(path))
+          // FIXME asSubPath might throw… Make it a SubPath earlier in the API?
+          (relPath.asSubPath, language, os.read.bytes(path))
     }
 
     val extraMainSources = sources.inMemory.map { inMemSource =>

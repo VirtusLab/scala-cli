@@ -293,16 +293,16 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("remap imports directive") {
     val importmapFile = "importmap.json"
-    val outDir = "out"
-    val fileName = os.rel / "run.scala"
+    val outDir        = "out"
+    val fileName      = os.rel / "run.scala"
 
     val inputs = TestInputs(
       fileName ->
         s"""//> using jsEsModuleImportMap $importmapFile
-          | //> using jsModuleKind es
-          | //> using jsMode fastLinkJS
-          | //> using platform js
-          |
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
            |import scala.scalajs.js
            |import scala.scalajs.js.annotation.JSImport
            |import scala.scalajs.js.typedarray.Float64Array
@@ -323,7 +323,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
-      val outFile = absOutDir / "main.js"
+      val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
       os.proc(
         TestUtil.cli,
@@ -331,8 +331,10 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         "package",
         fileName,
         "--js",
-        "--js-module-kind", "ESModule",
-        "-o", outFile,
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
         "-f"
       ).call(cwd = root).out.trim()
       expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
@@ -345,10 +347,10 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     val inputs = TestInputs(
       fileName ->
         s"""//> using jsEsModuleImportMap $notexist
-          | //> using jsModuleKind es
-          | //> using jsMode fastLinkJS
-          | //> using platform js
-          |
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
            |import scala.scalajs.js
            |import scala.scalajs.js.annotation.JSImport
            |import scala.scalajs.js.typedarray.Float64Array
@@ -368,7 +370,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val absOutDir = root / "outDir"
-      val outFile = absOutDir / "main.js"
+      val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
       val result = os.proc(
         TestUtil.cli,
@@ -376,10 +378,12 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         "package",
         fileName,
         "--js",
-        "--js-module-kind", "ESModule",
-        "-o", outFile,
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
         "-f"
-      ).call(cwd = root,check = false, mergeErrIntoOut = true).out.trim()
+      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
       expect(result.contains(notexist))
       expect(result.contains("Invalid path to EsImportMap."))
     }
@@ -387,16 +391,16 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("remap imports cmd") {
     val importmapFile = "importmap.json"
-    val outDir = "out"
-    val fileName = os.rel / "run.scala"
+    val outDir        = "out"
+    val fileName      = os.rel / "run.scala"
 
     val inputs = TestInputs(
       fileName ->
         s"""
-          | //> using jsModuleKind es
-          | //> using jsMode fastLinkJS
-          | //> using platform js
-          |
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
            |import scala.scalajs.js
            |import scala.scalajs.js.annotation.JSImport
            |import scala.scalajs.js.typedarray.Float64Array
@@ -417,7 +421,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       val absOutDir = root / outDir
-      val outFile = absOutDir / "main.js"
+      val outFile   = absOutDir / "main.js"
       os.makeDir.all(absOutDir)
       os.proc(
         TestUtil.cli,
@@ -425,10 +429,13 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         "package",
         fileName,
         "--js",
-        "--js-module-kind", "ESModule",
-        "-o", outFile,
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
         "-f",
-        "--js-es-module-import-map", importmapFile
+        "--js-es-module-import-map",
+        importmapFile
       ).call(cwd = root, stdout = os.Inherit).out.trim()
       expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
     }

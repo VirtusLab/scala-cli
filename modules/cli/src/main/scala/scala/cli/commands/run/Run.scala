@@ -285,8 +285,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     onExit.thenApply { _ =>
                       shouldReadInput.set(true)
                       mainThreadOpt.get().foreach(_.interrupt())
-                    }
-                  (proc, onExit)
+                    }(proc, onExit)
               }
             s.copyOutput(options.shared)
             if (options.sharedRun.watch.restart)

@@ -369,14 +369,12 @@ object Inputs {
               if (dirsAndFiles.length > 1)
                 System.err.println(
                   s"Warning: setting ${d.path} as the project root directory for this run."
-                )
-              (d.path, true, WorkspaceOrigin.SourcePaths)
+                )(d.path, true, WorkspaceOrigin.SourcePaths)
             case f: SourceFile =>
               if (dirsAndFiles.length > 1)
                 System.err.println(
                   s"Warning: setting ${f.path / os.up} as the project root directory for this run."
-                )
-              (f.path / os.up, true, WorkspaceOrigin.SourcePaths)
+                )(f.path / os.up, true, WorkspaceOrigin.SourcePaths)
           }
         }.orElse {
           validElems.collectFirst {
@@ -389,8 +387,11 @@ object Inputs {
       val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
         case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
         case Some(forcedWorkspace0) =>
-          val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
-          (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)
+          val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash(
+            forcedWorkspace0,
+            needsHash0,
+            WorkspaceOrigin.Forced
+          )
       }
 
       if workspace.toString.contains(File.pathSeparator) then
