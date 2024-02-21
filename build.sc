@@ -92,7 +92,7 @@ object `specification-level` extends Cross[SpecificationLevel](Scala.all)
 object `build-macros`        extends Cross[BuildMacros](Scala.allScala3)
 object config                extends Cross[Config](Scala.all)
 object options               extends Cross[Options](Scala.allScala3)
-object directives            extends Directives
+object directives            extends Cross[Directives](Scala.allScala3)
 object core                  extends Cross[Core](Scala.allScala3)
 object `build-module`        extends Build
 object runner                extends Cross[Runner](Scala.runnerScalaVersions)
@@ -482,17 +482,19 @@ trait Core extends ScalaCliCrossSbtModule
   def generatedSources = super.generatedSources() ++ Seq(constantsFile())
 }
 
-trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+trait Directives extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
+    with HasTests
     with ScalaCliScalafixModule {
-  def scalaVersion = Scala.defaultInternal
+  def crossScalaVersion = crossValue
   def moduleDeps = Seq(
-    options(Scala.defaultInternal),
-    core(Scala.defaultInternal),
-    `build-macros`(Scala.defaultInternal),
-    `specification-level`(Scala.defaultInternal)
+    options(crossScalaVersion),
+    core(crossScalaVersion),
+    `build-macros`(crossScalaVersion),
+    `specification-level`(crossScalaVersion)
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
   }
 
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -642,7 +644,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def millSourcePath   = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
     options(Scala.defaultInternal),
-    directives,
+    directives(Scala.defaultInternal),
     `scala-cli-bsp`,
     `test-runner`(scalaVer),
     `tasty-lib`(scalaVer)
@@ -1288,7 +1290,7 @@ def unitTests() = T.command {
   `build-module`.test.test()()
   `build-macros`(Scala.defaultInternal).test.test()()
   cli.test.test()()
-  directives.test.test()()
+  directives(Scala.defaultInternal).test.test()()
   options(Scala.defaultInternal).test.test()()
 }
 
