@@ -16,10 +16,11 @@ object Scala {
 
   val allScala2               = Seq(scala213, scala212)
   val defaults                = Seq(defaultInternal, defaultUser).distinct
-  val all                     = (allScala2 ++ Seq(scala3Lts, scala3Next) ++ defaults).distinct
-  val mainVersions            = (Seq(scala3Lts, scala3Next, scala213) ++ defaults).distinct
+  val allScala3               = Seq(scala3Lts, scala3Next)
+  val all                     = (allScala2 ++ allScala3 ++ defaults).distinct
+  val mainVersions            = (Seq(scala213) ++ allScala3 ++ defaults).distinct
   val runnerScalaVersions     = runnerScala3 +: allScala2
-  val testRunnerScalaVersions = runnerScalaVersions ++ Seq(scala3Lts, scala3Next)
+  val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
   def scalaJs    = "1.15.0"
   def scalaJsCli = "1.15.0.1" // this must be compatible with the Scala.js version

@@ -89,7 +89,7 @@ object cliBootstrapped extends ScalaCliPublishModule {
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all)
-object `build-macros`        extends BuildMacros
+object `build-macros`        extends Cross[BuildMacros](Scala.allScala3)
 object config                extends Cross[Config](Scala.all)
 object options               extends Options
 object directives            extends Directives
@@ -247,18 +247,14 @@ object dummy extends Module {
   }
 }
 
-trait BuildMacros extends ScalaCliSbtModule
+trait BuildMacros extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests {
-  def scalaVersion = Scala.defaultInternal
+  def crossScalaVersion = crossValue
   def compileIvyDeps = T {
-    if (scalaVersion().startsWith("3"))
-      super.compileIvyDeps()
-    else
-      super.compileIvyDeps() ++ Agg(
-        Deps.scalaReflect(scalaVersion())
-      )
+    if (crossScalaVersion.startsWith("3")) super.compileIvyDeps()
+    else super.compileIvyDeps() ++ Agg(Deps.scalaReflect(crossScalaVersion))
   }
 
   object test extends ScalaCliTests {
@@ -339,7 +335,7 @@ trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     config(scalaVer)
   )
   def compileModuleDeps = Seq(
-    `build-macros`
+    `build-macros`(Scala.defaultInternal)
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -491,7 +487,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def moduleDeps = Seq(
     options,
     core,
-    `build-macros`,
+    `build-macros`(Scala.defaultInternal),
     `specification-level`(Scala.defaultInternal)
   )
   def scalacOptions = T {
@@ -581,7 +577,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     core
   )
   def compileModuleDeps = Seq(
-    `build-macros`
+    `build-macros`(Scala.defaultInternal)
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -1289,7 +1285,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 
 def unitTests() = T.command {
   `build-module`.test.test()()
-  `build-macros`.test.test()()
+  `build-macros`(Scala.defaultInternal).test.test()()
   cli.test.test()()
   directives.test.test()()
   options.test.test()()
