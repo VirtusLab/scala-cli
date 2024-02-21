@@ -94,7 +94,7 @@ object config                extends Cross[Config](Scala.all)
 object options               extends Cross[Options](Scala.allScala3)
 object directives            extends Cross[Directives](Scala.allScala3)
 object core                  extends Cross[Core](Scala.allScala3)
-object `build-module`        extends Build
+object `build-module`        extends Cross[Build](Scala.allScala3)
 object runner                extends Cross[Runner](Scala.runnerScalaVersions)
 object `test-runner`         extends Cross[TestRunner](Scala.testRunnerScalaVersions)
 object `tasty-lib`           extends Cross[TastyLib](Scala.all)
@@ -637,20 +637,21 @@ trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
 }
 
-trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+trait Build extends ScalaCliCrossSbtModule
+    with ScalaCliPublishModule
+    with HasTests
     with ScalaCliScalafixModule {
-  private def scalaVer = Scala.defaultInternal
-  def scalaVersion     = scalaVer
-  def millSourcePath   = super.millSourcePath / os.up / "build"
+  def crossScalaVersion = crossValue
+  def millSourcePath    = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
-    options(Scala.defaultInternal),
-    directives(Scala.defaultInternal),
+    options(crossScalaVersion),
+    directives(crossScalaVersion),
     `scala-cli-bsp`,
-    `test-runner`(scalaVer),
-    `tasty-lib`(scalaVer)
+    `test-runner`(crossScalaVersion),
+    `tasty-lib`(crossScalaVersion)
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
   }
 
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
@@ -822,7 +823,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
     super.javacOptions() ++ Seq("--release", "16")
   }
   def moduleDeps = Seq(
-    `build-module`,
+    `build-module`(Scala.defaultInternal),
     config(Scala.defaultInternal),
     `scala3-graal`(Scala.defaultInternal),
     `specification-level`(Scala.defaultInternal)
@@ -870,7 +871,7 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
 
   object test extends ScalaCliTests with ScalaCliScalafixModule {
     def moduleDeps = super.moduleDeps ++ Seq(
-      `build-module`.test
+      `build-module`(Scala.defaultInternal).test
     )
     def runClasspath = T {
       super.runClasspath() ++ Seq(localRepoJar())
@@ -1287,7 +1288,7 @@ def uploadLaunchers(directory: String = "artifacts") = T.command {
 }
 
 def unitTests() = T.command {
-  `build-module`.test.test()()
+  `build-module`(Scala.defaultInternal).test.test()()
   `build-macros`(Scala.defaultInternal).test.test()()
   cli.test.test()()
   directives(Scala.defaultInternal).test.test()()
