@@ -331,10 +331,6 @@ def asyncScalacOptions(scalaVersion: String) =
 trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule
 
-private def prefer3(sv: String): String =
-  if (sv == Scala.scala213) Scala.scala3Lts
-  else sv
-
 trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   private def scalaVer = Scala.defaultInternal
