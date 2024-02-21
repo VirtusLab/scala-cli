@@ -1,11 +1,11 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212     = "2.12.19"
-  def scala213     = "2.13.12"
-  def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.4.0"
-  def scala3Lts    = "3.3"   // the full version should be resolved later
+  def scala212        = "2.12.19"
+  def scala213        = "2.13.12"
+  def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
+  def scala3LtsPrefix = "3.3"   // the full version should be resolved later
+  def scala3          = "3.4.0"
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3)

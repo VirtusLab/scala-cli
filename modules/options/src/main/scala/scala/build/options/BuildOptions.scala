@@ -332,7 +332,7 @@ final case class BuildOptions(
           svInput match {
             case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
               ScalaVersionUtil.validateStable(
-                Constants.scala3Lts,
+                Constants.scala3LtsPrefix,
                 cache,
                 repositories
               )
