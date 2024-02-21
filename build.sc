@@ -91,7 +91,7 @@ object cliBootstrapped extends ScalaCliPublishModule {
 object `specification-level` extends Cross[SpecificationLevel](Scala.all)
 object `build-macros`        extends Cross[BuildMacros](Scala.allScala3)
 object config                extends Cross[Config](Scala.all)
-object options               extends Options
+object options               extends Cross[Options](Scala.allScala3)
 object directives            extends Directives
 object core                  extends Cross[Core](Scala.allScala3)
 object `build-module`        extends Build
@@ -328,9 +328,9 @@ trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule
 
 trait Core extends ScalaCliCrossSbtModule
-  with ScalaCliPublishModule
-  with HasTests
-  with ScalaCliScalafixModule {
+    with ScalaCliPublishModule
+    with HasTests
+    with ScalaCliScalafixModule {
   def crossScalaVersion = crossValue
   def moduleDeps = Seq(
     config(crossScalaVersion)
@@ -486,7 +486,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
-    options,
+    options(Scala.defaultInternal),
     core(Scala.defaultInternal),
     `build-macros`(Scala.defaultInternal),
     `specification-level`(Scala.defaultInternal)
@@ -571,17 +571,17 @@ trait Config extends ScalaCliCrossSbtModule
     else T.command(())
 }
 
-trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
+trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
-  def scalaVersion = Scala.defaultInternal
+  def crossScalaVersion = crossValue
   def moduleDeps = Seq(
-    core(Scala.defaultInternal)
+    core(crossScalaVersion)
   )
   def compileModuleDeps = Seq(
-    `build-macros`(Scala.defaultInternal)
+    `build-macros`(crossScalaVersion)
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -641,7 +641,7 @@ trait Build extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
   def scalaVersion     = scalaVer
   def millSourcePath   = super.millSourcePath / os.up / "build"
   def moduleDeps = Seq(
-    options,
+    options(Scala.defaultInternal),
     directives,
     `scala-cli-bsp`,
     `test-runner`(scalaVer),
@@ -1289,7 +1289,7 @@ def unitTests() = T.command {
   `build-macros`(Scala.defaultInternal).test.test()()
   cli.test.test()()
   directives.test.test()()
-  options.test.test()()
+  options(Scala.defaultInternal).test.test()()
 }
 
 def scala(args: Task[Args] = T.task(Args())) = T.command {
