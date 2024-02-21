@@ -24,7 +24,7 @@ def checkMainScalaVersions(path: os.Path): Unit = {
   val cells     = lastTableLine(path, 4)
   val lastCells = cells.drop(1)
   assert(lastCells.length == 3)
-  val expectedLastCells = Seq(Scala.scala3, Scala.scala213, Scala.scala212)
+  val expectedLastCells = Seq(Scala.scala3Next, Scala.scala213, Scala.scala212)
   if (lastCells != expectedLastCells)
     sys.error(
       s"Unexpected last line in Scala version table in $path " +

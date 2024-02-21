@@ -47,7 +47,7 @@ abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
       expect(jsonContents ==
         s"""{
           |"projectVersion":"1.1.2",
-          |"scalaVersion":"${Constants.scala3}",
+          |"scalaVersion":"${Constants.scala3Next}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",
           |"scopes": [[
