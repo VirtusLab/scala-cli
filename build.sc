@@ -93,7 +93,7 @@ object `build-macros`        extends Cross[BuildMacros](Scala.allScala3)
 object config                extends Cross[Config](Scala.all)
 object options               extends Options
 object directives            extends Directives
-object core                  extends Core
+object core                  extends Cross[Core](Scala.allScala3)
 object `build-module`        extends Build
 object runner                extends Cross[Runner](Scala.runnerScalaVersions)
 object `test-runner`         extends Cross[TestRunner](Scala.testRunnerScalaVersions)
@@ -327,18 +327,19 @@ def asyncScalacOptions(scalaVersion: String) =
 trait ProtoBuildModule extends ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule
 
-trait Core extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
-    with ScalaCliScalafixModule {
-  private def scalaVer = Scala.defaultInternal
-  def scalaVersion     = scalaVer
+trait Core extends ScalaCliCrossSbtModule
+  with ScalaCliPublishModule
+  with HasTests
+  with ScalaCliScalafixModule {
+  def crossScalaVersion = crossValue
   def moduleDeps = Seq(
-    config(scalaVer)
+    config(crossScalaVersion)
   )
   def compileModuleDeps = Seq(
-    `build-macros`(Scala.defaultInternal)
+    `build-macros`(crossScalaVersion)
   )
   def scalacOptions = T {
-    super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
   }
 
   def ivyDeps = super.ivyDeps() ++ Agg(
@@ -486,7 +487,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
     options,
-    core,
+    core(Scala.defaultInternal),
     `build-macros`(Scala.defaultInternal),
     `specification-level`(Scala.defaultInternal)
   )
@@ -574,7 +575,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   def scalaVersion = Scala.defaultInternal
   def moduleDeps = Seq(
-    core
+    core(Scala.defaultInternal)
   )
   def compileModuleDeps = Seq(
     `build-macros`(Scala.defaultInternal)
