@@ -496,7 +496,7 @@ trait Directives extends ScalaCliSbtModule with ScalaCliPublishModule with HasTe
     options,
     core,
     `build-macros`,
-    `specification-level`(Scala.scala3Lts)
+    `specification-level`(Scala.defaultInternal)
   )
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
@@ -612,7 +612,7 @@ trait Options extends ScalaCliSbtModule with ScalaCliPublishModule with HasTests
 
 trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
   def ivyDeps      = super.ivyDeps()
-  def scalaVersion = Scala.scala3Lts
+  def scalaVersion = Scala.defaultInternal
 }
 
 trait Scala3Graal extends ScalaCliCrossSbtModule
@@ -637,8 +637,8 @@ trait Scala3Graal extends ScalaCliCrossSbtModule
 }
 
 trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
-  def moduleDeps     = Seq(`scala3-graal`(Scala.scala3Lts))
-  def scalaVersion   = Scala.scala3Lts
+  def moduleDeps     = Seq(`scala3-graal`(Scala.defaultInternal))
+  def scalaVersion   = Scala.defaultInternal
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
 }
 
@@ -828,9 +828,9 @@ trait Cli extends SbtModule with ProtoBuildModule with CliLaunchers
   }
   def moduleDeps = Seq(
     `build-module`,
-    config(Scala.scala3Lts),
-    `scala3-graal`(Scala.scala3Lts),
-    `specification-level`(Scala.scala3Lts)
+    config(Scala.defaultInternal),
+    `scala3-graal`(Scala.defaultInternal),
+    `specification-level`(Scala.defaultInternal)
   )
 
   def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
