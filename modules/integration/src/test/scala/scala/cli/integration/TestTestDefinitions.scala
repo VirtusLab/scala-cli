@@ -96,8 +96,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using scala "2.13.8"
-        |//> using platform "native"
+      """//> using platform "native"
         |//> using dep "org.typelevel::cats-kernel-laws::2.8.0"
         |
         |import org.scalacheck._
