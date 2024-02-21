@@ -99,7 +99,7 @@ object runner                extends Cross[Runner](Scala.runnerScalaVersions)
 object `test-runner`         extends Cross[TestRunner](Scala.testRunnerScalaVersions)
 object `tasty-lib`           extends Cross[TastyLib](Scala.all)
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
-object `scala3-runtime` extends Scala3Runtime
+object `scala3-runtime` extends Cross[Scala3Runtime](Scala.allScala3)
 // Logic to process classes that is shared between build and the scala-cli itself
 object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
 // Main app used to process classpath within build itself
@@ -605,9 +605,9 @@ trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with Has
   }
 }
 
-trait Scala3Runtime extends SbtModule with ScalaCliPublishModule {
-  def ivyDeps      = super.ivyDeps()
-  def scalaVersion = Scala.defaultInternal
+trait Scala3Runtime extends CrossSbtModule with ScalaCliPublishModule {
+  def crossScalaVersion = crossValue
+  def ivyDeps           = super.ivyDeps()
 }
 
 trait Scala3Graal extends ScalaCliCrossSbtModule
@@ -623,7 +623,7 @@ trait Scala3Graal extends ScalaCliCrossSbtModule
     // scala3RuntimeFixes.jar is also used within
     // resource-config.json and BytecodeProcessor.scala
     os.copy.over(
-      `scala3-runtime`.jar().path,
+      `scala3-runtime`(crossScalaVersion).jar().path,
       extraResourceDir / "scala3RuntimeFixes.jar",
       createFolders = true
     )
