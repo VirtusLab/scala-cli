@@ -18,7 +18,8 @@ object Scala {
   val defaults                = Seq(defaultInternal, defaultUser).distinct
   val allScala3               = Seq(scala3Lts, scala3Next)
   val all                     = (allScala2 ++ allScala3 ++ defaults).distinct
-  val mainVersions            = (Seq(scala213) ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions      = (defaults ++ allScala3).distinct
+  val mainVersions            = (Seq(scala213) ++ scala3MainVersions).distinct
   val runnerScalaVersions     = runnerScala3 +: allScala2
   val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 

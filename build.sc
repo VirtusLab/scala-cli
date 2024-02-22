@@ -37,7 +37,9 @@ import _root_.scala.util.{Properties, Using}
 implicit def millModuleBasePath: define.Ctx.BasePath =
   define.Ctx.BasePath(super.millModuleBasePath.value / "modules")
 
-object cli extends Cross[Cli](Scala.allScala3) {
+object cli extends Cross[Cli](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
+
+trait CrossScalaDefaultToInternal { _: mill.define.Cross[_] =>
   def defaultCrossSegments = Seq(Scala.defaultInternal)
 }
 
@@ -70,21 +72,29 @@ object cliBootstrapped extends ScalaCliPublishModule {
 }
 
 object `specification-level` extends Cross[SpecificationLevel](Scala.all)
-object `build-macros`        extends Cross[BuildMacros](Scala.allScala3)
-object config                extends Cross[Config](Scala.all)
-object options               extends Cross[Options](Scala.allScala3)
-object directives            extends Cross[Directives](Scala.allScala3)
-object core                  extends Cross[Core](Scala.allScala3)
-object `build-module`        extends Cross[Build](Scala.allScala3)
-object runner                extends Cross[Runner](Scala.runnerScalaVersions)
-object `test-runner`         extends Cross[TestRunner](Scala.testRunnerScalaVersions)
-object `tasty-lib`           extends Cross[TastyLib](Scala.all)
+    with CrossScalaDefaultToInternal
+object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
+object config     extends Cross[Config](Scala.all) with CrossScalaDefaultToInternal
+object options    extends Cross[Options](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
+object directives extends Cross[Directives](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
+object core           extends Cross[Core](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
+object `build-module` extends Cross[Build](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
+object runner extends Cross[Runner](Scala.runnerScalaVersions) with CrossScalaDefaultToInternal
+object `test-runner` extends Cross[TestRunner](Scala.testRunnerScalaVersions)
+    with CrossScalaDefaultToInternal
+object `tasty-lib` extends Cross[TastyLib](Scala.all) with CrossScalaDefaultToInternal
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
-object `scala3-runtime` extends Cross[Scala3Runtime](Scala.allScala3)
+object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 // Logic to process classes that is shared between build and the scala-cli itself
 object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
+    with CrossScalaDefaultToInternal
 // Main app used to process classpath within build itself
-object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.allScala3)
+object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 
 object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Seq(
@@ -132,9 +142,8 @@ object integration extends CliIntegration {
   }
 }
 
-object `docs-tests` extends Cross[DocsTests](Scala.allScala3) {
-  def defaultCrossSegments = Seq(Scala.defaultInternal)
-}
+object `docs-tests` extends Cross[DocsTests](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 
 trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests { main =>
   def ivyDeps = Agg(
@@ -180,9 +189,8 @@ object packager extends ScalaModule with Bloop.Module {
   def mainClass = Some("packager.cli.PackagerCli")
 }
 
-object `generate-reference-doc` extends Cross[GenerateReferenceDoc](Scala.allScala3) {
-  def defaultCrossSegments = Seq(Scala.defaultInternal)
-}
+object `generate-reference-doc` extends Cross[GenerateReferenceDoc](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 
 trait GenerateReferenceDoc extends CrossSbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
