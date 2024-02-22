@@ -84,7 +84,7 @@ object `scala3-runtime` extends Cross[Scala3Runtime](Scala.allScala3)
 // Logic to process classes that is shared between build and the scala-cli itself
 object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
 // Main app used to process classpath within build itself
-object `scala3-graal-processor` extends Scala3GraalProcessor
+object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.allScala3)
 
 object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
   def ivyDeps = super.ivyDeps() ++ Seq(
@@ -612,9 +612,8 @@ trait Scala3Graal extends ScalaCliCrossSbtModule
   }
 }
 
-trait Scala3GraalProcessor extends ScalaModule with ScalaCliPublishModule {
-  def moduleDeps     = Seq(`scala3-graal`(Scala.defaultInternal))
-  def scalaVersion   = Scala.defaultInternal
+trait Scala3GraalProcessor extends CrossScalaModule with ScalaCliPublishModule {
+  def moduleDeps     = Seq(`scala3-graal`(crossScalaVersion))
   def finalMainClass = "scala.cli.graal.CoursierCacheProcessor"
 }
 
@@ -855,8 +854,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     val cache     = T.dest / "native-cp"
     // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
     val res = mill.util.Jvm.callSubprocess(
-      mainClass = `scala3-graal-processor`.finalMainClass(),
-      classPath = `scala3-graal-processor`.runClasspath().map(_.path),
+      mainClass = `scala3-graal-processor`(crossScalaVersion).finalMainClass(),
+      classPath = `scala3-graal-processor`(crossScalaVersion).runClasspath().map(_.path),
       mainArgs = Seq(cache.toNIO.toString, classpath),
       workingDir = os.pwd
     )
