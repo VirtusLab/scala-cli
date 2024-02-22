@@ -975,9 +975,9 @@ jobs:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
       run: |
-        ./mill -i generate-reference-doc.run --check || (
+        ./mill -i 'generate-reference-doc[]'.run --check || (
           echo "Reference doc is not up-to-date. Run"
-          echo "  ./mill -i generate-reference-doc.run"
+          echo "  ./mill -i 'generate-reference-doc[]'.run"
           echo "to update it, then commit the result."
           exit 1
         )

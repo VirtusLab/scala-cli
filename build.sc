@@ -132,7 +132,7 @@ object integration extends CliIntegration {
   }
 }
 
-object `docs-tests` extends Cross[DocsTests](Scala.allScala3){
+object `docs-tests` extends Cross[DocsTests](Scala.allScala3) {
   def defaultCrossSegments = Seq(Scala.defaultInternal)
 }
 
@@ -180,10 +180,13 @@ object packager extends ScalaModule with Bloop.Module {
   def mainClass = Some("packager.cli.PackagerCli")
 }
 
-object `generate-reference-doc` extends SbtModule with ScalaCliScalafixModule {
-  def scalaVersion = Scala.defaultInternal
+object `generate-reference-doc` extends Cross[GenerateReferenceDoc](Scala.allScala3) {
+  def defaultCrossSegments = Seq(Scala.defaultInternal)
+}
+
+trait GenerateReferenceDoc extends CrossSbtModule with ScalaCliScalafixModule {
   def moduleDeps = Seq(
-    cli(Scala.defaultInternal)
+    cli(crossScalaVersion)
   )
   def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
   def ivyDeps = Agg(
