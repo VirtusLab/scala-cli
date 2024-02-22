@@ -37,8 +37,17 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     }
   }
 
-  def ammoniteTest(): Unit = {
+  def actualMaxAmmoniteScalaVersion: String =
+    if (actualScalaVersion.startsWith("3")) Constants.maxAmmoniteScala3Version
+    else if (actualScalaVersion.startsWith("2.13")) Constants.maxAmmoniteScala213Version
+    else Constants.maxAmmoniteScala212Version
+
+  def ammoniteExtraOptions: Seq[String] =
+    Seq("--scala", actualMaxAmmoniteScalaVersion) ++ TestUtil.extraOptions
+
+  def ammoniteTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
     TestInputs.empty.fromRoot { root =>
+      val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
       val ammArgs = Seq(
         "-c",
         s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)"""
@@ -51,19 +60,20 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         }
         .flatMap(arg => Seq("--ammonite-arg", arg))
       val res =
-        os.proc(TestUtil.cli, "--power", "repl", extraOptions, "--ammonite", ammArgs).call(cwd =
-          root
-        )
+        os.proc(TestUtil.cli, "--power", "repl", testExtraOptions, "--ammonite", ammArgs)
+          .call(cwd = root, stderr = os.Pipe)
       val output = res.out.trim()
       expect(output == s"Hello from Scala $expectedAmmoniteVersion")
+      if (useMaxAmmoniteScalaVersion) {
+        // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
+        val errOutput = res.err.trim()
+        expect(!errOutput.contains("not yet supported with this version of Ammonite"))
+      }
     }
   }
 
-  test("ammonite") {
-    ammoniteTest()
-  }
-
-  test("ammonite scalapy") {
+  def ammoniteScalapyTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
+    val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
     val inputs = TestInputs(
       os.rel / "foo" / "something.py" ->
         """messageStart = 'Hello from'
@@ -90,7 +100,7 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         TestUtil.cli,
         "--power",
         "repl",
-        extraOptions,
+        testExtraOptions,
         "--ammonite",
         "--python",
         ammArgs
@@ -108,14 +118,29 @@ abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
         TestUtil.cli,
         "--power",
         "repl",
-        extraOptions,
+        testExtraOptions,
         "--ammonite",
         "--python",
         ammArgs
-      ).call(cwd = root)
+      ).call(cwd = root, stderr = os.Pipe)
       val lines = res.out.trim().linesIterator.toVector
       expect(lines == Seq(s"Hello from Scala $expectedAmmoniteVersion", "Hello from ScalaPy"))
+      if (useMaxAmmoniteScalaVersion)
+        // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
+        expect(!res.err.trim().contains("not yet supported with this version of Ammonite"))
     }
+  }
+
+  def ammoniteMaxVersionString: String =
+    if (actualScalaVersion == actualMaxAmmoniteScalaVersion) ""
+    else s" with Scala $actualMaxAmmoniteScalaVersion (the latest supported version)"
+
+  test(s"ammonite$ammoniteMaxVersionString") {
+    ammoniteTest(useMaxAmmoniteScalaVersion = true)
+  }
+
+  test(s"ammonite scalapy$ammoniteMaxVersionString") {
+    ammoniteScalapyTest(useMaxAmmoniteScalaVersion = true)
   }
 
   test("default values in help") {
