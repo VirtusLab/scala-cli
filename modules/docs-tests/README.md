@@ -24,7 +24,7 @@ Sclicheck accepts following arguments: `[--dest <dest>] [--step] [--stopAtFailur
 
 Sclicheck can be run from the Scala CLI sources root with
 ```text
-$ ./mill -i docs-tests.run …args…
+$ ./mill -i 'docs-tests[]'.run …args…
 ```
 
 ## Example

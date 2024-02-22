@@ -132,8 +132,11 @@ object integration extends CliIntegration {
   }
 }
 
-object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests { main =>
-  def scalaVersion = Scala.defaultInternal
+object `docs-tests` extends Cross[DocsTests](Scala.allScala3){
+  def defaultCrossSegments = Seq(Scala.defaultInternal)
+}
+
+trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests { main =>
   def ivyDeps = Agg(
     Deps.fansi,
     Deps.osLib,
@@ -144,7 +147,7 @@ object `docs-tests` extends SbtModule with ScalaCliScalafixModule with HasTests 
   }
   def extraEnv = T {
     Seq(
-      "SCLICHECK_SCALA_CLI" -> cli(Scala.defaultInternal).standaloneLauncher().path.toString,
+      "SCLICHECK_SCALA_CLI" -> cli(crossScalaVersion).standaloneLauncher().path.toString,
       "SCALA_CLI_CONFIG"    -> (tmpDirBase().path / "config" / "config.json").toString
     )
   }

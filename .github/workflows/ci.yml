@@ -912,7 +912,7 @@ jobs:
     - name: Build documentation
       run: .github/scripts/build-website.sh
     - name: Test documentation
-      run: ./mill -i docs-tests.test
+      run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
