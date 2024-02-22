@@ -25,7 +25,7 @@ packager() {
 }
 
 launcher() {
-  local launcherMillCommand="cli.nativeImage"
+  local launcherMillCommand="cli[].nativeImage"
   local launcherName
 
   if [[ "${OS-}" == "Windows_NT" ]]; then

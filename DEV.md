@@ -13,8 +13,14 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 
 #### Running the CLI from sources
 
+Run the `scala` target with Mill:
 ```bash
 ./mill -i scala …arguments…
+```
+
+This is the equivalent of running the `cli` task with the default Scala version:
+```bash
+./mill -i 'cli[]'.run …arguments…
 ```
 
 #### Debugging the CLI from sources
@@ -22,9 +28,14 @@ The Scala CLI sources ship with Mill launchers, so that Mill itself doesn't need
 ```bash
 ./mill -i debug debug-port …arguments…
 ```
+
+which is short for:
+```bash
+./mill -i 'cli[]'.debug debug-port …arguments…
+```
 E.g:
 ```bash
-./mill -i cli.debug 5050 ~/Main.scala -S 3.3.0
+./mill -i 'cli[]'.debug 5050 ~/Main.scala -S 3.3.0
 ```
 
 #### Run unit tests
@@ -129,7 +140,7 @@ Otherwise, some IDE features may not work correctly, i.e. the debugger might cra
 #### Generate a native launcher
 
 ```bash
-./mill -i show cli.nativeImage
+./mill -i show 'cli[]'.nativeImage
 ```
 
 This prints the path to the generated native image.
@@ -140,7 +151,7 @@ whether the files it points at exists or not.)
 #### Generate a JVM launcher
 
 ```bash
-./mill -i show cli.launcher
+./mill -i show 'cli[]'.launcher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -153,7 +164,7 @@ JVM one (see below).
 #### Generate a standalone JVM launcher
 
 ```bash
-./mill -i show cli.standaloneLauncher
+./mill -i show 'cli[]'.standaloneLauncher
 ```
 
 This prints the path to the generated launcher. This launcher is a JAR,
@@ -296,7 +307,7 @@ image.
 To generate the relevant configuration automatically, you can run:
 
 ```bash
-./mill -i cli.runWithAssistedConfig <scala-cli-sub-command> <args> <options>
+./mill -i 'cli[]'.runWithAssistedConfig <scala-cli-sub-command> <args> <options>
 ```
 
 Just make sure to run it exactly the same as the native image would have been run, as the configuration is generated for
@@ -304,7 +315,7 @@ a particular invocation path. The run has to succeed as well, as the configurati
 exit code 0.
 
 ```text
-Config generated in out/cli/runWithAssistedConfig.dest/config
+Config generated in out/cli/<scalaVersion>/runWithAssistedConfig.dest/config
 ```
 
 As a result, you should get the path to the generated configuration file. It might contain some unnecessary entries, so
