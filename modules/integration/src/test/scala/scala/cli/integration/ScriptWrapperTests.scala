@@ -166,7 +166,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
   for {
     useDirectives <- Seq(true, false)
     (directive, options) <- Seq(
-      ("//> using scala 2.13", Seq("--scala", "2.13"))
+      (s"//> using scala ${Constants.scala213}", Seq("--scala", Constants.scala213))
     )
   } {
     val inputs = TestInputs(
