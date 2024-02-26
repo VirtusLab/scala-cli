@@ -47,7 +47,7 @@ will save you from getting a load of comments and speed up the code review.
     - ensure everything compiles at every commit (`./mill -i __.compile`);
     - ensure everything is well formatted at every commit (`scala-cli fmt .` or `scalafmt`);
     - ensure imports are well-ordered at every commit (`./mill -i __.fix`);
-    - ensure reference docs are up-to date at every commit (`./mill -i generate-reference-doc.run`);
+    - ensure reference docs are up-to date at every commit (`./mill -i 'generate-reference-doc[]'.run`);
     - ensure all tests pass at every commit (refer to the [dev docs](DEV.md) on how to run tests);
         - nobody expects you to run all the unit and integration tests for all platforms locally, that'd take too long;
         - just make sure the test suites relevant to your changes pass on your local machine.

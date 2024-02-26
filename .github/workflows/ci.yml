@@ -912,7 +912,7 @@ jobs:
     - name: Build documentation
       run: .github/scripts/build-website.sh
     - name: Test documentation
-      run: ./mill -i docs-tests.test
+      run: ./mill -i 'docs-tests[]'.test
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc docs-tests 'Scala CLI Docs Tests' test-report.xml out/
@@ -975,9 +975,9 @@ jobs:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
       run: |
-        ./mill -i generate-reference-doc.run --check || (
+        ./mill -i 'generate-reference-doc[]'.run --check || (
           echo "Reference doc is not up-to-date. Run"
-          echo "  ./mill -i generate-reference-doc.run"
+          echo "  ./mill -i 'generate-reference-doc[]'.run"
           echo "to update it, then commit the result."
           exit 1
         )

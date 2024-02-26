@@ -11,7 +11,7 @@ eval "$(cs java --env --jvm temurin:17 --jvm-index https://github.com/coursier/j
 
 git config --global --add safe.directory "$(pwd)"
 
-./mill -i show cli.nativeImage
+./mill -i show 'cli[]'.nativeImage
 ./mill -i copyDefaultLauncher ./artifacts
 if "true" == $(./mill -i ci.shouldPublish); then
   .github/scripts/generate-os-packages.sh

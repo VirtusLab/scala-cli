@@ -1,23 +1,27 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212     = "2.12.19"
-  def scala213     = "2.13.12"
-  def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.4.0"
-  def scala3Lts    = "3.3"   // the full version should be resolved later
+  def scala212        = "2.12.19"
+  def scala213        = "2.13.12"
+  def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
+  def scala3LtsPrefix = "3.3"   // used for the LTS version tags
+  def scala3Lts  = s"$scala3LtsPrefix.2" // the LTS version currently used in the build
+  def scala3Next = "3.4.0"               // the newest/next version of Scala
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
 
   // The Scala version used by default to compile user input.
-  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3)
+  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
 
-  val allScala2           = Seq(scala213, scala212)
-  val defaults            = Seq(defaultInternal, defaultUser).distinct
-  val all                 = (allScala2 ++ Seq(scala3) ++ defaults).distinct
-  val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
-  val runnerScalaVersions = runnerScala3 +: allScala2
+  val allScala2               = Seq(scala213, scala212)
+  val defaults                = Seq(defaultInternal, defaultUser).distinct
+  val allScala3               = Seq(scala3Lts, scala3Next)
+  val all                     = (allScala2 ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions      = (defaults ++ allScala3).distinct
+  val mainVersions            = (Seq(scala213) ++ scala3MainVersions).distinct
+  val runnerScalaVersions     = runnerScala3 +: allScala2
+  val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
   def scalaJs    = "1.15.0"
   def scalaJsCli = "1.15.0.1" // this must be compatible with the Scala.js version
@@ -30,13 +34,15 @@ object Scala {
     val max30  = 2
     val max31  = 3
     val max32  = 2
-    val max33  = patchVer(scala3)
+    val max33  = patchVer(scala3Lts)
+    val max34  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
       (0 to max32).map(i => s"3.2.$i") ++
-      (0 until max33).map(i => s"3.3.$i") ++ Seq(scala3)
+      (0 until max33).map(i => s"3.3.$i") ++
+      (0 until max34).map(i => s"3.4.$i") ++ Seq(scala3Next)
   }
 
   def maxAmmoniteScala212Version = "2.12.18"

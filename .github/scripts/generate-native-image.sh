@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-COMMAND="cli.base-image.writeNativeImageScript"
+COMMAND="cli[].base-image.writeNativeImageScript"
 
 # temporary, until we pass JPMS options to native-image,
 # see https://www.graalvm.org/release-notes/22_2/#native-image
@@ -20,7 +20,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
 else
   if [ $# == "0" ]; then
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
-      COMMAND="cli.linux-docker-image.writeNativeImageScript"
+      COMMAND="cli[].linux-docker-image.writeNativeImageScript"
       CLEANUP=("sudo" "rm" "-rf" "out/cli/linux-docker-image/nativeImageDockerWorkingDir")
     else
       CLEANUP=("true")
@@ -28,11 +28,11 @@ else
   else
     case "$1" in
       "static")
-        COMMAND="cli.static-image.writeNativeImageScript"
+        COMMAND="cli[].static-image.writeNativeImageScript"
         CLEANUP=("sudo" "rm" "-rf" "out/cli/static-image/nativeImageDockerWorkingDir")
         ;;
       "mostly-static")
-        COMMAND="cli.mostly-static-image.writeNativeImageScript"
+        COMMAND="cli[].mostly-static-image.writeNativeImageScript"
         CLEANUP=("sudo" "rm" "-rf" "out/cli/mostly-static-image/nativeImageDockerWorkingDir")
         ;;
       *)
