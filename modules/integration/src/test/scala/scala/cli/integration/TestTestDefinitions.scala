@@ -4,9 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 
-abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
+abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   protected val jvmOptions: Seq[String] =
     // seems munit requires this with Scala 3
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")

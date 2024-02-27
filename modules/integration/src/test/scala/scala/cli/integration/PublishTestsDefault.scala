@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class PublishTestsDefault extends PublishTestDefinitions(scalaVersionOpt = None) {
+class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
   test("Pure Java") {
     val testOrg     = "test-org.foo"
     val testName    = "foo"

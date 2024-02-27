@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class SparkTests213 extends SparkTestDefinitions(scalaVersionOpt = Some(Constants.scala213))
+class SparkTests213 extends SparkTestDefinitions with Test213

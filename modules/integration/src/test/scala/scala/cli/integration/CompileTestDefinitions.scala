@@ -6,11 +6,11 @@ import java.io.File
 
 import scala.cli.integration.util.BloopUtil
 
-abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
+abstract class CompileTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
-    with SemanticDbTestDefinitions {
+    with SemanticDbTestDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {

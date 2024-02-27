@@ -12,8 +12,8 @@ import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
-abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {

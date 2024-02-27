@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class PackageTests212 extends PackageTestDefinitions(scalaVersionOpt = Some(Constants.scala212))
+class PackageTests212 extends PackageTestDefinitions with Test212

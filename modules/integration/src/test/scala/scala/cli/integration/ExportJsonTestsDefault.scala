@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class ExportJsonTestsDefault extends ExportJsonTestDefinitions(scalaVersionOpt = None)
+class ExportJsonTestsDefault extends ExportJsonTestDefinitions with TestDefault

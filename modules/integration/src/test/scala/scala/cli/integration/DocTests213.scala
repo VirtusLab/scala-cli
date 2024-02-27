@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class DocTests213 extends DocTestDefinitions(scalaVersionOpt = Some(Constants.scala212))
+class DocTests213 extends DocTestDefinitions with Test213

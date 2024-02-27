@@ -9,8 +9,8 @@ import java.util.zip.ZipFile
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private object TestCase {

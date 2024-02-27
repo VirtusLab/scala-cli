@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class CompileTests213 extends CompileTestDefinitions(scalaVersionOpt = Some(Constants.scala213))
+class CompileTests213 extends CompileTestDefinitions with Test213

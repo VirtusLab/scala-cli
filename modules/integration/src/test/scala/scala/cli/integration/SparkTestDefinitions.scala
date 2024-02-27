@@ -51,9 +51,8 @@ object SparkTestDefinitions {
 
 }
 
-abstract class SparkTestDefinitions(val scalaVersionOpt: Option[String]) extends ScalaCliSuite
-    with TestScalaVersionArgs {
-
+abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   import SparkTestDefinitions.*
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions

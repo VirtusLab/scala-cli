@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.util.{Properties, Try}
 
-class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
+class RunTestsDefault extends RunTestDefinitions with TestDefault {
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs = TestInputs(

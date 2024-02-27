@@ -12,7 +12,7 @@ import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
+abstract class RunTestDefinitions
     extends WithWarmUpScalaCliSuite
     with TestScalaVersionArgs
     with RunScriptTestDefinitions
@@ -23,7 +23,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     with RunScalacCompatTestDefinitions
     with RunSnippetTestDefinitions
     with RunScalaPyTestDefinitions
-    with RunZipTestDefinitions {
+    with RunZipTestDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
