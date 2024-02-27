@@ -86,7 +86,7 @@ sub-command.
 
 For example, to call [the `package` sub-command](../../commands/package.md) using the nightly CLI version, do it like this:
 
-```bash
+```bash ignore
 scala-cli --cli-version nightly package --help
 ```
 
