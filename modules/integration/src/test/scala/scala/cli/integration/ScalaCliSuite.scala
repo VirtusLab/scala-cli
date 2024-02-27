@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 abstract class ScalaCliSuite extends munit.FunSuite {
-
   val testStartEndLogger = new Fixture[Unit]("files") {
     def apply(): Unit = ()
 

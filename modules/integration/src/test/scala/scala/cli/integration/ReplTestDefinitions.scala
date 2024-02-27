@@ -7,7 +7,6 @@ import scala.util.Properties
 
 abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
-
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   private val retrieveScalaVersionCode = if (actualScalaVersion.startsWith("2."))

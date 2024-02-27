@@ -11,7 +11,6 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 class TestBspClient extends b.BuildClient {
-
   private val lock      = new Object
   private val messages0 = new mutable.ListBuffer[Object]
   private def addMessage(params: Object): Unit =

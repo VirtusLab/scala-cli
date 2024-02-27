@@ -11,7 +11,6 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
     with SemanticDbTestDefinitions {
-
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {

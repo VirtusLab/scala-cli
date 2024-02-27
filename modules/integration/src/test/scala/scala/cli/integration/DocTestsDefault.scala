@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class DocTestsDefault extends DocTestDefinitions(scalaVersionOpt = None) {
-
   test("javadoc") {
     val inputs = TestInputs(
       os.rel / "Foo.java" ->

@@ -24,7 +24,6 @@ import scala.util.{Failure, Properties, Success, Try}
 
 abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
-
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   import BspTestDefinitions.*

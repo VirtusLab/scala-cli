@@ -7,7 +7,6 @@ import scala.concurrent.duration.Duration
 import scala.util.{Properties, Try}
 
 class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
-
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
     val inputs = TestInputs(
@@ -26,17 +25,21 @@ class RunTestsDefault extends RunTestDefinitions(scalaVersionOpt = None) {
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
       val termOpt = if (System.console() == null) Nil else Seq("-t")
-      // format: off
       val cmd = Seq[os.Shellable](
-        "docker", "run", "--rm", termOpt,
-        "-e", "SCALA_CLI_VENDORED_ZIS=true",
-        "-v", s"$root:/data",
-        "-w", "/data",
+        "docker",
+        "run",
+        "--rm",
+        termOpt,
+        "-e",
+        "SCALA_CLI_VENDORED_ZIS=true",
+        "-v",
+        s"$root:/data",
+        "-w",
+        "/data",
         ciOpt,
         Constants.dockerArchLinuxImage,
         "/data/script.sh"
       )
-      // format: on
       val res = os.proc(cmd).call(cwd = root)
       System.err.println(res.out.text())
       val output = os.read(root / "output").trim

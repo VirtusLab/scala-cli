@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 trait TestScalaVersionArgs extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup =
     if (actualScalaVersion.startsWith("2.12.")) ScalaCliSuite.TestGroup.Third
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
@@ -15,5 +14,4 @@ trait TestScalaVersionArgs extends ScalaCliSuite {
   }
 
   lazy val actualScalaVersion: String = scalaVersionOpt.getOrElse(Constants.defaultScala)
-
 }

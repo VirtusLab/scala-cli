@@ -566,12 +566,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         expect(baseOutput.contains("Hello from tests"))
         expect(!baseOutput.contains("Hello from CustomFramework"))
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "test", extraOptions, platformArgs, ".",
-          "--test-framework", "custom.CustomFramework"
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          platformArgs,
+          ".",
+          "--test-framework",
+          "custom.CustomFramework"
         )
-        // format: on
         val res    = os.proc(cmd).call(cwd = root)
         val output = res.out.text()
         expect(output.contains("Hello from tests"))

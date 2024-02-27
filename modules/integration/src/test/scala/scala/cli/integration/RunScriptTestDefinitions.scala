@@ -202,12 +202,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions, ".",
-        "--java-prop", "scala.colored-stack-traces=false"
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--java-prop",
+        "scala.colored-stack-traces=false"
       )
-      // format: on
       val res            = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output         = res.out.lines()
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
@@ -311,10 +313,12 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions, ".")
-      // format: on
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        "."
+      )
       val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.lines()
       val exceptionLines: Vector[String] = output

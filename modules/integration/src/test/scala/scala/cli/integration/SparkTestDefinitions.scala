@@ -8,7 +8,6 @@ import java.util.Locale
 import scala.util.Properties
 
 object SparkTestDefinitions {
-
   def lightweightSparkDistribVersionOpt: Option[String] = Option("0.0.5")
 
   final class Spark(val sparkVersion: String, val scalaVersion: String) {

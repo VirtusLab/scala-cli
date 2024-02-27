@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 class TestTestsDefault extends TestTestDefinitions(scalaVersionOpt = None) {
-
   test("Pure Java with Scala tests") {
     val inputs = TestInputs(
       os.rel / "Messages.java" ->

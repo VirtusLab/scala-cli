@@ -11,7 +11,6 @@ import scala.util.Properties
 import scala.util.matching.Regex
 
 class PublishSetupTests extends ScalaCliSuite {
-
   private def ghUserName = "foo"
   private def projName   = "project-name"
   private def devName    = "Alex Test"

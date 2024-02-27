@@ -9,7 +9,6 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 class SparkTests212 extends SparkTestDefinitions(scalaVersionOpt = Some(Constants.scala212)) {
-
   import SparkTestDefinitions.*
 
   private val spark30 = new Spark(

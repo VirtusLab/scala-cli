@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 class PgpTests extends ScalaCliSuite {
-
   private val pubKeyInputs = TestInputs(
     os.rel / "key.pub" ->
       """-----BEGIN PGP PUBLIC KEY BLOCK-----

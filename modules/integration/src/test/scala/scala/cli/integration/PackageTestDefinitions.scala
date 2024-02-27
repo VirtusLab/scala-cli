@@ -14,7 +14,6 @@ import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs {
-
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
@@ -1107,12 +1106,19 @@ abstract class PackageTestDefinitions(val scalaVersionOpt: Option[String])
 
       val outputName = if (Properties.isWin) "hello.bat" else "hello"
       val launcher   = root / outputName
-      // format: off
       val packageCmds = Seq[os.Shellable](
-        TestUtil.cli, "--power", "package", "Hello.scala",
-        "-M", "Main", "--jar", fatJarPath, "-o", launcher, extraOptions
+        TestUtil.cli,
+        "--power",
+        "package",
+        "Hello.scala",
+        "-M",
+        "Main",
+        "--jar",
+        fatJarPath,
+        "-o",
+        launcher,
+        extraOptions
       )
-      // format: on
 
       // bootstrap
       os.proc(packageCmds).call(cwd = root).out.trim()

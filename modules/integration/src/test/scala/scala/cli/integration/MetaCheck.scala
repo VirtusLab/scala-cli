@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class MetaCheck extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   /*

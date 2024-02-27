@@ -2,7 +2,6 @@ package scala.cli.integration
 
 abstract class ExportSbtTestDefinitions(override val scalaVersionOpt: Option[String])
     extends ScalaCliSuite with TestScalaVersionArgs with ExportCommonTestDefinitions {
-
   private lazy val sbtLaunchJar = {
     val res =
       os.proc(TestUtil.cs, "fetch", "--intransitive", "org.scala-sbt:sbt-launch:1.5.5").call()
