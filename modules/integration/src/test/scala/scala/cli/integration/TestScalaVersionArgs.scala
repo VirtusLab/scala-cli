@@ -6,6 +6,8 @@ trait TestScalaVersionArgs extends ScalaCliSuite { _: TestScalaVersion =>
   override def group: ScalaCliSuite.TestGroup =
     if (actualScalaVersion.startsWith("2.12.")) ScalaCliSuite.TestGroup.Third
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
+    else if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
+      ScalaCliSuite.TestGroup.Fourth
     else ScalaCliSuite.TestGroup.First
 
   lazy val scalaVersionArgs: Seq[String] = scalaVersionOpt match {
