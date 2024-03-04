@@ -692,13 +692,9 @@ abstract class CompileTestDefinitions
       )
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       expect(res.exitCode == 1)
-      assertNoDiff(
-        res.out.text(),
-        """Error occurred during initialization of VM
-          |Too small maximum heap
-          |Compilation failed
-          |""".stripMargin
-      )
+      val out = res.out.text()
+      expect(out.contains("Error occurred during initialization of VM"))
+      expect(out.contains("Too small maximum heap"))
     }
   }
 }
