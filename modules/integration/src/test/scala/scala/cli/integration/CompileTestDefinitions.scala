@@ -697,4 +697,15 @@ abstract class CompileTestDefinitions
       expect(out.contains("Too small maximum heap"))
     }
   }
+
+  test(s"TASTY processor does not warn about Scala $actualScalaVersion") {
+    TestInputs(os.rel / "simple.sc" -> s"""println("Hello")""")
+      .fromRoot { root =>
+        val result =
+          os.proc(TestUtil.cli, "compile", ".", extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+        expect(result.exitCode == 0)
+        expect(!result.err.text().contains("cannot post process TASTY files"))
+      }
+  }
 }
