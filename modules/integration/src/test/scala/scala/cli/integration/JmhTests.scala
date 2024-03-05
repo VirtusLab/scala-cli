@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.nio.charset.Charset
 
 class JmhTests extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {

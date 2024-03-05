@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class SharedRunTests extends ScalaCliSuite {
-
   val printScalaVersionInputs: TestInputs = TestInputs(
     os.rel / "print.sc" ->
       s"""println(scala.util.Properties.versionNumberString)

@@ -6,12 +6,7 @@ import java.io.File
 
 import scala.util.Properties
 
-// format: off
-class ReplTestsDefault extends ReplTestDefinitions(
-  scalaVersionOpt = None
-) {
-  // format: on
-
+class ReplTestsDefault extends ReplTestDefinitions with TestDefault {
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->

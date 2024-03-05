@@ -1,7 +1,3 @@
 package scala.cli.integration
 
-// format: off
-class BspTests212 extends BspTestDefinitions(
-  scalaVersionOpt = Some(Constants.scala212)
-)
-// format: on
+class BspTests212 extends BspTestDefinitions with Test212

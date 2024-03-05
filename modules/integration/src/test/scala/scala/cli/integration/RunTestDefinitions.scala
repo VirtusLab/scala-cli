@@ -12,7 +12,7 @@ import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
+abstract class RunTestDefinitions
     extends WithWarmUpScalaCliSuite
     with TestScalaVersionArgs
     with RunScriptTestDefinitions
@@ -23,8 +23,7 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     with RunScalacCompatTestDefinitions
     with RunSnippetTestDefinitions
     with RunScalaPyTestDefinitions
-    with RunZipTestDefinitions {
-
+    with RunZipTestDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
@@ -209,12 +208,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "run", extraOptions, ".",
-        "--java-prop", "scala.colored-stack-traces=false"
+        TestUtil.cli,
+        "run",
+        extraOptions,
+        ".",
+        "--java-prop",
+        "scala.colored-stack-traces=false"
       )
-      // format: on
       val res    = os.proc(cmd).call(cwd = root, check = false, mergeErrIntoOut = true)
       val output = res.out.lines()
       // FIXME We need to have the pretty-stacktraces stuff take scala.colored-stack-traces into account
@@ -269,13 +270,14 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
     }
 
   def compileTimeOnlyJars(): Unit = {
-    // format: off
     val cmd = Seq[os.Shellable](
-      TestUtil.cs, "fetch",
-      "--intransitive", "com.chuusai::shapeless:2.3.9",
-      "--scala", actualScalaVersion
+      TestUtil.cs,
+      "fetch",
+      "--intransitive",
+      "com.chuusai::shapeless:2.3.9",
+      "--scala",
+      actualScalaVersion
     )
-    // format: on
     val shapelessJar = os.proc(cmd).call().out.trim()
     expect(os.isFile(os.Path(shapelessJar, os.pwd)))
 
@@ -403,16 +405,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
         val termOpt = if (System.console() == null) Nil else Seq("-t")
-        // format: off
         val cmd = Seq[os.Shellable](
-          "docker", "run", "--rm", termOpt,
-          "-v", s"$root:/data",
-          "-w", "/data",
+          "docker",
+          "run",
+          "--rm",
+          termOpt,
+          "-v",
+          s"$root:/data",
+          "-w",
+          "/data",
           ciOpt,
           baseImage,
           "/data/script.sh"
         )
-        // format: on
         val res = os.proc(cmd).call(cwd = root)
         System.err.println(res.out.text())
         val output = os.read(root / "output").trim
@@ -470,17 +475,20 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.remove(root / "Dockerfile")
       val termOpt   = if (System.console() == null) Nil else Seq("-t")
       val rawOutput = new ByteArrayOutputStream
-      // format: off
       val cmd = Seq[os.Shellable](
-        "docker", "run", "--rm", termOpt,
-        "-v", s"$root:/data",
-        "-w", "/data",
+        "docker",
+        "run",
+        "--rm",
+        termOpt,
+        "-v",
+        s"$root:/data",
+        "-w",
+        "/data",
         ciOpt,
         "scala-cli-distroless-it",
         extraOptions,
         fileName
       )
-      // format: on
       os.proc(cmd).call(
         cwd = root,
         stdout = os.ProcessOutput { (b, len) =>
@@ -874,16 +882,19 @@ abstract class RunTestDefinitions(val scalaVersionOpt: Option[String])
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
       val termOpt = if (System.console() == null) Nil else Seq("-t")
-      // format: off
       val cmd = Seq[os.Shellable](
-        "docker", "run", "--rm", termOpt,
-        "-v", s"$root:/data",
-        "-w", "/data",
+        "docker",
+        "run",
+        "--rm",
+        termOpt,
+        "-v",
+        s"$root:/data",
+        "-w",
+        "/data",
         ciOpt,
         baseImage,
         "/data/script.sh"
       )
-      // format: on
       os.proc(cmd).call(cwd = root, stdout = os.Inherit)
       val rootOutput = os.read(root / "output-root").trim
       expect(rootOutput == message)

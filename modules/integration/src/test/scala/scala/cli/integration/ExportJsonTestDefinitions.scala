@@ -2,8 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-abstract class ExportJsonTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   private def readJson(path: os.ReadablePath): String =
     readJson(os.read(path))
 

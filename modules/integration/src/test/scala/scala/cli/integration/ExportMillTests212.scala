@@ -1,4 +1,3 @@
 package scala.cli.integration
 
-class ExportMillTests212
-    extends ExportMillTestDefinitions(scalaVersionOpt = Some(Constants.scala212))
+class ExportMillTests212 extends ExportMillTestDefinitions with Test212

@@ -5,9 +5,8 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-abstract class ReplTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
+abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   private val retrieveScalaVersionCode = if (actualScalaVersion.startsWith("2."))

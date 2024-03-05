@@ -1,7 +1,6 @@
 package scala.cli.integration
 
-class ExportMillTests213
-    extends ExportMillTestDefinitions(scalaVersionOpt = Some(Constants.scala213)) {
+class ExportMillTests213 extends ExportMillTestDefinitions with Test213 {
   if (runExportTests) {
     test("scalac options") {
       simpleTest(ExportTestProjects.scalacOptionsScala2Test(actualScalaVersion))

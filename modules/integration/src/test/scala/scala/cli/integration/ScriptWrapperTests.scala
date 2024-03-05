@@ -6,7 +6,6 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class ScriptWrapperTests extends ScalaCliSuite {
-
   def expectAppWrapper(wrapperName: String, path: os.Path) = {
     val generatedFileContent = os.read(path)
     assert(

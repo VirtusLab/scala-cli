@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 
 class StandaloneLauncherTests extends ScalaCliSuite {
-
   test(s"Standalone launcher should run with java 8") {
     // It should download Java 17 and use it to run itself
     val message = "Hello World"

@@ -7,7 +7,6 @@ import java.io.File
 import scala.util.Properties
 
 class ConfigTests extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   test("simple") {

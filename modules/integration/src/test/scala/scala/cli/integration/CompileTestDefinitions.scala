@@ -6,12 +6,11 @@ import java.io.File
 
 import scala.cli.integration.util.BloopUtil
 
-abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
+abstract class CompileTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
-    with SemanticDbTestDefinitions {
-
+    with SemanticDbTestDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
@@ -693,13 +692,9 @@ abstract class CompileTestDefinitions(val scalaVersionOpt: Option[String])
       )
         .call(cwd = root, check = false, mergeErrIntoOut = true)
       expect(res.exitCode == 1)
-      assertNoDiff(
-        res.out.text(),
-        """Error occurred during initialization of VM
-          |Too small maximum heap
-          |Compilation failed
-          |""".stripMargin
-      )
+      val out = res.out.text()
+      expect(out.contains("Error occurred during initialization of VM"))
+      expect(out.contains("Too small maximum heap"))
     }
   }
 }

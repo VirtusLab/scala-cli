@@ -6,9 +6,9 @@ import java.nio.charset.Charset
 
 import scala.util.Properties
 
-abstract class ExportMillTestDefinitions(override val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs with ExportCommonTestDefinitions {
-
+abstract class ExportMillTestDefinitions extends ScalaCliSuite
+    with TestScalaVersionArgs
+    with ExportCommonTestDefinitions { _: TestScalaVersion =>
   protected def launcher: os.RelPath =
     if (Properties.isWin) os.rel / "mill.bat"
     else os.rel / "mill"

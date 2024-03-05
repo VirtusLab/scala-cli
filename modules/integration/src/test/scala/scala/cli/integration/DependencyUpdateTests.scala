@@ -4,7 +4,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import coursier.core.Version
 
 class DependencyUpdateTests extends ScalaCliSuite {
-
   test("dependency update test") {
     val fileName = "Hello.scala"
     val message  = "Hello World"

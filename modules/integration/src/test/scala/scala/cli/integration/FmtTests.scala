@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 
 class FmtTests extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val confFileName = ".scalafmt.conf"

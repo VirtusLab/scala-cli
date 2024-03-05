@@ -2,11 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-// format: off
-class RunTests213 extends RunTestDefinitions(
-  scalaVersionOpt = Some(Constants.scala213)
-){
-// format: on
+class RunTests213 extends RunTestDefinitions with Test213 {
   test("ensure typesafe PR validation snapshot Scala versions are supported") {
     TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>

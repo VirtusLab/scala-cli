@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 class InstallHomeTests extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val firstVersion            = "0.0.1"
@@ -27,11 +26,14 @@ class InstallHomeTests extends ScalaCliSuite {
   )
 
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {
-    // format: off
     val cmd = Seq[os.Shellable](
-      TestUtil.cli, "--power", "package", dummyScalaCliFileName, "-o", output
+      TestUtil.cli,
+      "--power",
+      "package",
+      dummyScalaCliFileName,
+      "-o",
+      output
     )
-    // format: on
     os.proc(cmd).call(
       cwd = root,
       stdin = os.Inherit,
@@ -45,15 +47,17 @@ class InstallHomeTests extends ScalaCliSuite {
     binDirPath: os.Path,
     force: Boolean
   ) = {
-    // format: off
     val cmdInstallVersion = Seq[os.Shellable](
-      TestUtil.cli, "install-home",
+      TestUtil.cli,
+      "install-home",
       "--env",
-      "--scala-cli-binary-path", binVersion,
-      "--binary-name", dummyScalaCliBinName,
-      "--bin-dir", binDirPath
-    ) ++ (if(force) Seq[os.Shellable]("--force") else Seq.empty)
-    // format: on
+      "--scala-cli-binary-path",
+      binVersion,
+      "--binary-name",
+      dummyScalaCliBinName,
+      "--bin-dir",
+      binDirPath
+    ) ++ (if (force) Seq[os.Shellable]("--force") else Seq.empty)
     os.proc(cmdInstallVersion).call(
       cwd = root,
       stdin = os.Inherit,
@@ -67,13 +71,14 @@ class InstallHomeTests extends ScalaCliSuite {
     force: Boolean,
     skipCache: Boolean
   ) = {
-    // format: off
     val cmdUninstall = Seq[os.Shellable](
-      TestUtil.cli, "uninstall",
-      "--binary-name", dummyScalaCliBinName,
-      "--bin-dir", binDirPath
+      TestUtil.cli,
+      "uninstall",
+      "--binary-name",
+      dummyScalaCliBinName,
+      "--bin-dir",
+      binDirPath
     )
-    // format: on
     val forceOpts     = if (force) Seq("--force") else Seq.empty
     val skipCacheOpts = if (skipCache) Seq("--skip-cache") else Seq.empty
     os.proc(cmdUninstall, forceOpts, skipCacheOpts).call(cwd = root)
