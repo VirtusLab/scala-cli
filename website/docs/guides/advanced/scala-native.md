@@ -20,6 +20,13 @@ A Scala Native version can be set by passing `--native-version` with an argument
 scala-cli Test.scala --native --native-version 0.4.3
 ```
 
+These can also be set in a file, or in a project (in your [`project.scala`](https://scala-cli.virtuslab.org/docs/reference/root-dir/) file) by [`using`](https://scala-cli.virtuslab.org/docs/reference/scala-command/directives/#platform) [directives](https://scala-cli.virtuslab.org/docs/reference/scala-command/directives/#examples-16):
+
+```scala
+//> using platform native
+//> using nativeVersion 0.4.3
+```
+
 Platform compatibility and supported Scala language versions depend on this version.  
 It is recommended to use the newest stable version.
 
