@@ -146,7 +146,7 @@ trait RunScalacCompatTestDefinitions {
 
   for {
     printOption <- {
-      val printOptionsForAllVersions   = Seq("-X", "-Xshow-phases", "-Y")
+      val printOptionsForAllVersions   = Seq("-X", "-Xshow-phases", "-Xplugin-list", "-Y")
       val printOptionsScala213OrHigher = Seq("-V", "-Vphases", "-W")
       val printOptionsScala2           = Seq("-Xlint:help")
       actualScalaVersion match {
