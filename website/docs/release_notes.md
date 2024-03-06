@@ -8,6 +8,107 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.2.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.2.0)
+
+### Scala 3.3.3, 3.4.0, 2.13.13 & 2.12.19 support
+
+This version of Scala CLI adds support for a whooping 4 new Scala versions, it's been busy these past few days!
+The default version used when using the CLI will from now on be the Scala 3 Next version (3.4.0 as of this release).
+Using the `lts` tag will now point to Scala 3.3.3.
+The LTS is also the version used for building the internals of Scala CLI (although we now also cross-compile with 3.4.0).
+```bash
+scala-cli version
+# Scala CLI version: 1.2.0
+# Scala version (default): 3.4.0
+```
+Added by [@Gedochao](https://github.com/Gedochao) in [#2772](https://github.com/VirtusLab/scala-cli/pull/2772), [#2736](https://github.com/VirtusLab/scala-cli/pull/2736), [#2755](https://github.com/VirtusLab/scala-cli/pull/2755), [#2753](https://github.com/VirtusLab/scala-cli/pull/2753) and [#2752](https://github.com/VirtusLab/scala-cli/pull/2752)
+
+### Remapping EsModule imports at link time with Scala.js
+Given the following `importMap.json` file:
+```json title=importMap.json
+{
+  "imports": {
+    "@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"
+  }
+}
+```
+
+It is now possible to remap the imports at link time with the `jsEsModuleImportMap` directive.
+
+```scala title=RemappingEsModuleImports.scala
+//> using jsEsModuleImportMap importMap.json
+//> using jsModuleKind es
+//> using jsMode fastLinkJS
+//> using platform js
+
+import scala.scalajs.js
+import scala.scalajs.js.annotation.JSImport
+import scala.scalajs.js.typedarray.Float64Array
+
+object Foo {
+  def main(args: Array[String]): Unit = {
+    println(Array(-10.0, 10.0, 10).mkString(", "))
+    println(linspace(0, 10, 10).mkString(", "))
+  }
+}
+
+@js.native
+@JSImport("@stdlib/linspace", JSImport.Default)
+object linspace extends js.Object {
+  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
+}
+```
+
+The same can be achieved with the `--js-es-module-import-map` command line option.
+```bash
+scala-cli --power package RemappingEsModuleImports.scala --js --js-module-kind ESModule -o main.js --js-es-module-import-map importMap.json
+```
+
+Added by [@Quafadas](https://github.com/Quafadas) in [#2737](https://github.com/VirtusLab/scala-cli/pull/2737) and [scala-js-cli#47](https://github.com/VirtusLab/scala-js-cli/pull/47)
+
+### Fixes
+* Updated method for choosing a free drive letter (fixes #2743) by [@philwalk](https://github.com/philwalk) in [#2749](https://github.com/VirtusLab/scala-cli/pull/2749)
+* Make sure tasty-lib doesn't warn about Scala 3 Next by [@Gedochao](https://github.com/Gedochao) in [#2775](https://github.com/VirtusLab/scala-cli/pull/2775)
+
+### Enhancements
+* Add the ability to remap EsModule imports at link time by [@Quafadas](https://github.com/Quafadas) in [#2737](https://github.com/VirtusLab/scala-cli/pull/2737)
+
+### Internal changes
+* Fix overeager Scala version docs tests by [@Gedochao](https://github.com/Gedochao) in [#2750](https://github.com/VirtusLab/scala-cli/pull/2750)
+* Lock script wrapper tests on the internally used Scala 2.13 version by [@Gedochao](https://github.com/Gedochao) in [#2754](https://github.com/VirtusLab/scala-cli/pull/2754)
+* Use Scala LTS as the default version while cross compiling all Scala 3 modules on both LTS & Next by [@Gedochao](https://github.com/Gedochao) in [#2752](https://github.com/VirtusLab/scala-cli/pull/2752)
+* Explicitly set sonatype publishing to use the default cross Scala version by [@Gedochao](https://github.com/Gedochao) in [#2757](https://github.com/VirtusLab/scala-cli/pull/2757)
+* Fix publishing of artifacts to include non-cross-compiled modules by [@Gedochao](https://github.com/Gedochao) in [#2759](https://github.com/VirtusLab/scala-cli/pull/2759)
+* Run integration tests with both Scala 3 LTS & Next versions by [@Gedochao](https://github.com/Gedochao) in [#2760](https://github.com/VirtusLab/scala-cli/pull/2760)
+
+### Documentation changes
+* Fix typo by [@imRentable](https://github.com/imRentable) in [#2739](https://github.com/VirtusLab/scala-cli/pull/2739)
+* Add directive examples in Scala Native docs by [@spamegg1](https://github.com/spamegg1) in [#2774](https://github.com/VirtusLab/scala-cli/pull/2774)
+* toolkit latest is deprecated, mention default instead by [@spamegg1](https://github.com/spamegg1) in [#2776](https://github.com/VirtusLab/scala-cli/pull/2776)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.1.3 by [@github-actions](https://github.com/features/actions) in [#2734](https://github.com/VirtusLab/scala-cli/pull/2734)
+* Bump webfactory/ssh-agent from 0.8.0 to 0.9.0 by [@dependabot](https://github.com/dependabot) in [#2731](https://github.com/VirtusLab/scala-cli/pull/2731)
+* Update `coursier` to 2.1.9 by [@Gedochao](https://github.com/Gedochao) in [#2735](https://github.com/VirtusLab/scala-cli/pull/2735)
+* Bump `scala-js-cli` to 1.15.0.1 by [@Gedochao](https://github.com/Gedochao) in [#2738](https://github.com/VirtusLab/scala-cli/pull/2738)
+* Update Scala to 3.4.0 by [@Gedochao](https://github.com/Gedochao) in [#2736](https://github.com/VirtusLab/scala-cli/pull/2736)
+* Update slf4j-nop to 2.0.12 by [@scala-steward](https://github.com/scala-steward) in [#2748](https://github.com/VirtusLab/scala-cli/pull/2748)
+* Update trees_2.13 to 4.9.0 by [@scala-steward](https://github.com/scala-steward) in [#2747](https://github.com/VirtusLab/scala-cli/pull/2747)
+* Update mill-main to 0.11.7 by [@scala-steward](https://github.com/scala-steward) in [#2744](https://github.com/VirtusLab/scala-cli/pull/2744)
+* Update sttp client core_2.13 to 3.9.3 by [@scala-steward](https://github.com/scala-steward) in [#2745](https://github.com/VirtusLab/scala-cli/pull/2745)
+* Bump Scala 2.12 to 2.12.19 by [@Gedochao](https://github.com/Gedochao) in [#2753](https://github.com/VirtusLab/scala-cli/pull/2753)
+* Update sbt to 1.9.9 by [@scala-steward](https://github.com/scala-steward) in [#2756](https://github.com/VirtusLab/scala-cli/pull/2756)
+* Bump Scala 2.13 to 2.13.13 by [@Gedochao](https://github.com/Gedochao) in [#2755](https://github.com/VirtusLab/scala-cli/pull/2755)
+* Update scalameta to 4.9.1 by [@scala-steward](https://github.com/scala-steward) in [#2770](https://github.com/VirtusLab/scala-cli/pull/2770)
+* Bump Scala LTS to 3.3.3 by [@Gedochao](https://github.com/Gedochao) in [#2772](https://github.com/VirtusLab/scala-cli/pull/2772)
+* Update ammonite to 3.0.0-M0-71-1e75159e by [@scala-steward](https://github.com/scala-steward) in [#2773](https://github.com/VirtusLab/scala-cli/pull/2773)
+
+### New Contributors
+* [@imRentable](https://github.com/imRentable) made their first contribution in [#2739](https://github.com/VirtusLab/scala-cli/pull/2739)
+* [@spamegg1](https://github.com/spamegg1) made their first contribution in [#2774](https://github.com/VirtusLab/scala-cli/pull/2774)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.1.3...v1.2.0
+
 ## [v1.1.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.1.3)
 
 ### Support for LTS Scala version aliases
@@ -434,7 +535,7 @@ Added by [@keynmol](https://github.com/keynmol) in [#2196](https://github.com/Vi
 
 Platform version is now always logged during compilation.
 
-```bash
+```bash ignore
 scala-cli compile .
 # Compiling project (Scala 3.3.1, JVM (17))
 # Compiled project (Scala 3.3.1, JVM (17))
