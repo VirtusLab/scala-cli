@@ -142,5 +142,5 @@ Directives with a test scope equivalent:
 //> using test.javaProp foo1=bar1
 //> using test.option -Xfatal-warnings
 //> using test.resourceDir testResources
-//> using test.toolkit latest
+//> using test.toolkit default
 ```
