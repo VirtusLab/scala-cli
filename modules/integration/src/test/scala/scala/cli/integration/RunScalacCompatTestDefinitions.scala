@@ -7,7 +7,8 @@ import java.io.File
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
+trait RunScalacCompatTestDefinitions {
+  _: RunTestDefinitions =>
   def commandLineScalacXOption(): Unit = {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->
@@ -143,26 +144,30 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("scalac print options") {
-    emptyInputs.fromRoot { root =>
-      val printOptionsForAllVersions = Seq("-X", "-Xshow-phases", "-Y")
-      val printOptionsSince213       = Seq("-V", "-Vphases", "-W")
-      val version213OrHigher =
-        actualScalaVersion.startsWith("2.13") || actualScalaVersion.startsWith("3")
-      val printOptionsToTest = printOptionsForAllVersions ++
-        (
-          if (version213OrHigher) printOptionsSince213
-          else Seq.empty
-        )
-      printOptionsToTest.foreach { printOption =>
-        val res = os.proc(
-          TestUtil.cli,
-          extraOptions,
-          printOption
-        )
-          .call(cwd = root, mergeErrIntoOut = true)
-        expect(res.out.text().nonEmpty)
+  for {
+    printOption <- {
+      val printOptionsForAllVersions   = Seq("-X", "-Xshow-phases", "-Y")
+      val printOptionsScala213OrHigher = Seq("-V", "-Vphases", "-W")
+      val printOptionsScala2           = Seq("-Xlint:help")
+      actualScalaVersion match {
+        case v if v.startsWith("3") => printOptionsForAllVersions ++ printOptionsScala213OrHigher
+        case v if v.startsWith("2.13") =>
+          printOptionsForAllVersions ++ printOptionsScala213OrHigher ++ printOptionsScala2
+        case v if v.startsWith("2.12") => printOptionsForAllVersions ++ printOptionsScala2
       }
+    }
+    explicitSubcommand <- Seq(true, false)
+    explicitSubcommandString =
+      if (explicitSubcommand) "(explicit run subcommand)" else "(default subcommand)"
+  } test(s"scalac print option: $printOption $explicitSubcommandString") {
+    emptyInputs.fromRoot { root =>
+      val res =
+        (
+          if (explicitSubcommand) os.proc(TestUtil.cli, "run", printOption, extraOptions)
+          else os.proc(TestUtil.cli, printOption, extraOptions)
+        ).call(cwd = root, mergeErrIntoOut = true)
+      expect(res.exitCode == 0)
+      expect(res.out.text().nonEmpty)
     }
   }
 
