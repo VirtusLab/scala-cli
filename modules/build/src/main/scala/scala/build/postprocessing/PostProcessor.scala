@@ -1,5 +1,6 @@
 package scala.build.postprocessing
 
+import scala.build.options.BuildOptions
 import scala.build.{GeneratedSource, Logger}
 
 trait PostProcessor {
@@ -9,6 +10,7 @@ trait PostProcessor {
     workspace: os.Path,
     output: os.Path,
     logger: Logger,
-    scalaVersion: String
+    scalaVersion: String,
+    buildOptions: BuildOptions
   ): Either[String, Unit]
 }

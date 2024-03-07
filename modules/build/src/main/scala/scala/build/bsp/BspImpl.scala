@@ -359,7 +359,8 @@ final class BspImpl(
                 reloadableOptions.logger,
                 currentBloopSession.inputs.workspace,
                 updateSemanticDbs = true,
-                scalaVersion = sv
+                scalaVersion = sv,
+                buildOptions = data.buildOptions
               ).left.foreach(_.foreach(showGlobalWarningOnce))
 
           if (res.getStatusCode == b.StatusCode.OK)

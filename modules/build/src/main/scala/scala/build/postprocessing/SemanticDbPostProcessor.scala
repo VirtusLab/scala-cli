@@ -3,6 +3,7 @@ package scala.build.postprocessing
 import java.nio.file.FileSystemException
 
 import scala.annotation.tailrec
+import scala.build.options.BuildOptions
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{GeneratedSource, Logger}
 import scala.util.{Either, Right}
@@ -14,27 +15,31 @@ case object SemanticDbPostProcessor extends PostProcessor {
     workspace: os.Path,
     output: os.Path,
     logger: Logger,
-    scalaVersion: String
+    scalaVersion: String,
+    buildOptions: BuildOptions
   ): Either[String, Unit] = Right {
     logger.debug("Moving semantic DBs around")
-    val semDbRoot = output / "META-INF" / "semanticdb"
+    val semanticDbOptions = buildOptions.scalaOptions.semanticDbOptions
+    val semDbSourceRoot   = semanticDbOptions.semanticDbSourceRoot.getOrElse(workspace)
+    val semDbTargetRoot =
+      semanticDbOptions.semanticDbTargetRoot.getOrElse(output) / "META-INF" / "semanticdb"
     for (source <- generatedSources; originalSource <- source.reportingPath) {
-      val fromSourceRoot = source.generated.relativeTo(workspace)
-      val actual         = originalSource.relativeTo(workspace)
+      val fromSourceRoot = source.generated.relativeTo(semDbSourceRoot)
+      val actual         = originalSource.relativeTo(semDbSourceRoot)
 
       val semDbSubPath = {
         val dirSegments = fromSourceRoot.segments.dropRight(1)
         os.sub / dirSegments / s"${fromSourceRoot.last}.semanticdb"
       }
-      val semDbFile = semDbRoot / semDbSubPath
+      val semDbFile = semDbTargetRoot / semDbSubPath
       if (os.exists(semDbFile)) {
         val finalSemDbFile = {
           val dirSegments = actual.segments.dropRight(1)
-          semDbRoot / dirSegments / s"${actual.last}.semanticdb"
+          semDbTargetRoot / dirSegments / s"${actual.last}.semanticdb"
         }
         SemanticdbProcessor.postProcess(
           os.read(originalSource),
-          originalSource.relativeTo(workspace),
+          originalSource.relativeTo(semDbSourceRoot),
           scalaLine => scalaLineToScLine(scalaLine, source.wrapperParamsOpt),
           semDbFile,
           finalSemDbFile
@@ -44,7 +49,7 @@ case object SemanticDbPostProcessor extends PostProcessor {
           case ex: FileSystemException =>
             logger.debug(s"Ignoring $ex while removing $semDbFile")
         }
-        deleteSubPathIfEmpty(semDbRoot, semDbSubPath / os.up, logger)
+        deleteSubPathIfEmpty(semDbTargetRoot, semDbSubPath / os.up, logger)
       }
     }
   }
