@@ -45,8 +45,8 @@ object Scala {
       (0 until max34).map(i => s"3.4.$i") ++ Seq(scala3Next)
   }
 
-  def maxAmmoniteScala212Version = "2.12.18"
-  def maxAmmoniteScala213Version = "2.13.12"
+  def maxAmmoniteScala212Version = scala212
+  def maxAmmoniteScala213Version = scala213
   def maxAmmoniteScala3Version   = scala3Lts
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
@@ -104,7 +104,7 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-71-1e75159e"
+  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-92-0b2ae1a1"
   def asm      = ivy"org.ow2.asm:asm:9.6"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
