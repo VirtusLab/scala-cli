@@ -6,7 +6,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class ScriptWrapperTests extends ScalaCliSuite {
-  def expectAppWrapper(wrapperName: String, path: os.Path) = {
+  def expectAppWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName extends App {"),
@@ -19,7 +19,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
     )
   }
 
-  def expectObjectWrapper(wrapperName: String, path: os.Path) = {
+  def expectObjectWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"object $wrapperName {"),
@@ -32,7 +32,7 @@ class ScriptWrapperTests extends ScalaCliSuite {
     )
   }
 
-  def expectClassWrapper(wrapperName: String, path: os.Path) = {
+  def expectClassWrapper(wrapperName: String, path: os.Path): Unit = {
     val generatedFileContent = os.read(path)
     assert(
       generatedFileContent.contains(s"final class $wrapperName$$_"),
@@ -164,9 +164,8 @@ class ScriptWrapperTests extends ScalaCliSuite {
 
   for {
     useDirectives <- Seq(true, false)
-    (directive, options) <- Seq(
-      (s"//> using scala ${Constants.scala213}", Seq("--scala", Constants.scala213))
-    )
+    directive = s"//> using scala ${Constants.scala213}"
+    options = Seq("--scala", Constants.scala213)
   } {
     val inputs = TestInputs(
       os.rel / "script1.sc" ->

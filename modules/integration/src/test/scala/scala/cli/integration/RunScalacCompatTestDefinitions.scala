@@ -379,7 +379,7 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
           (1 until 4).foreach { scalaPatchVersion =>
             val scala212VersionString = s"2.12.$scalaPatchVersion"
             val res =
-              os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
+              os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions, "-v", "-v", "-v")
                 .call(cwd = root)
             expect(res.out.trim() == scala212VersionString)
           }
