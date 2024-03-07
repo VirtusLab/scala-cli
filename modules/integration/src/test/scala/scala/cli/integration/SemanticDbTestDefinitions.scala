@@ -107,61 +107,105 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
       }
     }
 
-    test(
-      s"$inputTypeString SemanticDB with spread source dirs, forced source root ${semanticDbTargetDir.map(_ => "and target root").getOrElse("")}"
-    ) {
-      val (className1, className2) = s"Test1$inputType" -> s"Test2$inputType"
-      val (sourceFileName1, sourceFileName2) =
-        if (inputType == "Java") s"$className1.java" -> s"$className2.java"
-        else if (inputType == "Scala") s"$className1.scala" -> s"$className2.scala"
-        else s"$className1.sc"                              -> s"$className2.sc"
-      val (package1, package2)     = "foo"                 -> "bar"
-      val (sourceDir1, sourceDir2) = (os.rel / "sources1") -> (os.rel / "sources2")
-      val (code1, code2) =
-        if (inputType == "Java")
-          javaHelloWorld(package1, className1) -> javaHelloWorld(package2, className2)
-        else if (inputType == "Scala")
-          scalaHelloWorld(package1, className1) -> scalaHelloWorld(package2, className2)
-        else scalaScriptHelloWorld              -> scalaScriptHelloWorld
-      TestInputs(
-        os.rel / sourceDir1 / package1 / sourceFileName1 -> code1,
-        os.rel / sourceDir2 / package2 / sourceFileName2 -> code2
-      ).fromRoot { (root: os.Path) =>
-        val targetDirOptions =
-          semanticDbTargetDir match {
-            case Some(targetDir) => Seq("--semanticdb-targetroot", targetDir)
-            case None            => Nil
-          }
-        val semanticDbOptions: Seq[String] =
-          targetDirOptions ++ Seq("--semanticdb", "--semanticdb-sourceroot", root.toString)
+    for {
+      workspaceDir <- Seq(None, Some("custom-workspace"))
+    }
+      test(
+        s"$inputTypeString SemanticDB with spread source dirs, forced source root ${
+            semanticDbTargetDir.map(_ => "and target root ").getOrElse("")
+          }${workspaceDir.map(_ => "and custom workspace directory").getOrElse("")}"
+      ) {
+        val (className1, className2) = s"Test1$inputType" -> s"Test2$inputType"
+        val (sourceFileName1, sourceFileName2) =
+          if (inputType == "Java") s"$className1.java" -> s"$className2.java"
+          else if (inputType == "Scala") s"$className1.scala" -> s"$className2.scala"
+          else s"$className1.sc"                              -> s"$className2.sc"
+        val (package1, package2)     = "foo"                 -> "bar"
+        val (sourceDir1, sourceDir2) = (os.rel / "sources1") -> (os.rel / "sources2")
+        val (code1, code2) =
+          if (inputType == "Java")
+            javaHelloWorld(package1, className1) -> javaHelloWorld(package2, className2)
+          else if (inputType == "Scala")
+            scalaHelloWorld(package1, className1) -> scalaHelloWorld(package2, className2)
+          else scalaScriptHelloWorld              -> scalaScriptHelloWorld
+        TestInputs(
+          os.rel / sourceDir1 / package1 / sourceFileName1 -> code1,
+          os.rel / sourceDir2 / package2 / sourceFileName2 -> code2
+        ).fromRoot { (root: os.Path) =>
+          val targetDirOptions =
+            semanticDbTargetDir match {
+              case Some(targetDir) => Seq("--semanticdb-targetroot", targetDir)
+              case None            => Nil
+            }
+          val workspaceDirOptions =
+            workspaceDir match {
+              case Some(workspaceDir) => Seq("--workspace", workspaceDir)
+              case None               => Nil
+            }
+          val semanticDbOptions: Seq[String] =
+            targetDirOptions ++ Seq(
+              "--semanticdb",
+              "--semanticdb-sourceroot",
+              root.toString
+            )
+          os.proc(
+            TestUtil.cli,
+            "compile",
+            extraOptions,
+            workspaceDirOptions,
+            semanticDbOptions,
+            sourceDir1,
+            sourceDir2
+          )
+            .call(cwd = root)
+          val files = os.walk(semanticDbTargetDir.map(root / _)
+            .orElse(workspaceDir.map(root / _))
+            .getOrElse(root / sourceDir1 / Constants.workspaceDirName))
+          val semDbFiles = files
+            .filter(_.last.endsWith(".semanticdb"))
+            .filter(!_.segments.exists(_ == "bloop-internal-classes"))
+          expect(semDbFiles.length == 2)
+          val semDbFile1 = semDbFiles.find(_.last == s"$sourceFileName1.semanticdb").get
+          expect(
+            semDbFile1.endsWith(
+              os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 / s"$sourceFileName1.semanticdb"
+            )
+          )
+          val semDbFile2 = semDbFiles.find(_.last == s"$sourceFileName2.semanticdb").get
+          expect(
+            semDbFile2.endsWith(
+              os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 / s"$sourceFileName2.semanticdb"
+            )
+          )
+        }
+      }
+  }
+  test(
+    "Scala script SemanticDB with forced source root and custom workspace directory outside of root"
+  ) {
+    TestInputs(os.rel / "projectRoot" / "foo" / "Test.sc" -> scalaScriptHelloWorld).fromRoot {
+      (root: os.Path) =>
+        val customWorkspace = root / "custom-workspace"
         os.proc(
           TestUtil.cli,
           "compile",
           extraOptions,
-          semanticDbOptions,
-          sourceDir1,
-          sourceDir2
-        )
-          .call(cwd = root)
-        val files = os.walk(semanticDbTargetDir.map(root / _)
-          .getOrElse(root / sourceDir1 / Constants.workspaceDirName))
-        val semDbFiles = files
+          "--workspace",
+          customWorkspace.toString(),
+          "--semanticdb-sourceroot",
+          "projectRoot",
+          "--semanticdb",
+          "projectRoot"
+        ).call(cwd = root)
+        val semDbFiles = os.walk(customWorkspace / Constants.workspaceDirName)
           .filter(_.last.endsWith(".semanticdb"))
           .filter(!_.segments.exists(_ == "bloop-internal-classes"))
-        expect(semDbFiles.length == 2)
-        val semDbFile1 = semDbFiles.find(_.last == s"$sourceFileName1.semanticdb").get
+        expect(semDbFiles.length == 1)
         expect(
-          semDbFile1.endsWith(
-            os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 / s"$sourceFileName1.semanticdb"
+          semDbFiles.head.endsWith(
+            os.rel / "META-INF" / "semanticdb" / "foo" / "Test.sc.semanticdb"
           )
         )
-        val semDbFile2 = semDbFiles.find(_.last == s"$sourceFileName2.semanticdb").get
-        expect(
-          semDbFile2.endsWith(
-            os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 / s"$sourceFileName2.semanticdb"
-          )
-        )
-      }
     }
   }
 }
