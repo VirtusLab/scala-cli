@@ -4,14 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-// format: off
-class ReplTests213 extends ReplTestDefinitions(
-  scalaVersionOpt = Some(Constants.scala213)
-) {
-  // format: on
-
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
-
+class ReplTests213 extends ReplTestDefinitions with Test213 {
   test("repl custom repositories work") {
     TestInputs.empty.fromRoot { root =>
       os.proc(
@@ -26,7 +19,7 @@ class ReplTests213 extends ReplTestDefinitions(
     }
   }
 
-  test("ammonite with extra JAR") {
+  def ammoniteWithExtraJarTest(): Unit = {
     TestInputs.empty.fromRoot { root =>
       val ammArgs = Seq(
         "-c",
@@ -45,18 +38,24 @@ class ReplTests213 extends ReplTestDefinitions(
           .out
           .text()
           .trim
-      // format: off
       val cmd = Seq[os.Shellable](
-        TestUtil.cli, "--power", "repl", extraOptions,
-        "--jar", shapelessJar,
+        TestUtil.cli,
+        "--power",
+        "repl",
+        ammoniteExtraOptions,
+        "--jar",
+        shapelessJar,
         "--ammonite",
         ammArgs
       )
-      // format: on
       val res    = os.proc(cmd).call(cwd = root)
       val output = res.out.trim()
       expect(output == "Here's an HList: 2 :: true :: a :: HNil")
     }
+  }
+
+  test(s"ammonite with extra JAR$ammoniteMaxVersionString") {
+    ammoniteWithExtraJarTest()
   }
 
 }

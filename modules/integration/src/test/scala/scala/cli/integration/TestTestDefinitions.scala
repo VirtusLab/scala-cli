@@ -4,9 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
 
-abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
+abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   protected val jvmOptions: Seq[String] =
     // seems munit requires this with Scala 3
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
@@ -566,12 +565,15 @@ abstract class TestTestDefinitions(val scalaVersionOpt: Option[String])
         expect(baseOutput.contains("Hello from tests"))
         expect(!baseOutput.contains("Hello from CustomFramework"))
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "test", extraOptions, platformArgs, ".",
-          "--test-framework", "custom.CustomFramework"
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          platformArgs,
+          ".",
+          "--test-framework",
+          "custom.CustomFramework"
         )
-        // format: on
         val res    = os.proc(cmd).call(cwd = root)
         val output = res.out.text()
         expect(output.contains("Hello from tests"))

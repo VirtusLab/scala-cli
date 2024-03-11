@@ -1176,7 +1176,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M0-60-89836cd8 by default)
+Set the Ammonite version (3.0.0-M0-92-0b2ae1a1 by default)
 
 ### `--ammonite-arg`
 
@@ -1276,6 +1276,10 @@ Emit source maps
 
 Set the destination path of source maps
 
+### `--js-es-module-import-map`
+
+A file relative to the root directory containing import maps for ES module imports
+
 ### `--js-dom`
 
 Enable jsdom
@@ -1316,7 +1320,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.15.0 by default).
+Scala.js CLI version to use for linking (1.15.0.1 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1342,7 +1346,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 ### `--native-mode`
 
@@ -1469,7 +1473,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.3.1 by default)
+Set the Scala version (3.4.0 by default)
 
 ### `--scala-binary-version`
 
@@ -1529,11 +1533,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 
 [Internal]
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-### `--semantic-db`
-
-[Internal]
-Generate SemanticDBs
 
 ### `--strict-bloop-json-check`
 
@@ -2149,6 +2148,35 @@ How many times to retry the staging repository operations on failure.
 
 [Internal]
 Time to wait between staging repository operation retries, in milliseconds.
+
+### Semantic db options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--semantic-db`
+
+Aliases: `--semanticdb`
+
+[Internal]
+Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+[Internal]
+SemanticDB target root (default to the compiled classes destination directory)
+
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+[Internal]
+SemanticDB source root (default to the project root directory)
 
 ### Setup IDE options
 

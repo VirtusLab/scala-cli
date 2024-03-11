@@ -518,7 +518,7 @@ The using directive allows you to define the image registry.
 //> using packaging.dockerImageRegistry virtuslab
 ```
 
-#### packaging.dockerImageRegistry
+#### packaging.dockerImageRepository
 
 The using directive allows you to define the image repository.
 

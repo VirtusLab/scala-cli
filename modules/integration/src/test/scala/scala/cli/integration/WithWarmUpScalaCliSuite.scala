@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 abstract class WithWarmUpScalaCliSuite extends ScalaCliSuite {
-
   def warmUpExtraTestOptions: Seq[String]
 
   // warm-up run that downloads compiler bridges

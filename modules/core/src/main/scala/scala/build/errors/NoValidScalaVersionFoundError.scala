@@ -1,7 +1,7 @@
 package scala.build.errors
 
-import scala.build.errors.ScalaVersionError.getTheGeneralErrorInfo
-
-final class NoValidScalaVersionFoundError(val foundVersions: Seq[String]) extends ScalaVersionError(
-      s"Cannot find a valid matching Scala version among ${foundVersions.mkString(", ")}"
-    )
+final class NoValidScalaVersionFoundError(val versionString: String = "")
+    extends ScalaVersionError({
+      val suffix = if versionString.nonEmpty then s" for $versionString" else ""
+      s"Cannot find a valid matching Scala version$suffix."
+    })

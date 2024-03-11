@@ -75,7 +75,7 @@ and this:
 scala-cli -S 2.12 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.12\.18
+Scala: 2\.12\.
 -->
 
 In the first example (`-S 2`), the application picks up the latest Scala 2 stable release (`2.13.9` at the time of this writing).
@@ -103,7 +103,7 @@ scala-cli ScalaVersion.scala version.scala
 ```
 
 <!-- Expected-regex:
-Scala: 2\.12\.18
+Scala: 2\.12\.
 -->
 
 The output at the time of this writing is "`2.12.18`".

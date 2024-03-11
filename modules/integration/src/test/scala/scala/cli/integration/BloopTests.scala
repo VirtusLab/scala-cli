@@ -8,7 +8,6 @@ import scala.concurrent.duration.Duration
 import scala.util.Properties
 
 class BloopTests extends ScalaCliSuite {
-
   def runScalaCli(args: String*): os.proc = os.proc(TestUtil.cli, args)
 
   private lazy val bloopDaemonDir =

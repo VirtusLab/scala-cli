@@ -138,7 +138,7 @@ final case class BuildOptions(
   private def semanticDbPlugins(logger: Logger): Either[BuildException, Seq[AnyDependency]] =
     either {
       val scalaVersion: Option[String] = value(scalaParams).map(_.scalaVersion)
-      val generateSemDbs               = scalaOptions.generateSemanticDbs.getOrElse(false)
+      val generateSemDbs = scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
       scalaVersion match {
         case Some(sv) if sv.startsWith("2.") && generateSemDbs =>
           val semanticDbVersion = findSemanticDbVersion(sv, logger)
@@ -194,7 +194,7 @@ final case class BuildOptions(
     }
 
   private def semanticDbJavacPlugins: Either[BuildException, Seq[AnyDependency]] = either {
-    val generateSemDbs = scalaOptions.generateSemanticDbs.getOrElse(false)
+    val generateSemDbs = scalaOptions.semanticDbOptions.generateSemanticDbs.getOrElse(false)
     if (generateSemDbs)
       Seq(
         dep"$semanticDbJavacPluginOrganization:$semanticDbJavacPluginModuleName:$semanticDbJavacPluginVersion"
@@ -330,6 +330,16 @@ final case class BuildOptions(
       case Some(MaybeScalaVersion(Some(svInput))) =>
         val sv = value {
           svInput match {
+            case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
+              ScalaVersionUtil.validateStable(
+                Constants.scala3LtsPrefix,
+                cache,
+                repositories
+              )
+            case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
+              Left(new ScalaVersionError(
+                s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
+              ))
             case sv if sv == ScalaVersionUtil.scala3Nightly =>
               ScalaVersionUtil.GetNightly.scala3(cache)
             case scala3NightlyNicknameRegex(threeSubBinaryNum) =>

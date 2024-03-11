@@ -1,7 +1,6 @@
 package scala.cli.integration
 
-class ExportSbtTests213
-    extends ExportSbtTestDefinitions(scalaVersionOpt = Some(Constants.scala213)) {
+class ExportSbtTests213 extends ExportSbtTestDefinitions with Test213 {
   if (runExportTests) {
     test("scalac options") {
       simpleTest(ExportTestProjects.scalacOptionsScala2Test(actualScalaVersion))

@@ -22,12 +22,12 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.fromRoot { root =>
       def run(warnAny: Boolean) = {
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, extraOptions, ".",
+          TestUtil.cli,
+          extraOptions,
+          ".",
           if (warnAny) Seq("-Xlint:infer-any") else Nil
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stderr = os.Pipe
@@ -70,13 +70,14 @@ trait RunScalacCompatTestDefinitions { _: RunTestDefinitions =>
     inputs.fromRoot { root =>
       // FIXME We don't really use the run command here, in spite of being in RunTests…
       def classNames(inlineDelambdafy: Boolean): Seq[String] = {
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "compile", extraOptions,
-          "--print-class-path", ".",
+          TestUtil.cli,
+          "compile",
+          extraOptions,
+          "--print-class-path",
+          ".",
           if (inlineDelambdafy) Seq("-Ydelambdafy:inline") else Nil
         )
-        // format: on
         val res = os.proc(cmd).call(cwd = root)
         val cp  = res.out.trim().split(File.pathSeparator).toVector.map(os.Path(_, os.pwd))
         cp

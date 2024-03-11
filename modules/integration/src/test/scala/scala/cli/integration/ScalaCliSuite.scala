@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 abstract class ScalaCliSuite extends munit.FunSuite {
-
   val testStartEndLogger = new Fixture[Unit]("files") {
     def apply(): Unit = ()
 
@@ -35,5 +34,6 @@ object ScalaCliSuite {
     case object First  extends TestGroup(1)
     case object Second extends TestGroup(2)
     case object Third  extends TestGroup(3)
+    case object Fourth extends TestGroup(4)
   }
 }

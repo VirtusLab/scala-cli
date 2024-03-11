@@ -21,8 +21,9 @@ object TestUtil {
   val isM1: Boolean                = sys.props.get("os.arch").contains("aarch64")
   val cliPath: String              = sys.props("test.scala-cli.path")
   val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
-  val detectCliPath                = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  val detectCliPath: String        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
   val cli: Seq[String]             = cliCommand(cliPath)
+  val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
@@ -40,12 +41,12 @@ object TestUtil {
         case _ => Seq("java", "-Xmx512m", "-Xms128m", "-jar", cliPath)
       }
 
-  // format: off
   val extraOptions: List[String] = List(
-    "--bloop-startup-timeout", "2min",
-    "--bloop-bsp-timeout", "1min"
+    "--bloop-startup-timeout",
+    "2min",
+    "--bloop-bsp-timeout",
+    "1min"
   )
-  // format: on
 
   def fromPath(app: String): Option[String] = {
 

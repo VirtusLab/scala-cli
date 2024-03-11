@@ -22,9 +22,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
-abstract class BspTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
+abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
 
   import BspTestDefinitions.*

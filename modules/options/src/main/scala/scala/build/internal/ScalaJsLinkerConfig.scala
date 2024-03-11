@@ -10,7 +10,8 @@ final case class ScalaJsLinkerConfig(
   esFeatures: ScalaJsLinkerConfig.ESFeatures = ScalaJsLinkerConfig.ESFeatures(),
   jsHeader: Option[String] = None,
   prettyPrint: Boolean = false,
-  relativizeSourceMapBase: Option[String] = None
+  relativizeSourceMapBase: Option[String] = None,
+  remapEsModuleImportMap: Option[os.Path] = None
 ) {
   def linkerCliArgs: Seq[String] = {
     val moduleKindArgs       = Seq("--moduleKind", moduleKind)
@@ -30,6 +31,10 @@ final case class ScalaJsLinkerConfig(
       if (prettyPrint) Seq("--prettyPrint")
       else Nil
     val jsHeaderArg = if (jsHeader.nonEmpty) Seq("--jsHeader", jsHeader.getOrElse("")) else Nil
+    val jsEsModuleImportMap = if (remapEsModuleImportMap.nonEmpty)
+      Seq("--importmap", remapEsModuleImportMap.getOrElse(os.pwd / "importmap.json").toString)
+    else Nil
+
     val configArgs = Seq[os.Shellable](
       moduleKindArgs,
       moduleSplitStyleArgs,
@@ -39,7 +44,8 @@ final case class ScalaJsLinkerConfig(
       sourceMapArgs,
       relativizeSourceMapBaseArgs,
       jsHeaderArg,
-      prettyPrintArgs
+      prettyPrintArgs,
+      jsEsModuleImportMap
     )
 
     configArgs.flatMap(_.value)

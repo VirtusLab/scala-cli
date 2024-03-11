@@ -93,16 +93,24 @@ object NativeImage {
     res.exitCode
   }
 
+  private lazy val mountedDrives: String = {
+    val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
+    val queryDrives = s"reg query $str"
+    val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
+    val dosDevices = lines.filter { s =>
+      s.contains("DosDevices")
+    }.map { s =>
+      s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
+    }
+    dosDevices.mkString
+  }
   private def availableDriveLetter(): Char = {
 
     @tailrec
     def helper(from: Char): Char =
       if (from > 'Z') sys.error("Cannot find free drive letter")
-      else {
-        val p = os.Path(s"$from:" + "\\")
-        if (os.exists(p)) helper((from + 1).toChar)
-        else from
-      }
+      else if (mountedDrives.contains(from)) helper((from + 1).toChar)
+      else from
 
     helper('D')
   }

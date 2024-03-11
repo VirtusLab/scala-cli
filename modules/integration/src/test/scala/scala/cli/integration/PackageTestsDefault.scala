@@ -2,8 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class PackageTestsDefault extends PackageTestDefinitions(scalaVersionOpt = None) {
-
+class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
   test("reuse run native binary") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->

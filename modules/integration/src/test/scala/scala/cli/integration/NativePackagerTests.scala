@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 class NativePackagerTests extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   val helloWorldFileName = "HelloWorldScalaCli.scala"
@@ -31,14 +30,20 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val appName    = helloWorldFileName.stripSuffix(".scala").toLowerCase
         val pkgAppFile = s"$appName.pkg"
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--pkg",
-          "--output", pkgAppFile,
-          "--identifier", "scala-cli",
-          "--launcher-app", appName
+          TestUtil.cli,
+          "--power",
+          "package",
+          TestUtil.extraOptions,
+          helloWorldFileName,
+          "--pkg",
+          "--output",
+          pkgAppFile,
+          "--identifier",
+          "scala-cli",
+          "--launcher-app",
+          appName
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stdin = os.Inherit,
@@ -69,14 +74,20 @@ class NativePackagerTests extends ScalaCliSuite {
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
         val output  = s"$appName.dmg"
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--dmg",
-          "--output", output,
-          "--identifier", "scala-cli",
-          "--launcher-app", appName
+          TestUtil.cli,
+          "--power",
+          "package",
+          TestUtil.extraOptions,
+          helloWorldFileName,
+          "--dmg",
+          "--output",
+          output,
+          "--identifier",
+          "scala-cli",
+          "--launcher-app",
+          appName
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stdin = os.Inherit,
@@ -130,17 +141,26 @@ class NativePackagerTests extends ScalaCliSuite {
         val destDir = os.rel / "package"
         os.makeDir.all(root / destDir)
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--deb",
-          "--output", destDir / s"$appName.deb",
-          "--maintainer", "scala-cli-test",
-          "--description", "scala-cli-test",
-          "--launcher-app", appName,
-          "--priority", priority,
-          "--section", section,
+          TestUtil.cli,
+          "--power",
+          "package",
+          TestUtil.extraOptions,
+          helloWorldFileName,
+          "--deb",
+          "--output",
+          destDir / s"$appName.deb",
+          "--maintainer",
+          "scala-cli-test",
+          "--description",
+          "scala-cli-test",
+          "--launcher-app",
+          appName,
+          "--priority",
+          priority,
+          "--section",
+          section
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stdin = os.Inherit,
@@ -196,16 +216,24 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "--power", "package", TestUtil.extraOptions, helloWorldFileName, "--rpm",
-          "--output", s"$appName.rpm",
-          "--description", "scala-cli",
-          "--license", "ASL 2.0",
-          "--version", "1.0.0",
-          "--launcher-app", appName
+          TestUtil.cli,
+          "--power",
+          "package",
+          TestUtil.extraOptions,
+          helloWorldFileName,
+          "--rpm",
+          "--output",
+          s"$appName.rpm",
+          "--description",
+          "scala-cli",
+          "--license",
+          "ASL 2.0",
+          "--version",
+          "1.0.0",
+          "--launcher-app",
+          appName
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stdin = os.Inherit,
@@ -225,17 +253,24 @@ class NativePackagerTests extends ScalaCliSuite {
 
         val appName = helloWorldFileName.stripSuffix(".scala").toLowerCase()
 
-        // format: off
         val cmd = Seq[os.Shellable](
-          TestUtil.cli, "--power", "package", helloWorldFileName, "--msi",
-          "--output", s"$appName.msi",
-          "--product-name", "scala-cli",
-          "--license-path", licencePath,
-          "--maintainer", "Scala-CLI",
-          "--launcher-app", appName,
+          TestUtil.cli,
+          "--power",
+          "package",
+          helloWorldFileName,
+          "--msi",
+          "--output",
+          s"$appName.msi",
+          "--product-name",
+          "scala-cli",
+          "--license-path",
+          licencePath,
+          "--maintainer",
+          "Scala-CLI",
+          "--launcher-app",
+          appName,
           "--suppress-validation"
         )
-        // format: on
         os.proc(cmd).call(
           cwd = root,
           stdin = os.Inherit,
@@ -254,16 +289,17 @@ class NativePackagerTests extends ScalaCliSuite {
       val imageRepository = appName.toLowerCase()
       val imageTag        = "latest"
 
-      // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
         "--power",
-        "package", helloWorldFileName,
+        "package",
+        helloWorldFileName,
         "--docker",
-        "--docker-image-repository", imageRepository,
-        "--docker-image-tag", imageTag
+        "--docker-image-repository",
+        imageRepository,
+        "--docker-image-tag",
+        imageTag
       )
-      // format: on
 
       os.proc(cmd)
         .call(
@@ -291,15 +327,17 @@ class NativePackagerTests extends ScalaCliSuite {
       val imageRepository = appName.toLowerCase()
       val imageTag        = "latest"
 
-      // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
         "--power",
-        "package", helloWorldFileName,
+        "package",
+        helloWorldFileName,
         "--js",
         "--docker",
-        "--docker-image-repository", imageRepository,
-        "--docker-image-tag", imageTag
+        "--docker-image-repository",
+        imageRepository,
+        "--docker-image-tag",
+        imageTag
       )
       // format: on
 
@@ -330,18 +368,20 @@ class NativePackagerTests extends ScalaCliSuite {
       val imageRepository = appName.toLowerCase()
       val imageTag        = "latest"
 
-      // format: off
       val cmd = Seq[os.Shellable](
         TestUtil.cli,
         "--power",
-        "package", helloWorldFileName,
+        "package",
+        helloWorldFileName,
         "--native",
-        "-S", "2.13.6",
+        "-S",
+        "2.13.6",
         "--docker",
-        "--docker-image-repository", imageRepository,
-        "--docker-image-tag", imageTag
+        "--docker-image-repository",
+        imageRepository,
+        "--docker-image-tag",
+        imageTag
       )
-      // format: on
 
       os.proc(cmd)
         .call(

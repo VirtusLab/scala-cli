@@ -6,7 +6,6 @@ import os.CommandResult
 import scala.util.Properties
 
 class SipScalaTests extends ScalaCliSuite {
-
   implicit class StringEnrichment(s: String) {
     def containsExperimentalWarningOf(featureNameAndType: String): Boolean =
       s.contains(s"The $featureNameAndType is experimental") ||

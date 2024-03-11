@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 class MetaCheck extends ScalaCliSuite {
-
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
   /*
@@ -50,7 +49,7 @@ class MetaCheck extends ScalaCliSuite {
       // --ttl 0s so that we are sure we use the latest supported Scala versions listing
       val res          = os.proc(TestUtil.cli, ".", "--ttl", "0s").call(cwd = root)
       val scalaVersion = res.out.trim()
-      expect(scalaVersion == Constants.scala3)
+      expect(scalaVersion == Constants.defaultScala)
     }
   }
 }

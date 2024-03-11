@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class PublishLocalTestsDefault extends PublishLocalTestDefinitions(scalaVersionOpt = None)
+class PublishLocalTestsDefault extends PublishLocalTestDefinitions with TestDefault

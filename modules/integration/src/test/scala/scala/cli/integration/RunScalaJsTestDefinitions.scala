@@ -291,6 +291,156 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("remap imports directive") {
+    val importmapFile = "importmap.json"
+    val outDir        = "out"
+    val fileName      = os.rel / "run.scala"
+
+    val inputs = TestInputs(
+      fileName ->
+        s"""//> using jsEsModuleImportMap $importmapFile
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
+           |import scala.scalajs.js
+           |import scala.scalajs.js.annotation.JSImport
+           |import scala.scalajs.js.typedarray.Float64Array
+           |
+           |object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println(Array(-10.0, 10.0, 10).mkString(", "))
+           |    println(linspace(0, 10, 10).mkString(", "))
+           |  }
+           |}
+           |
+           |@js.native
+           |@JSImport("@stdlib/linspace", JSImport.Default)
+           |object linspace extends js.Object {
+           |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
+           |}""".stripMargin,
+      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val absOutDir = root / outDir
+      val outFile   = absOutDir / "main.js"
+      os.makeDir.all(absOutDir)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        fileName,
+        "--js",
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
+        "-f"
+      ).call(cwd = root).out.trim()
+      expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
+    }
+  }
+
+  test("remap imports directive error") {
+    val fileName = os.rel / "run.scala"
+    val notexist = "I_DONT_EXIST.json"
+    val inputs = TestInputs(
+      fileName ->
+        s"""//> using jsEsModuleImportMap $notexist
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
+           |import scala.scalajs.js
+           |import scala.scalajs.js.annotation.JSImport
+           |import scala.scalajs.js.typedarray.Float64Array
+           |
+           |object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println(Array(-10.0, 10.0, 10).mkString(", "))
+           |    println(linspace(0, 10, 10).mkString(", "))
+           |  }
+           |}
+           |
+           |@js.native
+           |@JSImport("@stdlib/linspace", JSImport.Default)
+           |object linspace extends js.Object {
+           |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
+           |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val absOutDir = root / "outDir"
+      val outFile   = absOutDir / "main.js"
+      os.makeDir.all(absOutDir)
+      val result = os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        fileName,
+        "--js",
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
+        "-f"
+      ).call(cwd = root, check = false, mergeErrIntoOut = true).out.trim()
+      expect(result.contains(notexist))
+      expect(result.contains("Invalid path to EsImportMap."))
+    }
+  }
+
+  test("remap imports cmd") {
+    val importmapFile = "importmap.json"
+    val outDir        = "out"
+    val fileName      = os.rel / "run.scala"
+
+    val inputs = TestInputs(
+      fileName ->
+        s"""
+           | //> using jsModuleKind es
+           | //> using jsMode fastLinkJS
+           | //> using platform js
+           |
+           |import scala.scalajs.js
+           |import scala.scalajs.js.annotation.JSImport
+           |import scala.scalajs.js.typedarray.Float64Array
+           |
+           |object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println(Array(-10.0, 10.0, 10).mkString(", "))
+           |    println(linspace(0, 10, 10).mkString(", "))
+           |  }
+           |}
+           |
+           |@js.native
+           |@JSImport("@stdlib/linspace", JSImport.Default)
+           |object linspace extends js.Object {
+           |  def apply(start: Double, stop: Double, num: Int): Float64Array = js.native
+           |}""".stripMargin,
+      os.rel / importmapFile -> """{"imports": {"@stdlib/linspace": "https://cdn.skypack.dev/@stdlib/linspace"}}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val absOutDir = root / outDir
+      val outFile   = absOutDir / "main.js"
+      os.makeDir.all(absOutDir)
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        fileName,
+        "--js",
+        "--js-module-kind",
+        "ESModule",
+        "-o",
+        outFile,
+        "-f",
+        "--js-es-module-import-map",
+        importmapFile
+      ).call(cwd = root, stdout = os.Inherit).out.trim()
+      expect(os.read(outFile).contains("https://cdn.skypack.dev/@stdlib/linspace"))
+    }
+  }
+
   test("js defaults & toolkit default") {
     val msg = "Hello"
     TestInputs(

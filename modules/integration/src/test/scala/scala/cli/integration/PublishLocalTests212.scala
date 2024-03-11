@@ -1,4 +1,3 @@
 package scala.cli.integration
 
-class PublishLocalTests212
-    extends PublishLocalTestDefinitions(scalaVersionOpt = Some(Constants.scala212))
+class PublishLocalTests212 extends PublishLocalTestDefinitions with Test212

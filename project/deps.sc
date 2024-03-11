@@ -1,24 +1,30 @@
 import mill._, scalalib._
 
 object Scala {
-  def scala212     = "2.12.18"
-  def scala213     = "2.13.12"
-  def runnerScala3 = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3       = "3.3.1"
+  def scala212        = "2.12.19"
+  def scala213        = "2.13.13"
+  def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
+  def scala3LtsPrefix = "3.3"   // used for the LTS version tags
+  def scala3Lts  = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
+  def scala3Next = "3.4.0"               // the newest/next version of Scala
 
   // The Scala version used to build the CLI itself.
-  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3)
+  def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
 
   // The Scala version used by default to compile user input.
-  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3)
+  def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
 
-  val allScala2           = Seq(scala213, scala212)
-  val defaults            = Seq(defaultInternal, defaultUser).distinct
-  val all                 = (allScala2 ++ Seq(scala3) ++ defaults).distinct
-  val mainVersions        = (Seq(scala3, scala213) ++ defaults).distinct
-  val runnerScalaVersions = runnerScala3 +: allScala2
+  val allScala2               = Seq(scala213, scala212)
+  val defaults                = Seq(defaultInternal, defaultUser).distinct
+  val allScala3               = Seq(scala3Lts, scala3Next)
+  val all                     = (allScala2 ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions      = (defaults ++ allScala3).distinct
+  val mainVersions            = (Seq(scala213) ++ scala3MainVersions).distinct
+  val runnerScalaVersions     = runnerScala3 +: allScala2
+  val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
-  def scalaJs = "1.15.0"
+  def scalaJs    = "1.15.0"
+  def scalaJsCli = "1.15.0.1" // this must be compatible with the Scala.js version
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -28,18 +34,20 @@ object Scala {
     val max30  = 2
     val max31  = 3
     val max32  = 2
-    val max33  = patchVer(scala3)
+    val max33  = patchVer(scala3Lts)
+    val max34  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
       (0 to max32).map(i => s"3.2.$i") ++
-      (0 until max33).map(i => s"3.3.$i") ++ Seq(scala3)
+      (0 until max33).map(i => s"3.3.$i") ++
+      (0 until max34).map(i => s"3.4.$i") ++ Seq(scala3Next)
   }
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = scala3
+  def maxAmmoniteScala3Version   = scala3Lts
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
@@ -80,14 +88,14 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault      = "2.1.8"
+    def coursierDefault      = "2.1.9"
     def coursier             = coursierDefault
     def coursierCli          = coursierDefault
     def coursierM1Cli        = coursierDefault
     def jsoniterScala        = "2.23.2"
     def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.8.15"
-    def scalaNative          = "0.4.16"
+    def scalaMeta            = "4.9.1"
+    def scalaNative          = "0.4.17"
     def scalaPackager        = "0.1.29"
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
@@ -96,13 +104,13 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-60-89836cd8"
+  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M0-92-0b2ae1a1"
   def asm      = ivy"org.ow2.asm:asm:9.6"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-3"
-  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.0-M7"
+  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M26"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
   // Force using of 2.13 - is there a better way?
@@ -184,8 +192,8 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.11"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.2"
+  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.12"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.3"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"

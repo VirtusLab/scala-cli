@@ -800,7 +800,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.15.0 by default).
+Scala.js CLI version to use for linking (1.15.0.1 by default).
 
 ### `--js-cli-java-arg`
 
@@ -832,7 +832,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.4.16 by default).
+Set the Scala Native version (0.4.17 by default).
 
 ### `--native-mode`
 
@@ -954,7 +954,7 @@ Aliases: `-S`, `--scala`
 
 `MUST have` per Scala Runner specification
 
-Set the Scala version (3.3.1 by default)
+Set the Scala version (3.4.0 by default)
 
 ### `--scala-binary-version`
 
@@ -1025,12 +1025,6 @@ Do not add dependency to Scala Standard library. This is useful, when Scala CLI 
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Should include Scala CLI runner on the runtime ClassPath. Runner is added by default for application running on JVM using standard Scala versions. Runner is used to make stack traces more readable in case of application failure.
-
-### `--semantic-db`
-
-`SHOULD have` per Scala Runner specification
-
-Generate SemanticDBs
 
 ### `--strict-bloop-json-check`
 
@@ -1472,6 +1466,38 @@ Available in commands:
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Don't actually run the REPL, just fetch it
+
+### Semantic db options
+
+Available in commands:
+
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--semantic-db`
+
+Aliases: `--semanticdb`
+
+`SHOULD have` per Scala Runner specification
+
+Generate SemanticDBs
+
+### `--semantic-db-target-root`
+
+Aliases: `--semanticdb-target-root`, `--semanticdb-targetroot`
+
+`SHOULD have` per Scala Runner specification
+
+SemanticDB target root (default to the compiled classes destination directory)
+
+### `--semantic-db-source-root`
+
+Aliases: `--semanticdb-source-root`, `--semanticdb-sourceroot`
+
+`SHOULD have` per Scala Runner specification
+
+SemanticDB source root (default to the project root directory)
 
 ### Setup IDE options
 

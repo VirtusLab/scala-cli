@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 class UpdateTests extends ScalaCliSuite {
-
   val firstVersion           = "0.0.1"
   val dummyScalaCliFirstName = "DummyScalaCli-1.scala"
   val dummyScalaCliBinName   = "scala-cli-dummy-test"
@@ -18,11 +17,14 @@ class UpdateTests extends ScalaCliSuite {
   )
 
   private def packageDummyScalaCli(root: os.Path, dummyScalaCliFileName: String, output: String) = {
-    // format: off
     val cmd = Seq[os.Shellable](
-      TestUtil.cli, "--power", "package", dummyScalaCliFileName, "-o", output
+      TestUtil.cli,
+      "--power",
+      "package",
+      dummyScalaCliFileName,
+      "-o",
+      output
     )
-    // format: on
     os.proc(cmd).call(
       cwd = root,
       stdin = os.Inherit,
@@ -35,16 +37,18 @@ class UpdateTests extends ScalaCliSuite {
     binVersion: String,
     binDirPath: os.Path
   ) = {
-    // format: off
     val cmdInstallVersion = Seq[os.Shellable](
-      TestUtil.cli, "install-home",
+      TestUtil.cli,
+      "install-home",
       "--env",
-      "--scala-cli-binary-path", binVersion,
-      "--binary-name", dummyScalaCliBinName,
-      "--bin-dir", binDirPath,
+      "--scala-cli-binary-path",
+      binVersion,
+      "--binary-name",
+      dummyScalaCliBinName,
+      "--bin-dir",
+      binDirPath,
       "--force"
     )
-    // format: on
     os.proc(cmdInstallVersion).call(
       cwd = root,
       stdin = os.Inherit,
@@ -77,16 +81,16 @@ class UpdateTests extends ScalaCliSuite {
         if (System.getenv("UPDATE_GH_TOKEN") == null) Nil
         else Seq("--gh-token", "env:UPDATE_GH_TOKEN")
       // update to newest version
-      // format: off
       val cmdUpdate = Seq[os.Shellable](
         TestUtil.cli,
         "update",
-        "--binary-name", dummyScalaCliBinName,
-        "--bin-dir", binDirPath,
+        "--binary-name",
+        dummyScalaCliBinName,
+        "--bin-dir",
+        binDirPath,
         "--force",
         tokenOptions
       )
-      // format: on
       os.proc(cmdUpdate).call(
         cwd = root,
         stdin = os.Inherit,

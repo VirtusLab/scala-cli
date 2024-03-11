@@ -337,7 +337,7 @@ To use the latest Scala CLI nightly build, pass `nightly` to `--cli-version` par
 
 <ChainedSnippets>
 
-```bash
+```bash ignore
 scala-cli --cli-version nightly version
 ```
 

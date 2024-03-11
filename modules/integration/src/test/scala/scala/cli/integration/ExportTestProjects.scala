@@ -3,7 +3,6 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 object ExportTestProjects {
-
   def jvmTest(scalaVersion: String): TestInputs = {
 
     val mainFile =

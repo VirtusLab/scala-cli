@@ -37,44 +37,58 @@ final case class ScalaJsOptions(
 
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
-  jsCheckIr: Option[Boolean] = None,
+    jsCheckIr: Option[Boolean] = None,
 
   @Group(HelpGroup.ScalaJs.toString)
   @HelpMessage("Emit source maps")
   @Tag(tags.should)
     jsEmitSourceMaps: Boolean = false,
+
   @Group(HelpGroup.ScalaJs.toString)
   @HelpMessage("Set the destination path of source maps")
   @Tag(tags.should)
    jsSourceMapsPath: Option[String] = None,
+
+  @Group(HelpGroup.ScalaJs.toString)
+  @HelpMessage("A file relative to the root directory containing import maps for ES module imports")
+  @Tag(tags.restricted)
+    jsEsModuleImportMap: Option[String] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
   @HelpMessage("Enable jsdom")
     jsDom: Option[Boolean] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
   @HelpMessage("A header that will be added at the top of generated .js files")
     jsHeader: Option[String] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.implementation)
   @HelpMessage("Primitive Longs *may* be compiled as primitive JavaScript bigints")
     jsAllowBigIntsForLongs: Option[Boolean] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.implementation)
   @HelpMessage("Avoid class'es when using functions and prototypes has the same observable semantics.")
     jsAvoidClasses: Option[Boolean] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.implementation)
   @HelpMessage("Avoid lets and consts when using vars has the same observable semantics.")
     jsAvoidLetsAndConsts: Option[Boolean] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.implementation)
   @HelpMessage("The Scala.js module split style: fewestmodules, smallestmodules, smallmodulesfor")
     jsModuleSplitStyle: Option[String] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.implementation)
   @HelpMessage("Create as many small modules as possible for the classes in the passed packages and their subpackages.")
     jsSmallModuleForPackage: List[String] = Nil,
+
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
   @HelpMessage("The Scala.js ECMA Script version: es5_1, es2015, es2016, es2017, es2018, es2019, es2020, es2021")
@@ -86,18 +100,21 @@ final case class ScalaJsOptions(
   @Tag(tags.implementation)
   @Hidden
     jsLinkerPath: Option[String] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
-  @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsVersion} by default).")
+  @HelpMessage(s"Scala.js CLI version to use for linking (${Constants.scalaJsCliVersion} by default).")
   @ValueDescription("version")
   @Tag(tags.implementation)
   @Hidden
     jsCliVersion: Option[String] = None,
+
   @Group(HelpGroup.ScalaJs.toString)
   @HelpMessage("Scala.js CLI Java options")
   @Tag(tags.implementation)
   @ValueDescription("option")
   @Hidden
     jsCliJavaArg: List[String] = Nil,
+
   @Group(HelpGroup.ScalaJs.toString)
   @HelpMessage("Whether to run the Scala.js CLI on the JVM or using a native executable")
   @Tag(tags.implementation)

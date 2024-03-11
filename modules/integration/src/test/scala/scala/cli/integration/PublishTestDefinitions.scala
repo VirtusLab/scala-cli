@@ -9,9 +9,8 @@ import java.util.zip.ZipFile
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
-    extends ScalaCliSuite with TestScalaVersionArgs {
-
+abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+  _: TestScalaVersion =>
   protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private object TestCase {
@@ -83,13 +82,14 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       os.Path(Paths.get(uri))
     }
 
-    // format: off
     val signingOptions = Seq(
-      "--secret-key", s"file:$secretKey",
-      "--secret-key-password", "value:1234",
-      "--signer", "bc"
+      "--secret-key",
+      s"file:$secretKey",
+      "--secret-key-password",
+      "value:1234",
+      "--signer",
+      "bc"
     )
-    // format: on
 
     TestCase.testInputs.fromRoot { root =>
       os.proc(
@@ -166,15 +166,16 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
       os.Path(Paths.get(uri))
     }
 
-    // format: off
     val signingOptions = Seq(
-      "--secret-key", s"file:$secretKey",
-      "--secret-key-password", "value:1234",
-      "--signer", "bc",
+      "--secret-key",
+      s"file:$secretKey",
+      "--secret-key-password",
+      "value:1234",
+      "--signer",
+      "bc",
       "--force-signing-externally",
       "--force-jvm-signing-cli"
     )
-    // format: on
 
     val java8Home =
       os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
@@ -387,12 +388,12 @@ abstract class PublishTestDefinitions(val scalaVersionOpt: Option[String])
   }
 
   test("no secret key password") {
-    // format: off
     val signingOptions = Seq(
-      "--secret-key", s"file:key.skr",
-      "--signer", "bc"
+      "--secret-key",
+      s"file:key.skr",
+      "--signer",
+      "bc"
     )
-    // format: on
 
     TestCase.testInputs.fromRoot { root =>
       val confDir  = root / "config"
