@@ -13,10 +13,12 @@ import {currentOs} from "../src/components/osUtils";
         {label: 'Windows', value: 'windows'},
         {label: 'MacOs', value: 'mac'},
         {label: 'Linux', value: 'linux'},
+        {label: 'FreeBSD', value: 'freebsd'},
         ]}>
      <TabItem value="windows"></TabItem>
      <TabItem value="mac"></TabItem>
      <TabItem value="linux"></TabItem>
+     <TabItem value="freebsd"></TabItem>
     </Tabs>
 </SectionAbout>
 
@@ -31,6 +33,7 @@ values={[
 {label: 'Windows', value: 'windows'},
 {label: 'MacOs', value: 'mac'},
 {label: 'Linux', value: 'linux'},
+{label: 'FreeBSD', value: 'freebsd'},
 ]}
 >
 <TabItem value="linux">
@@ -251,6 +254,7 @@ winget install virtuslab.scalacli
 </Tabs>
 
 </TabItem>
+
 <TabItem value="mac">
 
 <Tabs
@@ -328,6 +332,36 @@ sdk install scalacli
 ```
 </TabItem>
 </Tabs>
+
+<TabItem value="freebsd">
+FreeBSD support (and support for other BSDs) is currently very partial. Scala CLI does not distribute for FreeBSD, but you can install it via Coursier's standalone JAR.
+
+Before running Coursier and installing Scala CLI, make sure you have Java 17 or higher installed and in your $PATH:
+```bash
+pkg install openjdk17
+```
+Download Coursier via the [Any JAR option](https://get-coursier.io/docs/cli-installation#latest-launchers):
+```bash
+#Get coursier
+curl https://github.com/coursier/coursier/raw/gh-pages/coursier
+#Add executable permissions and run Coursier to install scala-cli
+#Coursier's setup is not available on FreeBSD
+chmod +x coursier
+./coursier install scala-cli
+
+#Add scala-cli to your $PATH (add the command to your shell's RC file to make the setting permanent)
+#Assuming your home user's directory is "foobar"
+export PATH="$PATH:/home/foobar/.local/share/coursier/bin"
+```
+You now have scala-cli installed in your system, but currently support is partial.
+
+To build your projects successfully, remember to add ```--server=false``` to your CLI arguments.
+
+Any functionality that fetches JVMs from third parties (such as ```--jvm``` and ```package --native-image```) will not work on FreeBSD.
+
+Scala CLI is installed as a JAR rather than a native binary, and so it has a slightly higher startup time.
+
+</TabItem>
 
 </TabItem>
 </Tabs>
