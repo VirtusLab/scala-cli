@@ -13,12 +13,12 @@ import {currentOs} from "../src/components/osUtils";
         {label: 'Windows', value: 'windows'},
         {label: 'MacOs', value: 'mac'},
         {label: 'Linux', value: 'linux'},
-        {label: 'FreeBSD', value: 'freebsd'},
+        {label: 'BSD (experimental)', value: 'bsd'},
         ]}>
      <TabItem value="windows"></TabItem>
      <TabItem value="mac"></TabItem>
      <TabItem value="linux"></TabItem>
-     <TabItem value="freebsd"></TabItem>
+     <TabItem value="bsd"></TabItem>
     </Tabs>
 </SectionAbout>
 
@@ -33,7 +33,7 @@ values={[
 {label: 'Windows', value: 'windows'},
 {label: 'MacOs', value: 'mac'},
 {label: 'Linux', value: 'linux'},
-{label: 'FreeBSD', value: 'freebsd'},
+{label: 'BSD', value: 'bsd'},
 ]}
 >
 <TabItem value="linux">
@@ -335,9 +335,9 @@ sdk install scalacli
 
 </TabItem>
 
-<TabItem value="freebsd">
+<TabItem value="bsd">
 <Tabs
-groupId="freebsd"
+groupId="bsd"
 defaultValue="manual"
 values={[
 {label: 'Manual', value: 'manual'},
@@ -345,12 +345,14 @@ values={[
 >
 
 <TabItem value="manual">
-FreeBSD support (and support for other BSDs) is currently very partial. Scala CLI does not distribute for FreeBSD, but you can install it via Coursier's standalone JAR.
+FreeBSD support (and support for other BSDs) is currently experimental and not stable. Scala CLI is not being distributed for FreeBSD, but you can install it via Coursier's standalone JAR.
 
 Before running Coursier and installing Scala CLI, make sure you have Java 17 or higher installed and in your $PATH:
 ```bash
 pkg install openjdk17
 ```
+Note: Java 17 has to be installed manually on BSD systems at this time.
+
 Download Coursier via the [Any JAR option](https://get-coursier.io/docs/cli-installation#latest-launchers).
 
 After downloading Coursier, you can use it to install Scala CLI:
@@ -358,17 +360,21 @@ After downloading Coursier, you can use it to install Scala CLI:
 chmod +x coursier
 ./coursier install scala-cli
 ```
-You now have scala-cli installed in your system. Scala CLI is installed as a JAR rather than a native binary, and so it has a slightly higher startup time.
+Scala CLI is now installed on your system. It is installed as a JAR rather than a native binary, and so the startup time is slightly longer.
 
-To run scala-cli anywhere on your system, you need to add its binary path to the $PATH variable. Assuming your user directory is **foobar**:
+To run scala-cli anywhere on your system, you need to add its binary path to the $PATH variable. For a given **<user-directory>**:
 ```bash
-export PATH="$PATH:/home/foobar/.local/share/coursier/bin"
+export PATH="$PATH:/home/<user-directory>/.local/share/coursier/bin"
 ```
 Add this command to your shell's RC file to make the setting permanent.
 
-To build your projects successfully, remember to add ```--server=false``` to your CLI arguments, otherwise Scala CLI fails to work on FreeBSD.
+Depending on the Java distribution you are using, it has been observed that Bloop (the build server used by Scala CLI) may have trouble starting on FreeBSD. You may try to customise Bloop JVM options with the `BLOOP_JAVA_OPTS` environment variable. Alternatively, you may skip using the build server altogether and use the compiler directly by passing the `--server=false` option. Please note that doing this will noticably extend project build times.
 
-Any functionality that fetches JVMs from third parties (such as ```--jvm``` and ```package --native-image```) will not work on FreeBSD, as these third parties don't provide FreeBSD builds.
+```bash
+scala-cli run -e 'println("Hello FreeBSD")' --server=false
+```
+
+Any features relying on third-party JVMs (such as ```--jvm``` and ```package --native-image```) may not work on FreeBSD, as those JVMs may not have BSD distributions provided. They may be made to work when a compatible JVM path is provided directly (refer to individual sub-commands' `--help`).
 </TabItem>
 
 </Tabs>
