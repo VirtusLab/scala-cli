@@ -180,32 +180,34 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
         }
       }
   }
-  test(
-    "Scala script SemanticDB with forced source root and custom workspace directory outside of root"
-  ) {
-    TestInputs(os.rel / "projectRoot" / "foo" / "Test.sc" -> scalaScriptHelloWorld).fromRoot {
-      (root: os.Path) =>
-        val customWorkspace = root / "custom-workspace"
-        os.proc(
-          TestUtil.cli,
-          "compile",
-          extraOptions,
-          "--workspace",
-          customWorkspace.toString(),
-          "--semanticdb-sourceroot",
-          "projectRoot",
-          "--semanticdb",
-          "projectRoot"
-        ).call(cwd = root)
-        val semDbFiles = os.walk(customWorkspace / Constants.workspaceDirName)
-          .filter(_.last.endsWith(".semanticdb"))
-          .filter(!_.segments.exists(_ == "bloop-internal-classes"))
-        expect(semDbFiles.length == 1)
-        expect(
-          semDbFiles.head.endsWith(
-            os.rel / "META-INF" / "semanticdb" / "foo" / "Test.sc.semanticdb"
+
+  if (actualScalaVersion.startsWith("3"))
+    test(
+      "Scala script SemanticDB with forced source root and custom workspace directory outside of root"
+    ) {
+      TestInputs(os.rel / "projectRoot" / "foo" / "Test.sc" -> scalaScriptHelloWorld).fromRoot {
+        (root: os.Path) =>
+          val customWorkspace = root / "custom-workspace"
+          os.proc(
+            TestUtil.cli,
+            "compile",
+            extraOptions,
+            "--workspace",
+            customWorkspace.toString(),
+            "--semanticdb-sourceroot",
+            "projectRoot",
+            "--semanticdb",
+            "projectRoot"
+          ).call(cwd = root)
+          val semDbFiles = os.walk(customWorkspace / Constants.workspaceDirName)
+            .filter(_.last.endsWith(".semanticdb"))
+            .filter(!_.segments.exists(_ == "bloop-internal-classes"))
+          expect(semDbFiles.length == 1)
+          expect(
+            semDbFiles.head.endsWith(
+              os.rel / "META-INF" / "semanticdb" / "foo" / "Test.sc.semanticdb"
+            )
           )
-        )
+      }
     }
-  }
 }

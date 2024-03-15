@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import scala.build.options.BuildOptions
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{GeneratedSource, Logger}
-import scala.util.{Either, Right}
+import scala.util.{Either, Right, Try}
 
 case object SemanticDbPostProcessor extends PostProcessor {
   def postProcess(
@@ -24,33 +24,36 @@ case object SemanticDbPostProcessor extends PostProcessor {
     val semDbTargetRoot =
       semanticDbOptions.semanticDbTargetRoot.getOrElse(output) / "META-INF" / "semanticdb"
     for (source <- generatedSources; originalSource <- source.reportingPath) {
-      val fromSourceRoot = source.generated.relativeTo(semDbSourceRoot)
-      val actual         = originalSource.relativeTo(semDbSourceRoot)
+      val actual = originalSource.relativeTo(semDbSourceRoot)
 
-      val semDbSubPath = {
-        val dirSegments = fromSourceRoot.segments.dropRight(1)
-        os.sub / dirSegments / s"${fromSourceRoot.last}.semanticdb"
-      }
-      val semDbFile = semDbTargetRoot / semDbSubPath
-      if (os.exists(semDbFile)) {
-        val finalSemDbFile = {
-          val dirSegments = actual.segments.dropRight(1)
-          semDbTargetRoot / dirSegments / s"${actual.last}.semanticdb"
+      val generatedSourceParent = os.Path(source.generated.toNIO.getParent)
+      val potentialSemDbFile    = generatedSourceParent / (source.generated.last + ".semanticdb")
+      Some(potentialSemDbFile)
+        .filter(os.exists)
+        .orElse(Some(semDbTargetRoot / potentialSemDbFile.relativeTo(semDbSourceRoot)))
+        .filter(os.exists)
+        .foreach { semDbFile =>
+          val finalSemDbFile = {
+            val dirSegments = actual.segments.dropRight(1)
+            semDbTargetRoot / dirSegments / s"${actual.last}.semanticdb"
+          }
+          SemanticdbProcessor.postProcess(
+            os.read(originalSource),
+            originalSource.relativeTo(semDbSourceRoot),
+            scalaLine => scalaLineToScLine(scalaLine, source.wrapperParamsOpt),
+            semDbFile,
+            finalSemDbFile
+          )
+          try os.remove(semDbFile)
+          catch {
+            case ex: FileSystemException =>
+              logger.debug(s"Ignoring $ex while removing $semDbFile")
+          }
+          Try(semDbTargetRoot -> semDbFile.relativeTo(semDbTargetRoot).asSubPath).toOption
+            .foreach { (base, subPath) =>
+              deleteSubPathIfEmpty(base, subPath / os.up, logger)
+            }
         }
-        SemanticdbProcessor.postProcess(
-          os.read(originalSource),
-          originalSource.relativeTo(semDbSourceRoot),
-          scalaLine => scalaLineToScLine(scalaLine, source.wrapperParamsOpt),
-          semDbFile,
-          finalSemDbFile
-        )
-        try os.remove(semDbFile)
-        catch {
-          case ex: FileSystemException =>
-            logger.debug(s"Ignoring $ex while removing $semDbFile")
-        }
-        deleteSubPathIfEmpty(semDbTargetRoot, semDbSubPath / os.up, logger)
-      }
     }
   }
 
