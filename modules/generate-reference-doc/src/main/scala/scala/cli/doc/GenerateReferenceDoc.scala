@@ -114,6 +114,12 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       | - `-nowarn`
       | - `-feature`
       | - `-deprecation`
+      | - `-indent`
+      | - `-no-indent`
+      | - `-unchecked`
+      | - `-rewrite`
+      | - `-old-syntax`
+      | - `-new-syntax`
       |
       |""".stripMargin
 

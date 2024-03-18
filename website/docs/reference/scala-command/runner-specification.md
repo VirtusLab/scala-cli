@@ -38,6 +38,12 @@ are assumed to be Scala compiler options and will be propagated to Scala Compile
  - `-nowarn`
  - `-feature`
  - `-deprecation`
+ - `-indent`
+ - `-no-indent`
+ - `-unchecked`
+ - `-rewrite`
+ - `-old-syntax`
+ - `-new-syntax`
 
 
 

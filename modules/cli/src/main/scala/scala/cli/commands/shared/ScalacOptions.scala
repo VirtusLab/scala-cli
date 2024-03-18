@@ -44,6 +44,7 @@ object ScalacOptions {
     Set("-encoding", "-release", "-color", YScriptRunnerOption)
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
+      "-unchecked",
       "-nowarn",
       "-feature",
       "-deprecation",
