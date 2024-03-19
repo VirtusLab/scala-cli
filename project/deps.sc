@@ -109,7 +109,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:1.5.5"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.11-sc-3"
+  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:1.5.12-sc-1"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M26"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.11.0"
