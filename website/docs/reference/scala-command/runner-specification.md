@@ -134,7 +134,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -895,7 +895,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -1460,7 +1460,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -2051,7 +2051,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -2661,7 +2661,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -3247,7 +3247,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -3870,7 +3870,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -4544,7 +4544,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
@@ -5449,7 +5449,7 @@ Enable Scala.js. To show more options for Scala.js pass `--help-js`
 
 **--js-version**
 
-The Scala.js version (1.15.0 by default).
+The Scala.js version (1.16.0 by default).
 
 **--js-mode**
 
