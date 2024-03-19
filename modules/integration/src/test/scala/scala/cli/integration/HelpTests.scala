@@ -29,6 +29,15 @@ class HelpTests extends ScalaCliSuite {
     test(s"$helpOptionsString output does not include legacy scala runner options") {
       expect(!helpOutput.contains("Legacy Scala runner options"))
     }
+
+    test(s"$helpOptionsString output includes external help options") {
+      expect(helpOutput.contains("--scalac-help"))
+      expect(helpOutput.contains("--help-js"))
+      expect(helpOutput.contains("--help-native"))
+      expect(helpOutput.contains("--help-doc"))
+      expect(helpOutput.contains("--help-repl"))
+      expect(helpOutput.contains("--help-fmt"))
+    }
   }
 
   for (fullHelpOptions <- HelpTests.fullHelpVariants) {

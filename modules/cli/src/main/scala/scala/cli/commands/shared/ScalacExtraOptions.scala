@@ -4,6 +4,8 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
+import scala.cli.commands.tags
+
 /** Scala CLI options which aren't strictly scalac options, but directly involve the Scala compiler
   * in some way.
   */
@@ -12,11 +14,13 @@ final case class ScalacExtraOptions(
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Show help for scalac. This is an alias for --scalac-option -help")
   @Name("helpScalac")
+  @Tag(tags.inShortHelp)
     scalacHelp: Boolean = false,
 
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Turn verbosity on for scalac. This is an alias for --scalac-option -verbose")
   @Name("verboseScalac")
+  @Tag(tags.inShortHelp)
     scalacVerbose: Boolean = false,
 )
 // format: on
