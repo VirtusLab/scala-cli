@@ -1,5 +1,6 @@
 package scala.build.postprocessing
 
+import scala.build.options.BuildOptions
 import scala.build.{GeneratedSource, Logger}
 import scala.util.{Either, Right}
 
@@ -10,7 +11,8 @@ case object ByteCodePostProcessor extends PostProcessor {
     workspace: os.Path,
     output: os.Path,
     logger: Logger,
-    scalaVersion: String
+    scalaVersion: String,
+    buildOptions: BuildOptions
   ): Either[String, Unit] =
     Right(AsmPositionUpdater.postProcess(mappings, output, logger))
 }

@@ -252,7 +252,8 @@ object Build {
             logger,
             inputs.workspace,
             updateSemanticDbs = true,
-            scalaVersion = sv
+            scalaVersion = sv,
+            buildOptions = build.options
           ).left.foreach(_.foreach(logger.message(_)))
       case _ =>
     }
@@ -1139,7 +1140,8 @@ object Build {
     logger: Logger,
     workspace: os.Path,
     updateSemanticDbs: Boolean,
-    scalaVersion: String
+    scalaVersion: String,
+    buildOptions: BuildOptions
   ): Either[Seq[String], Unit] =
     if (os.exists(classesDir)) {
 
@@ -1159,7 +1161,15 @@ object Build {
           Seq(TastyPostProcessor)
 
       val failures = postProcessors.flatMap(
-        _.postProcess(generatedSources, mappings, workspace, classesDir, logger, scalaVersion)
+        _.postProcess(
+          generatedSources,
+          mappings,
+          workspace,
+          classesDir,
+          logger,
+          scalaVersion,
+          buildOptions
+        )
           .fold(e => Seq(e), _ => Nil)
       )
       if (failures.isEmpty) Right(()) else Left(failures)

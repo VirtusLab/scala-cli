@@ -1,6 +1,7 @@
 package scala.build.postprocessing
 
 import scala.build.internal.Constants
+import scala.build.options.BuildOptions
 import scala.build.tastylib.{TastyData, TastyVersions}
 import scala.build.{GeneratedSource, Logger}
 
@@ -12,7 +13,8 @@ case object TastyPostProcessor extends PostProcessor {
     workspace: os.Path,
     output: os.Path,
     logger: Logger,
-    scalaVersion: String
+    scalaVersion: String,
+    buildOptions: BuildOptions
   ): Either[String, Unit] = {
 
     def updatedPaths = generatedSources
