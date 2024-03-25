@@ -2,7 +2,7 @@ package scala.build.bsp
 
 import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import ch.epfl.scala.bsp4j as b
-import com.google.gson.Gson
+import com.google.gson.{Gson, JsonElement}
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
@@ -47,6 +47,24 @@ class BspClient(
                 val diag0 = diag.duplicate()
                 diag0.getRange.getStart.setLine(startLine)
                 diag0.getRange.getEnd.setLine(endLine)
+
+                val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
+                  diag0.getData().asInstanceOf[JsonElement],
+                  classOf[b.ScalaDiagnostic]
+                )
+
+                scalaDiagnostic.getActions().asScala.foreach { action =>
+                  for {
+                    change    <- action.getEdit().getChanges().asScala
+                    startLine <- updateLine(change.getRange.getStart.getLine)
+                    endLine   <- updateLine(change.getRange.getEnd.getLine)
+                  } yield {
+                    change.getRange().getStart.setLine(startLine)
+                    change.getRange().getEnd.setLine(endLine)
+                  }
+                }
+
+                diag0.setData(scalaDiagnostic)
 
                 if (
                   diag0.getMessage.contains(
