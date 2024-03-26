@@ -1,10 +1,10 @@
 package scala.cli.integration
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmTestEnvironmentParams}
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.{Gson, JsonElement}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -16,9 +16,9 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
@@ -1625,7 +1625,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
   }
 
-  if (actualScalaVersion.startsWith("3.")) {
+  if (actualScalaVersion.startsWith("3."))
     List(".sc", ".scala").foreach { filetype =>
       test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 3)") {
         val fileName = s"Hello$filetype"
@@ -1653,7 +1653,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
 
               val visibleDiagnostics =
-                localClient.diagnostics().map(_.getDiagnostics().asScala).find(!_.isEmpty).getOrElse(
+                localClient.diagnostics().map(_.getDiagnostics().asScala).find(
+                  !_.isEmpty
+                ).getOrElse(
                   Nil
                 )
 
@@ -1693,7 +1695,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
       }
     }
-  }
   test("bsp should support jvmRunEnvironment request") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
