@@ -1,10 +1,10 @@
 package scala.cli.integration
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, JvmTestEnvironmentParams}
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import com.google.gson.internal.LinkedTreeMap
 import com.google.gson.{Gson, JsonElement}
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -16,15 +16,11 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
-import scala.cli.integration.TestUtil.IgnoreScalaVersion
-import scala.cli.integration.TestUtil.IgnoreScala3
-import scala.cli.integration.TestUtil.IgnoreScala212
-import scala.cli.integration.TestUtil.IgnoreScala2
 
 abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
@@ -63,18 +59,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   override def afterAll(): Unit = {
     pool.shutdown()
-  }
-
-  override def munitTests(): Seq[Test] = {
-    val default      = super.munitTests()
-    val scalaVersion = scalaVersionOpt.getOrElse(Constants.scala3Next)
-
-    default.filterNot {
-      _.tags.exists {
-        case IgnoreScalaVersion(isIgnored) => isIgnored(scalaVersion)
-        case _                             => false
-      }
-    }
   }
 
   private def extractMainTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
@@ -1641,138 +1625,72 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
   }
 
-  List(".sc", ".scala").foreach { filetype =>
-    test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)".tag(
-      IgnoreScala3 and IgnoreScala212
-    )) {
-      val fileName = s"Hello$filetype"
-      val inputs = TestInputs(
-        os.rel / fileName ->
-          s"""
-             |object Hello {
-             |  def foo: Any = {
-             |    x: Int => x * 2
-             |  }
-             |}
-             |""".stripMargin
-      )
-      withBsp(inputs, Seq(".", "-O", "-Xsource:3")) {
-        (_, localClient, remoteServer) =>
-          async {
-            // prepare build
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-            // build code
-            val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-            await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
+  if (actualScalaVersion.startsWith("3.")) {
+    List(".sc", ".scala").foreach { filetype =>
+      test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 3)") {
+        val fileName = s"Hello$filetype"
+        val inputs = TestInputs(
+          os.rel / fileName ->
+            s"""
+               |object Hello {
+               |  sealed trait TestTrait
+               |  case class TestA() extends TestTrait
+               |  case class TestB() extends TestTrait
+               |  val traitInstance: TestTrait = ???
+               |  traitInstance match {
+               |    case TestA() =>
+               |  }
+               |}
+               |""".stripMargin
+        )
+        withBsp(inputs, Seq(".")) {
+          (_, localClient, remoteServer) =>
+            async {
+              // prepare build
+              val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+              // build code
+              val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
 
-            val visibleDiagnostics =
-              localClient.diagnostics().map(_.getDiagnostics().asScala).find(!_.isEmpty).getOrElse(
-                Nil
+              val visibleDiagnostics =
+                localClient.diagnostics().map(_.getDiagnostics().asScala).find(!_.isEmpty).getOrElse(
+                  Nil
+                )
+
+              expect(visibleDiagnostics.size == 1)
+
+              val updateActionableDiagnostic = visibleDiagnostics.head
+
+              checkDiagnostic(
+                diagnostic = updateActionableDiagnostic,
+                expectedMessage = "match may not be exhaustive.",
+                expectedSeverity = b.DiagnosticSeverity.WARNING,
+                expectedStartLine = 6,
+                expectedStartCharacter = 2,
+                expectedEndLine = 6,
+                expectedEndCharacter = 15,
+                expectedSource = Some("bloop"),
+                strictlyCheckMessage = false
               )
 
-            expect(visibleDiagnostics.size == 1)
-
-            val updateActionableDiagnostic = visibleDiagnostics.head
-
-            checkDiagnostic(
-              diagnostic = updateActionableDiagnostic,
-              expectedMessage = "parentheses are required around the parameter of a lambda",
-              expectedSeverity = b.DiagnosticSeverity.ERROR,
-              expectedStartLine = 3,
-              expectedStartCharacter = 5,
-              expectedEndLine = 3,
-              expectedEndCharacter = 5,
-              expectedSource = Some("bloop"),
-              strictlyCheckMessage = false
-            )
-
-            val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-              updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
-              classOf[b.ScalaDiagnostic]
-            )
-
-            val actions = scalaDiagnostic.getActions().asScala.toList
-            assert(actions.size == 1)
-            val changes = actions.head.getEdit().getChanges().asScala.toList
-            assert(changes.size == 1)
-            val textEdit = changes.head
-
-            expect(textEdit.getNewText().contains("(x: Int)"))
-            expect(textEdit.getRange().getStart.getLine == 3)
-            expect(textEdit.getRange().getStart.getCharacter == 4)
-            expect(textEdit.getRange().getEnd.getLine == 3)
-            expect(textEdit.getRange().getEnd.getCharacter == 10)
-          }
-      }
-    }
-  }
-
-  List(".sc", ".scala").foreach { filetype =>
-    test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 3)".tag(
-      IgnoreScala2
-    )) {
-      val fileName = s"Hello$filetype"
-      val inputs = TestInputs(
-        os.rel / fileName ->
-          s"""
-             |object Hello {
-             |  sealed trait TestTrait
-             |  case class TestA() extends TestTrait
-             |  case class TestB() extends TestTrait
-             |  val traitInstance: TestTrait = ???
-             |  traitInstance match {
-             |    case TestA() =>
-             |  }
-             |}
-             |""".stripMargin
-      )
-      withBsp(inputs, Seq(".")) {
-        (_, localClient, remoteServer) =>
-          async {
-            // prepare build
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-            // build code
-            val targets = buildTargetsResp.getTargets.asScala.map(_.getId()).asJava
-            await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
-
-            val visibleDiagnostics =
-              localClient.diagnostics().map(_.getDiagnostics().asScala).find(!_.isEmpty).getOrElse(
-                Nil
+              val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
+                updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
+                classOf[b.ScalaDiagnostic]
               )
 
-            expect(visibleDiagnostics.size == 1)
+              val actions = scalaDiagnostic.getActions().asScala.toList
+              assert(actions.size == 1)
+              val changes = actions.head.getEdit().getChanges().asScala.toList
+              assert(changes.size == 1)
+              val textEdit = changes.head
 
-            val updateActionableDiagnostic = visibleDiagnostics.head
-
-            checkDiagnostic(
-              diagnostic = updateActionableDiagnostic,
-              expectedMessage = "match may not be exhaustive.",
-              expectedSeverity = b.DiagnosticSeverity.WARNING,
-              expectedStartLine = 6,
-              expectedStartCharacter = 2,
-              expectedEndLine = 6,
-              expectedEndCharacter = 15,
-              expectedSource = Some("bloop"),
-              strictlyCheckMessage = false
-            )
-
-            val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-              updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
-              classOf[b.ScalaDiagnostic]
-            )
-
-            val actions = scalaDiagnostic.getActions().asScala.toList
-            assert(actions.size == 1)
-            val changes = actions.head.getEdit().getChanges().asScala.toList
-            assert(changes.size == 1)
-            val textEdit = changes.head
-
-            expect(textEdit.getNewText().contains("\n    case TestB() => ???"))
-            expect(textEdit.getRange().getStart.getLine == 7)
-            expect(textEdit.getRange().getStart.getCharacter == 19)
-            expect(textEdit.getRange().getEnd.getLine == 7)
-            expect(textEdit.getRange().getEnd.getCharacter == 19)
-          }
+              expect(textEdit.getNewText().contains("\n    case TestB() => ???"))
+              expect(textEdit.getRange().getStart.getLine == 7)
+              expect(textEdit.getRange().getStart.getCharacter == 19)
+              expect(textEdit.getRange().getEnd.getLine == 7)
+              expect(textEdit.getRange().getEnd.getCharacter == 19)
+            }
+        }
       }
     }
   }
@@ -1969,95 +1887,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     )
   }
 
-  if (actualScalaVersion.startsWith("3."))
-    test("actionable diagnostics from compiler") {
-      val inputs = TestInputs(
-        os.rel / "test.sc" ->
-          """//> using scala 3.3.2-RC1-bin-20230723-5afe621-NIGHTLY
-            |def foo(): Int = 23
-            |
-            |def test: Int = foo
-            |//              ^^^ error: missing parentheses
-            |""".stripMargin
-      )
-
-      withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-          val target = {
-            val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
-            expect(targets.length == 2)
-            extractMainTargets(targets)
-          }
-
-          val targetUri = TestUtil.normalizeUri(target.getUri)
-          checkTargetUri(root, targetUri)
-
-          val targets = List(target).asJava
-
-          val compileResp = await {
-            remoteServer
-              .buildTargetCompile(new b.CompileParams(targets))
-              .asScala
-          }
-          expect(compileResp.getStatusCode == b.StatusCode.ERROR)
-
-          val diagnosticsParams = {
-            val diagnostics = localClient.diagnostics()
-            val params      = diagnostics(2)
-            expect(params.getBuildTarget.getUri == targetUri)
-            expect(
-              TestUtil.normalizeUri(params.getTextDocument.getUri) ==
-                TestUtil.normalizeUri((root / "test.sc").toNIO.toUri.toASCIIString)
-            )
-            params
-          }
-
-          val diagnostics = diagnosticsParams.getDiagnostics.asScala
-          expect(diagnostics.size == 1)
-
-          val theDiagnostic = diagnostics.head
-
-          checkDiagnostic(
-            diagnostic = theDiagnostic,
-            expectedMessage =
-              "method foo in class test$_ must be called with () argument",
-            expectedSeverity = b.DiagnosticSeverity.ERROR,
-            expectedStartLine = 3,
-            expectedStartCharacter = 16,
-            expectedEndLine = 3,
-            expectedEndCharacter = 19
-          )
-
-          // Shouldn't dataKind be set to "scala"? expect(theDiagnostic.getDataKind == "scala")
-
-          val gson = new com.google.gson.Gson()
-
-          val scalaDiagnostic: b.ScalaDiagnostic = gson.fromJson(
-            theDiagnostic.getData.toString,
-            classOf[b.ScalaDiagnostic]
-          )
-
-          val actions = scalaDiagnostic.getActions.asScala
-          expect(actions.size == 1)
-
-          val action = actions.head
-          expect(action.getTitle == "Insert ()")
-
-          val edit = action.getEdit
-          expect(edit.getChanges.asScala.size == 1)
-          val change = edit.getChanges.asScala.head
-
-          val expectedRange = new b.Range(
-            new b.Position(9, 19),
-            new b.Position(9, 19)
-          )
-          expect(change.getRange == expectedRange)
-          expect(change.getNewText == "()")
-        }
-      }
-    }
-
   if (!actualScalaVersion.startsWith("2.12"))
     test("actionable diagnostics on deprecated using directives") {
       val inputs = TestInputs(
@@ -2225,7 +2054,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     params
   }
 
-  private def checkDiagnostic(
+  protected def checkDiagnostic(
     diagnostic: b.Diagnostic,
     expectedMessage: String,
     expectedSeverity: b.DiagnosticSeverity,

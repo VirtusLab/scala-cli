@@ -12,8 +12,6 @@ import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.Properties
 
-import munit.Tag
-
 object TestUtil {
 
   val cliKind: String              = sys.props("test.scala-cli.kind")
@@ -26,16 +24,6 @@ object TestUtil {
   val detectCliPath: String        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
   val cli: Seq[String]             = cliCommand(cliPath)
   val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
-
-  case class IgnoreScalaVersion(ignored: String => Boolean) extends Tag("NoScalaVersion") {
-    def and(other: IgnoreScalaVersion): IgnoreScalaVersion =
-      IgnoreScalaVersion(v => ignored(v) || other.ignored(v))
-  }
-
-  object IgnoreScala2   extends IgnoreScalaVersion(_.startsWith("2."))
-  object IgnoreScala3   extends IgnoreScalaVersion(_.startsWith("3."))
-  object IgnoreScala212 extends IgnoreScalaVersion(_.startsWith("2.12"))
-  object IgnoreScala213 extends IgnoreScalaVersion(_.startsWith("2.13"))
 
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
