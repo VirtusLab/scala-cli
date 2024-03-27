@@ -39,8 +39,17 @@ implicit def millModuleBasePath: define.Ctx.BasePath =
 
 object cli extends Cross[Cli](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
 
-trait CrossScalaDefaultToInternal { _: mill.define.Cross[_] =>
-  def defaultCrossSegments = Seq(Scala.defaultInternal)
+trait CrossScalaDefault { _: mill.define.Cross[_] =>
+  def crossScalaDefaultVersion: String
+  def defaultCrossSegments = Seq(crossScalaDefaultVersion)
+}
+
+trait CrossScalaDefaultToInternal extends CrossScalaDefault { _: mill.define.Cross[_] =>
+  def crossScalaDefaultVersion: String = Scala.defaultInternal
+}
+
+trait CrossScalaDefaultToRunner extends CrossScalaDefault { _: mill.define.Cross[_] =>
+  def crossScalaDefaultVersion: String = Scala.runnerScala3
 }
 
 // Publish a bootstrapped, executable jar for a restricted environments
@@ -82,7 +91,7 @@ object directives extends Cross[Directives](Scala.scala3MainVersions)
 object core           extends Cross[Core](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object runner extends Cross[Runner](Scala.runnerScalaVersions) with CrossScalaDefaultToInternal
+object runner        extends Cross[Runner](Scala.runnerScalaVersions) with CrossScalaDefaultToRunner
 object `test-runner` extends Cross[TestRunner](Scala.testRunnerScalaVersions)
     with CrossScalaDefaultToInternal
 object `tasty-lib` extends Cross[TastyLib](Scala.all) with CrossScalaDefaultToInternal
