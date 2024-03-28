@@ -35,5 +35,6 @@ object ScalaCliSuite {
     case object Second extends TestGroup(2)
     case object Third  extends TestGroup(3)
     case object Fourth extends TestGroup(4)
+    case object Fifth  extends TestGroup(5)
   }
 }
