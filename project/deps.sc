@@ -201,7 +201,7 @@ object Deps {
   val toolkitVersion          = "0.2.1"
   def toolkit                 = ivy"org.scala-lang:toolkit:$toolkitVersion"
   def toolkitTest             = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion = "0.1.20"
+  val typelevelToolkitVersion = "0.1.23"
   def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.0"
