@@ -90,7 +90,7 @@ object `tasty-lib` extends Cross[TastyLib](Scala.all) with CrossScalaDefaultToIn
 object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 // Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.mainVersions)
+object `scala3-graal` extends Cross[Scala3Graal](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 // Main app used to process classpath within build itself
 object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.scala3MainVersions)
