@@ -290,34 +290,35 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       val configEnv = Map("SCALA_CLI_CONFIG" -> (configDir / "config.json").toString)
       os.proc(TestUtil.cli, "config", "interactive", "true")
         .call(cwd = root, env = configEnv)
-      val output1 = os.proc(TestUtil.cli, "run", "--native", ".")
+      val output1 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
         .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main1"))
         .out.lines().last
       expect(output1 == "Hello from Main1")
-      val output2 = os.proc(TestUtil.cli, "run", "--native", ".")
+      val output2 = os.proc(TestUtil.cli, "run", "--native", ".", extraOptions)
         .call(cwd = root, env = configEnv ++ Seq("SCALA_CLI_INTERACTIVE_INPUTS" -> "foo.Main2"))
         .out.lines().last
       expect(output2 == "Hello from Main2")
     }
   }
 
-  test("native defaults & toolkit default") {
-    TestInputs(
-      os.rel / "toolkit.scala" ->
-        """//> using toolkit default
-          |//> using toolkit typelevel:default
-          |
-          |//> using platform native
-          |
-          |import cats.effect.*
-          |
-          |object Hello extends IOApp.Simple {
-          |  def run =  IO.println(os.pwd)
-          |}
-          |""".stripMargin
-    ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "run", "toolkit.scala").call(cwd = root)
-      expect(result.out.trim() == root.toString)
+  if (!actualScalaVersion.startsWith("2.12"))
+    test("native defaults & toolkit default") {
+      TestInputs(
+        os.rel / "toolkit.scala" ->
+          """//> using toolkit default
+            |//> using toolkit typelevel:default
+            |
+            |//> using platform native
+            |
+            |import cats.effect._
+            |
+            |object Hello extends IOApp.Simple {
+            |  def run =  IO.println(os.pwd)
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
+        expect(result.out.trim() == root.toString)
+      }
     }
-  }
 }
