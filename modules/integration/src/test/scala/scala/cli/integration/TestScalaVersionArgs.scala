@@ -8,6 +8,8 @@ trait TestScalaVersionArgs extends ScalaCliSuite { _: TestScalaVersion =>
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
     else if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
       ScalaCliSuite.TestGroup.Fourth
+    else if (actualScalaVersion.startsWith(Constants.scala3NextRc))
+      ScalaCliSuite.TestGroup.Fifth
     else ScalaCliSuite.TestGroup.First
 
   lazy val scalaVersionArgs: Seq[String] = scalaVersionOpt match {
@@ -29,6 +31,9 @@ trait Test212 extends TestScalaVersion { _: TestScalaVersionArgs =>
 }
 trait Test3Lts extends TestScalaVersion { _: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3Lts)
+}
+trait Test3NextRc extends TestScalaVersion { _: TestScalaVersionArgs =>
+  override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3NextRc)
 }
 @unused // TestDefault should normally be mixed in instead
 trait Test3Next extends TestScalaVersion { _: TestScalaVersionArgs =>

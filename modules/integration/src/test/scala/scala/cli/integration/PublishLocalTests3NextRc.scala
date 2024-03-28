@@ -1,0 +1,3 @@
+package scala.cli.integration
+
+class PublishLocalTests3NextRc extends PublishLocalTestDefinitions with Test3NextRc
