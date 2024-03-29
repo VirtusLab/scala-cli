@@ -441,31 +441,32 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("js defaults & toolkit default") {
-    val msg = "Hello"
-    TestInputs(
-      os.rel / "toolkit.scala" ->
-        s"""//> using toolkit default
-           |//> using toolkit typelevel:default
-           |
-           |//> using platform "scala-js"
-           |
-           |import cats.effect.*
-           |import scala.scalajs.js
-           |
-           |object Hello extends IOApp.Simple {
-           |
-           |  def run =  IO {
-           |    val console = js.Dynamic.global.console
-           |    val jsonString = "{\\"msg\\": \\"$msg\\"}"
-           |    val json: ujson.Value  = ujson.read(jsonString)
-           |    console.log(json("msg").str)
-           |  }
-           |}
-           |""".stripMargin
-    ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "run", "toolkit.scala").call(cwd = root)
-      expect(result.out.trim() == msg)
+  if (!actualScalaVersion.startsWith("2.12"))
+    test("js defaults & toolkit default") {
+      val msg = "Hello"
+      TestInputs(
+        os.rel / "toolkit.scala" ->
+          s"""//> using toolkit default
+             |//> using toolkit typelevel:default
+             |
+             |//> using platform "scala-js"
+             |
+             |import cats.effect._
+             |import scala.scalajs.js
+             |
+             |object Hello extends IOApp.Simple {
+             |
+             |  def run =  IO {
+             |    val console = js.Dynamic.global.console
+             |    val jsonString = "{\\"msg\\": \\"$msg\\"}"
+             |    val json: ujson.Value  = ujson.read(jsonString)
+             |    console.log(json("msg").str)
+             |  }
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
+        expect(result.out.trim() == msg)
+      }
     }
-  }
 }
