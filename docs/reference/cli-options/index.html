@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.1">
 <title data-rh="true">Command-line options | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/cli-options"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Command-line options | Scala CLI"><meta data-rh="true" name="description" content="This is a summary of options that are available for each subcommand of the scala-cli command."><meta data-rh="true" property="og:description" content="This is a summary of options that are available for each subcommand of the scala-cli command."><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/cli-options"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/cli-options" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/cli-options" hreflang="x-default"><script data-rh="true">!function(e,t,a,n,g){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var m=t.getElementsByTagName(a)[0],r=t.createElement(a);r.async=!0,r.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",m.parentNode.insertBefore(r,m)}(window,document,"script","dataLayer")</script><link rel="stylesheet" href="/assets/css/styles.318da5f4.css">
-<script src="/assets/js/runtime~main.cfd087e0.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.e64b7ebe.js" defer="defer"></script>
 <script src="/assets/js/main.4f257a64.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -31,6 +31,12 @@
 <li><code>-nowarn</code></li>
 <li><code>-feature</code></li>
 <li><code>-deprecation</code></li>
+<li><code>-indent</code></li>
+<li><code>-no-indent</code></li>
+<li><code>-unchecked</code></li>
+<li><code>-rewrite</code></li>
+<li><code>-old-syntax</code></li>
+<li><code>-new-syntax</code></li>
 </ul>
 <h2 class="anchor anchorWithStickyNavbar_LWe7" id="benchmarking-options">Benchmarking options<a href="#benchmarking-options" class="hash-link" aria-label="Direct link to Benchmarking options" title="Direct link to Benchmarking options">​</a></h2>
 <p>Available in commands:</p>
@@ -591,7 +597,7 @@ Scala platform suffix to append to the module name, like &quot;_sjs1&quot; or &q
 <p>Use Ammonite (instead of the default Scala REPL)</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--ammonite-version"><code>--ammonite-version</code><a href="#--ammonite-version" class="hash-link" aria-label="Direct link to --ammonite-version" title="Direct link to --ammonite-version">​</a></h3>
 <p>Aliases: <code>--ammonite-ver</code></p>
-<p>Set the Ammonite version (3.0.0-M0-92-0b2ae1a1 by default)</p>
+<p>Set the Ammonite version (3.0.0-M1-8-35694880 by default)</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--ammonite-arg"><code>--ammonite-arg</code><a href="#--ammonite-arg" class="hash-link" aria-label="Direct link to --ammonite-arg" title="Direct link to --ammonite-arg">​</a></h3>
 <p>Aliases: <code>-a</code></p>
 <p>[Internal]
@@ -629,7 +635,7 @@ Run Java commands using a manifest-based class path (shortens command length)</p
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js"><code>--js</code><a href="#--js" class="hash-link" aria-label="Direct link to --js" title="Direct link to --js">​</a></h3>
 <p>Enable Scala.js. To show more options for Scala.js pass <code>--help-js</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js-version"><code>--js-version</code><a href="#--js-version" class="hash-link" aria-label="Direct link to --js-version" title="Direct link to --js-version">​</a></h3>
-<p>The Scala.js version (1.15.0 by default).</p>
+<p>The Scala.js version (1.16.0 by default).</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js-mode"><code>--js-mode</code><a href="#--js-mode" class="hash-link" aria-label="Direct link to --js-mode" title="Direct link to --js-mode">​</a></h3>
 <p>The Scala.js mode, for <code>fastLinkJS</code> use one of [<code>dev</code>, <code>fastLinkJS</code> or <code>fast</code>], for <code>fullLinkJS</code> use one of [<code>release</code>, <code>fullLinkJS</code>, <code>full</code>]</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js-no-opt"><code>--js-no-opt</code><a href="#--js-no-opt" class="hash-link" aria-label="Direct link to --js-no-opt" title="Direct link to --js-no-opt">​</a></h3>
@@ -665,7 +671,7 @@ Disable optimalisation for Scala.js, overrides <code>--js-mode</code></p>
 Path to the Scala.js linker</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js-cli-version"><code>--js-cli-version</code><a href="#--js-cli-version" class="hash-link" aria-label="Direct link to --js-cli-version" title="Direct link to --js-cli-version">​</a></h3>
 <p>[Internal]
-Scala.js CLI version to use for linking (1.15.0.1 by default).</p>
+Scala.js CLI version to use for linking (1.16.0 by default).</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--js-cli-java-arg"><code>--js-cli-java-arg</code><a href="#--js-cli-java-arg" class="hash-link" aria-label="Direct link to --js-cli-java-arg" title="Direct link to --js-cli-java-arg">​</a></h3>
 <p>[Internal]
 Scala.js CLI Java options</p>
@@ -738,7 +744,7 @@ Use default compile options</p>
 <p><a href="/docs/reference/commands#bsp"><code>bsp</code></a>, <a href="/docs/reference/commands#compile"><code>compile</code></a>, <a href="/docs/reference/commands#dependency-update"><code>dependency-update</code></a>, <a href="/docs/reference/commands#doc"><code>doc</code></a>, <a href="/docs/reference/commands#export"><code>export</code></a>, <a href="/docs/reference/commands#fix"><code>fix</code></a>, <a href="/docs/reference/commands#fmt"><code>fmt</code> , <code>format</code> , <code>scalafmt</code></a>, <a href="/docs/reference/commands#package"><code>package</code></a>, <a href="/docs/reference/commands#publish"><code>publish</code></a>, <a href="/docs/reference/commands#publish-local"><code>publish local</code></a>, <a href="/docs/reference/commands#repl"><code>repl</code> , <code>console</code></a>, <a href="/docs/reference/commands#run"><code>run</code></a>, <a href="/docs/reference/commands#setup-ide"><code>setup-ide</code></a>, <a href="/docs/reference/commands#shebang"><code>shebang</code></a>, <a href="/docs/reference/commands#test"><code>test</code></a></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--scala-version"><code>--scala-version</code><a href="#--scala-version" class="hash-link" aria-label="Direct link to --scala-version" title="Direct link to --scala-version">​</a></h3>
 <p>Aliases: <code>-S</code>, <code>--scala</code></p>
-<p>Set the Scala version (3.4.0 by default)</p>
+<p>Set the Scala version (3.4.1 by default)</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--scala-binary-version"><code>--scala-binary-version</code><a href="#--scala-binary-version" class="hash-link" aria-label="Direct link to --scala-binary-version" title="Direct link to --scala-binary-version">​</a></h3>
 <p>Aliases: <code>-B</code>, <code>--scala-bin</code>, <code>--scala-binary</code></p>
 <p>[Internal]
@@ -778,7 +784,7 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 <p>Copy compilation results to output directory using either relative or absolute path</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--with-toolkit"><code>--with-toolkit</code><a href="#--with-toolkit" class="hash-link" aria-label="Direct link to --with-toolkit" title="Direct link to --with-toolkit">​</a></h3>
 <p>Aliases: <code>--toolkit</code></p>
-<p>Add toolkit to classPath (not supported in Scala 2.12), &#x27;default&#x27; version for Scala toolkit: 0.2.1, &#x27;default&#x27; version for typelevel toolkit: 0.1.20</p>
+<p>Add toolkit to classPath (not supported in Scala 2.12), &#x27;default&#x27; version for Scala toolkit: 0.2.1, &#x27;default&#x27; version for typelevel toolkit: 0.1.23</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--exclude"><code>--exclude</code><a href="#--exclude" class="hash-link" aria-label="Direct link to --exclude" title="Direct link to --exclude">​</a></h3>
 <p>Exclude sources</p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="--object-wrapper"><code>--object-wrapper</code><a href="#--object-wrapper" class="hash-link" aria-label="Direct link to --object-wrapper" title="Direct link to --object-wrapper">​</a></h3>
