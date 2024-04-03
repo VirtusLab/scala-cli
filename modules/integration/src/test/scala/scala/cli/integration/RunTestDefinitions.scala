@@ -2193,6 +2193,29 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("running a .scala file several times doesn't produce Bloop errors") {
+    val msg   = "Hello"
+    val input = "Main.scala"
+    TestInputs(
+      os.rel / input ->
+        s"""object Main {
+           |  def main(args: Array[String]): Unit = {
+           |    println("$msg")
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      // ensure the test will be run on a fresh Bloop instance
+      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+      (0 to 2).foreach { _ =>
+        val res = os.proc(TestUtil.cli, "run", input, extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == msg)
+        expect(!res.err.trim().toLowerCase.contains("error"))
+      }
+    }
+  }
+
   test(s"warn about invalid values present in JAVA_OPTS") {
     val expectedOutput = "Hello"
     TestInputs(os.rel / "example.sc" -> s"println(\"$expectedOutput\")")
