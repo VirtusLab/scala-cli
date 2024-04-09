@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class BspTestsDefault extends BspTestDefinitions with TestDefault
+class BspTestsDefault extends BspTestDefinitions with BspTests3Definitions with TestDefault

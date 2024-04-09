@@ -22,9 +22,10 @@ import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
-abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
+abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
+    with ScriptWrapperTestDefinitions {
   _: TestScalaVersion =>
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   import BspTestDefinitions.*
 
@@ -61,12 +62,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     pool.shutdown()
   }
 
-  private def extractMainTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
+  protected def extractMainTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
     targets.collectFirst {
       case t if !t.getUri.contains("-test") => t
     }.get
 
-  private def extractTestTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
+  protected def extractTestTargets(targets: Seq[BuildTargetIdentifier]): BuildTargetIdentifier =
     targets.collectFirst {
       case t if t.getUri.contains("-test") => t
     }.get
@@ -78,7 +79,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     pauseDuration: FiniteDuration = 5.seconds,
     bspOptions: List[String] = List.empty,
     reuseRoot: Option[os.Path] = None,
-    stdErrOpt: Option[os.RelPath] = None
+    stdErrOpt: Option[os.RelPath] = None,
+    extraOptionsOverride: Seq[String] = extraOptions
   )(
     f: (
       os.Path,
@@ -93,7 +95,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val stdErrPathOpt: Option[os.ProcessOutput] = stdErrOpt.map(path => inputsRoot / path)
       val stderr: os.ProcessOutput                = stdErrPathOpt.getOrElse(os.Inherit)
 
-      val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptions, args)
+      val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
         .spawn(cwd = root, stderr = stderr)
       var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
         null

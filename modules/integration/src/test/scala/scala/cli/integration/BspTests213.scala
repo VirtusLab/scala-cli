@@ -8,8 +8,7 @@ import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.jdk.CollectionConverters.*
 
-class BspTests213 extends BspTestDefinitions with Test213 {
-
+class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test213 {
   List(".sc", ".scala").foreach { filetype =>
     test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)") {
       val fileName = s"Hello$filetype"
@@ -73,5 +72,4 @@ class BspTests213 extends BspTestDefinitions with Test213 {
       }
     }
   }
-
 }
