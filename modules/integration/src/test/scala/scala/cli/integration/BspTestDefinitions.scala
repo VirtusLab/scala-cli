@@ -1608,21 +1608,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           )
 
           val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-            updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
+            updateActionableDiagnostic.getData.asInstanceOf[JsonElement],
             classOf[b.ScalaDiagnostic]
           )
 
-          val actions = scalaDiagnostic.getActions().asScala.toList
+          val actions = scalaDiagnostic.getActions.asScala.toList
           assert(actions.size == 1)
-          val changes = actions.head.getEdit().getChanges().asScala.toList
+          val changes = actions.head.getEdit.getChanges.asScala.toList
           assert(changes.size == 1)
           val textEdit = changes.head
 
-          expect(textEdit.getNewText().contains("com.lihaoyi::os-lib:"))
-          expect(textEdit.getRange().getStart.getLine == 0)
-          expect(textEdit.getRange().getStart.getCharacter == 15)
-          expect(textEdit.getRange().getEnd.getLine == 0)
-          expect(textEdit.getRange().getEnd.getCharacter == 40)
+          expect(textEdit.getNewText.contains("com.lihaoyi::os-lib:"))
+          expect(textEdit.getRange.getStart.getLine == 0)
+          expect(textEdit.getRange.getStart.getCharacter == 15)
+          expect(textEdit.getRange.getEnd.getLine == 0)
+          expect(textEdit.getRange.getEnd.getCharacter == 40)
         }
     }
   }
@@ -1655,8 +1655,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
 
               val visibleDiagnostics =
-                localClient.diagnostics().map(_.getDiagnostics().asScala).find(
-                  !_.isEmpty
+                localClient.diagnostics().map(_.getDiagnostics.asScala).find(
+                  _.nonEmpty
                 ).getOrElse(
                   Nil
                 )
@@ -1678,21 +1678,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               )
 
               val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-                updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
+                updateActionableDiagnostic.getData.asInstanceOf[JsonElement],
                 classOf[b.ScalaDiagnostic]
               )
 
-              val actions = scalaDiagnostic.getActions().asScala.toList
+              val actions = scalaDiagnostic.getActions.asScala.toList
               assert(actions.size == 1)
-              val changes = actions.head.getEdit().getChanges().asScala.toList
+              val changes = actions.head.getEdit.getChanges.asScala.toList
               assert(changes.size == 1)
               val textEdit = changes.head
 
-              expect(textEdit.getNewText().contains("\n    case TestB() => ???"))
-              expect(textEdit.getRange().getStart.getLine == 7)
-              expect(textEdit.getRange().getStart.getCharacter == 19)
-              expect(textEdit.getRange().getEnd.getLine == 7)
-              expect(textEdit.getRange().getEnd.getCharacter == 19)
+              expect(textEdit.getNewText.contains("\n    case TestB() => ???"))
+              expect(textEdit.getRange.getStart.getLine == 7)
+              expect(textEdit.getRange.getStart.getCharacter == 19)
+              expect(textEdit.getRange.getEnd.getLine == 7)
+              expect(textEdit.getRange.getEnd.getCharacter == 19)
             }
         }
       }
@@ -1940,11 +1940,11 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           }
 
           val diagnostics = diagnosticsParams.flatMap(_.getDiagnostics.asScala)
-            .sortBy(_.getRange().getEnd().getCharacter())
+            .sortBy(_.getRange.getEnd.getCharacter())
 
           {
             checkDiagnostic(
-              diagnostic = diagnostics.apply(0),
+              diagnostic = diagnostics.head,
               expectedMessage =
                 "Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour",
               expectedSeverity = b.DiagnosticSeverity.WARNING,
@@ -1955,7 +1955,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             )
 
             checkScalaAction(
-              diagnostic = diagnostics.apply(0),
+              diagnostic = diagnostics.head,
               expectedActionsSize = 1,
               expectedTitle = "Change to: toolkit default",
               expectedChanges = 1,
@@ -2092,7 +2092,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     expectedEndLine: Int,
     expectedEndCharacter: Int,
     expectedNewText: String
-  ) = {
+  ): Unit = {
     expect(diagnostic.getDataKind == "scala")
 
     val gson = new com.google.gson.Gson()
@@ -2131,7 +2131,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 }
 
 object BspTestDefinitions {
-
   private final case class Details(
     name: String,
     version: String,
@@ -2140,7 +2139,4 @@ object BspTestDefinitions {
     languages: List[String]
   )
   private val detailsCodec: JsonValueCodec[Details] = JsonCodecMaker.make
-
-  private final case class TextEdit(range: b.Range, newText: String)
-
 }
