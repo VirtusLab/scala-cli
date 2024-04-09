@@ -2192,4 +2192,44 @@ abstract class RunTestDefinitions
       expect(warningCount == 1)
     }
   }
+
+  test(s"warn about invalid values present in JAVA_OPTS") {
+    val expectedOutput = "Hello"
+    TestInputs(os.rel / "example.sc" -> s"println(\"$expectedOutput\")")
+      .fromRoot { root =>
+        val invalidOpt = "--invalid"
+        val validOpt   = "-Dfoo=bar"
+        val res = os.proc(TestUtil.cli, "run", "example.sc", "--server=false", extraOptions)
+          .call(cwd = root, env = Map("JAVA_OPTS" -> s"$invalidOpt $validOpt"), stderr = os.Pipe)
+        val errOutput = res.err.trim()
+        expect(errOutput.contains(
+          s"Only java properties are supported in JAVA_OPTS"
+        ))
+        expect(errOutput.contains(s"Other options are ignored: $invalidOpt"))
+        expect(!errOutput.contains(validOpt))
+        expect(res.out.trim() == expectedOutput)
+      }
+  }
+
+  test(s"warn about invalid values present in .scala-jvmopts") {
+    val expectedOutput = "Hello"
+    val invalidOpt     = "--invalid"
+    val validOpt       = "-Dfoo=bar"
+    TestInputs(
+      os.rel / "example.sc" -> s"println(\"$expectedOutput\")",
+      os.rel / ".scala-jvmopts" ->
+        s"""$invalidOpt
+           |$validOpt
+           |""".stripMargin
+    )
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", "example.sc", extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        val errOutput = res.err.trim()
+        expect(errOutput.contains(s"Only java properties are supported in .scala-jvmopts file"))
+        expect(errOutput.contains(s"Other options are ignored: $invalidOpt"))
+        expect(!errOutput.contains(validOpt))
+        expect(res.out.trim() == expectedOutput)
+      }
+  }
 }

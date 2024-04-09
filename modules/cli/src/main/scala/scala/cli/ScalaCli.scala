@@ -184,7 +184,7 @@ object ScalaCli {
       }
       if otherOpts.nonEmpty then
         System.err.println(
-          s"Warning: Only java properties are supported in .scala-jvmopts file. Other options are ignored: ${otherOpts.mkString(", ")} "
+          s"Warning: Only java properties are supported in .scala-jvmopts file. Other options are ignored: ${otherOpts.mkString(", ")}"
         )
     // load java properties from config
     for {
@@ -201,14 +201,21 @@ object ScalaCli {
     // load java properties from JAVA_OPTS and JDK_JAVA_OPTIONS environment variables
     val javaOpts = sys.env.get("JAVA_OPTS").toSeq ++ sys.env.get("JDK_JAVA_OPTIONS").toSeq
 
-    javaOpts
-      .flatMap(_.split("\\s+"))
-      .foreach { opt =>
-        opt.stripPrefix("-D").split("=", 2) match {
-          case Array(key, value) => System.setProperty(key, value)
-          case _                 => // Ignore if not a Java property
-        }
-      }
+    val ignoredJavaOpts =
+      javaOpts
+        .flatMap(_.split("\\s+"))
+        .flatMap { opt =>
+          opt.stripPrefix("-D").split("=", 2) match {
+            case Array(key, value) =>
+              System.setProperty(key, value)
+              None
+            case ignored => Some(ignored) // non-property opts are ignored here
+          }
+        }.flatten
+    if ignoredJavaOpts.nonEmpty then
+      System.err.println(
+        s"Warning: Only java properties are supported in JAVA_OPTS and JDK_JAVA_OPTIONS environment variables. Other options are ignored: ${ignoredJavaOpts.mkString(", ")}"
+      )
   }
 
   private def main0(args: Array[String]): Unit = {
