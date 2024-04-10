@@ -9,6 +9,7 @@ import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
 import scala.scalanative.build as sn
 
+/** Used to collect and send diagnostics to the build client when operating as a BSP */
 class PersistentDiagnosticLogger(parent: Logger) extends Logger {
   private val diagBuilder = List.newBuilder[Diagnostic]
 
