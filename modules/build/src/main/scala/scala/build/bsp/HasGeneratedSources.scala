@@ -24,8 +24,9 @@ object HasGeneratedSources {
     lazy val uriMap: Map[String, GeneratedSource] =
       sources
         .flatMap { g =>
-          g.reportingPath.toOption.toSeq.map { _ =>
-            g.generated.toNIO.toUri.toASCIIString -> g
+          g.reportingPath match {
+            case Left(_) => Nil
+            case Right(_) => Seq(g.generated.toNIO.toUri.toASCIIString -> g)
           }
         }
         .toMap
