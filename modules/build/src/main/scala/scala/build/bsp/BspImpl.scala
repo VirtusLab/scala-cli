@@ -454,7 +454,7 @@ final class BspImpl(
     * @param initialInputs
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
-    */
+   */
   override def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
