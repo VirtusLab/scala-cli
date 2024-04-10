@@ -8,8 +8,7 @@ import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.jdk.CollectionConverters.*
 
-class BspTests213 extends BspTestDefinitions with Test213 {
-
+class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test213 {
   List(".sc", ".scala").foreach { filetype =>
     test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)") {
       val fileName = s"Hello$filetype"
@@ -33,7 +32,7 @@ class BspTests213 extends BspTestDefinitions with Test213 {
             await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
 
             val visibleDiagnostics =
-              localClient.diagnostics().map(_.getDiagnostics().asScala).find(!_.isEmpty).getOrElse(
+              localClient.diagnostics().map(_.getDiagnostics.asScala).find(_.nonEmpty).getOrElse(
                 Nil
               )
 
@@ -54,24 +53,23 @@ class BspTests213 extends BspTestDefinitions with Test213 {
             )
 
             val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-              updateActionableDiagnostic.getData().asInstanceOf[JsonElement],
+              updateActionableDiagnostic.getData.asInstanceOf[JsonElement],
               classOf[b.ScalaDiagnostic]
             )
 
-            val actions = scalaDiagnostic.getActions().asScala.toList
+            val actions = scalaDiagnostic.getActions.asScala.toList
             assert(actions.size == 1)
-            val changes = actions.head.getEdit().getChanges().asScala.toList
+            val changes = actions.head.getEdit.getChanges.asScala.toList
             assert(changes.size == 1)
             val textEdit = changes.head
 
-            expect(textEdit.getNewText().contains("(x: Int)"))
-            expect(textEdit.getRange().getStart.getLine == 3)
-            expect(textEdit.getRange().getStart.getCharacter == 4)
-            expect(textEdit.getRange().getEnd.getLine == 3)
-            expect(textEdit.getRange().getEnd.getCharacter == 10)
+            expect(textEdit.getNewText.contains("(x: Int)"))
+            expect(textEdit.getRange.getStart.getLine == 3)
+            expect(textEdit.getRange.getStart.getCharacter == 4)
+            expect(textEdit.getRange.getEnd.getLine == 3)
+            expect(textEdit.getRange.getEnd.getCharacter == 10)
           }
       }
     }
   }
-
 }

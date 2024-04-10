@@ -101,7 +101,7 @@ object Deps {
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
     def javaClassName        = "0.1.3"
-    def bloop                = "1.5.16-sc-1"
+    def bloop                = "1.5.16-sc-2"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions

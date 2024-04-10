@@ -34,6 +34,7 @@ final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, S
       writeIn(tmpDir)
       f(tmpDir)
     }
+  def fileNames: Seq[String] = files.flatMap(_._1.lastOpt)
 }
 
 object TestInputs {
