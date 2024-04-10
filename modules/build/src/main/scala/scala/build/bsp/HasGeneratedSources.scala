@@ -25,7 +25,7 @@ object HasGeneratedSources {
       sources
         .flatMap { g =>
           g.reportingPath match {
-            case Left(_)  => Nil
+            case Left(_) => Nil
             case Right(_) => Seq(g.generated.toNIO.toUri.toASCIIString -> g)
           }
         }
