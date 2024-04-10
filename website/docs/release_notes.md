@@ -8,6 +8,27 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.2.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.2.2)
+
+### Fixed the `Fatal invariant violated` false-positive error coming from Bloop
+This small update fixes the `Fatal invariant violated` error ([#2829](https://github.com/VirtusLab/scala-cli/issues/2829)). 
+The error was being thrown by Bloop when running Scala CLI repeatedly with the same sources.
+
+Fixed by [@Gedochao](https://github.com/Gedochao) in [#2837](https://github.com/VirtusLab/scala-cli/pull/2837)
+
+### Enhancements
+* Log a warning when invalid java properties are being passed by env vars by [@Gedochao](https://github.com/Gedochao) in [#2843](https://github.com/VirtusLab/scala-cli/pull/2843)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.2.1 by [@github-actions](https://github.com/github-actions) in [#2828](https://github.com/VirtusLab/scala-cli/pull/2828)
+* Update `org.scalameta:trees_2.13` to 4.9.3 by [@scala-steward](https://github.com/scala-steward) in [#2831](https://github.com/VirtusLab/scala-cli/pull/2831)
+* Update ammonite to 3.0.0-M1-10-105f9e32 by [@scala-steward](https://github.com/scala-steward) in [#2844](https://github.com/VirtusLab/scala-cli/pull/2844)
+* Bump `bloop-core` to 1.5.16-sc-2 by [@Gedochao](https://github.com/Gedochao) in [#2837](https://github.com/VirtusLab/scala-cli/pull/2837)
+
+## What's Changed
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.2.1...v1.2.2
+
 ## [v1.2.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.2.1)
 
 ### Support for Scala 3.4.1
