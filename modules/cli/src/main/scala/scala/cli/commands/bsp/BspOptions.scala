@@ -3,24 +3,20 @@ package scala.cli.commands.bsp
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HasSharedOptions, HelpMessages, SharedOptions}
 import scala.cli.commands.tags
 
-// format: off
 @HelpMessage(BspOptions.helpMessage, "", BspOptions.detailedHelpMessage)
 final case class BspOptions(
-  // FIXME There might be too many options in SharedOptions for the bsp command…
   @Recurse
-    shared: SharedOptions = SharedOptions(),
-
+  @Hidden
+    global: GlobalOptions = GlobalOptions(),
   @HelpMessage("Command-line options JSON file")
   @ValueDescription("path")
   @Hidden
   @Tag(tags.implementation)
     jsonOptions: Option[String] = None
-) extends HasSharedOptions {
-  // format: on
-}
+) extends HasGlobalOptions
 
 object BspOptions {
   implicit lazy val parser: Parser[BspOptions] = Parser.derive

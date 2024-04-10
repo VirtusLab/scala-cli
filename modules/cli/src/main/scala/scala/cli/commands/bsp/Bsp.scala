@@ -27,13 +27,13 @@ object Bsp extends ScalaCommand[BspOptions] {
       .map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
         readFromArray(content)(SharedOptions.jsonCodec)
-      }.getOrElse(options.shared)
+      }.getOrElse(SharedOptions())
   override def sharedOptions(options: BspOptions): Option[SharedOptions] =
     Option(latestSharedOptions(options))
 
   // not reusing buildOptions here, since they should be reloaded live instead
   override def runCommand(options: BspOptions, args: RemainingArgs, logger: Logger): Unit = {
-    if (options.shared.logging.verbosity >= 3)
+    if (options.global.logging.verbosity >= 3)
       pprint.err.log(args)
 
     val getSharedOptions: () => SharedOptions = () => latestSharedOptions(options)
@@ -42,7 +42,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       argsSeq =>
         either {
           val sharedOptions = getSharedOptions()
-          val initialInputs = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
+          val initialInputs = value(sharedOptions.inputs(argsSeq))
 
           if (sharedOptions.logging.verbosity >= 3)
             pprint.err.log(initialInputs)
@@ -110,7 +110,7 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val actionableDiagnostics =
-      options.shared.logging.verbosityOptions.actions
+      options.global.logging.verbosityOptions.actions
 
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
