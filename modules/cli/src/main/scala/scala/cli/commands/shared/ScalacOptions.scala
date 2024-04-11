@@ -61,8 +61,11 @@ object ScalacOptions {
   val ScalacPrintOptions: Set[String] =
     scalacOptionsPurePrefixes ++ Set(
       "-help",
+      "-opt:help",
       "-Xshow-phases",
+      "-Xsource:help",
       "-Xplugin-list",
+      "-Xmixin-force-forwarders:help",
       "-Xlint:help",
       "-Vphases"
     )
