@@ -224,14 +224,14 @@ final class BspImpl(
   ): Either[(BuildException, Scope), Unit] = {
     def doBuildOnce(data: PreBuildData, scope: Scope): Either[(BuildException, Scope), Build] =
       Build.buildOnce(
-        currentBloopSession.inputs,
-        data.sources,
-        data.generatedSources,
-        data.buildOptions,
-        scope,
-        reloadableOptions.logger,
-        actualLocalClient,
-        currentBloopSession.remoteServer,
+        inputs = currentBloopSession.inputs,
+        sources = data.sources,
+        generatedSources = data.generatedSources,
+        options = data.buildOptions,
+        scope = scope,
+        logger = reloadableOptions.logger,
+        buildClient = actualLocalClient,
+        compiler = currentBloopSession.remoteServer,
         partialOpt = None
       ).left.map(_ -> scope)
 
