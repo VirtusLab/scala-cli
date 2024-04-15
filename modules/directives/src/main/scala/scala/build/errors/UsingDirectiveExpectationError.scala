@@ -35,8 +35,8 @@ final class ToolkitDirectiveMissingVersionError(
 ) extends UsingDirectiveExpectationError({
       val pathString = maybePath.map(p => s" at $p").getOrElse("")
       s"""Encountered an error when parsing the `$key` using directive$pathString.
-         |Expected a version to be passed.
-         |Example: `//> using $key latest`
+         |Expected a version or "default" to be passed.
+         |Example: `//> using $key default`
          |""".stripMargin
     })
 object ToolkitDirectiveMissingVersionError {
