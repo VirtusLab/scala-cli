@@ -130,7 +130,7 @@ object Deps {
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
-  def fansi   = ivy"com.lihaoyi::fansi:0.4.0"
+  def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava   = ivy"com.google.guava:guava:33.1.0-jre"
   def javaClassName =
