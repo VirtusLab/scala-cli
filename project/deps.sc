@@ -194,7 +194,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.12"
+  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.13"
   def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.5"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
