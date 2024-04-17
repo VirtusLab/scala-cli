@@ -205,7 +205,7 @@ object Deps {
   val typelevelToolkitVersion = "0.1.23"
   def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
-  def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.0"
+  def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.1"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
