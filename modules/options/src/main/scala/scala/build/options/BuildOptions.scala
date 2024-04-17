@@ -245,10 +245,6 @@ final case class BuildOptions(
   def javaHomeLocation(): Positioned[os.Path] =
     javaOptions.javaHomeLocation(archiveCache, finalCache, internal.verbosityOrDefault)
 
-  // used when downloading fails
-  private def defaultStableScalaVersions =
-    Seq(defaultScala212Version, defaultScala213Version, defaultScalaVersion)
-
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
   lazy val javaHomeManager =
@@ -315,7 +311,8 @@ final case class BuildOptions(
     val defaultVersions = Set(
       Constants.defaultScalaVersion,
       Constants.defaultScala212Version,
-      Constants.defaultScala213Version
+      Constants.defaultScala213Version,
+      scalaOptions.defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
     )
 
     val svOpt: Option[String] = scalaOptions.scalaVersion match {
@@ -379,7 +376,7 @@ final case class BuildOptions(
         }
         Some(sv)
 
-      case None => Some(Constants.defaultScalaVersion)
+      case None => Some(scalaOptions.defaultScalaVersion.getOrElse(Constants.defaultScalaVersion))
     }
 
     svOpt match {

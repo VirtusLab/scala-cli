@@ -5,12 +5,12 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.Logger
 import scala.build.internal.Constants
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.PasswordOption
 import scala.cli.util.ArgHelpers.*
+import scala.cli.{CurrentParams, ScalaCli}
 
 object Version extends ScalaCommand[VersionOptions] {
   override def group: String = HelpCommandGroup.Miscellaneous.toString
@@ -34,7 +34,7 @@ object Version extends ScalaCommand[VersionOptions] {
           else None
       }
     if options.cliVersion then println(Constants.version)
-    else if options.scalaVersion then println(Constants.defaultScalaVersion)
+    else if options.scalaVersion then println(ScalaCli.getDefaultScalaVersion)
     else {
       println(versionInfo)
       if !options.offline then
@@ -51,5 +51,5 @@ object Version extends ScalaCommand[VersionOptions] {
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
     s"""$fullRunnerName version: $version$detailedVersionOpt
-       |Scala version (default): ${Constants.defaultScalaVersion}""".stripMargin
+       |Scala version (default): ${ScalaCli.getDefaultScalaVersion}""".stripMargin
 }

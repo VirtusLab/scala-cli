@@ -53,6 +53,10 @@ object ScalaCli {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
+  private var defaultScalaVersion: Option[String] = None
+
+  def getDefaultScalaVersion: String = defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
+
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
     (systemProps, args.drop(systemProps.size))
@@ -237,6 +241,8 @@ object ScalaCli {
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
+            if launcherOpts.cliUserScalaVersion.nonEmpty then
+              defaultScalaVersion = launcherOpts.cliUserScalaVersion
             if launcherOpts.powerOptions.power then
               isSipScala = false
               args0.toArray

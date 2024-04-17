@@ -166,7 +166,10 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   }
 
   def finalBuildOptions(options: PackageOptions): BuildOptions = {
-    val finalBuildOptions = options.finalBuildOptions.orExit(options.shared.logger)
+    val initialOptions = options.finalBuildOptions.orExit(options.shared.logger)
+    val finalBuildOptions = initialOptions.copy(scalaOptions =
+      initialOptions.scalaOptions.copy(defaultScalaVersion = Some(defaultScalaVersion))
+    )
     val buildOptions = finalBuildOptions.copy(
       javaOptions = finalBuildOptions.javaOptions.copy(
         javaOpts =

@@ -513,4 +513,84 @@ class SipScalaTests extends ScalaCliSuite {
       expect(res.err.trim().contains(expectedError))
     }
   }
+
+  for {
+    sv <- Seq(Constants.scala212, Constants.scala213, Constants.scala3NextRc)
+    code =
+      if (sv.startsWith("3")) "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+      else "println(scala.util.Properties.versionNumberString)"
+    anotherVersion =
+      if (sv.startsWith("3")) Constants.scala3Lts
+      else "2.13.7"
+  } {
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when running a script"
+    ) {
+      TestInputs(os.rel / "simple.sc" -> code)
+        .fromRoot { root =>
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "run",
+            "simple.sc",
+            "--with-compiler"
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S"
+    ) {
+      TestInputs(os.rel / "simple.sc" -> code)
+        .fromRoot { root =>
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "-S",
+            anotherVersion
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == anotherVersion)
+        }
+    }
+
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when printing Scala version"
+    ) {
+      TestInputs.empty.fromRoot { root =>
+        val r =
+          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version", "--scala-version")
+            .call(cwd = root)
+        expect(r.out.trim() == sv)
+      }
+    }
+
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when printing versions"
+    ) {
+      TestInputs.empty.fromRoot { root =>
+        val r = os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version")
+          .call(cwd = root)
+        expect(r.out.trim().contains(sv))
+      }
+    }
+  }
+
+  test(s"default Scala version override launcher option can only be passed once") {
+    TestInputs.empty.fromRoot { root =>
+      val (sv1, sv2)  = (Constants.scala212, Constants.scala213)
+      val launcherOpt = "--cli-default-scala-version"
+      val r = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(r.exitCode == 1)
+      expect(r.err.trim().contains(launcherOpt))
+      expect(r.err.trim().contains("already specified"))
+    }
+  }
 }
