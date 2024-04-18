@@ -12,6 +12,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.input.VirtualScript.VirtualScriptNameRegex
@@ -473,19 +474,24 @@ object Build {
     }
   }
 
-  def projectRootDir(root: os.Path, projectName: String): os.Path =
-    root / Constants.workspaceDirName / projectName
-  def classesRootDir(root: os.Path, projectName: String): os.Path =
+  def projectRootDir(root: os.Path, projectName: ProjectName): os.Path =
+    root / Constants.workspaceDirName / projectName.name
+  def classesRootDir(root: os.Path, projectName: ProjectName): os.Path =
     projectRootDir(root, projectName) / "classes"
-  def classesDir(root: os.Path, projectName: String, scope: Scope, suffix: String = ""): os.Path =
+  def classesDir(
+    root: os.Path,
+    projectName: ProjectName,
+    scope: Scope,
+    suffix: String = ""
+  ): os.Path =
     classesRootDir(root, projectName) / s"${scope.name}$suffix"
 
   def resourcesRegistry(
     root: os.Path,
-    projectName: String,
+    projectName: ProjectName,
     scope: Scope
   ): os.Path =
-    root / Constants.workspaceDirName / projectName / s"resources-${scope.name}"
+    root / Constants.workspaceDirName / projectName.name / s"resources-${scope.name}"
 
   def scalaNativeSupported(
     options: BuildOptions,
@@ -1099,7 +1105,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(scope, generatedSources)
+    buildClient.setGeneratedSources(inputs.scopeProjectName(scope), generatedSources)
 
     val partial = partialOpt.getOrElse {
       options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
@@ -1246,7 +1252,7 @@ object Build {
     buildTests: Boolean,
     actionableDiagnostics: Option[Boolean]
   )(using ScalaCliInvokeData): Either[BuildException, Option[Build]] = either {
-    val jmhProjectName = inputs.projectName + "_jmh"
+    val jmhProjectName = inputs.projectName.name + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
     os.remove.all(jmhOutputDir)
     val jmhSourceDir   = jmhOutputDir / "sources"

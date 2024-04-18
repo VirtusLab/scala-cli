@@ -9,6 +9,7 @@ import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
 
 import scala.build.Logger
+import scala.build.bsp.buildtargets.{ManagesBuildTargets, ManagesBuildTargetsImpl, ProjectName}
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
@@ -25,7 +26,7 @@ class BspServer(
     with ScalaBuildServerForwardStubs
     with JavaBuildServerForwardStubs
     with JvmBuildServerForwardStubs
-    with HasGeneratedSourcesImpl {
+    with ManagesBuildTargetsImpl {
 
   private var client: Option[BuildClient] = None
 
@@ -117,12 +118,12 @@ class BspServer(
     params
   }
   private def mapGeneratedSources(res: b.SourcesResult): Unit = {
-    val gen = generatedSources.values.toVector
+    val gen = managedTargets.values.map(_.uriMap).toVector
     for {
       item <- res.getItems.asScala
       if validTarget(item.getTarget)
       sourceItem <- item.getSources.asScala
-      genSource  <- gen.iterator.flatMap(_.uriMap.get(sourceItem.getUri).iterator).take(1)
+      genSource  <- gen.iterator.flatMap(_.get(sourceItem.getUri).iterator).take(1)
       updatedUri <- genSource.reportingPath.toOption.map(_.toNIO.toUri.toASCIIString)
     } {
       sourceItem.setUri(updatedUri)
@@ -130,7 +131,7 @@ class BspServer(
     }
 
     // GeneratedSources not corresponding to files that exist on disk (unlike script wrappers)
-    val sourcesWithReportingPathString = generatedSources.values.flatMap(_.sources)
+    val sourcesWithReportingPathString = managedTargets.values.flatMap(_.generatedSources)
       .filter(_.reportingPath.isLeft)
 
     for {
@@ -225,7 +226,10 @@ class BspServer(
     val target = params.getTarget
     if (!validTarget(target))
       logger.debug(
-        s"Got invalid target in Run request: ${target.getUri} (expected ${targetScopeIdOpt(Scope.Main).orNull})"
+        s"""Got invalid target in Run request: ${target.getUri}.
+           |Available build targets:
+           |${targetIds.mkString(" - ", System.lineSeparator() + " - ", "")}
+           |""".stripMargin
       )
     super.buildTargetRun(params)
   }
@@ -283,10 +287,10 @@ class BspServer(
 
   def buildTargetWrappedSources(params: WrappedSourcesParams)
     : CompletableFuture[WrappedSourcesResult] = {
-    def sourcesItemOpt(scope: Scope) = targetScopeIdOpt(scope).map { id =>
-      val items = generatedSources
-        .getOrElse(scope, HasGeneratedSources.GeneratedSources(Nil))
-        .sources
+    def wrappedSourceItems(buildTargetId: b.BuildTargetIdentifier): WrappedSourcesItem = {
+      val items = managedTargets.values.find(_.targetUri == buildTargetId)
+        .map(_.generatedSources)
+        .getOrElse(Nil)
         .flatMap { s =>
           s.reportingPath.toSeq.map(_.toNIO.toUri.toASCIIString).map { uri =>
             val item    = new WrappedSourceItem(uri, s.generated.toNIO.toUri.toASCIIString)
@@ -301,10 +305,12 @@ class BspServer(
             item
           }
         }
-      new WrappedSourcesItem(id, items.asJava)
+      new WrappedSourcesItem(buildTargetId, items.asJava)
     }
-    val sourceItems = Seq(Scope.Main, Scope.Test).flatMap(sourcesItemOpt(_).toSeq)
-    val res         = new WrappedSourcesResult(sourceItems.asJava)
+
+    val targetsAsked = params.getTargets.asScala.toSeq
+    val sourceItems  = targetsAsked.map(wrappedSourceItems)
+    val res          = new WrappedSourcesResult(sourceItems.asJava)
     CompletableFuture.completedFuture(res)
   }
 

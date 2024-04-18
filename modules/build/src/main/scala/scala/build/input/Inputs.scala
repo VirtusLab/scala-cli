@@ -7,6 +7,7 @@ import java.security.MessageDigest
 
 import scala.annotation.tailrec
 import scala.build.Directories
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, InputsException, WorkspaceError}
 import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
@@ -52,16 +53,17 @@ final case class Inputs(
     }
 
   private lazy val inputsHash: String = elements.inputsHash
-  lazy val projectName: String = {
+
+  lazy val projectName: ProjectName = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Directory) => d.path != workspace
       case _                 => true
     })
-    if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
+    if needsSuffix then ProjectName(s"$baseProjectName-$inputsHash")
+    else ProjectName(baseProjectName)
   }
 
-  def scopeProjectName(scope: Scope): String =
-    if scope == Scope.Main then projectName else s"$projectName-${scope.name}"
+  def scopeProjectName(scope: Scope): ProjectName = projectName.withScopeAppended(scope)
 
   def add(extraElements: Seq[Element]): Inputs =
     if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
@@ -69,7 +71,7 @@ final case class Inputs(
     copy(elements = elements)
 
   def generatedSrcRoot(scope: Scope): os.Path =
-    workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
+    workspace / Constants.workspaceDirName / projectName.name / "src_generated" / scope.name
 
   private def inHomeDir(directories: Directories): Inputs =
     copy(
@@ -118,13 +120,13 @@ final case class Inputs(
   }
 
   def nativeWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "native"
+    workspace / Constants.workspaceDirName / projectName.name / "native"
   def nativeImageWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "native-image"
+    workspace / Constants.workspaceDirName / projectName.name / "native-image"
   def libraryJarWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "jar"
+    workspace / Constants.workspaceDirName / projectName.name / "jar"
   def docJarWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "doc"
+    workspace / Constants.workspaceDirName / projectName.name / "doc"
 }
 
 object Inputs {
