@@ -12,6 +12,8 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+permissions: read-all
+
 jobs:
   unit-tests:
     timeout-minutes: 120
@@ -120,6 +122,8 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
         fetch-depth: 0
         submodules: true
+
+    - run: git remote -v
     - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
       with:
         jvm: "temurin:17"
