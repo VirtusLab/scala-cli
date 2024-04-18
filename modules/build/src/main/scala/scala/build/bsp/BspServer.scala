@@ -59,13 +59,6 @@ class BspServer(
     sys.exit(1)
   }
 
-  private def maybeUpdateProjectTargetUri(res: b.WorkspaceBuildTargetsResult): Unit =
-    for {
-      (_, n) <- projectNames.iterator
-      if n.targetUriOpt.isEmpty
-      target <- res.getTargets.asScala.iterator.find(_.getDisplayName == n.name)
-    } n.targetUriOpt = Some(target.getId.getUri)
-
   private def stripInvalidTargets(params: b.WorkspaceBuildTargetsResult): Unit = {
     val updatedTargets = params
       .getTargets
@@ -272,7 +265,6 @@ class BspServer(
 
   override def workspaceBuildTargets(): CompletableFuture[b.WorkspaceBuildTargetsResult] =
     super.workspaceBuildTargets().thenApply { res =>
-      maybeUpdateProjectTargetUri(res)
       val res0 = res.duplicate()
       stripInvalidTargets(res0)
       for (target <- res0.getTargets.asScala) {
