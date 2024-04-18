@@ -3,59 +3,65 @@ package scala.build.bsp.buildtargets
 import ch.epfl.scala.bsp4j as b
 
 import scala.build.GeneratedSource
-import scala.build.input.Inputs
+import scala.build.bsp.buildtargets.ManagesBuildTargets
+import scala.build.errors.{BuildException, WorkspaceError}
+import scala.build.input.ModuleInputs
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.collection.mutable
+import scala.util.Try
 
 trait ManagesBuildTargetsImpl extends ManagesBuildTargets {
 
   import ManagesBuildTargets.*
 
-  protected val projectNames     = mutable.Map[Scope, ProjectName]()
-  protected val generatedSources = mutable.Map[Scope, GeneratedSources]()
+//  protected val projectNames     = mutable.Map[Scope, OldProjectName]()
+//  protected val generatedSources = mutable.Map[Scope, GeneratedSources]()
+  protected var managedTargets = mutable.Map[ProjectName, BuildTarget]()
 
-  def targetIds: List[b.BuildTargetIdentifier] =
-    projectNames
-      .toList
-      .sortBy(_._1)
-      .map(_._2)
-      .flatMap(_.targetUriOpt)
-      .map(uri => new b.BuildTargetIdentifier(uri))
+  override def targetIds: List[b.BuildTargetIdentifier] =
+    managedTargets.values.toList.map(_.targetId)
 
-  def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
-    projectNames
-      .get(scope)
-      .flatMap(_.targetUriOpt)
-      .map(uri => new b.BuildTargetIdentifier(uri))
+  override def targetProjectIdOpt(projectName: ProjectName): Option[b.BuildTargetIdentifier] =
+    managedTargets.get(projectName).map(_.targetId)
 
-  def resetProjectNames(): Unit =
-    projectNames.clear()
-  def setProjectName(workspace: os.Path, name: String, scope: Scope): Unit =
-    if (!projectNames.contains(scope))
-      projectNames(scope) = ProjectName(workspace, name)
+  override def resetTargets(): Unit = managedTargets.clear()
+  override def addTarget(
+    projectName: ProjectName,
+    workspace: os.Path,
+    scope: Scope,
+    generatedSources: Seq[GeneratedSource] = Nil
+  ): Unit =
+    managedTargets.put(projectName, BuildTarget(projectName, workspace, scope, generatedSources))
 
-  def newInputs(inputs: Inputs): Unit = {
-    resetProjectNames()
-    setProjectName(inputs.workspace, inputs.projectName, Scope.Main)
-    setProjectName(inputs.workspace, inputs.scopeProjectName(Scope.Test), Scope.Test)
+  // TODO MG
+  override def newInputs(inputs: ModuleInputs): Unit = {
+    resetTargets()
+    addTarget(inputs.projectName, inputs.workspace, Scope.Main)
+    addTarget(inputs.scopeProjectName(Scope.Test), inputs.workspace, Scope.Test)
   }
+  override def setGeneratedSources(
+    projectName: ProjectName,
+    sources: Seq[GeneratedSource]
+  ): Unit = {
+    val buildTarget = Try(managedTargets(projectName))
+      // TODO MG
+      .getOrElse(throw WorkspaceError("No BuildTarget to put generated sources"))
 
-  def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit = {
-    generatedSources(scope) = GeneratedSources(sources)
+    managedTargets.put(projectName, buildTarget.copy(generatedSources = sources))
   }
 
   protected def targetWorkspaceDirOpt(id: b.BuildTargetIdentifier): Option[String] =
-    projectNames.collectFirst {
-      case (_, projName) if projName.targetUriOpt.contains(id.getUri) =>
-        (projName.bloopWorkspace / Constants.workspaceDirName).toIO.toURI.toASCIIString
+    managedTargets.values.collectFirst {
+      case b: BuildTarget if b.targetId == id =>
+        (b.bloopWorkspace / Constants.workspaceDirName).toIO.toURI.toASCIIString
     }
-  protected def targetScopeOpt(id: b.BuildTargetIdentifier): Option[Scope] =
-    projectNames.collectFirst {
-      case (scope, projName) if projName.targetUriOpt.contains(id.getUri) =>
-        scope
+  protected def targetProjectNameOpt(id: b.BuildTargetIdentifier): Option[ProjectName] =
+    managedTargets.collectFirst {
+      case projectName -> buildTarget if buildTarget.targetId == id => projectName
     }
+
   protected def validTarget(id: b.BuildTargetIdentifier): Boolean =
-    targetScopeOpt(id).nonEmpty
+    targetProjectNameOpt(id).nonEmpty
 
 }

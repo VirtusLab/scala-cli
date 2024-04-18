@@ -2,7 +2,7 @@ package scala.build.preprocessing
 
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SingleElement}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData, SingleElement}
 import scala.build.options.SuppressWarningOptions
 
 trait Preprocessor {

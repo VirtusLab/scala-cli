@@ -1,11 +1,12 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 import java.util.concurrent.CompletableFuture
 
 import scala.build.GeneratedSource
-import scala.build.input.Inputs
+import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
+import scala.build.input.ModuleInputs
 import scala.build.options.Scope
 
 /** A wrapper for [[BspServer]], allowing to reload the workspace on the fly.
@@ -18,7 +19,7 @@ class BuildServerProxy(
   bspServer: () => BspServer,
   onReload: () => CompletableFuture[Object]
 ) extends b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with b.JvmBuildServer
-    with ScalaScriptBuildServer with HasGeneratedSources {
+    with ScalaScriptBuildServer with ManagesBuildTargets {
   override def buildInitialize(params: b.InitializeBuildParams)
     : CompletableFuture[b.InitializeBuildResult] = bspServer().buildInitialize(params)
 
@@ -99,14 +100,19 @@ class BuildServerProxy(
     bspServer().buildTargetJvmTestEnvironment(params)
 
   def targetIds: List[b.BuildTargetIdentifier] = bspServer().targetIds
-  def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
-    bspServer().targetScopeIdOpt(scope)
-  def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit =
-    bspServer().setGeneratedSources(scope, sources)
-  def setProjectName(workspace: os.Path, name: String, scope: Scope): Unit =
-    bspServer().setProjectName(workspace, name, scope)
-  def resetProjectNames(): Unit =
-    bspServer().resetProjectNames()
-  def newInputs(inputs: Inputs): Unit =
+  def targetProjectIdOpt(projectName: ProjectName): Option[b.BuildTargetIdentifier] =
+    bspServer().targetProjectIdOpt(projectName)
+  def setGeneratedSources(projectName: ProjectName, sources: Seq[GeneratedSource]): Unit =
+    bspServer().setGeneratedSources(projectName, sources)
+  def addTarget(
+    projectName: ProjectName,
+    workspace: os.Path,
+    scope: Scope,
+    generatedSources: Seq[GeneratedSource] = Nil
+  ): Unit =
+    bspServer().addTarget(projectName, workspace, scope, generatedSources)
+  def resetTargets(): Unit =
+    bspServer().resetTargets()
+  def newInputs(inputs: ModuleInputs): Unit =
     bspServer().newInputs(inputs)
 }

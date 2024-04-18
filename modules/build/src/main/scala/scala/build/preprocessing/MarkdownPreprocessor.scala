@@ -5,13 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{
-  Inputs,
-  MarkdownFile,
-  ScalaCliInvokeData,
-  SingleElement,
-  VirtualMarkdownFile
-}
+import scala.build.input.{MarkdownFile, ModuleInputs, ScalaCliInvokeData, SingleElement, VirtualMarkdownFile}
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.internal.{AmmUtil, Name}
 import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}

@@ -12,6 +12,7 @@ import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
 import scala.build.input.VirtualScript.VirtualScriptNameRegex
@@ -29,7 +30,7 @@ import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 
 trait Build {
-  def inputs: Inputs
+  def inputs: ModuleInputs
   def options: BuildOptions
   def scope: Scope
   def outputOpt: Option[os.Path]
@@ -42,7 +43,7 @@ trait Build {
 object Build {
 
   final case class Successful(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scalaParams: Option[ScalaParameters],
     scope: Scope,
@@ -170,7 +171,7 @@ object Build {
   }
 
   final case class Failed(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scope: Scope,
     sources: Sources,
@@ -184,7 +185,7 @@ object Build {
   }
 
   final case class Cancelled(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scope: Scope,
     reason: String
@@ -199,9 +200,9 @@ object Build {
     * Using only the command-line options not the ones from the sources.
     */
   def updateInputs(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions
-  ): Inputs = {
+  ): ModuleInputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
@@ -212,7 +213,7 @@ object Build {
   }
 
   private def allInputs(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData) =
@@ -229,7 +230,7 @@ object Build {
     )
 
   private def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     crossSources: CrossSources,
     options: BuildOptions,
     logger: Logger,
@@ -244,7 +245,7 @@ object Build {
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
 
-    def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
+    def doPostProcess(build: Build, inputs: ModuleInputs, scope: Scope): Unit = build match {
       case build: Build.Successful =>
         for (sv <- build.project.scalaCompiler.map(_.scalaVersion))
           postProcess(
@@ -422,7 +423,7 @@ object Build {
   }
 
   private def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -474,23 +475,28 @@ object Build {
     }
   }
 
-  def projectRootDir(root: os.Path, projectName: String): os.Path =
-    root / Constants.workspaceDirName / projectName
-  def classesRootDir(root: os.Path, projectName: String): os.Path =
+  def projectRootDir(root: os.Path, projectName: ProjectName): os.Path =
+    root / Constants.workspaceDirName / projectName.name
+  def classesRootDir(root: os.Path, projectName: ProjectName): os.Path =
     projectRootDir(root, projectName) / "classes"
-  def classesDir(root: os.Path, projectName: String, scope: Scope, suffix: String = ""): os.Path =
+  def classesDir(
+    root: os.Path,
+    projectName: ProjectName,
+    scope: Scope,
+    suffix: String = ""
+  ): os.Path =
     classesRootDir(root, projectName) / s"${scope.name}$suffix"
 
   def resourcesRegistry(
     root: os.Path,
-    projectName: String,
+    projectName: ProjectName,
     scope: Scope
   ): os.Path =
-    root / Constants.workspaceDirName / projectName / s"resources-${scope.name}"
+    root / Constants.workspaceDirName / projectName.name / s"resources-${scope.name}"
 
   def scalaNativeSupported(
     options: BuildOptions,
-    inputs: Inputs,
+    inputs: ModuleInputs,
     logger: Logger
   ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
     either {
@@ -548,7 +554,7 @@ object Build {
     }
 
   def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
     docCompilerMakerOpt: Option[ScalaCompilerMaker],
@@ -628,7 +634,7 @@ object Build {
   }
 
   def watch(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
     docCompilerMakerOpt: Option[ScalaCompilerMaker],
@@ -832,7 +838,7 @@ object Build {
     *   a bloop [[Project]]
     */
   def buildProject(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -997,7 +1003,7 @@ object Build {
   }
 
   def prepareBuild(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -1078,7 +1084,7 @@ object Build {
     }
 
   def buildOnce(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -1110,7 +1116,7 @@ object Build {
     }
 
     buildClient.clear()
-    buildClient.setGeneratedSources(scope, generatedSources)
+    buildClient.setGeneratedSources(inputs.scopeProjectName(scope), generatedSources)
 
     val partial = partialOpt.getOrElse {
       options.notForBloopOptions.packageOptions.packageTypeOpt.exists(_.sourceBased)
@@ -1248,7 +1254,7 @@ object Build {
     else path.toString
 
   private def jmhBuild(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     build: Build.Successful,
     logger: Logger,
     javaCommand: String,
@@ -1257,7 +1263,7 @@ object Build {
     buildTests: Boolean,
     actionableDiagnostics: Option[Boolean]
   )(using ScalaCliInvokeData): Either[BuildException, Option[Build]] = either {
-    val jmhProjectName = inputs.projectName + "_jmh"
+    val jmhProjectName = inputs.projectName.name + "_jmh"
     val jmhOutputDir   = inputs.workspace / Constants.workspaceDirName / jmhProjectName
     os.remove.all(jmhOutputDir)
     val jmhSourceDir   = jmhOutputDir / "sources"

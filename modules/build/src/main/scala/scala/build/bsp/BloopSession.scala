@@ -6,15 +6,16 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.{Inputs, OnDisk, SingleFile, Virtual}
+import scala.build.input.{ModuleInputs, OnDisk, SingleFile, Virtual}
 
 final class BloopSession(
-  val inputs: Inputs,
+  val inputs: ModuleInputs,
   val inputsHash: String,
   val remoteServer: BloopCompiler,
   val bspServer: BspServer,
   val watcher: Build.Watcher
 ) {
+  // TODO this resets diagnostics using paths that do not belong to the build targets
   def resetDiagnostics(localClient: BspClient): Unit =
     for (targetId <- bspServer.targetIds)
       inputs.flattened().foreach {
@@ -56,7 +57,7 @@ final class BloopSession(
 object BloopSession {
 
   def apply(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     remoteServer: BloopCompiler,
     bspServer: BspServer,
     watcher: Build.Watcher

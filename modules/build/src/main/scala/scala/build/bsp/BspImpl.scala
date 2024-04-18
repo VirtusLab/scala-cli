@@ -13,6 +13,7 @@ import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{
   BuildException,
@@ -20,7 +21,7 @@ import scala.build.errors.{
   Diagnostic,
   ParsingInputsException
 }
-import scala.build.input.{Inputs, ScalaCliInvokeData}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -32,7 +33,7 @@ import scala.util.{Failure, Success}
 /** The implementation for [[Bsp]] command.
   *
   * @param argsToInputs
-  *   a function transforming terminal args to [[Inputs]]
+  *   a function transforming terminal args to [[ModuleInputs]]
   * @param bspReloadableOptionsReference
   *   reference to the current instance of [[BspReloadableOptions]]
   * @param threads
@@ -43,7 +44,7 @@ import scala.util.{Failure, Success}
   *   the output stream of bytes
   */
 final class BspImpl(
-  argsToInputs: Seq[String] => Either[BuildException, Inputs],
+  argsToInputs: Seq[String] => Either[BuildException, ModuleInputs],
   bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
@@ -90,139 +91,146 @@ final class BspImpl(
   private def prepareBuild(
     currentBloopSession: BloopSession,
     reloadableOptions: BspReloadableOptions,
-    maybeRecoverOnError: Scope => BuildException => Option[BuildException] = _ => e => Some(e)
-  ): Either[(BuildException, Scope), PreBuildProject] = either[(BuildException, Scope)] {
-    val logger       = reloadableOptions.logger
-    val buildOptions = reloadableOptions.buildOptions
-    val verbosity    = reloadableOptions.verbosity
-    logger.log("Preparing build")
+    maybeRecoverOnError: ProjectName => BuildException => Option[BuildException] = _ => e => Some(e)
+  ): Either[(BuildException, ProjectName), PreBuildProject] =
+    either[(BuildException, ProjectName)] {
+      val logger       = reloadableOptions.logger
+      val buildOptions = reloadableOptions.buildOptions
+      val verbosity    = reloadableOptions.verbosity
+      logger.log("Preparing build")
 
-    val persistentLogger = new PersistentDiagnosticLogger(logger)
-    val bspServer        = currentBloopSession.bspServer
-    val inputs           = currentBloopSession.inputs
+      val persistentLogger = new PersistentDiagnosticLogger(logger)
+      val bspServer        = currentBloopSession.bspServer
+      val inputs           = currentBloopSession.inputs
 
-    // allInputs contains elements from using directives
-    val (crossSources, allInputs) = value {
-      CrossSources.forInputs(
-        inputs = inputs,
-        preprocessors = Sources.defaultPreprocessors(
-          buildOptions.archiveCache,
-          buildOptions.internal.javaClassNameVersionOpt,
-          () => buildOptions.javaHome().value.javaCommand
-        ),
-        logger = persistentLogger,
-        suppressWarningOptions = buildOptions.suppressWarningOptions,
-        exclude = buildOptions.internal.exclude,
-        maybeRecoverOnError = maybeRecoverOnError(Scope.Main)
-      ).left.map((_, Scope.Main))
-    }
+      val mainProjectName = inputs.projectName
+      val testProjectName = inputs.scopeProjectName(Scope.Test)
 
-    val sharedOptions = crossSources.sharedOptions(buildOptions)
+      // allInputs contains elements from using directives
+      val (crossSources, allInputs) = value {
+        CrossSources.forModuleInputs(
+          inputs = inputs,
+          preprocessors = Sources.defaultPreprocessors(
+            buildOptions.archiveCache,
+            buildOptions.internal.javaClassNameVersionOpt,
+            () => buildOptions.javaHome().value.javaCommand
+          ),
+          logger = persistentLogger,
+          suppressWarningOptions = buildOptions.suppressWarningOptions,
+          exclude = buildOptions.internal.exclude,
+          maybeRecoverOnError = maybeRecoverOnError(mainProjectName)
+        ).left.map(_ -> mainProjectName)
+      }
 
-    if (verbosity >= 3)
-      pprint.err.log(crossSources)
+      val sharedOptions = crossSources.sharedOptions(buildOptions)
 
-    val scopedSources =
-      value(crossSources.scopedSources(buildOptions).left.map((_, Scope.Main)))
+      if (verbosity >= 3)
+        pprint.err.log(crossSources)
 
-    if (verbosity >= 3)
-      pprint.err.log(scopedSources)
+      val scopedSources =
+        value(crossSources.scopedSources(buildOptions).left.map(_ -> mainProjectName))
 
-    val sourcesMain = value {
-      scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace, persistentLogger)
-        .left.map((_, Scope.Main))
-    }
+      if (verbosity >= 3)
+        pprint.err.log(scopedSources)
 
-    val sourcesTest = value {
-      scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace, persistentLogger)
-        .left.map((_, Scope.Test))
-    }
+      val sourcesMain = value {
+        scopedSources.sources(Scope.Main, sharedOptions, allInputs.workspace, persistentLogger)
+          .left.map(_ -> mainProjectName)
+      }
 
-    if (verbosity >= 3)
-      pprint.err.log(sourcesMain)
+      val sourcesTest = value {
+        scopedSources.sources(Scope.Test, sharedOptions, allInputs.workspace, persistentLogger)
+          .left.map(_ -> testProjectName)
+      }
 
-    val options0Main = sourcesMain.buildOptions
-    val options0Test = sourcesTest.buildOptions.orElse(options0Main)
+      if (verbosity >= 3)
+        pprint.err.log(sourcesMain)
 
-    val generatedSourcesMain = sourcesMain.generateSources(allInputs.generatedSrcRoot(Scope.Main))
-    val generatedSourcesTest = sourcesTest.generateSources(allInputs.generatedSrcRoot(Scope.Test))
+      val options0Main = sourcesMain.buildOptions
+      val options0Test = sourcesTest.buildOptions.orElse(options0Main)
 
-    bspServer.setExtraDependencySources(options0Main.classPathOptions.extraSourceJars)
-    bspServer.setExtraTestDependencySources(options0Test.classPathOptions.extraSourceJars)
-    bspServer.setGeneratedSources(Scope.Main, generatedSourcesMain)
-    bspServer.setGeneratedSources(Scope.Test, generatedSourcesTest)
+      val generatedSourcesMain = sourcesMain.generateSources(allInputs.generatedSrcRoot(Scope.Main))
+      val generatedSourcesTest = sourcesTest.generateSources(allInputs.generatedSrcRoot(Scope.Test))
 
-    val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
-      val res = Build.prepareBuild(
-        allInputs,
+      bspServer.setExtraDependencySources(options0Main.classPathOptions.extraSourceJars)
+      bspServer.setExtraTestDependencySources(options0Test.classPathOptions.extraSourceJars)
+      bspServer.setGeneratedSources(mainProjectName, generatedSourcesMain)
+      bspServer.setGeneratedSources(testProjectName, generatedSourcesTest)
+
+      val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
+        val res = Build.prepareBuild(
+          allInputs,
+          sourcesMain,
+          generatedSourcesMain,
+          options0Main,
+          None,
+          Scope.Main,
+          currentBloopSession.remoteServer,
+          persistentLogger,
+          localClient,
+          maybeRecoverOnError(mainProjectName)
+        )
+        res.left.map(_ -> mainProjectName)
+      }
+
+      val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
+        val res = Build.prepareBuild(
+          allInputs,
+          sourcesTest,
+          generatedSourcesTest,
+          options0Test,
+          None,
+          Scope.Test,
+          currentBloopSession.remoteServer,
+          persistentLogger,
+          localClient,
+          maybeRecoverOnError(testProjectName)
+        )
+        res.left.map(_ -> testProjectName)
+      }
+
+      localClient.setGeneratedSources(mainProjectName, generatedSourcesMain)
+      localClient.setGeneratedSources(testProjectName, generatedSourcesTest)
+
+      val mainScope = PreBuildData(
         sourcesMain,
-        generatedSourcesMain,
         options0Main,
-        None,
-        Scope.Main,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Main)
+        classesDir0Main,
+        scalaParamsMain,
+        artifactsMain,
+        projectMain,
+        generatedSourcesMain,
+        buildChangedMain
       )
-      res.left.map((_, Scope.Main))
-    }
 
-    val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
-      val res = Build.prepareBuild(
-        allInputs,
+      val testScope = PreBuildData(
         sourcesTest,
-        generatedSourcesTest,
         options0Test,
-        None,
-        Scope.Test,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Test)
+        classesDir0Test,
+        scalaParamsTest,
+        artifactsTest,
+        projectTest,
+        generatedSourcesTest,
+        buildChangedTest
       )
-      res.left.map((_, Scope.Test))
+
+      if (actionableDiagnostics.getOrElse(true)) {
+        val projectOptions = options0Test.orElse(options0Main)
+        projectOptions.logActionableDiagnostics(persistentLogger)
+      }
+
+      PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
     }
-
-    localClient.setGeneratedSources(Scope.Main, generatedSourcesMain)
-    localClient.setGeneratedSources(Scope.Test, generatedSourcesTest)
-
-    val mainScope = PreBuildData(
-      sourcesMain,
-      options0Main,
-      classesDir0Main,
-      scalaParamsMain,
-      artifactsMain,
-      projectMain,
-      generatedSourcesMain,
-      buildChangedMain
-    )
-
-    val testScope = PreBuildData(
-      sourcesTest,
-      options0Test,
-      classesDir0Test,
-      scalaParamsTest,
-      artifactsTest,
-      projectTest,
-      generatedSourcesTest,
-      buildChangedTest
-    )
-
-    if (actionableDiagnostics.getOrElse(true)) {
-      val projectOptions = options0Test.orElse(options0Main)
-      projectOptions.logActionableDiagnostics(persistentLogger)
-    }
-
-    PreBuildProject(mainScope, testScope, persistentLogger.diagnostics)
-  }
 
   private def buildE(
     currentBloopSession: BloopSession,
     notifyChanges: Boolean,
     reloadableOptions: BspReloadableOptions
-  ): Either[(BuildException, Scope), Unit] = {
-    def doBuildOnce(data: PreBuildData, scope: Scope): Either[(BuildException, Scope), Build] =
+  ): Either[(BuildException, ProjectName), Unit] = {
+    def doBuildOnce(
+      data: PreBuildData,
+      scope: Scope
+    ): Either[(BuildException, ProjectName), Build] =
       Build.buildOnce(
         inputs = currentBloopSession.inputs,
         sources = data.sources,
@@ -233,9 +241,9 @@ final class BspImpl(
         buildClient = actualLocalClient,
         compiler = currentBloopSession.remoteServer,
         partialOpt = None
-      ).left.map(_ -> scope)
+      ).left.map(_ -> currentBloopSession.inputs.scopeProjectName(scope))
 
-    either[(BuildException, Scope)] {
+    either[(BuildException, ProjectName)] {
       val preBuild = value(prepareBuild(currentBloopSession, reloadableOptions))
       if (notifyChanges && (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged))
         notifyBuildChange(currentBloopSession)
@@ -254,7 +262,7 @@ final class BspImpl(
     buildE(currentBloopSession, notifyChanges, reloadableOptions) match {
       case Left((ex, scope)) =>
         client.reportBuildException(
-          currentBloopSession.bspServer.targetScopeIdOpt(scope),
+          currentBloopSession.bspServer.targetProjectIdOpt(scope),
           ex
         )
         reloadableOptions.logger.debug(s"Caught $ex during BSP build, ignoring it")
@@ -298,25 +306,20 @@ final class BspImpl(
             if (preBuild.mainScope.buildChanged || preBuild.testScope.buildChanged)
               notifyBuildChange(currentBloopSession)
             Right(preBuild)
-          case Left((ex, scope)) =>
-            Left((ex, scope))
+          case Left((ex, projectName)) =>
+            Left((ex, projectName))
         },
       executor
     )
 
     preBuild.thenCompose {
-      case Left((ex, scope)) =>
+      case Left((ex, projectName)) =>
         val taskId = new b.TaskId(UUID.randomUUID().toString)
 
-        for targetId <- currentBloopSession.bspServer.targetScopeIdOpt(scope) do {
-          val target = targetId.getUri match {
-            case s"$_?id=$targetId" => targetId
-            case targetIdUri        => targetIdUri
-          }
-
+        for targetId <- currentBloopSession.bspServer.targetProjectIdOpt(projectName) do {
           val taskStartParams = new b.TaskStartParams(taskId)
           taskStartParams.setEventTime(System.currentTimeMillis())
-          taskStartParams.setMessage(s"Preprocessing '$target'")
+          taskStartParams.setMessage(s"Preprocessing '$projectName'")
           taskStartParams.setDataKind(b.TaskStartDataKind.COMPILE_TASK)
           taskStartParams.setData(new b.CompileTask(targetId))
 
@@ -329,7 +332,7 @@ final class BspImpl(
 
           val taskFinishParams = new b.TaskFinishParams(taskId, b.StatusCode.ERROR)
           taskFinishParams.setEventTime(System.currentTimeMillis())
-          taskFinishParams.setMessage(s"Preprocessed '$target'")
+          taskFinishParams.setMessage(s"Preprocessed '$projectName'")
           taskFinishParams.setDataKind(b.TaskFinishDataKind.COMPILE_REPORT)
 
           val errorSize = ex match {
@@ -405,7 +408,7 @@ final class BspImpl(
     *   a new [[BloopSession]]
     */
   private def newBloopSession(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     reloadableOptions: BspReloadableOptions,
     presetIntelliJ: Boolean = false
   ): BloopSession = {
@@ -455,7 +458,10 @@ final class BspImpl(
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
     */
-  override def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
+  override def run(
+    initialInputs: ModuleInputs,
+    initialBspOptions: BspReloadableOptions
+  ): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
 
@@ -470,7 +476,7 @@ final class BspImpl(
       with b.JavaBuildServer
       with b.JvmBuildServer
       with ScalaScriptBuildServer
-      with HasGeneratedSources = new BuildServerProxy(
+      with ManagesBuildTargets = new BuildServerProxy(
       () => bloopSession.get().bspServer,
       () => onReload()
     )
@@ -495,9 +501,9 @@ final class BspImpl(
     actualLocalClient.newInputs(initialInputs)
     currentBloopSession.resetDiagnostics(actualLocalClient)
 
-    val recoverOnError: Scope => BuildException => Option[BuildException] = scope =>
+    val recoverOnError: ProjectName => BuildException => Option[BuildException] = projectName =>
       e => {
-        actualLocalClient.reportBuildException(actualLocalServer.targetScopeIdOpt(scope), e)
+        actualLocalClient.reportBuildException(actualLocalServer.targetProjectIdOpt(projectName), e)
         logger.log(e)
         None
       }
@@ -507,8 +513,8 @@ final class BspImpl(
       initialBspOptions,
       maybeRecoverOnError = recoverOnError
     ) match {
-      case Left((ex, scope)) => recoverOnError(scope)(ex)
-      case Right(_)          =>
+      case Left((ex, projectName)) => recoverOnError(projectName)(ex)
+      case Right(_)                =>
     }
 
     logger.log {
@@ -557,8 +563,8 @@ final class BspImpl(
     */
   private def reloadBsp(
     currentBloopSession: BloopSession,
-    previousInputs: Inputs,
-    newInputs: Inputs,
+    previousInputs: ModuleInputs,
+    newInputs: ModuleInputs,
     reloadableOptions: BspReloadableOptions
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
@@ -719,8 +725,8 @@ object BspImpl {
     def diagnostics                           = underlying.diagnostics
     def setProjectParams(newParams: Seq[String]) =
       underlying.setProjectParams(newParams)
-    def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
-      underlying.setGeneratedSources(scope, newGeneratedSources)
+    def setGeneratedSources(projectName: ProjectName, newGeneratedSources: Seq[GeneratedSource]) =
+      underlying.setGeneratedSources(projectName, newGeneratedSources)
   }
 
   private final case class PreBuildData(
