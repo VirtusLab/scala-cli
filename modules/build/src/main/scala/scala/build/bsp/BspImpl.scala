@@ -52,12 +52,12 @@ final class BspImpl(
 )(using ScalaCliInvokeData) extends Bsp {
 
   import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
-  
+
   private val shownGlobalMessages =
     new java.util.concurrent.ConcurrentHashMap[String, Unit]()
-  private var actualLocalClient: BspClient = _
+  private var actualLocalClient: BspClient                     = _
   private var localClient: b.BuildClient with BloopBuildClient = _
-  private val bloopSession = new BloopSession.Reference
+  private val bloopSession                                     = new BloopSession.Reference
 
   /** Sends the buildTarget/didChange BSP notification to the BSP client, indicating that the build
     * targets defined in the current session have changed.
@@ -454,7 +454,7 @@ final class BspImpl(
     * @param initialInputs
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
-   */
+    */
   override def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
@@ -471,9 +471,9 @@ final class BspImpl(
       with b.JvmBuildServer
       with ScalaScriptBuildServer
       with HasGeneratedSources = new BuildServerProxy(
-        () => bloopSession.get().bspServer,
-        () => onReload()
-      )
+      () => bloopSession.get().bspServer,
+      () => onReload()
+    )
 
     val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
       with b.JvmBuildServer with ScalaScriptBuildServer =

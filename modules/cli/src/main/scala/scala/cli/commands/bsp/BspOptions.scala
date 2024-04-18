@@ -3,19 +3,25 @@ package scala.cli.commands.bsp
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HasSharedOptions, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  GlobalOptions,
+  HasGlobalOptions,
+  HasSharedOptions,
+  HelpMessages,
+  SharedOptions
+}
 import scala.cli.commands.tags
 
 @HelpMessage(BspOptions.helpMessage, "", BspOptions.detailedHelpMessage)
 final case class BspOptions(
   @Recurse
   @Hidden
-    global: GlobalOptions = GlobalOptions(),
+  global: GlobalOptions = GlobalOptions(),
   @HelpMessage("Command-line options JSON file")
   @ValueDescription("path")
   @Hidden
   @Tag(tags.implementation)
-    jsonOptions: Option[String] = None
+  jsonOptions: Option[String] = None
 ) extends HasGlobalOptions
 
 object BspOptions {
