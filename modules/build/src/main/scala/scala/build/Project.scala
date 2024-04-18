@@ -1,8 +1,8 @@
 package scala.build
 
-import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
-import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
+import _root_.bloop.config.{Config as BloopConfig, ConfigCodecs as BloopCodecs}
+import _root_.coursier.{Dependency as CsDependency, core as csCore, util as csUtil}
+import com.github.plokhotnyuk.jsoniter_scala.core.writeToArray as writeAsJsonToArray
 import coursier.core.Classifier
 
 import java.io.ByteArrayOutputStream
@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
 
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
 
 final case class Project(
@@ -21,7 +22,7 @@ final case class Project(
   scalaCompiler: Option[ScalaCompilerParams],
   scalaJsOptions: Option[BloopConfig.JsConfig],
   scalaNativeOptions: Option[BloopConfig.NativeConfig],
-  projectName: String,
+  projectName: ProjectName,
   classPath: Seq[os.Path],
   sources: Seq[os.Path],
   resolution: Option[BloopConfig.Resolution],
@@ -53,7 +54,7 @@ final case class Project(
     baseBloopProject(
       projectName,
       directory.toNIO,
-      (directory / ".bloop" / projectName).toNIO,
+      (directory / ".bloop" / projectName.name).toNIO,
       classesDir.toNIO,
       scope
     )
@@ -117,7 +118,7 @@ final case class Project(
   def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
     lazy val bloopFileContent =
       writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = directory / ".bloop" / s"$projectName.json"
+    val dest = directory / ".bloop" / s"${projectName.name}.json"
     val doWrite =
       if (strictCheck)
         !os.isFile(dest) || {
@@ -176,14 +177,14 @@ object Project {
     )
 
   private def baseBloopProject(
-    name: String,
+    projectName: ProjectName,
     directory: Path,
     out: Path,
     classesDir: Path,
     scope: Scope
   ): BloopConfig.Project = {
     val project = BloopConfig.Project(
-      name = name,
+      name = projectName.name,
       directory = directory,
       workspaceDir = None,
       sources = Nil,

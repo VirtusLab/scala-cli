@@ -15,6 +15,7 @@ final class BloopSession(
   val bspServer: BspServer,
   val watcher: Build.Watcher
 ) {
+  // TODO this resets diagnostics using paths that do not belong to the build targets
   def resetDiagnostics(localClient: BspClient): Unit =
     for (targetId <- bspServer.targetIds)
       inputs.flattened().foreach {
