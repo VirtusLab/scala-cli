@@ -6,6 +6,7 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Paths
 
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.Severity
 import scala.build.internal.WrapperParams
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
@@ -17,7 +18,7 @@ import scala.jdk.CollectionConverters.*
 class ConsoleBloopBuildClient(
   logger: Logger,
   keepDiagnostics: Boolean = false,
-  generatedSources: mutable.Map[Scope, Seq[GeneratedSource]] = mutable.Map()
+  generatedSources: mutable.Map[ProjectName, Seq[GeneratedSource]] = mutable.Map()
 ) extends BloopBuildClient {
   import ConsoleBloopBuildClient._
   private var projectParams = Seq.empty[String]
@@ -32,8 +33,8 @@ class ConsoleBloopBuildClient(
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
-  def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
-    generatedSources(scope) = newGeneratedSources
+  def setGeneratedSources(projectName: ProjectName, newGeneratedSources: Seq[GeneratedSource]) =
+    generatedSources(projectName) = newGeneratedSources
   def setProjectParams(newParams: Seq[String]): Unit = {
     projectParams = newParams
   }

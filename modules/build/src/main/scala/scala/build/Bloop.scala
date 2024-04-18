@@ -11,10 +11,11 @@ import java.io.{File, IOException}
 
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, ModuleFormatError}
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object Bloop {
 
@@ -30,7 +31,7 @@ object Bloop {
   }
 
   def compile(
-    projectName: String,
+    projectName: ProjectName,
     buildServer: BuildServer,
     logger: Logger,
     buildTargetsTimeout: FiniteDuration
@@ -39,16 +40,16 @@ object Bloop {
       logger.debug("Listing BSP build targets")
       val results = buildServer.workspaceBuildTargets()
         .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
-      val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
+      val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName.name)
 
       val buildTarget = buildTargetOpt.getOrElse {
         throw new Exception(
-          s"Expected to find project '$projectName' in build targets (only got ${results.getTargets
+          s"Expected to find project '${projectName.name}' in build targets (only got ${results.getTargets
               .asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
         )
       }
 
-      logger.debug(s"Compiling $projectName with Bloop")
+      logger.debug(s"Compiling ${projectName.name} with Bloop")
       val compileRes = buildServer.buildTargetCompile(
         new bsp4j.CompileParams(List(buildTarget.getId).asJava)
       ).get()
