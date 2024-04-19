@@ -28,6 +28,15 @@ final case class LauncherOptions(
   @Tag(tags.implementation)
   @Name("cliDefaultScalaVersion")
   cliUserScalaVersion: Option[String] = None,
+  @Group(HelpGroup.Launcher.toString)
+  @HelpMessage("")
+  @Hidden
+  @Tag(tags.implementation)
+  @Name("r")
+  @Name("repo")
+  @Name("repository")
+  @Name("predefinedRepository")
+  cliPredefinedRepository: List[String] = Nil,
   @Recurse
   powerOptions: PowerOptions = PowerOptions()
 )

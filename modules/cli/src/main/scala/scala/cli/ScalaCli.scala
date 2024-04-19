@@ -16,6 +16,7 @@ import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
+import scala.collection.mutable.ListBuffer
 import scala.util.Properties
 
 object ScalaCli {
@@ -53,7 +54,8 @@ object ScalaCli {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
-  private var defaultScalaVersion: Option[String] = None
+  private var defaultScalaVersion: Option[String]        = None
+  val launcherPredefinedRepositories: ListBuffer[String] = ListBuffer.empty
 
   def getDefaultScalaVersion: String = defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
@@ -243,6 +245,8 @@ object ScalaCli {
           case None =>
             if launcherOpts.cliUserScalaVersion.nonEmpty then
               defaultScalaVersion = launcherOpts.cliUserScalaVersion
+            if launcherOpts.cliPredefinedRepository.nonEmpty then
+              launcherPredefinedRepositories.addAll(launcherOpts.cliPredefinedRepository)
             if launcherOpts.powerOptions.power then
               isSipScala = false
               args0.toArray

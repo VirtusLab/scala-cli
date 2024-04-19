@@ -593,4 +593,46 @@ class SipScalaTests extends ScalaCliSuite {
       expect(r.err.trim().contains("already specified"))
     }
   }
+
+  for {
+    withBloop <- Seq(true, false)
+    withBloopString = if (withBloop) "with Bloop" else "with --server=false"
+  }
+    test(
+      s"default Scala version coming straight from a predefined local repository $withBloopString"
+    ) {
+      TestInputs(
+        os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+      )
+        .fromRoot { root =>
+          val localRepoPath = root / "local-repo"
+          val sv            = "3.4.1-RC1"
+          val csRes = os.proc(
+            TestUtil.cs,
+            "fetch",
+            "--cache",
+            localRepoPath,
+            s"org.scala-lang:scala3-compiler_3:$sv"
+          )
+            .call(cwd = root)
+          expect(csRes.exitCode == 0)
+          val buildServerOptions =
+            if (withBloop) Nil else Seq("--server=false")
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "--predefined-repository",
+            (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "--offline",
+            "--power",
+            buildServerOptions
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
 }
