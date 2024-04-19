@@ -66,9 +66,7 @@ final case class BuildOptions(
             val scalaJsVersion = scalaJsOptions.version.getOrElse(Constants.scalaJsVersion)
             s"Scala.js $scalaJsVersion"
           case Platform.Native =>
-            val scalaNativeVersion =
-              scalaNativeOptions.version.getOrElse(Constants.scalaNativeVersion)
-            s"Scala Native $scalaNativeVersion"
+            s"Scala Native ${scalaNativeOptions.finalVersion}"
         }
         Seq(s"Scala ${scalaParams0.scalaVersion}", platform0)
       case None =>
