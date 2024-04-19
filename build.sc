@@ -442,9 +442,11 @@ trait Core extends ScalaCliCrossSbtModule
          |  def toolkitName = "${Deps.toolkit.dep.module.name.value}"
          |  def toolkitTestName = "${Deps.toolkitTest.dep.module.name.value}"
          |  def toolkitDefaultVersion = "${Deps.toolkitVersion}"
+         |  def toolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForToolkit}"
          |
          |  def typelevelOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
+         |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"

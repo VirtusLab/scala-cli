@@ -12,6 +12,7 @@ import scala.build.options.{
   BuildOptions,
   BuildRequirements,
   ClassPathOptions,
+  ScalaNativeOptions,
   Scope,
   ShadowingSeq,
   WithBuildRequirements
@@ -42,19 +43,32 @@ final case class Toolkit(
 
 object Toolkit {
   val typelevel = "typelevel"
+  val scala     = "scala"
 
   object TypelevelToolkit {
     def unapply(s: Option[String]): Boolean =
       s.contains(typelevel) || s.contains(Constants.typelevelOrganization)
   }
 
+  object ScalaToolkit {
+    def unapply(s: Option[String]): Boolean =
+      s.isEmpty || s.contains(Constants.toolkitOrganization) || s.contains(scala)
+  }
+
+  case class ToolkitDefaults(
+    isScalaToolkitDefault: Boolean = false,
+    isTypelevelToolkitDefault: Boolean = false
+  )
+
   /** @param toolkitCoords
     *   the toolkit coordinates
     * @return
     *   the `toolkit` and `toolkit-test` dependencies with the appropriate build requirements
     */
-  def resolveDependenciesWithRequirements(toolkitCoords: Positioned[String])
-    : List[WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]]] =
+  def resolveDependenciesWithRequirements(toolkitCoords: Positioned[String]): List[(
+    WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]],
+    ToolkitDefaults
+  )] =
     toolkitCoords match
       case Positioned(positions, coords) =>
         val tokens            = coords.split(':')
@@ -62,22 +76,27 @@ object Toolkit {
         def isDefault         = rawVersion == "default"
         val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
         val flavor            = tokens.dropRight(1).headOption
-        val (org, v) = flavor match {
-          case TypelevelToolkit() => Constants.typelevelOrganization -> {
+        val (org, v, trv: ToolkitDefaults) = flavor match {
+          case TypelevelToolkit() => (
+              Constants.typelevelOrganization,
               if isDefault then Constants.typelevelToolkitDefaultVersion
-              else notDefaultVersion
-            }
-          case Some(org) => org -> notDefaultVersion
-          case None => Constants.toolkitOrganization -> {
+              else notDefaultVersion,
+              ToolkitDefaults(isTypelevelToolkitDefault = isDefault)
+            )
+          case ScalaToolkit() | None =>
+            (
+              Constants.toolkitOrganization,
               if isDefault then Constants.toolkitDefaultVersion
-              else notDefaultVersion
-            }
+              else notDefaultVersion,
+              ToolkitDefaults(isScalaToolkitDefault = isDefault)
+            )
+          case Some(org) => (org, notDefaultVersion, ToolkitDefaults())
         }
         List(
           Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
-            .withEmptyRequirements,
+            .withEmptyRequirements -> trv,
           Positioned(positions, dep"$org::${Constants.toolkitTestName}::$v,toolkit")
-            .withScopeRequirement(Scope.Test)
+            .withScopeRequirement(Scope.Test) -> trv
         )
   val handler: DirectiveHandler[Toolkit] = DirectiveHandler.derive
 
@@ -105,20 +124,33 @@ object Toolkit {
   ): List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = t
     .toList
     .flatMap(resolveDependenciesWithRequirements) // resolve dependencies
-    .map { case WithBuildRequirements(requirements, positionedDep) =>
-      positionedDep
-        .withBuildRequirements {
-          if requirements.scope.isEmpty then // if the scope is not set, set it to the default
-            requirements.copy(scope = defaultScope.map(_.asScopeRequirement))
-          else requirements
-        }
-        .map { dep =>
-          BuildOptions(
-            classPathOptions = ClassPathOptions(
-              extraDependencies = ShadowingSeq.from(List(dep))
+    .map {
+      case (
+            WithBuildRequirements(requirements, positionedDep),
+            ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault)
+          ) =>
+        val scalaToolkitMaxNativeVersions =
+          if isScalaToolkitDefault then List(Constants.toolkitMaxScalaNative) else Nil
+        val typelevelToolkitMaxNativeVersions =
+          if isTypelevelToolkitDefault then List(Constants.typelevelToolkitMaxScalaNative) else Nil
+        val maxNativeVersions =
+          (scalaToolkitMaxNativeVersions ++ typelevelToolkitMaxNativeVersions).distinct
+        positionedDep
+          .withBuildRequirements {
+            if requirements.scope.isEmpty then // if the scope is not set, set it to the default
+              requirements.copy(scope = defaultScope.map(_.asScopeRequirement))
+            else requirements
+          }
+          .map { dep =>
+            BuildOptions(
+              classPathOptions = ClassPathOptions(
+                extraDependencies = ShadowingSeq.from(List(dep))
+              ),
+              scalaNativeOptions = ScalaNativeOptions(
+                maxDefaultNativeVersions = maxNativeVersions
+              )
             )
-          )
-        }
+          }
     }
     .groupBy(_.requirements.scope.map(_.scope))
     .toList

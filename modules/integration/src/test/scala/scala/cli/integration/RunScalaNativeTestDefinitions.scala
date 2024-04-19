@@ -297,23 +297,59 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   }
 
   if (!actualScalaVersion.startsWith("2.12"))
-    test("native defaults & toolkit default") {
-      TestInputs(
-        os.rel / "toolkit.scala" ->
-          """//> using toolkit default
-            |//> using toolkit typelevel:default
-            |
-            |//> using platform native
-            |
-            |import cats.effect._
-            |
-            |object Hello extends IOApp.Simple {
-            |  def run =  IO.println(os.pwd)
-            |}
-            |""".stripMargin
-      ).fromRoot { root =>
-        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
-        expect(result.out.trim() == root.toString)
+    for {
+      useDirectives <- Seq(true, false)
+      titleStr = if (useDirectives) "with directives" else "with command line args"
+    } {
+      test(s"native & typelevel toolkit defaults $titleStr") {
+        val expectedMessage = "Hello"
+        val cmdLineOpts =
+          if (useDirectives) Nil
+          else Seq("--toolkit", "typelevel:default", "--native")
+        val directivesStr =
+          if (useDirectives)
+            """//> using toolkit typelevel:default
+              |//> using platform native
+              |""".stripMargin
+          else ""
+        TestInputs(
+          os.rel / "toolkit.scala" ->
+            s"""$directivesStr
+               |import cats.effect._
+               |
+               |object Hello extends IOApp.Simple {
+               |  def run =  IO.println("$expectedMessage")
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+            .call(cwd = root)
+          expect(result.out.trim() == expectedMessage)
+        }
+      }
+
+      test(s"native & scala toolkit defaults $titleStr") {
+        val cmdLineOpts =
+          if (useDirectives) Nil
+          else Seq("--toolkit", "default", "--native")
+        val directivesStr =
+          if (useDirectives)
+            """//> using toolkit default
+              |//> using platform native
+              |""".stripMargin
+          else ""
+        TestInputs(
+          os.rel / "toolkit.scala" ->
+            s"""$directivesStr
+               |object Hello extends App {
+               |  println(os.pwd)
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+            .call(cwd = root)
+          expect(result.out.trim() == root.toString)
+        }
       }
     }
 }
