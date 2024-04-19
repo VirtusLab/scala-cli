@@ -330,7 +330,12 @@ final case class SharedOptions(
       )
     val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
       SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
-    val snOpts = scalaNativeOptions(native, toolkitMaxDefaultScalaNativeVersions.toList)
+    val scalapyMaxDefaultScalaNativeVersions =
+      if sharedPython.python.contains(true) then List(Constants.scalaPyMaxScalaNative)
+      else Nil
+    val maxDefaultScalaNativeVersions =
+      toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
+    val snOpts = scalaNativeOptions(native, maxDefaultScalaNativeVersions)
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
@@ -760,7 +765,6 @@ object SharedOptions {
           val tlt =
             if (isTypelevelToolkitDefault) Seq(Constants.typelevelToolkitMaxScalaNative) else Nil
           st ++ tlt
-        case _ => Nil
       }
     dependencies -> maxScalaNativeVersions
   }

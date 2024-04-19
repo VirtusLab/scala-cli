@@ -46,10 +46,20 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
     scalapyTest(useDirective = true)
   }
 
-  def scalapyNativeTest(): Unit = {
+  def scalapyNativeTest(useDirectives: Boolean): Unit = {
+    val maybeDirectives =
+      if (useDirectives)
+        """//> using python
+          |//> using platform native
+          |""".stripMargin
+      else ""
+    val maybeCliArg =
+      if (useDirectives) Nil
+      else Seq("--python", "--native")
     val inputs = TestInputs(
       os.rel / "helloscalapy.sc" ->
-        s"""$maybeScalapyPrefix
+        s"""$maybeDirectives
+           |$maybeScalapyPrefix
            |import py.SeqConverters
            |py.local {
            |  val len = py.Dynamic.global.len(List(0, 2, 3).toPythonProxy)
@@ -60,7 +70,7 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--python", "--native").call(
+        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg).call(
           cwd = root
         )
       val output = res.out.trim()
@@ -77,10 +87,15 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
 
   // disabled on Windows for now, for context, see
   // https://github.com/VirtusLab/scala-cli/pull/1270#issuecomment-1237904394
-  if (!Properties.isWin)
-    test("scalapy native") {
-      scalapyNativeTest()
+  if (!Properties.isWin) {
+    test("scalapy native with directives") {
+      scalapyNativeTest(useDirectives = true)
     }
+
+    test("scalapy native with CLI args") {
+      scalapyNativeTest(useDirectives = false)
+    }
+  }
 
   def pythonAndScalaSourcesTest(native: Boolean): Unit = {
     val tq = "\"\"\""

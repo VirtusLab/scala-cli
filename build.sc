@@ -475,6 +475,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
+         |  def scalaPyMaxScalaNative = "${Deps.Versions.maxScalaNativeForScalaPy}"
          |
          |  def giter8Organization = "${Deps.giter8.dep.module.organization.value}"
          |  def giter8Name = "${Deps.giter8.dep.module.name.value}"

@@ -8,15 +8,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.WithBuildRequirements.*
-import scala.build.options.{
-  BuildOptions,
-  BuildRequirements,
-  ClassPathOptions,
-  ScalaNativeOptions,
-  Scope,
-  ShadowingSeq,
-  WithBuildRequirements
-}
+import scala.build.options._
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
