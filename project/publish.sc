@@ -90,13 +90,17 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
         .getOrElse(state.format())
     }
     else {
-      val rawVersion = os.proc("git", "describe", "--tags").call().out.trim()
-        .stripPrefix("v")
-        .replace("latest", "0.0.0")
-        .replace("nightly", "0.0.0")
-      val idx = rawVersion.indexOf("-")
-      if (idx >= 0) rawVersion.take(idx) + "-" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
-      else rawVersion
+      val describeRes = os.proc("git", "describe", "--tags").call(check = false)
+      if (describeRes.exitCode != 0) "0.0.0"
+      else {
+        val rawVersion = describeRes.out.trim()
+          .stripPrefix("v")
+          .replace("latest", "0.0.0")
+          .replace("nightly", "0.0.0")
+        val idx = rawVersion.indexOf("-")
+        if (idx >= 0) rawVersion.take(idx) + "-" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
+        else rawVersion
+      }
     }
   else
     state
