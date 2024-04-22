@@ -38,4 +38,8 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
 
   override val runMainArgs: Seq[String]  = Seq("run")
   override val runTestsArgs: Seq[String] = Seq("test")
+
+  test("Scala Native") {
+    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
+  }
 }

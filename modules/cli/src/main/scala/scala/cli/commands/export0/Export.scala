@@ -148,7 +148,15 @@ object Export extends ScalaCommand[ExportOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      initialBuildOptions.copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
+      initialBuildOptions
+        .copy(
+          scalaNativeOptions = initialBuildOptions.scalaNativeOptions.copy(
+            maxDefaultNativeVersions =
+              if shouldExportToMill then List(Constants.maxScalaNativeForMillExport)
+              else Nil
+          ),
+          mainClass = options.mainClass.mainClass.filter(_.nonEmpty)
+        )
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(

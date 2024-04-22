@@ -96,4 +96,9 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     test("JVM with compiler plugin") {
       jvmTestCompilerPlugin()
     }
+
+  test("Scala Native") {
+    // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
+    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true))
+  }
 }

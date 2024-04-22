@@ -433,6 +433,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
          |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
+         |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
          |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"
          |  def scalafmtName = "${Deps.scalafmtCli.dep.module.name.value}"

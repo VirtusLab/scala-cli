@@ -96,9 +96,6 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
     }
-    test("Scala Native") {
-      simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
-    }
     test("Ensure test framework NPE is not thrown when depending on logback") {
       logbackBugCase()
     }
