@@ -13,8 +13,11 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
   private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
 
-  def successfulTestInputs(directivesString: String = "//> using dep org.scalameta::munit::0.7.29")
-    : TestInputs = TestInputs(
+  private val munitVersion = "1.0.0-M12"
+  private val utestVersion = "0.8.3"
+
+  def successfulTestInputs(directivesString: String =
+    s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
       s"""$directivesString
          |
@@ -29,69 +32,69 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val failingTestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "org.scalameta::munit::0.7.29"
-        |
-        |class MyTests extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 5, "Hello from " + "tests")
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep org.scalameta::munit::$munitVersion
+         |
+         |class MyTests extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 5, "Hello from " + "tests")
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulUtestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "com.lihaoyi::utest::0.7.10"
-        |import utest._
-        |
-        |object MyTests extends TestSuite {
-        |  val tests = Tests {
-        |    test("foo") {
-        |      assert(2 + 2 == 4)
-        |      println("Hello from " + "tests")
-        |    }
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep com.lihaoyi::utest::$utestVersion
+         |import utest._
+         |
+         |object MyTests extends TestSuite {
+         |  val tests = Tests {
+         |    test("foo") {
+         |      assert(2 + 2 == 4)
+         |      println("Hello from " + "tests")
+         |    }
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulUtestJsInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "com.lihaoyi::utest::0.7.10"
-        |import utest._
-        |import scala.scalajs.js
-        |
-        |object MyTests extends TestSuite {
-        |  val tests = Tests {
-        |    test("foo") {
-        |      assert(2 + 2 == 4)
-        |      val console = js.Dynamic.global.console
-        |      console.log("Hello from " + "tests")
-        |    }
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep com.lihaoyi::utest::$utestVersion
+         |import utest._
+         |import scala.scalajs.js
+         |
+         |object MyTests extends TestSuite {
+         |  val tests = Tests {
+         |    test("foo") {
+         |      assert(2 + 2 == 4)
+         |      val console = js.Dynamic.global.console
+         |      console.log("Hello from " + "tests")
+         |    }
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulUtestNativeInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "com.lihaoyi::utest::0.7.10"
-        |import utest._
-        |import scala.scalanative.libc._
-        |import scala.scalanative.unsafe._
-        |
-        |object MyTests extends TestSuite {
-        |  val tests = Tests {
-        |    test("foo") {
-        |      assert(2 + 2 == 4)
-        |      Zone { implicit z =>
-        |       val io = StdioHelpers(stdio)
-        |       io.printf(c"%s %s\n", c"Hello from", c"tests")
-        |      }
-        |    }
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep com.lihaoyi::utest::$utestVersion
+         |import utest._
+         |import scala.scalanative.libc._
+         |import scala.scalanative.unsafe._
+         |
+         |object MyTests extends TestSuite {
+         |  val tests = Tests {
+         |    test("foo") {
+         |      assert(2 + 2 == 4)
+         |      Zone { implicit z =>
+         |       val io = StdioHelpers(stdio)
+         |       io.printf(c"%s %s", c"Hello from", c"tests")
+         |      }
+         |    }
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulScalaCheckFromCatsNativeInputs: TestInputs = TestInputs(
@@ -130,25 +133,25 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val severalTestsInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "org.scalameta::munit::0.7.29"
-        |
-        |class MyTests extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 4)
-        |    println("Hello from " + "tests1")
-        |  }
-        |}
-        |""".stripMargin,
+      s"""//> using dep org.scalameta::munit::$munitVersion
+         |
+         |class MyTests extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 4)
+         |    println("Hello from " + "tests1")
+         |  }
+         |}
+         |""".stripMargin,
     os.rel / "OtherTests.test.scala" ->
-      """//> using dep "org.scalameta::munit::0.7.29"
-        |
-        |class OtherTests extends munit.FunSuite {
-        |  test("bar") {
-        |    assert(1 + 1 == 2)
-        |    println("Hello from " + "tests2")
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep org.scalameta::munit::$munitVersion
+         |
+         |class OtherTests extends munit.FunSuite {
+         |  test("bar") {
+         |    assert(1 + 1 == 2)
+         |    println("Hello from " + "tests2")
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulWeaverInputs: TestInputs = TestInputs(
@@ -167,63 +170,63 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulESModuleTestInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "org.scalameta::munit::0.7.29"
-        |//> using jsModuleKind "esmodule"
-        |import scala.scalajs.js
-        |import scala.scalajs.js.annotation._
-        |
-        |@js.native
-        |@JSImport("console", JSImport.Namespace)
-        |object console extends js.Object {
-        |  def log(msg: js.Any): Unit = js.native
-        |}
-        |
-        |class MyTests extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 4)
-        |    console.log("Hello from " + "tests")
-        |  }
-        |}
-        |""".stripMargin
+      s"""//> using dep org.scalameta::munit::$munitVersion
+         |//> using jsModuleKind esmodule
+         |import scala.scalajs.js
+         |import scala.scalajs.js.annotation._
+         |
+         |@js.native
+         |@JSImport("console", JSImport.Namespace)
+         |object console extends js.Object {
+         |  def log(msg: js.Any): Unit = js.native
+         |}
+         |
+         |class MyTests extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 4)
+         |    console.log("Hello from " + "tests")
+         |  }
+         |}
+         |""".stripMargin
   )
 
   val successfulMarkdownTestInputs: TestInputs = TestInputs(
     os.rel / "Test.md" ->
-      """# Example Markdown File
-        |This is an example for how Scala test code can be run from a Markdown file.
-        |
-        |## Example Snippet
-        |```scala test
-        |//> using dep "org.scalameta::munit:0.7.29"
-        |
-        |class Test extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 4)
-        |    println("Hello from tests")
-        |  }
-        |}
-        |```
-        |
-        |""".stripMargin
+      s"""# Example Markdown File
+         |This is an example for how Scala test code can be run from a Markdown file.
+         |
+         |## Example Snippet
+         |```scala test
+         |//> using dep org.scalameta::munit:$munitVersion
+         |
+         |class Test extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 4)
+         |    println("Hello from tests")
+         |  }
+         |}
+         |```
+         |
+         |""".stripMargin
   )
 
   val failingMarkdownTestInputs: TestInputs = TestInputs(
     os.rel / "Test.md" ->
-      """# Example Markdown File
-        |This is an example for how Scala test code can be run from a Markdown file.
-        |
-        |## Example Snippet
-        |```scala test
-        |//> using dep "org.scalameta::munit:0.7.29"
-        |
-        |class Test extends munit.FunSuite {
-        |  test("foo") {
-        |    assert(2 + 2 == 5, "Hello from tests")
-        |  }
-        |}
-        |```
-        |
-        |""".stripMargin
+      s"""# Example Markdown File
+         |This is an example for how Scala test code can be run from a Markdown file.
+         |
+         |## Example Snippet
+         |```scala test
+         |//> using dep org.scalameta::munit:$munitVersion
+         |
+         |class Test extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 5, "Hello from tests")
+         |  }
+         |}
+         |```
+         |
+         |""".stripMargin
   )
 
   test("successful test") {
@@ -263,19 +266,19 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   test("run only one test from munit") {
     val inputs: TestInputs = TestInputs(
       os.rel / "MyTests.scala" ->
-        """//> using dep "org.scalameta::munit::0.7.29"
-          |package test
-          |
-          |class MyTests extends munit.FunSuite {
-          |  test("foo") {
-          |    assert(2 + 2 == 5, "foo")
-          |  }
-          |  test("bar") {
-          |    assert(2 + 3 == 5)
-          |    println("Hello from bar")
-          |  }
-          |}
-          |""".stripMargin
+        s"""//> using dep org.scalameta::munit::$munitVersion
+           |package test
+           |
+           |class MyTests extends munit.FunSuite {
+           |  test("foo") {
+           |    assert(2 + 2 == 5, "foo")
+           |  }
+           |  test("bar") {
+           |    assert(2 + 3 == 5)
+           |    println("Hello from bar")
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res =
@@ -297,32 +300,32 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   test("run only one test from utest") {
     val inputs: TestInputs = TestInputs(
       os.rel / "FooTests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest::0.7.10"
-          |package tests.foo
-          |import utest._
-          |
-          |object FooTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("foo") {
-          |      assert(2 + 2 == 5)
-          |    }
-          |  }
-          |}
-          |""".stripMargin,
+        s"""//> using dep com.lihaoyi::utest::$utestVersion
+           |package tests.foo
+           |import utest._
+           |
+           |object FooTests extends TestSuite {
+           |  val tests = Tests {
+           |    test("foo") {
+           |      assert(2 + 2 == 5)
+           |    }
+           |  }
+           |}
+           |""".stripMargin,
       os.rel / "BarTests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest::0.7.10"
-          |package tests.bar
-          |import utest._
-          |
-          |object BarTests extends TestSuite {
-          |  val tests = Tests {
-          |    test("bar") {
-          |      assert(2 + 2 == 4)
-          |      println("Hello from bar")
-          |    }
-          |  }
-          |}
-          |""".stripMargin
+        s"""//> using dep com.lihaoyi::utest::$utestVersion
+           |package tests.bar
+           |import utest._
+           |
+           |object BarTests extends TestSuite {
+           |  val tests = Tests {
+           |    test("bar") {
+           |      assert(2 + 2 == 4)
+           |      println("Hello from bar")
+           |    }
+           |  }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res =
@@ -398,15 +401,15 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   test("failing test return code when compiling error") {
     val inputs = TestInputs(
       os.rel / "MyTests.test.scala" ->
-        """//> using dep "org.scalameta::munit::0.7.29"
-          |
-          |class SomeTest extends munit.FunSuite {
-          |  test("failig") {
-          |   val s: String = 1
-          |   assert(true == true)
-          | }
-          |}
-          |""".stripMargin
+        s"""//> using dep org.scalameta::munit::$munitVersion
+           |
+           |class SomeTest extends munit.FunSuite {
+           |  test("failig") {
+           |   val s: String = 1
+           |   assert(true == true)
+           | }
+           |}
+           |""".stripMargin
     )
     inputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root, check = false)
@@ -494,7 +497,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test(s"test framework arguments $platformName") {
       val inputs = TestInputs(
         os.rel / "MyTests.test.scala" ->
-          """//> using dep "org.scalatest::scalatest::3.2.9"
+          """//> using dep org.scalatest::scalatest::3.2.18
             |import org.scalatest._
             |import org.scalatest.flatspec._
             |import org.scalatest.matchers._
@@ -536,20 +539,20 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test(s"custom test framework $platformName") {
       val inputs = TestInputs(
         os.rel / "MyTests.test.scala" ->
-          """//> using dep "com.lihaoyi::utest::0.7.10"
-            |
-            |package mytests
-            |import utest._
-            |
-            |object MyTests extends TestSuite {
-            |  val tests = Tests {
-            |    test("foo") {
-            |      assert(2 + 2 == 4)
-            |      println("Hello from " + "tests")
-            |    }
-            |  }
-            |}
-            |""".stripMargin,
+          s"""//> using dep com.lihaoyi::utest::$utestVersion
+             |
+             |package mytests
+             |import utest._
+             |
+             |object MyTests extends TestSuite {
+             |  val tests = Tests {
+             |    test("foo") {
+             |      assert(2 + 2 == 4)
+             |      println("Hello from " + "tests")
+             |    }
+             |  }
+             |}
+             |""".stripMargin,
         os.rel / "CustomFramework.test.scala" ->
           """package custom
             |
@@ -586,10 +589,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     test(s"Fail if no tests were run $platformName") {
       val inputs = TestInputs(
         os.rel / "MyTests.test.scala" ->
-          """//> using dep "org.scalameta::munit::0.7.29"
-            |
-            |object MyTests
-            |""".stripMargin
+          s"""//> using dep org.scalameta::munit::$munitVersion
+             |
+             |object MyTests
+             |""".stripMargin
       )
 
       inputs.fromRoot { root =>
@@ -625,7 +628,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     val inputs = {
       var inputs0 = TestInputs(
         os.rel / "MyTests.scala" ->
-          s"""//> using dep "org.scalameta::munit::0.7.29"
+          s"""//> using dep org.scalameta::munit::$munitVersion
              |//> using platform $platforms
              |
              |class MyTests extends munit.FunSuite {
@@ -683,8 +686,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "JsDom.test.scala" ->
-        s"""//> using dep "com.lihaoyi::utest::0.7.10"
-           |//> using dep "org.scala-js::scalajs-dom::2.1.0"
+        s"""//> using dep com.lihaoyi::utest::$utestVersion
+           |//> using dep "org.scala-js::scalajs-dom::2.2.0"
            |
            |import utest._
            |
