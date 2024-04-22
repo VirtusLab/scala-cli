@@ -144,14 +144,11 @@ object BuildInfo {
     )
   }
 
-  private def scalaNativeSettings(options: ScalaNativeOptions): BuildInfo = {
-    val scalaNativeVersion = Some(options.version.getOrElse(Constants.scalaNativeVersion))
-
+  private def scalaNativeSettings(options: ScalaNativeOptions): BuildInfo =
     BuildInfo(
       platform = Some(Platform.Native.repr),
-      scalaNativeVersion = scalaNativeVersion
+      scalaNativeVersion = Some(options.finalVersion)
     )
-  }
 
   private def jvmSettings(options: BuildOptions): BuildInfo =
     BuildInfo(
