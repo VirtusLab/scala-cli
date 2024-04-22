@@ -323,8 +323,20 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
                |""".stripMargin
         ).fromRoot { root =>
           val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
-            .call(cwd = root)
+            .call(cwd = root, stderr = os.Pipe)
           expect(result.out.trim() == expectedMessage)
+          if (Constants.scalaNativeVersion != Constants.typelevelToolkitMaxScalaNative) {
+            val err = result.err.trim()
+            expect(
+              err.contains(
+                s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+              )
+            )
+            expect(err.contains(s"Using ${Constants.typelevelToolkitMaxScalaNative} instead."))
+            expect(err.contains(
+              s"TypeLevel Toolkit does not support Scala Native ${Constants.scalaNativeVersion}"
+            ))
+          }
         }
       }
 
@@ -347,8 +359,20 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
                |""".stripMargin
         ).fromRoot { root =>
           val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
-            .call(cwd = root)
+            .call(cwd = root, stderr = os.Pipe)
           expect(result.out.trim() == root.toString)
+          if (Constants.scalaNativeVersion != Constants.toolkiMaxScalaNative) {
+            val err = result.err.trim()
+            expect(
+              err.contains(
+                s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+              )
+            )
+            expect(err.contains(s"Using ${Constants.toolkiMaxScalaNative} instead."))
+            expect(err.contains(
+              s"Scala Toolkit does not support Scala Native ${Constants.scalaNativeVersion}"
+            ))
+          }
         }
       }
     }

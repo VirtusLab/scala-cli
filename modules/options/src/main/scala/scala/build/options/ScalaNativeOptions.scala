@@ -40,11 +40,12 @@ final case class ScalaNativeOptions(
   compileDefaults: Option[Boolean] = None,
   embedResources: Option[Boolean] = None,
   buildTargetStr: Option[String] = None,
-  maxDefaultNativeVersions: List[String] = Nil
+  maxDefaultNativeVersions: List[(String, String)] = Nil
 ) {
 
   def defaultMaxVersion: Option[String] =
     maxDefaultNativeVersions
+      .map(_._1)
       .map(v => v -> SNNumeralVersion.parse(v))
       .minByOption(_._2)
       .map(_._1)

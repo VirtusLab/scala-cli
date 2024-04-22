@@ -987,6 +987,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def defaultGraalVMJavaVersion  = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion      = "${deps.graalVmVersion}"
            |  def scalaPyVersion             = "${Deps.scalaPy.dep.version}"
+           |  def scalaPyMaxScalaNative      = "${Deps.Versions.maxScalaNativeForScalaPy}"
            |  def bloopVersion               = "${Deps.bloopRifle.dep.version}"
            |  def pprintVersion              = "${TestDeps.pprint.dep.version}"
            |  def munitVersion               = "${TestDeps.munit.dep.version}"
@@ -1002,8 +1003,10 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def libsodiumVersion           = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage       = "${TestDeps.archLinuxImage}"
            |  
-           |  def toolkitVersion          = "${Deps.toolkitVersion}"
-           |  def typelevelToolkitVersion = "${Deps.typelevelToolkitVersion}"
+           |  def toolkitVersion                 = "${Deps.toolkitVersion}"
+           |  def toolkiMaxScalaNative           = "${Deps.Versions.maxScalaNativeForToolkit}"
+           |  def typelevelToolkitVersion        = "${Deps.typelevelToolkitVersion}"
+           |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
            |
            |  def ghOrg  = "$ghOrg"
            |  def ghName = "$ghName"

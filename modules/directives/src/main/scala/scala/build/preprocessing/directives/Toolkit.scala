@@ -37,6 +37,9 @@ object Toolkit {
   val typelevel = "typelevel"
   val scala     = "scala"
 
+  def maxScalaNativeWarningMsg(toolkitName: String, maxNative: String): String =
+    s"$toolkitName does not support Scala Native ${Constants.scalaNativeVersion}, $maxNative should be used instead."
+
   object TypelevelToolkit {
     def unapply(s: Option[String]): Boolean =
       s.contains(typelevel) || s.contains(Constants.typelevelOrganization)
@@ -122,9 +125,19 @@ object Toolkit {
             ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault)
           ) =>
         val scalaToolkitMaxNativeVersions =
-          if isScalaToolkitDefault then List(Constants.toolkitMaxScalaNative) else Nil
+          if isScalaToolkitDefault then
+            List(Constants.toolkitMaxScalaNative -> maxScalaNativeWarningMsg(
+              "Scala Toolkit",
+              Constants.toolkitMaxScalaNative
+            ))
+          else Nil
         val typelevelToolkitMaxNativeVersions =
-          if isTypelevelToolkitDefault then List(Constants.typelevelToolkitMaxScalaNative) else Nil
+          if isTypelevelToolkitDefault then
+            List(Constants.typelevelToolkitMaxScalaNative -> maxScalaNativeWarningMsg(
+              "TypeLevel Toolkit",
+              Constants.typelevelToolkitMaxScalaNative
+            ))
+          else Nil
         val maxNativeVersions =
           (scalaToolkitMaxNativeVersions ++ typelevelToolkitMaxNativeVersions).distinct
         positionedDep

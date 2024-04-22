@@ -20,7 +20,8 @@ final case class Python(
         python = Some(true)
       ),
       scalaNativeOptions = ScalaNativeOptions(
-        maxDefaultNativeVersions = List(Constants.scalaPyMaxScalaNative)
+        maxDefaultNativeVersions =
+          List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
       )
     )
     Right(options)
@@ -29,4 +30,6 @@ final case class Python(
 
 object Python {
   val handler: DirectiveHandler[Python] = DirectiveHandler.derive
+  val maxScalaNativeWarningMsg =
+    s"ScalaPy does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.scalaPyMaxScalaNative} should be used instead."
 }

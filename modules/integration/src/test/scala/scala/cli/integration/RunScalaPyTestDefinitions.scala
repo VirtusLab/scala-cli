@@ -70,9 +70,8 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
 
     inputs.fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg).call(
-          cwd = root
-        )
+        os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", maybeCliArg)
+          .call(cwd = root, stderr = os.Pipe)
       val output = res.out.trim()
         .linesIterator
         .filter { l =>
@@ -82,6 +81,18 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
         .mkString(System.lineSeparator())
       val expectedOutput = "Length is 3"
       expect(output == expectedOutput)
+      val err = res.err.trim()
+      if (Constants.scalaNativeVersion != Constants.scalaPyMaxScalaNative) {
+        expect(
+          err.contains(
+            s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+          )
+        )
+        expect(err.contains(s"Using ${Constants.scalaPyMaxScalaNative} instead."))
+        expect(
+          err.contains(s"ScalaPy does not support Scala Native ${Constants.scalaNativeVersion}")
+        )
+      }
     }
   }
 

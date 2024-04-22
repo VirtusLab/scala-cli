@@ -152,8 +152,13 @@ object Export extends ScalaCommand[ExportOptions] {
         .copy(
           scalaNativeOptions = initialBuildOptions.scalaNativeOptions.copy(
             maxDefaultNativeVersions =
-              if shouldExportToMill then List(Constants.maxScalaNativeForMillExport)
-              else Nil
+              initialBuildOptions.scalaNativeOptions.maxDefaultNativeVersions ++
+                (if shouldExportToMill && Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
+                 then
+                   val warningMsg =
+                     s"Mill export does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.maxScalaNativeForMillExport} should be used instead."
+                   List(Constants.maxScalaNativeForMillExport -> warningMsg)
+                 else Nil)
           ),
           mainClass = options.mainClass.mainClass.filter(_.nonEmpty)
         )

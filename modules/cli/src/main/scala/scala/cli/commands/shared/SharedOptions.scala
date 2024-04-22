@@ -29,7 +29,7 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
-import scala.build.preprocessing.directives.Toolkit
+import scala.build.preprocessing.directives.{Python, Toolkit}
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
@@ -267,7 +267,7 @@ final case class SharedOptions(
 
   private def scalaNativeOptions(
     opts: ScalaNativeOptions,
-    maxDefaultScalaNativeVersions: List[String]
+    maxDefaultScalaNativeVersions: List[(String, String)]
   ): options.ScalaNativeOptions = {
     import opts._
     options.ScalaNativeOptions(
@@ -331,7 +331,8 @@ final case class SharedOptions(
     val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
       SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
     val scalapyMaxDefaultScalaNativeVersions =
-      if sharedPython.python.contains(true) then List(Constants.scalaPyMaxScalaNative)
+      if sharedPython.python.contains(true) then
+        List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
       else Nil
     val maxDefaultScalaNativeVersions =
       toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
@@ -741,7 +742,7 @@ object SharedOptions {
   private def resolveToolkitDependencyAndScalaNativeVersionReqs(
     toolkitVersion: Option[String],
     logger: Logger
-  ): (Seq[Positioned[AnyDependency]], Seq[String]) = {
+  ): (Seq[Positioned[AnyDependency]], Seq[(String, String)]) = {
     if (
       (toolkitVersion.contains("latest")
       || toolkitVersion.contains(Toolkit.typelevel + ":latest")
@@ -761,9 +762,19 @@ object SharedOptions {
     val maxScalaNativeVersions =
       toolkitDefaults.flatMap {
         case Toolkit.ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault) =>
-          val st = if (isScalaToolkitDefault) Seq(Constants.toolkitMaxScalaNative) else Nil
+          val st = if (isScalaToolkitDefault)
+            Seq(Constants.toolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
+              "Scala Toolkit",
+              Constants.toolkitMaxScalaNative
+            ))
+          else Nil
           val tlt =
-            if (isTypelevelToolkitDefault) Seq(Constants.typelevelToolkitMaxScalaNative) else Nil
+            if (isTypelevelToolkitDefault)
+              Seq(Constants.typelevelToolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
+                "TypeLevel Toolkit",
+                Constants.typelevelToolkitMaxScalaNative
+              ))
+            else Nil
           st ++ tlt
       }
     dependencies -> maxScalaNativeVersions

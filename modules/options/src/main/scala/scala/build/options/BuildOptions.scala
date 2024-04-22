@@ -418,7 +418,19 @@ final case class BuildOptions(
               Some(notForBloopOptions.scalaJsLinkerOptions.finalScalaJsCliVersion)
             else None,
           scalaNativeCliVersion =
-            if (platform.value == Platform.Native) Some(scalaNativeOptions.finalVersion) else None,
+            if (platform.value == Platform.Native) {
+              val scalaNativeFinalVersion = scalaNativeOptions.finalVersion
+              if scalaNativeOptions.version.isEmpty && scalaNativeFinalVersion != Constants.scalaNativeVersion
+              then
+                scalaNativeOptions.maxDefaultNativeVersions.map(_._2).distinct
+                  .map(reason => s"[${Console.YELLOW}warn${Console.RESET}] $reason")
+                  .foreach(reason => logger.message(reason))
+                logger.message(
+                  s"[${Console.YELLOW}warn${Console.RESET}] Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build. Using $scalaNativeFinalVersion instead."
+                )
+              Some(scalaNativeFinalVersion)
+            }
+            else None,
           addScalapy =
             if (notForBloopOptions.doSetupPython.getOrElse(false))
               Some(notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
