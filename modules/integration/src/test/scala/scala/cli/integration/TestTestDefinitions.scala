@@ -487,7 +487,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     val maybeJs = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))
-        Seq("Native" -> Seq("--native"))
+        Seq("native" -> Seq("--native"))
       else
         Nil
     Seq("JVM" -> Nil) ++ maybeJs ++ maybeNative
@@ -510,8 +510,14 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
             |""".stripMargin
       )
       inputs.fromRoot { root =>
-        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
-          .call(cwd = root, check = false)
+        val scalaTestExtraArgs =
+          if (platformName == "native")
+            // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
+            Seq("--native-version", "0.4.17")
+          else Nil
+        val baseRes =
+          os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
+            .call(cwd = root, check = false)
         if (baseRes.exitCode != 0) {
           println(baseRes.out.text())
           fail("scala-cli test falied", clues(baseRes.exitCode))
@@ -525,7 +531,16 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
           .getOrElse(???)
         expect(!baseShouldThingLine.contains("millisecond"))
 
-        val res = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".", "--", "-oD")
+        val res = os.proc(
+          TestUtil.cli,
+          "test",
+          extraOptions,
+          platformArgs,
+          scalaTestExtraArgs,
+          ".",
+          "--",
+          "-oD"
+        )
           .call(cwd = root)
         val output = res.out.text()
         expect(output.contains("A thing"))
