@@ -1,29 +1,17 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.RelPath
 
 import java.nio.charset.Charset
 
-import scala.util.Properties
-
 abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs
-    with ExportCommonTestDefinitions { _: TestScalaVersion =>
-  protected def launcher: os.RelPath =
-    if (Properties.isWin) os.rel / "mill.bat"
-    else os.rel / "mill"
-
-  implicit class MillTestInputs(inputs: TestInputs) {
-    def withMillJvmOpts: TestInputs = inputs.add(
-      os.rel / ".mill-jvm-opts" ->
-        """-Xmx512m
-          |-Xms128m
-          |""".stripMargin
-    )
-  }
-
+    with ExportCommonTestDefinitions
+    with MillTestHelper { _: TestScalaVersion =>
   override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
 
+  override val outputDir: RelPath = millOutputDir
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,
@@ -37,18 +25,17 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     )
 
   override def buildToolCommand(root: os.Path, args: String*): os.proc =
-    os.proc(root / outputDir / launcher, args)
+    millCommand(root, args*)
 
-  protected val defaultProjectName      = "project"
-  override val runMainArgs: Seq[String] = Seq(s"$defaultProjectName.run")
+  override val runMainArgs: Seq[String] = Seq(s"$millDefaultProjectName.run")
 
-  override val runTestsArgs: Seq[String] = Seq(s"$defaultProjectName.test")
+  override val runTestsArgs: Seq[String] = Seq(s"$millDefaultProjectName.test")
 
   def jvmTestScalacOptions(): Unit =
     ExportTestProjects.jvmTest(actualScalaVersion).withMillJvmOpts.fromRoot { root =>
       exportCommand(".").call(cwd = root, stdout = os.Inherit)
       val res =
-        buildToolCommand(root, "--disable-ticker", "show", s"$defaultProjectName.scalacOptions")
+        buildToolCommand(root, "--disable-ticker", "show", s"$millDefaultProjectName.scalacOptions")
           .call(cwd = root / outputDir)
       val output = res.out.text(Charset.defaultCharset())
       expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
@@ -64,7 +51,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
             root,
             "--disable-ticker",
             "show",
-            s"$defaultProjectName.scalacPluginIvyDeps"
+            s"$millDefaultProjectName.scalacPluginIvyDeps"
           )
             .call(cwd = root / outputDir)
         val output = res.out.text(Charset.defaultCharset())
@@ -73,7 +60,8 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       }
       locally {
         // test
-        val res = buildToolCommand(root, s"$defaultProjectName.test").call(cwd = root / outputDir)
+        val res =
+          buildToolCommand(root, s"$millDefaultProjectName.test").call(cwd = root / outputDir)
         val output = res.out.text(Charset.defaultCharset())
         expect(output.contains("1 succeeded"))
       }

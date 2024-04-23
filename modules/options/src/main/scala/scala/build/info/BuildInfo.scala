@@ -128,6 +128,7 @@ object BuildInfo {
   private def scalaVersionSettings(options: BuildOptions): BuildInfo = {
     val sv = options.scalaParams.toOption.flatten
       .map(_.scalaVersion)
+      .orElse(options.scalaOptions.defaultScalaVersion)
       .getOrElse(Constants.defaultScalaVersion)
 
     BuildInfo(scalaVersion = Some(sv))
