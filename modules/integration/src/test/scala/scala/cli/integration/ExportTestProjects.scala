@@ -96,12 +96,12 @@ object ExportTestProjects {
     TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
-  def nativeTest(scalaVersion: String): TestInputs = {
+  def nativeTest(scalaVersion: String, useNative04Syntax: Boolean = false): TestInputs = {
     val nl = "\\n"
     val testFile =
       if (scalaVersion.startsWith("3."))
-        s"""//> using scala "$scalaVersion"
-           |//> using platform "scala-native"
+        s"""//> using scala $scalaVersion
+           |//> using platform scala-native
            |
            |import scala.scalanative.libc._
            |import scala.scalanative.unsafe._
@@ -109,14 +109,14 @@ object ExportTestProjects {
            |object Test:
            |  def main(args: Array[String]): Unit =
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
-           |    Zone { implicit z =>
+           |    Zone {${if (useNative04Syntax) " implicit z =>" else ""}
            |      val io = StdioHelpers(stdio)
            |      io.printf(c"%s", toCString(message))
            |    }
            |""".stripMargin
       else
-        s"""//> using scala "$scalaVersion"
-           |//> using platform "scala-native"
+        s"""//> using scala $scalaVersion
+           |//> using platform scala-native
            |
            |import scala.scalanative.libc._
            |import scala.scalanative.unsafe._
@@ -124,7 +124,7 @@ object ExportTestProjects {
            |object Test {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + "exported Scala CLI project" + "$nl"
-           |    Zone { implicit z =>
+           |    Zone${if (useNative04Syntax) "" else ".acquire"} { implicit z =>
            |      val io = StdioHelpers(stdio)
            |      io.printf(c"%s", toCString(message))
            |    }

@@ -252,7 +252,7 @@ the [Scala Native requirements](https://scala-native.readthedocs.io/en/latest/us
 need to be [installed](/install#scala-native) for this to work:
 
 ```bash
-scala-cli Hello.scala --native -S 2.13.6
+scala-cli Hello.scala --native -S 2.13
 ```
 
 It is also possible to achieve it using `--platform` option:

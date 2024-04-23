@@ -2,7 +2,8 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, PostBuildOptions}
+import scala.build.internal.Constants
+import scala.build.options.{BuildOptions, PostBuildOptions, ScalaNativeOptions}
 import scala.build.preprocessing.ScopePath
 import scala.cli.commands.SpecificationLevel
 
@@ -17,6 +18,10 @@ final case class Python(
     val options = BuildOptions(
       notForBloopOptions = PostBuildOptions(
         python = Some(true)
+      ),
+      scalaNativeOptions = ScalaNativeOptions(
+        maxDefaultNativeVersions =
+          List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
       )
     )
     Right(options)
@@ -25,4 +30,6 @@ final case class Python(
 
 object Python {
   val handler: DirectiveHandler[Python] = DirectiveHandler.derive
+  val maxScalaNativeWarningMsg =
+    s"ScalaPy does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.scalaPyMaxScalaNative} should be used instead."
 }

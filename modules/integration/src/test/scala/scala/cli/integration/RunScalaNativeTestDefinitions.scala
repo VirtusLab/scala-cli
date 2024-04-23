@@ -6,27 +6,41 @@ import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
 trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
+
+  def simpleNativeScriptCode(
+    message: String,
+    wrapMessage: String => String = m => s"c\"$m\""
+  ): String =
+    if (actualScalaVersion.startsWith("3"))
+      s"""import scala.scalanative.libc._
+         |import scala.scalanative.unsafe._
+         |
+         |Zone {
+         |   val io = StdioHelpers(stdio)
+         |   io.printf(c"%s$platformNl", ${wrapMessage(message)})
+         |}
+         |""".stripMargin
+    else
+      s"""import scala.scalanative.libc._
+         |import scala.scalanative.unsafe._
+         |
+         |Zone.acquire { implicit z =>
+         |   val io = StdioHelpers(stdio)
+         |   io.printf(c"%s$platformNl", ${wrapMessage(message)})
+         |}
+         |""".stripMargin
+
   def simpleNativeTests(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
-      os.rel / fileName ->
-        s"""import scala.scalanative.libc._
-           |import scala.scalanative.unsafe._
-           |
-           |Zone { implicit z =>
-           |   val io = StdioHelpers(stdio)
-           |   io.printf(c"%s$platformNl", c"$message")
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "-q")
-          .call(cwd = root)
-          .out.trim()
-      expect(output == message)
-    }
+    TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
+      .fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, extraOptions, fileName, "--native")
+            .call(cwd = root)
+            .out.trim()
+        expect(output == message)
+      }
   }
 
   test("simple script native") {
@@ -59,26 +73,16 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   test("simple script native command") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
-      os.rel / fileName ->
-        s"""import scala.scalanative.libc._
-           |import scala.scalanative.unsafe._
-           |
-           |Zone { implicit z =>
-           |   val io = StdioHelpers(stdio)
-           |   io.printf(c"%s$platformNl", c"$message")
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
-          .call(cwd = root)
-          .out.trim()
-      val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
-      val actualOutput = os.proc(command).call(cwd = root).out.trim()
-      expect(actualOutput == message)
-    }
+    TestInputs(os.rel / fileName -> simpleNativeScriptCode(message))
+      .fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, extraOptions, fileName, "--native", "--command")
+            .call(cwd = root)
+            .out.trim()
+        val command      = output.linesIterator.toVector.filter(!_.startsWith("["))
+        val actualOutput = os.proc(command).call(cwd = root).out.trim()
+        expect(actualOutput == message)
+      }
   }
 
   test("Resource embedding in Scala Native") {
@@ -195,27 +199,18 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
 
   def multipleScriptsNative(): Unit = {
     val message = "Hello"
-    val inputs = TestInputs(
-      os.rel / "messages.sc" ->
+    TestInputs(os.rel / "print.sc" ->
+      simpleNativeScriptCode("messages.msg", m => s"toCString($m)"))
+      .add(os.rel / "messages.sc" ->
         s"""def msg = "$message"
-           |""".stripMargin,
-      os.rel / "print.sc" ->
-        s"""import scala.scalanative.libc._
-           |import scala.scalanative.unsafe._
-           |
-           |Zone { implicit z =>
-           |   val io = StdioHelpers(stdio)
-           |   io.printf(c"%s$platformNl", toCString(messages.msg))
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output =
-        os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native", "-q")
-          .call(cwd = root)
-          .out.trim()
-      expect(output == message)
-    }
+           |""".stripMargin)
+      .fromRoot { root =>
+        val output =
+          os.proc(TestUtil.cli, extraOptions, "print.sc", "messages.sc", "--native")
+            .call(cwd = root)
+            .out.trim()
+        expect(output == message)
+      }
   }
 
   test("Multiple scripts native") {
@@ -302,23 +297,83 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   }
 
   if (!actualScalaVersion.startsWith("2.12"))
-    test("native defaults & toolkit default") {
-      TestInputs(
-        os.rel / "toolkit.scala" ->
-          """//> using toolkit default
-            |//> using toolkit typelevel:default
-            |
-            |//> using platform native
-            |
-            |import cats.effect._
-            |
-            |object Hello extends IOApp.Simple {
-            |  def run =  IO.println(os.pwd)
-            |}
-            |""".stripMargin
-      ).fromRoot { root =>
-        val result = os.proc(TestUtil.cli, "run", "toolkit.scala", extraOptions).call(cwd = root)
-        expect(result.out.trim() == root.toString)
+    for {
+      useDirectives <- Seq(true, false)
+      titleStr = if (useDirectives) "with directives" else "with command line args"
+    } {
+      test(s"native & typelevel toolkit defaults $titleStr") {
+        val expectedMessage = "Hello"
+        val cmdLineOpts =
+          if (useDirectives) Nil
+          else Seq("--toolkit", "typelevel:default", "--native")
+        val directivesStr =
+          if (useDirectives)
+            """//> using toolkit typelevel:default
+              |//> using platform native
+              |""".stripMargin
+          else ""
+        TestInputs(
+          os.rel / "toolkit.scala" ->
+            s"""$directivesStr
+               |import cats.effect._
+               |
+               |object Hello extends IOApp.Simple {
+               |  def run =  IO.println("$expectedMessage")
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+          expect(result.out.trim() == expectedMessage)
+          if (Constants.scalaNativeVersion != Constants.typelevelToolkitMaxScalaNative) {
+            val err = result.err.trim()
+            expect(
+              err.contains(
+                s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+              )
+            )
+            expect(err.contains(s"Using ${Constants.typelevelToolkitMaxScalaNative} instead."))
+            expect(err.contains(
+              s"TypeLevel Toolkit does not support Scala Native ${Constants.scalaNativeVersion}"
+            ))
+          }
+        }
+      }
+
+      test(s"native & scala toolkit defaults $titleStr") {
+        val cmdLineOpts =
+          if (useDirectives) Nil
+          else Seq("--toolkit", "default", "--native")
+        val directivesStr =
+          if (useDirectives)
+            """//> using toolkit default
+              |//> using platform native
+              |""".stripMargin
+          else ""
+        TestInputs(
+          os.rel / "toolkit.scala" ->
+            s"""$directivesStr
+               |object Hello extends App {
+               |  println(os.pwd)
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+          expect(result.out.trim() == root.toString)
+          if (Constants.scalaNativeVersion != Constants.toolkiMaxScalaNative) {
+            val err = result.err.trim()
+            expect(
+              err.contains(
+                s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+              )
+            )
+            expect(err.contains(s"Using ${Constants.toolkiMaxScalaNative} instead."))
+            expect(err.contains(
+              s"Scala Toolkit does not support Scala Native ${Constants.scalaNativeVersion}"
+            ))
+          }
+        }
       }
     }
 }

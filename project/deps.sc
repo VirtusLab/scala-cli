@@ -89,19 +89,25 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault      = "2.1.9"
-    def coursier             = coursierDefault
-    def coursierCli          = coursierDefault
-    def coursierM1Cli        = coursierDefault
-    def jsoniterScala        = "2.23.2"
-    def jsoniterScalaJava8   = "2.13.5.2"
-    def scalaMeta            = "4.9.3"
-    def scalaNative          = "0.4.17"
-    def scalaPackager        = "0.1.29"
-    def signingCli           = "0.2.3"
-    def signingCliJvmVersion = 17
-    def javaClassName        = "0.1.3"
-    def bloop                = "1.5.16-sc-2"
+    def coursierDefault                   = "2.1.9"
+    def coursier                          = coursierDefault
+    def coursierCli                       = coursierDefault
+    def coursierM1Cli                     = coursierDefault
+    def jsoniterScala                     = "2.23.2"
+    def jsoniterScalaJava8                = "2.13.5.2"
+    def scalaMeta                         = "4.9.3"
+    def scalaNative04                     = "0.4.17"
+    def scalaNative05                     = "0.5.1"
+    def scalaNative                       = scalaNative05
+    def maxScalaNativeForToolkit          = scalaNative04
+    def maxScalaNativeForTypelevelToolkit = scalaNative04
+    def maxScalaNativeForScalaPy          = scalaNative04
+    def maxScalaNativeForMillExport       = scalaNative04
+    def scalaPackager                     = "0.1.29"
+    def signingCli                        = "0.2.3"
+    def signingCliJvmVersion              = 17
+    def javaClassName                     = "0.1.3"
+    def bloop                             = "1.5.16-sc-2"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions

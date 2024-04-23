@@ -29,7 +29,7 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
-import scala.build.preprocessing.directives.Toolkit
+import scala.build.preprocessing.directives.{Python, Toolkit}
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
@@ -265,21 +265,25 @@ final case class SharedOptions(
     )
   }
 
-  private def scalaNativeOptions(opts: ScalaNativeOptions): options.ScalaNativeOptions = {
+  private def scalaNativeOptions(
+    opts: ScalaNativeOptions,
+    maxDefaultScalaNativeVersions: List[(String, String)]
+  ): options.ScalaNativeOptions = {
     import opts._
     options.ScalaNativeOptions(
-      nativeVersion,
-      nativeMode,
-      nativeLto,
-      nativeGc,
-      nativeClang,
-      nativeClangpp,
-      nativeLinking,
-      nativeLinkingDefaults,
-      nativeCompile,
-      nativeCompileDefaults,
-      embedResources,
-      nativeTarget
+      version = nativeVersion,
+      modeStr = nativeMode,
+      ltoStr = nativeLto,
+      gcStr = nativeGc,
+      clang = nativeClang,
+      clangpp = nativeClangpp,
+      linkingOptions = nativeLinking,
+      linkingDefaults = nativeLinkingDefaults,
+      compileOptions = nativeCompile,
+      compileDefaults = nativeCompileDefaults,
+      embedResources = embedResources,
+      buildTargetStr = nativeTarget,
+      maxDefaultNativeVersions = maxDefaultScalaNativeVersions
     )
   }
 
@@ -324,7 +328,15 @@ final case class SharedOptions(
         s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole.GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
-    val resolvedToolkitDependency = SharedOptions.resolveToolkitDependency(withToolkit, logger)
+    val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
+      SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
+    val scalapyMaxDefaultScalaNativeVersions =
+      if sharedPython.python.contains(true) then
+        List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
+      else Nil
+    val maxDefaultScalaNativeVersions =
+      toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
+    val snOpts = scalaNativeOptions(native, maxDefaultScalaNativeVersions)
     bo.BuildOptions(
       sourceGeneratorOptions = bo.SourceGeneratorOptions(
         useBuildInfo = sourceGenerator.useBuildInfo,
@@ -382,7 +394,7 @@ final case class SharedOptions(
         forceObjectWrapper = objectWrapper
       ),
       scalaJsOptions = scalaJsOptions(js),
-      scalaNativeOptions = scalaNativeOptions(native),
+      scalaNativeOptions = snOpts,
       javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
       jmhOptions = bo.JmhOptions(
         addJmhDependencies =
@@ -727,10 +739,10 @@ object SharedOptions {
 
   // TODO: remove this state after resolving https://github.com/VirtusLab/scala-cli/issues/2658
   private val loggedDeprecatedToolkitWarning: AtomicBoolean = AtomicBoolean(false)
-  private def resolveToolkitDependency(
+  private def resolveToolkitDependencyAndScalaNativeVersionReqs(
     toolkitVersion: Option[String],
     logger: Logger
-  ): Seq[Positioned[AnyDependency]] = {
+  ): (Seq[Positioned[AnyDependency]], Seq[(String, String)]) = {
     if (
       (toolkitVersion.contains("latest")
       || toolkitVersion.contains(Toolkit.typelevel + ":latest")
@@ -743,7 +755,28 @@ object SharedOptions {
       )
     )
 
-    toolkitVersion.toList.map(Positioned.commandLine)
-      .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map(_.value))
+    val (dependencies, toolkitDefaults) =
+      toolkitVersion.toList.map(Positioned.commandLine)
+        .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map((wbr, td) => wbr.value -> td))
+        .unzip
+    val maxScalaNativeVersions =
+      toolkitDefaults.flatMap {
+        case Toolkit.ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault) =>
+          val st = if (isScalaToolkitDefault)
+            Seq(Constants.toolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
+              "Scala Toolkit",
+              Constants.toolkitMaxScalaNative
+            ))
+          else Nil
+          val tlt =
+            if (isTypelevelToolkitDefault)
+              Seq(Constants.typelevelToolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
+                "TypeLevel Toolkit",
+                Constants.typelevelToolkitMaxScalaNative
+              ))
+            else Nil
+          st ++ tlt
+      }
+    dependencies -> maxScalaNativeVersions
   }
 }

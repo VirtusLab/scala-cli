@@ -309,7 +309,7 @@ object Hello {
 <ChainedSnippets>
 
 ```bash
-scala-cli --power package --native HelloNative.scala -S 2.13.6 -o hello
+scala-cli --power package --native HelloNative.scala -S 2.13 -o hello
 file hello
 ```
 

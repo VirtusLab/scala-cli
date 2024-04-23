@@ -375,7 +375,7 @@ class NativePackagerTests extends ScalaCliSuite {
         helloWorldFileName,
         "--native",
         "-S",
-        "2.13.6",
+        "2.13",
         "--docker",
         "--docker-image-repository",
         imageRepository,

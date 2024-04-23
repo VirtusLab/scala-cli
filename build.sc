@@ -433,6 +433,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
          |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
+         |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
          |
          |  def scalafmtOrganization = "${Deps.scalafmtCli.dep.module.organization.value}"
          |  def scalafmtName = "${Deps.scalafmtCli.dep.module.name.value}"
@@ -442,9 +443,11 @@ trait Core extends ScalaCliCrossSbtModule
          |  def toolkitName = "${Deps.toolkit.dep.module.name.value}"
          |  def toolkitTestName = "${Deps.toolkitTest.dep.module.name.value}"
          |  def toolkitDefaultVersion = "${Deps.toolkitVersion}"
+         |  def toolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForToolkit}"
          |
          |  def typelevelOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
+         |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
          |
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
@@ -473,6 +476,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def libsodiumjniVersion = "${Deps.libsodiumjni.dep.version}"
          |
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
+         |  def scalaPyMaxScalaNative = "${Deps.Versions.maxScalaNativeForScalaPy}"
          |
          |  def giter8Organization = "${Deps.giter8.dep.module.organization.value}"
          |  def giter8Name = "${Deps.giter8.dep.module.name.value}"
@@ -983,6 +987,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def defaultGraalVMJavaVersion  = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion      = "${deps.graalVmVersion}"
            |  def scalaPyVersion             = "${Deps.scalaPy.dep.version}"
+           |  def scalaPyMaxScalaNative      = "${Deps.Versions.maxScalaNativeForScalaPy}"
            |  def bloopVersion               = "${Deps.bloopRifle.dep.version}"
            |  def pprintVersion              = "${TestDeps.pprint.dep.version}"
            |  def munitVersion               = "${TestDeps.munit.dep.version}"
@@ -998,8 +1003,10 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def libsodiumVersion           = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage       = "${TestDeps.archLinuxImage}"
            |  
-           |  def toolkitVersion          = "${Deps.toolkitVersion}"
-           |  def typelevelToolkitVersion = "${Deps.typelevelToolkitVersion}"
+           |  def toolkitVersion                 = "${Deps.toolkitVersion}"
+           |  def toolkiMaxScalaNative           = "${Deps.Versions.maxScalaNativeForToolkit}"
+           |  def typelevelToolkitVersion        = "${Deps.typelevelToolkitVersion}"
+           |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
            |
            |  def ghOrg  = "$ghOrg"
            |  def ghName = "$ghName"

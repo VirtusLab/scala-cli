@@ -15,7 +15,8 @@ case class SNNumeralVersion(major: Int, minor: Int, patch: Int) {
 }
 
 object SNNumeralVersion {
-  private val VersionPattern = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
+  implicit val ordering: Ordering[SNNumeralVersion] = Ordering.by(v => (v.major, v.minor, v.patch))
+  private val VersionPattern                        = raw"(\d+)\.(\d+)\.(\d+)(\-.*)?".r
 
   // tags/suffixes are not included or compared since they usually
   // should offer no feature compatibility improvements

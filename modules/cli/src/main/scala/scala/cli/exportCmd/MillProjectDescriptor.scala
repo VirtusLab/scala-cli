@@ -70,10 +70,8 @@ final case class MillProjectDescriptor(
     )
   }
 
-  private def scalaNativeSettings(options: ScalaNativeOptions): MillProject = {
-    val scalaNativeVersion = Some(options.version.getOrElse(Constants.scalaNativeVersion))
-    MillProject(scalaNativeVersion = scalaNativeVersion)
-  }
+  private def scalaNativeSettings(options: ScalaNativeOptions): MillProject =
+    MillProject(scalaNativeVersion = Some(options.finalVersion))
 
   private def dependencySettings(
     mainOptions: BuildOptions,

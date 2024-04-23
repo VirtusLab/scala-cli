@@ -39,12 +39,22 @@ final case class ScalaNativeOptions(
   compileOptions: List[String] = Nil,
   compileDefaults: Option[Boolean] = None,
   embedResources: Option[Boolean] = None,
-  buildTargetStr: Option[String] = None
+  buildTargetStr: Option[String] = None,
+  maxDefaultNativeVersions: List[(String, String)] = Nil
 ) {
 
-  def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaNativeVersion)
+  def defaultMaxVersion: Option[String] =
+    maxDefaultNativeVersions
+      .map(_._1)
+      .map(v => v -> SNNumeralVersion.parse(v))
+      .minByOption(_._2)
+      .map(_._1)
 
-  def numeralVersion = SNNumeralVersion.parse(finalVersion)
+  def finalVersion: String = version.map(_.trim).filter(_.nonEmpty)
+    .orElse(defaultMaxVersion)
+    .getOrElse(Constants.scalaNativeVersion)
+
+  def numeralVersion: Option[SNNumeralVersion] = SNNumeralVersion.parse(finalVersion)
 
   def target(): Option[ScalaNativeTarget] =
     buildTargetStr.flatMap(ScalaNativeTarget.fromString)

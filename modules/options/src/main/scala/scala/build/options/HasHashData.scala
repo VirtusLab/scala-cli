@@ -46,6 +46,12 @@ object HasHashData:
   ): HasHashData[List[T]] = // shouldn't we hash index here?
     (name, list, update) => list.foreach(t => update(s"$name+=${hasher.hashedValue(t)}"))
 
+  given listOfTuple[T](using
+    hasher: HashedType[T]
+  ): HasHashData[List[(T, T)]] =
+    (name, list, update) =>
+      list.foreach((t1, t2) => update(s"$name+=${hasher.hashedValue(t1) + hasher.hashedValue(t2)}"))
+
   given option[T](using hasher: HashedType[T]): HasHashData[Option[T]] =
     (name, opt, update) => opt.foreach(t => update(s"$name=${hasher.hashedValue(t)}"))
 
