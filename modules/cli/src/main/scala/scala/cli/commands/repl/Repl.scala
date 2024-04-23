@@ -16,7 +16,6 @@ import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDe
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
-import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.{
   maybePrintSimpleScalacOutput,
@@ -30,6 +29,7 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
+import scala.cli.{CurrentParams, ScalaCli}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -62,7 +62,7 @@ object Repl extends ScalaCommand[ReplOptions] {
       scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = baseOptions.scalaOptions.scalaVersion
           .orElse {
-            val defaultScalaVer = scala.build.internal.Constants.defaultScalaVersion
+            val defaultScalaVer = ScalaCli.getDefaultScalaVersion
             val shouldDowngrade = {
               def needsDowngradeForAmmonite = {
                 import coursier.core.Version

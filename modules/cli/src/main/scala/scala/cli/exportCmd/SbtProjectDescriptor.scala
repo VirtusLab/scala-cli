@@ -21,6 +21,7 @@ import scala.build.options.{
 }
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
+import scala.cli.ScalaCli
 
 final case class SbtProjectDescriptor(
   sbtVersion: String,
@@ -122,7 +123,7 @@ final case class SbtProjectDescriptor(
     val scalaVerSetting = {
       val sv = options.scalaOptions.scalaVersion
         .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
-        .getOrElse(Constants.defaultScalaVersion)
+        .getOrElse(ScalaCli.getDefaultScalaVersion)
       s"""scalaVersion := "$sv""""
     }
 

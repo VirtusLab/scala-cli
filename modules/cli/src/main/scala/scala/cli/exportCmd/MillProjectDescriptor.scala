@@ -13,6 +13,7 @@ import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
+import scala.cli.ScalaCli
 import scala.cli.util.SeqHelpers.*
 
 final case class MillProjectDescriptor(
@@ -39,7 +40,7 @@ final case class MillProjectDescriptor(
 
     val sv = options.scalaOptions.scalaVersion
       .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
-      .getOrElse(Constants.defaultScalaVersion)
+      .getOrElse(ScalaCli.getDefaultScalaVersion)
 
     if (pureJava)
       MillProject()

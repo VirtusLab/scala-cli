@@ -406,7 +406,10 @@ final case class SharedOptions(
         extraClassPath = extraRegularJarsAndClasspath,
         extraCompileOnlyJars = extraCompileOnlyClassPath,
         extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
-        extraRepositories = dependencies.repository.map(_.trim).filter(_.nonEmpty),
+        extraRepositories =
+          (dependencies.repository ++ ScalaCli.launcherPredefinedRepositories).map(_.trim).filter(
+            _.nonEmpty
+          ),
         extraDependencies = ShadowingSeq.from(
           SharedOptions.parseDependencies(
             dependencies.dependency.map(Positioned.none),

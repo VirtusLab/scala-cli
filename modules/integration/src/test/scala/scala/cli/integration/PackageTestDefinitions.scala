@@ -14,7 +14,7 @@ import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
-  private lazy val extraOptions = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
     val res = os.proc(cmd*).call(cwd = cwd, check = false)

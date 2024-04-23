@@ -16,6 +16,7 @@ import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
+import scala.collection.mutable.ListBuffer
 import scala.util.Properties
 
 object ScalaCli {
@@ -52,6 +53,11 @@ object ScalaCli {
   def baseRunnerName = if (progName.contains(scalaCliBinaryName)) scalaCliBinaryName else "scala"
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
+
+  private var defaultScalaVersion: Option[String]        = None
+  val launcherPredefinedRepositories: ListBuffer[String] = ListBuffer.empty
+
+  def getDefaultScalaVersion: String = defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
@@ -237,6 +243,10 @@ object ScalaCli {
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
+            if launcherOpts.cliUserScalaVersion.nonEmpty then
+              defaultScalaVersion = launcherOpts.cliUserScalaVersion
+            if launcherOpts.cliPredefinedRepository.nonEmpty then
+              launcherPredefinedRepositories.addAll(launcherOpts.cliPredefinedRepository)
             if launcherOpts.powerOptions.power then
               isSipScala = false
               args0.toArray

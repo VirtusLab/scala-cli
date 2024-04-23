@@ -158,25 +158,23 @@ case object ScriptPreprocessor extends Preprocessor {
     *   code wrapper compatible with provided BuildOptions
     */
   def getScriptWrapper(buildOptions: BuildOptions): CodeWrapper = {
-    val scalaVersionOpt = for {
-      maybeScalaVersion <- buildOptions.scalaOptions.scalaVersion
-      scalaVersion      <- maybeScalaVersion.versionOpt
-    } yield scalaVersion
+    val effectiveScalaVersion =
+      buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt)
+        .orElse(buildOptions.scalaOptions.defaultScalaVersion)
+        .getOrElse(Constants.defaultScalaVersion)
 
     def objectCodeWrapperForScalaVersion =
       // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it with Scala 3
-      if (scalaVersionOpt.exists(_.startsWith("2")))
-        AppCodeWrapper
-      else
-        ObjectCodeWrapper
+      if effectiveScalaVersion.startsWith("2") then AppCodeWrapper
+      else ObjectCodeWrapper
 
     buildOptions.scriptOptions.forceObjectWrapper match {
       case Some(true) => objectCodeWrapperForScalaVersion
       case _ =>
         buildOptions.scalaOptions.platform.map(_.value) match {
-          case Some(_: Platform.JS.type)                      => objectCodeWrapperForScalaVersion
-          case _ if scalaVersionOpt.exists(_.startsWith("2")) => AppCodeWrapper
-          case _                                              => ClassCodeWrapper
+          case Some(_: Platform.JS.type)                  => objectCodeWrapperForScalaVersion
+          case _ if effectiveScalaVersion.startsWith("2") => AppCodeWrapper
+          case _                                          => ClassCodeWrapper
         }
     }
   }

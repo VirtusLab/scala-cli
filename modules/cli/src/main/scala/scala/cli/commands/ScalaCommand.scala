@@ -38,7 +38,8 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
     new AtomicReference(GlobalOptions.default)
 
-  private def globalOptions: GlobalOptions = globalOptionsAtomic.get()
+  private def globalOptions: GlobalOptions  = globalOptionsAtomic.get()
+  protected def defaultScalaVersion: String = ScalaCli.getDefaultScalaVersion
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
@@ -133,7 +134,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
                 .toOption
                 .flatten
                 .map(_.scalaVersion)
-                .getOrElse(Constants.defaultScalaVersion)
+                .getOrElse(defaultScalaVersion)
               val (fromIndex, completions) = cache.logger.use {
                 coursier.complete.Complete(cache)
                   .withInput(prefix)
@@ -313,13 +314,20 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     *   change this behaviour.
     */
   def buildOptions(options: T): Option[BuildOptions] =
-    sharedOptions(options).map(shared => shared.buildOptions().orExit(shared.logger))
+    sharedOptions(options)
+      .map(shared => shared.buildOptions().orExit(shared.logger))
 
   protected def buildOptionsOrExit(options: T): BuildOptions =
-    buildOptions(options).getOrElse {
-      sharedOptions(options).foreach(_.logger.debug("build options could not be initialized"))
-      sys.exit(1)
-    }
+    buildOptions(options)
+      .map(bo =>
+        bo.copy(scalaOptions =
+          bo.scalaOptions.copy(defaultScalaVersion = Some(defaultScalaVersion))
+        )
+      )
+      .getOrElse {
+        sharedOptions(options).foreach(_.logger.debug("build options could not be initialized"))
+        sys.exit(1)
+      }
   override def shouldSuppressExperimentalFeatureWarnings: Boolean =
     globalOptions.globalSuppress.suppressExperimentalFeatureWarning
       .orElse {

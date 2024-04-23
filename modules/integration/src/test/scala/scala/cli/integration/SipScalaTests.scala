@@ -5,7 +5,7 @@ import os.CommandResult
 
 import scala.util.Properties
 
-class SipScalaTests extends ScalaCliSuite {
+class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper {
   implicit class StringEnrichment(s: String) {
     def containsExperimentalWarningOf(featureNameAndType: String): Boolean =
       s.contains(s"The $featureNameAndType is experimental") ||
@@ -511,6 +511,200 @@ class SipScalaTests extends ScalaCliSuite {
       val expectedError =
         "Values of types object scala.collection.immutable.Nil and List[A] cannot be compared with == or !="
       expect(res.err.trim().contains(expectedError))
+    }
+  }
+
+  for {
+    sv <- Seq(Constants.scala212, Constants.scala213, Constants.scala3NextRc)
+    code =
+      if (sv.startsWith("3")) "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+      else "println(scala.util.Properties.versionNumberString)"
+    anotherVersion =
+      if (sv.startsWith("3")) Constants.scala3Lts
+      else "2.13.7"
+  } {
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when running a script"
+    ) {
+      TestInputs(os.rel / "simple.sc" -> code)
+        .fromRoot { root =>
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "run",
+            "simple.sc",
+            "--with-compiler"
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S"
+    ) {
+      TestInputs(os.rel / "simple.sc" -> code)
+        .fromRoot { root =>
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "-S",
+            anotherVersion
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == anotherVersion)
+        }
+    }
+
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when printing Scala version"
+    ) {
+      TestInputs.empty.fromRoot { root =>
+        val r =
+          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version", "--scala-version")
+            .call(cwd = root)
+        expect(r.out.trim() == sv)
+      }
+    }
+
+    test(
+      s"default Scala version overridden with $sv by a launcher parameter is respected when printing versions"
+    ) {
+      TestInputs.empty.fromRoot { root =>
+        val r = os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "version")
+          .call(cwd = root)
+        expect(r.out.trim().contains(sv))
+      }
+    }
+  }
+
+  test(s"default Scala version override launcher option can only be passed once") {
+    TestInputs.empty.fromRoot { root =>
+      val (sv1, sv2)  = (Constants.scala212, Constants.scala213)
+      val launcherOpt = "--cli-default-scala-version"
+      val r = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(r.exitCode == 1)
+      expect(r.err.trim().contains(launcherOpt))
+      expect(r.err.trim().contains("already specified"))
+    }
+  }
+
+  for {
+    withBloop <- Seq(true, false)
+    withBloopString = if (withBloop) "with Bloop" else "with --server=false"
+  }
+    test(
+      s"default Scala version coming straight from a predefined local repository $withBloopString"
+    ) {
+      TestInputs(
+        os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+      )
+        .fromRoot { root =>
+          val localRepoPath = root / "local-repo"
+          val sv            = "3.4.1-RC1"
+          val csRes = os.proc(
+            TestUtil.cs,
+            "fetch",
+            "--cache",
+            localRepoPath,
+            s"org.scala-lang:scala3-compiler_3:$sv"
+          )
+            .call(cwd = root)
+          expect(csRes.exitCode == 0)
+          val buildServerOptions =
+            if (withBloop) Nil else Seq("--server=false")
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "--predefined-repository",
+            (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "--offline",
+            "--power",
+            buildServerOptions
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
+
+  test(s"default Scala version override launcher option is respected by the SBT export") {
+    val input     = "printVersion.sc"
+    val code      = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""
+    val outputDir = "sbt-project"
+    TestInputs(os.rel / input -> code).fromRoot { root =>
+      val defaultSv       = Constants.scala213
+      val expectedMessage = s"Default version: $defaultSv"
+      val launcherOpt     = "--cli-default-scala-version"
+      val exportRes = os.proc(
+        TestUtil.cli,
+        launcherOpt,
+        defaultSv,
+        "export",
+        input,
+        "--sbt",
+        "--power",
+        "-o",
+        outputDir
+      ).call(cwd = root)
+      expect(exportRes.exitCode == 0)
+      val sbtRes = sbtCommand("run").call(cwd = root / outputDir)
+      val output = sbtRes.out.trim()
+      expect(output.contains(expectedMessage))
+    }
+  }
+
+  test(s"default Scala version override launcher option is respected by the Mill export") {
+    val input     = "printVersion.sc"
+    val code      = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""
+    val outputDir = millOutputDir
+    TestInputs(os.rel / input -> code).fromRoot { root =>
+      val defaultSv       = Constants.scala213
+      val expectedMessage = s"Default version: $defaultSv"
+      val launcherOpt     = "--cli-default-scala-version"
+      val exportRes = os.proc(
+        TestUtil.cli,
+        launcherOpt,
+        defaultSv,
+        "export",
+        input,
+        "--mill",
+        "--power",
+        "-o",
+        outputDir
+      ).call(cwd = root)
+      expect(exportRes.exitCode == 0)
+      val millRes = millCommand(root, s"$millDefaultProjectName.run").call(cwd = root / outputDir)
+      val output  = millRes.out.trim()
+      expect(output.contains(expectedMessage))
+    }
+  }
+
+  test(s"default Scala version override launcher option is respected by the json export") {
+    val input = "printVersion.sc"
+    val code  = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""
+    TestInputs(os.rel / input -> code).fromRoot { root =>
+      val defaultSv   = Constants.scala213
+      val launcherOpt = "--cli-default-scala-version"
+      val exportRes = os.proc(
+        TestUtil.cli,
+        launcherOpt,
+        defaultSv,
+        "export",
+        input,
+        "--json",
+        "--power"
+      ).call(cwd = root)
+      expect(exportRes.exitCode == 0)
+      expect(exportRes.out.trim().contains(s""""scalaVersion": "$defaultSv""""))
     }
   }
 }
