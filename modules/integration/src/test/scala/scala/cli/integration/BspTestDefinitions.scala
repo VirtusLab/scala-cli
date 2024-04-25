@@ -386,8 +386,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams = {
-          val diagnostics = localClient.diagnostics()
-          val params      = diagnostics(2)
+          val diagnostics = localClient.latestDiagnostics()
+          expect(diagnostics.isDefined)
+          val params = diagnostics.get
           expect(params.getBuildTarget.getUri == targetUri)
           expect(
             TestUtil.normalizeUri(params.getTextDocument.getUri) ==
