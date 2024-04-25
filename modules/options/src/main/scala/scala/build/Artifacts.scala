@@ -176,6 +176,22 @@ object Artifacts {
           ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
         }
 
+        val bridgeJarsOpt = Option.when(scalaArtifactsParams.params.scalaVersion.startsWith("3.")) {
+          Seq(dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}")
+        }.map { bridgeDependencies =>
+          value {
+            artifacts(
+              bridgeDependencies.map(Positioned.none),
+              allExtraRepositories,
+              Some(scalaArtifactsParams.params),
+              logger,
+              cache.withMessage(
+                s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} bridge"
+              )
+            ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
+          }.map(_._2)
+        }
+
         def fetchedArtifactToPath(fetched: Fetch.Result): Seq[os.Path] =
           fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) => os.Path(f, Os.pwd) }
 
@@ -273,7 +289,8 @@ object Artifacts {
           scalaNativeCli,
           internalDependencies,
           scalapyDependencies,
-          scalaArtifactsParams.params
+          scalaArtifactsParams.params,
+          bridgeJarsOpt
         )
         Some(scala)
 
