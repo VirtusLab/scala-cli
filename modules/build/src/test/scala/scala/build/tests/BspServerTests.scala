@@ -38,7 +38,7 @@ class BspServerTests extends TestUtil.ScalaCliBuildSuite {
     workspace: os.Path,
     scope: Scope = Scope.Main
   ): ScalaScriptBuildServer = {
-    val bspServer = new BspServer(null, null, null)
+    val bspServer = new BspServer(null, null, null, null)
     bspServer.addTarget(projectName, workspace, scope, generatedSources)
 
     bspServer
