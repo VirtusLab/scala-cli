@@ -433,6 +433,7 @@ final class BspImpl(
     )
     lazy val bspServer = new BspServer(
       remoteServer.bloopServer.server,
+      localClient,
       doCompile =>
         compile(bloopSession0, threads.prepareBuildExecutor, reloadableOptions, doCompile),
       logger,
@@ -618,15 +619,16 @@ final class BspImpl(
           }
           else newBloopSession0
 
-        if (previousInputs.projectName != preBuildProject.mainScope.project.projectName)
-          for (client <- finalBloopSession.bspServer.clientOpt) {
-            val newTargetIds = finalBloopSession.bspServer.targetIds
-            val events =
-              newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
-                previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
-            val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
-            client.onBuildTargetDidChange(didChangeBuildTargetParams)
-          }
+        // TODO MG
+        if (previousInputs.projectName != preBuildProject.mainScope.project.projectName) {
+          val client       = finalBloopSession.bspServer.bspCLient
+          val newTargetIds = finalBloopSession.bspServer.targetIds
+          val events =
+            newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
+              previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
+          val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
+          client.onBuildTargetDidChange(didChangeBuildTargetParams)
+        }
         CompletableFuture.completedFuture(new Object())
     }
   }
