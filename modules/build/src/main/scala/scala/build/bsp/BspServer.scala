@@ -18,6 +18,7 @@ import scala.util.Random
 
 class BspServer(
   bloopServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+  client: BuildClient,
   compile: (() => CompletableFuture[b.CompileResult]) => CompletableFuture[b.CompileResult],
   logger: Logger,
   presetIntelliJ: Boolean = false
@@ -28,12 +29,10 @@ class BspServer(
     with JvmBuildServerForwardStubs
     with ManagesBuildTargetsImpl {
 
-  private var client: Option[BuildClient] = None
+  val bspCLient = client
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
   def isIntelliJ: Boolean                 = intelliJ
-
-  def clientOpt: Option[BuildClient] = client
 
   @volatile private var extraDependencySources: Seq[os.Path] = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
@@ -52,7 +51,7 @@ class BspServer(
     val message =
       s"Fatal error has occured within $context. Shutting down the server:\n ${sw.toString}"
     System.err.println(message)
-    client.foreach(_.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message)))
+    client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, message))
 
     // wait random bit before shutting down server to reduce risk of multiple scala-cli instances starting bloop at the same time
     val timeout = Random.nextInt(400)
