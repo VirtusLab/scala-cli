@@ -607,15 +607,19 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         .fromRoot { root =>
           val localRepoPath = root / "local-repo"
           val sv            = "3.4.1-RC1"
-          val csRes = os.proc(
-            TestUtil.cs,
-            "fetch",
-            "--cache",
-            localRepoPath,
-            s"org.scala-lang:scala3-compiler_3:$sv"
-          )
-            .call(cwd = root)
-          expect(csRes.exitCode == 0)
+          val artifactNames =
+            Seq("scala3-compiler_3") ++ (if (withBloop) Seq("scala3-sbt-bridge") else Nil)
+          for { artifactName <- artifactNames } {
+            val csRes = os.proc(
+              TestUtil.cs,
+              "fetch",
+              "--cache",
+              localRepoPath,
+              s"org.scala-lang:$artifactName:$sv"
+            )
+              .call(cwd = root)
+            expect(csRes.exitCode == 0)
+          }
           val buildServerOptions =
             if (withBloop) Nil else Seq("--server=false")
           val r = os.proc(

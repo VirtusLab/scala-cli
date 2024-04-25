@@ -44,7 +44,8 @@ final case class BuildOptions(
   mainClass: Option[String] = None,
   testOptions: TestOptions = TestOptions(),
   notForBloopOptions: PostBuildOptions = PostBuildOptions(),
-  sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions()
+  sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions(),
+  useBuildServer: Option[Boolean] = None
 ) {
 
   import BuildOptions.JavaHomeInfo
@@ -457,6 +458,7 @@ final case class BuildOptions(
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = value(finalRepositories),
       keepResolution = internal.keepResolution,
+      includeBuildServerDeps = useBuildServer.getOrElse(false),
       cache = finalCache,
       logger = logger,
       maybeRecoverOnError = maybeRecoverOnError

@@ -10,7 +10,8 @@ final case class ScalaArtifacts(
   scalaNativeCli: Seq[os.Path],
   internalDependencies: Seq[AnyDependency],
   extraDependencies: Seq[AnyDependency],
-  params: ScalaParameters
+  params: ScalaParameters,
+  bridgeJarsOpt: Option[Seq[os.Path]]
 ) {
 
   lazy val compilerClassPath: Seq[os.Path] =

@@ -438,7 +438,8 @@ final case class SharedOptions(
         python = sharedPython.python,
         pythonSetup = sharedPython.pythonSetup,
         scalaPyVersion = sharedPython.scalaPyVersion
-      )
+      ),
+      useBuildServer = compilationServer.server
     )
   }
 
