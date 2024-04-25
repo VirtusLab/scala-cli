@@ -104,6 +104,7 @@ object Artifacts {
     addJmhDependencies: Option[String],
     extraRepositories: Seq[Repository],
     keepResolution: Boolean,
+    includeBuildServerDeps: Boolean,
     cache: FileCache[Task],
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
@@ -176,7 +177,9 @@ object Artifacts {
           ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
         }
 
-        val bridgeJarsOpt = Option.when(scalaArtifactsParams.params.scalaVersion.startsWith("3.")) {
+        val bridgeJarsOpt = Option.when(
+          scalaArtifactsParams.params.scalaVersion.startsWith("3.") && includeBuildServerDeps
+        ) {
           Seq(dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}")
         }.map { bridgeDependencies =>
           value {
