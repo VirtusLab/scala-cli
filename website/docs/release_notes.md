@@ -8,6 +8,83 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.3.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.0)
+
+### Support for Scala Native 0.5.1
+This Scala CLI version adds support for Scala Native 0.5.1.
+All native platform builds will now use 0.5.1 as the default version.
+
+```bash
+scala-cli -e 'println("Hello, Scala Native!")' --native
+# Compiling project (Scala 3.4.1, Scala Native 0.5.1)
+# Compiled project (Scala 3.4.1, Scala Native 0.5.1)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (1059 ms)
+# [info] Discovered 882 classes and 5388 methods after classloading
+# [info] Checking intermediate code (quick) (39 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (291 ms)
+# [info] Discovered 499 classes and 2501 methods after classloading
+# [info] Checking intermediate code (quick) (6 ms)
+# [info] Discovered 478 classes and 1916 methods after optimization
+# [info] Optimizing (debug mode) (432 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (293 ms)
+# [info] Compiling to native code (1504 ms)
+# [info] Linking with [pthread, dl]
+# [info] Linking native code (immix gc, none lto) (351 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (4012 ms)
+# Hello, Scala Native!
+```
+
+Note that not all the tools Scala CLI integrates with support Scala Native 0.5.x just yet. 
+When such an integration is being used, the default Scala Native version will get downgraded to 0.4.17.
+
+```bash
+scala-cli -e 'println("Hello, Scala Native!")' --native --toolkit default
+# [warn] Scala Toolkit does not support Scala Native 0.5.1, 0.4.17 should be used instead.
+# [warn] Scala Native default version 0.5.1 is not supported in this build. Using 0.4.17 instead.
+# Compiling project (Scala 3.4.1, Scala Native 0.4.17)
+# Compiled project (Scala 3.4.1, Scala Native 0.4.17)
+# [info] Linking (1017 ms)
+# [info] Checking intermediate code (quick) (53 ms)
+# [info] Discovered 743 classes and 4242 methods
+# [info] Optimizing (debug mode) (654 ms)
+# [info] Generating intermediate code (898 ms)
+# [info] Produced 10 files
+# [info] Compiling to native code (2039 ms)
+# [info] Linking with [pthread, dl]
+# [info] Total (4812 ms)
+# Hello, Scala Native!
+```
+
+Efforts for supporting Scala Native 0.5.x are ongoing, we expect the downgrade to 0.4.17 in such cases to be a temporary solution.
+If you know for a fact that 0.5.x support has been delivered for a tool, you can always pass the `--native-version` option explicitly, which will prevent the downgrade.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2862](https://github.com/VirtusLab/scala-cli/pull/2862)
+
+### Fixes
+* Add missing Scala 2 compiler print options by [@Gedochao](https://github.com/Gedochao) in [#2848](https://github.com/VirtusLab/scala-cli/pull/2848)
+* Don't recommend `latest` for toolkit version by [@keynmol](https://github.com/keynmol) in [#2852](https://github.com/VirtusLab/scala-cli/pull/2852)
+* Explicitly pass `scala3-sbt-bridge` to Bloop by [@Gedochao](https://github.com/Gedochao) in [#2873](https://github.com/VirtusLab/scala-cli/pull/2873)
+
+### Internal changes
+* Add launcher options allowing to override the default Scala version by [@Gedochao](https://github.com/Gedochao) in [#2860](https://github.com/VirtusLab/scala-cli/pull/2860)
+
+### Updates and maintenance
+* Update scala-cli.sh launcher for 1.2.2 by [@github-actions](https://github.com/features/actions)  in [#2847](https://github.com/VirtusLab/scala-cli/pull/2847)
+* Update os-lib to 0.10.0 by [@scala-steward](https://github.com/scala-steward) in [#2854](https://github.com/VirtusLab/scala-cli/pull/2854)
+* Update scala-collection-compat to 2.12.0 by [@scala-steward](https://github.com/scala-steward) in [#2856](https://github.com/VirtusLab/scala-cli/pull/2856)
+* Update slf4j-nop to 2.0.13 by [@scala-steward](https://github.com/scala-steward) in [#2857](https://github.com/VirtusLab/scala-cli/pull/2857)
+* Update pprint to 0.9.0 by [@scala-steward](https://github.com/scala-steward) in [#2855](https://github.com/VirtusLab/scala-cli/pull/2855)
+* Update fansi to 0.5.0 by [@scala-steward](https://github.com/scala-steward) in [#2853](https://github.com/VirtusLab/scala-cli/pull/2853)
+* Update using_directives to 1.1.1 by [@scala-steward](https://github.com/scala-steward) in [#2863](https://github.com/VirtusLab/scala-cli/pull/2863)
+* Update Scala Native to 0.5.1 by [@scala-steward](https://github.com/scala-steward) and [@Gedochao](https://github.com/Gedochao) in [#2862](https://github.com/VirtusLab/scala-cli/pull/2862)
+* Update `bloop-core` to 1.5.17-sc-1 by [@scala-steward](https://github.com/scala-steward) in [#2873](https://github.com/VirtusLab/scala-cli/pull/2873)
+* Update `bloop-config` to 2.0.0 by [@scala-steward](https://github.com/scala-steward) in [#2873](https://github.com/VirtusLab/scala-cli/pull/2873)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.2.2...v1.3.0
+
 ## [v1.2.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.2.2)
 
 ### Fixed the `Fatal invariant violated` false-positive error coming from Bloop
