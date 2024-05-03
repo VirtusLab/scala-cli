@@ -417,47 +417,48 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       )
     }
 
-  test("test multiple sources of experimental features") {
-    val inputs = TestInputs(
-      os.rel / "Main.scala" ->
-        """//> using target.scope main
-          |//> using target.platform jvm
-          |//> using publish.name "my-library"
-          |
-          |object Main {
-          |  def main(args: Array[String]): Unit = {
-          |    println("Hello World!")
-          |  }
-          |}
-          |""".stripMargin
-    )
-
-    inputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
-        .call(cwd = root, mergeErrIntoOut = true)
-
-      val output = res.out.trim()
-
-      assertNoDiff(
-        output,
-        s"""Some utilized features are marked as experimental:
-           | - `export` sub-command
-           | - `--object-wrapper` option
-           | - `--md` option
-           |Please bear in mind that non-ideal user experience should be expected.
-           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
-           |Exporting to a sbt project...
-           |Some utilized directives are marked as experimental:
-           | - `//> using publish.name "my-library"`
-           | - `//> using target.platform "jvm"`
-           | - `//> using target.scope "main"`
-           |Please bear in mind that non-ideal user experience should be expected.
-           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
-           |Exported to: ${root / "dest"}
-           |""".stripMargin
-      )
-    }
-  }
+// TODO enable this test once testing out of the repo fork
+//  test("test multiple sources of experimental features") {
+//    val inputs = TestInputs(
+//      os.rel / "Main.scala" ->
+//        """//> using target.scope main
+//          |//> using target.platform jvm
+//          |//> using publish.name "my-library"
+//          |
+//          |object Main {
+//          |  def main(args: Array[String]): Unit = {
+//          |    println("Hello World!")
+//          |  }
+//          |}
+//          |""".stripMargin
+//    )
+//
+//    inputs.fromRoot { root =>
+//      val res = os.proc(TestUtil.cli, "--power", "export", ".", "--object-wrapper", "--md")
+//        .call(cwd = root, mergeErrIntoOut = true)
+//
+//      val output = res.out.trim()
+//
+//      assertNoDiff(
+//        output,
+//        s"""Some utilized features are marked as experimental:
+//           | - `export` sub-command
+//           | - `--object-wrapper` option
+//           | - `--md` option
+//           |Please bear in mind that non-ideal user experience should be expected.
+//           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+//           |Exporting to a sbt project...
+//           |Some utilized directives are marked as experimental:
+//           | - `//> using publish.name "my-library"`
+//           | - `//> using target.platform "jvm"`
+//           | - `//> using target.scope "main"`
+//           |Please bear in mind that non-ideal user experience should be expected.
+//           |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+//           |Exported to: ${root / "dest"}
+//           |""".stripMargin
+//      )
+//    }
+//  }
 
   test(s"code using scala-continuations should compile for Scala 2.12.2".flaky) {
     val sourceFileName = "example.scala"
