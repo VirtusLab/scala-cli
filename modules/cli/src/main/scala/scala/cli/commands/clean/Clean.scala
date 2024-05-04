@@ -2,7 +2,7 @@ package scala.cli.commands.clean
 
 import caseapp.*
 
-import scala.build.input.Inputs
+import scala.build.input.ModuleInputs
 import scala.build.internal.Constants
 import scala.build.{Logger, Os}
 import scala.cli.CurrentParams
@@ -16,10 +16,10 @@ object Clean extends ScalaCommand[CleanOptions] {
   override def scalaSpecificationLevel = SpecificationLevel.IMPLEMENTATION
 
   override def runCommand(options: CleanOptions, args: RemainingArgs, logger: Logger): Unit = {
-    val inputs = Inputs(
+    val inputs = ModuleInputs(
       args.all,
       Os.pwd,
-      defaultInputs = () => Inputs.default(),
+      defaultInputs = () => ModuleInputs.default(),
       forcedWorkspace = options.workspace.forcedWorkspaceOpt,
       allowRestrictedFeatures = allowRestrictedFeatures,
       extraClasspathWasPassed = false

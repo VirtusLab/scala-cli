@@ -13,7 +13,13 @@ import scala.build.directives.{
   HasBuildRequirements
 }
 import scala.build.errors.*
-import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
+import scala.build.input.{
+  ModuleInputs,
+  ScalaCliInvokeData,
+  ScalaFile,
+  SingleElement,
+  VirtualScalaFile
+}
 import scala.build.internal.Util
 import scala.build.options.*
 import scala.build.preprocessing.directives.{

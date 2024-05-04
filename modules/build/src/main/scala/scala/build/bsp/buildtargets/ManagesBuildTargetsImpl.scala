@@ -5,7 +5,7 @@ import ch.epfl.scala.bsp4j as b
 import scala.build.GeneratedSource
 import scala.build.bsp.buildtargets.ManagesBuildTargets
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.Inputs
+import scala.build.input.ModuleInputs
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.collection.mutable
@@ -35,7 +35,7 @@ trait ManagesBuildTargetsImpl extends ManagesBuildTargets {
     managedTargets.put(projectName, BuildTarget(projectName, workspace, scope, generatedSources))
 
   // TODO MG
-  override def newInputs(inputs: Inputs): Unit = {
+  override def newInputs(inputs: ModuleInputs): Unit = {
     resetTargets()
     addTarget(inputs.projectName, inputs.workspace, Scope.Main)
     addTarget(inputs.scopeProjectName(Scope.Test), inputs.workspace, Scope.Test)

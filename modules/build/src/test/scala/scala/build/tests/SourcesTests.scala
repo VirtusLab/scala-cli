@@ -56,7 +56,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       )
       testInputs.withInputs { (root, inputs) =>
         val (crossSources, _) =
-          CrossSources.forInputs(
+          CrossSources.forModuleInputs(
             inputs,
             preprocessors,
             TestLogger(),
@@ -99,7 +99,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     val expectedDeps = Nil
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -139,7 +139,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     val expectedDeps = Nil
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -179,7 +179,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     val testInputs = TestInputs(files, Seq("."))
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -222,7 +222,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -267,7 +267,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -354,7 +354,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -396,7 +396,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -440,7 +440,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -475,7 +475,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -522,7 +522,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -572,7 +572,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -593,7 +593,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -630,7 +630,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSourcesResult =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),

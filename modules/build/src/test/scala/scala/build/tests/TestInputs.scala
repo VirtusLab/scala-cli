@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.{Build, BuildThreads, Builds, Directories}
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.Util
 import scala.build.options.{BuildOptions, Scope}
 import scala.util.control.NonFatal
@@ -17,7 +17,7 @@ final case class TestInputs(
   inputArgs: Seq[String] = Seq.empty,
   forceCwd: Option[os.Path] = None
 ) {
-  def withInputs[T](f: (os.Path, Inputs) => T): T =
+  def withInputs[T](f: (os.Path, ModuleInputs) => T): T =
     withCustomInputs(false, None)(f)
 
   def fromRoot[T](f: os.Path => T, skipCreatingSources: Boolean = false): T =
@@ -38,7 +38,7 @@ final case class TestInputs(
     forcedWorkspaceOpt: Option[os.FilePath],
     skipCreatingSources: Boolean = false
   )(
-    f: (os.Path, Inputs) => T
+    f: (os.Path, ModuleInputs) => T
   ): T =
     fromRoot(
       { tmpDir =>
@@ -46,7 +46,7 @@ final case class TestInputs(
           if (viaDirectory) Seq(tmpDir.toString)
           else if (inputArgs.isEmpty) files.map(_._1.toString)
           else inputArgs
-        val res = Inputs(
+        val res = ModuleInputs(
           inputArgs0,
           tmpDir,
           forcedWorkspace = forcedWorkspaceOpt.map(_.resolveFrom(tmpDir)),
@@ -66,7 +66,7 @@ final case class TestInputs(
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false
-  )(f: (os.Path, Inputs, Build) => T) =
+  )(f: (os.Path, ModuleInputs, Build) => T) =
     withBuild(options, buildThreads, bloopConfigOpt, fromDirectory)((p, i, maybeBuild) =>
       maybeBuild match {
         case Left(e)  => throw e
@@ -82,7 +82,7 @@ final case class TestInputs(
     buildTests: Boolean = true,
     actionableDiagnostics: Boolean = false,
     skipCreatingSources: Boolean = false
-  )(f: (os.Path, Inputs, Either[BuildException, Builds]) => T): T =
+  )(f: (os.Path, ModuleInputs, Either[BuildException, Builds]) => T): T =
     withCustomInputs(fromDirectory, None, skipCreatingSources) { (root, inputs) =>
       val compilerMaker = bloopConfigOpt match {
         case Some(bloopConfig) =>
@@ -119,7 +119,7 @@ final case class TestInputs(
     actionableDiagnostics: Boolean = false,
     scope: Scope = Scope.Main,
     skipCreatingSources: Boolean = false
-  )(f: (os.Path, Inputs, Either[BuildException, Build]) => T): T =
+  )(f: (os.Path, ModuleInputs, Either[BuildException, Build]) => T): T =
     withBuilds(
       options,
       buildThreads,

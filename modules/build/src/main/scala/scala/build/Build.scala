@@ -30,7 +30,7 @@ import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 
 trait Build {
-  def inputs: Inputs
+  def inputs: ModuleInputs
   def options: BuildOptions
   def scope: Scope
   def outputOpt: Option[os.Path]
@@ -43,7 +43,7 @@ trait Build {
 object Build {
 
   final case class Successful(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scalaParams: Option[ScalaParameters],
     scope: Scope,
@@ -171,7 +171,7 @@ object Build {
   }
 
   final case class Failed(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scope: Scope,
     sources: Sources,
@@ -185,7 +185,7 @@ object Build {
   }
 
   final case class Cancelled(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     scope: Scope,
     reason: String
@@ -200,10 +200,10 @@ object Build {
     * Using only the command-line options not the ones from the sources.
     */
   def updateInputs(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     testOptions: Option[BuildOptions] = None
-  ): Inputs = {
+  ): ModuleInputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
@@ -220,7 +220,7 @@ object Build {
   }
 
   private def allInputs(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData) =
@@ -237,7 +237,7 @@ object Build {
     )
 
   private def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     crossSources: CrossSources,
     options: BuildOptions,
     logger: Logger,
@@ -252,7 +252,7 @@ object Build {
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
 
-    def doPostProcess(build: Build, inputs: Inputs, scope: Scope): Unit = build match {
+    def doPostProcess(build: Build, inputs: ModuleInputs, scope: Scope): Unit = build match {
       case build: Build.Successful =>
         for (sv <- build.project.scalaCompiler.map(_.scalaVersion))
           postProcess(
@@ -431,7 +431,7 @@ object Build {
   }
 
   private def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -504,7 +504,7 @@ object Build {
 
   def scalaNativeSupported(
     options: BuildOptions,
-    inputs: Inputs,
+    inputs: ModuleInputs,
     logger: Logger
   ): Either[BuildException, Option[ScalaNativeCompatibilityError]] =
     either {
@@ -562,7 +562,7 @@ object Build {
     }
 
   def build(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
     docCompilerMakerOpt: Option[ScalaCompilerMaker],
@@ -642,7 +642,7 @@ object Build {
   }
 
   def watch(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     options: BuildOptions,
     compilerMaker: ScalaCompilerMaker,
     docCompilerMakerOpt: Option[ScalaCompilerMaker],
@@ -846,7 +846,7 @@ object Build {
     *   a bloop [[Project]]
     */
   def buildProject(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -1026,7 +1026,7 @@ object Build {
   }
 
   def prepareBuild(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -1107,7 +1107,7 @@ object Build {
     }
 
   def buildOnce(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
@@ -1277,7 +1277,7 @@ object Build {
     else path.toString
 
   private def jmhBuild(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     build: Build.Successful,
     logger: Logger,
     javaCommand: String,
