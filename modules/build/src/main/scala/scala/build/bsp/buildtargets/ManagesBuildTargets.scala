@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.bsp4j as b
 
 import scala.build.GeneratedSource
-import scala.build.input.Inputs
+import scala.build.input.ModuleInputs
 import scala.build.internal.Constants
 import scala.build.options.Scope
 
@@ -18,7 +18,7 @@ trait ManagesBuildTargets {
     generatedSources: Seq[GeneratedSource] = Nil
   ): Unit
   def resetTargets(): Unit
-  def newInputs(inputs: Inputs): Unit
+  def newInputs(inputs: ModuleInputs): Unit
   def setGeneratedSources(projectName: ProjectName, sources: Seq[GeneratedSource]): Unit
 }
 

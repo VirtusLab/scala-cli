@@ -28,7 +28,7 @@ import scala.build.Ops.*
 import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
-import scala.build.input.Inputs
+import scala.build.input.ModuleInputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
 import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
@@ -274,7 +274,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   /** Build artifacts
     */
   def doRun(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     logger: Logger,
     initialBuildOptions: BuildOptions,
     compilerMaker: ScalaCompilerMaker,

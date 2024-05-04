@@ -31,7 +31,7 @@ object Fix extends ScalaCommand[FixOptions] {
   val newLine = System.lineSeparator()
 
   override def runCommand(options: FixOptions, args: RemainingArgs, logger: Logger): Unit = {
-    val inputs = options.shared.inputs(args.remaining, () => Inputs.default()).orExit(logger)
+    val inputs = options.shared.inputs(args.remaining, () => ModuleInputs.default()).orExit(logger)
 
     val (mainSources, testSources) = getProjectSources(inputs)
       .left.map(CompositeBuildException(_))
@@ -118,10 +118,10 @@ object Fix extends ScalaCommand[FixOptions] {
       .foreach(ttd => removeDirectivesFrom(ttd.positions, toKeep = ttd.noTestPrefixAvailable))
   }
 
-  def getProjectSources(inputs: Inputs): Either[::[BuildException], (Sources, Sources)] = {
+  def getProjectSources(inputs: ModuleInputs): Either[::[BuildException], (Sources, Sources)] = {
     val buildOptions = BuildOptions()
 
-    val (crossSources, _) = CrossSources.forInputs(
+    val (crossSources, _) = CrossSources.forModuleInputs(
       inputs,
       preprocessors = Sources.defaultPreprocessors(
         buildOptions.archiveCache,

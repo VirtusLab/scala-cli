@@ -21,7 +21,7 @@ import scala.build.errors.{
   Diagnostic,
   ParsingInputsException
 }
-import scala.build.input.{Inputs, ScalaCliInvokeData}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -33,7 +33,7 @@ import scala.util.{Failure, Success}
 /** The implementation for [[Bsp]] command.
   *
   * @param argsToInputs
-  *   a function transforming terminal args to [[Inputs]]
+  *   a function transforming terminal args to [[ModuleInputs]]
   * @param bspReloadableOptionsReference
   *   reference to the current instance of [[BspReloadableOptions]]
   * @param threads
@@ -44,7 +44,7 @@ import scala.util.{Failure, Success}
   *   the output stream of bytes
   */
 final class BspImpl(
-  argsToInputs: Seq[String] => Either[BuildException, Inputs],
+  argsToInputs: Seq[String] => Either[BuildException, ModuleInputs],
   bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
@@ -108,7 +108,7 @@ final class BspImpl(
 
       // allInputs contains elements from using directives
       val (crossSources, allInputs) = value {
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs = inputs,
           preprocessors = Sources.defaultPreprocessors(
             buildOptions.archiveCache,
@@ -408,7 +408,7 @@ final class BspImpl(
     *   a new [[BloopSession]]
     */
   private def newBloopSession(
-    inputs: Inputs,
+    inputs: ModuleInputs,
     reloadableOptions: BspReloadableOptions,
     presetIntelliJ: Boolean = false
   ): BloopSession = {
@@ -459,7 +459,10 @@ final class BspImpl(
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
     */
-  override def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
+  override def run(
+    initialInputs: ModuleInputs,
+    initialBspOptions: BspReloadableOptions
+  ): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
 
@@ -561,8 +564,8 @@ final class BspImpl(
     */
   private def reloadBsp(
     currentBloopSession: BloopSession,
-    previousInputs: Inputs,
-    newInputs: Inputs,
+    previousInputs: ModuleInputs,
+    newInputs: ModuleInputs,
     reloadableOptions: BspReloadableOptions
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
