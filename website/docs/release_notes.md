@@ -8,6 +8,38 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.3.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.1)
+
+### Scala 2.13.14 Support
+This Scala CLI version adds support for Scala 2.13.14.
+
+```bash
+scala-cli -e 'println(scala.util.Properties.versionNumberString)' -S 2.13
+# Compiling project (Scala 2.13.14, JVM (17))
+# Compiled project (Scala 2.13.14, JVM (17))
+# 2.13.14
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2882](https://github.com/VirtusLab/scala-cli/pull/2882).
+
+### Fixes
+* Adjust TASTY bump warnings to respect overridden Scala version defaults by [@Gedochao](https://github.com/Gedochao) in [#2888](https://github.com/VirtusLab/scala-cli/pull/2888)
+* Include `scala3-staging` and `scala3-tasty-inspector` artifacts when the `--with-compiler` option is passed in Scala 3 by [@Gedochao](https://github.com/Gedochao) in [#2889](https://github.com/VirtusLab/scala-cli/pull/2889)
+
+### Internal changes
+* Allow to override prog name with a launcher arg by [@Gedochao](https://github.com/Gedochao) in [#2891](https://github.com/VirtusLab/scala-cli/pull/2891)
+
+### Updates
+* Update scala-cli.sh launcher for 1.3.0 by [@github-actions](https://github.com/github-actions) in [#2876](https://github.com/VirtusLab/scala-cli/pull/2876)
+* Update Scala 2 to 2.13.14 by [@Gedochao](https://github.com/Gedochao) in [#2882](https://github.com/VirtusLab/scala-cli/pull/2882)
+* Update guava to 33.2.0-jre by [@scala-steward](https://github.com/scala-steward) in [#2883](https://github.com/VirtusLab/scala-cli/pull/2883)
+* Update `com.softwaremill.sttp.client3:core` to 3.9.6 by [@scala-steward](https://github.com/scala-steward) in [#2885](https://github.com/VirtusLab/scala-cli/pull/2885)
+* Update sbt to 1.10.0 by [@scala-steward](https://github.com/scala-steward) in [#2887](https://github.com/VirtusLab/scala-cli/pull/2887)
+* Update ammonite to 3.0.0-M1-19-a7973e17 by [@scala-steward](https://github.com/scala-steward) in [#2884](https://github.com/VirtusLab/scala-cli/pull/2884)
+* Bump `coursier` to 2.1.10 by [@Gedochao](https://github.com/Gedochao) in [#2890](https://github.com/VirtusLab/scala-cli/pull/2890)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.3.0...v1.3.1
+
 ## [v1.3.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.0)
 
 ### Support for Scala Native 0.5.1
