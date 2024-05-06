@@ -8,25 +8,21 @@ object TastyVersions {
     def majorVersion: Int               = version.split('.')(0).toInt
     def minorVersion: Int               = version.split('.')(1).toInt
     def minorVersionOption: Option[Int] = Try(minorVersion).toOption
-  }
-
-  // Every time tasty version is updated, please update LatestSupportedScala as well!
-  private object LatestSupportedScala {
-    final val MajorVersion: Int = Constants.latestSupportedScala.majorVersion
-    final val MinorVersion: Int = Constants.latestSupportedScala.minorVersion
-
-    def isLatestSupportedMajorVersion(scalaVersion: String): Boolean =
-      scalaVersion.startsWith(s"${LatestSupportedScala.MajorVersion}.") ||
-      scalaVersion == LatestSupportedScala.MajorVersion.toString
+    def isLatestSupportedMajorVersion(latestSupportedScalaVersion: String): Boolean = {
+      val latestSupportedMajor = latestSupportedScalaVersion.majorVersion.toString
+      version.startsWith(s"$latestSupportedMajor.") || version == latestSupportedMajor
+    }
   }
 
   def shouldRunPreprocessor(
     scalaVersion: String,
-    scalaCliVersion: String
-  ): Either[String, Boolean] =
-    if (!LatestSupportedScala.isLatestSupportedMajorVersion(scalaVersion)) Right(false)
+    scalaCliVersion: String,
+    defaultScalaVersion: Option[String]
+  ): Either[String, Boolean] = {
+    val scalaDefault = defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
+    if (!scalaVersion.isLatestSupportedMajorVersion(scalaDefault)) Right(false)
     else scalaVersion.minorVersionOption match {
-      case Some(scalaMinor) if scalaMinor > LatestSupportedScala.MinorVersion =>
+      case Some(scalaMinor) if scalaMinor > scalaDefault.minorVersion =>
         Left(
           s"""Scala CLI (v$scalaCliVersion) cannot post process TASTY files from Scala $scalaVersion.
              |This is not a fatal error since post processing only cleans up source paths in TASTY file.
@@ -38,4 +34,5 @@ object TastyVersions {
         )
       case _ => Right(true)
     }
+  }
 }

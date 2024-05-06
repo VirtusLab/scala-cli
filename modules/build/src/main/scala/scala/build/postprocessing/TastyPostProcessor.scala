@@ -27,7 +27,11 @@ case object TastyPostProcessor extends PostProcessor {
       }
       .toMap
 
-    TastyVersions.shouldRunPreprocessor(scalaVersion, Constants.version) match {
+    TastyVersions.shouldRunPreprocessor(
+      scalaVersion,
+      Constants.version,
+      buildOptions.scalaOptions.defaultScalaVersion
+    ) match {
       case Right(false) => Right(())
       case Left(msg)    => if (updatedPaths.isEmpty) Right(()) else Left(msg)
       case Right(true) =>

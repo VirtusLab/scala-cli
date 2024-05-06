@@ -711,4 +711,26 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       expect(exportRes.out.trim().contains(s""""scalaVersion": "$defaultSv""""))
     }
   }
+
+  test("no warnings about TASTY when using the latest nightly with scripts") {
+    val scriptName = "script.sc"
+    TestInputs(os.rel / "script.sc" -> "println(1)").fromRoot { root =>
+      val scala3Nightly =
+        os.proc(
+          TestUtil.cli,
+          "-e",
+          "println(dotty.tools.dotc.config.Properties.versionNumberString)",
+          "-S",
+          "3.nightly",
+          "--with-compiler"
+        )
+          .call(cwd = root)
+          .out.trim()
+      val res =
+        os.proc(TestUtil.cli, "--cli-default-scala-version", scala3Nightly, "run", scriptName)
+          .call(cwd = root, stderr = os.Pipe)
+      expect(res.exitCode == 0)
+      expect(!res.err.trim().contains("TASTY"))
+    }
+  }
 }
