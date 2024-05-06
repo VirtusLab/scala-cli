@@ -89,7 +89,7 @@ object InternalDeps {
 object Deps {
   object Versions {
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.9"
+    def coursierDefault                   = "2.1.10"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
