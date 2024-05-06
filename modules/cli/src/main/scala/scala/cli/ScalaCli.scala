@@ -27,8 +27,9 @@ object ScalaCli {
     // the Scala CLI native image, no need to manually load it.
     coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
-  val progName = {
-    val argv0 = (new Argv0).get("scala-cli")
+  private val defaultProgName = "scala-cli"
+  var progName: String = {
+    val argv0 = (new Argv0).get(defaultProgName)
     val last  = Paths.get(argv0).getFileName.toString
     last match {
       case s".${name}.aux" =>
@@ -243,6 +244,9 @@ object ScalaCli {
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
+            launcherOpts.progName.foreach { pn =>
+              progName = pn
+            }
             if launcherOpts.cliUserScalaVersion.nonEmpty then
               defaultScalaVersion = launcherOpts.cliUserScalaVersion
             if launcherOpts.cliPredefinedRepository.nonEmpty then

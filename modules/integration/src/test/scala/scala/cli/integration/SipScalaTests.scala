@@ -667,6 +667,18 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
+  test("prog name override launcher arg allows to change the identified launcher name") {
+    TestInputs.empty.fromRoot { root =>
+      val progName              = "some-weird-launcher-name-some-dev-thought-of"
+      val invalidSubCommandName = "foo"
+      val res = os.proc(TestUtil.cli, "--prog-name", progName, invalidSubCommandName)
+        .call(cwd = root, stderr = os.Pipe, check = false)
+      expect(res.exitCode == 1)
+      expect(res.err.trim().contains(progName))
+      expect(res.err.trim().contains(invalidSubCommandName))
+    }
+  }
+
   test(s"default Scala version override launcher option is respected by the Mill export") {
     val input     = "printVersion.sc"
     val code      = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""

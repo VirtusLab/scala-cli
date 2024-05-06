@@ -37,6 +37,11 @@ final case class LauncherOptions(
   @Name("repository")
   @Name("predefinedRepository")
   cliPredefinedRepository: List[String] = Nil,
+  @Group(HelpGroup.Launcher.toString)
+  @HelpMessage("This allows to override the program name identified by Scala CLI as itself (the default is 'scala-cli')")
+  @Hidden
+  @Tag(tags.implementation)
+  progName: Option[String] = None,
   @Recurse
   powerOptions: PowerOptions = PowerOptions()
 )
