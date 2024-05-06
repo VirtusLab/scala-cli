@@ -608,7 +608,8 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
           val localRepoPath = root / "local-repo"
           val sv            = "3.4.1-RC1"
           val artifactNames =
-            Seq("scala3-compiler_3") ++ (if (withBloop) Seq("scala3-sbt-bridge") else Nil)
+            Seq("scala3-compiler_3", "scala3-staging_3", "scala3-tasty-inspector_3") ++
+              (if (withBloop) Seq("scala3-sbt-bridge") else Nil)
           for { artifactName <- artifactNames } {
             val csRes = os.proc(
               TestUtil.cs,
@@ -689,6 +690,21 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       val millRes = millCommand(root, s"$millDefaultProjectName.run").call(cwd = root / outputDir)
       val output  = millRes.out.trim()
       expect(output.contains(expectedMessage))
+    }
+  }
+
+  test("--with-compiler option includes scala3-staging & scala3-tasty-inspector artifacts") {
+    TestInputs(os.rel / "example.sc" ->
+      """import scala.quoted.staging.Compiler
+        |import scala.tasty.inspector.TastyInspector
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "example.sc",
+        "--with-compiler"
+      ).call(cwd = root)
+      expect(res.exitCode == 0)
     }
   }
 

@@ -100,16 +100,19 @@ final case class BuildOptions(
   }
 
   private def scalaCompilerDependencies: Either[BuildException, Seq[AnyDependency]] = either {
-    value(scalaParams).toSeq.flatMap { sp =>
-      if (scalaOptions.addScalaCompiler.getOrElse(false))
-        Seq(
-          if (sp.scalaVersion.startsWith("3."))
-            dep"org.scala-lang::scala3-compiler::${sp.scalaVersion}"
-          else
-            dep"org.scala-lang:scala-compiler:${sp.scalaVersion}"
-        )
-      else Nil
-    }
+    value(scalaParams)
+      .map(_ -> scalaOptions.addScalaCompiler.getOrElse(false))
+      .toSeq
+      .flatMap {
+        case (sp, true) if sp.scalaVersion.startsWith("3") =>
+          Seq(
+            dep"org.scala-lang::scala3-compiler::${sp.scalaVersion}",
+            dep"org.scala-lang::scala3-staging::${sp.scalaVersion}",
+            dep"org.scala-lang::scala3-tasty-inspector::${sp.scalaVersion}"
+          )
+        case (sp, true) => Seq(dep"org.scala-lang:scala-compiler:${sp.scalaVersion}")
+        case _          => Nil
+      }
   }
 
   private def maybeJsDependencies: Either[BuildException, Seq[AnyDependency]] = either {
