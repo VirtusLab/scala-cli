@@ -692,6 +692,21 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
+  test("--with-compiler option includes scala3-staging & scala3-tasty-inspector artifacts") {
+    TestInputs(os.rel / "example.sc" ->
+      """import scala.quoted.staging.Compiler
+        |import scala.tasty.inspector.TastyInspector
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(
+        TestUtil.cli,
+        "compile",
+        "example.sc",
+        "--with-compiler"
+      ).call(cwd = root)
+      expect(res.exitCode == 0)
+    }
+  }
+
   test(s"default Scala version override launcher option is respected by the json export") {
     val input = "printVersion.sc"
     val code  = """println(s"Default version: ${scala.util.Properties.versionNumberString}")"""
