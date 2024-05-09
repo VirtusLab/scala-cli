@@ -345,6 +345,46 @@ world
 
 </ChainedSnippets>
 
+### `ignore` in `scala` snippets
+
+You can mark a `scala` code block with the `ignore` keyword, indicating that this snippet should not be run. This block will be ignored completely and will not be compiled or executed.
+
+Below is an example of an `.md` file with an ignored `scala` snippet:
+
+````markdown title=IgnoreExample.md
+# `ignore` example
+## Normal snippet
+```scala
+val message = "Hello world!"
+println(message)
+```
+
+## Ignored snippet
+```scala ignore
+val message = "This must be ignored"
+println(message)
+1 / 0
+```
+
+````
+
+<ChainedSnippets>
+
+```bash
+scala-cli --power IgnoreExample.md
+```
+
+We see output only from the `scala` snippet:
+
+```text
+Hello world!
+```
+
+</ChainedSnippets>
+
+After execution of the above example, you can see that the ignored snippet was not run.
+All errors and exceptions that would have been thrown by the `ignore` snippet are also absent.
+
 ## `shebang` header and Markdown code blocks
 The `shebang` line in `scala` code blocks inside a markdown input are always ignored.
 You can use them (i.e. to give an example of their usage), but they do not change how the code is handled.
