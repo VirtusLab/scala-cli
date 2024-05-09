@@ -28,11 +28,19 @@ if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   fi
   CACHE_BASE="$HOME/.cache/coursier/v1"
 elif [ "$(uname)" == "Darwin" ]; then
-  SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-apple-darwin.gz"
+  arch=$(uname -m)
   CACHE_BASE="$HOME/Library/Caches/Coursier/v1"
+  if [[ "$arch" == "x86_64" ]]; then
+    SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-x86_64-apple-darwin.gz"
+  elif [[ "$arch" == "arm64" ]]; then
+    SCALA_CLI_URL="https://github.com/$GH_ORG/$GH_NAME/releases/download/$TAG/scala-cli-aarch64-apple-darwin.gz"
+  else
+    echoerr "scala-cli is not supported on $arch"
+    exit 2
+  fi
 else
-   echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
-   exit 1
+  echo "This standalone scala-cli launcher is supported only in Linux and macOS. If you are using Windows, please use the dedicated launcher scala-cli.bat"
+  exit 1
 fi
 
 CACHE_DEST="$CACHE_BASE/$(echo "$SCALA_CLI_URL" | sed 's@://@/@')"
