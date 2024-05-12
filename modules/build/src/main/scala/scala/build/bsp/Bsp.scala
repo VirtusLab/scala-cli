@@ -3,17 +3,17 @@ package scala.build.bsp
 import java.io.{InputStream, OutputStream}
 
 import scala.build.errors.BuildException
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData, compose}
 import scala.concurrent.Future
 
 trait Bsp {
-  def run(initialInputs: ModuleInputs, initialBspOptions: BspReloadableOptions): Future[Unit]
+  def run(initialInputs: compose.Inputs, initialBspOptions: BspReloadableOptions): Future[Unit]
   def shutdown(): Unit
 }
 
 object Bsp {
   def create(
-    argsToInputs: Seq[String] => Either[BuildException, ModuleInputs],
+    argsToInputs: Seq[String] => Either[BuildException, compose.Inputs],
     bspReloadableOptionsReference: BspReloadableOptions.Reference,
     threads: BspThreads,
     in: InputStream,

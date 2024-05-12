@@ -217,7 +217,7 @@ object Build {
     options: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData) =
-    CrossSources.forInputs(
+    CrossSources.forModuleInputs(
       inputs,
       Sources.defaultPreprocessors(
         options.archiveCache,

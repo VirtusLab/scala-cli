@@ -28,6 +28,9 @@ final case class ModuleInputs(
   allowRestrictedFeatures: Boolean
 ) {
 
+  def withForcedWorkspace(workspacePath: os.Path) =
+    copy(workspace = workspacePath, workspaceOrigin = Some(WorkspaceOrigin.Forced))
+
   def isEmpty: Boolean = elements.isEmpty
 
   def singleFiles(): Seq[SingleFile] =
@@ -136,7 +139,8 @@ object ModuleInputs {
     workspaceOrigin: WorkspaceOrigin,
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName]
   ): ModuleInputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
     val allDirs = validElems.collect { case d: Directory => d.path }
@@ -154,7 +158,7 @@ object ModuleInputs {
       updatedElems,
       defaultMainClassElemOpt,
       workspace,
-      baseName(workspace),
+      forcedProjectName.fold(baseName(workspace))(_.name),
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
@@ -330,7 +334,8 @@ object ModuleInputs {
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName]
   )(using invokeData: ScalaCliInvokeData): Either[BuildException, ModuleInputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(
@@ -413,7 +418,8 @@ object ModuleInputs {
           workspaceOrigin0,
           enableMarkdown,
           allowRestrictedFeatures,
-          extraClasspathWasPassed
+          extraClasspathWasPassed,
+          forcedProjectName
         ))
     }
     else
@@ -434,7 +440,8 @@ object ModuleInputs {
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName] = None
   )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
@@ -457,7 +464,8 @@ object ModuleInputs {
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
-        extraClasspathWasPassed
+        extraClasspathWasPassed,
+        forcedProjectName
       )
 
   def default(): Option[ModuleInputs] = None

@@ -232,6 +232,7 @@ object Deps {
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
+  def tomlScala                 = ivy"tech.sparse:toml-scala_2.13:0.2.2"
   val toolkitVersion            = "0.5.0"
   val toolkitVersionForNative04 = "0.3.0"
   val toolkitVersionForNative05 = toolkitVersion

@@ -20,10 +20,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
-import scala.build.input.{Element, ModuleInputs, ResourceDirectory, ScalaCliInvokeData}
+import scala.build.input.compose.InputsComposer
+import scala.build.input.{Element, ModuleInputs, ResourceDirectory, ScalaCliInvokeData, compose}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
@@ -564,23 +566,26 @@ final case class SharedOptions(
         .getOrElse(None)
     )
 
-  def bloopRifleConfig(extraBuildOptions: Option[BuildOptions] = None)
+  def bloopRifleConfig(extraBuildOptions: Seq[BuildOptions] = Nil)
     : Either[BuildException, BloopRifleConfig] = either {
-    val options = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
+    val sharedBuildOptions = value(buildOptions())
     lazy val defaultJvmHome = value {
-      JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
+      JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), sharedBuildOptions)
     }
 
     val javaHomeInfo = compilationServer.bloopJvm
-      .map(jvmId => value(JvmUtils.downloadJvm(jvmId, options)))
-      .orElse {
-        for (javaHome <- options.javaHomeLocationOpt()) yield {
+      .map(jvmId => value(JvmUtils.downloadJvm(jvmId, sharedBuildOptions)))
+      .orElse { // JavaHome from SharedOptions
+        for (javaHome <- sharedBuildOptions.javaHomeLocationOpt()) yield {
           val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-          if (javaHomeVersion >= Constants.minimumBloopJavaVersion)
-            BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
-          else defaultJvmHome
+
+          BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
         }
-      }.getOrElse(defaultJvmHome)
+      }.filter(_.version >= Constants.minimumBloopJavaVersion)
+      // JavaHome from additional options, the one with the highest version
+      .orElse(Some(BuildOptions.pickJavaHomeWithHighestVersion(extraBuildOptions)))
+      .filter(_.version >= Constants.minimumBloopJavaVersion)
+      .getOrElse(defaultJvmHome)
 
     compilationServer.bloopRifleConfig(
       logging.logger,
@@ -600,7 +605,7 @@ final case class SharedOptions(
       SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
     else if (compilationServer.server.getOrElse(true))
       new BloopCompilerMaker(
-        options => bloopRifleConfig(Some(options)),
+        options => bloopRifleConfig(Seq(options)),
         threads.bloop,
         strictBloopJsonCheckOrDefault,
         coursier.getOffline().getOrElse(false)
@@ -609,27 +614,53 @@ final case class SharedOptions(
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
+  private def moduleInputsFromArgs(
+    args: Seq[String],
+    forcedProjectName: Option[ProjectName],
+    defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
+  )(using ScalaCliInvokeData) = SharedOptions.inputs(
+    args,
+    defaultInputs,
+    resourceDirs,
+    Directories.directories,
+    logger = logger,
+    coursierCache,
+    workspace.forcedWorkspaceOpt,
+    input.defaultForbiddenDirectories,
+    input.forbid,
+    scriptSnippetList = allScriptSnippets,
+    scalaSnippetList = allScalaSnippets,
+    javaSnippetList = allJavaSnippets,
+    markdownSnippetList = allMarkdownSnippets,
+    enableMarkdown = markdown.enableMarkdown,
+    extraClasspathWasPassed = extraClasspathWasPassed,
+    forcedProjectName = forcedProjectName
+  )
+
+  def composeInputs(
+    args: Seq[String],
+    defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
+  )(using ScalaCliInvokeData): Either[BuildException, compose.Inputs] = {
+    val updatedModuleInputsFromArgs
+      : (Seq[String], Option[ProjectName]) => Either[BuildException, ModuleInputs] =
+      (args, projectNameOpt) =>
+        for {
+          moduleInputs <- moduleInputsFromArgs(args, projectNameOpt, defaultInputs)
+          options      <- buildOptions()
+        } yield Build.updateInputs(moduleInputs, options)
+
+    InputsComposer(
+      args,
+      Os.pwd,
+      updatedModuleInputsFromArgs,
+      ScalaCli.allowRestrictedFeatures
+    ).getInputs
+  }
+
   def inputs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
-  )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] =
-    SharedOptions.inputs(
-      args,
-      defaultInputs,
-      resourceDirs,
-      Directories.directories,
-      logger = logger,
-      coursierCache,
-      workspace.forcedWorkspaceOpt,
-      input.defaultForbiddenDirectories,
-      input.forbid,
-      scriptSnippetList = allScriptSnippets,
-      scalaSnippetList = allScalaSnippets,
-      javaSnippetList = allJavaSnippets,
-      markdownSnippetList = allMarkdownSnippets,
-      enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraClasspathWasPassed
-    )
+  )(using ScalaCliInvokeData) = moduleInputsFromArgs(args, forcedProjectName = None, defaultInputs)
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
@@ -688,7 +719,8 @@ object SharedOptions {
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
-    extraClasspathWasPassed: Boolean = false
+    extraClasspathWasPassed: Boolean = false,
+    forcedProjectName: Option[ProjectName] = None
   )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -713,7 +745,8 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed
+      extraClasspathWasPassed = extraClasspathWasPassed,
+      forcedProjectName = forcedProjectName
     )
 
     maybeInputs.map { inputs =>

@@ -13,6 +13,11 @@ object EitherCps:
       case Left(e)  => throw EitherFailure(e, cps)
       case Right(v) => v
 
+  def failure[E](using
+    cps: EitherCps[_ >: E]
+  )(e: E) = // Adding a context bounds breaks incremental compilation
+    throw EitherFailure(e, cps)
+
   final class Helper[E]():
     def apply[V](op: EitherCps[E] ?=> V): Either[E, V] =
       val cps = new EitherCps[E]

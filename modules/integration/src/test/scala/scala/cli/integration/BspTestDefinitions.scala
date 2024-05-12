@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
+import ch.epfl.scala.bsp4j.{BuildTargetEvent, JvmTestEnvironmentParams}
 import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
@@ -9,6 +9,7 @@ import java.net.URI
 import java.nio.file.Paths
 
 import scala.async.Async.{async, await}
+import scala.cli.integration.compose.ComposeBspTestDefinitions
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.*
@@ -16,7 +17,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
-    with BspSuite with ScriptWrapperTestDefinitions {
+    with BspSuite with ScriptWrapperTestDefinitions
+    with ComposeBspTestDefinitions {
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -604,7 +606,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val changes = didChangeParams.getChanges.asScala.toSeq
         expect(changes.length == 2)
 
-        val change = changes.head
+        val change: BuildTargetEvent = {
+          val targets = changes.map(_.getTarget)
+          expect(targets.length == 2)
+          val mainTarget = extractMainTargets(targets)
+          changes.find(_.getTarget == mainTarget).get
+        }
         expect(change.getTarget.getUri == targetUri)
         expect(change.getKind == b.BuildTargetEventKind.CHANGED)
 
@@ -720,7 +727,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val changes = didChangeParams.getChanges.asScala.toSeq
         expect(changes.length == 2)
 
-        val change = changes.head
+        val change: BuildTargetEvent = {
+          val targets = changes.map(_.getTarget)
+          expect(targets.length == 2)
+          val mainTarget = extractMainTargets(targets)
+          changes.find(_.getTarget == mainTarget).get
+        }
         expect(change.getTarget.getUri == targetUri)
         expect(change.getKind == b.BuildTargetEventKind.CHANGED)
       }
