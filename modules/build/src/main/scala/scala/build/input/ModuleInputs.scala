@@ -25,8 +25,11 @@ final case class ModuleInputs(
   mayAppendHash: Boolean,
   workspaceOrigin: Option[WorkspaceOrigin],
   enableMarkdown: Boolean,
-  allowRestrictedFeatures: Boolean
+  allowRestrictedFeatures: Boolean,
+  moduleDependencies: Seq[ProjectName]
 ) {
+
+  def dependsOn(modules: Seq[ProjectName]) = copy(moduleDependencies = modules)
 
   def isEmpty: Boolean = elements.isEmpty
 
@@ -158,7 +161,8 @@ object ModuleInputs {
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
-      allowRestrictedFeatures = allowRestrictedFeatures
+      allowRestrictedFeatures = allowRestrictedFeatures,
+      moduleDependencies = Nil
     )
   }
 
@@ -471,11 +475,12 @@ object ModuleInputs {
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
-      allowRestrictedFeatures = false
+      allowRestrictedFeatures = false,
+      moduleDependencies = Nil
     )
 
   def empty(projectName: String): ModuleInputs =
-    ModuleInputs(Nil, None, os.pwd, projectName, false, None, true, false)
+    ModuleInputs(Nil, None, os.pwd, projectName, false, None, true, false, Nil)
 
   def baseName(p: os.Path) = if (p == os.root) "" else p.baseName
 }
