@@ -8,7 +8,13 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{JavaFile, ModuleInputs, ScalaCliInvokeData, SingleElement, VirtualJavaFile}
+import scala.build.input.{
+  JavaFile,
+  ModuleInputs,
+  ScalaCliInvokeData,
+  SingleElement,
+  VirtualJavaFile
+}
 import scala.build.internal.JavaParserProxyMaker
 import scala.build.options.{
   BuildOptions,
