@@ -40,8 +40,8 @@ final case class InputsComposer(
   def getModuleInputs: Either[BuildException, Seq[ModuleInputs]] =
     if allowForbiddenFeatures then
       findModuleConfig match {
-        case Right(Some(path)) =>
-          val configText = os.read(path)
+        case Right(Some(moduleConfigPath)) =>
+          val configText = os.read(moduleConfigPath)
           for {
             table <-
               toml.Toml.parse(configText).left.map(e =>
@@ -49,7 +49,7 @@ final case class InputsComposer(
               ) // TODO use the Address value returned to show better errors
             modules      <- readAllModules(table.values.get(Keys.modules))
             _            <- checkForCycles(modules)
-            moduleInputs <- fromModuleDefinitions(modules)
+            moduleInputs <- fromModuleDefinitions(modules, moduleConfigPath)
           } yield moduleInputs
         case Right(None) => basicInputs
         case Left(err)   => Left(err)
@@ -177,7 +177,7 @@ final case class InputsComposer(
     * @return
     *   a list of module inputs for the extracted modules
     */
-  private def fromModuleDefinitions(modules: Seq[ModuleDefinition])
+  private def fromModuleDefinitions(modules: Seq[ModuleDefinition], moduleConfigPath: os.Path)
     : Either[BuildException, Seq[ModuleInputs]] = either {
     val moduleInputsInfo = modules.map(m => m -> value(inputsFromArgs(m.roots)))
 
@@ -188,6 +188,7 @@ final case class InputsComposer(
       val moduleDeps: Seq[ProjectName] = moduleDef.dependsOn.map(projectNameMap)
 
       inputs.dependsOn(moduleDeps)
+      inputs.withForcedWorkspace(moduleConfigPath / os.up)
     }
 
     moduleInputs
