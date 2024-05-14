@@ -318,6 +318,13 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       os.rel / "something5.scala" ->
         """#!/usr/bin/scala-cli
           |
+          |println("Hello World #!")""".stripMargin,
+      os.rel / "multiline.scala" ->
+        """#!/usr/bin/scala-cli
+          |# comment
+          |VAL=1
+          |!#
+          |
           |println("Hello World #!")""".stripMargin
     )
     val expectedParsedCodes = Seq(
@@ -335,6 +342,12 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         |
         |println("Hello World")""".stripMargin,
       """
+        |
+        |println("Hello World #!")""".stripMargin,
+      """
+        |
+        |
+        |
         |
         |println("Hello World #!")""".stripMargin
     )
