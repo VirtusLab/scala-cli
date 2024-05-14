@@ -3,6 +3,7 @@ package scala.cli.commands.setupide
 import caseapp.*
 import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
@@ -133,6 +134,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
     val scalaCliBspInputsJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
+    val scalaCliBspEnvsJsonDestination =
+      inputs.workspace / Constants.workspaceDirName / "ide-envs.json"
 
     val inputArgs = inputs.elements.collect { case d: OnDisk => d.path.toString }
 
@@ -151,6 +154,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       List(CommandUtils.getAbsolutePathToScalaCli(progName), "bsp") ++
         debugOpt ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++
+        List("--envs-file", scalaCliBspEnvsJsonDestination.toString) ++
         inputArgs
     val details = new BspConnectionDetails(
       bspName,
@@ -169,9 +173,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val gson = new GsonBuilder().setPrettyPrinting().create()
 
+    implicit val mapCodec: JsonValueCodec[Map[String, String]] = JsonCodecMaker.make
+
     val json                      = gson.toJson(details)
     val scalaCliOptionsForBspJson = writeToArray(options.shared)(SharedOptions.jsonCodec)
     val scalaCliBspInputsJson     = writeToArray(ideInputs)
+    val scalaCliBspEnvsJson       = writeToArray(sys.env)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
@@ -190,6 +197,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       os.write.over(
         scalaCliBspInputsJsonDestination,
         scalaCliBspInputsJson,
+        createFolders = true
+      )
+      os.write.over(
+        scalaCliBspEnvsJsonDestination,
+        scalaCliBspEnvsJson,
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")

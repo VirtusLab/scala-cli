@@ -209,16 +209,20 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         val details                = readBspConfig(root)
         val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options-v2.json"
         val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
+        val expectedIdeEnvsFile    = root / Constants.workspaceDirName / "ide-envs.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
           "bsp",
           "--json-options",
           expectedIdeOptionsFile.toString,
+          "--envs-file",
+          expectedIdeEnvsFile.toString,
           root.toString
         )
         expect(details.argv == expectedArgv)
         expect(os.isFile(expectedIdeOptionsFile))
         expect(os.isFile(expectedIdeInputsFile))
+        expect(os.isFile(expectedIdeEnvsFile))
       }
     }
 
@@ -253,6 +257,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         "bsp",
         "--json-options",
         (root / "directory" / Constants.workspaceDirName / "ide-options-v2.json").toString,
+        "--envs-file",
+        (root / "directory" / Constants.workspaceDirName / "ide-envs.json").toString,
         (root / "directory" / "simple.sc").toString
       )
       expect(details.argv == expectedArgv)
@@ -2019,6 +2025,79 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         }
       }
     }
+
+  test("BSP respects JAVA_HOME") {
+    val javaVersion = "22"
+    val inputs = TestInputs(os.rel / "check-java.sc" ->
+      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+         |println(System.getProperty("java.home"))""".stripMargin)
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+      val java22Home =
+        os.Path(
+          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+          os.pwd
+        )
+      os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
+        .call(cwd = root, env = Map("JAVA_HOME" -> java22Home.toString()))
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      expect(ideOptionsPath.toNIO.toFile.exists())
+      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+      expect(ideEnvsPath.toNIO.toFile.exists())
+      val jsonOptions = List("--json-options", ideOptionsPath.toString)
+      val envOptions  = List("--envs-file", ideEnvsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions ++ envOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+            val compileResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
+            val runResult =
+              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
+
+  test("BSP respects --java-home") {
+    val javaVersion = "22"
+    val inputs = TestInputs(os.rel / "check-java.sc" ->
+      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+         |println(System.getProperty("java.home"))""".stripMargin)
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+      val java22Home =
+        os.Path(
+          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+          os.pwd
+        )
+      os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
+        .call(cwd = root)
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      expect(ideOptionsPath.toNIO.toFile.exists())
+      val jsonOptions = List("--json-options", ideOptionsPath.toString)
+      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+            val compileResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
+            val runResult =
+              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
 
   private def checkIfBloopProjectIsInitialised(
     root: os.Path,

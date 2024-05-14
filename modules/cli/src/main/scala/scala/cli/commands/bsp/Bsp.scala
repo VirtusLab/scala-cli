@@ -2,6 +2,7 @@ package scala.cli.commands.bsp
 
 import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
@@ -28,6 +29,16 @@ object Bsp extends ScalaCommand[BspOptions] {
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
+  private def latestEnvsFromFile(options: BspOptions): Map[String, String] =
+    options.envs
+      .map(path => os.Path(path, os.pwd))
+      .filter(path => os.exists(path) && os.isFile(path))
+      .map { envsPath =>
+        val content = os.read.bytes(os.Path(envsPath, os.pwd))
+        implicit val mapCodec: JsonValueCodec[Map[String, String]] = JsonCodecMaker.make
+        readFromArray(content)
+      }
+      .getOrElse(Map.empty)
   override def sharedOptions(options: BspOptions): Option[SharedOptions] =
     Option(latestSharedOptions(options))
 
@@ -36,18 +47,20 @@ object Bsp extends ScalaCommand[BspOptions] {
     if (options.shared.logging.verbosity >= 3)
       pprint.err.log(args)
 
-    val getSharedOptions: () => SharedOptions = () => latestSharedOptions(options)
+    val getSharedOptions: () => SharedOptions      = () => latestSharedOptions(options)
+    val getEnvsFromFile: () => Map[String, String] = () => latestEnvsFromFile(options)
 
     val preprocessInputs: Seq[String] => Either[BuildException, (Inputs, BuildOptions)] =
       argsSeq =>
         either {
           val sharedOptions = getSharedOptions()
+          val envs          = getEnvsFromFile()
           val initialInputs = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
 
           if (sharedOptions.logging.verbosity >= 3)
             pprint.err.log(initialInputs)
 
-          val baseOptions      = buildOptions(sharedOptions)
+          val baseOptions      = buildOptions(sharedOptions, envs)
           val latestLogger     = sharedOptions.logging.logger
           val persistentLogger = new PersistentDiagnosticLogger(latestLogger)
 
@@ -85,10 +98,12 @@ object Bsp extends ScalaCommand[BspOptions] {
       * options extracted from sources
       */
     val initialBspOptions = {
-      val sharedOptions = getSharedOptions()
+      val sharedOptions   = getSharedOptions()
+      val envs            = getEnvsFromFile()
+      val bspBuildOptions = buildOptions(sharedOptions, envs).orElse(finalBuildOptions)
       BspReloadableOptions(
-        buildOptions = buildOptions(sharedOptions) orElse finalBuildOptions,
-        bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
+        buildOptions = bspBuildOptions,
+        bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(bspBuildOptions))
           .orExit(sharedOptions.logger),
         logger = sharedOptions.logging.logger,
         verbosity = sharedOptions.logging.verbosity
@@ -97,11 +112,12 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
       val sharedOptions = getSharedOptions()
+      val envs          = getEnvsFromFile()
       val bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
         .orExit(sharedOptions.logger)
 
       BspReloadableOptions(
-        buildOptions = buildOptions(sharedOptions),
+        buildOptions = buildOptions(sharedOptions, envs),
         bloopRifleConfig = sharedOptions.bloopRifleConfig().orExit(sharedOptions.logger),
         logger = sharedOptions.logging.logger,
         verbosity = sharedOptions.logging.verbosity
@@ -130,10 +146,13 @@ object Bsp extends ScalaCommand[BspOptions] {
     }
   }
 
-  private def buildOptions(sharedOptions: SharedOptions): BuildOptions = {
+  private def buildOptions(
+    sharedOptions: SharedOptions,
+    envs: Map[String, String]
+  ): BuildOptions = {
     val logger      = sharedOptions.logger
     val baseOptions = sharedOptions.buildOptions().orExit(logger)
-    baseOptions.copy(
+    val adjustedOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))
       ),
@@ -148,5 +167,18 @@ object Bsp extends ScalaCommand[BspOptions] {
           baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
+    envs.get("JAVA_HOME")
+      .filter(_ => adjustedOptions.javaOptions.javaHomeOpt.isEmpty)
+      .map(javaHome =>
+        adjustedOptions.copy(javaOptions =
+          adjustedOptions.javaOptions.copy(javaHomeOpt =
+            Some(Positioned(
+              Seq(Position.Custom("ide.env.JAVA_HOME")),
+              os.Path(javaHome, Os.pwd)
+            ))
+          )
+        )
+      )
+      .getOrElse(adjustedOptions)
   }
 }
