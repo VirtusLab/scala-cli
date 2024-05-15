@@ -55,7 +55,6 @@ We can fix that by either running with a `—-native` option, or,
 in this case, by including an additional using directive:
 
 ```scala compile title=size-higher-than.scala
-//> using scala 3
 //> using dep com.lihaoyi::os-lib::0.10.0
 //> using platform scala-native
  
@@ -81,7 +80,6 @@ We can make the runtime itself even faster, using various Scala Native optimizat
 We pass these using a `-–native-mode` scala-cli option or, like previously, by adding a using directive:
 
 ```scala compile title=size-higher-than.scala
-//> using scala 3
 //> using dep com.lihaoyi::os-lib::0.10.0
 //> using platform scala-native
 //> using nativeMode release-full
