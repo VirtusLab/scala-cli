@@ -33,14 +33,14 @@ This command will format all your sources in the current directory according to 
 ### Example
 
 Let's take a simple `HelloWorld` application:
-```scala title=HelloWorld.scala
+```scala title=FormattingExample.scala reset
 // use scala 3.3.0
 @main def hello()={println("Hello, World!")}
 def someLongMethodMoreThan80Characters():Unit={println("This is a long method")
 println("Another print here?")}
 ```
 
-You can notice that this implementations is written with long lines, no indentation, no spaces and no new lines.
+You can notice that this implementation is written with long lines, no indentation, no spaces and no new lines.
 It is hard to distinguish where one statement ends and another begins, which makes it hard to read.
 
 <ChainedSnippets>
@@ -78,7 +78,7 @@ scala-cli fmt .
 ```
 And there will be no output, which means that the formatting was successful. Let's see the code after formatting:
 
-```scala title=HelloWorld.scala reset
+```scala title=FormattingExample2.scala reset
 // use scala 3.3.0
 @main def hello() = { println("Hello, World!") }
 def someLongMethodMoreThan80Characters(): Unit = {
@@ -97,7 +97,7 @@ Let's check it again:
 scala-cli fmt --check .
 ```
 
-And now we seee `All files are formatted with scalafmt :)` message, which means that the code is formatted correctly.
+And now we see `All files are formatted with scalafmt :)` message, which means that the code is formatted correctly.
 
 </ChainedSnippets>
 
@@ -166,7 +166,7 @@ scala-cli fmt --save-scalafmt-conf .
 You can pass any `scalafmt` arguments directly to the `scalafmt` command using `-F` or `--scalafmt-arg` parameter. For example:
 
 ```bash
-scala-cli fmt -F --list
+scala-cli fmt -F --help
 ```
 The full list of `scalafmt` arguments can be found in the [Scalafmt CLI documentation](https://scalameta.org/scalafmt/docs/installation.html#--help) in section *`--help`*.
 
