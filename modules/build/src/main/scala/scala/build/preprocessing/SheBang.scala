@@ -3,7 +3,7 @@ package scala.build.preprocessing
 import scala.util.matching.Regex
 
 object SheBang {
-  private val sheBangRegex: Regex = s"""(^(#!.*(\\r\\n?|\\n)?)+(\\s*!#.*)?)""".r
+  private val sheBangRegex: Regex = s"""(^(#!.*(\\X)?)+(\\X*!#.*)?)""".r
 
   def isShebangScript(content: String): Boolean = sheBangRegex.unanchored.matches(content)
 
