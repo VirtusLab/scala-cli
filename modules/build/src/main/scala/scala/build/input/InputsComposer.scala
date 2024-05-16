@@ -3,13 +3,13 @@ package scala.build.input
 import toml.Value
 import toml.Value.*
 
-import collection.mutable
 import scala.build.EitherCps.*
 import scala.build.EitherSequence
-import scala.build.internal.Constants
-import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
-import scala.build.options.{BuildOptions, ModuleOptions}
 import scala.build.bsp.buildtargets.ProjectName
+import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
+import scala.build.internal.Constants
+import scala.build.options.BuildOptions
+import scala.collection.mutable
 
 object InputsComposer {
 
@@ -177,8 +177,10 @@ final case class InputsComposer(
     * @return
     *   a list of module inputs for the extracted modules
     */
-  private def fromModuleDefinitions(modules: Seq[ModuleDefinition], moduleConfigPath: os.Path)
-    : Either[BuildException, Seq[ModuleInputs]] = either {
+  private def fromModuleDefinitions(
+    modules: Seq[ModuleDefinition],
+    moduleConfigPath: os.Path
+  ): Either[BuildException, Seq[ModuleInputs]] = either {
     val moduleInputsInfo = modules.map(m => m -> value(inputsFromArgs(m.roots)))
 
     val projectNameMap: Map[String, ProjectName] =

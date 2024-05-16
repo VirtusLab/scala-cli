@@ -83,52 +83,61 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     refreshPowerMode(getLauncherOptions(), getSharedOptions(), getEnvsFromFile())
 
-    val preprocessInputs: Seq[String] => Either[BuildException, (ModuleInputs, BuildOptions)] =
+    val preprocessInputs: Seq[String] => Either[BuildException, Seq[(ModuleInputs, BuildOptions)]] =
       argsSeq =>
         either {
-          val sharedOptions   = getSharedOptions()
+          val sharedOptions    = getSharedOptions()
           val launcherOptions = getLauncherOptions()
           val envs            = getEnvsFromFile()
-          val initialInputs   = value(sharedOptions.inputs(argsSeq))
 
           refreshPowerMode(launcherOptions, sharedOptions, envs)
-
-          if (sharedOptions.logging.verbosity >= 3)
-            pprint.err.log(initialInputs)
 
           val baseOptions      = buildOptions(sharedOptions, launcherOptions, envs)
           val latestLogger     = sharedOptions.logging.logger
           val persistentLogger = new PersistentDiagnosticLogger(latestLogger)
 
-          val crossResult = CrossSources.forModuleInputs(
-            initialInputs,
-            Sources.defaultPreprocessors(
-              baseOptions.archiveCache,
-              baseOptions.internal.javaClassNameVersionOpt,
-              () => baseOptions.javaHome().value.javaCommand
-            ),
-            persistentLogger,
-            baseOptions.suppressWarningOptions,
-            baseOptions.internal.exclude
-          )
+          val initialInputs: Seq[ModuleInputs] = value(sharedOptions.composeInputs(argsSeq))
 
-          val (allInputs, finalBuildOptions) = {
-            for
-              crossSourcesAndInputs <- crossResult
-              // compiler bug, can't do :
-              // (crossSources, crossInputs) <- crossResult
-              (crossSources, crossInputs) = crossSourcesAndInputs
-              sharedBuildOptions          = crossSources.sharedOptions(baseOptions)
-              scopedSources <- crossSources.scopedSources(sharedBuildOptions)
-              resolvedBuildOptions =
-                scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(_ orElse _)
-            yield (crossInputs, resolvedBuildOptions)
-          }.getOrElse(initialInputs -> baseOptions)
+          if (sharedOptions.logging.verbosity >= 3)
+            pprint.err.log(initialInputs)
 
-          Build.updateInputs(allInputs, baseOptions) -> finalBuildOptions
+          for (moduleInputs <- initialInputs) yield {
+            val crossResult = CrossSources.forModuleInputs(
+              moduleInputs,
+              Sources.defaultPreprocessors(
+                baseOptions.archiveCache,
+                baseOptions.internal.javaClassNameVersionOpt,
+                () => baseOptions.javaHome().value.javaCommand
+              ),
+              persistentLogger,
+              baseOptions.suppressWarningOptions,
+              baseOptions.internal.exclude
+            )
+
+            val (allInputs, finalBuildOptions) = {
+              for
+                crossSourcesAndInputs <- crossResult
+                // compiler bug, can't do :
+                // (crossSources, crossInputs) <- crossResult
+                (crossSources, crossInputs) = crossSourcesAndInputs
+                sharedBuildOptions          = crossSources.sharedOptions(baseOptions)
+                scopedSources <- crossSources.scopedSources(sharedBuildOptions)
+                resolvedBuildOptions =
+                  scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(
+                    _ orElse _
+                  )
+              yield (crossInputs, resolvedBuildOptions)
+            }.getOrElse(moduleInputs -> baseOptions)
+
+            allInputs -> finalBuildOptions
+          }
         }
 
-    val (inputs, finalBuildOptions) = preprocessInputs(args.all).orExit(logger)
+    val inputsAndBuildOptions = preprocessInputs(args.all).orExit(logger)
+
+    // TODO reported override option values
+    val finalBuildOptions = inputsAndBuildOptions.map(_._2).reduceLeft(_ orElse _)
+    val inputs            = inputsAndBuildOptions.map(_._1)
 
     /** values used for launching the bsp, especially for launching the bloop server, they do not
       * include options extracted from sources, except in bloopRifleConfig - it's needed for
@@ -167,13 +176,14 @@ object Bsp extends ScalaCommand[BspOptions] {
       )
     }
 
-    CurrentParams.workspaceOpt = Some(inputs.workspace)
+    CurrentParams.workspaceOpt =
+      Some(inputs.head.workspace) // FIXME .head, introduce better types for Seq[ModuleInputs] that will have a common workspace
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions
 
     BspThreads.withThreads { threads =>
       val bsp = scala.build.bsp.Bsp.create(
-        preprocessInputs.andThen(_.map(_._1)),
+        preprocessInputs.andThen(_.map(_.map(_._1))),
         bspReloadableOptionsReference,
         threads,
         System.in,

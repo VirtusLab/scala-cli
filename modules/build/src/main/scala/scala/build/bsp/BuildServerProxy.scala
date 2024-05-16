@@ -113,6 +113,6 @@ class BuildServerProxy(
     bspServer().addTarget(projectName, workspace, scope, generatedSources)
   def resetTargets(): Unit =
     bspServer().resetTargets()
-  def newInputs(inputs: ModuleInputs): Unit =
+  def newInputs(inputs: Seq[ModuleInputs]): Unit =
     bspServer().newInputs(inputs)
 }

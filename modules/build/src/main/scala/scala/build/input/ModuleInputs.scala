@@ -30,6 +30,8 @@ final case class ModuleInputs(
 ) {
 
   def dependsOn(modules: Seq[ProjectName]) = copy(moduleDependencies = modules)
+  def withForcedWorkspace(workspacePath: os.Path) =
+    copy(workspace = workspacePath, workspaceOrigin = Some(WorkspaceOrigin.Forced))
 
   def isEmpty: Boolean = elements.isEmpty
 

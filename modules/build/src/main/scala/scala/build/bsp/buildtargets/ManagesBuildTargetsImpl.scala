@@ -34,11 +34,12 @@ trait ManagesBuildTargetsImpl extends ManagesBuildTargets {
   ): Unit =
     managedTargets.put(projectName, BuildTarget(projectName, workspace, scope, generatedSources))
 
-  // TODO MG
-  override def newInputs(inputs: ModuleInputs): Unit = {
+  override def newInputs(inputs: Seq[ModuleInputs]): Unit = {
     resetTargets()
-    addTarget(inputs.projectName, inputs.workspace, Scope.Main)
-    addTarget(inputs.scopeProjectName(Scope.Test), inputs.workspace, Scope.Test)
+    inputs.foreach { module =>
+      addTarget(module.projectName, module.workspace, Scope.Main)
+      addTarget(module.scopeProjectName(Scope.Test), module.workspace, Scope.Test)
+    }
   }
   override def setGeneratedSources(
     projectName: ProjectName,
