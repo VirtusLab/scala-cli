@@ -16,6 +16,7 @@ import dependency.parser.DependencyParser
 import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
@@ -628,7 +629,7 @@ final case class SharedOptions(
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
-  private def moduleInputs(
+  private def moduleInputsFromArgs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
   )(using ScalaCliInvokeData) = SharedOptions.inputs(
@@ -652,18 +653,26 @@ final case class SharedOptions(
   def composeInputs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
-  )(using ScalaCliInvokeData): Either[BuildException, Seq[ModuleInputs]] =
+  )(using ScalaCliInvokeData): Either[BuildException, Seq[ModuleInputs]] = {
+    val updatedModuleInputsFromArgs = { (args: Seq[String]) =>
+      for {
+        moduleInputs <- moduleInputsFromArgs(args, defaultInputs)
+        options      <- buildOptions()
+      } yield Build.updateInputs(moduleInputs, options)
+    }
+
     InputsComposer(
       args,
       Os.pwd,
-      moduleInputs(_, defaultInputs),
+      updatedModuleInputsFromArgs,
       ScalaCli.allowRestrictedFeatures
     ).getModuleInputs
+  }
 
   def inputs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
-  )(using ScalaCliInvokeData) = moduleInputs(args, defaultInputs)
+  )(using ScalaCliInvokeData) = moduleInputsFromArgs(args, defaultInputs)
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala

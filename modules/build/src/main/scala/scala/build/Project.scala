@@ -29,7 +29,8 @@ final case class Project(
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
   scope: Scope,
-  javacOptions: List[String]
+  javacOptions: List[String],
+  moduleDependencies: Seq[ProjectName]
 ) {
 
   import Project._
@@ -66,7 +67,8 @@ final case class Project(
         platform = Some(platform),
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
-        resolution = resolution
+        resolution = resolution,
+        dependencies = moduleDependencies.map(_.name).toList
       )
   }
 

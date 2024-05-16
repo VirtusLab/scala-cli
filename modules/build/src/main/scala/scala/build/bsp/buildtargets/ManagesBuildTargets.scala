@@ -18,7 +18,7 @@ trait ManagesBuildTargets {
     generatedSources: Seq[GeneratedSource] = Nil
   ): Unit
   def resetTargets(): Unit
-  def newInputs(inputs: ModuleInputs): Unit
+  def newInputs(inputs: Seq[ModuleInputs]): Unit
   def setGeneratedSources(projectName: ProjectName, sources: Seq[GeneratedSource]): Unit
 }
 
