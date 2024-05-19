@@ -13,19 +13,84 @@ import scala.collection.mutable
 
 object InputsComposer {
 
-  private object Keys {
+  private[input] object Keys {
     val modules   = "modules"
     val roots     = "roots"
     val dependsOn = "dependsOn"
   }
 
-  private case class ModuleDefinition(
+  private[input] case class ModuleDefinition(
     name: String,
     roots: Seq[String],
     dependsOn: Seq[String] = Nil
   )
+
+  // TODO Check for module dependencies that do not exist
+  private[input] def readAllModules(modules: Option[Value])
+  : Either[BuildException, Seq[ModuleDefinition]] = modules match {
+    case Some(Tbl(values)) => EitherSequence.sequence {
+      values.toSeq.map(readModule)
+    }.left.map(CompositeBuildException.apply)
+    case _ => Left(ModuleConfigurationError(s"$modules must exist and must be a table"))
+  }
+
+  private def readModule(
+    key: String,
+    value: Value
+  ): Either[ModuleConfigurationError, ModuleDefinition] = {
+    value match
+      case Tbl(values) =>
+        val maybeRoots = values.get(Keys.roots).map {
+            case Str(value) => Right(Seq(value))
+            case Arr(values) => EitherSequence.sequence {
+              values.map {
+                case Str(value) => Right(value)
+                case _ => Left(())
+              }
+            }.left.map(_ => ())
+            case _ => Left(())
+          }.getOrElse(Right(Seq(key)))
+          .left.map(_ =>
+            ModuleConfigurationError(
+              s"${Keys.modules}.$key.${Keys.roots} must be a string or a list of strings"
+            )
+          )
+
+        val maybeDependsOn = values.get(Keys.dependsOn).map {
+            case Arr(values) =>
+              EitherSequence.sequence {
+                values.map {
+                  case Str(value) => Right(value)
+                  case _ => Left(())
+                }
+              }.left.map(_ => ())
+            case _ => Left(())
+          }.getOrElse(Right(Nil))
+          .left.map(_ =>
+            ModuleConfigurationError(
+              s"${Keys.modules}.$key.${Keys.dependsOn} must be a list of strings"
+            )
+          )
+
+        for {
+          roots <- maybeRoots
+          dependsOn <- maybeDependsOn
+        } yield ModuleDefinition(key, roots, dependsOn)
+
+      case _ => Left(ModuleConfigurationError(s"${Keys.modules}.$key must be a table"))
+  }
 }
 
+/** Creates [[ModuleInputs]] given the initial arguments passed to the command,
+ *  Looks for module config .toml file and if found composes module inputs according to the defined config,
+ *  otherwise if module config is not found or if [[allowForbiddenFeatures]] is not set, returns only one basic module created from initial args (see [[basicInputs]])
+ *
+ * @param args - initial args passed to command
+ * @param cwd - working directory
+ * @param inputsFromArgs - function that proceeds with the whole [[ModuleInputs]] creation flow (validating elements, etc.) this takes into account options passed from CLI
+ *                       like in SharedOptions
+ * @param allowForbiddenFeatures
+ */
 final case class InputsComposer(
   args: Seq[String],
   cwd: os.Path,
@@ -88,60 +153,6 @@ final case class InputsComposer(
     } yield fromArgs.orElse(fromCwd)
   }
 
-  // TODO Check for module dependencies that do not exist
-  private def readAllModules(modules: Option[Value])
-    : Either[BuildException, Seq[ModuleDefinition]] = modules match {
-    case Some(Tbl(values)) => EitherSequence.sequence {
-        values.toSeq.map(readModule)
-      }.left.map(CompositeBuildException.apply)
-    case _ => Left(ModuleConfigurationError(s"$modules must exist and must be a table"))
-  }
-
-  private def readModule(
-    key: String,
-    value: Value
-  ): Either[ModuleConfigurationError, ModuleDefinition] =
-    value match
-      case Tbl(values) =>
-        val maybeRoots = values.get(Keys.roots).map {
-          case Str(value) => Right(Seq(value))
-          case Arr(values) => EitherSequence.sequence {
-              values.map {
-                case Str(value) => Right(value)
-                case _          => Left(())
-              }
-            }.left.map(_ => ())
-          case _ => Left(())
-        }.getOrElse(Right(Seq(key)))
-          .left.map(_ =>
-            ModuleConfigurationError(
-              s"${Keys.modules}.$key.${Keys.roots} must be a string or a list of strings"
-            )
-          )
-
-        val maybeDependsOn = values.get(Keys.dependsOn).map {
-          case Arr(values) =>
-            EitherSequence.sequence {
-              values.map {
-                case Str(value) => Right(value)
-                case _          => Left(())
-              }
-            }.left.map(_ => ())
-          case _ => Left(())
-        }.getOrElse(Right(Nil))
-          .left.map(_ =>
-            ModuleConfigurationError(
-              s"${Keys.modules}.$key.${Keys.dependsOn} must be a list of strings"
-            )
-          )
-
-        for {
-          roots     <- maybeRoots
-          dependsOn <- maybeDependsOn
-        } yield ModuleDefinition(key, roots, dependsOn)
-
-      case _ => Left(ModuleConfigurationError(s"${Keys.modules}.$key must be a table"))
-
   private def checkForCycles(modules: Seq[ModuleDefinition])
     : Either[ModuleConfigurationError, Unit] = either {
     val lookup   = Map.from(modules.map(module => module.name -> module))
@@ -190,7 +201,7 @@ final case class InputsComposer(
       val moduleDeps: Seq[ProjectName] = moduleDef.dependsOn.map(projectNameMap)
 
       inputs.dependsOn(moduleDeps)
-      inputs.withForcedWorkspace(moduleConfigPath / os.up)
+        .withForcedWorkspace(moduleConfigPath / os.up)
     }
 
     moduleInputs
