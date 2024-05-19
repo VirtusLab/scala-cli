@@ -13,7 +13,7 @@ import scala.build.errors.{
 }
 import scala.build.options._
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
-import scala.build.{Logger, Positioned, options}
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Packaging")

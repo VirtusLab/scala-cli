@@ -7,7 +7,7 @@ import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequ
 import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.CustomJar.JarType
-import scala.build.{Logger, Positioned}
+import scala.build.Positioned
 import scala.cli.commands.SpecificationLevel
 import scala.util.{Failure, Success, Try}
 

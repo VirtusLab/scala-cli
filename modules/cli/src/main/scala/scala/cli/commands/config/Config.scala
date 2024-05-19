@@ -4,17 +4,13 @@ import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.cache.ArchiveCache
 
-import java.util.Base64
-
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.FeatureType
 import scala.build.{Directories, Logger}
-import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.HelpGroup
-import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config._
 import scala.cli.util.ArgHelpers.*

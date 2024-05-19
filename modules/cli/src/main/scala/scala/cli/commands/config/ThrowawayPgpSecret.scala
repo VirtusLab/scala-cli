@@ -8,7 +8,7 @@ import java.security.SecureRandom
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.{Logger, options as bo}
-import scala.cli.commands.pgp.{PgpProxyMaker, PgpScalaSigningOptions}
+import scala.cli.commands.pgp.PgpProxyMaker
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.shared.Secret
