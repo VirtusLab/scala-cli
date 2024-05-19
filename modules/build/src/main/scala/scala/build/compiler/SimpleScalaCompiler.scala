@@ -74,7 +74,7 @@ final case class SimpleScalaCompiler(
     logger: Logger
   ): Int = {
 
-    outputDir.foreach(os.makeDir.all(_))
+    outputDir.foreach(dir => os.makeDir.all(if (dir.last.endsWith(".jar")) dir / os.up else dir))
 
     // initially adapted from https://github.com/VirtusLab/scala-cli/pull/103/files#diff-d13a7e6d602b8f84d9177e3138487872f0341d006accfe425886a561f029a9c3R120 and around
     val outputDirArgs = outputDir.map(od => Seq("-d", od.toString())).getOrElse(Nil)
