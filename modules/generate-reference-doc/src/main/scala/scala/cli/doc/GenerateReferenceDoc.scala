@@ -466,7 +466,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       if (implHandlers.nonEmpty) {
         b.section("## Implementation-specific directices")
         b.section(
-          "Directives which are used within Scala CLI and should be a part of the the `scala` command but aren't a part of the specification."
+          "Directives which are used within Scala CLI and should be a part of the `scala` command but aren't a part of the specification."
         )
 
         addHandlers(implHandlers)
