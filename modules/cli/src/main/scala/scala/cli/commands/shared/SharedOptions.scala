@@ -16,10 +16,10 @@ import dependency.parser.DependencyParser
 import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
@@ -631,6 +631,7 @@ final case class SharedOptions(
 
   private def moduleInputsFromArgs(
     args: Seq[String],
+    forcedProjectName: Option[ProjectName],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
   )(using ScalaCliInvokeData) = SharedOptions.inputs(
     args,
@@ -647,19 +648,21 @@ final case class SharedOptions(
     javaSnippetList = allJavaSnippets,
     markdownSnippetList = allMarkdownSnippets,
     enableMarkdown = markdown.enableMarkdown,
-    extraClasspathWasPassed = extraClasspathWasPassed
+    extraClasspathWasPassed = extraClasspathWasPassed,
+    forcedProjectName = forcedProjectName
   )
 
   def composeInputs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
   )(using ScalaCliInvokeData): Either[BuildException, Seq[ModuleInputs]] = {
-    val updatedModuleInputsFromArgs = { (args: Seq[String]) =>
-      for {
-        moduleInputs <- moduleInputsFromArgs(args, defaultInputs)
-        options      <- buildOptions()
-      } yield Build.updateInputs(moduleInputs, options)
-    }
+    val updatedModuleInputsFromArgs
+      : (Seq[String], Option[ProjectName]) => Either[BuildException, ModuleInputs] =
+      (args, projectNameOpt) =>
+        for {
+          moduleInputs <- moduleInputsFromArgs(args, projectNameOpt, defaultInputs)
+          options      <- buildOptions()
+        } yield Build.updateInputs(moduleInputs, options)
 
     InputsComposer(
       args,
@@ -672,7 +675,7 @@ final case class SharedOptions(
   def inputs(
     args: Seq[String],
     defaultInputs: () => Option[ModuleInputs] = () => ModuleInputs.default()
-  )(using ScalaCliInvokeData) = moduleInputsFromArgs(args, defaultInputs)
+  )(using ScalaCliInvokeData) = moduleInputsFromArgs(args, forcedProjectName = None, defaultInputs)
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
@@ -731,7 +734,8 @@ object SharedOptions {
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
-    extraClasspathWasPassed: Boolean = false
+    extraClasspathWasPassed: Boolean = false,
+    forcedProjectName: Option[ProjectName] = None
   )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
@@ -756,7 +760,8 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed
+      extraClasspathWasPassed = extraClasspathWasPassed,
+      forcedProjectName = forcedProjectName
     )
 
     maybeInputs.map { inputs =>
