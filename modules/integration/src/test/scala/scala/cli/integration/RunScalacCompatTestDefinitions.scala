@@ -206,6 +206,43 @@ trait RunScalacCompatTestDefinitions {
     }
   }
 
+  test("scala-cli compile -d option package into a jar") {
+    val preCompileDir = "PreCompileDir"
+    val preCompiledInput = "Message.scala"
+    val mainInput = "Main.scala"
+    val expectedOutput = "Hello"
+    TestInputs(
+      os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
+      os.rel / preCompileDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }"""
+    ).fromRoot { (root: os.Path) =>
+      val outputJar = os.rel / "outParentDir" / "out.jar"
+
+      // first, precompile to an explicitly specified output directory with -d
+      os.proc(
+        TestUtil.cli,
+        "compile",
+        "-p",
+        preCompiledInput,
+        mainInput,
+        "-d",
+        outputJar.toString,
+        extraOptions
+      ).call(cwd = root / preCompileDir)
+
+      // ensure the precompiled JAR exists
+      assert(os.exists(root / preCompileDir / outputJar), s"Precompiled JAR not found at $outputJar")
+
+      // next, run while relying on the pre-compiled class
+      val runRes = os.proc(
+        TestUtil.cli,
+        "run",
+        outputJar.toString
+      ).call(cwd = root / preCompileDir)
+
+      expect(runRes.out.trim() == expectedOutput)
+    }
+  }
+
   test("-O -classpath allows to run with scala-cli compile -O -d option pre-compiled classes") {
     val preCompileDir    = "PreCompileDir"
     val preCompiledInput = "Message.scala"
