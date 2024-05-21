@@ -601,11 +601,29 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       test(s"$wrapperType script wrapper satisfies strict compiler flags") {
         val expectedMessage = "Hello"
         val sourceFileName  = "strictClassWrapper.sc"
+        val versionDependentOpts =
+          if (
+            actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
+            || actualScalaVersion.startsWith("3.5")
+          )
+            Seq("-Wsafe-init")
+          else Seq("-Yno-experimental", "-Ysafe-init")
+        val compilerOpts = Seq(
+          "-Werror",
+          "-Wnonunit-statement",
+          "-Wunused:all",
+          "-Wvalue-discard",
+          "-deprecation",
+          "-feature",
+          "-language:strictEquality",
+          "-new-syntax",
+          "-old-syntax",
+          "-unchecked",
+          "-no-indent"
+        ) ++ versionDependentOpts
         TestInputs(
           os.rel / sourceFileName ->
-            s"""//> using options -Werror -Wnonunit-statement -Wunused:all -Wvalue-discard
-               |//> using options -Yno-experimental -Ysafe-init -deprecation -feature -language:strictEquality
-               |//> using options -new-syntax -old-syntax -unchecked -no-indent
+            s"""//> using options ${compilerOpts.mkString(" ")}
                |
                |println("$expectedMessage")
                |""".stripMargin
