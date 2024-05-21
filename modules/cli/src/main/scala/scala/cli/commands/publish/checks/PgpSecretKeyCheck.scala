@@ -5,8 +5,6 @@ import coursier.util.Task
 import sttp.client3.*
 import sttp.model.Uri
 
-import java.util.Base64
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops.*
@@ -24,7 +22,6 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.util.ConfigPasswordOptionHelpers.*
-import scala.cli.util.MaybeConfigPasswordOption
 
 /** Checks if:
   *   - keys for signing files are present in using directives (either PGP or GPG)

@@ -6,7 +6,7 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedInputError}
 import scala.build.options._
 import scala.build.options.publish.ConfigPasswordOption
-import scala.build.{Logger, Positioned, options}
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.cli.signing.shared.PasswordOption
 

@@ -6,7 +6,6 @@ import scala.cli.commands.SpecificationLevel
 import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.config.{ConfigDb, Key, PasswordOption}
 import scala.cli.errors.MissingConfigEntryError
-import scala.cli.util.MaybeConfigPasswordOption
 
 object ConfigPasswordOptionHelpers {
 

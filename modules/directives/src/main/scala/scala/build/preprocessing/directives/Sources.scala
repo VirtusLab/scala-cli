@@ -4,8 +4,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongSourcePathError}
-import scala.build.options.{BuildOptions, InternalOptions, JavaOpt, ShadowingSeq}
-import scala.build.{Logger, Positioned, options}
+import scala.build.options.{BuildOptions, InternalOptions}
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 

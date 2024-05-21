@@ -2,7 +2,7 @@ package scala.build.warnings
 
 import scala.build.Position
 import scala.build.errors.Diagnostic.TextEdit
-import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.errors.{Diagnostic, Severity}
 
 final case class DeprecatedWarning(
   message: String,

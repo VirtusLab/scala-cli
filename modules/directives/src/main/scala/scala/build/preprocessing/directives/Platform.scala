@@ -16,7 +16,7 @@ import scala.build.options.{
   ScalaNativeOptions,
   ScalaOptions
 }
-import scala.build.{Logger, Positioned, options}
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Platform")
