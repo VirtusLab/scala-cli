@@ -4,7 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-class CompileTestsDefault extends CompileTestDefinitions with TestDefault {
+class CompileTestsDefault extends CompileTestDefinitions with CompileTests3StableDefinitions
+    with TestDefault {
   test("render explain message") {
     val fileName = "Hello.scala"
     val inputs = TestInputs(
