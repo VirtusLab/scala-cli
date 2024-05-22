@@ -202,7 +202,7 @@ object ScalaJsLinker {
     ) = either {
       val input = Input(linkJsInput, linkingDir)
 
-      def createProcess() = {
+      def createProcess(): Proc = {
         val cmd =
           value(getCommand(
             linkJsInput,
@@ -215,16 +215,38 @@ object ScalaJsLinker {
         val process = Runner.run(cmd, logger, inheritStreams = false)
         val stdin   = process.getOutputStream()
         val stdout  = Source.fromInputStream(process.getInputStream()).getLines
-        currentProc = Some(Proc(process, stdin, stdout))
+        val proc    = Proc(process, stdin, stdout)
+        currentProc = Some(proc)
         currentInput = Some(input)
+        proc
       }
 
-      currentProc match {
+      def loop(proc: Proc): Unit =
+        if (proc.stdout.hasNext) {
+          val line = proc.stdout.next()
+
+          if (line == "SCALA_JS_LINKING_DONE")
+            logger.debug("Scala.js linker ran successfully")
+          else {
+            // inherit other stdout from Scala.js
+            println(line)
+
+            loop(proc)
+          }
+        }
+        else {
+          val retCode = proc.process.waitFor()
+          logger.debug(s"Scala.js linker exited with return code $retCode")
+          value(Left(new ScalaJsLinkingError))
+        }
+
+      val proc = currentProc match {
         case Some(proc) if currentInput.contains(input) && proc.process.isAlive() =>
           // trigger new linking
           proc.stdin.write('\n')
           proc.stdin.flush()
 
+          proc
         case Some(proc) =>
           proc.process.destroy()
           createProcess()
@@ -232,30 +254,7 @@ object ScalaJsLinker {
           createProcess()
       }
 
-      currentProc match
-        case Some(proc) =>
-          def loop(): Unit =
-            if (proc.stdout.hasNext) {
-              val line = proc.stdout.next()
-
-              if (line == "SCALA_JS_LINKING_DONE")
-                logger.debug("Scala.js linker ran successfully")
-              else {
-                // inherit other stdout from Scala.js
-                println(line)
-
-                loop()
-              }
-            }
-            else {
-              val retCode = proc.process.waitFor()
-              logger.debug(s"Scala.js linker exited with return code $retCode")
-              value(Left(new ScalaJsLinkingError))
-            }
-
-          loop()
-        case None =>
-          sys.error("THIS IS A BUG. Please report to scala-cli issues")
+      loop(proc)
     }
   }
 
