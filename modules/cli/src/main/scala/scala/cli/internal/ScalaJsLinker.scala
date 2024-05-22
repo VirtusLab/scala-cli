@@ -171,7 +171,7 @@ object ScalaJsLinker {
     val useLongRunning = !input.fullOpt
 
     if (useLongRunning)
-      longRunningProcess.runOrGet(input, linkingDir, logger, cache, archiveCache)
+      longRunningProcess.startOrReuse(input, linkingDir, logger, cache, archiveCache)
     else {
       val cmd =
         value(getCommand(input, linkingDir, logger, cache, archiveCache, useLongRunning = false))
@@ -193,7 +193,7 @@ object ScalaJsLinker {
     var currentInput: Option[Input] = None
     var currentProc: Option[Proc]   = None
 
-    def runOrGet(
+    def startOrReuse(
       linkJsInput: LinkJSInput,
       linkingDir: os.Path,
       logger: Logger,
