@@ -597,9 +597,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   for {
     withBloop <- Seq(true, false)
     withBloopString = if (withBloop) "with Bloop" else "with --server=false"
-  }
+  } {
     test(
-      s"default Scala version coming straight from a predefined local repository $withBloopString"
+      s"default Scala version (3.4.1-RC1) coming straight from a predefined local repository $withBloopString"
     ) {
       TestInputs(
         os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
@@ -640,6 +640,53 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
           expect(r.out.trim() == sv)
         }
     }
+
+    test(
+      s"default Scala version (2.13.15-bin-ccdcde3) coming straight from a predefined local repository $withBloopString"
+    ) {
+      TestInputs(
+        os.rel / "simple.sc" -> "println(scala.util.Properties.versionNumberString)"
+      )
+        .fromRoot { root =>
+          val localRepoPath = root / "local-repo"
+          val sv            = "2.13.15-bin-ccdcde3"
+          val artifactNames =
+            Seq("scala-compiler") ++ (if (withBloop) Seq("scala2-sbt-bridge") else Nil)
+          for { artifactName <- artifactNames } {
+            val csRes = os.proc(
+              TestUtil.cs,
+              "fetch",
+              "--cache",
+              localRepoPath,
+              "-r",
+              "https://scala-ci.typesafe.com/artifactory/scala-integration",
+              s"org.scala-lang:$artifactName:$sv"
+            )
+              .call(cwd = root)
+            expect(csRes.exitCode == 0)
+          }
+          val buildServerOptions = if (withBloop) Nil else Seq("--server=false")
+          os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "--predefined-repository",
+            (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+            "--predefined-repository",
+            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration").toNIO.toUri.toASCIIString,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "--offline",
+            "--power",
+            buildServerOptions
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
+  }
 
   test(s"default Scala version override launcher option is respected by the SBT export") {
     val input     = "printVersion.sc"
