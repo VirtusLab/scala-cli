@@ -25,7 +25,8 @@ object Scala {
   val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
   def scalaJs    = "1.16.0"
-  def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
+  // TODO: Use released version
+  def scalaJsCli = "1.16.1-SNAPSHOT" // this must be compatible with the Scala.js version
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
