@@ -62,7 +62,8 @@ abstract class PgpExternalCommand extends ExternalCommand {
       logger,
       allowExecve = allowExecve,
       cwd = None,
-      extraEnv = extraEnv
+      extraEnv = extraEnv,
+      inheritStreams = true
     ).waitFor()
   }
 

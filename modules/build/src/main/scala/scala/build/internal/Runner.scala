@@ -30,14 +30,16 @@ object Runner {
       logger,
       allowExecve = true,
       cwd,
-      extraEnv
+      extraEnv,
+      inheritStreams = true
     )
 
   def run(
     command: Seq[String],
     logger: Logger,
     cwd: Option[os.Path] = None,
-    extraEnv: Map[String, String] = Map.empty
+    extraEnv: Map[String, String] = Map.empty,
+    inheritStreams: Boolean = true
   ): Process =
     run0(
       "unused",
@@ -45,7 +47,8 @@ object Runner {
       logger,
       allowExecve = false,
       cwd,
-      extraEnv
+      extraEnv,
+      inheritStreams
     )
 
   def run0(
@@ -54,7 +57,8 @@ object Runner {
     logger: Logger,
     allowExecve: Boolean,
     cwd: Option[os.Path],
-    extraEnv: Map[String, String]
+    extraEnv: Map[String, String],
+    inheritStreams: Boolean
   ): Process = {
 
     import logger.{log, debug}
@@ -81,6 +85,12 @@ object Runner {
     else {
       val b = new ProcessBuilder(command: _*)
         .inheritIO()
+
+      if (!inheritStreams) {
+        b.redirectInput(ProcessBuilder.Redirect.PIPE)
+        b.redirectOutput(ProcessBuilder.Redirect.PIPE)
+      }
+
       if (extraEnv.nonEmpty) {
         val env = b.environment()
         for ((k, v) <- extraEnv)

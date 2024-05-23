@@ -7,7 +7,7 @@ import coursier.util.Task
 import dependency._
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.io.File
+import java.io.{File, InputStream, OutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
@@ -15,9 +15,22 @@ import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
 import scala.build.{Logger, Positioned}
+import scala.io.Source
 import scala.util.Properties
 
 object ScalaJsLinker {
+
+  case class LinkJSInput(
+    options: ScalaJsLinkerOptions,
+    javaCommand: String,
+    classPath: Seq[os.Path],
+    mainClassOrNull: String,
+    addTestInitializer: Boolean,
+    config: ScalaJsLinkerConfig,
+    fullOpt: Boolean,
+    noOpt: Boolean,
+    scalaJsVersion: String
+  )
 
   private def linkerMainClass = "org.scalajs.cli.Scalajsld"
 
@@ -98,38 +111,40 @@ object ScalaJsLinker {
     }
   }
 
-  def link(
-    options: ScalaJsLinkerOptions,
-    javaCommand: String,
-    classPath: Seq[os.Path],
-    mainClassOrNull: String,
-    addTestInitializer: Boolean,
-    config: ScalaJsLinkerConfig,
+  private def getCommand(
+    input: LinkJSInput,
     linkingDir: os.Path,
-    fullOpt: Boolean,
-    noOpt: Boolean,
     logger: Logger,
     cache: FileCache[Task],
     archiveCache: ArchiveCache[Task],
-    scalaJsVersion: String
-  ): Either[BuildException, Unit] = either {
-
+    useLongRunning: Boolean
+  ) = either {
     val command = value {
-      linkerCommand(options, javaCommand, logger, cache, archiveCache, scalaJsVersion)
+      linkerCommand(
+        input.options,
+        input.javaCommand,
+        logger,
+        cache,
+        archiveCache,
+        input.scalaJsVersion
+      )
     }
 
     val allArgs = {
-      val outputArgs = Seq("--outputDir", linkingDir.toString)
+      val outputArgs  = Seq("--outputDir", linkingDir.toString)
+      val longRunning = if (useLongRunning) Seq("--longRunning") else Seq.empty[String]
       val mainClassArgs =
-        Option(mainClassOrNull).toSeq.flatMap(mainClass => Seq("--mainMethod", mainClass + ".main"))
+        Option(input.mainClassOrNull).toSeq.flatMap(mainClass =>
+          Seq("--mainMethod", mainClass + ".main")
+        )
       val testInitializerArgs =
-        if (addTestInitializer)
+        if (input.addTestInitializer)
           Seq("--mainMethodWithNoArgs", TAI.ModuleClassName + "." + TAI.MainMethodName)
         else
           Nil
       val optArg =
-        if (noOpt) "--noOpt"
-        else if (fullOpt) "--fullOpt"
+        if (input.noOpt) "--noOpt"
+        else if (input.fullOpt) "--fullOpt"
         else "--fastOpt"
 
       Seq[os.Shellable](
@@ -137,22 +152,116 @@ object ScalaJsLinker {
         mainClassArgs,
         testInitializerArgs,
         optArg,
-        config.linkerCliArgs,
-        classPath.map(_.toString)
+        input.config.linkerCliArgs,
+        input.classPath.map(_.toString),
+        longRunning
       )
     }
 
-    val cmd     = command ++ allArgs.flatMap(_.value)
-    val res     = Runner.run(cmd, logger)
-    val retCode = res.waitFor()
+    command ++ allArgs.flatMap(_.value)
+  }
 
-    if (retCode == 0)
-      logger.debug("Scala.js linker ran successfully")
+  def link(
+    input: LinkJSInput,
+    linkingDir: os.Path,
+    logger: Logger,
+    cache: FileCache[Task],
+    archiveCache: ArchiveCache[Task]
+  ): Either[BuildException, Unit] = either {
+    val useLongRunning = !input.fullOpt
+
+    if (useLongRunning)
+      longRunningProcess.startOrReuse(input, linkingDir, logger, cache, archiveCache)
     else {
-      logger.debug(s"Scala.js linker exited with return code $retCode")
-      value(Left(new ScalaJsLinkingError))
+      val cmd =
+        value(getCommand(input, linkingDir, logger, cache, archiveCache, useLongRunning = false))
+      val res     = Runner.run(cmd, logger)
+      val retCode = res.waitFor()
+
+      if (retCode == 0)
+        logger.debug("Scala.js linker ran successfully")
+      else {
+        logger.debug(s"Scala.js linker exited with return code $retCode")
+        value(Left(new ScalaJsLinkingError))
+      }
     }
   }
+
+  private object longRunningProcess {
+    case class Proc(process: Process, stdin: OutputStream, stdout: InputStream) {
+      val stdoutLineIterator: Iterator[String] = Source.fromInputStream(stdout).getLines()
+    }
+    case class Input(input: LinkJSInput, linkingDir: os.Path)
+    var currentInput: Option[Input] = None
+    var currentProc: Option[Proc]   = None
+
+    def startOrReuse(
+      linkJsInput: LinkJSInput,
+      linkingDir: os.Path,
+      logger: Logger,
+      cache: FileCache[Task],
+      archiveCache: ArchiveCache[Task]
+    ) = either {
+      val input = Input(linkJsInput, linkingDir)
+
+      def createProcess(): Proc = {
+        val cmd =
+          value(getCommand(
+            linkJsInput,
+            linkingDir,
+            logger,
+            cache,
+            archiveCache,
+            useLongRunning = true
+          ))
+        val process = Runner.run(cmd, logger, inheritStreams = false)
+        val stdin   = process.getOutputStream()
+        val stdout  = process.getInputStream()
+        val proc    = Proc(process, stdin, stdout)
+        currentProc = Some(proc)
+        currentInput = Some(input)
+        proc
+      }
+
+      def loop(proc: Proc): Unit =
+        if (proc.stdoutLineIterator.hasNext) {
+          val line = proc.stdoutLineIterator.next()
+
+          if (line == "SCALA_JS_LINKING_DONE")
+            logger.debug("Scala.js linker ran successfully")
+          else {
+            // inherit other stdout from Scala.js
+            println(line)
+
+            loop(proc)
+          }
+        }
+        else {
+          val retCode = proc.process.waitFor()
+          logger.debug(s"Scala.js linker exited with return code $retCode")
+          value(Left(new ScalaJsLinkingError))
+        }
+
+      val proc = currentProc match {
+        case Some(proc) if currentInput.contains(input) && proc.process.isAlive() =>
+          // trigger new linking
+          proc.stdin.write('\n')
+          proc.stdin.flush()
+
+          proc
+        case Some(proc) =>
+          proc.stdin.close()
+          proc.stdout.close()
+          proc.process.destroy()
+          createProcess()
+        case _ =>
+          createProcess()
+      }
+
+      loop(proc)
+    }
+  }
+
   def updateSourceMappingURL(mainJsPath: os.Path) =
     val content = os.read(mainJsPath)
     content.replace(
