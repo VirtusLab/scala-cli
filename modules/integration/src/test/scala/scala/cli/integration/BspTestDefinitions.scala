@@ -205,16 +205,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
+        os.proc(TestUtil.cli, "--power", command, ".", extraOptions)
+          .call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
         val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options-v2.json"
+        val expectedIdeLaunchFile  = root / Constants.workspaceDirName / "ide-launcher-options.json"
         val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
         val expectedIdeEnvsFile    = root / Constants.workspaceDirName / "ide-envs.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
+          "--power",
           "bsp",
           "--json-options",
           expectedIdeOptionsFile.toString,
+          "--json-launcher-options",
+          expectedIdeLaunchFile.toString,
           "--envs-file",
           expectedIdeEnvsFile.toString,
           root.toString
@@ -244,19 +249,22 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           os.proc(
             "cmd",
             "/c",
-            (relativeCliCommand ++ Seq("setup-ide", path.toString) ++ extraOptions)
+            (relativeCliCommand ++ Seq("--power", "setup-ide", path.toString) ++ extraOptions)
               .mkString(" ")
           )
         else
-          os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
+          os.proc(relativeCliCommand, "--power", "setup-ide", path, extraOptions)
       proc.call(cwd = root, stdout = os.Inherit)
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
         TestUtil.cliPath,
+        "--power",
         "bsp",
         "--json-options",
         (root / "directory" / Constants.workspaceDirName / "ide-options-v2.json").toString,
+        "--json-launcher-options",
+        (root / "directory" / Constants.workspaceDirName / "ide-launcher-options.json").toString,
         "--envs-file",
         (root / "directory" / Constants.workspaceDirName / "ide-envs.json").toString,
         (root / "directory" / "simple.sc").toString
@@ -2082,6 +2090,72 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       expect(ideOptionsPath.toNIO.toFile.exists())
       val jsonOptions = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+            val compileResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
+            val runResult =
+              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
+
+  test("BSP respects --cli-default-scala-version & --predefined-repository launcher options") {
+    val sv = "3.5.0-RC1"
+    val inputs = TestInputs(
+      os.rel / "simple.sc" -> s"""assert(dotty.tools.dotc.config.Properties.simpleVersionString == "$sv")"""
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+      val localRepoPath = root / "local-repo"
+      val artifactNames = Seq(
+        "scala3-compiler_3",
+        "scala3-staging_3",
+        "scala3-tasty-inspector_3",
+        "scala3-sbt-bridge"
+      )
+      for { artifactName <- artifactNames } {
+        val csRes = os.proc(
+          TestUtil.cs,
+          "fetch",
+          "--cache",
+          localRepoPath,
+          s"org.scala-lang:$artifactName:$sv"
+        )
+          .call(cwd = root)
+        expect(csRes.exitCode == 0)
+      }
+      os.proc(
+        TestUtil.cli,
+        "--cli-default-scala-version",
+        sv,
+        "--predefined-repository",
+        (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+        "setup-ide",
+        "simple.sc",
+        "--with-compiler",
+        "--offline",
+        "--power"
+      )
+        .call(cwd = root)
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      expect(ideOptionsPath.toNIO.toFile.exists())
+      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+      expect(ideEnvsPath.toNIO.toFile.exists())
+      val ideLauncherOptionsPath = root / Constants.workspaceDirName / "ide-launcher-options.json"
+      expect(ideLauncherOptionsPath.toNIO.toFile.exists())
+      val jsonOptions     = List("--json-options", ideOptionsPath.toString)
+      val launcherOptions = List("--json-launcher-options", ideLauncherOptionsPath.toString)
+      val envOptions      = List("--envs-file", ideEnvsPath.toString)
+      val bspOptions      = jsonOptions ++ launcherOptions ++ envOptions
+      withBsp(inputs, Seq("."), bspOptions = bspOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
           async {
             val targets = await(remoteServer.workspaceBuildTargets().asScala)

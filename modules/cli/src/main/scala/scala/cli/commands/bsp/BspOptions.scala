@@ -19,6 +19,12 @@ final case class BspOptions(
   @Tag(tags.implementation)
     jsonOptions: Option[String] = None,
 
+  @HelpMessage("Command-line launcher options JSON file")
+  @ValueDescription("path")
+  @Hidden
+  @Tag(tags.implementation)
+  jsonLauncherOptions: Option[String] = None,
+
   @HelpMessage("Command-line options environment variables file")
   @ValueDescription("path")
   @Hidden

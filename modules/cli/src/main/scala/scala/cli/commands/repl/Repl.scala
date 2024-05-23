@@ -62,11 +62,10 @@ object Repl extends ScalaCommand[ReplOptions] {
       scalaOptions = baseOptions.scalaOptions.copy(
         scalaVersion = baseOptions.scalaOptions.scalaVersion
           .orElse {
-            val defaultScalaVer = ScalaCli.getDefaultScalaVersion
             val shouldDowngrade = {
               def needsDowngradeForAmmonite = {
                 import coursier.core.Version
-                Version(maxAmmoniteScalaVer) < Version(defaultScalaVer)
+                Version(maxAmmoniteScalaVer) < Version(defaultScalaVersion)
               }
               ammonite.contains(true) &&
               ammoniteVersionOpt.isEmpty &&
@@ -74,7 +73,7 @@ object Repl extends ScalaCommand[ReplOptions] {
             }
             if (shouldDowngrade) {
               logger.message(
-                s"Scala $defaultScalaVer is not yet supported with this version of Ammonite"
+                s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
               )
               logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
               Some(MaybeScalaVersion(maxAmmoniteScalaVer))

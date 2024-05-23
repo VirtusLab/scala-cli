@@ -1,8 +1,10 @@
 package scala.cli.launcher
 
 import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.shared.{HelpGroup, SharedOptions}
 import scala.cli.commands.{Constants, tags}
 
 @HelpMessage("Run another Scala CLI version")
@@ -46,9 +48,18 @@ final case class LauncherOptions(
   progName: Option[String] = None,
   @Recurse
   powerOptions: PowerOptions = PowerOptions()
-)
+) {
+  def toCliArgs: List[String] =
+    cliVersion.toList.flatMap(v => List("--cli-version", v)) ++
+      cliScalaVersion.toList.flatMap(v => List("--cli-scala-version", v)) ++
+      cliUserScalaVersion.toList.flatMap(v => List("--cli-default-scala-version", v)) ++
+      cliPredefinedRepository.flatMap(v => List("--cli-predefined-repository", v)) ++
+      progName.toList.flatMap(v => List("--prog-name", v)) ++
+      powerOptions.toCliArgs
+}
 
 object LauncherOptions {
-  implicit lazy val parser: Parser[LauncherOptions] = Parser.derive
-  implicit lazy val help: Help[LauncherOptions]     = Help.derive
+  implicit lazy val parser: Parser[LauncherOptions]            = Parser.derive
+  implicit lazy val help: Help[LauncherOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[LauncherOptions] = JsonCodecMaker.make
 }

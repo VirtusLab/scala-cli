@@ -55,10 +55,11 @@ object ScalaCli {
   private def isGraalvmNativeImage: Boolean =
     sys.props.contains("org.graalvm.nativeimage.imagecode")
 
-  private var defaultScalaVersion: Option[String]        = None
-  val launcherPredefinedRepositories: ListBuffer[String] = ListBuffer.empty
+  private var maybeLauncherOptions: Option[LauncherOptions] = None
 
-  def getDefaultScalaVersion: String = defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
+  def launcherOptions: LauncherOptions = maybeLauncherOptions.getOrElse(LauncherOptions())
+  def getDefaultScalaVersion: String =
+    launcherOptions.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
@@ -232,6 +233,7 @@ object ScalaCli {
         System.err.println(e.message)
         sys.exit(1)
       case Right((launcherOpts, args0)) =>
+        maybeLauncherOptions = Some(launcherOpts)
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
             val powerArgs =
@@ -247,10 +249,6 @@ object ScalaCli {
             launcherOpts.progName.foreach { pn =>
               progName = pn
             }
-            if launcherOpts.cliUserScalaVersion.nonEmpty then
-              defaultScalaVersion = launcherOpts.cliUserScalaVersion
-            if launcherOpts.cliPredefinedRepository.nonEmpty then
-              launcherPredefinedRepositories.addAll(launcherOpts.cliPredefinedRepository)
             if launcherOpts.powerOptions.power then
               isSipScala = false
               args0.toArray

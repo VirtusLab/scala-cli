@@ -5008,6 +5008,10 @@ Exclude sources
 
 Command-line options JSON file
 
+**--json-launcher-options**
+
+Command-line launcher options JSON file
+
 **--envs**
 
 Command-line options environment variables file

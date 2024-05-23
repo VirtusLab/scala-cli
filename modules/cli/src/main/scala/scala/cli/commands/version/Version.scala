@@ -34,7 +34,7 @@ object Version extends ScalaCommand[VersionOptions] {
           else None
       }
     if options.cliVersion then println(Constants.version)
-    else if options.scalaVersion then println(ScalaCli.getDefaultScalaVersion)
+    else if options.scalaVersion then println(defaultScalaVersion)
     else {
       println(versionInfo)
       if !options.offline then
@@ -51,5 +51,5 @@ object Version extends ScalaCommand[VersionOptions] {
     val version            = Constants.version
     val detailedVersionOpt = Constants.detailedVersion.filter(_ != version).fold("")(" (" + _ + ")")
     s"""$fullRunnerName version: $version$detailedVersionOpt
-       |Scala version (default): ${ScalaCli.getDefaultScalaVersion}""".stripMargin
+       |Scala version (default): $defaultScalaVersion""".stripMargin
 }
