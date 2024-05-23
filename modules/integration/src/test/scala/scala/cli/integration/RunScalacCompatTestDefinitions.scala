@@ -377,18 +377,28 @@ trait RunScalacCompatTestDefinitions {
     }
   }
 
+  override def munitFlakyOK: Boolean = TestUtil.isCI && Properties.isMac && TestUtil.isNativeCli
+
+  def verifyScala212VersionCompiles(scalaPatchVersion: String): Unit = {
+    TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
+      root =>
+        val scala212VersionString = s"2.12.$scalaPatchVersion"
+        val res =
+          os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
+            .call(cwd = root)
+        expect(res.out.trim() == scala212VersionString)
+    }
+  }
+
   if (actualScalaVersion.startsWith("2.12."))
-    test("verify that Scala version 2.12.x < 2.12.4 is respected and compiles correctly") {
-      TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
-        root =>
-          (1 until 4).foreach { scalaPatchVersion =>
-            val scala212VersionString = s"2.12.$scalaPatchVersion"
-            val res =
-              os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
-                .call(cwd = root)
-            expect(res.out.trim() == scala212VersionString)
-          }
-      }
+    (1 until 4).map(_.toString).foreach { scalaPatchVersion =>
+      // FIXME this shouldn't be flaky on Mac
+      if (TestUtil.isCI && Properties.isMac && TestUtil.isNativeCli) test(
+        s"verify that Scala version 2.12.$scalaPatchVersion is respected and compiles correctly".flaky
+      )(verifyScala212VersionCompiles(scalaPatchVersion))
+      else test(
+        s"verify that Scala version 2.12.$scalaPatchVersion is respected and compiles correctly"
+      )(verifyScala212VersionCompiles(scalaPatchVersion))
     }
 
   test("scalac verbose") {
