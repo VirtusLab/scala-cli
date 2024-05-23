@@ -2021,6 +2021,17 @@ abstract class RunTestDefinitions
         .call(cwd = root, env = extraEnv)
       os.proc(TestUtil.cs, "install", s"scalac:$actualScalaVersion")
         .call(cwd = root, env = extraEnv)
+      (if (actualScalaVersion.startsWith("3")) Some("scala3-sbt-bridge")
+       else if (
+         actualScalaVersion.startsWith("2.13.") &&
+         actualScalaVersion.coursierVersion >= "2.13.12".coursierVersion
+       )
+         Some("scala2-sbt-bridge")
+       else None)
+        .foreach { bridgeArtifactName =>
+          os.proc(TestUtil.cs, "fetch", s"org.scala-lang:$bridgeArtifactName:$actualScalaVersion")
+            .call(cwd = root, env = extraEnv)
+        }
 
       // Download JVM that won't suit Bloop, also no Bloop artifacts are present
       os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:11")

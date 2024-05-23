@@ -461,7 +461,7 @@ final case class BuildOptions(
       addJmhDependencies = jmhOptions.addJmhDependencies,
       extraRepositories = value(finalRepositories),
       keepResolution = internal.keepResolution,
-      includeBuildServerDeps = useBuildServer.getOrElse(false),
+      includeBuildServerDeps = useBuildServer.getOrElse(true),
       cache = finalCache,
       logger = logger,
       maybeRecoverOnError = maybeRecoverOnError
