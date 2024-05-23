@@ -1879,6 +1879,13 @@ Available in commands:
 [Internal]
 Command-line options JSON file
 
+### `--envs`
+
+Aliases: `--envs-file`
+
+[Internal]
+Command-line options environment variables file
+
 ### Bsp file options
 
 Available in commands:

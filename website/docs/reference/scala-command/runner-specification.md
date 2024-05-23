@@ -5008,6 +5008,12 @@ Exclude sources
 
 Command-line options JSON file
 
+**--envs**
+
+Command-line options environment variables file
+
+Aliases: `--envs-file`
+
 </details>
 
 ---

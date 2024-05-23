@@ -51,7 +51,7 @@ class SharedRunTests extends ScalaCliSuite {
   }
 
   test("Scala version in config file") {
-    val confSv = "2.13.1"
+    val confSv = "2.13.13"
     val inputs = TestInputs(
       os.rel / "test.sc" ->
         s"""//> using scala "$confSv"

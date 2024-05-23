@@ -1355,6 +1355,14 @@ Available in commands:
 
 Command-line options JSON file
 
+### `--envs`
+
+Aliases: `--envs-file`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Command-line options environment variables file
+
 ### Bsp file options
 
 Available in commands:
