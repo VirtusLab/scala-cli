@@ -7,7 +7,7 @@ import coursier.util.Task
 import dependency._
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
-import java.io.{File, OutputStream}
+import java.io.{File, InputStream, OutputStream}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
@@ -188,7 +188,9 @@ object ScalaJsLinker {
   }
 
   private object longRunningProcess {
-    case class Proc(process: Process, stdin: OutputStream, stdout: Iterator[String])
+    case class Proc(process: Process, stdin: OutputStream, stdout: InputStream) {
+      val stdoutLineIterator: Iterator[String] = Source.fromInputStream(stdout).getLines()
+    }
     case class Input(input: LinkJSInput, linkingDir: os.Path)
     var currentInput: Option[Input] = None
     var currentProc: Option[Proc]   = None
@@ -214,7 +216,7 @@ object ScalaJsLinker {
           ))
         val process = Runner.run(cmd, logger, inheritStreams = false)
         val stdin   = process.getOutputStream()
-        val stdout  = Source.fromInputStream(process.getInputStream()).getLines
+        val stdout  = process.getInputStream()
         val proc    = Proc(process, stdin, stdout)
         currentProc = Some(proc)
         currentInput = Some(input)
@@ -222,8 +224,8 @@ object ScalaJsLinker {
       }
 
       def loop(proc: Proc): Unit =
-        if (proc.stdout.hasNext) {
-          val line = proc.stdout.next()
+        if (proc.stdoutLineIterator.hasNext) {
+          val line = proc.stdoutLineIterator.next()
 
           if (line == "SCALA_JS_LINKING_DONE")
             logger.debug("Scala.js linker ran successfully")
@@ -248,6 +250,8 @@ object ScalaJsLinker {
 
           proc
         case Some(proc) =>
+          proc.stdin.close()
+          proc.stdout.close()
           proc.process.destroy()
           createProcess()
         case _ =>
