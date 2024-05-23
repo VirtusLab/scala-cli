@@ -198,10 +198,10 @@ object Bsp extends ScalaCommand[BspOptions] {
     val withLauncherOptions = withEnvs.copy(
       classPathOptions = withEnvs.classPathOptions.copy(
         extraRepositories =
-          (withEnvs.classPathOptions.extraRepositories ++ launcherOptions.cliPredefinedRepository).distinct
+          (withEnvs.classPathOptions.extraRepositories ++ launcherOptions.scalaRunner.cliPredefinedRepository).distinct
       ),
       scalaOptions = withEnvs.scalaOptions.copy(
-        defaultScalaVersion = launcherOptions.cliUserScalaVersion
+        defaultScalaVersion = launcherOptions.scalaRunner.cliUserScalaVersion
       )
     )
     withLauncherOptions

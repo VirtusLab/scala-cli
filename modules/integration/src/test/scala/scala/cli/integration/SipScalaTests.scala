@@ -808,4 +808,21 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       expect(!res.err.trim().contains("TASTY"))
     }
   }
+
+  test("--cli-version and --cli-default-scala-version can be passed in tandem") {
+    TestInputs.empty.fromRoot { root =>
+      val cliVersion   = "1.3.1"
+      val scalaVersion = "3.5.1-RC1-bin-20240522-e0c030c-NIGHTLY"
+      val res = os.proc(
+        TestUtil.cli,
+        "--cli-version",
+        cliVersion,
+        "--cli-default-scala-version",
+        scalaVersion,
+        "version"
+      ).call(cwd = root)
+      expect(res.out.trim().contains(cliVersion))
+      expect(res.out.trim().contains(scalaVersion))
+    }
+  }
 }

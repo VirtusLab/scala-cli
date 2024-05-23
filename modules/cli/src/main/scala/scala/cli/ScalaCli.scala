@@ -59,7 +59,7 @@ object ScalaCli {
 
   def launcherOptions: LauncherOptions = maybeLauncherOptions.getOrElse(LauncherOptions())
   def getDefaultScalaVersion: String =
-    launcherOptions.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
+    launcherOptions.scalaRunner.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
@@ -236,19 +236,17 @@ object ScalaCli {
         maybeLauncherOptions = Some(launcherOpts)
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
-            val powerArgs =
-              if (launcherOpts.powerOptions.power) Seq("--power")
-              else Nil
-            val newArgs = powerArgs ++ args0
+            val powerArgs       = launcherOpts.powerOptions.toCliArgs
+            val scalaRunnerArgs = launcherOpts.scalaRunner.toCliArgs
+            val newArgs         = powerArgs ++ scalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
                 javaMajorVersion < 17
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
-            launcherOpts.progName.foreach { pn =>
-              progName = pn
-            }
+            launcherOpts.scalaRunner.progName
+              .foreach(pn => progName = pn)
             if launcherOpts.powerOptions.power then
               isSipScala = false
               args0.toArray

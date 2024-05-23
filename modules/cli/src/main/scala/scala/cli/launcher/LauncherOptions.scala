@@ -21,40 +21,15 @@ final case class LauncherOptions(
   @Hidden
   @Tag(tags.implementation)
   cliScalaVersion: Option[String] = None,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage(
-    s"The default version of Scala used when processing user inputs (current default: ${Constants.defaultScalaVersion}). Can be overridden with --scala-version. "
-  )
-  @ValueDescription("version")
-  @Hidden
-  @Tag(tags.implementation)
-  @Name("cliDefaultScalaVersion")
-  cliUserScalaVersion: Option[String] = None,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage("")
-  @Hidden
-  @Tag(tags.implementation)
-  @Name("r")
-  @Name("repo")
-  @Name("repository")
-  @Name("predefinedRepository")
-  cliPredefinedRepository: List[String] = Nil,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage(
-    "This allows to override the program name identified by Scala CLI as itself (the default is 'scala-cli')"
-  )
-  @Hidden
-  @Tag(tags.implementation)
-  progName: Option[String] = None,
+  @Recurse
+  scalaRunner: ScalaRunnerLauncherOptions = ScalaRunnerLauncherOptions(),
   @Recurse
   powerOptions: PowerOptions = PowerOptions()
 ) {
   def toCliArgs: List[String] =
     cliVersion.toList.flatMap(v => List("--cli-version", v)) ++
       cliScalaVersion.toList.flatMap(v => List("--cli-scala-version", v)) ++
-      cliUserScalaVersion.toList.flatMap(v => List("--cli-default-scala-version", v)) ++
-      cliPredefinedRepository.flatMap(v => List("--cli-predefined-repository", v)) ++
-      progName.toList.flatMap(v => List("--prog-name", v)) ++
+      scalaRunner.toCliArgs ++
       powerOptions.toCliArgs
 }
 
