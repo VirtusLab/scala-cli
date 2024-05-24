@@ -9,6 +9,7 @@ import caseapp.core.{Arg, Error, RemainingArgs}
 import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
 import dependency.*
+import org.codehaus.plexus.classworlds.launcher.Launcher
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
 
@@ -28,6 +29,7 @@ import scala.cli.commands.util.CommandHelpers
 import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
+import scala.cli.launcher.LauncherOptions
 import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
@@ -38,8 +40,9 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
     new AtomicReference(GlobalOptions.default)
 
-  private def globalOptions: GlobalOptions  = globalOptionsAtomic.get()
-  protected def defaultScalaVersion: String = ScalaCli.getDefaultScalaVersion
+  private def globalOptions: GlobalOptions       = globalOptionsAtomic.get()
+  protected def launcherOptions: LauncherOptions = ScalaCli.launcherOptions
+  protected def defaultScalaVersion: String      = ScalaCli.getDefaultScalaVersion
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None

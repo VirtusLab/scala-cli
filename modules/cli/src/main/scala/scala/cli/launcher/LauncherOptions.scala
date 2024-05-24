@@ -1,8 +1,10 @@
 package scala.cli.launcher
 
 import caseapp.*
+import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.shared.{HelpGroup, SharedOptions}
 import scala.cli.commands.{Constants, tags}
 
 @HelpMessage("Run another Scala CLI version")
@@ -19,36 +21,20 @@ final case class LauncherOptions(
   @Hidden
   @Tag(tags.implementation)
   cliScalaVersion: Option[String] = None,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage(
-    s"The default version of Scala used when processing user inputs (current default: ${Constants.defaultScalaVersion}). Can be overridden with --scala-version. "
-  )
-  @ValueDescription("version")
-  @Hidden
-  @Tag(tags.implementation)
-  @Name("cliDefaultScalaVersion")
-  cliUserScalaVersion: Option[String] = None,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage("")
-  @Hidden
-  @Tag(tags.implementation)
-  @Name("r")
-  @Name("repo")
-  @Name("repository")
-  @Name("predefinedRepository")
-  cliPredefinedRepository: List[String] = Nil,
-  @Group(HelpGroup.Launcher.toString)
-  @HelpMessage(
-    "This allows to override the program name identified by Scala CLI as itself (the default is 'scala-cli')"
-  )
-  @Hidden
-  @Tag(tags.implementation)
-  progName: Option[String] = None,
+  @Recurse
+  scalaRunner: ScalaRunnerLauncherOptions = ScalaRunnerLauncherOptions(),
   @Recurse
   powerOptions: PowerOptions = PowerOptions()
-)
+) {
+  def toCliArgs: List[String] =
+    cliVersion.toList.flatMap(v => List("--cli-version", v)) ++
+      cliScalaVersion.toList.flatMap(v => List("--cli-scala-version", v)) ++
+      scalaRunner.toCliArgs ++
+      powerOptions.toCliArgs
+}
 
 object LauncherOptions {
-  implicit lazy val parser: Parser[LauncherOptions] = Parser.derive
-  implicit lazy val help: Help[LauncherOptions]     = Help.derive
+  implicit lazy val parser: Parser[LauncherOptions]            = Parser.derive
+  implicit lazy val help: Help[LauncherOptions]                = Help.derive
+  implicit lazy val jsonCodec: JsonValueCodec[LauncherOptions] = JsonCodecMaker.make
 }

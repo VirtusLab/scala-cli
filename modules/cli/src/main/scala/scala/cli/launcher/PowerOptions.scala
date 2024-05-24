@@ -17,7 +17,9 @@ case class PowerOptions(
   @HelpMessage("Allows to use restricted & experimental features")
   @Tag(tags.must)
   power: Boolean = false
-)
+) {
+  def toCliArgs: List[String] = if power then List("--power") else Nil
+}
 
 object PowerOptions {
   implicit val parser: Parser[PowerOptions] = Parser.derive

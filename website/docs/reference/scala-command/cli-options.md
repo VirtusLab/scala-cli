@@ -1355,6 +1355,12 @@ Available in commands:
 
 Command-line options JSON file
 
+### `--json-launcher-options`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Command-line launcher options JSON file
+
 ### `--envs`
 
 Aliases: `--envs-file`

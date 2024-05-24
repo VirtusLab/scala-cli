@@ -1879,6 +1879,11 @@ Available in commands:
 [Internal]
 Command-line options JSON file
 
+### `--json-launcher-options`
+
+[Internal]
+Command-line launcher options JSON file
+
 ### `--envs`
 
 Aliases: `--envs-file`

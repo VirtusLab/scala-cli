@@ -205,16 +205,21 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
              |""".stripMargin
       )
       inputs.fromRoot { root =>
-        os.proc(TestUtil.cli, command, ".", extraOptions).call(cwd = root, stdout = os.Inherit)
+        os.proc(TestUtil.cli, "--power", command, ".", extraOptions)
+          .call(cwd = root, stdout = os.Inherit)
         val details                = readBspConfig(root)
         val expectedIdeOptionsFile = root / Constants.workspaceDirName / "ide-options-v2.json"
+        val expectedIdeLaunchFile  = root / Constants.workspaceDirName / "ide-launcher-options.json"
         val expectedIdeInputsFile  = root / Constants.workspaceDirName / "ide-inputs.json"
         val expectedIdeEnvsFile    = root / Constants.workspaceDirName / "ide-envs.json"
         val expectedArgv = Seq(
           TestUtil.cliPath,
+          "--power",
           "bsp",
           "--json-options",
           expectedIdeOptionsFile.toString,
+          "--json-launcher-options",
+          expectedIdeLaunchFile.toString,
           "--envs-file",
           expectedIdeEnvsFile.toString,
           root.toString
@@ -244,19 +249,22 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           os.proc(
             "cmd",
             "/c",
-            (relativeCliCommand ++ Seq("setup-ide", path.toString) ++ extraOptions)
+            (relativeCliCommand ++ Seq("--power", "setup-ide", path.toString) ++ extraOptions)
               .mkString(" ")
           )
         else
-          os.proc(relativeCliCommand, "setup-ide", path, extraOptions)
+          os.proc(relativeCliCommand, "--power", "setup-ide", path, extraOptions)
       proc.call(cwd = root, stdout = os.Inherit)
 
       val details = readBspConfig(root / "directory")
       val expectedArgv = List(
         TestUtil.cliPath,
+        "--power",
         "bsp",
         "--json-options",
         (root / "directory" / Constants.workspaceDirName / "ide-options-v2.json").toString,
+        "--json-launcher-options",
+        (root / "directory" / Constants.workspaceDirName / "ide-launcher-options.json").toString,
         "--envs-file",
         (root / "directory" / Constants.workspaceDirName / "ide-envs.json").toString,
         (root / "directory" / "simple.sc").toString
