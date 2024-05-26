@@ -7,6 +7,7 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
@@ -127,11 +128,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       for (module <- moduleInputs) do value(downloadDeps(module, buildOptions, logger))
 
     val workspace = moduleInputs.head.workspace
-    
+
     val (bspName, bspJsonDestination) = bspDetails(workspace, options.bspFile)
     val scalaCliBspJsonDestination = workspace / Constants.workspaceDirName / "ide-options-v2.json"
-    val scalaCliBspLauncherOptsJsonDestination = workspace / Constants.workspaceDirName / "ide-launcher-options.json"
-    val scalaCliBspInputsJsonDestination = workspace / Constants.workspaceDirName / "ide-inputs.json"
+    val scalaCliBspLauncherOptsJsonDestination =
+      workspace / Constants.workspaceDirName / "ide-launcher-options.json"
+    val scalaCliBspInputsJsonDestination =
+      workspace / Constants.workspaceDirName / "ide-inputs.json"
     val scalaCliBspEnvsJsonDestination = workspace / Constants.workspaceDirName / "ide-envs.json"
 
     // FIXME single modules can also be defined with module config toml file

@@ -16,6 +16,7 @@ import dependency.parser.DependencyParser
 import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
