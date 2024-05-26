@@ -620,10 +620,10 @@ final class BspImpl(
       case Right(preBuildProject) =>
         // FIXME we might want to report overridden options or chose a better merge strategy
         val projectBuildOptions = preBuildProject.prebuildModules
-          .map(_.mainScope.buildOptions)
-          .reduce(_ orElse _)
+          .flatMap(m => Seq(m.mainScope.buildOptions, m.testScope.buildOptions))
 
-        lazy val projectJavaHome = projectBuildOptions.javaHome().value
+        lazy val projectJavaHome = projectBuildOptions.map(_.javaHome().value)
+          .maxBy(_.version)
 
         val finalBloopSession =
           if (
@@ -633,10 +633,8 @@ final class BspImpl(
               s"Bloop JVM version too low, current ${bloopSession.get().remoteServer.jvmVersion.get
                   .value} expected ${projectJavaHome.version}, restarting server"
             )
-            // RelodableOptions don't take into account buildOptions from sources
+            // ReloadableOptions don't take into account buildOptions from sources, so we need to update the bloopRifleConfig
             val updatedReloadableOptions = reloadableOptions.copy(
-              buildOptions =
-                reloadableOptions.buildOptions orElse projectBuildOptions,
               bloopRifleConfig = reloadableOptions.bloopRifleConfig.copy(
                 javaPath = projectJavaHome.javaCommand,
                 minimumBloopJvm = projectJavaHome.version
