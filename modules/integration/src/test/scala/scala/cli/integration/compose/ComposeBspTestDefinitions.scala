@@ -1,11 +1,12 @@
 package scala.cli.integration.compose
 
-import ch.epfl.scala.bsp4j as b
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.net.URI
 import java.nio.file.Paths
+
 import scala.async.Async.{async, await}
 import scala.cli.integration.*
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -71,8 +72,8 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
           |  println(Utils2.util)
           |}
           |""".stripMargin,
-      os.rel / "Utils.scala"                -> "object Utils { def util: String = \"util\"}",
-      os.rel / "Utils2.scala"               -> "object Utils2 { def util: String = \"util2\"}"
+      os.rel / "Utils.scala"  -> "object Utils { def util: String = \"util\"}",
+      os.rel / "Utils2.scala" -> "object Utils2 { def util: String = \"util2\"}"
     )
 
     withBsp(testInputs, Seq("--power", ".")) { (root, _, remoteServer) =>
@@ -177,7 +178,7 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
           expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
-        val compileProducts = os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
+        os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
 
 //        if (actualScalaVersion.startsWith("3."))
 //          expect(compileProducts.contains(os.rel / "simple$_.class"))

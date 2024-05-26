@@ -996,7 +996,8 @@ object Build {
     } ++ {
       if (scope == Scope.Test) inputs.moduleDependencies.map { depProjectName =>
         classesDir(inputs.workspace, depProjectName, Scope.Test)
-      } else Nil
+      }
+      else Nil
     }
 
     value(validate(logger, options))

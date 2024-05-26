@@ -7,6 +7,9 @@ import com.google.gson.{Gson, JsonElement}
 
 import java.net.URI
 import java.nio.file.Paths
+import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+
+import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.cli.integration.compose.ComposeBspTestDefinitions
 import scala.concurrent.ExecutionContext.Implicits.global
