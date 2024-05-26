@@ -86,7 +86,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     val preprocessInputs: Seq[String] => Either[BuildException, Seq[(ModuleInputs, BuildOptions)]] =
       argsSeq =>
         either {
-          val sharedOptions    = getSharedOptions()
+          val sharedOptions   = getSharedOptions()
           val launcherOptions = getLauncherOptions()
           val envs            = getEnvsFromFile()
 
@@ -136,8 +136,12 @@ object Bsp extends ScalaCommand[BspOptions] {
     val inputsAndBuildOptions = preprocessInputs(args.all).orExit(logger)
 
     // TODO reported override option values
+    // FIXME Only some options need to be unified for the whole project, like scala version, JVM
     val finalBuildOptions = inputsAndBuildOptions.map(_._2).reduceLeft(_ orElse _)
     val inputs            = inputsAndBuildOptions.map(_._1)
+
+    if (options.shared.logging.verbosity >= 3)
+      pprint.err.log(finalBuildOptions)
 
     /** values used for launching the bsp, especially for launching the bloop server, they do not
       * include options extracted from sources, except in bloopRifleConfig - it's needed for
