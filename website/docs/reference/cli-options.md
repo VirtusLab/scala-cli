@@ -1182,7 +1182,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M2-2-741e5dbb by default)
+Set the Ammonite version (3.0.0-M2-5-1c823fef by default)
 
 ### `--ammonite-arg`
 
@@ -1326,7 +1326,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.16.0 by default).
+Scala.js CLI version to use for linking (1.16.0.1 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1878,6 +1878,18 @@ Available in commands:
 
 [Internal]
 Command-line options JSON file
+
+### `--json-launcher-options`
+
+[Internal]
+Command-line launcher options JSON file
+
+### `--envs`
+
+Aliases: `--envs-file`
+
+[Internal]
+Command-line options environment variables file
 
 ### Bsp file options
 

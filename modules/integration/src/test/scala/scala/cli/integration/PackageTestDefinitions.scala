@@ -854,6 +854,16 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
             "lib/Messages$.html",
             "simple$.html"
           )
+        else if (
+          actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion ||
+          actualScalaVersion.startsWith("3.5")
+        )
+          Seq(
+            "index.html",
+            "inkuire-db.json",
+            "$lessempty$greater$/simple$_.html",
+            "lib/Messages$.html"
+          )
         else
           Seq(
             "index.html",

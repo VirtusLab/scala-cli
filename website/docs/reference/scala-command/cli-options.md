@@ -806,7 +806,7 @@ Path to the Scala.js linker
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Scala.js CLI version to use for linking (1.16.0 by default).
+Scala.js CLI version to use for linking (1.16.0.1 by default).
 
 ### `--js-cli-java-arg`
 
@@ -1354,6 +1354,20 @@ Available in commands:
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Command-line options JSON file
+
+### `--json-launcher-options`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Command-line launcher options JSON file
+
+### `--envs`
+
+Aliases: `--envs-file`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Command-line options environment variables file
 
 ### Bsp file options
 

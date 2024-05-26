@@ -597,38 +597,59 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   for {
     withBloop <- Seq(true, false)
     withBloopString = if (withBloop) "with Bloop" else "with --server=false"
-  }
+    sv3             = if (Properties.isWin) "3.5.0-RC1" else "3.5.0-RC1-fakeversion-bin-SNAPSHOT"
+    sv2             = "2.13.15-bin-ccdcde3"
+  } {
     test(
-      s"default Scala version coming straight from a predefined local repository $withBloopString"
+      s"default Scala version ($sv3) coming straight from a predefined local repository $withBloopString"
     ) {
       TestInputs(
-        os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
+        os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.versionNumberString)"
       )
         .fromRoot { root =>
           val localRepoPath = root / "local-repo"
-          val sv            = "3.4.1-RC1"
-          val artifactNames =
-            Seq("scala3-compiler_3", "scala3-staging_3", "scala3-tasty-inspector_3") ++
-              (if (withBloop) Seq("scala3-sbt-bridge") else Nil)
-          for { artifactName <- artifactNames } {
-            val csRes = os.proc(
-              TestUtil.cs,
-              "fetch",
-              "--cache",
-              localRepoPath,
-              s"org.scala-lang:$artifactName:$sv"
-            )
-              .call(cwd = root)
-            expect(csRes.exitCode == 0)
+          val sv            = sv3
+          if (Properties.isWin) {
+            // 3.5.0-RC1-fakeversion-bin-SNAPSHOT has too long filenames for Windows.
+            // Yes, seriously. Which is why we can't use it there.
+            val artifactNames =
+              Seq("scala3-compiler_3", "scala3-staging_3", "scala3-tasty-inspector_3") ++
+                (if (withBloop) Seq("scala3-sbt-bridge") else Nil)
+            for { artifactName <- artifactNames } {
+              val csRes = os.proc(
+                TestUtil.cs,
+                "fetch",
+                "--cache",
+                localRepoPath,
+                s"org.scala-lang:$artifactName:$sv"
+              )
+                .call(cwd = root)
+              expect(csRes.exitCode == 0)
+            }
+          }
+          else {
+            TestUtil.initializeGit(root)
+            os.proc(
+              "git",
+              "clone",
+              "https://github.com/dotty-staging/maven-test-repo.git",
+              localRepoPath.toString
+            ).call(cwd = root)
           }
           val buildServerOptions =
             if (withBloop) Nil else Seq("--server=false")
+
+          val predefinedRepository =
+            if (Properties.isWin)
+              (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
+            else
+              (localRepoPath / "thecache" / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString
           val r = os.proc(
             TestUtil.cli,
             "--cli-default-scala-version",
             sv,
             "--predefined-repository",
-            (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+            predefinedRepository,
             "run",
             "simple.sc",
             "--with-compiler",
@@ -640,6 +661,53 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
           expect(r.out.trim() == sv)
         }
     }
+
+    test(
+      s"default Scala version ($sv2) coming straight from a predefined local repository $withBloopString"
+    ) {
+      TestInputs(
+        os.rel / "simple.sc" -> "println(scala.util.Properties.versionNumberString)"
+      )
+        .fromRoot { root =>
+          val localRepoPath = root / "local-repo"
+          val sv            = sv2
+          val artifactNames =
+            Seq("scala-compiler") ++ (if (withBloop) Seq("scala2-sbt-bridge") else Nil)
+          for { artifactName <- artifactNames } {
+            val csRes = os.proc(
+              TestUtil.cs,
+              "fetch",
+              "--cache",
+              localRepoPath,
+              "-r",
+              "https://scala-ci.typesafe.com/artifactory/scala-integration",
+              s"org.scala-lang:$artifactName:$sv"
+            )
+              .call(cwd = root)
+            expect(csRes.exitCode == 0)
+          }
+          val buildServerOptions = if (withBloop) Nil else Seq("--server=false")
+          os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+          val r = os.proc(
+            TestUtil.cli,
+            "--cli-default-scala-version",
+            sv,
+            "--predefined-repository",
+            (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
+            "--predefined-repository",
+            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration").toNIO.toUri.toASCIIString,
+            "run",
+            "simple.sc",
+            "--with-compiler",
+            "--offline",
+            "--power",
+            buildServerOptions
+          )
+            .call(cwd = root)
+          expect(r.out.trim() == sv)
+        }
+    }
+  }
 
   test(s"default Scala version override launcher option is respected by the SBT export") {
     val input     = "printVersion.sc"
@@ -759,6 +827,23 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
           .call(cwd = root, stderr = os.Pipe)
       expect(res.exitCode == 0)
       expect(!res.err.trim().contains("TASTY"))
+    }
+  }
+
+  test("--cli-version and --cli-default-scala-version can be passed in tandem") {
+    TestInputs.empty.fromRoot { root =>
+      val cliVersion   = "1.3.1"
+      val scalaVersion = "3.5.1-RC1-bin-20240522-e0c030c-NIGHTLY"
+      val res = os.proc(
+        TestUtil.cli,
+        "--cli-version",
+        cliVersion,
+        "--cli-default-scala-version",
+        scalaVersion,
+        "version"
+      ).call(cwd = root)
+      expect(res.out.trim().contains(cliVersion))
+      expect(res.out.trim().contains(scalaVersion))
     }
   }
 }

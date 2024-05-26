@@ -913,6 +913,37 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     finally os.remove(jar)
   }
 
+  private object LinkingDir {
+    case class Input(linkJsInput: ScalaJsLinker.LinkJSInput, scratchDirOpt: Option[os.Path])
+    private var currentInput: Option[Input]        = None
+    private var currentLinkingDir: Option[os.Path] = None
+    def getOrCreate(
+      linkJsInput: ScalaJsLinker.LinkJSInput,
+      scratchDirOpt: Option[os.Path]
+    ): os.Path =
+      val input = Input(linkJsInput, scratchDirOpt)
+      currentLinkingDir match {
+        case Some(linkingDir) if currentInput.contains(input) =>
+          linkingDir
+        case _ =>
+          scratchDirOpt.foreach(os.makeDir.all(_))
+
+          currentLinkingDir.foreach(dir => os.remove.all(dir))
+          currentLinkingDir = None
+
+          val linkingDirectory = os.temp.dir(
+            dir = scratchDirOpt.orNull,
+            prefix = "scala-cli-js-linking",
+            deleteOnExit = scratchDirOpt.isEmpty
+          )
+
+          currentInput = Some(input)
+          currentLinkingDir = Some(linkingDirectory)
+
+          linkingDirectory
+      }
+  }
+
   def linkJs(
     build: Build.Successful,
     dest: os.Path,
@@ -926,30 +957,29 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   ): Either[BuildException, os.Path] = {
     val mainJar   = Library.libraryJar(build)
     val classPath = mainJar +: build.artifacts.classPath
-    val delete    = scratchDirOpt.isEmpty
-    scratchDirOpt.foreach(os.makeDir.all(_))
-    val linkingDir =
-      os.temp.dir(
-        dir = scratchDirOpt.orNull,
-        prefix = "scala-cli-js-linking",
-        deleteOnExit = delete
-      )
+    val input = ScalaJsLinker.LinkJSInput(
+      options = build.options.notForBloopOptions.scalaJsLinkerOptions,
+      javaCommand =
+        build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
+      classPath = classPath,
+      mainClassOrNull = mainClassOpt.orNull,
+      addTestInitializer = addTestInitializer,
+      config = config,
+      fullOpt = fullOpt,
+      noOpt = noOpt,
+      scalaJsVersion = build.options.scalaJsOptions.finalVersion
+    )
+
+    val linkingDir = LinkingDir.getOrCreate(input, scratchDirOpt)
+
     either {
       value {
         ScalaJsLinker.link(
-          build.options.notForBloopOptions.scalaJsLinkerOptions,
-          build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
-          classPath,
-          mainClassOpt.orNull,
-          addTestInitializer,
-          config,
+          input,
           linkingDir,
-          fullOpt,
-          noOpt,
           logger,
           build.options.finalCache,
-          build.options.archiveCache,
-          build.options.scalaJsOptions.finalVersion
+          build.options.archiveCache
         )
       }
       val relMainJs      = os.rel / "main.js"
@@ -988,8 +1018,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)
             logger.message(s"Emitted js source maps to: $sourceMapDest")
           }
-          if (delete)
-            os.remove.all(linkingDir)
+
           dest
         }
       else {

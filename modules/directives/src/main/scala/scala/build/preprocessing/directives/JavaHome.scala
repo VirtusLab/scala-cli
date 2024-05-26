@@ -1,12 +1,12 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{BuildException, WrongJavaHomePathError}
 import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.{Logger, Positioned}
 import scala.cli.commands.SpecificationLevel
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 @DirectiveGroupName("Java home")
 @DirectiveExamples("//> using javaHome /Users/Me/jdks/11")

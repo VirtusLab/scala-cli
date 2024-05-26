@@ -72,7 +72,7 @@ object CompilerPluginUtil {
          |  val name: String = "$pluginName"
          |  override val description: String = "checks for division by zero"
          |
-         |  def init(options: List[String]): List[PluginPhase] =
+         |  override def init(options: List[String]): List[PluginPhase] =
          |    (new DivideZeroPhase) :: Nil
          |
          |class DivideZeroPhase extends PluginPhase:

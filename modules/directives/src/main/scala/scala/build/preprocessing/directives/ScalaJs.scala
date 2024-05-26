@@ -6,8 +6,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt, ScalaJsMode, ScalaJsOptions, ShadowingSeq}
-import scala.build.{Logger, Positioned, options}
+import scala.build.options.{BuildOptions, ScalaJsMode, ScalaJsOptions}
+import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 

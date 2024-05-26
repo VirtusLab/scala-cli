@@ -8,6 +8,72 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.3.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.2)
+
+### Support for Scala 3.4.2
+This Scala CLI version adds support for Scala 3.4.2.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.3.2
+# Scala version (default): 3.4.2
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2911](https://github.com/VirtusLab/scala-cli/pull/2911).
+
+### Incremental Scala.js linking
+
+Scala CLI now can take advantage of Scala.js' powerful incremental linker, which makes linking very fast for multiple links in a row.
+For Scala.js builds, the `scala-js-cli` process is now run with the newly added `--longRunning` mode.
+The process is then reused if the inputs did not change.
+
+Added by [@lolgab](https://github.com/lolgab) in [#2928](https://github.com/VirtusLab/scala-cli/pull/2928) and [VirtusLab/scala-js-cli#64](https://github.com/VirtusLab/scala-js-cli/pull/64).
+
+### Features
+* Support ARM64 architecture to the launcher script for Mac OS by [@carlosedp](https://github.com/carlosedp) in [#2895](https://github.com/VirtusLab/scala-cli/pull/2895)
+* Incremental Scala.js Linking by [@lolgab](https://github.com/lolgab) in [#2928](https://github.com/VirtusLab/scala-cli/pull/2928)
+
+### Fixes
+* Fix support of multiline shebang by [@sierikov](https://github.com/sierikov) in [#2908](https://github.com/VirtusLab/scala-cli/pull/2908)
+* Pass scala2-sbt-bridge to Bloop explicitly for Scala 2.13.12+ by [@Gedochao](https://github.com/Gedochao) in [#2927](https://github.com/VirtusLab/scala-cli/pull/2927)
+* Ensure `JAVA_HOME` of `setup-ide` is respected by `bsp` by [@Gedochao](https://github.com/Gedochao) in [#2920](https://github.com/VirtusLab/scala-cli/pull/2920)
+* Improve launcher options handling by [@Gedochao](https://github.com/Gedochao) in [#2931](https://github.com/VirtusLab/scala-cli/pull/2931)
+
+### Documentation changes
+* Add docs for `ignore` keyword in snippets in md by [@sierikov](https://github.com/sierikov) in [#2898](https://github.com/VirtusLab/scala-cli/pull/2898)
+* Back port of documentation changes to main by @github-actions in [#2900](https://github.com/VirtusLab/scala-cli/pull/2900)
+* Back port of documentation changes to main by @github-actions in [#2910](https://github.com/VirtusLab/scala-cli/pull/2910)
+* Add Scalafmt Cookbook by [@sierikov](https://github.com/sierikov) in [#2903](https://github.com/VirtusLab/scala-cli/pull/2903)
+* Back port of documentation changes to main by @github-actions in [#2914](https://github.com/VirtusLab/scala-cli/pull/2914)
+* remove duplicated word by [@naferx](https://github.com/naferx) in [#2915](https://github.com/VirtusLab/scala-cli/pull/2915)
+* Remove unused imports by [@naferx](https://github.com/naferx) in [#2916](https://github.com/VirtusLab/scala-cli/pull/2916)
+* corrected instructions for downloading the launcher in Windows (fixes #2921) by [@philwalk](https://github.com/philwalk) in [#2922](https://github.com/VirtusLab/scala-cli/pull/2922)
+
+### Internal changes
+* Fix instant-startup-scala-scripts.md overeager `docs-tests` by [@Gedochao](https://github.com/Gedochao) in [#2909](https://github.com/VirtusLab/scala-cli/pull/2909)
+
+### Updates
+* Update scala-cli.sh launcher for 1.3.1 by @github-actions in [#2894](https://github.com/VirtusLab/scala-cli/pull/2894)
+* Update ammonite to 3.0.0-M1-24-26133e66 by [@scala-steward](https://github.com/scala-steward) in [#2896](https://github.com/VirtusLab/scala-cli/pull/2896)
+* Update ammonite to 3.0.0-M2-1-3763a1d4 by [@scala-steward](https://github.com/scala-steward) in [#2905](https://github.com/VirtusLab/scala-cli/pull/2905)
+* Update scalameta to 4.9.4 by [@scala-steward](https://github.com/scala-steward) in [#2906](https://github.com/VirtusLab/scala-cli/pull/2906)
+* Update Scala Next to 3.4.2 by [@Gedochao](https://github.com/Gedochao) in [#2911](https://github.com/VirtusLab/scala-cli/pull/2911)
+* Update ammonite to 3.0.0-M2-2-741e5dbb by [@scala-steward](https://github.com/scala-steward) in [#2913](https://github.com/VirtusLab/scala-cli/pull/2913)
+* Update os-lib to 0.10.1 by [@scala-steward](https://github.com/scala-steward) in [#2918](https://github.com/VirtusLab/scala-cli/pull/2918)
+* Update `scalameta` to 4.9.5 by [@scala-steward](https://github.com/scala-steward) in [#2919](https://github.com/VirtusLab/scala-cli/pull/2919)
+* Update ammonite to 3.0.0-M2-3-b5eb4787 by [@scala-steward](https://github.com/scala-steward) in [#2917](https://github.com/VirtusLab/scala-cli/pull/2917)
+* Update Scala Next RC to 3.5.0-RC1 by [@Gedochao](https://github.com/Gedochao) in [#2912](https://github.com/VirtusLab/scala-cli/pull/2912)
+* Update bloop-rifle_2.13 to 1.5.17-sc-2 by [@scala-steward](https://github.com/scala-steward) in [#2925](https://github.com/VirtusLab/scala-cli/pull/2925)
+* Update sttp core_2.13 to 3.9.7 by [@scala-steward](https://github.com/scala-steward) in [#2924](https://github.com/VirtusLab/scala-cli/pull/2924)
+* Update ammonite to 3.0.0-M2-4-c3312916 by [@scala-steward](https://github.com/scala-steward) in [#2923](https://github.com/VirtusLab/scala-cli/pull/2923)
+* Bump `scala-js-cli` to v1.16.0.1 by [@Gedochao](https://github.com/Gedochao) in [#2929](https://github.com/VirtusLab/scala-cli/pull/2929)
+
+## New Contributors
+* [@sierikov](https://github.com/sierikov) made their first contribution in [#2898](https://github.com/VirtusLab/scala-cli/pull/2898)
+* [@naferx](https://github.com/naferx) made their first contribution in [#2915](https://github.com/VirtusLab/scala-cli/pull/2915)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.3.1...v1.3.2
+
 ## [v1.3.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.1)
 
 ### Scala 2.13.14 Support

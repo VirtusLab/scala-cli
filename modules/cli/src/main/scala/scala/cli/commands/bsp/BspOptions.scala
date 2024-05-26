@@ -17,7 +17,20 @@ final case class BspOptions(
   @ValueDescription("path")
   @Hidden
   @Tag(tags.implementation)
-    jsonOptions: Option[String] = None
+    jsonOptions: Option[String] = None,
+
+  @HelpMessage("Command-line launcher options JSON file")
+  @ValueDescription("path")
+  @Hidden
+  @Tag(tags.implementation)
+  jsonLauncherOptions: Option[String] = None,
+
+  @HelpMessage("Command-line options environment variables file")
+  @ValueDescription("path")
+  @Hidden
+  @Tag(tags.implementation)
+  @Name("envsFile")
+    envs: Option[String] = None
 ) extends HasSharedOptions {
   // format: on
 }

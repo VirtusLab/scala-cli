@@ -14,7 +14,6 @@ import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, 
 import scala.build.internal.CustomProgressBarRefreshDisplay
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.FeatureType
-import scala.build.options.ShadowingSeq
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*

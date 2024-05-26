@@ -3,6 +3,7 @@ package scala.cli.commands.setupide
 import caseapp.*
 import ch.epfl.scala.bsp4j.BspConnectionDetails
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
@@ -18,6 +19,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.errors.FoundVirtualInputsError
+import scala.cli.launcher.LauncherOptions
 import scala.jdk.CollectionConverters.*
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
@@ -131,8 +133,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
     val scalaCliBspJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
+    val scalaCliBspLauncherOptsJsonDestination =
+      inputs.workspace / Constants.workspaceDirName / "ide-launcher-options.json"
     val scalaCliBspInputsJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
+    val scalaCliBspEnvsJsonDestination =
+      inputs.workspace / Constants.workspaceDirName / "ide-envs.json"
 
     val inputArgs = inputs.elements.collect { case d: OnDisk => d.path.toString }
 
@@ -148,9 +154,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     )
 
     val bspArgs =
-      List(CommandUtils.getAbsolutePathToScalaCli(progName), "bsp") ++
+      List(CommandUtils.getAbsolutePathToScalaCli(progName)) ++
+        launcherOptions.toCliArgs ++
+        List("bsp") ++
         debugOpt ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++
+        List("--json-launcher-options", scalaCliBspLauncherOptsJsonDestination.toString) ++
+        List("--envs-file", scalaCliBspEnvsJsonDestination.toString) ++
         inputArgs
     val details = new BspConnectionDetails(
       bspName,
@@ -169,9 +179,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val gson = new GsonBuilder().setPrettyPrinting().create()
 
-    val json                      = gson.toJson(details)
-    val scalaCliOptionsForBspJson = writeToArray(options.shared)(SharedOptions.jsonCodec)
-    val scalaCliBspInputsJson     = writeToArray(ideInputs)
+    implicit val mapCodec: JsonValueCodec[Map[String, String]] = JsonCodecMaker.make
+
+    val json                         = gson.toJson(details)
+    val scalaCliOptionsForBspJson    = writeToArray(options.shared)(SharedOptions.jsonCodec)
+    val scalaCliLaunchOptsForBspJson = writeToArray(launcherOptions)(LauncherOptions.jsonCodec)
+    val scalaCliBspInputsJson        = writeToArray(ideInputs)
+    val scalaCliBspEnvsJson          = writeToArray(sys.env)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
@@ -188,8 +202,18 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         createFolders = true
       )
       os.write.over(
+        scalaCliBspLauncherOptsJsonDestination,
+        scalaCliLaunchOptsForBspJson,
+        createFolders = true
+      )
+      os.write.over(
         scalaCliBspInputsJsonDestination,
         scalaCliBspInputsJson,
+        createFolders = true
+      )
+      os.write.over(
+        scalaCliBspEnvsJsonDestination,
+        scalaCliBspEnvsJson,
         createFolders = true
       )
       logger.debug(s"Wrote $bspJsonDestination")

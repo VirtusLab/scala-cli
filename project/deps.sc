@@ -7,7 +7,7 @@ object Scala {
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts    = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
   def scala3Next   = "3.4.2"               // the newest/next version of Scala
-  def scala3NextRc = "3.4.2-RC1"           // the latest RC version of Scala Next
+  def scala3NextRc = "3.5.0-RC1"           // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -25,7 +25,7 @@ object Scala {
   val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
   def scalaJs    = "1.16.0"
-  def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
+  def scalaJsCli = "1.16.0.1" // this must be compatible with the Scala.js version
 
   def listAll: Seq[String] = {
     def patchVer(sv: String): Int =
@@ -95,7 +95,7 @@ object Deps {
     def coursierM1Cli                     = coursierDefault
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
-    def scalaMeta                         = "4.9.4"
+    def scalaMeta                         = "4.9.5"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.1"
     def scalaNative                       = scalaNative05
@@ -107,12 +107,12 @@ object Deps {
     def signingCli                        = "0.2.3"
     def signingCliJvmVersion              = 17
     def javaClassName                     = "0.1.3"
-    def bloop                             = "1.5.17-sc-1"
+    def bloop                             = "1.5.17-sc-2"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M2-2-741e5dbb"
+  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M2-5-1c823fef"
   def asm      = ivy"org.ow2.asm:asm:9.7"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.0"
@@ -160,7 +160,7 @@ object Deps {
   def munit                      = ivy"org.scalameta::munit:0.7.29"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.0"
+  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.1"
   def pprint                     = ivy"com.lihaoyi::pprint:0.9.0"
   def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
@@ -201,7 +201,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.13"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.6"
+  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.7"
   def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface           = ivy"org.scala-sbt:test-interface:1.0"

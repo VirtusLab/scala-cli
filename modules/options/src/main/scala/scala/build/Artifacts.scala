@@ -177,23 +177,33 @@ object Artifacts {
           ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
         }
 
-        val bridgeJarsOpt = Option.when(
-          scalaArtifactsParams.params.scalaVersion.startsWith("3.") && includeBuildServerDeps
-        ) {
-          Seq(dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}")
-        }.map { bridgeDependencies =>
-          value {
-            artifacts(
-              bridgeDependencies.map(Positioned.none),
-              allExtraRepositories,
-              Some(scalaArtifactsParams.params),
-              logger,
-              cache.withMessage(
-                s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} bridge"
-              )
-            ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
-          }.map(_._2)
-        }
+        val bridgeJarsOpt =
+          (scalaArtifactsParams.params.scalaVersion -> includeBuildServerDeps match {
+            case (sv, true) if sv.startsWith("3.") =>
+              Some(Seq(
+                dep"org.scala-lang:scala3-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
+              ))
+            case (sv, true)
+                if Version(sv) >= Version("2.13.12") ||
+                sv.startsWith(Constants.defaultScala213Version) =>
+              Some(Seq(
+                dep"org.scala-lang:scala2-sbt-bridge:${scalaArtifactsParams.params.scalaVersion}"
+              ))
+            case _ => None
+          })
+            .map { bridgeDependencies =>
+              value {
+                artifacts(
+                  bridgeDependencies.map(Positioned.none),
+                  allExtraRepositories,
+                  Some(scalaArtifactsParams.params),
+                  logger,
+                  cache.withMessage(
+                    s"Downloading Scala ${scalaArtifactsParams.params.scalaVersion} bridge"
+                  )
+                ).left.flatMap(_.maybeRecoverWithDefault(Seq.empty, maybeRecoverOnError))
+              }.map(_._2)
+            }
 
         def fetchedArtifactToPath(fetched: Fetch.Result): Seq[os.Path] =
           fetched.fullDetailedArtifacts.collect { case (_, _, _, Some(f)) => os.Path(f, Os.pwd) }
