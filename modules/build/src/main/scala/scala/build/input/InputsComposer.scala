@@ -13,6 +13,36 @@ import scala.collection.mutable
 
 object InputsComposer {
 
+  // TODO errors on corner cases
+  def findModuleConfig(
+    args: Seq[String],
+    cwd: os.Path
+  ): Either[ModuleConfigurationError, Option[os.Path]] = {
+    def moduleConfigDirectlyFromArgs = {
+      val moduleConfigPathOpt = args
+        .map(arg => os.Path(arg, cwd))
+        .find(_.endsWith(os.RelPath(Constants.moduleConfigFileName)))
+
+      moduleConfigPathOpt match {
+        case Some(path) if os.exists(path) => Right(Some(path))
+        case Some(path) => Left(ModuleConfigurationError(
+            s"""File does not exist:
+               | - $path
+               |""".stripMargin
+          ))
+        case None => Right(None)
+      }
+    }
+
+    def moduleConfigFromCwd =
+      Right(os.walk(cwd).find(p => p.endsWith(os.RelPath(Constants.moduleConfigFileName))))
+
+    for {
+      fromArgs <- moduleConfigDirectlyFromArgs
+      fromCwd  <- moduleConfigFromCwd
+    } yield fromArgs.orElse(fromCwd)
+  }
+
   private[input] object Keys {
     val modules   = "modules"
     val roots     = "roots"
@@ -107,7 +137,7 @@ final case class InputsComposer(
 
   def getModuleInputs: Either[BuildException, Seq[ModuleInputs]] =
     if allowForbiddenFeatures then
-      findModuleConfig match {
+      findModuleConfig(args, cwd) match {
         case Right(Some(moduleConfigPath)) =>
           val configText = os.read(moduleConfigPath)
           for {
@@ -128,33 +158,6 @@ final case class InputsComposer(
 //    case Str(version) => Right(version)
 //    case _ => Left("scalaVersion must be a string")
 //  }
-
-  // TODO errors on corner cases
-  private def findModuleConfig: Either[ModuleConfigurationError, Option[os.Path]] = {
-    def moduleConfigDirectlyFromArgs = {
-      val moduleConfigPathOpt = args
-        .map(arg => os.Path(arg, cwd))
-        .find(_.endsWith(os.RelPath(Constants.moduleConfigFileName)))
-
-      moduleConfigPathOpt match {
-        case Some(path) if os.exists(path) => Right(Some(path))
-        case Some(path) => Left(ModuleConfigurationError(
-            s"""File does not exist:
-               | - $path
-               |""".stripMargin
-          ))
-        case None => Right(None)
-      }
-    }
-
-    def moduleConfigFromCwd =
-      Right(os.walk(cwd).find(p => p.endsWith(os.RelPath(Constants.moduleConfigFileName))))
-
-    for {
-      fromArgs <- moduleConfigDirectlyFromArgs
-      fromCwd  <- moduleConfigFromCwd
-    } yield fromArgs.orElse(fromCwd)
-  }
 
   private def checkForCycles(modules: Seq[ModuleDefinition])
     : Either[ModuleConfigurationError, Unit] = either {
@@ -195,10 +198,12 @@ final case class InputsComposer(
     modules: Seq[ModuleDefinition],
     moduleConfigPath: os.Path
   ): Either[BuildException, Seq[ModuleInputs]] = either {
+    val workspacePath = moduleConfigPath / os.up
     val moduleInputsInfo = modules.map { m =>
-      val moduleName   = ProjectName(m.name)
-      val moduleInputs = inputsFromArgs(m.roots, Some(moduleName))
-      m -> value(moduleInputs)
+      val moduleName        = ProjectName(m.name)
+      val argsWithWorkspace = m.roots.map(r => os.Path(r, workspacePath).toString)
+      val moduleInputs      = inputsFromArgs(argsWithWorkspace, Some(moduleName))
+      m -> value(moduleInputs).copy(mayAppendHash = false)
     }
 
     val projectNameMap: Map[String, ProjectName] =
@@ -208,7 +213,8 @@ final case class InputsComposer(
       val moduleDeps: Seq[ProjectName] = moduleDef.dependsOn.map(projectNameMap)
 
       inputs.dependsOn(moduleDeps)
-        .withForcedWorkspace(moduleConfigPath / os.up)
+        .withForcedWorkspace(workspacePath)
+        .copy(mayAppendHash = false)
     }
 
     moduleInputs
