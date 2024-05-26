@@ -1037,6 +1037,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
           )}"
            |  def cs                         = "${settings.cs().replace("\\", "\\\\")}"
            |  def workspaceDirName           = "$workspaceDirName"
+           |  def moduleConfigFileName       = "$moduleConfigFileName"
            |  def libsodiumVersion           = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage       = "${TestDeps.archLinuxImage}"
            |  

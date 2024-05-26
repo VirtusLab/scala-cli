@@ -8,6 +8,7 @@ import com.google.gson.{Gson, JsonElement}
 import java.net.URI
 import java.nio.file.Paths
 import scala.async.Async.{async, await}
+import scala.cli.integration.compose.ComposeBspTestDefinitions
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.*
@@ -15,7 +16,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
-    with BspSuite with ScriptWrapperTestDefinitions {
+    with BspSuite with ScriptWrapperTestDefinitions
+    with ComposeBspTestDefinitions {
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
