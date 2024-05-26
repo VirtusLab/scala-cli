@@ -990,10 +990,20 @@ object Build {
         List(classesDir(inputs.workspace, inputs.projectName, Scope.Main))
       else Nil
 
+    // `test` scope should contains class path to main scope
+    val modulesClassesPath = inputs.moduleDependencies.map { depProjectName =>
+      classesDir(inputs.workspace, depProjectName, Scope.Main)
+    } ++ {
+      if (scope == Scope.Test) inputs.moduleDependencies.map { depProjectName =>
+        classesDir(inputs.workspace, depProjectName, Scope.Test)
+      } else Nil
+    }
+
     value(validate(logger, options))
 
     val fullClassPath = artifacts.compileClassPath ++
       mainClassesPath ++
+      modulesClassesPath ++
       artifacts.javacPluginDependencies.map(_._3) ++
       artifacts.extraJavacPlugins
 
