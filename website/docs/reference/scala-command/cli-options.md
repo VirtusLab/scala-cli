@@ -838,7 +838,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.5.1 by default).
+Set the Scala Native version (0.5.2 by default).
 
 ### `--native-mode`
 
