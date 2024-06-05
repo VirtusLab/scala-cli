@@ -701,6 +701,25 @@ jobs:
       with:
         name: windows-launchers
         path: artifacts/
+    - name: Check if vcruntime140_1.dll exists
+      run: |
+        $dllPath = "C:\Windows\System32\vcruntime140_1.dll"
+        if (Test-Path $dllPath) {
+          Write-Host "vcruntime140_1.dll exists at $dllPath"
+        } else {
+          Write-Host "vcruntime140_1.dll not found at $dllPath"
+        }
+      shell: pwsh
+    - name: Unregister vcruntime140_1.dll
+      run: |
+        $dllPath = "C:\Windows\System32\vcruntime140_1.dll"
+        if (Test-Path $dllPath) {
+          & regsvr32 /u /s $dllPath
+          Write-Host "Unregistered vcruntime140_1.dll at $dllPath"
+        } else {
+          Write-Host "vcruntime140_1.dll not found at $dllPath, skipping unregister"
+        }
+      shell: pwsh
     - name: Native integration tests
       run: ./mill -i nativeIntegrationTests
       env:
