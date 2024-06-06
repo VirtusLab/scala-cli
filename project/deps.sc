@@ -99,7 +99,7 @@ object Deps {
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.3"
     def scalaNative                       = scalaNative05
-    def maxScalaNativeForToolkit          = scalaNative04
+    def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative04
@@ -200,18 +200,20 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def slf4jNop                = ivy"org.slf4j:slf4j-nop:2.0.13"
-  def sttp                    = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.7"
-  def svm                     = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval                  = ivy"com.swoval:file-tree-views:2.1.12"
-  def testInterface           = ivy"org.scala-sbt:test-interface:1.0"
-  val toolkitVersion          = "0.2.1"
-  def toolkit                 = ivy"org.scala-lang:toolkit:$toolkitVersion"
-  def toolkitTest             = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion = "0.1.23"
-  def typelevelToolkit        = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
-  def typelevelToolkitTest    = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
-  def usingDirectives         = ivy"org.virtuslab:using_directives:1.1.1"
+  def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.13"
+  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.7"
+  def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
+  def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
+  val toolkitVersion            = "0.4.0"
+  val toolkitVersionForNative04 = "0.3.0"
+  val toolkitVersionForNative05 = toolkitVersion
+  def toolkit                   = ivy"org.scala-lang:toolkit:$toolkitVersion"
+  def toolkitTest               = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
+  val typelevelToolkitVersion   = "0.1.23"
+  def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
+  def typelevelToolkitTest      = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
+  def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.1"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround

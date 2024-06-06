@@ -6,6 +6,7 @@ import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
+import coursier.core.Version
 import coursier.util.{Artifact, Task}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
@@ -29,6 +30,7 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
+import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
 import scala.build.preprocessing.directives.{Python, Toolkit}
 import scala.build.options as bo
 import scala.cli.ScalaCli
@@ -759,24 +761,40 @@ object SharedOptions {
       )
     )
 
-    val (dependencies, toolkitDefaults) =
+    val (dependencies, toolkitDefinitions) =
       toolkitVersion.toList.map(Positioned.commandLine)
         .flatMap(Toolkit.resolveDependenciesWithRequirements(_).map((wbr, td) => wbr.value -> td))
         .unzip
     val maxScalaNativeVersions =
-      toolkitDefaults.flatMap {
-        case Toolkit.ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault) =>
+      toolkitDefinitions.flatMap {
+        case Toolkit.ToolkitDefinitions(
+              isScalaToolkitDefault,
+              explicitScalaToolkitVersion,
+              isTypelevelToolkitDefault,
+              _
+            ) =>
           val st = if (isScalaToolkitDefault)
             Seq(Constants.toolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
-              "Scala Toolkit",
-              Constants.toolkitMaxScalaNative
+              toolkitName = "Scala Toolkit",
+              toolkitVersion = Constants.toolkitDefaultVersion,
+              maxNative = Constants.toolkitMaxScalaNative
             ))
-          else Nil
+          else explicitScalaToolkitVersion.toList
+            .map(Version(_))
+            .filter(_ <= Version(Constants.toolkitVersionForNative04))
+            .flatMap(v =>
+              List(Constants.scalaNativeVersion04 -> maxScalaNativeWarningMsg(
+                toolkitName = "Scala Toolkit",
+                toolkitVersion = v.toString(),
+                Constants.scalaNativeVersion04
+              ))
+            )
           val tlt =
             if (isTypelevelToolkitDefault)
               Seq(Constants.typelevelToolkitMaxScalaNative -> Toolkit.maxScalaNativeWarningMsg(
-                "TypeLevel Toolkit",
-                Constants.typelevelToolkitMaxScalaNative
+                toolkitName = "TypeLevel Toolkit",
+                toolkitVersion = Constants.typelevelToolkitDefaultVersion,
+                maxNative = Constants.typelevelToolkitMaxScalaNative
               ))
             else Nil
           st ++ tlt

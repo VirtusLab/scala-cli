@@ -300,55 +300,80 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     for {
       useDirectives <- Seq(true, false)
       titleStr = if (useDirectives) "with directives" else "with command line args"
+      explicitNativeVersion <-
+        Seq(Some(Constants.scalaNativeVersion04), Some(Constants.scalaNativeVersion05), None)
+      actualNativeVersion = explicitNativeVersion.getOrElse(Constants.scalaNativeVersion)
+      nativeVersionStr    = explicitNativeVersion.map(v => s"explicit: $v").getOrElse("default")
+      nativeVersionOpts   = explicitNativeVersion.toSeq.flatMap(v => Seq("--native-version", v))
+      nativeVersionDirectiveStr =
+        explicitNativeVersion
+          .map(v => s"""//> using nativeVersion $v
+                       |""".stripMargin)
+          .getOrElse("")
+      scalaToolkitVersion =
+        if (explicitNativeVersion.contains(Constants.scalaNativeVersion04))
+          Constants.toolkitVersionForNative04
+        else "default"
+      typelevelToolkitVersion = "default"
     } {
-      test(s"native & typelevel toolkit defaults $titleStr") {
-        val expectedMessage = "Hello"
-        val cmdLineOpts =
-          if (useDirectives) Nil
-          else Seq("--toolkit", "typelevel:default", "--native")
-        val directivesStr =
-          if (useDirectives)
-            """//> using toolkit typelevel:default
-              |//> using platform native
-              |""".stripMargin
-          else ""
-        TestInputs(
-          os.rel / "toolkit.scala" ->
-            s"""$directivesStr
-               |import cats.effect._
-               |
-               |object Hello extends IOApp.Simple {
-               |  def run =  IO.println("$expectedMessage")
-               |}
-               |""".stripMargin
-        ).fromRoot { root =>
-          val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
-            .call(cwd = root, stderr = os.Pipe)
-          expect(result.out.trim() == expectedMessage)
-          if (Constants.scalaNativeVersion != Constants.typelevelToolkitMaxScalaNative) {
-            val err = result.err.trim()
-            expect(
-              err.contains(
-                s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+      // for the time being, typelevel toolkit does nto support Scala Native 0.5.x
+      if (!explicitNativeVersion.contains(Constants.scalaNativeVersion05))
+        test(
+          s"native ($nativeVersionStr) & typelevel toolkit ($typelevelToolkitVersion) $titleStr"
+        ) {
+          val expectedMessage = "Hello"
+          val cmdLineOpts =
+            if (useDirectives) Nil
+            else Seq(
+              "--toolkit",
+              s"typelevel:$typelevelToolkitVersion",
+              "--native"
+            ) ++ nativeVersionOpts
+          val directivesStr =
+            if (useDirectives)
+              s"""//> using toolkit typelevel:$typelevelToolkitVersion
+                 |//> using platform native
+                 |$nativeVersionDirectiveStr
+                 |""".stripMargin
+            else ""
+          TestInputs(
+            os.rel / "toolkit.scala" ->
+              s"""$directivesStr
+                 |import cats.effect._
+                 |
+                 |object Hello extends IOApp.Simple {
+                 |  def run =  IO.println("$expectedMessage")
+                 |}
+                 |""".stripMargin
+          ).fromRoot { root =>
+            val result = os.proc(TestUtil.cli, "run", "toolkit.scala", cmdLineOpts, extraOptions)
+              .call(cwd = root, stderr = os.Pipe)
+            expect(result.out.trim() == expectedMessage)
+            if (actualNativeVersion != Constants.typelevelToolkitMaxScalaNative) {
+              val err = result.err.trim()
+              expect(
+                err.contains(
+                  s"Scala Native default version ${Constants.scalaNativeVersion} is not supported in this build"
+                )
               )
-            )
-            expect(err.contains(s"Using ${Constants.typelevelToolkitMaxScalaNative} instead."))
-            expect(err.contains(
-              s"TypeLevel Toolkit does not support Scala Native ${Constants.scalaNativeVersion}"
-            ))
+              expect(err.contains(s"Using ${Constants.typelevelToolkitMaxScalaNative} instead."))
+              expect(err.contains(
+                s"TypeLevel Toolkit ${Constants.typelevelToolkitVersion} does not support Scala Native ${Constants.scalaNativeVersion}"
+              ))
+            }
           }
         }
-      }
 
-      test(s"native & scala toolkit defaults $titleStr") {
+      test(s"native ($nativeVersionStr) & scala toolkit ($scalaToolkitVersion) $titleStr") {
         val cmdLineOpts =
           if (useDirectives) Nil
-          else Seq("--toolkit", "default", "--native")
+          else Seq("--toolkit", scalaToolkitVersion, "--native") ++ nativeVersionOpts
         val directivesStr =
           if (useDirectives)
-            """//> using toolkit default
-              |//> using platform native
-              |""".stripMargin
+            s"""//> using toolkit $scalaToolkitVersion
+               |//> using platform native
+               |$nativeVersionDirectiveStr
+               |""".stripMargin
           else ""
         TestInputs(
           os.rel / "toolkit.scala" ->

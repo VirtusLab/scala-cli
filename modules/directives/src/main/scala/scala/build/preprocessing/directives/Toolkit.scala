@@ -1,5 +1,6 @@
 package scala.build.preprocessing.directives
 
+import coursier.core.Version
 import dependency.*
 
 import scala.build.Positioned
@@ -8,7 +9,7 @@ import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.WithBuildRequirements.*
-import scala.build.options._
+import scala.build.options.*
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Toolkit")
@@ -37,8 +38,12 @@ object Toolkit {
   val typelevel = "typelevel"
   val scala     = "scala"
 
-  def maxScalaNativeWarningMsg(toolkitName: String, maxNative: String): String =
-    s"$toolkitName does not support Scala Native ${Constants.scalaNativeVersion}, $maxNative should be used instead."
+  def maxScalaNativeWarningMsg(
+    toolkitName: String,
+    toolkitVersion: String,
+    maxNative: String
+  ): String =
+    s"$toolkitName $toolkitVersion does not support Scala Native ${Constants.scalaNativeVersion}, $maxNative should be used instead."
 
   object TypelevelToolkit {
     def unapply(s: Option[String]): Boolean =
@@ -50,9 +55,11 @@ object Toolkit {
       s.isEmpty || s.contains(Constants.toolkitOrganization) || s.contains(scala)
   }
 
-  case class ToolkitDefaults(
+  case class ToolkitDefinitions(
     isScalaToolkitDefault: Boolean = false,
-    isTypelevelToolkitDefault: Boolean = false
+    scalaToolkitExplicitVersion: Option[String] = None,
+    isTypelevelToolkitDefault: Boolean = false,
+    typelevelToolkitExplicitVersion: Option[String] = None
   )
 
   /** @param toolkitCoords
@@ -62,7 +69,7 @@ object Toolkit {
     */
   def resolveDependenciesWithRequirements(toolkitCoords: Positioned[String]): List[(
     WithBuildRequirements[Positioned[DependencyLike[NameAttributes, NameAttributes]]],
-    ToolkitDefaults
+    ToolkitDefinitions
   )] =
     toolkitCoords match
       case Positioned(positions, coords) =>
@@ -71,21 +78,36 @@ object Toolkit {
         def isDefault         = rawVersion == "default"
         val notDefaultVersion = if rawVersion == "latest" then "latest.release" else rawVersion
         val flavor            = tokens.dropRight(1).headOption
-        val (org, v, trv: ToolkitDefaults) = flavor match {
-          case TypelevelToolkit() => (
-              Constants.typelevelOrganization,
+        val (org, v, trv: ToolkitDefinitions) = flavor match {
+          case TypelevelToolkit() =>
+            val typelevelToolkitVersion =
               if isDefault then Constants.typelevelToolkitDefaultVersion
-              else notDefaultVersion,
-              ToolkitDefaults(isTypelevelToolkitDefault = isDefault)
+              else notDefaultVersion
+            val explicitVersion =
+              if isDefault then None else Some(typelevelToolkitVersion)
+            (
+              Constants.typelevelOrganization,
+              typelevelToolkitVersion,
+              ToolkitDefinitions(
+                isTypelevelToolkitDefault = isDefault,
+                typelevelToolkitExplicitVersion = explicitVersion
+              )
             )
           case ScalaToolkit() | None =>
+            val scalaToolkitVersion =
+              if isDefault then Constants.toolkitDefaultVersion
+              else notDefaultVersion
+            val explicitVersion =
+              if isDefault then None else Some(scalaToolkitVersion)
             (
               Constants.toolkitOrganization,
-              if isDefault then Constants.toolkitDefaultVersion
-              else notDefaultVersion,
-              ToolkitDefaults(isScalaToolkitDefault = isDefault)
+              scalaToolkitVersion,
+              ToolkitDefinitions(
+                isScalaToolkitDefault = isDefault,
+                scalaToolkitExplicitVersion = explicitVersion
+              )
             )
-          case Some(org) => (org, notDefaultVersion, ToolkitDefaults())
+          case Some(org) => (org, notDefaultVersion, ToolkitDefinitions())
         }
         List(
           Positioned(positions, dep"$org::${Constants.toolkitName}::$v,toolkit")
@@ -122,20 +144,37 @@ object Toolkit {
     .map {
       case (
             WithBuildRequirements(requirements, positionedDep),
-            ToolkitDefaults(isScalaToolkitDefault, isTypelevelToolkitDefault)
+            ToolkitDefinitions(
+              isScalaToolkitDefault,
+              explicitScalaToolkitVersion,
+              isTypelevelToolkitDefault,
+              _
+            )
           ) =>
         val scalaToolkitMaxNativeVersions =
           if isScalaToolkitDefault then
             List(Constants.toolkitMaxScalaNative -> maxScalaNativeWarningMsg(
-              "Scala Toolkit",
-              Constants.toolkitMaxScalaNative
+              toolkitName = "Scala Toolkit",
+              toolkitVersion = Constants.toolkitDefaultVersion,
+              maxNative = Constants.toolkitMaxScalaNative
             ))
-          else Nil
+          else
+            explicitScalaToolkitVersion.toList
+              .map(Version(_))
+              .filter(_ <= Version(Constants.toolkitVersionForNative04))
+              .flatMap(v =>
+                List(Constants.scalaNativeVersion04 -> maxScalaNativeWarningMsg(
+                  toolkitName = "Scala Toolkit",
+                  toolkitVersion = v.toString(),
+                  Constants.scalaNativeVersion04
+                ))
+              )
         val typelevelToolkitMaxNativeVersions =
           if isTypelevelToolkitDefault then
             List(Constants.typelevelToolkitMaxScalaNative -> maxScalaNativeWarningMsg(
-              "TypeLevel Toolkit",
-              Constants.typelevelToolkitMaxScalaNative
+              toolkitName = "TypeLevel Toolkit",
+              toolkitVersion = Constants.typelevelToolkitDefaultVersion,
+              maxNative = Constants.typelevelToolkitMaxScalaNative
             ))
           else Nil
         val maxNativeVersions =
