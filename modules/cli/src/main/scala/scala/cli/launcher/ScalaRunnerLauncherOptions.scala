@@ -32,7 +32,14 @@ case class ScalaRunnerLauncherOptions(
   )
   @Hidden
   @Tag(tags.implementation)
-  progName: Option[String] = None
+  progName: Option[String] = None,
+  @Group(HelpGroup.Launcher.toString)
+  @HelpMessage(
+    "This allows to skip checking for newest Scala CLI versions. --offline covers this scenario as well."
+  )
+  @Hidden
+  @Tag(tags.implementation)
+  skipCliUpdates: Option[Boolean] = None
 ) {
   def toCliArgs: List[String] =
     cliUserScalaVersion.toList.flatMap(v => List("--cli-default-scala-version", v)) ++

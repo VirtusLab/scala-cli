@@ -37,7 +37,8 @@ object Version extends ScalaCommand[VersionOptions] {
     else if options.scalaVersion then println(defaultScalaVersion)
     else {
       println(versionInfo)
-      if !options.offline then
+      val skipCliUpdates = ScalaCli.launcherOptions.scalaRunner.skipCliUpdates.getOrElse(false)
+      if !options.offline && !skipCliUpdates then
         maybeNewerScalaCliVersion.foreach { v =>
           logger.message(
             s"""Your $fullRunnerName version is outdated. The newest version is $v
