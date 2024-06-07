@@ -1,6 +1,7 @@
 package scala.cli
 
 import bloop.rifle.FailedToStartServerException
+import coursier.core.Version
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, File, PrintStream}
@@ -236,9 +237,13 @@ object ScalaCli {
         maybeLauncherOptions = Some(launcherOpts)
         launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
           case Some(ver) =>
-            val powerArgs       = launcherOpts.powerOptions.toCliArgs
-            val scalaRunnerArgs = launcherOpts.scalaRunner.toCliArgs
-            val newArgs         = powerArgs ++ scalaRunnerArgs ++ args0
+            val powerArgs              = launcherOpts.powerOptions.toCliArgs
+            val initialScalaRunnerArgs = launcherOpts.scalaRunner
+            val finalScalaRunnerArgs =
+              // if the version was specified, it doesn't make sense to check for CLI updates
+              (if Version(ver) < Version("1.4.0") then initialScalaRunnerArgs
+               else initialScalaRunnerArgs.copy(skipCliUpdates = Some(true))).toCliArgs
+            val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
                 javaMajorVersion < 17
