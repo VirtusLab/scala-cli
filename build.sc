@@ -406,7 +406,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
          |  def scalajsEnvJsdomNodejsVersion = "${Deps.scalaJsEnvJsdomNodejs.dep.version}"
-         |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
+         |  def scalaNativeVersion04 = "${Deps.Versions.scalaNative04}"
+         |  def scalaNativeVersion = "${Deps.Versions.scalaNative}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
          |  def testRunnerModuleName = "${`test-runner`(Scala.runnerScala3).artifactName()}"
@@ -444,6 +445,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def toolkitTestName = "${Deps.toolkitTest.dep.module.name.value}"
          |  def toolkitDefaultVersion = "${Deps.toolkitVersion}"
          |  def toolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForToolkit}"
+         |  def toolkitVersionForNative04 = "${Deps.toolkitVersionForNative04}"
+         |  def toolkitVersionForNative05 = "${Deps.toolkitVersionForNative05}"
          |
          |  def typelevelOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
@@ -982,7 +985,9 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def maxAmmoniteScala3Version   = "${Scala.maxAmmoniteScala3Version}"
            |  def scalaJsVersion             = "${Scala.scalaJs}"
            |  def scalaJsCliVersion          = "${Scala.scalaJsCli}"
-           |  def scalaNativeVersion         = "${Deps.nativeTools.dep.version}"
+           |  def scalaNativeVersion         = "${Deps.Versions.scalaNative}"
+           |  def scalaNativeVersion04       = "${Deps.Versions.scalaNative04}"
+           |  def scalaNativeVersion05       = "${Deps.Versions.scalaNative05}"
            |  def ammoniteVersion            = "${Deps.ammonite.dep.version}"
            |  def defaultGraalVMJavaVersion  = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion      = "${deps.graalVmVersion}"
@@ -1004,6 +1009,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def dockerArchLinuxImage       = "${TestDeps.archLinuxImage}"
            |  
            |  def toolkitVersion                 = "${Deps.toolkitVersion}"
+           |  def toolkitVersionForNative04      = "${Deps.toolkitVersionForNative04}"
+           |  def toolkitVersionForNative05      = "${Deps.toolkitVersionForNative05}"
            |  def toolkiMaxScalaNative           = "${Deps.Versions.maxScalaNativeForToolkit}"
            |  def typelevelToolkitVersion        = "${Deps.typelevelToolkitVersion}"
            |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
