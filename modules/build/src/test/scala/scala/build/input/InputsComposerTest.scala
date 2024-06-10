@@ -3,6 +3,7 @@ package scala.build.input
 import scala.build.Build
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.BuildException
+import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.build.tests.{TestInputs, TestUtil}
@@ -57,7 +58,7 @@ class InputsComposerTest extends TestUtil.ScalaCliBuildSuite {
           Right(Build.updateInputs(emptyInputs, BuildOptions()))
         }
       val modules = InputsComposer(Seq(root.toString), root, argsToInputs, true)
-        .getModuleInputs
+        .getInputs
         .toSeq
         .flatten
 
