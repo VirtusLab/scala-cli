@@ -1,4 +1,4 @@
-package scala.build.input
+package scala.build.input.compose
 
 import toml.Value
 import toml.Value.*
@@ -7,6 +7,7 @@ import scala.build.EitherCps.*
 import scala.build.EitherSequence
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
+import scala.build.input.{InputsComposer, ModuleInputs}
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.collection.mutable
@@ -113,7 +114,7 @@ object InputsComposer {
 /** Creates [[ModuleInputs]] given the initial arguments passed to the command, Looks for module
   * config .toml file and if found composes module inputs according to the defined config, otherwise
   * if module config is not found or if [[allowForbiddenFeatures]] is not set, returns only one
-  * basic module created from initial args (see [[basicInputs]])
+  * basic module created from initial args (see [[simpleInputs]])
   *
   * @param args
   *   initial args passed to command
@@ -133,9 +134,9 @@ final case class InputsComposer(
   import InputsComposer.*
 
   /** Inputs with no dependencies coming only from args */
-  def basicInputs = for (inputs <- inputsFromArgs(args, None)) yield Seq(inputs)
+  private def simpleInputs = for (inputs <- inputsFromArgs(args, None)) yield SimpleInputs(inputs)
 
-  def getModuleInputs: Either[BuildException, Seq[ModuleInputs]] =
+  def getInputs: Either[BuildException, Inputs] =
     if allowForbiddenFeatures then
       findModuleConfig(args, cwd) match {
         case Right(Some(moduleConfigPath)) =>
@@ -149,10 +150,10 @@ final case class InputsComposer(
             _            <- checkForCycles(modules)
             moduleInputs <- fromModuleDefinitions(modules, moduleConfigPath)
           } yield moduleInputs
-        case Right(None) => basicInputs
+        case Right(None) => simpleInputs
         case Left(err)   => Left(err)
       }
-    else basicInputs
+    else simpleInputs
 
 //  private def readScalaVersion(value: Value): Either[String, String] = value match {
 //    case Str(version) => Right(version)
@@ -197,9 +198,9 @@ final case class InputsComposer(
   private def fromModuleDefinitions(
     modules: Seq[ModuleDefinition],
     moduleConfigPath: os.Path
-  ): Either[BuildException, Seq[ModuleInputs]] = either {
+  ): Either[BuildException, ComposedInputs] = either {
     val workspacePath = moduleConfigPath / os.up
-    val moduleInputsInfo = modules.map { m =>
+    val moduleInputsInfo: Map[ModuleDefinition, ModuleInputs] = modules.map { m =>
       val moduleName        = ProjectName(m.name)
       val argsWithWorkspace = m.roots.map(r => os.Path(r, workspacePath).toString)
       val moduleInputs      = inputsFromArgs(argsWithWorkspace, Some(moduleName))
@@ -207,16 +208,19 @@ final case class InputsComposer(
     }
 
     val projectNameMap: Map[String, ProjectName] =
-      moduleInputsInfo.map((moduleDef, inputs) => moduleDef.name -> inputs.projectName).toMap
+      moduleInputsInfo.map((moduleDef, module) => moduleDef.name -> module.projectName).toMap
 
-    val moduleInputs = moduleInputsInfo.map { (moduleDef, inputs) =>
+    val moduleInputs = moduleInputsInfo.map { (moduleDef, module) =>
       val moduleDeps: Seq[ProjectName] = moduleDef.dependsOn.map(projectNameMap)
 
-      inputs.dependsOn(moduleDeps)
+      module.dependsOn(moduleDeps)
         .withForcedWorkspace(workspacePath)
         .copy(mayAppendHash = false)
     }
 
-    moduleInputs
+    val targetModule = modules.find(_.roots.toSet equals args.toSet)
+      .getOrElse(moduleInputs.head)
+
+    ComposedInputs(modules = moduleInputs, targetModule = targetModule, workspace = workspacePath)
   }
 }

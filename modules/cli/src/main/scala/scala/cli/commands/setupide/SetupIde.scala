@@ -7,12 +7,13 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
-
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.{InputsComposer, ModuleInputs, OnDisk, Virtual, WorkspaceOrigin}
+import scala.build.input.compose
+import scala.build.input.compose.{ComposedInputs, InputsComposer, SimpleInputs}
+import scala.build.input.{ModuleInputs, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
@@ -68,12 +69,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   override def runCommand(options: SetupIdeOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val moduleInputs = options.shared.composeInputs(args.all).orExit(logger)
-    CurrentParams.workspaceOpt = Some(moduleInputs.head.workspace)
+    val inputs = options.shared.composeInputs(args.all).orExit(logger)
+    CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
       options,
-      moduleInputs,
+      inputs,
       buildOptions,
       previousCommandName = None,
       args = args.all
@@ -92,7 +93,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),
-      Seq(inputs),
+      SimpleInputs(inputs),
       buildOptions,
       previousCommandName,
       args
@@ -106,13 +107,13 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   private def writeBspConfiguration(
     options: SetupIdeOptions,
-    moduleInputs: Seq[ModuleInputs],
+    inputs: compose.Inputs,
     buildOptions: BuildOptions,
     previousCommandName: Option[String],
     args: Seq[String]
   ): Either[BuildException, Option[os.Path]] = either {
 
-    val virtualInputs = moduleInputs.flatMap(_.elements).collect {
+    val virtualInputs = inputs.modules.flatMap(_.elements).collect {
       case v: Virtual => v
     }
     if (virtualInputs.nonEmpty)
@@ -125,9 +126,9 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val logger = options.shared.logger
 
     if (buildOptions.classPathOptions.allExtraDependencies.toSeq.nonEmpty)
-      for (module <- moduleInputs) do value(downloadDeps(module, buildOptions, logger))
+      for (module <- inputs.modules) do value(downloadDeps(module, buildOptions, logger))
 
-    val workspace = moduleInputs.head.workspace
+    val workspace = inputs.workspace
 
     val (bspName, bspJsonDestination) = bspDetails(workspace, options.bspFile)
     val scalaCliBspJsonDestination = workspace / Constants.workspaceDirName / "ide-options-v2.json"
@@ -138,12 +139,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val scalaCliBspEnvsJsonDestination = workspace / Constants.workspaceDirName / "ide-envs.json"
 
     // FIXME single modules can also be defined with module config toml file
-    val inputArgs = if moduleInputs.size > 1 then
-      InputsComposer.findModuleConfig(args, Os.pwd)
-        .orExit(logger)
-        .fold(args)(p => Seq(p.toString))
-    else
-      moduleInputs.head.elements
+    val inputArgs = inputs match
+      case ComposedInputs(modules, targetModule, workspace) =>
+        InputsComposer.findModuleConfig(args, Os.pwd)
+          .orExit(logger)
+          .fold(args)(p => Seq(p.toString))
+      case SimpleInputs(singleModule) => singleModule.elements
         .collect { case d: OnDisk => d.path.toString }
 
     val ideInputs = IdeInputs(
@@ -192,7 +193,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val envsForBsp          = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
     val scalaCliBspEnvsJson = writeToArray(envsForBsp)
 
-    if (moduleInputs.head.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
+    if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(
         s"""$baseRunnerName can not determine where to write its BSP configuration.
            |Set an explicit BSP directory path via `--bsp-directory`.
