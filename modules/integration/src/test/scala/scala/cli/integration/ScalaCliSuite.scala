@@ -1,7 +1,8 @@
 package scala.cli.integration
 
 import java.util.concurrent.TimeUnit
-import scala.concurrent.duration.FiniteDuration
+
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 abstract class ScalaCliSuite extends munit.FunSuite {
   val testStartEndLogger = new Fixture[Unit]("files") {
@@ -22,7 +23,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     }
   }
 
-  override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
+  override def munitTimeout: Duration = new FiniteDuration(120, TimeUnit.SECONDS)
 
   override def munitFixtures: List[Fixture[Unit]] = List(testStartEndLogger)
   def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.Third

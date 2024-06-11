@@ -1,6 +1,7 @@
 package sclicheck
 
 import java.util.concurrent.TimeUnit
+
 import scala.concurrent.duration.FiniteDuration
 
 class DocTests extends munit.FunSuite {
