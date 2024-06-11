@@ -156,12 +156,6 @@ Aliases: `-p`, `--print-classpath`
 
 Print the resulting class path
 
-### `--test`
-
-`SHOULD have` per Scala Runner specification
-
-Compile test scope
-
 ## Config options
 
 Available in commands:
@@ -945,6 +939,22 @@ Aliases: `--verbose-scalac`
 `IMPLEMENTATION specific` per Scala Runner specification
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
+
+## Scope options
+
+Available in commands:
+
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--test`
+
+Aliases: `--test-scope`, `--with-test`, `--with-test-scope`
+
+`SHOULD have` per Scala Runner specification
+
+Include test scope
 
 ## Shared options
 

@@ -1,7 +1,7 @@
 package scala.cli.commands.util
 
 import scala.build.errors.BuildException
-import scala.build.{Build, Logger, Os}
+import scala.build.{Build, Builds, Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -33,5 +33,17 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
             replaceExisting = true
           )
         }
+  }
+
+  extension (builds: Builds) {
+    def anyBuildCancelled: Boolean = builds.all.exists {
+      case _: Build.Cancelled => true
+      case _                  => false
+    }
+
+    def anyBuildFailed: Boolean = builds.all.exists {
+      case _: Build.Failed => true
+      case _               => false
+    }
   }
 }

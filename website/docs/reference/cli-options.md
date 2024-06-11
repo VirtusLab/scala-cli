@@ -154,10 +154,6 @@ Aliases: `-p`, `--print-classpath`
 
 Print the resulting class path
 
-### `--test`
-
-Compile test scope
-
 ## Config options
 
 Available in commands:
@@ -1433,6 +1429,20 @@ Show help for scalac. This is an alias for --scalac-option -help
 Aliases: `--verbose-scalac`
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
+
+## Scope options
+
+Available in commands:
+
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--test`
+
+Aliases: `--test-scope`, `--with-test`, `--with-test-scope`
+
+Include test scope
 
 ## Secret options
 

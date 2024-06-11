@@ -312,7 +312,9 @@ Aliases: `-p` ,`--print-classpath`
 
 **--test**
 
-Compile test scope
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -1629,6 +1631,12 @@ Aliases: `-w`
 Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 

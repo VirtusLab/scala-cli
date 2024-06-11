@@ -30,9 +30,40 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       case s => s
     }
 
-  test("default dry run") {
+  test("dry run (default)") {
     TestInputs.empty.fromRoot { root =>
       os.proc(TestUtil.cli, "repl", extraOptions, "--repl-dry-run").call(cwd = root)
+    }
+  }
+
+  test("dry run (with main scope sources)") {
+    TestInputs(
+      os.rel / "Example.scala" ->
+        """object Example extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "repl", ".", extraOptions, "--repl-dry-run").call(cwd = root)
+    }
+  }
+
+  test("dry run (with main and test scope sources, and the --test flag)") {
+    TestInputs(
+      os.rel / "Example.scala" ->
+        """object Example extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "Example.test.scala" ->
+        s"""//> using dep org.scalameta::munit::${Constants.munitVersion}
+           |
+           |class Example extends munit.FunSuite {
+           |  test("is true true") { assert(true) }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "repl", ".", extraOptions, "--repl-dry-run", "--test").call(cwd = root)
     }
   }
 
@@ -66,6 +97,48 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
         else expectedScalaVersionForAmmonite
       expect(output == s"Hello from Scala $expectedSv")
+      if (useMaxAmmoniteScalaVersion) {
+        // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
+        val errOutput = res.err.trim()
+        expect(!errOutput.contains("not yet supported with this version of Ammonite"))
+      }
+    }
+  }
+
+  def ammoniteTestScope(useMaxAmmoniteScalaVersion: Boolean): Unit = {
+    val message = "something something ammonite"
+    TestInputs(
+      os.rel / "example" / "TestScopeExample.test.scala" ->
+        s"""package example
+           |
+           |object TestScopeExample {
+           |  def message: String = "$message"
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
+      val ammArgs = Seq("-c", "println(example.TestScopeExample.message)")
+        .map {
+          if (Properties.isWin)
+            a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
+          else
+            identity
+        }
+        .flatMap(arg => Seq("--ammonite-arg", arg))
+      val res =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "repl",
+          ".",
+          testExtraOptions,
+          "--test",
+          "--ammonite",
+          ammArgs
+        )
+          .call(cwd = root, stderr = os.Pipe)
+      val output = res.out.trim()
+      expect(output == message)
       if (useMaxAmmoniteScalaVersion) {
         // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
         val errOutput = res.err.trim()
@@ -146,6 +219,10 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   test(s"ammonite scalapy$ammoniteMaxVersionString") {
     ammoniteScalapyTest(useMaxAmmoniteScalaVersion = true)
+  }
+
+  test("ammonite with test scope sources") {
+    ammoniteTestScope(useMaxAmmoniteScalaVersion = true)
   }
 
   test("default values in help") {
