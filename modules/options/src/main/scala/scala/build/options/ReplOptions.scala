@@ -1,5 +1,6 @@
 package scala.build.options
 
+import scala.build.Logger
 import scala.build.internal.Constants
 
 final case class ReplOptions(
@@ -9,8 +10,15 @@ final case class ReplOptions(
 ) {
   def useAmmonite: Boolean =
     useAmmoniteOpt.getOrElse(false)
-  def ammoniteVersion: String =
-    ammoniteVersionOpt.getOrElse(Constants.ammoniteVersion)
+  def ammoniteVersion(scalaVersion: String, logger: Logger): String =
+    ammoniteVersionOpt.getOrElse {
+      if scalaVersion.startsWith("3.3") then {
+        val ammoniteVersionForLts = Constants.ammoniteVersionForScala3Lts
+        logger.debug(s"Using the default Ammonite version for Scala 3 LTS: $ammoniteVersionForLts")
+        ammoniteVersionForLts
+      }
+      else Constants.ammoniteVersion
+    }
 }
 
 object ReplOptions {

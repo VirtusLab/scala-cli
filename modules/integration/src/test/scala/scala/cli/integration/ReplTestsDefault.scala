@@ -6,7 +6,8 @@ import java.io.File
 
 import scala.util.Properties
 
-class ReplTestsDefault extends ReplTestDefinitions with TestDefault {
+class ReplTestsDefault extends ReplTestDefinitions with ReplTests3StableDefinitions
+    with TestDefault {
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->
@@ -82,16 +83,4 @@ class ReplTestsDefault extends ReplTestDefinitions with TestDefault {
         expect(!output.contains("jvm-index"))
       }
     }
-
-  if (!actualScalaVersion.equals(actualMaxAmmoniteScalaVersion)) {
-    lazy val defaultScalaVersionString =
-      s" with Scala $actualScalaVersion (the default version, may downgrade)"
-    test(s"ammonite$defaultScalaVersionString") {
-      ammoniteTest(useMaxAmmoniteScalaVersion = false)
-    }
-
-    test(s"ammonite scalapy$defaultScalaVersionString") {
-      ammoniteScalapyTest(useMaxAmmoniteScalaVersion = false)
-    }
-  }
 }

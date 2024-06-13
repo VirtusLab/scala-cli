@@ -88,6 +88,8 @@ object InternalDeps {
 
 object Deps {
   object Versions {
+    def ammonite             = "3.0.0-M2-9-88291dd8"
+    def ammoniteForScala3Lts = "3.0.0-M2-8-ba4429a2"
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursierDefault                   = "2.1.10"
     def coursier                          = coursierDefault
@@ -112,8 +114,9 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite = ivy"com.lihaoyi:::ammonite:3.0.0-M2-9-88291dd8"
-  def asm      = ivy"org.ow2.asm:asm:9.7"
+  def ammonite             = ivy"com.lihaoyi:::ammonite:${Versions.ammonite}"
+  def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
+  def asm                  = ivy"org.ow2.asm:asm:9.7"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.0"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
