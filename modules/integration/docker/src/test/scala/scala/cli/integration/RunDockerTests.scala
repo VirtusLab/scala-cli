@@ -4,8 +4,11 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.{Duration, FiniteDuration}
 
 class RunDockerTests extends munit.FunSuite {
+  override def munitTimeout: Duration = new FiniteDuration(240, TimeUnit.SECONDS)
 
   lazy val imageName = Option(System.getenv("SCALA_CLI_IMAGE")).getOrElse {
     sys.error("SCALA_CLI_IMAGE not set")

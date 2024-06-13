@@ -3,6 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.annotation.tailrec
+import scala.cli.integration.Constants.munitVersion
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
@@ -13,7 +14,6 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
   private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
 
-  private val munitVersion = "1.0.0-M12"
   private val utestVersion = "0.8.3"
 
   def successfulTestInputs(directivesString: String =

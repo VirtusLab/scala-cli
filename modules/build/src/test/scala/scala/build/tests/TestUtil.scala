@@ -4,8 +4,12 @@ import scala.build.{Build, Positioned}
 import scala.build.options.{BuildOptions, Platform}
 import munit.Assertions.assertEquals
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration.FiniteDuration
+
 object TestUtil {
   abstract class ScalaCliBuildSuite extends munit.FunSuite {
+    override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
     val testStartEndLogger = new Fixture[Unit]("files") {
       def apply(): Unit = ()
 

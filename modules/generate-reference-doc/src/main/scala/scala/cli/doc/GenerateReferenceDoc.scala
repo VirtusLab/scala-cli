@@ -5,7 +5,7 @@ import caseapp.core.Arg
 import caseapp.core.Scala3Helpers.*
 import caseapp.core.util.Formatter
 import dotty.tools.dotc.ScalacCommand
-import munit.internal.difflib.Diff
+import munit.diff.Diff
 import shapeless.tag
 
 import java.nio.charset.StandardCharsets

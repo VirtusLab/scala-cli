@@ -1,6 +1,11 @@
 package sclicheck
 
+import java.util.concurrent.TimeUnit
+
+import scala.concurrent.duration.FiniteDuration
+
 class GifTests extends munit.FunSuite {
+  override def munitTimeout = new FiniteDuration(360, TimeUnit.SECONDS)
 
   val scenariosDir =
     Option(System.getenv("SCALA_CLI_GIF_SCENARIOS")).map(os.Path(_, os.pwd)).getOrElse {
