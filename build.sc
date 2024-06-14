@@ -225,9 +225,12 @@ object dummy extends Module {
   trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
     def crossScalaVersion = crossValue
     def skipBloop         = true
-    def ivyDeps = Agg(
-      Deps.ammonite
-    )
+    def ivyDeps = {
+      val ammoniteDep =
+        if (crossValue == Scala.scala3Lts) Deps.ammoniteForScala3Lts
+        else Deps.ammonite
+      Agg(ammoniteDep)
+    }
   }
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop    = true
@@ -431,7 +434,8 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def jmhVersion = "1.29"
          |
-         |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |  def ammoniteVersion = "${Deps.Versions.ammonite}"
+         |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def millVersion = "${InternalDeps.Versions.mill}"
          |  def lefouMillwRef = "${InternalDeps.Versions.lefouMillwRef}"
          |  def maxScalaNativeForMillExport = "${Deps.Versions.maxScalaNativeForMillExport}"
@@ -797,7 +801,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
          |  def scalaNativeVersion = "${Deps.nativeTools.dep.version}"
-         |  def ammoniteVersion = "${Deps.ammonite.dep.version}"
+         |  def ammoniteVersion = "${Deps.Versions.ammonite}"
+         |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
          |  def defaultGraalVMVersion = "${deps.graalVmVersion}"

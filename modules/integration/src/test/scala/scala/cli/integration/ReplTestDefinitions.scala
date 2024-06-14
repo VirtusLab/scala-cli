@@ -13,7 +13,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     "scala.util.Properties.versionNumberString"
   else "dotty.tools.dotc.config.Properties.simpleVersionString"
 
-  def expectedAmmoniteVersion: String =
+  def expectedScalaVersionForAmmonite: String =
     actualScalaVersion match {
       case s
           if s.startsWith("2.12") &&
@@ -62,7 +62,10 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         os.proc(TestUtil.cli, "--power", "repl", testExtraOptions, "--ammonite", ammArgs)
           .call(cwd = root, stderr = os.Pipe)
       val output = res.out.trim()
-      expect(output == s"Hello from Scala $expectedAmmoniteVersion")
+      val expectedSv =
+        if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
+        else expectedScalaVersionForAmmonite
+      expect(output == s"Hello from Scala $expectedSv")
       if (useMaxAmmoniteScalaVersion) {
         // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
         val errOutput = res.err.trim()
@@ -122,8 +125,11 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         "--python",
         ammArgs
       ).call(cwd = root, stderr = os.Pipe)
+      val expectedSv =
+        if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
+        else expectedScalaVersionForAmmonite
       val lines = res.out.trim().linesIterator.toVector
-      expect(lines == Seq(s"Hello from Scala $expectedAmmoniteVersion", "Hello from ScalaPy"))
+      expect(lines == Seq(s"Hello from Scala $expectedSv", "Hello from ScalaPy"))
       if (useMaxAmmoniteScalaVersion)
         // the maximum Scala version supported by ammonite is being used, so we shouldn't downgrade
         expect(!res.err.trim().contains("not yet supported with this version of Ammonite"))

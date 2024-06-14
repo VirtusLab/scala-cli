@@ -426,7 +426,7 @@ object Repl extends ScalaCommand[ReplOptions] {
     def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
         scalaParams,
-        options.notForBloopOptions.replOptions.ammoniteVersion,
+        options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
         artifacts.userDependencies,
         artifacts.extraClassPath,
         artifacts.extraSourceJars,
