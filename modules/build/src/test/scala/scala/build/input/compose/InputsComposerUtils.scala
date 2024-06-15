@@ -7,7 +7,10 @@ import scala.build.errors.BuildException
 import scala.build.input.ModuleInputs
 
 object InputsComposerUtils {
-  def argsToEmptyModules(args: Seq[String], projectNameOpt: Option[ProjectName]): Either[BuildException, ModuleInputs] = {
+  def argsToEmptyModules(
+    args: Seq[String],
+    projectNameOpt: Option[ProjectName]
+  ): Either[BuildException, ModuleInputs] = {
     assert(projectNameOpt.isDefined)
     val emptyInputs = ModuleInputs.empty(projectNameOpt.get.name)
     Right(Build.updateInputs(emptyInputs, BuildOptions()))

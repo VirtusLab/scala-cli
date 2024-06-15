@@ -5,10 +5,10 @@ import bloop.rifle.BloopRifleConfig
 import scala.build.Logger
 import scala.build.options.BuildOptions
 
-/** The options and configurations that may be picked up on a bsp workspace/reload request.
-  * They don't take into account options from sources.
-  * The only two exceptions are the initial options in BspImpl.run
-  * and in options used to launch new bloop in BspImpl.reloadBsp, which have the [[bloopRifleConfig]] updated.
+/** The options and configurations that may be picked up on a bsp workspace/reload request. They
+  * don't take into account options from sources. The only two exceptions are the initial options in
+  * BspImpl.run and in options used to launch new bloop in BspImpl.reloadBsp, which have the
+  * [[bloopRifleConfig]] updated.
   *
   * @param buildOptions
   *   passed options for building sources

@@ -21,7 +21,7 @@ import scala.build.errors.{
   Diagnostic,
   ParsingInputsException
 }
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData}
+import scala.build.input.{ModuleInputs, ScalaCliInvokeData, compose}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -44,7 +44,7 @@ import scala.util.{Failure, Success}
   *   the output stream of bytes
   */
 final class BspImpl(
-  argsToInputs: Seq[String] => Either[BuildException, Seq[ModuleInputs]],
+  argsToInputs: Seq[String] => Either[BuildException, compose.Inputs],
   bspReloadableOptionsReference: BspReloadableOptions.Reference,
   threads: BspThreads,
   in: InputStream,
@@ -107,7 +107,7 @@ final class BspImpl(
       val persistentLogger = new PersistentDiagnosticLogger(logger)
       val bspServer        = currentBloopSession.bspServer
 
-      val prebuildModules = for (module <- currentBloopSession.inputs) yield {
+      val prebuildModules = for (module <- currentBloopSession.inputs.modulesBuildOrder) yield {
         val mainProjectName = module.projectName
         val testProjectName = module.scopeProjectName(Scope.Test)
 
@@ -392,7 +392,7 @@ final class BspImpl(
                 inputs.generatedSrcRoot(scope),
                 data.classesDir,
                 reloadableOptions.logger,
-                currentBloopSession.inputs.head.workspace, // FIXME .head, maybe add workspace to BloopSession
+                currentBloopSession.inputs.workspace,
                 updateSemanticDbs = true,
                 scalaVersion = sv,
                 buildOptions = data.buildOptions
@@ -440,21 +440,21 @@ final class BspImpl(
     *   a new [[BloopSession]]
     */
   private def newBloopSession(
-    inputs: Seq[ModuleInputs],
+    inputs: compose.Inputs,
     reloadableOptions: BspReloadableOptions,
     presetIntelliJ: Boolean = false
   ): BloopSession = {
     val logger       = reloadableOptions.logger
     val buildOptions = reloadableOptions.buildOptions
-    val workspace    = inputs.head.workspace
+    val workspace    = inputs.workspace
     val createBloopServer =
       () =>
         BloopServer.buildServer(
           reloadableOptions.bloopRifleConfig,
           "scala-cli",
           Constants.version,
-          (workspace / Constants.workspaceDirName).toNIO, // FIXME .head, introduce better types for Seq[ModuleInputs] that will have a common workspace
-          Build.classesRootDir(workspace, inputs.head.projectName).toNIO,
+          (workspace / Constants.workspaceDirName).toNIO,
+          Build.classesRootDir(workspace, inputs.targetModule.projectName).toNIO,
           localClient,
           threads.buildThreads.bloop,
           logger.bloopRifleLogger
@@ -493,7 +493,7 @@ final class BspImpl(
     *   change on subsequent workspace/reload requests)
     */
   override def run(
-    initialInputs: Seq[ModuleInputs],
+    initialInputs: compose.Inputs,
     initialBspOptions: BspReloadableOptions
   ): Future[Unit] = {
     val logger    = initialBspOptions.logger
@@ -597,8 +597,8 @@ final class BspImpl(
     */
   private def reloadBsp(
     currentBloopSession: BloopSession,
-    previousInputs: Seq[ModuleInputs],
-    newInputs: Seq[ModuleInputs],
+    previousInputs: compose.Inputs,
+    newInputs: compose.Inputs,
     reloadableOptions: BspReloadableOptions
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
@@ -653,10 +653,10 @@ final class BspImpl(
           }
           else newBloopSession0
 
-        val previousProjectNames = previousInputs.flatMap(m =>
+        val previousProjectNames = previousInputs.modules.flatMap(m =>
           Seq(m.scopeProjectName(Scope.Main), m.scopeProjectName(Scope.Test))
         ).toSet
-        val newProjectNames = newInputs.flatMap(m =>
+        val newProjectNames = newInputs.modules.flatMap(m =>
           Seq(m.scopeProjectName(Scope.Main), m.scopeProjectName(Scope.Test))
         ).toSet
 
@@ -688,7 +688,7 @@ final class BspImpl(
     actualLocalClient.logger = logger
     localClient = getLocalClient(verbosity)
     val ideInputsJsonPath =
-      currentBloopSession.inputs.head.workspace / Constants.workspaceDirName / "ide-inputs.json"
+      currentBloopSession.inputs.workspace / Constants.workspaceDirName / "ide-inputs.json"
     if (os.isFile(ideInputsJsonPath)) {
       val maybeResponse = either[BuildException] {
         val ideInputs = value {

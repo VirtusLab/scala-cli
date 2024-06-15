@@ -24,14 +24,8 @@ import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
-import scala.build.input.compose
 import scala.build.input.compose.InputsComposer
-import scala.build.input.{
-  Element,
-  ModuleInputs,
-  ResourceDirectory,
-  ScalaCliInvokeData
-}
+import scala.build.input.{Element, ModuleInputs, ResourceDirectory, ScalaCliInvokeData, compose}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages

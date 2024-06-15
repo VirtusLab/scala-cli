@@ -6,20 +6,20 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.{ModuleInputs, OnDisk, SingleFile, Virtual}
+import scala.build.input.{ModuleInputs, OnDisk, SingleFile, Virtual, compose}
 
 final class BloopSession(
-  val inputs: Seq[ModuleInputs],
+  val inputs: compose.Inputs,
 //  val inputsHash: String, TODO Fix inputs hash comparing
   val remoteServer: BloopCompiler,
   val bspServer: BspServer,
   val watcher: Build.Watcher
 ) {
   def resetDiagnostics(localClient: BspClient): Unit = for {
-    moduleInputs <- inputs
-    targetId     <- bspServer.targetProjectIdOpt(moduleInputs.projectName)
+    module   <- inputs.modules
+    targetId <- bspServer.targetProjectIdOpt(module.projectName)
   } do
-    moduleInputs.flattened().foreach {
+    module.flattened().foreach {
       case f: SingleFile =>
         localClient.resetDiagnostics(f.path, targetId)
       case _: Virtual =>
@@ -31,7 +31,7 @@ final class BloopSession(
   }
 
   def registerWatchInputs(): Unit = for {
-    module  <- inputs
+    module  <- inputs.modules
     element <- module.elements
   } do
     element match {
@@ -65,7 +65,7 @@ final class BloopSession(
 object BloopSession {
 
   def apply(
-    inputs: Seq[ModuleInputs],
+    inputs: compose.Inputs,
     remoteServer: BloopCompiler,
     bspServer: BspServer,
     watcher: Build.Watcher

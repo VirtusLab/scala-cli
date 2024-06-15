@@ -7,7 +7,8 @@ import scala.build.EitherCps.*
 import scala.build.EitherSequence
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
-import scala.build.input.{InputsComposer, ModuleInputs}
+import scala.build.input.ModuleInputs
+import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.collection.mutable
@@ -205,10 +206,10 @@ final case class InputsComposer(
       val argsWithWorkspace = m.roots.map(r => os.Path(r, workspacePath).toString)
       val moduleInputs      = inputsFromArgs(argsWithWorkspace, Some(moduleName))
       m -> value(moduleInputs).copy(mayAppendHash = false)
-    }
+    }.toMap
 
     val projectNameMap: Map[String, ProjectName] =
-      moduleInputsInfo.map((moduleDef, module) => moduleDef.name -> module.projectName).toMap
+      moduleInputsInfo.map((moduleDef, module) => moduleDef.name -> module.projectName)
 
     val moduleInputs = moduleInputsInfo.map { (moduleDef, module) =>
       val moduleDeps: Seq[ProjectName] = moduleDef.dependsOn.map(projectNameMap)
@@ -216,9 +217,10 @@ final case class InputsComposer(
       module.dependsOn(moduleDeps)
         .withForcedWorkspace(workspacePath)
         .copy(mayAppendHash = false)
-    }
+    }.toSeq
 
     val targetModule = modules.find(_.roots.toSet equals args.toSet)
+      .map(moduleInputsInfo)
       .getOrElse(moduleInputs.head)
 
     ComposedInputs(modules = moduleInputs, targetModule = targetModule, workspace = workspacePath)
