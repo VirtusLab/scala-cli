@@ -1,8 +1,9 @@
-package scala.build.input
+package scala.build.input.compose
 
 import scala.build.Build
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.BuildException
+import scala.build.input.ModuleInputs
 import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
@@ -51,16 +52,11 @@ class InputsComposerTest extends TestUtil.ScalaCliBuildSuite {
     )
 
     testInputs.fromRoot { root =>
-      val argsToInputs: (Seq[String], Option[ProjectName]) => Either[BuildException, ModuleInputs] =
-        (args, projectNameOpt) => {
-          assert(projectNameOpt.isDefined)
-          val emptyInputs = ModuleInputs.empty(projectNameOpt.get.name)
-          Right(Build.updateInputs(emptyInputs, BuildOptions()))
-        }
+      val argsToInputs = InputsComposerUtils.argsToEmptyModules
       val modules = InputsComposer(Seq(root.toString), root, argsToInputs, true)
         .getInputs
         .toSeq
-        .flatten
+        .head.modules
 
       assert(modules.nonEmpty)
       assert(
