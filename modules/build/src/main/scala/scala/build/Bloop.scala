@@ -43,7 +43,8 @@ object Bloop {
 
       val buildTarget = buildTargetOpt.getOrElse {
         throw new Exception(
-          s"Expected to find project '$projectName' in build targets (only got ${results.getTargets.asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
+          s"Expected to find project '$projectName' in build targets (only got ${results.getTargets
+              .asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
         )
       }
 

@@ -34,7 +34,8 @@ object HelpMessages {
   def commandFullHelpReference(commandName: String, needsPower: Boolean = false): String = {
     val maybePowerString = if needsPower then "--power " else ""
     s"""You are currently viewing the basic help for the $commandName sub-command. You can view the full help by running: 
-       |   ${Console.BOLD}${ScalaCli.progName} $maybePowerString$commandName --help-full${Console.RESET}""".stripMargin
+       |   ${Console.BOLD}${ScalaCli.progName} $maybePowerString$commandName --help-full${Console
+        .RESET}""".stripMargin
   }
 
   def commandDocWebsiteReference(websiteSuffix: String): String =

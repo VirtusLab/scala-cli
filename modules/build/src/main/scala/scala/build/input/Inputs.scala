@@ -400,7 +400,8 @@ object Inputs {
              |Workspace path cannot contain a ${Console.BOLD}${File.pathSeparator}${Console.RESET}.
              |Consider moving your project to a different path.
              |Alternatively, you can force your workspace with the '--workspace' option:
-             |    ${Console.BOLD}$prog --workspace <alternative-workspace-path> $argsString${Console.RESET}"""
+             |    ${Console.BOLD}$prog --workspace <alternative-workspace-path> $argsString${Console
+              .RESET}"""
             .stripMargin
         ))
       else

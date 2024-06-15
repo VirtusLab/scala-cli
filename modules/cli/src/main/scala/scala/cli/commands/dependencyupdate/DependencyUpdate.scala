@@ -96,7 +96,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         os.write.over(file, appliedDiagnostics)
         diagnostics.foreach(diagnostic =>
           logger.message(
-            s"Updated dependency ${diagnostic._2.dependencyModuleName}: ${diagnostic._2.currentVersion} -> ${diagnostic._2.newVersion}"
+            s"Updated dependency ${diagnostic._2.dependencyModuleName}: ${diagnostic._2
+                .currentVersion} -> ${diagnostic._2.newVersion}"
           )
         )
       case (Left(file), diagnostics) =>

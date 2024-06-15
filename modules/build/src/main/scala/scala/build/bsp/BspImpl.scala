@@ -591,7 +591,8 @@ final class BspImpl(
             bloopSession.get().remoteServer.jvmVersion.exists(_.value < projectJavaHome.version)
           ) {
             reloadableOptions.logger.log(
-              s"Bloop JVM version too low, current ${bloopSession.get().remoteServer.jvmVersion.get.value} expected ${projectJavaHome.version}, restarting server"
+              s"Bloop JVM version too low, current ${bloopSession.get().remoteServer.jvmVersion.get
+                  .value} expected ${projectJavaHome.version}, restarting server"
             )
             // RelodableOptions don't take into account buildOptions from sources
             val updatedReloadableOptions = reloadableOptions.copy(

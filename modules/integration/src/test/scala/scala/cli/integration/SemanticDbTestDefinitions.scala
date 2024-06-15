@@ -100,7 +100,8 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
           val semDbFile = semDbFiles.head
           val expectedSemanticDbPath =
             if (semanticDbTargetDir.isDefined)
-              os.rel / semanticDbTargetDir.get / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
+              os.rel / semanticDbTargetDir
+                .get / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
             else
               os.rel / "META-INF" / "semanticdb" / "foo" / s"$sourceFileName.semanticdb"
           expect(semDbFile.endsWith(expectedSemanticDbPath))

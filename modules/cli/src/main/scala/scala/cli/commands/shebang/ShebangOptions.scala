@@ -31,12 +31,16 @@ object ShebangOptions {
        |
        |When relying on the `run` sub-command, inputs and $baseRunnerName options can be mixed,
        |while program args have to be specified after `--`
-       |  ${Console.BOLD}$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...${Console.RESET}
+       |  ${Console
+        .BOLD}$progName [command] [${baseRunnerName}_options | input]... -- [program_arguments]...${Console
+        .RESET}
        |
        |However, for the `shebang` sub-command, only a single input file can be set, while all $baseRunnerName options
        |have to be set before the input file.
        |All inputs after the first are treated as program arguments, without the need for `--`
-       |  ${Console.BOLD}$progName shebang [${baseRunnerName}_options]... input [program_arguments]...${Console.RESET}
+       |  ${Console
+        .BOLD}$progName shebang [${baseRunnerName}_options]... input [program_arguments]...${Console
+        .RESET}
        |
        |Using this, it is possible to conveniently set up Unix shebang scripts. For example:
        |  ${ScalaCliConsole.GRAY}#!/usr/bin/env -S $progName shebang --scala-version 2.13
