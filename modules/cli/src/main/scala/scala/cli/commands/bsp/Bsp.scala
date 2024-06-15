@@ -8,7 +8,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
-import scala.build.input.{ModuleInputs, compose}
+import scala.build.input.{Module, compose}
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.ScalaCommand

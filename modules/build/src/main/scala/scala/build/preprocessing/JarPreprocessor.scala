@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{JarFile, ModuleInputs, ScalaCliInvokeData, SingleElement}
+import scala.build.input.{JarFile, Module, ScalaCliInvokeData, SingleElement}
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,

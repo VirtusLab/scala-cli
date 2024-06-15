@@ -3,7 +3,7 @@ package scala.build.input.compose
 import scala.build.Build
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.BuildException
-import scala.build.input.ModuleInputs
+import scala.build.input.Module
 import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions

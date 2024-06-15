@@ -1,7 +1,7 @@
 package scala.build.internal.resource
 
 import scala.build.Build
-import scala.build.input.{CFile, ModuleInputs}
+import scala.build.input.{CFile, Module}
 
 object NativeResourceMapper {
 

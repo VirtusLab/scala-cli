@@ -7,7 +7,7 @@ import scala.build.EitherCps.*
 import scala.build.EitherSequence
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
-import scala.build.input.ModuleInputs
+import scala.build.input.Module
 import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
@@ -112,25 +112,25 @@ object InputsComposer {
       case _ => Left(ModuleConfigurationError(s"${Keys.modules}.$key must be a table"))
 }
 
-/** Creates [[ModuleInputs]] given the initial arguments passed to the command, Looks for module
+/** Creates [[Module]] given the initial arguments passed to the command, Looks for module
   * config .toml file and if found composes module inputs according to the defined config, otherwise
   * if module config is not found or if [[allowForbiddenFeatures]] is not set, returns only one
   * basic module created from initial args (see [[simpleInputs]])
   *
   * @param args
-  *   initial args passed to command
+  * initial args passed to command
   * @param cwd
-  *   working directory
+  * working directory
   * @param inputsFromArgs
-  *   function that proceeds with the whole [[ModuleInputs]] creation flow (validating elements,
-  *   etc.) this takes into account options passed from CLI like in SharedOptions
+  * function that proceeds with the whole [[Module]] creation flow (validating elements,
+  * etc.) this takes into account options passed from CLI like in SharedOptions
   * @param allowForbiddenFeatures
   */
 final case class InputsComposer(
-  args: Seq[String],
-  cwd: os.Path,
-  inputsFromArgs: (Seq[String], Option[ProjectName]) => Either[BuildException, ModuleInputs],
-  allowForbiddenFeatures: Boolean
+                                 args: Seq[String],
+                                 cwd: os.Path,
+                                 inputsFromArgs: (Seq[String], Option[ProjectName]) => Either[BuildException, Module],
+                                 allowForbiddenFeatures: Boolean
 ) {
   import InputsComposer.*
 
@@ -201,7 +201,7 @@ final case class InputsComposer(
     moduleConfigPath: os.Path
   ): Either[BuildException, ComposedInputs] = either {
     val workspacePath = moduleConfigPath / os.up
-    val moduleInputsInfo: Map[ModuleDefinition, ModuleInputs] = modules.map { m =>
+    val moduleInputsInfo: Map[ModuleDefinition, Module] = modules.map { m =>
       val moduleName        = ProjectName(m.name)
       val argsWithWorkspace = m.roots.map(r => os.Path(r, workspacePath).toString)
       val moduleInputs      = inputsFromArgs(argsWithWorkspace, Some(moduleName))

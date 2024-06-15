@@ -21,7 +21,7 @@ import scala.build.errors.{
   Diagnostic,
   ParsingInputsException
 }
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData, compose}
+import scala.build.input.{Module, ScalaCliInvokeData, compose}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -33,7 +33,7 @@ import scala.util.{Failure, Success}
 /** The implementation for [[Bsp]] command.
   *
   * @param argsToInputs
-  *   a function transforming terminal args to [[ModuleInputs]]
+  *   a function transforming terminal args to [[Module]]
   * @param bspReloadableOptionsReference
   *   reference to the current instance of [[BspReloadableOptions]]
   * @param threads
@@ -240,9 +240,9 @@ final class BspImpl(
     reloadableOptions: BspReloadableOptions
   ): Either[(BuildException, ProjectName), Unit] = {
     def doBuildOnce(
-      moduleInputs: ModuleInputs,
-      data: PreBuildData,
-      scope: Scope
+                     moduleInputs: Module,
+                     data: PreBuildData,
+                     scope: Scope
     ): Either[(BuildException, ProjectName), Build] =
       Build.buildOnce(
         inputs = moduleInputs,
@@ -385,7 +385,7 @@ final class BspImpl(
           )
 
         doCompile().thenCompose { res =>
-          def doPostProcess(inputs: ModuleInputs, data: PreBuildData, scope: Scope): Unit =
+          def doPostProcess(inputs: Module, data: PreBuildData, scope: Scope): Unit =
             for (sv <- data.project.scalaCompiler.map(_.scalaVersion))
               Build.postProcess(
                 data.generatedSources,
@@ -788,9 +788,9 @@ object BspImpl {
   private final case class PreBuildProject(prebuildModules: Seq[PreBuildModule])
 
   private final case class PreBuildModule(
-    inputs: ModuleInputs,
-    mainScope: PreBuildData,
-    testScope: PreBuildData,
-    diagnostics: Seq[Diagnostic]
+                                           inputs: Module,
+                                           mainScope: PreBuildData,
+                                           testScope: PreBuildData,
+                                           diagnostics: Seq[Diagnostic]
   )
 }

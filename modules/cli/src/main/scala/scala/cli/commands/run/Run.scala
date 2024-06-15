@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.{Module, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.EnvVar
@@ -64,7 +64,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       options,
       args.remaining,
       args.unparsed,
-      () => ModuleInputs.default(),
+      () => Module.default(),
       logger,
       invokeData
     )
@@ -113,12 +113,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   def runCommand(
-    options0: RunOptions,
-    inputArgs: Seq[String],
-    programArgs: Seq[String],
-    defaultInputs: () => Option[ModuleInputs],
-    logger: Logger,
-    invokeData: ScalaCliInvokeData
+                  options0: RunOptions,
+                  inputArgs: Seq[String],
+                  programArgs: Seq[String],
+                  defaultInputs: () => Option[Module],
+                  logger: Logger,
+                  invokeData: ScalaCliInvokeData
   ): Unit = {
     val shouldDefaultServerFalse =
       inputArgs.isEmpty && options0.shared.compilationServer.server.isEmpty &&

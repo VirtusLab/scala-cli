@@ -13,7 +13,7 @@ import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.compose.{ComposedInputs, InputsComposer, SimpleInputs}
-import scala.build.input.{ModuleInputs, OnDisk, Virtual, WorkspaceOrigin, compose}
+import scala.build.input.{Module, OnDisk, Virtual, WorkspaceOrigin, compose}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
@@ -27,9 +27,9 @@ import scala.jdk.CollectionConverters.*
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   def downloadDeps(
-    inputs: ModuleInputs,
-    options: BuildOptions,
-    logger: Logger
+                    inputs: Module,
+                    options: BuildOptions,
+                    logger: Logger
   ): Either[BuildException, Artifacts] = {
 
     // ignoring errors related to sources themselves
@@ -84,12 +84,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   def runSafe(
-    options: SharedOptions,
-    inputs: ModuleInputs,
-    logger: Logger,
-    buildOptions: BuildOptions,
-    previousCommandName: Option[String],
-    args: Seq[String]
+               options: SharedOptions,
+               inputs: Module,
+               logger: Logger,
+               buildOptions: BuildOptions,
+               previousCommandName: Option[String],
+               args: Seq[String]
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),

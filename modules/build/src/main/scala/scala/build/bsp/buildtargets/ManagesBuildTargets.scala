@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.bsp4j as b
 
 import scala.build.GeneratedSource
-import scala.build.input.{ModuleInputs, compose}
+import scala.build.input.{Module, compose}
 import scala.build.internal.Constants
 import scala.build.options.Scope
 

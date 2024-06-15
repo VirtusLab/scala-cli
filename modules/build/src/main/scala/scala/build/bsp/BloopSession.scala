@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.{ModuleInputs, OnDisk, SingleFile, Virtual, compose}
+import scala.build.input.{Module, OnDisk, SingleFile, Virtual, compose}
 
 final class BloopSession(
   val inputs: compose.Inputs,

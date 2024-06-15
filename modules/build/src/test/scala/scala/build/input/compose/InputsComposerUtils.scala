@@ -4,15 +4,15 @@ import scala.build.Build
 import scala.build.options.BuildOptions
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.BuildException
-import scala.build.input.ModuleInputs
+import scala.build.input.Module
 
 object InputsComposerUtils {
   def argsToEmptyModules(
     args: Seq[String],
     projectNameOpt: Option[ProjectName]
-  ): Either[BuildException, ModuleInputs] = {
+  ): Either[BuildException, Module] = {
     assert(projectNameOpt.isDefined)
-    val emptyInputs = ModuleInputs.empty(projectNameOpt.get.name)
+    val emptyInputs = Module.empty(projectNameOpt.get.name)
     Right(Build.updateInputs(emptyInputs, BuildOptions()))
   }
 }
