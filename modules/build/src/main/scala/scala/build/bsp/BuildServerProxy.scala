@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture
 
 import scala.build.GeneratedSource
 import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
-import scala.build.input.ModuleInputs
+import scala.build.input.{ModuleInputs, compose}
 import scala.build.options.Scope
 
 /** A wrapper for [[BspServer]], allowing to reload the workspace on the fly.
@@ -113,6 +113,6 @@ class BuildServerProxy(
     bspServer().addTarget(projectName, workspace, scope, generatedSources)
   def resetTargets(): Unit =
     bspServer().resetTargets()
-  def newInputs(inputs: Seq[ModuleInputs]): Unit =
+  def newInputs(inputs: compose.Inputs): Unit =
     bspServer().newInputs(inputs)
 }

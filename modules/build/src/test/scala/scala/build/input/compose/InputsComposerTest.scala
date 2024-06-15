@@ -71,4 +71,41 @@ class InputsComposerTest extends TestUtil.ScalaCliBuildSuite {
       assert(websiteModule.moduleDependencies.toSet == Set(coreProjectName))
     }
   }
+
+  test("correctly create module build order") {
+    val testInputs = TestInputs(
+      os.rel / Constants.moduleConfigFileName ->
+        """[modules.root1]
+          |dependsOn = ["core"]
+          |
+          |[modules.core]
+          |
+          |[modules.utils]
+          |
+          |[modules.root2]
+          |dependsOn = ["core", "utils"]
+          |
+          |[modules.uberRoot]
+          |dependsOn = ["root1", "root2"]
+          |""".stripMargin
+    )
+
+    testInputs.fromRoot { root =>
+      val argsToInputs = InputsComposerUtils.argsToEmptyModules
+      val maybeInputs = InputsComposer(Seq(root.toString), root, argsToInputs, true)
+        .getInputs
+
+      assert(maybeInputs.isRight, clue = maybeInputs)
+
+      val inputs = maybeInputs.toOption.get
+
+      val buildOrder = inputs.modulesBuildOrder
+
+      def baseProjectName(projectName: ProjectName): String = {
+        projectName.name.take(projectName.name.indexOf("_"))
+      }
+
+      assert(buildOrder.map(_.projectName).map(baseProjectName) == Seq("utils", "core", "root1", "root2", "uberRoot"), clue = buildOrder.map(_.projectName).map(baseProjectName))
+    }
+  }
 }

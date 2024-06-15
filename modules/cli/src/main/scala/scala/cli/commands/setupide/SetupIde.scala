@@ -7,13 +7,13 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.compose
 import scala.build.input.compose.{ComposedInputs, InputsComposer, SimpleInputs}
-import scala.build.input.{ModuleInputs, OnDisk, Virtual, WorkspaceOrigin}
+import scala.build.input.{ModuleInputs, OnDisk, Virtual, WorkspaceOrigin, compose}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
@@ -69,7 +69,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   override def runCommand(options: SetupIdeOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
-    val inputs = options.shared.composeInputs(args.all).orExit(logger)
+    val inputs       = options.shared.composeInputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val bspPath = writeBspConfiguration(
@@ -145,7 +145,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           .orExit(logger)
           .fold(args)(p => Seq(p.toString))
       case SimpleInputs(singleModule) => singleModule.elements
-        .collect { case d: OnDisk => d.path.toString }
+          .collect { case d: OnDisk => d.path.toString }
 
     val ideInputs = IdeInputs(
       options.shared.validateInputArgs(args)

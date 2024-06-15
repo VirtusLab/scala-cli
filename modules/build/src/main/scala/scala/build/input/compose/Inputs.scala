@@ -1,39 +1,53 @@
 package scala.build.input.compose
 
-import scala.build.input.WorkspaceOrigin
-import scala.build.input.ModuleInputs
+import scala.build.bsp.buildtargets.ProjectName
+import scala.build.input.{ModuleInputs, WorkspaceOrigin}
 import scala.build.options.BuildOptions
+import scala.collection.mutable
 
 sealed trait Inputs {
-  
+
   def modules: Seq[ModuleInputs]
 
-  /** Module targeted by the user. If a command requires a target to be executed (e.g. run or compile), it should be executed on this module. */
+  /** Module targeted by the user. If a command requires a target to be executed (e.g. run or
+    * compile), it should be executed on this module.
+    */
   def targetModule: ModuleInputs
-  /** Build order for modules to execute the command on the [[targetModule]] */
+
+  /** Order in which to build all modules */
   def modulesBuildOrder: Seq[ModuleInputs]
-  def workspaceOrigin: WorkspaceOrigin
+
+  /** Order in which to build the target module with its dependencies, e.g. to execute a command on
+    * [[targetModule]]
+    */
+  def targetBuildOrder: Seq[ModuleInputs]
+  def workspaceOrigin: Option[WorkspaceOrigin]
   def workspace: os.Path
 
-  def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions)): (Inputs, Seq[BuildOptions])
+  def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions))
+    : (Inputs, Seq[BuildOptions])
 }
 
 /** Result of using [[InputsComposer]] with module config file present */
 case class ComposedInputs(
   modules: Seq[ModuleInputs],
   targetModule: ModuleInputs,
-  workspace: os.Path,
+  workspace: os.Path
 ) extends Inputs {
 
   // Forced to be the directory where module config file (modules.yaml) resides
-  override val workspaceOrigin: WorkspaceOrigin = WorkspaceOrigin.Forced
+  override val workspaceOrigin: Option[WorkspaceOrigin] = Some(WorkspaceOrigin.Forced)
 
-  lazy val modulesBuildOrder: Seq[ModuleInputs] = {
-    val nameMap = modules.map(m => m.projectName -> m)
-    val dependencyGraph = modules.map(m => m.projectName -> m.moduleDependencies)
+  private val nameMap: Map[ProjectName, ModuleInputs] = modules.map(m => m.projectName -> m).toMap
+  private val dependencyGraph = modules.map(m => m.projectName -> m.moduleDependencies).toMap
 
-    val visited = mutable.Set.empty[Name] // Track visited nodes
-    val result = mutable.Stack.empty[Name] // Use a stack to build the result in reverse order
+  private def buildOrderForModule(
+    root: ModuleInputs,
+    visitedPreviously: Set[ProjectName]
+  ): Seq[ProjectName] = {
+    val visited = mutable.Set.from(visitedPreviously) // Track visited nodes
+    val result =
+      mutable.Stack.empty[ProjectName] // Use a stack to build the result in reverse order
 
     def visit(node: ProjectName): Unit = {
       if (!visited.contains(node)) {
@@ -43,37 +57,53 @@ case class ComposedInputs(
       }
     }
 
-    dependencyGraph.keys.foreach(visit)
-
-    result.toSeq.reverse
+    visit(root.projectName)
+    result.reverse.toSeq
   }
 
-  def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions)): (ComposedInputs, Seq[BuildOptions]) = {
-    val (preprocessedModules, buildOptions) =>
-      modules.filter(_.projectName == targetModule.projectName)
+  override lazy val modulesBuildOrder: Seq[ModuleInputs] =
+    modules.foldLeft(Seq.empty[ProjectName]) { (acc, module) =>
+      val buildOrder = buildOrderForModule(module, visitedPreviously = acc.toSet)
+      acc.appendedAll(buildOrder)
+    }.map(nameMap)
+
+  override lazy val targetBuildOrder: Seq[ModuleInputs] =
+    buildOrderForModule(targetModule, Set.empty).map(nameMap)
+
+  def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions))
+    : (ComposedInputs, Seq[BuildOptions]) = {
+    val (preprocessedModules, buildOptions) =
+      modules.filterNot(_.projectName == targetModule.projectName)
         .map(preprocess)
         .unzip
 
-      val preprocessedTargetModule = preprocess(targetModule)
+    val (preprocessedTargetModule, targetBuildOptions) = preprocess(targetModule)
 
-      copy(modules = preprocessedModules ++ preprocessedTargetModule, targetModule = preprocessedTargetModule) -> buildOptions
+    copy(
+      modules = preprocessedModules.appended(preprocessedTargetModule),
+      targetModule = preprocessedTargetModule
+    ) -> buildOptions.appended(targetBuildOptions)
   }
 }
 
 /** Essentially a wrapper over a single module, no config file for modules involved */
 case class SimpleInputs(
-  singleModule: ModuleInputs,
+  singleModule: ModuleInputs
 ) extends Inputs {
   override val modules: Seq[ModuleInputs] = Seq(singleModule)
 
   override val targetModule: ModuleInputs = singleModule
 
-  override val modulesBuildOrder = modules
+  override val modulesBuildOrder: Seq[ModuleInputs] = modules
+
+  override val targetBuildOrder: Seq[ModuleInputs] = modules
 
   override val workspace: os.Path = singleModule.workspace
 
-  override val workspaceOrigin: WorkspaceOrigin = singleModule.workspaceOrigin
+  override val workspaceOrigin: Option[WorkspaceOrigin] = singleModule.workspaceOrigin
 
-  def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions)): (ComposedInputs, Seq[BuildOptions]) =
-    copy(singleModule = preprocess(singleModule)) -> buildOptions
+  override def preprocessInputs(preprocess: ModuleInputs => (ModuleInputs, BuildOptions))
+    : (SimpleInputs, Seq[BuildOptions]) =
+    val (preprocessedModule, buildOptions) = preprocess(singleModule)
+    copy(singleModule = preprocessedModule) -> Seq(buildOptions)
 }

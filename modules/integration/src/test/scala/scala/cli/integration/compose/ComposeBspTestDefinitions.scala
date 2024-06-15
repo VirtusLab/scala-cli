@@ -57,7 +57,7 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
     }
   }
 
-  test("composed bsp should have build targets for all modules") {
+  test("composed bsp should have build targets for all modules and compile OK") {
     val testInputs = TestInputs(
       os.rel / Constants.moduleConfigFileName ->
         """[modules.core]
