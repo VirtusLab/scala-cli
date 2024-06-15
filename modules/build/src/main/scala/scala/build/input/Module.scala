@@ -17,7 +17,7 @@ import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.matching.Regex
 import scala.util.{Properties, Try}
 
-final case class ModuleInputs(
+final case class Module(
   elements: Seq[Element],
   defaultMainClassElement: Option[Script],
   workspace: os.Path,
@@ -69,23 +69,23 @@ final case class ModuleInputs(
 
   def scopeProjectName(scope: Scope): ProjectName = projectName.withScopeAppended(scope)
 
-  def add(extraElements: Seq[Element]): ModuleInputs =
+  def add(extraElements: Seq[Element]): Module =
     if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
-  def withElements(elements: Seq[Element]): ModuleInputs =
+  def withElements(elements: Seq[Element]): Module =
     copy(elements = elements)
 
   def generatedSrcRoot(scope: Scope): os.Path =
     workspace / Constants.workspaceDirName / projectName.name / "src_generated" / scope.name
 
-  private def inHomeDir(directories: Directories): ModuleInputs =
+  private def inHomeDir(directories: Directories): Module =
     copy(
       workspace = elements.homeWorkspace(directories),
       mayAppendHash = false,
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
-  def avoid(forbidden: Seq[os.Path], directories: Directories): ModuleInputs =
+  def avoid(forbidden: Seq[os.Path], directories: Directories): Module =
     if forbidden.exists(workspace.startsWith) then inHomeDir(directories) else this
-  def checkAttributes(directories: Directories): ModuleInputs = {
+  def checkAttributes(directories: Directories): Module = {
     @tailrec
     def existingParent(p: os.Path): Option[os.Path] =
       if (os.exists(p)) Some(p)
@@ -133,7 +133,7 @@ final case class ModuleInputs(
     workspace / Constants.workspaceDirName / projectName.name / "doc"
 }
 
-object ModuleInputs {
+object Module {
   private def forValidatedElems(
     validElems: Seq[Element],
     workspace: os.Path,
@@ -143,7 +143,7 @@ object ModuleInputs {
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean,
     forcedProjectName: Option[ProjectName]
-  ): ModuleInputs = {
+  ): Module = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
@@ -156,7 +156,7 @@ object ModuleInputs {
     }
     // only on-disk scripts need a main class override
     val defaultMainClassElemOpt = validElems.collectFirst { case script: Script => script }
-    ModuleInputs(
+    Module(
       updatedElems,
       defaultMainClassElemOpt,
       workspace,
@@ -339,7 +339,7 @@ object ModuleInputs {
     allowRestrictedFeatures: Boolean,
     extraClasspathWasPassed: Boolean,
     forcedProjectName: Option[ProjectName]
-  )(using invokeData: ScalaCliInvokeData): Either[BuildException, ModuleInputs] = {
+  )(using invokeData: ScalaCliInvokeData): Either[BuildException, Module] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(
         args,
@@ -430,22 +430,22 @@ object ModuleInputs {
   }
 
   def apply(
-    args: Seq[String],
-    cwd: os.Path,
-    defaultInputs: () => Option[ModuleInputs] = () => None,
-    download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
-    stdinOpt: => Option[Array[Byte]] = None,
-    scriptSnippetList: List[String] = List.empty,
-    scalaSnippetList: List[String] = List.empty,
-    javaSnippetList: List[String] = List.empty,
-    markdownSnippetList: List[String] = List.empty,
-    acceptFds: Boolean = false,
-    forcedWorkspace: Option[os.Path] = None,
-    enableMarkdown: Boolean = false,
-    allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean,
-    forcedProjectName: Option[ProjectName] = None
-  )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] =
+             args: Seq[String],
+             cwd: os.Path,
+             defaultInputs: () => Option[Module] = () => None,
+             download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
+             stdinOpt: => Option[Array[Byte]] = None,
+             scriptSnippetList: List[String] = List.empty,
+             scalaSnippetList: List[String] = List.empty,
+             javaSnippetList: List[String] = List.empty,
+             markdownSnippetList: List[String] = List.empty,
+             acceptFds: Boolean = false,
+             forcedWorkspace: Option[os.Path] = None,
+             enableMarkdown: Boolean = false,
+             allowRestrictedFeatures: Boolean,
+             extraClasspathWasPassed: Boolean,
+             forcedProjectName: Option[ProjectName] = None
+  )(using ScalaCliInvokeData): Either[BuildException, Module] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed
@@ -471,10 +471,10 @@ object ModuleInputs {
         forcedProjectName
       )
 
-  def default(): Option[ModuleInputs] = None
+  def default(): Option[Module] = None
 
-  def empty(workspace: os.Path, enableMarkdown: Boolean): ModuleInputs =
-    ModuleInputs(
+  def empty(workspace: os.Path, enableMarkdown: Boolean): Module =
+    Module(
       elements = Nil,
       defaultMainClassElement = None,
       workspace = workspace,
@@ -486,8 +486,8 @@ object ModuleInputs {
       moduleDependencies = Nil
     )
 
-  def empty(projectName: String): ModuleInputs =
-    ModuleInputs(Nil, None, os.pwd, projectName, false, None, true, false, Nil)
+  def empty(projectName: String): Module =
+    Module(Nil, None, os.pwd, projectName, false, None, true, false, Nil)
 
   def baseName(p: os.Path) = if (p == os.root) "" else p.baseName
 }

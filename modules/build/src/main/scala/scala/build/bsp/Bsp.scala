@@ -3,7 +3,7 @@ package scala.build.bsp
 import java.io.{InputStream, OutputStream}
 
 import scala.build.errors.BuildException
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData, compose}
+import scala.build.input.{Module, ScalaCliInvokeData, compose}
 import scala.concurrent.Future
 
 trait Bsp {

@@ -10,7 +10,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{
   JavaFile,
-  ModuleInputs,
+  Module,
   ScalaCliInvokeData,
   SingleElement,
   VirtualJavaFile

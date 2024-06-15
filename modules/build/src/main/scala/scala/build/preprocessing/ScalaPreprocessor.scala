@@ -14,7 +14,7 @@ import scala.build.directives.{
 }
 import scala.build.errors.*
 import scala.build.input.{
-  ModuleInputs,
+  Module,
   ScalaCliInvokeData,
   ScalaFile,
   SingleElement,

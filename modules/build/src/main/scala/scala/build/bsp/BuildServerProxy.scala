@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture
 
 import scala.build.GeneratedSource
 import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
-import scala.build.input.{ModuleInputs, compose}
+import scala.build.input.{Module, compose}
 import scala.build.options.Scope
 
 /** A wrapper for [[BspServer]], allowing to reload the workspace on the fly.

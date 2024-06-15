@@ -140,7 +140,7 @@ final case class CrossSources(
 
 object CrossSources {
 
-  private def withinTestSubDirectory(p: ScopePath, inputs: ModuleInputs): Boolean =
+  private def withinTestSubDirectory(p: ScopePath, inputs: Module): Boolean =
     p.root.exists { path =>
       val fullPath = path / p.subPath
       inputs.elements.exists {
@@ -156,13 +156,13 @@ object CrossSources {
     *   a CrossSources and Inputs which contains element processed from using directives
     */
   def forModuleInputs(
-    inputs: ModuleInputs,
-    preprocessors: Seq[Preprocessor],
-    logger: Logger,
-    suppressWarningOptions: SuppressWarningOptions,
-    exclude: Seq[Positioned[String]] = Nil,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, ModuleInputs)] = either {
+                       inputs: Module,
+                       preprocessors: Seq[Preprocessor],
+                       logger: Logger,
+                       suppressWarningOptions: SuppressWarningOptions,
+                       exclude: Seq[Positioned[String]] = Nil,
+                       maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Module)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =
@@ -379,8 +379,8 @@ object CrossSources {
     *   the resource directories that should be added to the classpath
     */
   private def resolveResourceDirs(
-    allInputs: ModuleInputs,
-    preprocessedSources: Seq[PreprocessedSource]
+                                   allInputs: Module,
+                                   preprocessedSources: Seq[PreprocessedSource]
   ): Seq[WithBuildRequirements[os.Path]] = {
     val fromInputs = allInputs.elements
       .collect { case r: ResourceDirectory => WithBuildRequirements(BuildRequirements(), r.path) }

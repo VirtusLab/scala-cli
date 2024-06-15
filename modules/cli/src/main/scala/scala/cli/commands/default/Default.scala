@@ -4,7 +4,7 @@ import caseapp.core.help.RuntimeCommandsHelp
 import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
-import scala.build.input.{ModuleInputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.{Module, ScalaCliInvokeData, SubCommand}
 import scala.cli.commands.ScalaCommandWithCustomHelp
 import scala.cli.commands.repl.{Repl, ReplOptions}
 import scala.cli.commands.run.{Run, RunOptions}
@@ -56,7 +56,7 @@ class Default(actualHelp: => RuntimeCommandsHelp)
             runOptions,
             args.remaining,
             args.unparsed,
-            () => ModuleInputs.default(),
+            () => Module.default(),
             logger,
             invokeData
           )

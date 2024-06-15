@@ -7,7 +7,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{
   MarkdownFile,
-  ModuleInputs,
+  Module,
   ScalaCliInvokeData,
   SingleElement,
   VirtualMarkdownFile
