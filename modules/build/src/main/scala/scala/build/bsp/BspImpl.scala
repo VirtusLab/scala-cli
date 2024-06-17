@@ -240,9 +240,9 @@ final class BspImpl(
     reloadableOptions: BspReloadableOptions
   ): Either[(BuildException, ProjectName), Unit] = {
     def doBuildOnce(
-                     moduleInputs: Module,
-                     data: PreBuildData,
-                     scope: Scope
+      moduleInputs: Module,
+      data: PreBuildData,
+      scope: Scope
     ): Either[(BuildException, ProjectName), Build] =
       Build.buildOnce(
         inputs = moduleInputs,
@@ -788,9 +788,9 @@ object BspImpl {
   private final case class PreBuildProject(prebuildModules: Seq[PreBuildModule])
 
   private final case class PreBuildModule(
-                                           inputs: Module,
-                                           mainScope: PreBuildData,
-                                           testScope: PreBuildData,
-                                           diagnostics: Seq[Diagnostic]
+    inputs: Module,
+    mainScope: PreBuildData,
+    testScope: PreBuildData,
+    diagnostics: Seq[Diagnostic]
   )
 }

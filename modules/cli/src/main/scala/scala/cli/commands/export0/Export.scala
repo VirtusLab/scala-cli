@@ -31,11 +31,11 @@ object Export extends ScalaCommand[ExportOptions] {
     super.helpFormat.withPrimaryGroup(HelpGroup.BuildToolExport)
 
   private def prepareBuild(
-                            inputs: Module,
-                            buildOptions: BuildOptions,
-                            logger: Logger,
-                            verbosity: Int,
-                            scope: Scope
+    inputs: Module,
+    buildOptions: BuildOptions,
+    logger: Logger,
+    verbosity: Int,
+    scope: Scope
   ): Either[BuildException, (Sources, BuildOptions)] = either {
 
     logger.log("Preparing build")

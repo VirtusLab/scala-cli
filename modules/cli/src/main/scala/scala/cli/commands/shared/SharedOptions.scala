@@ -716,22 +716,22 @@ object SharedOptions {
 
   /** [[Module]] builder, handy when you don't have a [[SharedOptions]] instance at hand */
   def inputs(
-              args: Seq[String],
-              defaultInputs: () => Option[Module],
-              resourceDirs: Seq[String],
-              directories: scala.build.Directories,
-              logger: scala.build.Logger,
-              cache: FileCache[Task],
-              forcedWorkspaceOpt: Option[os.Path],
-              defaultForbiddenDirectories: Boolean,
-              forbid: List[String],
-              scriptSnippetList: List[String],
-              scalaSnippetList: List[String],
-              javaSnippetList: List[String],
-              markdownSnippetList: List[String],
-              enableMarkdown: Boolean = false,
-              extraClasspathWasPassed: Boolean = false,
-              forcedProjectName: Option[ProjectName] = None
+    args: Seq[String],
+    defaultInputs: () => Option[Module],
+    resourceDirs: Seq[String],
+    directories: scala.build.Directories,
+    logger: scala.build.Logger,
+    cache: FileCache[Task],
+    forcedWorkspaceOpt: Option[os.Path],
+    defaultForbiddenDirectories: Boolean,
+    forbid: List[String],
+    scriptSnippetList: List[String],
+    scalaSnippetList: List[String],
+    javaSnippetList: List[String],
+    markdownSnippetList: List[String],
+    enableMarkdown: Boolean = false,
+    extraClasspathWasPassed: Boolean = false,
+    forcedProjectName: Option[ProjectName] = None
   )(using ScalaCliInvokeData): Either[BuildException, Module] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
