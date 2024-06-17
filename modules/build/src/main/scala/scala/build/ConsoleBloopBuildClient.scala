@@ -16,6 +16,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
 class ConsoleBloopBuildClient(
+  projectNameOpt: Option[ProjectName],
   logger: Logger,
   keepDiagnostics: Boolean = false,
   generatedSources: mutable.Map[ProjectName, Seq[GeneratedSource]] = mutable.Map()
@@ -27,7 +28,7 @@ class ConsoleBloopBuildClient(
     if (projectParams.isEmpty) ""
     else " (" + projectParams.mkString(", ") + ")"
 
-  private def projectName = "project" + projectNameSuffix
+  private def projectDisplayName = s"${projectNameOpt.fold("project")(_.name)}$projectNameSuffix"
 
   private var printedStart = false
 
@@ -110,7 +111,7 @@ class ConsoleBloopBuildClient(
     for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
       printedStart = true
       val msg0 =
-        if (params.getDataKind == "compile-task") s"Compiling $projectName"
+        if (params.getDataKind == "compile-task") s"Compiling $projectDisplayName"
         else msg
       logger.message(gray + msg0 + reset)
     }
@@ -126,8 +127,8 @@ class ConsoleBloopBuildClient(
         val msg0 =
           if (params.getDataKind == "compile-report")
             params.getStatus match {
-              case bsp4j.StatusCode.OK        => s"Compiled $projectName"
-              case bsp4j.StatusCode.ERROR     => s"Error compiling $projectName"
+              case bsp4j.StatusCode.OK        => s"Compiled $projectDisplayName"
+              case bsp4j.StatusCode.ERROR     => s"Error compiling $projectDisplayName"
               case bsp4j.StatusCode.CANCELLED => s"Compilation cancelled$projectNameSuffix"
             }
           else msg

@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
-
+import scala.cli.integration.compose.ComposeRunDefinitions
 import scala.cli.integration.util.DockerServer
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -23,7 +23,8 @@ abstract class RunTestDefinitions
     with RunScalacCompatTestDefinitions
     with RunSnippetTestDefinitions
     with RunScalaPyTestDefinitions
-    with RunZipTestDefinitions { _: TestScalaVersion =>
+    with RunZipTestDefinitions
+    with ComposeRunDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
