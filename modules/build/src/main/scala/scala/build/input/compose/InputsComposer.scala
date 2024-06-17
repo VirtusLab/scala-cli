@@ -112,25 +112,25 @@ object InputsComposer {
       case _ => Left(ModuleConfigurationError(s"${Keys.modules}.$key must be a table"))
 }
 
-/** Creates [[Module]] given the initial arguments passed to the command, Looks for module
-  * config .toml file and if found composes module inputs according to the defined config, otherwise
-  * if module config is not found or if [[allowForbiddenFeatures]] is not set, returns only one
-  * basic module created from initial args (see [[simpleInputs]])
+/** Creates [[Module]] given the initial arguments passed to the command, Looks for module config
+  * .toml file and if found composes module inputs according to the defined config, otherwise if
+  * module config is not found or if [[allowForbiddenFeatures]] is not set, returns only one basic
+  * module created from initial args (see [[simpleInputs]])
   *
   * @param args
-  * initial args passed to command
+  *   initial args passed to command
   * @param cwd
-  * working directory
+  *   working directory
   * @param inputsFromArgs
-  * function that proceeds with the whole [[Module]] creation flow (validating elements,
-  * etc.) this takes into account options passed from CLI like in SharedOptions
+  *   function that proceeds with the whole [[Module]] creation flow (validating elements, etc.)
+  *   this takes into account options passed from CLI like in SharedOptions
   * @param allowForbiddenFeatures
   */
 final case class InputsComposer(
-                                 args: Seq[String],
-                                 cwd: os.Path,
-                                 inputsFromArgs: (Seq[String], Option[ProjectName]) => Either[BuildException, Module],
-                                 allowForbiddenFeatures: Boolean
+  args: Seq[String],
+  cwd: os.Path,
+  inputsFromArgs: (Seq[String], Option[ProjectName]) => Either[BuildException, Module],
+  allowForbiddenFeatures: Boolean
 ) {
   import InputsComposer.*
 

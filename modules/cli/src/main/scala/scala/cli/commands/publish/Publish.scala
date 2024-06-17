@@ -274,22 +274,22 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   /** Build artifacts
     */
   def doRun(
-             inputs: Module,
-             logger: Logger,
-             initialBuildOptions: BuildOptions,
-             compilerMaker: ScalaCompilerMaker,
-             docCompilerMaker: ScalaCompilerMaker,
-             cross: Boolean,
-             workingDir: => os.Path,
-             ivy2HomeOpt: Option[os.Path],
-             publishLocal: Boolean,
-             forceSigningExternally: Boolean,
-             parallelUpload: Option[Boolean],
-             watch: Boolean,
-             isCi: Boolean,
-             configDb: () => ConfigDb,
-             mainClassOptions: MainClassOptions,
-             dummy: Boolean
+    inputs: Module,
+    logger: Logger,
+    initialBuildOptions: BuildOptions,
+    compilerMaker: ScalaCompilerMaker,
+    docCompilerMaker: ScalaCompilerMaker,
+    cross: Boolean,
+    workingDir: => os.Path,
+    ivy2HomeOpt: Option[os.Path],
+    publishLocal: Boolean,
+    forceSigningExternally: Boolean,
+    parallelUpload: Option[Boolean],
+    watch: Boolean,
+    isCi: Boolean,
+    configDb: () => ConfigDb,
+    mainClassOptions: MainClassOptions,
+    dummy: Boolean
   ): Unit = {
 
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)

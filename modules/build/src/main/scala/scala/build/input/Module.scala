@@ -430,21 +430,21 @@ object Module {
   }
 
   def apply(
-             args: Seq[String],
-             cwd: os.Path,
-             defaultInputs: () => Option[Module] = () => None,
-             download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
-             stdinOpt: => Option[Array[Byte]] = None,
-             scriptSnippetList: List[String] = List.empty,
-             scalaSnippetList: List[String] = List.empty,
-             javaSnippetList: List[String] = List.empty,
-             markdownSnippetList: List[String] = List.empty,
-             acceptFds: Boolean = false,
-             forcedWorkspace: Option[os.Path] = None,
-             enableMarkdown: Boolean = false,
-             allowRestrictedFeatures: Boolean,
-             extraClasspathWasPassed: Boolean,
-             forcedProjectName: Option[ProjectName] = None
+    args: Seq[String],
+    cwd: os.Path,
+    defaultInputs: () => Option[Module] = () => None,
+    download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
+    stdinOpt: => Option[Array[Byte]] = None,
+    scriptSnippetList: List[String] = List.empty,
+    scalaSnippetList: List[String] = List.empty,
+    javaSnippetList: List[String] = List.empty,
+    markdownSnippetList: List[String] = List.empty,
+    acceptFds: Boolean = false,
+    forcedWorkspace: Option[os.Path] = None,
+    enableMarkdown: Boolean = false,
+    allowRestrictedFeatures: Boolean,
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName] = None
   )(using ScalaCliInvokeData): Either[BuildException, Module] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
