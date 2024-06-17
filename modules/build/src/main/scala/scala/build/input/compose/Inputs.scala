@@ -17,22 +17,21 @@ sealed trait Inputs {
   /** Order in which to build all modules */
   def modulesBuildOrder: Seq[Module]
 
-  /** Order in which to build the target module with its dependencies, e.g. to execute a command on
+  /** Order in which to build the dependencies of the target module, e.g. to execute a command on
     * [[targetModule]]
     */
-  def targetBuildOrder: Seq[Module]
+  def targetDependenciesBuildOrder: Seq[Module]
   def workspaceOrigin: Option[WorkspaceOrigin]
   def workspace: os.Path
 
-  def preprocessInputs(preprocess: Module => (Module, BuildOptions))
-    : (Inputs, Seq[BuildOptions])
+  def preprocessInputs(preprocess: Module => (Module, BuildOptions)): (Inputs, Seq[BuildOptions])
 }
 
 /** Result of using [[InputsComposer]] with module config file present */
 case class ComposedInputs(
-                           modules: Seq[Module],
-                           targetModule: Module,
-                           workspace: os.Path
+  modules: Seq[Module],
+  targetModule: Module,
+  workspace: os.Path
 ) extends Inputs {
 
   // Forced to be the directory where module config file (modules.yaml) resides
@@ -42,8 +41,8 @@ case class ComposedInputs(
   private val dependencyGraph = modules.map(m => m.projectName -> m.moduleDependencies).toMap
 
   private def buildOrderForModule(
-                                   root: Module,
-                                   visitedPreviously: Set[ProjectName]
+    root: Module,
+    visitedPreviously: Set[ProjectName]
   ): Seq[ProjectName] = {
     val visited = mutable.Set.from(visitedPreviously) // Track visited nodes
     val result =
@@ -67,8 +66,10 @@ case class ComposedInputs(
       acc.appendedAll(buildOrder)
     }.map(nameMap)
 
-  override lazy val targetBuildOrder: Seq[Module] =
-    buildOrderForModule(targetModule, Set.empty).map(nameMap)
+  override lazy val targetDependenciesBuildOrder: Seq[Module] = {
+    val buildOrderWithTarget = buildOrderForModule(targetModule, Set.empty).map(nameMap)
+    buildOrderWithTarget.dropRight(1)
+  }
 
   def preprocessInputs(preprocess: Module => (Module, BuildOptions))
     : (ComposedInputs, Seq[BuildOptions]) = {
@@ -96,7 +97,7 @@ case class SimpleInputs(
 
   override val modulesBuildOrder: Seq[Module] = modules
 
-  override val targetBuildOrder: Seq[Module] = modules
+  override val targetDependenciesBuildOrder: Seq[Module] = Nil
 
   override val workspace: os.Path = singleModule.workspace
 

@@ -27,9 +27,9 @@ import scala.jdk.CollectionConverters.*
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
   def downloadDeps(
-                    inputs: Module,
-                    options: BuildOptions,
-                    logger: Logger
+    inputs: Module,
+    options: BuildOptions,
+    logger: Logger
   ): Either[BuildException, Artifacts] = {
 
     // ignoring errors related to sources themselves
@@ -84,12 +84,32 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   def runSafe(
-               options: SharedOptions,
-               inputs: Module,
-               logger: Logger,
-               buildOptions: BuildOptions,
-               previousCommandName: Option[String],
-               args: Seq[String]
+    options: SharedOptions,
+    inputs: compose.Inputs,
+    logger: Logger,
+    buildOptions: BuildOptions,
+    previousCommandName: Option[String],
+    args: Seq[String]
+  ): Unit =
+    writeBspConfiguration(
+      SetupIdeOptions(shared = options),
+      inputs,
+      buildOptions,
+      previousCommandName,
+      args
+    ) match {
+      case Left(ex) =>
+        logger.debug(s"Ignoring error during setup-ide: ${ex.message}")
+      case Right(_) =>
+    }
+
+  def runSafe(
+    options: SharedOptions,
+    inputs: Module,
+    logger: Logger,
+    buildOptions: BuildOptions,
+    previousCommandName: Option[String],
+    args: Seq[String]
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),
