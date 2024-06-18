@@ -1097,10 +1097,12 @@ abstract class RunTestDefinitions
             )
           }
            |You can run one of them by passing it with the --main-class option, e.g.
-           |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --main-class ${expectedMainClassNames.head}${Console.RESET}
+           |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --main-class ${expectedMainClassNames
+            .head}${Console.RESET}
            |
            |You can pick the main class interactively by passing the --interactive option.
-           |  ${Console.BOLD}${TestUtil.detectCliPath} run . $extraOptionsString --interactive${Console.RESET}""".stripMargin
+           |  ${Console.BOLD}${TestUtil
+            .detectCliPath} run . $extraOptionsString --interactive${Console.RESET}""".stripMargin
       expect(errorMessage == expectedErrorMessage)
     }
   }

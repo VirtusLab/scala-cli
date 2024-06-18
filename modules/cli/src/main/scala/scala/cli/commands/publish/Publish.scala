@@ -1051,14 +1051,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
         case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r.unanchored.matches(
-              e.getMessage
-            ) =>
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 403,".r
+              .unanchored.matches(
+                e.getMessage
+              ) =>
           logger.exit(new WrongSonatypeServerError(isLegacySonatype))
         case NonFatal(e)
-            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r.unanchored.matches(
-              e.getMessage
-            ) =>
+            if "Failed to get .*oss\\.sonatype\\.org.*/staging/profiles \\(http status: 401,".r
+              .unanchored.matches(
+                e.getMessage
+              ) =>
           logger.exit(new InvalidSonatypePublishCredentials(usernameOnlyAscii, passwordOnlyAscii))
         case NonFatal(e) =>
           throw new Exception(e)

@@ -426,7 +426,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def semanticDbPluginModuleName = "semanticdb-scalac"
          |  def semanticDbPluginVersion = "${Deps.scalametaTrees.dep.version}"
          |
-         |  def semanticDbJavacPluginOrganization = "${Deps.semanticDbJavac.dep.module.organization.value}"
+         |  def semanticDbJavacPluginOrganization = "${Deps.semanticDbJavac.dep.module.organization
+          .value}"
          |  def semanticDbJavacPluginModuleName = "${Deps.semanticDbJavac.dep.module.name.value}"
          |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
          |
@@ -714,7 +715,8 @@ trait Build extends ScalaCliCrossSbtModule
            |  def toolkitName = "${Deps.toolkit.dep.module.name.value}"
            |  def toolkitTestName = "${Deps.toolkitTest.dep.module.name.value}"
            |  def toolkitVersion = "${Deps.toolkitTest.dep.version}"
-           |  def typelevelToolkitOrganization = "${Deps.typelevelToolkit.dep.module.organization.value}"
+           |  def typelevelToolkitOrganization = "${Deps.typelevelToolkit.dep.module.organization
+            .value}"
            |  def typelevelToolkitVersion = "${Deps.typelevelToolkit.dep.version}"
            |
            |  def defaultScalaVersion = "${Scala.defaultUser}"
@@ -1018,7 +1020,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def toolkitVersionForNative05      = "${Deps.toolkitVersionForNative05}"
            |  def toolkiMaxScalaNative           = "${Deps.Versions.maxScalaNativeForToolkit}"
            |  def typelevelToolkitVersion        = "${Deps.typelevelToolkitVersion}"
-           |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
+           |  def typelevelToolkitMaxScalaNative = "${Deps.Versions
+            .maxScalaNativeForTypelevelToolkit}"
            |
            |  def ghOrg  = "$ghOrg"
            |  def ghName = "$ghName"

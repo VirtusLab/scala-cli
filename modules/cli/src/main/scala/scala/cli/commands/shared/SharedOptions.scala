@@ -327,7 +327,8 @@ final case class SharedOptions(
     if assumedSourceJars.nonEmpty then
       val assumedSourceJarsString = assumedSourceJars.mkString(", ")
       logger.message(
-        s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole.GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
+        s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole
+            .GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
            |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
       )
     val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =

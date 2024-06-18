@@ -161,7 +161,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
           else ""
         }
          |
-         |This is a summary of options that are available for each subcommand of the `${ScalaCli.baseRunnerName}` command.
+         |This is a summary of options that are available for each subcommand of the `${ScalaCli
+          .baseRunnerName}` command.
          |
          |""".stripMargin
     )

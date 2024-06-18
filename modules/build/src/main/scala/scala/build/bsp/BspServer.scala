@@ -280,7 +280,8 @@ class BspServer(
         capabilities.setCanDebug(true)
         val baseDirectory = new File(new URI(target.getBaseDirectory))
         if (
-          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName && baseDirectory.getParentFile != null
+          isIntelliJ && baseDirectory.getName == Constants.workspaceDirName && baseDirectory
+            .getParentFile != null
         ) {
           val newBaseDirectory = baseDirectory.getParentFile.toPath.toUri.toASCIIString
           target.setBaseDirectory(newBaseDirectory)

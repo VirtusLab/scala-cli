@@ -695,7 +695,8 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
             "--predefined-repository",
             (localRepoPath / "https" / "repo1.maven.org" / "maven2").toNIO.toUri.toASCIIString,
             "--predefined-repository",
-            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration").toNIO.toUri.toASCIIString,
+            (localRepoPath / "https" / "scala-ci.typesafe.com" / "artifactory" / "scala-integration")
+              .toNIO.toUri.toASCIIString,
             "run",
             "simple.sc",
             "--with-compiler",

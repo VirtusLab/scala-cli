@@ -93,13 +93,15 @@ case class LegacyScalaOptions(
         s"""Deprecated option '$s' is ignored.
            |The compiled project files will be saved in the '.scala-build' directory in the project root folder.
            |If you need to produce an actual jar file, run the '$PowerString${Package.name}' sub-command as follows:
-           |  ${Console.BOLD}$progName $PowerString${Package.name} --library $filteredArgsString${Console.RESET}""".stripMargin
+           |  ${Console.BOLD}$progName $PowerString${Package
+            .name} --library $filteredArgsString${Console.RESET}""".stripMargin
       )
     }
     noSaveOptionString.foreach { ns =>
       logger.message(
         s"""Deprecated option '$ns' is ignored.
-           |A jar file is not saved unless the '$PowerString${Package.name}' sub-command is called.""".stripMargin
+           |A jar file is not saved unless the '$PowerString${Package
+            .name}' sub-command is called.""".stripMargin
       )
     }
     for {
