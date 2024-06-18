@@ -72,7 +72,7 @@ object Test extends ScalaCommand[TestOptions] {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     val cross    = options.compileCross.cross.getOrElse(false)
     val configDb = ConfigDbUtils.configDb.orExit(logger)

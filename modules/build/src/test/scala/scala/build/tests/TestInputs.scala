@@ -87,7 +87,7 @@ final case class TestInputs(
       val compilerMaker = bloopConfigOpt match {
         case Some(bloopConfig) =>
           new BloopCompilerMaker(
-            bloopConfig,
+            _ => Right(bloopConfig),
             buildThreads.bloop,
             strictBloopJsonCheck = true,
             offline = false

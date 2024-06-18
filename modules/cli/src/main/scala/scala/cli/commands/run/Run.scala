@@ -142,7 +142,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads)
 
     def maybeRun(
       build: Build.Successful,

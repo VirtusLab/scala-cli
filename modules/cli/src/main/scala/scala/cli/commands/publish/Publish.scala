@@ -230,8 +230,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads).orExit(logger)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true).orExit(logger)
+    val compilerMaker    = options.shared.compilerMaker(threads)
+    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
 
     val cross = options.compileCross.cross.getOrElse(false)
 

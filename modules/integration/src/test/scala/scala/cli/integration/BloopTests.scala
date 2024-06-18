@@ -168,4 +168,23 @@ class BloopTests extends ScalaCliSuite {
         }
       }
     }
+
+  test("run bloop with jvm version if > 17") {
+    val hello = "Hello from Java 21"
+    val inputs = TestInputs(
+      os.rel / "Simple.java" ->
+        s"""|//> using jvm 21
+            |//> using javacOpt --enable-preview -Xlint:preview
+            |//> using javaOpt --enable-preview
+            |//> using mainClass Simple
+            |
+            |void main() {
+            |    System.out.println("$hello");
+            |}""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val res = runScalaCli("Simple.java").call(cwd = root)
+      res.out.text().contains(hello)
+    }
+  }
 }
