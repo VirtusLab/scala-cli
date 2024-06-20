@@ -185,6 +185,8 @@ class BloopTests extends ScalaCliSuite {
     inputs.fromRoot { root =>
       val res = runScalaCli("Simple.java").call(cwd = root)
       res.out.text().contains(hello)
+      // shut down bloop so other tests are run on JDK 17
+      runScalaCli("bloop", "exit", "--power").call(cwd = root)
     }
   }
 }
