@@ -287,7 +287,7 @@ The Class Wrapper's behaviour is the default described throughout the documentat
 
 #### Object Wrapper
 This wrapper is an alternative to the [Class Wrapper](#class-wrapper) and can be forced with `--object-wrapper` flag and `>// using  objectWrapper` directive.
-It is used by default for Scala 3 scripts compiled for JS platform. Can suffer from deadlocks then using multithreaded code.
+It is used by default for Scala 3 scripts compiled for JS platform. Can suffer from deadlocks when using multithreaded code.
 
 **Limitations**  
 - When running background threads from the script and using e.g. `scala.concurrent.Await` on them may result in a deadlock due to unfinished initialization of the wrapper object.
