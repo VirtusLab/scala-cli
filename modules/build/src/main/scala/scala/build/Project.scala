@@ -50,6 +50,26 @@ final case class Project(
         bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)
       )
     }
+
+    val sourceGen: BloopConfig.SourceGenerator = {
+      val command = "/Users/kiki/Kerja/scala-cli/testing-a/source-generator.py"
+
+
+      val sourceGlobs = BloopConfig.SourcesGlobs(
+        (os.root / "Users" / "kiki" / "Kerja" / "scala-cli" / "testing-a" / "generator-inputs").toNIO,
+        None,
+        List("glob:test.in"),
+        Nil
+      )
+
+      BloopConfig.SourceGenerator(
+        List(sourceGlobs),
+        (os.root / "Users" / "kiki" / "Kerja" / "scala-cli" / "testing-a" / "source-generator-a").toNIO,
+        List("python3",command)
+        // Nil
+      )
+    }
+
     baseBloopProject(
       projectName,
       directory.toNIO,
@@ -65,7 +85,8 @@ final case class Project(
         platform = Some(platform),
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
-        resolution = resolution
+        resolution = resolution,
+        sourceGenerators = Some(List(sourceGen))
       )
   }
 
