@@ -183,6 +183,8 @@ class BloopTests extends ScalaCliSuite {
             |}""".stripMargin
     )
     inputs.fromRoot { root =>
+      // start bloop with jvm 17
+      runScalaCli("--power", "bloop", "start", "--jvm", "17").call(cwd = root)
       val res = runScalaCli("Simple.java").call(cwd = root)
       res.out.text().contains(hello)
       // shut down bloop so other tests are run on JDK 17
