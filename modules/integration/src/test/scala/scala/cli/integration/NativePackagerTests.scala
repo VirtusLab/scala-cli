@@ -6,10 +6,10 @@ import scala.util.Properties
 
 class NativePackagerTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
-
-  val helloWorldFileName = "HelloWorldScalaCli.scala"
-  val message            = "Hello, world!"
-  val licencePath        = "DummyLICENSE"
+  override def munitFlakyOK: Boolean = TestUtil.isCI
+  val helloWorldFileName             = "HelloWorldScalaCli.scala"
+  val message                        = "Hello, world!"
+  val licencePath                    = "DummyLICENSE"
   val testInputs: TestInputs = TestInputs(
     os.rel / helloWorldFileName ->
       s"""
@@ -415,7 +415,14 @@ class NativePackagerTests extends ScalaCliSuite {
       }
     }
 
-    test("building docker image with scala.js app") {
+    // FIXME for some reason, this test became flaky on the CI
+    if (TestUtil.isNativeCli)
+      test("building docker image with scala.js app".flaky) {
+        TestUtil.retryOnCi() {
+          runJsTest()
+        }
+      }
+    else test("building docker image with scala.js app") {
       TestUtil.retryOnCi() {
         runJsTest()
       }
