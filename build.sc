@@ -41,7 +41,7 @@ object cli extends Cross[Cli](Scala.scala3MainVersions) with CrossScalaDefaultTo
 
 trait CrossScalaDefault { _: mill.define.Cross[_] =>
   def crossScalaDefaultVersion: String
-  def defaultCrossSegments = Seq(crossScalaDefaultVersion)
+  override def defaultCrossSegments = Seq(crossScalaDefaultVersion)
 }
 
 trait CrossScalaDefaultToInternal extends CrossScalaDefault { _: mill.define.Cross[_] =>
