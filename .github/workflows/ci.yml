@@ -21,7 +21,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Copy launcher
@@ -59,7 +59,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
@@ -87,7 +87,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
@@ -112,7 +112,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: JVM integration tests
@@ -137,7 +137,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: JVM integration tests
@@ -162,7 +162,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: JVM integration tests
@@ -187,7 +187,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -214,7 +214,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -247,7 +247,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -280,7 +280,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -313,7 +313,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -346,7 +346,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -378,7 +378,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           apps: ""
       - name: Generate native launcher and generate os packages
@@ -401,7 +401,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -428,7 +428,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -461,7 +461,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -494,7 +494,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -527,7 +527,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -560,7 +560,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -622,7 +622,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         env:
           COURSIER_BIN_DIR: ${{ github.workspace }}/cs/bin # necessary for our M1 runner setup
         with:
@@ -655,7 +655,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -691,7 +691,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -732,7 +732,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -773,7 +773,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.10"
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Get latest coursier launcher
@@ -814,7 +814,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
@@ -855,7 +855,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - name: Get latest coursier launcher
@@ -891,7 +891,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -915,7 +915,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -962,7 +962,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -995,7 +995,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -1028,7 +1028,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1061,7 +1061,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1094,7 +1094,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Generate native launcher
@@ -1118,7 +1118,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -1165,7 +1165,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -1200,7 +1200,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
@@ -1235,7 +1235,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1270,7 +1270,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1304,7 +1304,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
     - uses: actions/setup-node@v4
@@ -1332,7 +1332,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Check Scala / Scala.js versions in doc
@@ -1357,7 +1357,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
         apps: scalafmt:3.0.0
@@ -1371,7 +1371,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Check that reference doc is up-to-date
@@ -1391,7 +1391,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Java Version
@@ -1413,7 +1413,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: Try to export to SBT
@@ -1428,7 +1428,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.copyVcRedist
@@ -1449,7 +1449,7 @@ jobs:
         fetch-depth: 0
         submodules: true
         ssh-key: ${{ secrets.SSH_PRIVATE_KEY_SCALA_CLI }}
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - name: GPG setup
@@ -1523,7 +1523,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - run: ./mill -i ci.setShouldPublish
@@ -1582,7 +1582,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-      - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+      - uses: VirtusLab/scala-cli-setup@v1
         with:
           jvm: "temurin:17"
       - uses: actions/download-artifact@v3
@@ -1665,7 +1665,7 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
-    - uses: VirtusLab/scala-cli-setup@5b1a6c5ca98b5642996812781f6ad9b2d5935f85
+    - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
     - uses: actions/download-artifact@v3
