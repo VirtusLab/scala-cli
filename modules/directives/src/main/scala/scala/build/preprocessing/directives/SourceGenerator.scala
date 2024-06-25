@@ -6,10 +6,7 @@ import scala.build.options.BuildOptions
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveExamples("//> using generator")
-@DirectiveUsage(
-    "//> using generator", 
-    "`//> using generator`"
-)
+@DirectiveUsage("//> using generator", "`//> using generator`")
 @DirectiveDescription("Generate code using Source Generator")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class SourceGenerator (
@@ -17,7 +14,7 @@ final case class SourceGenerator (
 ) extends HasBuildOptions {
     def buildOptions: Either[BuildException, BuildOptions] = {
         val buildOpt = BuildOptions(
-            useBuildServer = Some(true)
+            generateSource = Some(placeHolderGenerator)
         )
         Right(buildOpt)
     }

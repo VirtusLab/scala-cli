@@ -28,7 +28,8 @@ final case class Project(
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
   scope: Scope,
-  javacOptions: List[String]
+  javacOptions: List[String],
+  generateSource: Option[Boolean]
 ) {
 
   import Project._
@@ -53,8 +54,6 @@ final case class Project(
 
     val sourceGen: BloopConfig.SourceGenerator = {
       val command = "/Users/kiki/Kerja/scala-cli/testing-a/source-generator.py"
-
-
       val sourceGlobs = BloopConfig.SourcesGlobs(
         (os.root / "Users" / "kiki" / "Kerja" / "scala-cli" / "testing-a" / "generator-inputs").toNIO,
         None,
@@ -86,7 +85,7 @@ final case class Project(
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
         resolution = resolution,
-        sourceGenerators = Some(List(sourceGen))
+        sourceGenerators = if (generateSource.getOrElse(false)) Some(List(sourceGen)) else None
       )
   }
 

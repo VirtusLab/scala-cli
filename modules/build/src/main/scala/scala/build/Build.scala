@@ -866,6 +866,8 @@ object Build {
       if (options.useBuildServer.getOrElse(true)) None
       else releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
+    val hardcodedSource = options.generateSource
+
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
         val params = value(options.scalaParams).getOrElse {
@@ -1014,7 +1016,8 @@ object Build {
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacOptions
+      javacOptions = javacOptions,
+      generateSource = hardcodedSource
     )
     project
   }
