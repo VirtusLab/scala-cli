@@ -213,8 +213,26 @@ object Build {
     )
   }
 
+  private def allInputs(
+    inputs: Inputs,
+    options: BuildOptions,
+    logger: Logger
+  )(using ScalaCliInvokeData) =
+    CrossSources.forInputs(
+      inputs,
+      Sources.defaultPreprocessors(
+        options.archiveCache,
+        options.internal.javaClassNameVersionOpt,
+        () => options.javaHome().value.javaCommand
+      ),
+      logger,
+      options.suppressWarningOptions,
+      options.internal.exclude
+    )
+
   private def build(
     inputs: Inputs,
+    crossSources: CrossSources,
     options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient,
@@ -225,20 +243,6 @@ object Build {
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean]
   )(using ScalaCliInvokeData): Either[BuildException, Builds] = either {
-    // allInputs contains elements from using directives
-    val (crossSources, allInputs) = value {
-      CrossSources.forInputs(
-        inputs,
-        Sources.defaultPreprocessors(
-          options.archiveCache,
-          options.internal.javaClassNameVersionOpt,
-          () => options.javaHome().value.javaCommand
-        ),
-        logger,
-        options.suppressWarningOptions,
-        options.internal.exclude
-      )
-    }
     val sharedOptions = crossSources.sharedOptions(options)
     val crossOptions  = sharedOptions.crossOptions
 
@@ -274,15 +278,15 @@ object Build {
       val scopedSources = value(crossSources.scopedSources(baseOptions))
 
       val mainSources =
-        value(scopedSources.sources(Scope.Main, baseOptions, allInputs.workspace, logger))
+        value(scopedSources.sources(Scope.Main, baseOptions, inputs.workspace, logger))
       val mainOptions = mainSources.buildOptions
 
       val testSources =
-        value(scopedSources.sources(Scope.Test, baseOptions, allInputs.workspace, logger))
+        value(scopedSources.sources(Scope.Test, baseOptions, inputs.workspace, logger))
       val testOptions = testSources.buildOptions
 
       val inputs0 = updateInputs(
-        allInputs,
+        inputs,
         mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
         Some(testOptions).filter(_ != mainOptions)
       )
@@ -556,53 +560,60 @@ object Build {
     buildTests: Boolean,
     partial: Option[Boolean],
     actionableDiagnostics: Option[Boolean]
-  )(using ScalaCliInvokeData): Either[BuildException, Builds] = {
+  )(using ScalaCliInvokeData): Either[BuildException, Builds] = either {
     val buildClient = BloopBuildClient.create(
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
-    val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-
-    compilerMaker.withCompiler(
-      inputs.workspace / Constants.workspaceDirName,
-      classesDir0,
-      buildClient,
-      logger
-    ) { compiler =>
-      docCompilerMakerOpt match {
-        case None =>
-          build(
-            inputs = inputs,
-            options = options,
-            logger = logger,
-            buildClient = buildClient,
-            compiler = compiler,
-            docCompilerOpt = None,
-            crossBuilds = crossBuilds,
-            buildTests = buildTests,
-            partial = partial,
-            actionableDiagnostics = actionableDiagnostics
-          )
-        case Some(docCompilerMaker) =>
-          docCompilerMaker.withCompiler(
-            inputs.workspace / Constants.workspaceDirName,
-            classesDir0, // ???
-            buildClient,
-            logger
-          ) { docCompiler =>
+    val classesDir0             = classesRootDir(inputs.workspace, inputs.projectName)
+    val (crossSources, inputs0) = value(allInputs(inputs, options, logger))
+    val buildOptions            = crossSources.sharedOptions(options)
+    value {
+      compilerMaker.withCompiler(
+        inputs0.workspace / Constants.workspaceDirName,
+        classesDir0,
+        buildClient,
+        logger,
+        buildOptions
+      ) { compiler =>
+        docCompilerMakerOpt match {
+          case None =>
             build(
-              inputs = inputs,
+              inputs = inputs0,
+              crossSources = crossSources,
               options = options,
               logger = logger,
               buildClient = buildClient,
               compiler = compiler,
-              docCompilerOpt = Some(docCompiler),
+              docCompilerOpt = None,
               crossBuilds = crossBuilds,
               buildTests = buildTests,
               partial = partial,
               actionableDiagnostics = actionableDiagnostics
             )
-          }
+          case Some(docCompilerMaker) =>
+            docCompilerMaker.withCompiler(
+              inputs0.workspace / Constants.workspaceDirName,
+              classesDir0, // ???
+              buildClient,
+              logger,
+              buildOptions
+            ) { docCompiler =>
+              build(
+                inputs = inputs0,
+                crossSources = crossSources,
+                options = options,
+                logger = logger,
+                buildClient = buildClient,
+                compiler = compiler,
+                docCompilerOpt = Some(docCompiler),
+                crossBuilds = crossBuilds,
+                buildTests = buildTests,
+                partial = partial,
+                actionableDiagnostics = actionableDiagnostics
+              )
+            }
+        }
       }
     }
   }
@@ -638,35 +649,48 @@ object Build {
     )
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-    val compiler = compilerMaker.create(
-      inputs.workspace / Constants.workspaceDirName,
-      classesDir0,
-      buildClient,
-      logger
-    )
-    val docCompilerOpt = docCompilerMakerOpt.map(_.create(
-      inputs.workspace / Constants.workspaceDirName,
-      classesDir0,
-      buildClient,
-      logger
-    ))
+    val info = either {
+      val (crossSources, inputs0) = value(allInputs(inputs, options, logger))
+      val sharedOptions           = crossSources.sharedOptions(options)
+      val compiler = value {
+        compilerMaker.create(
+          inputs0.workspace / Constants.workspaceDirName,
+          classesDir0,
+          buildClient,
+          logger,
+          sharedOptions
+        )
+      }
+      val docCompilerOpt = docCompilerMakerOpt.map(_.create(
+        inputs0.workspace / Constants.workspaceDirName,
+        classesDir0,
+        buildClient,
+        logger,
+        sharedOptions
+      )).map(value)
+      (compiler, docCompilerOpt, crossSources, inputs0)
+    }
 
     var res: Either[BuildException, Builds] = null
 
     def run(): Unit = {
       try {
-        res = build(
-          inputs,
-          options,
-          logger,
-          buildClient,
-          compiler,
-          docCompilerOpt,
-          crossBuilds = crossBuilds,
-          buildTests = buildTests,
-          partial = partial,
-          actionableDiagnostics = actionableDiagnostics
-        )
+        res =
+          info.flatMap { case (compiler, docCompilerOpt, crossSources, inputs) =>
+            build(
+              inputs,
+              crossSources,
+              options,
+              logger,
+              buildClient,
+              compiler,
+              docCompilerOpt,
+              crossBuilds = crossBuilds,
+              buildTests = buildTests,
+              partial = partial,
+              actionableDiagnostics = actionableDiagnostics
+            )
+          }
         action(res)
       }
       catch {
@@ -678,7 +702,8 @@ object Build {
 
     run()
 
-    val watcher = new Watcher(ListBuffer(), threads.fileWatcher, run(), compiler.shutdown())
+    val watcher =
+      new Watcher(ListBuffer(), threads.fileWatcher, run(), info.foreach(_._1.shutdown()))
 
     def doWatch(): Unit = {
       val elements: Seq[Element] =
@@ -1284,9 +1309,11 @@ object Build {
           runJmh = build.options.jmhOptions.runJmh.map(_ => false)
         )
       )
+      val (crossSources, inputs0) = value(allInputs(jmhInputs, updatedOptions, logger))
       val jmhBuilds = value {
         Build.build(
-          jmhInputs,
+          inputs0,
+          crossSources,
           updatedOptions,
           logger,
           buildClient,

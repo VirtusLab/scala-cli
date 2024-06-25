@@ -38,7 +38,7 @@ object Doc extends ScalaCommand[DocOptions] {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val threads = BuildThreads.create()
 
-    val maker               = options.shared.compilerMaker(threads).orExit(logger)
+    val maker               = options.shared.compilerMaker(threads)
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 

@@ -3,32 +3,38 @@ package scala.build.compiler
 import ch.epfl.scala.bsp4j.BuildClient
 
 import scala.build.Logger
+import scala.build.errors.BuildException
+import scala.build.options.BuildOptions
 
 trait ScalaCompilerMaker {
   def create(
     workspace: os.Path,
     classesDir: os.Path,
     buildClient: BuildClient,
-    logger: Logger
-  ): ScalaCompiler
+    logger: Logger,
+    buildOptions: BuildOptions
+  ): Either[BuildException, ScalaCompiler]
 
   final def withCompiler[T](
     workspace: os.Path,
     classesDir: os.Path,
     buildClient: BuildClient,
-    logger: Logger
+    logger: Logger,
+    buildOptions: BuildOptions
   )(
-    f: ScalaCompiler => T
-  ): T = {
+    f: ScalaCompiler => Either[BuildException, T]
+  ): Either[BuildException, T] = {
     var server: ScalaCompiler = null
     try {
-      server = create(
+      val createdServer = create(
         workspace,
         classesDir,
         buildClient,
-        logger
+        logger,
+        buildOptions
       )
-      f(server)
+      server = createdServer.toOption.getOrElse(null)
+      createdServer.flatMap(f)
     }
     // format: off
     finally {
@@ -45,10 +51,11 @@ object ScalaCompilerMaker {
       workspace: os.Path,
       classesDir: os.Path,
       buildClient: BuildClient,
-      logger: Logger
-    ): ScalaCompiler =
-      ScalaCompiler.IgnoreScala2(
-        compilerMaker.create(workspace, classesDir, buildClient, logger)
+      logger: Logger,
+      buildOptions: BuildOptions
+    ): Either[BuildException, ScalaCompiler] =
+      compilerMaker.create(workspace, classesDir, buildClient, logger, buildOptions).map(
+        ScalaCompiler.IgnoreScala2(_)
       )
   }
 }

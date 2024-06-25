@@ -575,25 +575,17 @@ final case class SharedOptions(
   def compilerMaker(
     threads: BuildThreads,
     scaladoc: Boolean = false
-  ): Either[BuildException, ScalaCompilerMaker] =
+  ): ScalaCompilerMaker =
     if (scaladoc)
-      Right(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
+      SimpleScalaCompilerMaker("java", Nil, scaladoc = true)
     else if (compilationServer.server.getOrElse(true))
-      bloopRifleConfig() match {
-        case Right(config) =>
-          Right(new BloopCompilerMaker(
-            config,
-            threads.bloop,
-            strictBloopJsonCheckOrDefault,
-            coursier.getOffline().getOrElse(false)
-          ))
-        case Left(ex) if coursier.getOffline().contains(true) =>
-          logger.diagnostic(WarningMessages.offlineModeBloopJvmNotFound, Severity.Warning)
-          Right(SimpleScalaCompilerMaker("java", Nil))
-        case Left(ex) => Left(ex)
-      }
-    else
-      Right(SimpleScalaCompilerMaker("java", Nil))
+      new BloopCompilerMaker(
+        options => bloopRifleConfig(Some(options)),
+        threads.bloop,
+        strictBloopJsonCheckOrDefault,
+        coursier.getOffline().getOrElse(false)
+      )
+    else SimpleScalaCompilerMaker("java", Nil)
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 

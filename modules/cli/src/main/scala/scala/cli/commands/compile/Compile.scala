@@ -94,7 +94,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads)
     val configDb      = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(

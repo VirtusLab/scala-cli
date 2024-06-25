@@ -250,7 +250,7 @@ final case class PackageOptions(
   }
 
   def compilerMaker(threads: BuildThreads): Either[BuildException, ScalaCompilerMaker] = either {
-    val maker = value(shared.compilerMaker(threads))
+    val maker = shared.compilerMaker(threads)
     if (forcedPackageTypeOpt.contains(PackageType.DocJar))
       ScalaCompilerMaker.IgnoreScala2(maker)
     else
