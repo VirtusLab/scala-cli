@@ -99,7 +99,7 @@ object Deps {
     def jsoniterScalaJava8                = "2.13.5.2"
     def scalaMeta                         = "4.9.6"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.3"
+    def scalaNative05                     = "0.5.4"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
