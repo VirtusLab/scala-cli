@@ -1178,7 +1178,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M2-10-f6e2c001 by default)
+Set the Ammonite version (3.0.0-M2-12-951bbc1e by default)
 
 ### `--ammonite-arg`
 

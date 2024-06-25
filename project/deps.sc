@@ -88,7 +88,7 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.0-M2-10-f6e2c001"
+    def ammonite             = "3.0.0-M2-12-951bbc1e"
     def ammoniteForScala3Lts = ammonite
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursierDefault                   = "2.1.10"
