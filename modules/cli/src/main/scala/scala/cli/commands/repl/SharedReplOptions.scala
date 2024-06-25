@@ -6,6 +6,7 @@ import caseapp.core.help.Help
 import scala.cli.commands.shared.{
   CrossOptions,
   HelpGroup,
+  ScopeOptions,
   SharedJavaOptions,
   SharedPythonOptions,
   SharedWatchOptions
@@ -48,7 +49,10 @@ final case class SharedReplOptions(
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")
-    replDryRun: Boolean = false
+    replDryRun: Boolean = false,
+  
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 )
 // format: on
 

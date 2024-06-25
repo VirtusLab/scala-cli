@@ -3,14 +3,7 @@ package scala.cli.commands.compile
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HasSharedOptions,
-  HelpGroup,
-  HelpMessages,
-  SharedOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 @HelpMessage(CompileOptions.helpMessage, "", CompileOptions.detailedHelpMessage)
@@ -31,11 +24,8 @@ final case class CompileOptions(
   @Tag(tags.inShortHelp)
     printClassPath: Boolean = false,
 
-  @Group(HelpGroup.Compilation.toString)
-  @HelpMessage("Compile test scope")
-  @Tag(tags.should)
-  @Tag(tags.inShortHelp)
-    test: Boolean = false
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 ) extends HasSharedOptions
   // format: on
 

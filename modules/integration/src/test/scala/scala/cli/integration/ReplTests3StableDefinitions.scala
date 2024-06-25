@@ -11,5 +11,9 @@ trait ReplTests3StableDefinitions { _: ReplTestDefinitions =>
     test(s"ammonite scalapy$defaultScalaVersionString") {
       ammoniteScalapyTest(useMaxAmmoniteScalaVersion = false)
     }
+
+    test(s"ammonite with test scope sources$defaultScalaVersionString") {
+      ammoniteTestScope(useMaxAmmoniteScalaVersion = false)
+    }
   }
 }

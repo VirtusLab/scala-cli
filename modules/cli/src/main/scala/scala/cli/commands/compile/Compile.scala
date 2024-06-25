@@ -109,7 +109,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.test,
+        buildTests = options.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
@@ -128,7 +128,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.test,
+        buildTests = options.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics
       )

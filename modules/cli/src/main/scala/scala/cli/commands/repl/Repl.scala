@@ -12,7 +12,12 @@ import java.util.zip.ZipFile
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
-import scala.build.errors.{BuildException, CantDownloadAmmoniteError, FetchingDependenciesError}
+import scala.build.errors.{
+  BuildException,
+  CantDownloadAmmoniteError,
+  FetchingDependenciesError,
+  MultipleScalaVersionsError
+}
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
@@ -24,6 +29,7 @@ import scala.cli.commands.run.Run.{
 }
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
@@ -33,7 +39,7 @@ import scala.cli.{CurrentParams, ScalaCli}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-object Repl extends ScalaCommand[ReplOptions] {
+object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.MUST
   override def helpFormat: HelpFormat = super.helpFormat
@@ -117,36 +123,25 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     val directories = Directories.directories
 
-    def buildFailed(allowExit: Boolean): Unit = {
-      System.err.println("Compilation failed")
-      if (allowExit)
-        sys.exit(1)
-    }
-    def buildCancelled(allowExit: Boolean): Unit = {
-      System.err.println("Build cancelled")
-      if (allowExit)
-        sys.exit(1)
-    }
-
     def doRunRepl(
       buildOptions: BuildOptions,
-      artifacts: Artifacts,
-      mainJarOrClassDir: Option[os.Path],
+      allArtifacts: Seq[Artifacts],
+      mainJarsOrClassDirs: Seq[os.Path],
       allowExit: Boolean,
       runMode: RunMode.HasRepl,
-      buildOpt: Option[Build.Successful]
+      successfulBuilds: Seq[Build.Successful]
     ): Unit = {
       val res = runRepl(
-        buildOptions,
-        programArgs,
-        artifacts,
-        mainJarOrClassDir,
-        directories,
-        logger,
+        options = buildOptions,
+        programArgs = programArgs,
+        allArtifacts = allArtifacts,
+        mainJarsOrClassDirs = mainJarsOrClassDirs,
+        directories = directories,
+        logger = logger,
         allowExit = allowExit,
-        options.sharedRepl.replDryRun,
-        runMode,
-        buildOpt
+        dryRun = options.sharedRepl.replDryRun,
+        runMode = runMode,
+        successfulBuilds = successfulBuilds
       )
       res match {
         case Left(ex) =>
@@ -156,19 +151,23 @@ object Repl extends ScalaCommand[ReplOptions] {
       }
     }
     def doRunReplFromBuild(
-      build: Build.Successful,
+      builds: Seq[Build.Successful],
       allowExit: Boolean,
       runMode: RunMode.HasRepl,
       asJar: Boolean
-    ): Unit =
+    ): Unit = {
       doRunRepl(
-        build.options,
-        build.artifacts,
-        Some(if (asJar) Library.libraryJar(build) else build.output),
-        allowExit,
-        runMode,
-        Some(build)
+        // build options should be the same for both scopes
+        // combining them may cause for ammonite args to be duplicated, so we're using the main scope's opts
+        buildOptions = builds.head.options,
+        allArtifacts = builds.map(_.artifacts),
+        mainJarsOrClassDirs =
+          if (asJar) builds.map(Library.libraryJar(_)) else builds.map(_.output),
+        allowExit = allowExit,
+        runMode = runMode,
+        successfulBuilds = builds
       )
+    }
 
     val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
     val configDb = ConfigDbUtils.configDb.orExit(logger)
@@ -178,18 +177,22 @@ object Repl extends ScalaCommand[ReplOptions] {
       )
 
     if (inputs.isEmpty) {
-      val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
+      val allArtifacts =
+        Seq(initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)) ++
+          (if options.sharedRepl.scope.test
+           then Seq(initialBuildOptions.artifacts(logger, Scope.Test).orExit(logger))
+           else Nil)
       // synchronizing, so that multiple presses to enter (handled by WatchUtil.waitForCtrlC)
       // don't try to run repls in parallel
       val lock = new Object
       def runThing() = lock.synchronized {
         doRunRepl(
-          initialBuildOptions,
-          artifacts,
-          None,
+          buildOptions = initialBuildOptions,
+          allArtifacts = allArtifacts,
+          mainJarsOrClassDirs = Seq.empty,
           allowExit = !options.sharedRepl.watch.watchMode,
           runMode = runMode(options),
-          buildOpt = None
+          successfulBuilds = Seq.empty
         )
       }
       runThing()
@@ -207,22 +210,20 @@ object Repl extends ScalaCommand[ReplOptions] {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = false,
+        buildTests = options.sharedRepl.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
       ) { res =>
         for (builds <- res.orReport(logger))
-          builds.main match {
-            case s: Build.Successful =>
+          postBuild(builds, allowExit = false) {
+            successfulBuilds =>
               doRunReplFromBuild(
-                s,
+                successfulBuilds,
                 allowExit = false,
                 runMode = runMode(options),
                 asJar = options.shared.asJar
               )
-            case _: Build.Failed    => buildFailed(allowExit = false)
-            case _: Build.Cancelled => buildCancelled(allowExit = false)
           }
       }
       try WatchUtil.waitForCtrlC(() => watcher.schedule())
@@ -237,23 +238,33 @@ object Repl extends ScalaCommand[ReplOptions] {
           None,
           logger,
           crossBuilds = cross,
-          buildTests = false,
+          buildTests = options.sharedRepl.scope.test,
           partial = None,
           actionableDiagnostics = actionableDiagnostics
         )
           .orExit(logger)
-      builds.main match {
-        case s: Build.Successful =>
+      postBuild(builds, allowExit = false) {
+        successfulBuilds =>
           doRunReplFromBuild(
-            s,
+            successfulBuilds,
             allowExit = true,
             runMode = runMode(options),
             asJar = options.shared.asJar
           )
-        case _: Build.Failed    => buildFailed(allowExit = true)
-        case _: Build.Cancelled => buildCancelled(allowExit = true)
       }
     }
+  }
+
+  def postBuild(builds: Builds, allowExit: Boolean)(f: Seq[Build.Successful] => Unit): Unit = {
+    if builds.anyBuildFailed then {
+      System.err.println("Compilation failed")
+      if allowExit then sys.exit(1)
+    }
+    else if builds.anyBuildCancelled then {
+      System.err.println("Build cancelled")
+      if allowExit then sys.exit(1)
+    }
+    else f(builds.builds.sortBy(_.scope).map(_.asInstanceOf[Build.Successful]))
   }
 
   private def maybeAdaptForWindows(args: Seq[String]): Seq[String] =
@@ -268,14 +279,14 @@ object Repl extends ScalaCommand[ReplOptions] {
   private def runRepl(
     options: BuildOptions,
     programArgs: Seq[String],
-    artifacts: Artifacts,
-    mainJarOrClassDir: Option[os.Path],
+    allArtifacts: Seq[Artifacts],
+    mainJarsOrClassDirs: Seq[os.Path],
     directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
     dryRun: Boolean,
     runMode: RunMode.HasRepl,
-    buildOpt: Option[Build.Successful]
+    successfulBuilds: Seq[Build.Successful]
   ): Either[BuildException, Unit] = either {
 
     val setupPython = options.notForBloopOptions.python.getOrElse(false)
@@ -283,9 +294,13 @@ object Repl extends ScalaCommand[ReplOptions] {
     val cache             = options.internal.cache.getOrElse(FileCache())
     val shouldUseAmmonite = options.notForBloopOptions.replOptions.useAmmonite
 
-    val scalaParams = artifacts.scalaOpt match {
-      case Some(artifacts) => artifacts.params
-      case None            => ScalaParameters(Constants.defaultScalaVersion)
+    val scalaParams: ScalaParameters = value {
+      val distinctScalaParams = allArtifacts.flatMap(_.scalaOpt).map(_.params).distinct
+      if distinctScalaParams.isEmpty then
+        Right(ScalaParameters(Constants.defaultScalaVersion))
+      else if distinctScalaParams.length == 1 then
+        Right(distinctScalaParams.head)
+      else Left(MultipleScalaVersionsError(distinctScalaParams.map(_.scalaVersion)))
     }
 
     val (scalapyJavaOpts, scalapyExtraEnv) =
@@ -302,7 +317,7 @@ object Repl extends ScalaCommand[ReplOptions] {
         // Putting current dir in PYTHONPATH, see
         // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
         // for context.
-        val dirs = buildOpt.map(_.inputs.workspace).toSeq ++ Seq(os.pwd)
+        val dirs = successfulBuilds.map(_.inputs.workspace) ++ Seq(os.pwd)
         (props0, pythonPathEnv(dirs: _*))
       }
       else
@@ -338,15 +353,14 @@ object Repl extends ScalaCommand[ReplOptions] {
 
     // TODO Allow to disable printing the welcome banner and the "Loading..." message in Ammonite.
 
-    val rootClasses = mainJarOrClassDir match {
-      case None => Nil
-      case Some(dir) if os.isDir(dir) =>
+    val rootClasses = mainJarsOrClassDirs.flatMap {
+      case dir if os.isDir(dir) =>
         os.list(dir)
           .filter(_.last.endsWith(".class"))
           .filter(os.isFile(_)) // just in case
           .map(_.last.stripSuffix(".class"))
           .sorted
-      case Some(jar) =>
+      case jar =>
         var zf: ZipFile = null
         try {
           zf = new ZipFile(jar.toIO)
@@ -396,7 +410,7 @@ object Repl extends ScalaCommand[ReplOptions] {
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
-          classPath = mainJarOrClassDir.toSeq ++ replArtifacts.replClassPath,
+          classPath = mainJarsOrClassDirs ++ replArtifacts.replClassPath,
           mainClass = replArtifacts.replMainClass,
           args = maybeAdaptForWindows(depClassPathArgs ++ replArgs),
           logger = logger,
@@ -411,8 +425,8 @@ object Repl extends ScalaCommand[ReplOptions] {
       value {
         ReplArtifacts.default(
           scalaParams,
-          artifacts.userDependencies,
-          artifacts.extraClassPath,
+          allArtifacts.flatMap(_.userDependencies).distinct,
+          allArtifacts.flatMap(_.extraClassPath).distinct,
           logger,
           cache,
           value(options.finalRepositories),
@@ -427,9 +441,9 @@ object Repl extends ScalaCommand[ReplOptions] {
       ReplArtifacts.ammonite(
         scalaParams,
         options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
-        artifacts.userDependencies,
-        artifacts.extraClassPath,
-        artifacts.extraSourceJars,
+        allArtifacts.flatMap(_.userDependencies),
+        allArtifacts.flatMap(_.extraClassPath),
+        allArtifacts.flatMap(_.extraSourceJars),
         value(options.finalRepositories),
         logger,
         cache,
