@@ -6,10 +6,10 @@ import scala.util.Properties
 
 class NativePackagerTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
-  override def munitFlakyOK: Boolean = TestUtil.isCI
-  val helloWorldFileName             = "HelloWorldScalaCli.scala"
-  val message                        = "Hello, world!"
-  val licencePath                    = "DummyLICENSE"
+  override def munitFlakyOK: Boolean          = TestUtil.isCI
+  val helloWorldFileName                      = "HelloWorldScalaCli.scala"
+  val message                                 = "Hello, world!"
+  val licencePath                             = "DummyLICENSE"
   val testInputs: TestInputs = TestInputs(
     os.rel / helloWorldFileName ->
       s"""
