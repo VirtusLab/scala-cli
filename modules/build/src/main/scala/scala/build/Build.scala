@@ -857,7 +857,9 @@ object Build {
     val semanticDbSourceRoot =
       options.scalaOptions.semanticDbOptions.semanticDbSourceRoot.getOrElse(inputs.workspace)
 
-    val releaseFlagVersion = releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
+    val releaseFlagVersion =
+      if (options.useBuildServer.getOrElse(true)) None
+      else releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>

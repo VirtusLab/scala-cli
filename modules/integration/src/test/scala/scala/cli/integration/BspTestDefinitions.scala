@@ -1284,7 +1284,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
             expect(errorResponse.getStatusCode == b.StatusCode.ERROR)
 
-            val javacOptions = Seq("--javac-opt", "--enable-preview")
+            val javacOptions = Seq(
+              "--javac-opt",
+              "--enable-preview",
+              "--javac-opt",
+              "--release",
+              "--javac-opt",
+              "19"
+            )
 
             os.proc(TestUtil.cli, "setup-ide", ".", "--jvm", "19", javacOptions, extraOptions)
               .call(
@@ -1348,7 +1355,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
             val updatedSourceFile =
               s"""//> using jvm 19
-                 |//> using javacOpt --enable-preview
+                 |//> using javacOpt --enable-preview --release 19
                  |
                  |public class ReloadTest {
                  |  public static void main(String[] args) {
@@ -1390,7 +1397,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val inputs = TestInputs(
       sourceFilePath ->
         s"""//> using jvm 19
-           |//> using javacOpt --enable-preview
+           |//> using javacOpt --enable-preview --release 19
            |
            |public class ReloadTest {
            |  public static void main(String[] args) {

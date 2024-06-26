@@ -174,7 +174,7 @@ class BloopTests extends ScalaCliSuite {
     val inputs = TestInputs(
       os.rel / "Simple.java" ->
         s"""|//> using jvm 21
-            |//> using javacOpt --enable-preview -Xlint:preview
+            |//> using javacOpt --enable-preview -Xlint:preview --release 21
             |//> using javaOpt --enable-preview
             |//> using mainClass Simple
             |
