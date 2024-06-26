@@ -124,6 +124,7 @@ final case class Inputs(
     workspace / Constants.workspaceDirName / projectName / "jar"
   def docJarWorkDir: os.Path =
     workspace / Constants.workspaceDirName / projectName / "doc"
+
 }
 
 object Inputs {
@@ -152,7 +153,7 @@ object Inputs {
       updatedElems,
       defaultMainClassElemOpt,
       workspace,
-      workspace.baseName,
+      baseName(workspace),
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
@@ -384,7 +385,6 @@ object Inputs {
           }
         }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
       }
-
       val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
         case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
         case Some(forcedWorkspace0) =>
@@ -466,7 +466,7 @@ object Inputs {
       elements = Nil,
       defaultMainClassElement = None,
       workspace = workspace,
-      baseProjectName = workspace.baseName,
+      baseProjectName = baseName(workspace),
       mayAppendHash = true,
       workspaceOrigin = None,
       enableMarkdown = enableMarkdown,
@@ -475,4 +475,7 @@ object Inputs {
 
   def empty(projectName: String): Inputs =
     Inputs(Nil, None, os.pwd, projectName, false, None, true, false)
+
+  def baseName(p: os.Path) = if (p == os.root) "" else p.baseName
+
 }
