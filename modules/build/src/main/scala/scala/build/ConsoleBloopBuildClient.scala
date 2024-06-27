@@ -162,50 +162,45 @@ object ConsoleBloopBuildClient {
     path: Either[String, os.Path],
     diag: bsp4j.Diagnostic
   ): Unit = {
-    val isWarningOrErrorOrHint = diag.getSeverity == bsp4j.DiagnosticSeverity.ERROR ||
-      diag.getSeverity == bsp4j.DiagnosticSeverity.WARNING ||
-      diag.getSeverity == bsp4j.DiagnosticSeverity.HINT
-    if (isWarningOrErrorOrHint) {
-      val prefix = diagnosticPrefix(diag.getSeverity)
+    val prefix = diagnosticPrefix(diag.getSeverity)
 
-      val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
-      val col   = (diag.getRange.getStart.getCharacter + 1).toString
-      val msgIt = diag.getMessage.linesIterator
+    val line  = (diag.getRange.getStart.getLine + 1).toString + ":"
+    val col   = (diag.getRange.getStart.getCharacter + 1).toString
+    val msgIt = diag.getMessage.linesIterator
 
-      val path0 = path match {
-        case Left(source) => source
-        case Right(p) if p.startsWith(Os.pwd) =>
-          "." + File.separator + p.relativeTo(Os.pwd).toString
-        case Right(p) => p.toString
-      }
-      logger.error(s"$prefix$path0:$line$col")
-      for (line <- msgIt)
-        logger.error(prefix + line)
-      val codeOpt = {
-        val lineOpt =
-          if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
-            Option(diag.getRange.getStart.getLine)
-          else None
-        for {
-          line <- lineOpt
-          p    <- path.toOption
-          lines = os.read.lines(p)
-          line <- if (line < lines.length) Some(lines(line)) else None
-        } yield line
-      }
-      for (code <- codeOpt)
-        code.linesIterator.map(prefix + _).foreach(logger.error(_))
-      val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
-        diag.getRange.getStart.getCharacter != null &&
-        diag.getRange.getEnd.getCharacter != null &&
-        codeOpt.nonEmpty
-      if (canPrintUnderline) {
-        val len =
-          math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
-        logger.error(
-          prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
-        )
-      }
+    val path0 = path match {
+      case Left(source) => source
+      case Right(p) if p.startsWith(Os.pwd) =>
+        "." + File.separator + p.relativeTo(Os.pwd).toString
+      case Right(p) => p.toString
+    }
+    logger.error(s"$prefix$path0:$line$col")
+    for (line <- msgIt)
+      logger.error(prefix + line)
+    val codeOpt = {
+      val lineOpt =
+        if (diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine)
+          Option(diag.getRange.getStart.getLine)
+        else None
+      for {
+        line <- lineOpt
+        p    <- path.toOption
+        lines = os.read.lines(p)
+        line <- if (line < lines.length) Some(lines(line)) else None
+      } yield line
+    }
+    for (code <- codeOpt)
+      code.linesIterator.map(prefix + _).foreach(logger.error(_))
+    val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
+      diag.getRange.getStart.getCharacter != null &&
+      diag.getRange.getEnd.getCharacter != null &&
+      codeOpt.nonEmpty
+    if (canPrintUnderline) {
+      val len =
+        math.max(1, diag.getRange.getEnd.getCharacter - diag.getRange.getStart.getCharacter)
+      logger.error(
+        prefix + " " * diag.getRange.getStart.getCharacter + "^" * len
+      )
     }
   }
 
