@@ -1676,7 +1676,7 @@ jobs:
       run: ./mill -i ci.updateChocolateyPackage
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
-    - uses: vedantmgoyal2009/winget-releaser@v2
+    - uses: vedantmgoyal9/winget-releaser@main
       with:
         identifier: VirtusLab.ScalaCLI
         installers-regex: '\.msi$'
