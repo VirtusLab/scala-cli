@@ -8,6 +8,192 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.4.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.0)
+
+### Running the REPL with the test scope included
+It is now possible to start the Scala REPL with access to the test scope. 
+To do so, it's enough to pass the `--test` flag with the `repl` sub-command.
+
+```scala title=ReplTestScopeExample.test.scala
+package example
+object ReplTestScopeExample {
+  def message: String = "calling test scope from repl"
+}
+```
+
+```bash ignore
+scala-cli repl ReplTestScopeExample.test.scala --test
+# Compiling project (test, Scala 3.4.2, JVM (17))
+# Compiled project (test, Scala 3.4.2, JVM (17))
+# Welcome to Scala 3.4.2 (17, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#                                                                                                                                          
+# scala> example.ReplTestScopeExample.message
+# val res0: String = calling test scope from repl
+#                                                                                                                                          
+# scala> 
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2971](https://github.com/VirtusLab/scala-cli/pull/2971.)
+
+### The `using jvm` directives are now always respected
+Formerly, if the build server (Bloop) was running on an older JVM than the one specified in a `using jvm` directive, the directive wouldn't be respected. We now restart the build server based on both the directive and the respective command line option (`--jvm`).
+
+```java title=Simple.java
+//> using jvm 22
+//> using javacOpt --enable-preview -Xlint:preview
+//> using javaOpt --enable-preview
+//> using mainClass Simple
+
+void main() {
+    System.out.println("Hello from Java 22");
+}
+```
+
+Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#2972](https://github.com/VirtusLab/scala-cli/pull/2972)
+
+### Support for Scala Native 0.5.4
+This Scala CLI version adds support for Scala Native 0.5.4.
+Native platform builds will now use 0.5.4 as the default version.
+
+```bash
+scala-cli -e 'println("Hello, Scala Native!")' --native
+# Compiling project (Scala 3.4.2, Scala Native 0.5.4)
+# Compiled project (Scala 3.4.2, Scala Native 0.5.4)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (902 ms)
+# [info] Discovered 882 classes and 5384 methods after classloading
+# [info] Checking intermediate code (quick) (37 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (292 ms)
+# [info] Discovered 499 classes and 2497 methods after classloading
+# [info] Checking intermediate code (quick) (10 ms)
+# [info] Discovered 478 classes and 1912 methods after optimization
+# [info] Optimizing (debug mode) (445 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (353 ms)
+# [info] Compiling to native code (1619 ms)
+# [info] Linking with [pthread, dl]
+# [info] Linking native code (immix gc, none lto) (137 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (3753 ms)
+# Hello, Scala Native!
+```
+
+Added by [@scala-steward](https://github.com/scala-steward) in [#2982.](https://github.com/VirtusLab/scala-cli/pull/2982.)
+
+### Scala Toolkit 0.4.0 & 0.3.0 defaults
+This Scala CLI version treats Scala Toolkit 0.4.0 as the default version under most circumstances.
+```scala
+//> using toolkit default
+@main def main() = println(os.pwd)
+```
+This unlocks the Scala Toolkit to be used with Scala Native 0.5.x.
+
+```bash
+scala-cli -e 'println(os.pwd)' --toolkit default --native   
+# Compiling project (Scala 3.4.2, Scala Native 0.5.4)
+# Compiled project (Scala 3.4.2, Scala Native 0.5.4)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (1051 ms)
+# [info] Discovered 1047 classes and 6745 methods after classloading
+# [info] Checking intermediate code (quick) (46 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (543 ms)
+# [info] Discovered 880 classes and 5417 methods after classloading
+# [info] Checking intermediate code (quick) (15 ms)
+# [info] Discovered 857 classes and 4238 methods after optimization
+# [info] Optimizing (debug mode) (651 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (663 ms)
+# [info] Compiling to native code (1621 ms)
+# [info] Linking with [pthread, dl]
+# [info] Linking native code (immix gc, none lto) (81 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (4542 ms)
+```
+
+Scala Native 0.4.x has been dropped in Scala Toolkit 0.4.0 and above, so the last version supporting it, 0.3.0 (and lower), will now make the build default to Scala Native 0.4.17.
+
+```bash
+scala-cli -e 'println(os.pwd)' --toolkit 0.3.0 --native                          
+# [warn] Scala Toolkit Version(0.3.0) does not support Scala Native 0.5.3, 0.4.17 should be used instead.
+# [warn] Scala Native default version 0.5.3 is not supported in this build. Using 0.4.17 instead.
+# Compiling project (Scala 3.4.2, Scala Native 0.4.17)
+# Compiled project (Scala 3.4.2, Scala Native 0.4.17)
+# [info] Linking (900 ms)
+# [info] Checking intermediate code (quick) (63 ms)
+# [info] Discovered 888 classes and 5298 methods
+# [info] Optimizing (debug mode) (836 ms)
+# [info] Generating intermediate code (620 ms)
+# [info] Produced 10 files
+# [info] Compiling to native code (1860 ms)
+# [info] Linking with [pthread, dl]
+# [info] Total (4406 ms)
+# ~/scala-cli-tests
+```
+:::caution
+The troublesome case is when Scala Native 0.4.x is passed explicitly, while the Scala Toolkit is set to the default.
+Scala CLI does not currently support downgrading the Scala Toolkit in this case, and fails the build.
+
+```bash fail
+scala-cli -e 'println(os.pwd)' --toolkit default --native --native-version 0.4.17
+# Downloading 4 dependencies and 2 internal dependencies
+# [error]  Error downloading org.scala-lang:toolkit-test_native0.4_3:0.4.0
+# [error]   not found: ~/.ivy2/local/org.scala-lang/toolkit-test_native0.4_3/0.4.0/ivys/ivy.xml
+# [error]   not found: https://repo1.maven.org/maven2/org/scala-lang/toolkit-test_native0.4_3/0.4.0/toolkit-test_native0.4_3-0.4.0.pom
+# [error]   not found: ~/Library/Caches/ScalaCli/local-repo/1.4.0/org.scala-lang/toolkit-test_native0.4_3/0.4.0/ivys/ivy.xml
+# [error]   No fallback URL found
+# [error] COMMAND_LINE
+# [error]  Error downloading org.scala-lang:toolkit_native0.4_3:0.4.0
+# [error]   not found: ~/.ivy2/local/org.scala-lang/toolkit_native0.4_3/0.4.0/ivys/ivy.xml
+# [error]   not found: https://repo1.maven.org/maven2/org/scala-lang/toolkit_native0.4_3/0.4.0/toolkit_native0.4_3-0.4.0.pom
+# [error]   not found: ~/Library/Caches/ScalaCli/local-repo/1.4.0/org.scala-lang/toolkit_native0.4_3/0.4.0/ivys/ivy.xml
+# [error]   No fallback URL found
+# [error] COMMAND_LINE
+```
+:::
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#2955](https://github.com/VirtusLab/scala-cli/pull/2955)
+
+### Features
+* Include test scope in the REPL  when the `--test` flag is passed by [@Gedochao](https://github.com/Gedochao) in [#2971](https://github.com/VirtusLab/scala-cli/pull/2971)
+
+### Fixes
+* Fix BSP IllegalArgumentException when loading project in Metals by [@joan38](https://github.com/joan38) in [#2950](https://github.com/VirtusLab/scala-cli/pull/2950)
+* Don't check for newer CLI versions when the `--cli-version` launcher param is passed (v1.4.0 and onwards, only) by [@Gedochao](https://github.com/Gedochao) in [#2957](https://github.com/VirtusLab/scala-cli/pull/2957)
+* fix: start bloop with jvm version from using directives for JVMs > 17 by [@kasiaMarek](https://github.com/kasiaMarek) in [#2972](https://github.com/VirtusLab/scala-cli/pull/2972)
+
+### Documentation changes
+* Typo fixed in scripts.md by [@vaivanov95](https://github.com/vaivanov95) in [#2974](https://github.com/VirtusLab/scala-cli/pull/2974)
+
+### Internal changes
+* Tag flaky docker image with scala.js app test by [@Gedochao](https://github.com/Gedochao) in [#2977](https://github.com/VirtusLab/scala-cli/pull/2977)
+
+### Updates
+* Update scala-cli.sh launcher for 1.3.2 by [@github-actions](https://github.com/github-actions) in [#2938](https://github.com/VirtusLab/scala-cli/pull/2938)
+* Update Scala Native to 0.5.2 by [@scala-steward](https://github.com/scala-steward) in [#2946](https://github.com/VirtusLab/scala-cli/pull/2946)
+* Update guava to 33.2.1-jre by [@scala-steward](https://github.com/scala-steward) in [#2947](https://github.com/VirtusLab/scala-cli/pull/2947)
+* Update os-lib to 0.10.2 by [@scala-steward](https://github.com/scala-steward) in [#2949](https://github.com/VirtusLab/scala-cli/pull/2949)
+* Update ammonite to 3.0.0-M2-8-ba4429a2 by [@scala-steward](https://github.com/scala-steward) in [#2948](https://github.com/VirtusLab/scala-cli/pull/2948)
+* Update Scala Native to 0.5.3 by [@scala-steward](https://github.com/scala-steward) in [#2951](https://github.com/VirtusLab/scala-cli/pull/2951)
+* Update case-app to 2.1.0-M28 by [@scala-steward](https://github.com/scala-steward) in [#2956](https://github.com/VirtusLab/scala-cli/pull/2956)
+* Update Scala Toolkit to 0.4.0 & dynamically adjust Scala Native defaults by [@Gedochao](https://github.com/Gedochao) in [#2955](https://github.com/VirtusLab/scala-cli/pull/2955)
+* Update munit to 1.0.0 by [@scala-steward](https://github.com/scala-steward) in [#2935](https://github.com/VirtusLab/scala-cli/pull/2935)
+* Update ammonite to 3.0.0-M2-9-88291dd8 by [@scala-steward](https://github.com/scala-steward) in [#2960](https://github.com/VirtusLab/scala-cli/pull/2960)
+* Update `scalameta` to 4.9.6 by [@scala-steward](https://github.com/scala-steward) in [#2967](https://github.com/VirtusLab/scala-cli/pull/2967)
+* Update ammonite to 3.0.0-M2-10-f6e2c001 by [@scala-steward](https://github.com/scala-steward) in [#2965](https://github.com/VirtusLab/scala-cli/pull/2965)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.8.2 by [@scala-steward](https://github.com/scala-steward) in [#2966](https://github.com/VirtusLab/scala-cli/pull/2966)
+* Update scalameta to 4.9.7 by [@scala-steward](https://github.com/scala-steward) in [#2983](https://github.com/VirtusLab/scala-cli/pull/2983)
+* Pin `scala-cli-setup` to v1 and update CI scripts' dependencies by [@Gedochao](https://github.com/Gedochao) in [#2984](https://github.com/VirtusLab/scala-cli/pull/2984)
+* Update Scala Native to 0.5.4 by [@scala-steward](https://github.com/scala-steward) in [#2982](https://github.com/VirtusLab/scala-cli/pull/2982)
+* Update mill-main to 0.11.8 by [@scala-steward](https://github.com/scala-steward) in [#2980](https://github.com/VirtusLab/scala-cli/pull/2980)
+* Update bloop-config_2.13 to 2.0.2 by [@scala-steward](https://github.com/scala-steward) in [#2978](https://github.com/VirtusLab/scala-cli/pull/2978)
+* Update ammonite to 3.0.0-M2-12-951bbc1e by [@scala-steward](https://github.com/scala-steward) in [#2979](https://github.com/VirtusLab/scala-cli/pull/2979)
+
+## New Contributors
+* [@vaivanov95](https://github.com/vaivanov95) made their first contribution in [#2974](https://github.com/VirtusLab/scala-cli/pull/2974)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.3.2...v1.4.0
+
 ## [v1.3.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.3.2)
 
 ### Support for Scala 3.4.2
@@ -754,7 +940,7 @@ It is now possible to run Scala CLI in offline mode for the cases when you don't
 to make any network requests for whatever reason.
 This changes Coursier's cache policy to `LocalOnly`, preventing it from downloading anything.
 
-```bash 
+```bash ignore
 scala-cli compile . --offline --power
 ```
 
