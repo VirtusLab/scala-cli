@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.1">
 <title data-rh="true">Scripts | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/guides/scripting/scripts"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Scripts | Scala CLI"><meta data-rh="true" name="description" content="Scala CLI accepts Scala scripts as files that end in .sc."><meta data-rh="true" property="og:description" content="Scala CLI accepts Scala scripts as files that end in .sc."><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/guides/scripting/scripts"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/guides/scripting/scripts" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/guides/scripting/scripts" hreflang="x-default"><script data-rh="true">!function(e,t,a,n,g){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var m=t.getElementsByTagName(a)[0],r=t.createElement(a);r.async=!0,r.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",m.parentNode.insertBefore(r,m)}(window,document,"script","dataLayer")</script><link rel="stylesheet" href="/assets/css/styles.318da5f4.css">
-<script src="/assets/js/runtime~main.2bcf9faa.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.bb5aae64.js" defer="defer"></script>
 <script src="/assets/js/main.9dababca.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -98,7 +98,7 @@ Due to the usage of <code>export</code> keyword it is not possible to use it in 
 <!-- -->The Class Wrapper&#x27;s behaviour is the default described throughout the documentation.</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="object-wrapper">Object Wrapper<a href="#object-wrapper" class="hash-link" aria-label="Direct link to Object Wrapper" title="Direct link to Object Wrapper">​</a></h4>
 <p>This wrapper is an alternative to the <a href="#class-wrapper">Class Wrapper</a> and can be forced with <code>--object-wrapper</code> flag and <code>&gt;// using  objectWrapper</code> directive.
-It is used by default for Scala 3 scripts compiled for JS platform. Can suffer from deadlocks then using multithreaded code.</p>
+It is used by default for Scala 3 scripts compiled for JS platform. Can suffer from deadlocks when using multithreaded code.</p>
 <p><strong>Limitations</strong></p>
 <ul>
 <li>When running background threads from the script and using e.g. <code>scala.concurrent.Await</code> on them may result in a deadlock due to unfinished initialization of the wrapper object.</li>
