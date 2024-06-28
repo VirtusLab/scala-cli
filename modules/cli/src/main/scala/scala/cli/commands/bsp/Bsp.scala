@@ -10,12 +10,13 @@ import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.options.{BuildOptions, Scope}
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.launcher.LauncherOptions
+import scala.cli.util.ConfigDbUtils
+import scala.cli.{CurrentParams, ScalaCli}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
@@ -30,6 +31,7 @@ object Bsp extends ScalaCommand[BspOptions] {
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
         readFromArray(content)(SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
+
   private def latestLauncherOptions(options: BspOptions): LauncherOptions =
     options.jsonLauncherOptions
       .map(path => os.Path(path, os.pwd))
@@ -51,6 +53,24 @@ object Bsp extends ScalaCommand[BspOptions] {
   override def sharedOptions(options: BspOptions): Option[SharedOptions] =
     Option(latestSharedOptions(options))
 
+  private def refreshPowerMode(
+    latestLauncherOptions: LauncherOptions,
+    latestSharedOptions: SharedOptions,
+    latestEnvs: Map[String, String]
+  ): Unit = {
+    val previousPowerMode = ScalaCli.allowRestrictedFeatures
+    val configPowerMode = ConfigDbUtils.getLatestConfigDbOpt(latestSharedOptions.logger)
+      .flatMap(_.get(Keys.power).toOption)
+      .flatten
+      .getOrElse(false)
+    val envPowerMode       = latestEnvs.get("SCALA_CLI_POWER").exists(_.toBoolean)
+    val launcherPowerArg   = latestLauncherOptions.powerOptions.power
+    val subCommandPowerArg = latestSharedOptions.powerOptions.power
+    val latestPowerMode = configPowerMode || launcherPowerArg || subCommandPowerArg || envPowerMode
+    // only set power mode if it's been turned on since, never turn it off in BSP
+    if !previousPowerMode && latestPowerMode then ScalaCli.setPowerMode(latestPowerMode)
+  }
+
   // not reusing buildOptions here, since they should be reloaded live instead
   override def runCommand(options: BspOptions, args: RemainingArgs, logger: Logger): Unit = {
     if (options.shared.logging.verbosity >= 3)
@@ -60,6 +80,8 @@ object Bsp extends ScalaCommand[BspOptions] {
     val getLauncherOptions: () => LauncherOptions  = () => latestLauncherOptions(options)
     val getEnvsFromFile: () => Map[String, String] = () => latestEnvsFromFile(options)
 
+    refreshPowerMode(getLauncherOptions(), getSharedOptions(), getEnvsFromFile())
+
     val preprocessInputs: Seq[String] => Either[BuildException, (Inputs, BuildOptions)] =
       argsSeq =>
         either {
@@ -67,6 +89,8 @@ object Bsp extends ScalaCommand[BspOptions] {
           val launcherOptions = getLauncherOptions()
           val envs            = getEnvsFromFile()
           val initialInputs   = value(sharedOptions.inputs(argsSeq, () => Inputs.default()))
+
+          refreshPowerMode(launcherOptions, sharedOptions, envs)
 
           if (sharedOptions.logging.verbosity >= 3)
             pprint.err.log(initialInputs)
@@ -114,6 +138,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val envs            = getEnvsFromFile()
       val bspBuildOptions = buildOptions(sharedOptions, launcherOptions, envs)
         .orElse(finalBuildOptions)
+      refreshPowerMode(launcherOptions, sharedOptions, envs)
       BspReloadableOptions(
         buildOptions = bspBuildOptions,
         bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(bspBuildOptions))
@@ -129,6 +154,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val envs            = getEnvsFromFile()
       val bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
         .orExit(sharedOptions.logger)
+      refreshPowerMode(launcherOptions, sharedOptions, envs)
 
       BspReloadableOptions(
         buildOptions = buildOptions(sharedOptions, launcherOptions, envs),
