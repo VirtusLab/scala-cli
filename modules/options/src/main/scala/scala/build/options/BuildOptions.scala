@@ -58,11 +58,11 @@ final case class BuildOptions(
       case Some(scalaParams0) =>
         val platform0 = platform.value match {
           case Platform.JVM =>
-            val jvmIdSuffix =
+            val jvmVersion =
               javaOptions.jvmIdOpt.map(_.value)
-                .orElse(Some(javaHome().value.version.toString))
-                .map(" (" + _ + ")").getOrElse("")
-            s"JVM$jvmIdSuffix"
+                .orElse(Some(Properties.javaVersion))
+                .map("(" + _ + ")").getOrElse("")
+            s"JVM $jvmVersion"
           case Platform.JS =>
             val scalaJsVersion = scalaJsOptions.version.getOrElse(Constants.scalaJsVersion)
             s"Scala.js $scalaJsVersion"
