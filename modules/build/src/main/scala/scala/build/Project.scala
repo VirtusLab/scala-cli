@@ -37,10 +37,8 @@ final case class Project(
     val platform = (scalaJsOptions, scalaNativeOptions) match {
       case (None, None) =>
         val baseJvmConf = bloopJvmPlatform
-        baseJvmConf.copy(
-          // We don't pass jvm home here, because it applies only to java files compilation
-          config = baseJvmConf.config.copy(home = None)
-        )
+        val home        = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
+        baseJvmConf.copy(config = baseJvmConf.config.copy(home = home))
       case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
         BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)

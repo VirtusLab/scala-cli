@@ -65,108 +65,6 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
     override def flushExperimentalWarnings: Unit                                          = ???
   }
 
-  val bloopJavaPath = Position.Bloop("/home/empty/jvm/8/")
-
-  def testJvmReleaseIsSetCorrectly(
-    javaHome: String,
-    bloopJvmVersion: Option[Int],
-    scalacOptions: Seq[String] = Nil
-  ) = {
-    val options = BuildOptions(
-      internal = InternalOptions(localRepository =
-        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
-      ),
-      javaOptions = JavaOptions(
-        javaHomeOpt = Some(Positioned.none(os.Path(javaHome)))
-      ),
-      scalaOptions = ScalaOptions(
-        scalacOptions = ShadowingSeq.from(
-          scalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
-        )
-      )
-    )
-
-    val inputs    = Inputs.empty("project")
-    val sources   = Sources(Nil, Nil, None, Nil, options)
-    val logger    = new LoggerMock()
-    val artifacts = options.artifacts(logger, Scope.Test).orThrow
-    val res = Build.buildProject(
-      inputs,
-      sources,
-      Nil,
-      options,
-      bloopJvmVersion.map(bv => Positioned(bloopJavaPath, bv)),
-      Scope.Test,
-      logger,
-      artifacts
-    )
-
-    val scalaCompilerOptions = res.fold(throw _, identity)
-      .scalaCompiler
-      .toSeq
-      .flatMap(_.scalacOptions)
-    (scalaCompilerOptions, res.fold(throw _, identity).javacOptions, logger.diagnostics)
-  }
-
-  def jvm(v: Int) = os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$v").call().out.trim()
-
-  test("Compiler options contain target JVM release") {
-    val javaHome        = jvm(8)
-    val bloopJvmVersion = 11
-    val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
-    expect(scalacOptions.containsSlice(Seq("-release", "8")))
-    expect(javacOptions.containsSlice(Seq("--release", "8")))
-    expect(diagnostics.isEmpty)
-
-  }
-
-  test("Empty BuildOptions is actually empty 2 ") {
-    val javaHome        = jvm(8)
-    val bloopJvmVersion = 8
-    val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
-    expect(!scalacOptions.containsSlice(Seq("-release")))
-    expect(!javacOptions.containsSlice(Seq("--release")))
-    expect(diagnostics.isEmpty)
-  }
-
-  test("Empty BuildOptions is actually empty 2 ") {
-    val javaHome        = jvm(11)
-    val bloopJvmVersion = 17
-    val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
-    expect(scalacOptions.containsSlice(Seq("-release", "11")))
-    expect(javacOptions.containsSlice(Seq("--release", "11")))
-    expect(diagnostics.isEmpty)
-  }
-
-  lazy val expectedDiagnostic = Diagnostic(
-    Diagnostic.Messages.bloopTooOld,
-    Severity.Warning,
-    List(bloopJavaPath)
-  )
-
-  test("Compiler options contain target JVM release") {
-    val javaHome        = jvm(17)
-    val bloopJvmVersion = 11
-    val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion))
-    expect(!scalacOptions.containsSlice(Seq("-release")))
-    expect(!javacOptions.containsSlice(Seq("--release")))
-    expect(diagnostics == List(expectedDiagnostic))
-  }
-
-  test("Empty BuildOptions is actually empty 2 ") {
-    val javaHome        = jvm(11)
-    val bloopJvmVersion = 8
-    val (scalacOptions, javacOptions, diagnostics) =
-      testJvmReleaseIsSetCorrectly(javaHome, Some(bloopJvmVersion), List("-release", "17"))
-    expect(scalacOptions.containsSlice(Seq("-release", "17")))
-    expect(!javacOptions.containsSlice(Seq("--release")))
-    expect(diagnostics == List(expectedDiagnostic))
-  }
-
   test("workspace for bsp") {
     val options = BuildOptions(
       internal = InternalOptions(localRepository =
@@ -182,12 +80,5 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
       Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger, artifacts).orThrow
 
     expect(project.workspace == inputs.workspace)
-  }
-  test("skip passing release flag for java 8 for ScalaSimpleCompiler") {
-    val javaHome        = jvm(8)
-    val bloopJvmVersion = 17
-    val (_, javacOptions, _) =
-      testJvmReleaseIsSetCorrectly(javaHome, bloopJvmVersion = None)
-    expect(!javacOptions.containsSlice(Seq("--release")))
   }
 }

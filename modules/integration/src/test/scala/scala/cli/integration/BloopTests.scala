@@ -174,7 +174,7 @@ class BloopTests extends ScalaCliSuite {
     val inputs = TestInputs(
       os.rel / "Simple.java" ->
         s"""|//> using jvm 21
-            |//> using javacOpt --enable-preview -Xlint:preview
+            |//> using javacOpt --enable-preview -Xlint:preview --release 21
             |//> using javaOpt --enable-preview
             |//> using mainClass Simple
             |
@@ -191,4 +191,54 @@ class BloopTests extends ScalaCliSuite {
       runScalaCli("bloop", "exit", "--power").call(cwd = root)
     }
   }
+
+  for {
+    lang         <- List("scala", "java")
+    useDirective <- List(true, false)
+    option       <- List("java-home", "jvm")
+  }
+    test(s"compiles $lang file with correct jdk version for $option ${
+        if (useDirective) "use directive" else "option"
+      }") {
+      def isScala = lang == "scala"
+      val optionValue =
+        if (option == "java-home")
+          os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim()).toString()
+        else "8"
+      val directive =
+        if (useDirective) s"//> using ${option.replace("-h", "H")} $optionValue\n" else ""
+      val options = if (useDirective) Nil else List(s"--$option", optionValue)
+      val content =
+        if (isScala)
+          """|package a
+             |import java.net.http.HttpClient
+             |
+             |trait Simple {
+             |  def httpClient: HttpClient
+             |}
+             |""".stripMargin
+        else """|package a;
+               |
+               |import java.net.http.HttpClient;
+               |
+               |interface Simple {
+               |  HttpClient httpClient();
+               |}
+               |""".stripMargin
+      val inputs = TestInputs(os.rel / s"Simple.$lang" -> s"$directive$content")
+
+      inputs.fromRoot { root =>
+        val res =
+          runScalaCli(("compile" :: "." :: options)*).call(root, check = false, stderr = os.Pipe)
+        assert(res.exitCode == 1)
+
+        val compilationError = res.err.text()
+        val message =
+          if (isScala) "value http is not a member of java.net"
+          else "error: package java.net.http does not exist"
+
+        assert(compilationError.contains("Compilation failed"))
+        assert(compilationError.contains(message))
+      }
+    }
 }
