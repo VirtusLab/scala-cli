@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import os.Pipe
 
 import scala.cli.integration.util.BloopUtil
 import scala.concurrent.ExecutionContext
@@ -230,7 +229,7 @@ class BloopTests extends ScalaCliSuite {
 
       inputs.fromRoot { root =>
         val res =
-          runScalaCli(("compile" :: "." :: options)*).call(root, check = false, stderr = Pipe)
+          runScalaCli(("compile" :: "." :: options)*).call(root, check = false, stderr = os.Pipe)
         assert(res.exitCode == 1)
 
         val compilationError = res.err.text()
