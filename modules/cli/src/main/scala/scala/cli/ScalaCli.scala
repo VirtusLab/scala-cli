@@ -117,7 +117,7 @@ object ScalaCli {
     try main0(args)
     catch {
       case e: Throwable if !isCI && !printStackTraces =>
-        val workspace = CurrentParams.workspaceOpt.getOrElse(os.pwd)
+        val workspace = CurrentParams.workspaceOpt.filter(os.isDir).getOrElse(os.pwd)
         val dir       = workspace / Constants.workspaceDirName / "stacktraces"
         os.makeDir.all(dir)
         import java.time.Instant
