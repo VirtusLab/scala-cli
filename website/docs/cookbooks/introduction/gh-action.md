@@ -3,7 +3,7 @@ title: GitHub Actions
 sidebar_position: 9
 ---
 
-## Preparing simple aplication
+## Preparing simple application
 
 Scala CLI lets you run, test, and package Scala code in various environments, including GitHub CI. 
 To use Scala CLI features in a simple way you can use the GitHub Actions [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) that installs everything necessary to run your Scala CLI application and more.
