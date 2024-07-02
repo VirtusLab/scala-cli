@@ -49,7 +49,8 @@ object ScalaCli {
     val isPower    = isPowerEnv.orElse(isPowerConfigDb).getOrElse(false)
     !isPower
   }
-  def allowRestrictedFeatures = !isSipScala
+  def setPowerMode(power: Boolean): Unit = isSipScala = !power
+  def allowRestrictedFeatures            = !isSipScala
   def fullRunnerName =
     if (progName.contains(scalaCliBinaryName)) "Scala CLI" else "Scala code runner"
   def baseRunnerName = if (progName.contains(scalaCliBinaryName)) scalaCliBinaryName else "scala"

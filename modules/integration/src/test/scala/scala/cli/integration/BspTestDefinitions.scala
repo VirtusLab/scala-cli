@@ -78,6 +78,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     attempts: Int = if (TestUtil.isCI) 3 else 1,
     pauseDuration: FiniteDuration = 5.seconds,
     bspOptions: List[String] = List.empty,
+    bspEnvs: Map[String, String] = Map.empty,
     reuseRoot: Option[os.Path] = None,
     stdErrOpt: Option[os.RelPath] = None,
     extraOptionsOverride: Seq[String] = extraOptions
@@ -96,7 +97,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val stderr: os.ProcessOutput                = stdErrPathOpt.getOrElse(os.Inherit)
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)
-        .spawn(cwd = root, stderr = stderr)
+        .spawn(cwd = root, stderr = stderr, env = bspEnvs)
       var remoteServer: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer =
         null
 
@@ -2106,6 +2107,190 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             val compileResult =
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
             expect(compileResult.getStatusCode == b.StatusCode.OK)
+            val runResult =
+              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
+
+  for {
+    setPowerByLauncherOpt   <- Seq(true, false)
+    setPowerBySubCommandOpt <- Seq(true, false)
+    setPowerByEnv           <- Seq(true, false)
+    setPowerByConfig        <- Seq(true, false)
+    powerIsSet =
+      setPowerByLauncherOpt || setPowerBySubCommandOpt || setPowerByEnv || setPowerByConfig
+    powerSettingDescription = {
+      val launcherSetting   = if (setPowerByLauncherOpt) "launcher option" else ""
+      val subCommandSetting = if (setPowerBySubCommandOpt) "setup-ide option" else ""
+      val envSetting        = if (setPowerByEnv) "environment variable" else ""
+      val configSetting     = if (setPowerByConfig) "config" else ""
+      List(launcherSetting, subCommandSetting, envSetting, configSetting)
+        .filter(_.nonEmpty)
+        .mkString(", ")
+    }
+    testDescription =
+      if (powerIsSet)
+        s"BSP respects --power mode set by $powerSettingDescription (example: using python directive)"
+      else
+        "BSP fails when --power mode is not set for experimental directives (example: using python directive)"
+  } test(testDescription) {
+    val scriptName = "requires-power.sc"
+    val inputs = TestInputs(os.rel / scriptName ->
+      s"""//> using python
+         |println("scalapy is experimental")""".stripMargin)
+    inputs.fromRoot { root =>
+      val configFile = os.rel / "config" / "config.json"
+      val configEnvs = Map("SCALA_CLI_CONFIG" -> configFile.toString())
+      val setupIdeEnvs: Map[String, String] =
+        if (setPowerByEnv) Map("SCALA_CLI_POWER" -> "true") ++ configEnvs
+        else configEnvs
+      val launcherOpts =
+        if (setPowerByLauncherOpt) List("--power")
+        else List.empty
+      val subCommandOpts =
+        if (setPowerBySubCommandOpt) List("--power")
+        else List.empty
+      val args = launcherOpts ++ List("setup-ide", scriptName) ++ subCommandOpts
+      os.proc(TestUtil.cli, args).call(cwd = root, env = setupIdeEnvs)
+      if (setPowerByConfig)
+        os.proc(TestUtil.cli, "config", "power", "true")
+          .call(cwd = root, env = configEnvs)
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      expect(ideOptionsPath.toNIO.toFile.exists())
+      val ideLauncherOptsPath = root / Constants.workspaceDirName / "ide-launcher-options.json"
+      expect(ideLauncherOptsPath.toNIO.toFile.exists())
+      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+      expect(ideEnvsPath.toNIO.toFile.exists())
+      val jsonOptions = List(
+        "--json-options",
+        ideOptionsPath.toString,
+        "--json-launcher-options",
+        ideLauncherOptsPath.toString,
+        "--envs-file",
+        ideEnvsPath.toString
+      )
+      withBsp(
+        inputs,
+        Seq("."),
+        bspOptions = jsonOptions,
+        bspEnvs = configEnvs,
+        reuseRoot = Some(root)
+      ) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+            val compileResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            if (powerIsSet) {
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+              val runResult =
+                await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
+            }
+            else
+              expect(compileResult.getStatusCode == b.StatusCode.ERROR)
+          }
+      }
+    }
+  }
+
+  test("BSP reloads --power mode after setting it via env passed to setup-ide") {
+    val scriptName = "requires-power.sc"
+    val inputs = TestInputs(os.rel / scriptName ->
+      s"""//> using python
+         |println("scalapy is experimental")""".stripMargin)
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions).call(cwd = root)
+      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+      expect(ideEnvsPath.toNIO.toFile.exists())
+      val jsonOptions = List("--envs-file", ideEnvsPath.toString)
+      withBsp(inputs, Seq(scriptName), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+
+            // compilation should fail before reload, as --power mode is off
+            val compileBeforeReloadResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
+
+            // enable --power mode via env for setup-ide
+            os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions)
+              .call(cwd = root, env = Map("SCALA_CLI_POWER" -> "true"))
+
+            // compilation should now succeed
+            val reloadResponse =
+              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
+            val compileAfterReloadResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
+
+            // code should also be runnable via BSP now
+            val runResult =
+              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
+          }
+      }
+    }
+  }
+
+  test("BSP reloads --power mode after setting it via config") {
+    val scriptName = "requires-power.sc"
+    val inputs = TestInputs(os.rel / scriptName ->
+      s"""//> using python
+         |println("scalapy is experimental")""".stripMargin)
+    inputs.fromRoot { root =>
+      val configFile = os.rel / "config" / "config.json"
+      val configEnvs = Map("SCALA_CLI_CONFIG" -> configFile.toString())
+      os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions).call(
+        cwd = root,
+        env = configEnvs
+      )
+      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+      expect(ideEnvsPath.toNIO.toFile.exists())
+      val jsonOptions = List("--envs-file", ideEnvsPath.toString)
+      withBsp(
+        inputs,
+        Seq(scriptName),
+        bspOptions = jsonOptions,
+        bspEnvs = configEnvs,
+        reuseRoot = Some(root)
+      ) {
+        (_, _, remoteServer) =>
+          async {
+            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+              .getTargets.asScala
+              .filter(!_.getId.getUri.contains("-test"))
+              .map(_.getId())
+
+            // compilation should fail before reload, as --power mode is off
+            val compileBeforeReloadResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
+
+            // enable --power mode via config
+            os.proc(TestUtil.cli, "config", "power", "true")
+              .call(cwd = root, env = configEnvs)
+
+            // compilation should now succeed
+            val reloadResponse =
+              extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
+            expect(reloadResponse.isEmpty)
+            val compileAfterReloadResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
+
+            // code should also be runnable via BSP now
             val runResult =
               await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
             expect(runResult.getStatusCode == b.StatusCode.OK)
