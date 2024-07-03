@@ -1782,7 +1782,7 @@ only be available in `--power` mode.
 scala-cli config httpProxy.address
 # The 'httpProxy.address' configuration key is restricted.
 # You can run it with the '--power' flag or turn power mode on globally by running:
-#   scala-cli config power true.
+#   scala-cli config power true
 ```
 
 Added by  [@Gedochao](https://github.com/Gedochao) in [#1953](https://github.com/VirtusLab/scala-cli/pull/1953)
