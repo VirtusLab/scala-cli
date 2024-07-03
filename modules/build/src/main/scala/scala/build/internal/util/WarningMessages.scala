@@ -71,7 +71,7 @@ object WarningMessages {
       if specificationLevel == SpecificationLevel.EXPERIMENTAL then "experimental" else "restricted"
     s"""The `$featureName` $featureType is $powerType.
        |You can run it with the `--power` flag or turn power mode on globally by running:
-       |  ${Console.BOLD}${invokeData.progName} config power true${Console.RESET}.""".stripMargin
+       |  ${Console.BOLD}${invokeData.progName} config power true${Console.RESET}""".stripMargin
   }
 
   def powerCommandUsedInSip(commandName: String, specificationLevel: SpecificationLevel)(using
