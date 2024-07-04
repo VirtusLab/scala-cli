@@ -6,8 +6,10 @@ import scala.cli.commands.publish.ConfigUtil.wrapConfigException
 import scala.cli.config.{ConfigDb, Key}
 
 object ConfigDbUtils {
-  lazy val configDb: Either[ConfigDbException, ConfigDb] =
+  private def getLatestConfigDb: Either[ConfigDbException, ConfigDb] =
     ConfigDb.open(Directories.directories.dbPath.toNIO).wrapConfigException
+
+  lazy val configDb: Either[ConfigDbException, ConfigDb] = getLatestConfigDb
 
   extension [T](either: Either[Exception, T]) {
     private def handleConfigDbException(f: BuildException => Unit): Option[T] =
@@ -23,6 +25,9 @@ object ConfigDbUtils {
 
   def getConfigDbOpt(logger: Logger): Option[ConfigDb] =
     configDb.handleConfigDbException(logger.debug)
+
+  def getLatestConfigDbOpt(logger: Logger): Option[ConfigDb] =
+    getLatestConfigDb.handleConfigDbException(logger.debug)
 
   extension (db: ConfigDb) {
     def getOpt[T](configDbKey: Key[T], f: BuildException => Unit): Option[T] =
