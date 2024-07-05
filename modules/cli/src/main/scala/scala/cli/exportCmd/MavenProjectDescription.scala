@@ -114,7 +114,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, Scope.Main),
-      plugins(optionsMain, Scope.Main, "17")
+      plugins(optionsMain, Scope.Main, "17") //todo How to get the jdk version from directive
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }
