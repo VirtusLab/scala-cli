@@ -110,11 +110,12 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     sourcesMain: Sources,
     sourcesTest: Sources
   ): Either[BuildException, MavenProject] = {
+    val jdk = optionsMain.javaOptions.jvmIdOpt.map(_.value).getOrElse("17")
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, Scope.Main),
-      plugins(optionsMain, Scope.Main, "17") //todo How to get the jdk version from directive
+      plugins(optionsMain, Scope.Main, jdk)
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }

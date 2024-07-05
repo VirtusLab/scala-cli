@@ -27,7 +27,7 @@ final case class ExportOptions(
   @HelpMessage("Sets the export format to SBT")
     sbt: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
-  @Tag(tags.restricted)
+  @Tag(tags.experimental)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Maven")
     maven: Option[Boolean] = None,

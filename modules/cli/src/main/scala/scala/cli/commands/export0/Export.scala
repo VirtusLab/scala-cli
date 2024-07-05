@@ -151,7 +151,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     if (!shouldExportToJson) {
       val buildToolName =
-        if (shouldExportToMill) "mill" else if (shouldExportToSbt) "sbt" else "maven"
+        if (shouldExportToMill) "mill" else if (shouldExportToMaven) "maven" else "sbt"
       logger.message(s"Exporting to a $buildToolName project...")
     }
     else if (!shouldExportJsonToStdout)
@@ -231,6 +231,8 @@ object Export extends ScalaCommand[ExportOptions] {
       val projectDescriptor =
         if (shouldExportToMill)
           millProjectDescriptor(options.shared.coursierCache, options.project, logger)
+        else if (shouldExportToMaven)
+          mavenProjectDescriptor(Nil, logger) // todo: do we need extraSettings?
         else if (shouldExportToJson)
           jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default
