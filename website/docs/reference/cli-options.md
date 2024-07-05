@@ -360,10 +360,6 @@ Sets the export format to SBT
 
 ### `--mill`
 
-Sets the export format to Maven
-
-### `--maven`
-
 Sets the export format to Mill
 
 ### `--json`
