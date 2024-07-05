@@ -995,6 +995,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def scalaNativeVersion         = "${Deps.Versions.scalaNative}"
            |  def scalaNativeVersion04       = "${Deps.Versions.scalaNative04}"
            |  def scalaNativeVersion05       = "${Deps.Versions.scalaNative05}"
+           |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
            |  def ammoniteVersion            = "${Deps.ammonite.dep.version}"
            |  def defaultGraalVMJavaVersion  = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion      = "${deps.graalVmVersion}"
