@@ -29,6 +29,11 @@ final case class ExportOptions(
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
+  @HelpMessage("Sets the export format to Maven")
+    maven: Option[Boolean] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.restricted)
+  @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Mill")
     mill: Option[Boolean] = None,
   @Tag(tags.restricted)

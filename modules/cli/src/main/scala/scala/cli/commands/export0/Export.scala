@@ -79,6 +79,13 @@ object Export extends ScalaCommand[ExportOptions] {
     logger: Logger
   ): SbtProjectDescriptor =
     SbtProjectDescriptor(sbtVersion, extraSettings, logger)
+
+  def mavenProjectDescriptor(
+    extraSettings: Seq[String],
+    logger: Logger
+  ): MavenProjectDescription =
+    MavenProjectDescription(extraSettings, logger)
+    
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],
@@ -129,9 +136,13 @@ object Export extends ScalaCommand[ExportOptions] {
       sys.exit(1)
     }
 
-    val shouldExportToMill = options.mill.getOrElse(false)
-    val shouldExportToSbt  = options.sbt.getOrElse(false)
-    if (shouldExportToMill && shouldExportToSbt) {
+    val shouldExportToMill  = options.mill.getOrElse(false)
+    val shouldExportToSbt   = options.sbt.getOrElse(false)
+    val shouldExportToMaven = options.maven.getOrElse(false)
+
+    val exportOptions = List(shouldExportToMill, shouldExportToSbt, shouldExportToMaven)
+
+    if (exportOptions.count(identity) > 1) {
       logger.error(
         s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
       )
@@ -139,7 +150,8 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (!shouldExportToJson) {
-      val buildToolName = if (shouldExportToMill) "mill" else "sbt"
+      val buildToolName =
+        if (shouldExportToMill) "mill" else if (shouldExportToSbt) "sbt" else "maven"
       logger.message(s"Exporting to a $buildToolName project...")
     }
     else if (!shouldExportJsonToStdout)
