@@ -85,7 +85,7 @@ object Export extends ScalaCommand[ExportOptions] {
     logger: Logger
   ): MavenProjectDescription =
     MavenProjectDescription(extraSettings, logger)
-    
+
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],

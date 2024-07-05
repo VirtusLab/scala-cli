@@ -11,12 +11,7 @@ import java.nio.file.Path
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
-import scala.build.options.{
-  BuildOptions,
-  Platform,
-  Scope,
-  ShadowingSeq
-}
+import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
@@ -35,12 +30,10 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     )
   }
 
-  private def javaOptionsSettings(options: BuildOptions): MavenProject = {
-
+  private def javaOptionsSettings(options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
     )
-  }
 
   private def javacOptionsSettings(options: BuildOptions): List[String] = {
 
@@ -87,10 +80,10 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
             if (scope == Scope.Test) "test"
             else if (isCompileOnly) "% provided"
             else ""
-        
+
           MavenLibraryDependency(org, name, ver, scope.name)
         }
-      toDependencies(options.classPathOptions.extraCompileOnlyDependencies, true)  
+      toDependencies(options.classPathOptions.extraCompileOnlyDependencies, true)
     }
 
     MavenProject(
@@ -107,7 +100,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
       jdkVersion
     )
     MavenProject(
-        plugins = Seq(mavenPlugins)
+      plugins = Seq(mavenPlugins)
     )
   }
 
@@ -118,10 +111,10 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     sourcesTest: Sources
   ): Either[BuildException, MavenProject] = {
     val projectChunks = Seq(
-        sources(sourcesMain, sourcesTest),
-        javaOptionsSettings(optionsMain),
-        dependencySettings(optionsMain, Scope.Main),
-        plugins(optionsMain, Scope.Main, "17")
+      sources(sourcesMain, sourcesTest),
+      javaOptionsSettings(optionsMain),
+      dependencySettings(optionsMain, Scope.Main),
+      plugins(optionsMain, Scope.Main, "17")
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }

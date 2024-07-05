@@ -3,7 +3,6 @@ package scala.cli.exportCmd
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
-
 import scala.xml.{Elem, XML}
 
 final case class MavenProject(
@@ -111,7 +110,7 @@ final case class MavenPlugin(
 
   }
 
-  def toXml: Elem = {
+  def toXml: Elem =
     <plugin>
       <groupId>{groupId}</groupId>
       <artifactId>{artifactId}</artifactId>
@@ -122,5 +121,4 @@ final case class MavenPlugin(
         {javaCompileOptionsXml}
       </configuration>
     </plugin>
-  }
 }
