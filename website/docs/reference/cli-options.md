@@ -358,6 +358,10 @@ Available in commands:
 
 Sets the export format to SBT
 
+### `--maven`
+
+Sets the export format to Maven
+
 ### `--mill`
 
 Sets the export format to Mill
