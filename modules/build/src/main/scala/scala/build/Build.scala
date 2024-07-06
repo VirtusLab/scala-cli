@@ -866,7 +866,7 @@ object Build {
       if (options.useBuildServer.getOrElse(true)) None
       else releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
-    val hardcodedSource = options.generateSource
+    val hardcodedSource = options.sourceGeneratorOptions.generatorConfig
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>

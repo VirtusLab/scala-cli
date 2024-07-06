@@ -47,7 +47,6 @@ final case class BuildOptions(
   notForBloopOptions: PostBuildOptions = PostBuildOptions(),
   sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions(),
   useBuildServer: Option[Boolean] = None,
-  generateSource: Option[Boolean] = None
 ) {
 
   import BuildOptions.JavaHomeInfo

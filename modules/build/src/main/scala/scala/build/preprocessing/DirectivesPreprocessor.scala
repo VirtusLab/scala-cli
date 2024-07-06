@@ -124,7 +124,6 @@ case class DirectivesPreprocessor(
       logger: Logger
     ): Either[BuildException, ProcessedDirective[T]] =
       if !allowRestrictedFeatures && (handler.isRestricted || handler.isExperimental) then
-        print("Reached Error Flow")
         Left(DirectiveErrors(
           ::(WarningMessages.powerDirectiveUsedInSip(scopedDirective, handler), Nil),
           Seq(scopedDirective.directive.position(scopedDirective.maybePath))
@@ -132,7 +131,6 @@ case class DirectivesPreprocessor(
       else
         if handler.isExperimental && !shouldSuppressExperimentalFeatures then
           logger.experimentalWarning(scopedDirective.directive.toString, FeatureType.Directive)
-        print("Reached Here")
         handler.handleValues(scopedDirective, logger)
 
     val handlersMap = handlers
