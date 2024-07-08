@@ -2,5 +2,12 @@ package scala.cli.integration
 
 trait MavenTestHelper {
 
-  protected def mavenCommand(args: String*): os.proc = os.proc("ls") // os.proc(sbt, args)
+  protected def mavenCommand(args: String*): os.proc = os.proc(maven, args)
+
+  protected lazy val maven: os.Shellable =
+    Seq[os.Shellable](
+      "mvn",
+      "clean",
+      "install"
+    )
 }
