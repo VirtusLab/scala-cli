@@ -108,6 +108,7 @@ object Deps {
     def scalaPackager                     = "0.1.29"
     def signingCli                        = "0.2.3"
     def signingCliJvmVersion              = 17
+    def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
     def bloop                             = "1.5.17-sc-2"
   }
@@ -187,7 +188,7 @@ object Deps {
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   def scalaPy          = ivy"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
-  def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:0.7.4"
+  def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def signingCliShared =
     ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"

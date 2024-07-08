@@ -44,7 +44,7 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
           .flatMap(opt => List("--javac-opt", opt))
         val javaSemDbOptions = Seq(
           "--javac-plugin",
-          "com.sourcegraph:semanticdb-javac:0.7.4",
+          s"com.sourcegraph:semanticdb-javac:${Constants.semanticDbJavacPluginVersion}",
           "--javac-opt",
           s"-Xplugin:semanticdb -sourceroot:$root -targetroot:javac-classes-directory"
         ) ++ exports
