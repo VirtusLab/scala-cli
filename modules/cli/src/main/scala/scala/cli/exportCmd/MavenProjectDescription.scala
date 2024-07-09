@@ -127,7 +127,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
         providedDeps ++ scalaDep
       }
 
-      toDependencies(options.classPathOptions.extraCompileOnlyDependencies, true)
+      toDependencies(options.classPathOptions.extraDependencies, true)
     }
 
     MavenProject(
