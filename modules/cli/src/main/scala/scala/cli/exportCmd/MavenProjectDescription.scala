@@ -83,6 +83,13 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     sources: Sources
   ): MavenProject = {
 
+    def getScalaMajorPrefix =
+      getScalaVersion(options) match {
+        case s"2.12.${patch}" => "2.12"
+        case s"2.13.${patch}" => "2.13"
+        case s"3.$x.$y"       => "3"
+      }
+
     val depSettings = {
       def toDependencies(
         deps: ShadowingSeq[Positioned[AnyDependency]],
@@ -95,22 +102,17 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
           // TODO dep.userParams
           // TODO dep.exclude
           // TODO dep.attributes
-          val (sep, suffixOpt) = dep.nameAttributes match {
-            case NoAttributes => ("%", None)
-            case s: ScalaNameAttributes =>
-              val suffixOpt0 =
-                if (s.fullCrossVersion.getOrElse(false)) Some(".cross(CrossVersion.full)")
-                else None
-              val sep = "%%"
-              (sep, suffixOpt0)
+          val artNameWithPrefix = dep.nameAttributes match {
+            case NoAttributes => name
+            case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
           }
           val scope0 =
             // FIXME This ignores the isCompileOnly when scope == Scope.Test
             if (scope == Scope.Test) "test"
             else if (isCompileOnly) "% provided"
             else ""
-
-          MavenLibraryDependency(org, name, ver, scope.name)
+          
+          MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
         }
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
@@ -132,6 +134,11 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     )
   }
 
+  private def getScalaVersion(options: BuildOptions): String =
+    options.scalaOptions.scalaVersion
+      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+      .getOrElse(ScalaCli.getDefaultScalaVersion)
+
   private def plugins(
     options: BuildOptions,
     scope: Scope,
@@ -145,7 +152,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     val javacOptions = javacOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
-    val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion)
+    val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
 
     val reqdPlugins = if (pureJava) Seq(mavenJavaPlugin) else Seq(scalaPlugin)
 
@@ -154,11 +161,15 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     )
   }
 
-  private def buildScalaPlugin(javacOptions: Seq[String], jdkVersion: String): MavenPlugin = {
+  private def buildScalaPlugin(
+    javacOptions: Seq[String],
+    jdkVersion: String,
+    scalaVersion: String
+  ): MavenPlugin = {
 
     val compileMode = buildNode("recompileMode", "incremental")
-    val scalaVersion =
-      buildNode("scalaVersion", "${scala.version}") // todo: set this value in properties
+    val scalaVersionNode =
+      buildNode("scalaVersion", scalaVersion) // todo: set this value in properties
     val javacOptionsElem = {
       val opts = javacOptions.map { opt =>
         buildNode("javacArg", opt)
@@ -168,7 +179,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
       </javacArgs>
     }
 
-    val configurationElements = Seq(compileMode, /*scalaVersion,*/ javacOptionsElem)
+    val configurationElements = Seq(compileMode, /*scalaVersionNone,*/ javacOptionsElem)
 
     MavenPlugin(
       "net.alchim31.maven",
