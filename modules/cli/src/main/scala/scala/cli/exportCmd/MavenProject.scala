@@ -1,17 +1,20 @@
 package scala.cli.exportCmd
 
 import java.nio.charset.StandardCharsets
-
-import scala.build.options.ConfigMonoid
-import scala.xml.{Elem, XML}
+import scala.build.options.{ConfigMonoid, Scope}
+import scala.xml.{Elem, PrettyPrinter, XML}
 
 final case class MavenProject(
+  groupId: Option[String] = None,
+  artifactId: Option[String] = None,
+  version: Option[String] = None,
   plugins: Seq[MavenPlugin] = Nil,
   imports: Seq[String] = Nil,
   settings: Seq[Seq[String]] = Nil,
   dependencies: Seq[MavenLibraryDependency] = Nil,
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil
+  // properties: Seq[(String, String)] = Nil // using Seq[Tuple] since derive was failing for Map
 ) extends Project {
 
   def +(other: MavenProject): MavenProject =
@@ -19,13 +22,25 @@ final case class MavenProject(
 
   def writeTo(dir: os.Path): Unit = {
 
-    val nl                = System.lineSeparator()
-    val charset           = StandardCharsets.UTF_8
-    val buildMavenContent = "";
+    val nl      = System.lineSeparator()
+    val charset = StandardCharsets.UTF_8
+
+    val buildMavenContent = MavenModel(
+      "4.0.0",
+      groupId.getOrElse("groupId"),
+      artifactId.getOrElse("artifactId"),
+      version.getOrElse("0.1-SNAPSHOT"),
+      dependencies,
+      plugins
+      // properties
+    )
+
+    val prettyPrinter = new PrettyPrinter(width = 80, step = 2)
+    val formattedXml  = prettyPrinter.format(buildMavenContent.toXml)
 
     os.write(
       dir / "pom.xml",
-      buildMavenContent.getBytes(charset)
+      formattedXml.getBytes(charset)
     )
 
     for ((path, language, content) <- mainSources) {
@@ -49,9 +64,14 @@ final case class MavenModel(
   groupId: String,
   artifactId: String,
   version: String,
-  dependencies: List[MavenLibraryDependency],
-  plugins: List[MavenPlugin]
+  dependencies: Seq[MavenLibraryDependency],
+  plugins: Seq[MavenPlugin]
+  // properties: Seq[(String, String)] //todo: bring back only if it is needed
 ) {
+
+//  private val propsElements = properties.map { case (key, value) =>
+//    POMBuilderHelper.buildNode(key, value)
+//  }
 
   def toXml: Elem =
     <project>
@@ -59,6 +79,11 @@ final case class MavenModel(
       <groupId>{groupId}</groupId>
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
+
+      <!-- <properties>
+        {propsElements}
+      </properties> -->
+
       <dependencies>
         {dependencies.map(_.toXml)}
       </dependencies>
@@ -74,7 +99,7 @@ final case class MavenLibraryDependency(
   groupId: String,
   artifactId: String,
   version: String,
-  scope: String
+  scope: String = Scope.Main.toString
 ) {
   def toXml: Elem =
     <dependency>
@@ -89,26 +114,9 @@ final case class MavenPlugin(
   groupId: String,
   artifactId: String,
   version: String,
-  javacOpts: List[String],
-  jdk: String
+  jdk: String,
+  configurationElems: Seq[Elem]
 ) {
-  private def javaCompileOptionsXml: Elem = {
-    val optionsXml = javacOpts.map { opt =>
-      new Elem(
-        null,
-        "arg",
-        scala.xml.Null,
-        scala.xml.TopScope,
-        minimizeEmpty = false,
-        scala.xml.Text(opt)
-      )
-    }
-
-    <compilerArgs>
-        {optionsXml}
-    </compilerArgs>
-
-  }
 
   def toXml: Elem =
     <plugin>
@@ -116,9 +124,7 @@ final case class MavenPlugin(
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
       <configuration>
-        <source>{jdk}</source>
-        <target>{jdk}</target>
-        {javaCompileOptionsXml}
+        {configurationElems}
       </configuration>
     </plugin>
 }

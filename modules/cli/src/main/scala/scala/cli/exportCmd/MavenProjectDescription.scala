@@ -7,7 +7,6 @@ import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
@@ -15,6 +14,20 @@ import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
+import scala.xml.Elem
+import POMBuilderHelper.*
+
+object POMBuilderHelper {
+  def buildNode(name: String, value: String): Elem =
+    new Elem(
+      null,
+      name,
+      scala.xml.Null,
+      scala.xml.TopScope,
+      minimizeEmpty = false,
+      scala.xml.Text(value)
+    )
+}
 
 final case class MavenProjectDescription(extraSettings: Seq[String], logger: Logger)
     extends ProjectDescriptor {
@@ -55,11 +68,26 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     javacOptionsSettings.toList
   }
 
-  private def dependencySettings(options: BuildOptions, scope: Scope): MavenProject = {
+  private def projectArtifactSettings(): MavenProject =
+    // todo: Is it really needed to configure the values, or always use the default?
+    MavenProject(
+      groupId = None,
+      artifactId = None,
+      version = None
+    )
+
+  private def dependencySettings(
+    options: BuildOptions,
+    scope: Scope,
+    sources: Sources
+  ): MavenProject = {
 
     val depSettings = {
-      def toDependencies(deps: ShadowingSeq[Positioned[AnyDependency]], isCompileOnly: Boolean) =
-        deps.toSeq.toList.map(_.value).map { dep =>
+      def toDependencies(
+        deps: ShadowingSeq[Positioned[AnyDependency]],
+        isCompileOnly: Boolean
+      ): Seq[MavenLibraryDependency] = {
+        val providedDeps = deps.toSeq.toList.map(_.value).map { dep =>
           val org  = dep.organization
           val name = dep.name
           val ver  = dep.version
@@ -83,6 +111,18 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
 
           MavenLibraryDependency(org, name, ver, scope.name)
         }
+
+        val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
+          // add scala dependency
+          // todo: get scala version from directive
+          val scalaDep = if true then "scala3-library_3" else "scala-library"
+          List(MavenLibraryDependency("org.scala-lang", scalaDep, "${scala.version}"))
+        }
+        else Nil
+
+        providedDeps ++ scalaDep
+      }
+
       toDependencies(options.classPathOptions.extraCompileOnlyDependencies, true)
     }
 
@@ -91,16 +131,75 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     )
   }
 
-  private def plugins(options: BuildOptions, scope: Scope, jdkVersion: String): MavenProject = {
-    val mavenPlugins = MavenPlugin(
+  private def plugins(
+    options: BuildOptions,
+    scope: Scope,
+    jdkVersion: String,
+    sourcesMain: Sources
+  ): MavenProject = {
+
+    // todo: use this method from mill and sbt projects as well
+    val pureJava = ProjectDescriptor.isPureJavaProject(options, sourcesMain)
+
+    val javacOptions = javacOptionsSettings(options)
+
+    val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
+    val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion)
+
+    val reqdPlugins = if (pureJava) Seq(mavenJavaPlugin) else Seq(scalaPlugin)
+
+    MavenProject(
+      plugins = reqdPlugins
+    )
+  }
+
+  private def buildScalaPlugin(javacOptions: Seq[String], jdkVersion: String): MavenPlugin = {
+
+    val compileMode = buildNode("recompileMode", "incremental")
+    val scalaVersion =
+      buildNode("scalaVersion", "${scala.version}") // todo: set this value in properties
+    val javacOptionsElem = {
+      val opts = javacOptions.map { opt =>
+        buildNode("javacArg", opt)
+      }
+      <javacArgs>
+        {opts}
+      </javacArgs>
+    }
+
+    val configurationElements = Seq(compileMode, /*scalaVersion,*/ javacOptionsElem)
+
+    MavenPlugin(
+      "net.alchim31.maven",
+      "scala-maven-plugin",
+      "4.9.1",
+      jdkVersion,
+      configurationElements
+    )
+  }
+
+  private def buildJavaCompilerPlugin(
+    javacOptions: Seq[String],
+    jdkVersion: String
+  ): MavenPlugin = {
+    val javacOptionsElem = {
+      val opts = javacOptions.map { opt =>
+        buildNode("arg", opt)
+      }
+      <compilerArgs>
+        {opts}
+      </compilerArgs>
+    }
+
+    val sourceArg = buildNode("source", jdkVersion)
+    val targetArg = buildNode("target", jdkVersion)
+
+    MavenPlugin(
       "org.apache.maven.plugins",
       "maven-compiler-plugin",
       "3.8.1",
-      javacOptionsSettings(options),
-      jdkVersion
-    )
-    MavenProject(
-      plugins = Seq(mavenPlugins)
+      jdkVersion,
+      Seq(javacOptionsElem, sourceArg, targetArg)
     )
   }
 
@@ -114,8 +213,9 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
-      dependencySettings(optionsMain, Scope.Main),
-      plugins(optionsMain, Scope.Main, jdk)
+      dependencySettings(optionsMain, Scope.Main, sourcesMain),
+      plugins(optionsMain, Scope.Main, jdk, sourcesMain),
+      projectArtifactSettings()
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }

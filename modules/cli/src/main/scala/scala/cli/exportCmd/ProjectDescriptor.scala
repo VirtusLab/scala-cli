@@ -1,7 +1,8 @@
 package scala.cli.exportCmd
 
-import java.nio.charset.Charset
+import dependency.NoAttributes
 
+import java.nio.charset.Charset
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaJsOptions}
 import scala.build.{Logger, Sources}
@@ -62,5 +63,13 @@ object ProjectDescriptor {
 
     calls
   }
+
+  def isPureJavaProject(options: BuildOptions, sources: Sources): Boolean =
+    !options.scalaOptions.addScalaLibrary.contains(true) &&
+    !options.scalaOptions.addScalaCompiler.contains(true) &&
+    sources.paths.forall(_._1.last.endsWith(".java")) &&
+    sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
+    options.classPathOptions.allExtraDependencies.toSeq
+      .forall(_.value.nameAttributes == NoAttributes)
 
 }
