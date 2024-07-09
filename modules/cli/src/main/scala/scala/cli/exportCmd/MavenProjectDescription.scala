@@ -83,8 +83,9 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     sources: Sources
   ): MavenProject = {
 
+    val scalaV = getScalaVersion(options)
     def getScalaMajorPrefix =
-      getScalaVersion(options) match {
+      scalaV match {
         case s"2.12.${patch}" => "2.12"
         case s"2.13.${patch}" => "2.13"
         case s"3.$x.$y"       => "3"
@@ -108,18 +109,18 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
           }
           val scope0 =
             // FIXME This ignores the isCompileOnly when scope == Scope.Test
-            if (scope == Scope.Test) "test"
-            else if (isCompileOnly) "% provided"
-            else ""
-          
+            if (scope == Scope.Test) Some("test")
+            else if (isCompileOnly) Some("provided")
+            else None
+
           MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
         }
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
           // add scala dependency
           // todo: get scala version from directive
-          val scalaDep = if true then "scala3-library_3" else "scala-library"
-          List(MavenLibraryDependency("org.scala-lang", scalaDep, "${scala.version}"))
+          val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
+          List(MavenLibraryDependency("org.scala-lang", scalaDep, scalaV))
         }
         else Nil
 

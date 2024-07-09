@@ -100,14 +100,17 @@ final case class MavenLibraryDependency(
   groupId: String,
   artifactId: String,
   version: String,
-  scope: String = Scope.Main.toString
+  scope: Option[String] = None
 ) {
+
+  private val scopeParam = scope.fold("")(s => <scope>{scope}</scope>)
+
   def toXml: Elem =
     <dependency>
       <groupId>{groupId}</groupId>
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
-      <scope>{scope}</scope>
+      {scopeParam}
     </dependency>
 }
 
