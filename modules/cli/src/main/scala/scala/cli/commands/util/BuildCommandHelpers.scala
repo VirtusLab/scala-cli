@@ -22,7 +22,7 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
       */
     def copyOutput(sharedOptions: SharedOptions): Unit =
       sharedOptions.compilationOutput.filter(_.nonEmpty)
-        .orElse(sharedOptions.scalac.scalacOption.getScalacOption("-d"))
+        .orElse(sharedOptions.scalacOptions.getScalacOption("-d"))
         .filter(_.nonEmpty)
         .map(os.Path(_, Os.pwd)).foreach { output =>
           os.copy(

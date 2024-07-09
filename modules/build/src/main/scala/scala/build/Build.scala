@@ -934,7 +934,6 @@ object Build {
           scalaBinaryVersion = params.scalaBinaryVersion,
           scalacOptions = scalacOptions.toSeq.map(_.value),
           compilerClassPath = scalaArtifacts.compilerClassPath,
-          argsFiles = options.scalaOptions.argsFiles,
           bridgeJarsOpt = scalaArtifacts.bridgeJarsOpt
         )
         Some(compilerParams)

@@ -72,8 +72,9 @@ object ScalacOptions {
 
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
   val ScalaCliRedirectedOptions = Set(
-    "-classpath", // redirected to --extra-jars
-    "-d"          // redirected to --compilation-output
+    "-classpath",
+    "-cp", // redirected to --extra-jars
+    "-d"   // redirected to --compilation-output
   )
   val ScalacDeprecatedOptions: Set[String] = Set(
     YScriptRunnerOption // old 'scala' runner specific, no longer supported

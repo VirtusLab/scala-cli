@@ -2,7 +2,10 @@ package scala.cli.commands.shared
 
 import bloop.rifle.BloopRifleConfig
 import caseapp.*
+import caseapp.core.Arg
+import caseapp.core.argparser.SimpleArgParser
 import caseapp.core.help.Help
+import caseapp.core.util.Formatter
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
@@ -10,6 +13,7 @@ import coursier.core.Version
 import coursier.util.{Artifact, Task}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
+import shapeless.{:: => :*:, HNil}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -54,10 +58,6 @@ import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
-import caseapp.core.argparser.SimpleArgParser
-import caseapp.core.Arg
-import caseapp.core.util.Formatter
-import shapeless.{:: => :*:, HNil}
 
 // format: off
 final case class SharedOptions(
@@ -295,13 +295,20 @@ final case class SharedOptions(
     )
   }
 
+  lazy val scalacOptionsFromFiles: List[String] =
+    argsFiles.flatMap(argFile =>
+      os.read(os.Path(argFile.file, os.pwd)).split(System.lineSeparator())
+    )
+
+  def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
+
   def buildOptions(
     enableJmh: Boolean = false,
     jmhVersion: Option[String] = None,
     ignoreErrors: Boolean = false
   ): Either[BuildException, bo.BuildOptions] = either {
-    val releaseOpt = scalac.scalacOption.getScalacOption("-release")
-    val targetOpt  = scalac.scalacOption.getScalacPrefixOption("-target")
+    val releaseOpt = scalacOptions.getScalacOption("-release")
+    val targetOpt  = scalacOptions.getScalacPrefixOption("-target")
     jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
       case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
         val compilerTargetsString = compilerTargets.distinct.mkString(", ")
@@ -385,8 +392,7 @@ final case class SharedOptions(
           semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
           semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
         ),
-        scalacOptions = scalac
-          .scalacOption
+        scalacOptions = scalacOptions
           .withScalacExtraOptions(scalacExtra)
           .toScalacOptShadowingSeq
           .filterNonRedirected
@@ -397,8 +403,7 @@ final case class SharedOptions(
             dependencies.compilerPlugin.map(Positioned.none),
             ignoreErrors
           ),
-        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o)),
-        argsFiles = argsFiles.map(argFile => os.Path(argFile.file, os.pwd))
+        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
       ),
       scriptOptions = bo.ScriptOptions(
         forceObjectWrapper = objectWrapper
@@ -471,7 +476,9 @@ final case class SharedOptions(
   }
 
   def extraJarsAndClassPath: List[os.Path] =
-    (extraJars ++ scalac.scalacOption.getScalacOption("-classpath"))
+    (extraJars ++ scalacOptions.getScalacOption("-classpath") ++ scalacOptions.getScalacOption(
+      "-cp"
+    ))
       .extractedClassPath
 
   def extraClasspathWasPassed: Boolean = extraJarsAndClassPath.exists(!_.hasSourceJarSuffix)

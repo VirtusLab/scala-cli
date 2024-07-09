@@ -45,8 +45,7 @@ final case class Project(
     }
     val scalaConfigOpt = scalaCompiler.map { scalaCompiler0 =>
       bloopScalaConfig("org.scala-lang", "scala-compiler", scalaCompiler0.scalaVersion).copy(
-        options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value)
-          ++ scalaCompiler.map(_.argsFiles.map(path => s"@$path")).getOrElse(Nil),
+        options = updateScalacOptions(scalaCompiler0.scalacOptions).map(_.value),
         jars = scalaCompiler0.compilerClassPath.map(_.toNIO).toList,
         bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)
       )

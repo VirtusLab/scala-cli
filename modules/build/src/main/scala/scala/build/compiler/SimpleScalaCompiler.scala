@@ -67,7 +67,6 @@ final case class SimpleScalaCompiler(
     scalacOptions: Seq[String],
     classPath: Seq[os.Path],
     compilerClassPath: Seq[os.Path],
-    argsFiles: Seq[os.Path],
     sources: Seq[String],
     outputDir: Option[os.Path],
     argsFilePath: Option[os.Path],
@@ -93,7 +92,7 @@ final case class SimpleScalaCompiler(
           Seq(s"@$path")
         }
       else freeArgs
-    } ++ argsFiles.map(path => s"@$path")
+    }
 
     val javaCommand =
       javaHomeOpt.map(SimpleJavaCompiler.javaCommand(_)).getOrElse(defaultJavaCommand)
@@ -144,7 +143,6 @@ final case class SimpleScalaCompiler(
       scalacOptions = project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil),
       classPath = project.classPath,
       compilerClassPath = project.scalaCompiler.map(_.compilerClassPath).getOrElse(Nil),
-      argsFiles = project.scalaCompiler.map(_.argsFiles).getOrElse(Nil),
       sources = project.sources.map(_.toString),
       outputDir = Some(outputDir),
       argsFilePath = Some(project.argsFilePath),
@@ -181,7 +179,6 @@ final case class SimpleScalaCompiler(
     scalacOptions: Seq[String],
     fullClassPath: Seq[os.Path],
     compilerClassPath: Seq[os.Path],
-    argsFiles: Seq[os.Path],
     logger: Logger
   ): Int =
     compilerMainClass(scalaVersion) match {
@@ -193,7 +190,6 @@ final case class SimpleScalaCompiler(
           scalacOptions = scalacOptions,
           classPath = fullClassPath,
           compilerClassPath = compilerClassPath,
-          argsFiles = argsFiles,
           sources = Nil,
           outputDir = None,
           argsFilePath = None,

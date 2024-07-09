@@ -12,7 +12,8 @@ class ArgsFileTests extends ScalaCliSuite {
     val fileName   = "Simple.sc"
     val serverArgs = if (useServer) Nil else List("--server=false")
     val inputs = TestInputs(
-      os.rel / "args.txt" -> """|-release 8""".stripMargin,
+      os.rel / "args.txt" -> """|-release
+                                |8""".stripMargin,
       os.rel / fileName ->
         s"""|import java.net.http.HttpClient
             |
@@ -35,7 +36,8 @@ class ArgsFileTests extends ScalaCliSuite {
 
   test("pass scalac options using arguments file in shebang script") {
     val inputs = TestInputs(
-      os.rel / "args.txt" -> """|-release 8""".stripMargin,
+      os.rel / "args.txt" -> """|-release
+                                |8""".stripMargin,
       os.rel / "script-with-shebang" ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
             |import java.net.http.HttpClient
@@ -59,7 +61,7 @@ class ArgsFileTests extends ScalaCliSuite {
     }
   }
 
-  test("multiple args files".ignore) {
+  test("multiple args files") {
     val preCompileDir = "PreCompileDir"
     val runDir        = "RunDir"
 
@@ -70,7 +72,6 @@ class ArgsFileTests extends ScalaCliSuite {
 
     val outputDir = os.rel / "out"
 
-    pprint.log(os.rel / os.up / preCompileDir / outputDir)
     TestInputs(
       os.rel / preCompileDir / preCompiledInput -> "case class Message(value: String)",
       os.rel / runDir / mainInput -> s"""object Main extends App { println(Message("$expectedOutput").value) }""",
