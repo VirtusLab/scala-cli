@@ -7,6 +7,7 @@ import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
@@ -14,8 +15,8 @@ import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
+import scala.cli.exportCmd.POMBuilderHelper._
 import scala.xml.Elem
-import POMBuilderHelper.*
 
 object POMBuilderHelper {
   def buildNode(name: String, value: String): Elem =
