@@ -70,7 +70,12 @@ final case class ScalaNativeOptions(
   @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Embed resources into the Scala Native binary (can be read with the Java resources API)")
    @Tag(tags.should)
-    embedResources: Option[Boolean] = None
+    embedResources: Option[Boolean] = None,
+
+  @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("Enable/disable Scala Native multithreading support")
+  @Tag(tags.should)
+    nativeMultithreading: Option[Boolean] = None
 
 )
 // format: on
