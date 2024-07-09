@@ -779,4 +779,27 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       }
     }
   }
+
+  test("successful pure Java test with JUnit") {
+    val expectedMessage = "Hello from JUnit"
+    TestInputs(
+      os.rel / "test" / "MyTests.java" ->
+        s"""//> using test.dependencies junit:junit:4.13.2
+           |//> using test.dependencies com.novocode:junit-interface:0.11
+           |import org.junit.Test;
+           |import static org.junit.Assert.assertEquals;
+           |
+           |public class MyTests {
+           |  @Test
+           |  public void foo() {
+           |    assertEquals(4, 2 + 2);
+           |    System.out.println("$expectedMessage");
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root)
+      expect(res.out.text().contains(expectedMessage))
+    }
+  }
 }
