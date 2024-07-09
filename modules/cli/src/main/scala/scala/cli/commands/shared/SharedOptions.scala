@@ -54,6 +54,10 @@ import scala.concurrent.ExecutionContextExecutorService
 import scala.concurrent.duration.*
 import scala.util.Properties
 import scala.util.control.NonFatal
+import caseapp.core.argparser.SimpleArgParser
+import caseapp.core.Arg
+import caseapp.core.util.Formatter
+import shapeless.{:: => :*:, HNil}
 
 // format: off
 final case class SharedOptions(
@@ -222,6 +226,8 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+  @Recurse
+    argsFiles: List[ArgFileOption] = Nil
 ) extends HasGlobalOptions {
   // format: on
 
@@ -391,7 +397,8 @@ final case class SharedOptions(
             dependencies.compilerPlugin.map(Positioned.none),
             ignoreErrors
           ),
-        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
+        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o)),
+        argsFiles = argsFiles.map(argFile => os.Path(argFile.file, os.pwd))
       ),
       scriptOptions = bo.ScriptOptions(
         forceObjectWrapper = objectWrapper
@@ -634,6 +641,7 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
+  import ArgFileOption.parser
   implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
   implicit lazy val help: Help[SharedOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make
@@ -793,5 +801,33 @@ object SharedOptions {
           st ++ tlt
       }
     dependencies -> maxScalaNativeVersions
+  }
+}
+
+case class ArgFileOption(file: String) extends AnyVal
+
+object ArgFileOption {
+  implicit lazy val parser: Parser[List[ArgFileOption]] = new Parser[List[ArgFileOption]] {
+    type D = List[ArgFileOption] *: EmptyTuple
+
+    override def withDefaultOrigin(origin: String): Parser[List[ArgFileOption]] = this
+
+    override def init: D = Nil *: EmptyTuple
+
+    override def step(args: List[String], index: Int, d: D, nameFormatter: Formatter[Name])
+      : Either[(core.Error, Arg, List[String]), Option[(D, Arg, List[String])]] =
+      args match
+        case head :: rest if head.startsWith("@") =>
+          val newD = (ArgFileOption(head.stripPrefix("@")) :: d._1) *: EmptyTuple
+          Right(Some(newD, Arg("args-file"), rest))
+        case _ => Right(None)
+
+    override def get(
+      d: D,
+      nameFormatter: Formatter[Name]
+    ): Either[core.Error, List[ArgFileOption]] = Right(d.head)
+
+    override def args: Seq[Arg] = Seq(Arg("args-file"))
+
   }
 }

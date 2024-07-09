@@ -15,7 +15,8 @@ final case class ScalaOptions(
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,
   extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty,
-  defaultScalaVersion: Option[String] = None
+  defaultScalaVersion: Option[String] = None,
+  argsFiles: Seq[os.Path] = Nil
 ) {
   def normalize: ScalaOptions = {
     var opt = this

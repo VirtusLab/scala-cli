@@ -208,6 +208,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
         updatedScalacOptions,
         compileClassPath,
         compilerClassPath,
+        shared.argsFiles.map(argFile => os.Path(argFile.file, os.pwd)),
         logger
       )
       sys.exit(exitCode)

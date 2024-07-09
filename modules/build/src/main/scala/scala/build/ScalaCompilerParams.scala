@@ -5,5 +5,6 @@ final case class ScalaCompilerParams(
   scalaBinaryVersion: String,
   scalacOptions: Seq[String],
   compilerClassPath: Seq[os.Path],
-  bridgeJarsOpt: Option[Seq[os.Path]]
+  bridgeJarsOpt: Option[Seq[os.Path]],
+  argsFiles: Seq[os.Path]
 )
