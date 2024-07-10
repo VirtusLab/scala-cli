@@ -36,8 +36,7 @@ class ArgsFileTests extends ScalaCliSuite {
 
   test("pass scalac options using arguments file in shebang script") {
     val inputs = TestInputs(
-      os.rel / "args.txt" -> """|-release
-                                |8""".stripMargin,
+      os.rel / "args.txt" -> """|-release 8""".stripMargin,
       os.rel / "script-with-shebang" ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
             |import java.net.http.HttpClient
@@ -78,8 +77,7 @@ class ArgsFileTests extends ScalaCliSuite {
       os.rel / runDir / "args.txt" -> s"""|-d
                                           |$outputDir""".stripMargin,
       os.rel / runDir / "args2.txt" -> s"""|-cp
-                                           |${(os.rel / os.up / preCompileDir / outputDir)
-                                            .toString}""".stripMargin
+                                           |${os.rel / os.up / preCompileDir / outputDir}""".stripMargin
     ).fromRoot { (root: os.Path) =>
 
       os.proc(
@@ -91,6 +89,7 @@ class ArgsFileTests extends ScalaCliSuite {
         outputDir.toString,
         preCompiledInput
       ).call(cwd = root / preCompileDir, stderr = os.Pipe)
+      assert((root / preCompileDir / outputDir / "Message.class").toNIO.toFile().exists())
 
       val compileOutput = root / runDir / outputDir
       os.makeDir.all(compileOutput)

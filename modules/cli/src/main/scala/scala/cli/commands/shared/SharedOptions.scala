@@ -3,7 +3,6 @@ package scala.cli.commands.shared
 import bloop.rifle.BloopRifleConfig
 import caseapp.*
 import caseapp.core.Arg
-import caseapp.core.argparser.SimpleArgParser
 import caseapp.core.help.Help
 import caseapp.core.util.Formatter
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -13,7 +12,6 @@ import coursier.core.Version
 import coursier.util.{Artifact, Task}
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
-import shapeless.{:: => :*:, HNil}
 
 import java.io.{File, InputStream}
 import java.nio.file.Paths
@@ -297,7 +295,7 @@ final case class SharedOptions(
 
   lazy val scalacOptionsFromFiles: List[String] =
     argsFiles.flatMap(argFile =>
-      os.read(os.Path(argFile.file, os.pwd)).split(System.lineSeparator())
+      ArgSplitter.splitToArgs(os.read(os.Path(argFile.file, os.pwd)))
     )
 
   def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
@@ -814,6 +812,11 @@ object SharedOptions {
 case class ArgFileOption(file: String) extends AnyVal
 
 object ArgFileOption {
+  private val arg = Arg(
+    name = Name("args-file"),
+    valueDescription = Some(ValueDescription("@arguments-file")),
+    helpMessage = Some(HelpMessage("File with scalac options."))
+  )
   implicit lazy val parser: Parser[List[ArgFileOption]] = new Parser[List[ArgFileOption]] {
     type D = List[ArgFileOption] *: EmptyTuple
 
@@ -826,7 +829,7 @@ object ArgFileOption {
       args match
         case head :: rest if head.startsWith("@") =>
           val newD = (ArgFileOption(head.stripPrefix("@")) :: d._1) *: EmptyTuple
-          Right(Some(newD, Arg("args-file"), rest))
+          Right(Some(newD, arg, rest))
         case _ => Right(None)
 
     override def get(
@@ -834,7 +837,7 @@ object ArgFileOption {
       nameFormatter: Formatter[Name]
     ): Either[core.Error, List[ArgFileOption]] = Right(d.head)
 
-    override def args: Seq[Arg] = Seq(Arg("args-file"))
+    override def args: Seq[Arg] = Seq(arg)
 
   }
 }
