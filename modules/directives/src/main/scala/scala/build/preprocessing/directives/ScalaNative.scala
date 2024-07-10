@@ -46,6 +46,7 @@ final case class ScalaNative(
     nativeClangPP: Option[String] = None,
   nativeEmbedResources: Option[Boolean] = None,
   nativeTarget: Option[String] = None,
+  nativeMultithreading: Option[Boolean] = None
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
@@ -59,7 +60,8 @@ final case class ScalaNative(
       clang = nativeClang,
       clangpp = nativeClangPP,
       embedResources = nativeEmbedResources,
-      buildTargetStr = nativeTarget
+      buildTargetStr = nativeTarget,
+      multithreading = nativeMultithreading
     )
     val buildOpt = BuildOptions(scalaNativeOptions = nativeOptions)
     Right(buildOpt)

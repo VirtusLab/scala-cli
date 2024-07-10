@@ -204,6 +204,10 @@ Build target type
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
+
 **--repository**
 
 Add repositories for dependency resolution.
@@ -967,6 +971,10 @@ Build target type
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
+
 **--repository**
 
 Add repositories for dependency resolution.
@@ -1531,6 +1539,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 
@@ -2128,6 +2140,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 
@@ -2739,6 +2755,10 @@ Build target type
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
+
 **--repository**
 
 Add repositories for dependency resolution.
@@ -3324,6 +3344,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 
@@ -3947,6 +3971,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 
@@ -4621,6 +4649,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 
@@ -5536,6 +5568,10 @@ Build target type
 **--embed-resources**
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
+
+**--native-multithreading**
+
+Enable/disable Scala Native multithreading support
 
 **--repository**
 

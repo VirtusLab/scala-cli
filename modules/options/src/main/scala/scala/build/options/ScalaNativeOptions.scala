@@ -40,6 +40,7 @@ final case class ScalaNativeOptions(
   compileDefaults: Option[Boolean] = None,
   embedResources: Option[Boolean] = None,
   buildTargetStr: Option[String] = None,
+  multithreading: Option[Boolean] = None,
   maxDefaultNativeVersions: List[(String, String)] = Nil
 ) {
 
@@ -122,6 +123,9 @@ final case class ScalaNativeOptions(
       }
     else Nil
 
+  private def multithreadingCliOption(): List[String] =
+    multithreading.toList.flatMap(m => List("--multithreading", m.toString))
+
   def platformSuffix: String =
     "native" + ScalaVersion.nativeBinary(finalVersion).getOrElse(finalVersion)
 
@@ -174,7 +178,8 @@ final case class ScalaNativeOptions(
       linkingCliOptions() ++
       compileCliOptions() ++
       resourcesCliOptions(resourcesExist) ++
-      targetCliOption()
+      targetCliOption() ++
+      multithreadingCliOption()
 
 }
 

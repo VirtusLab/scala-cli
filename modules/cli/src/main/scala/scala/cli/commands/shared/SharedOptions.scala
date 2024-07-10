@@ -285,6 +285,7 @@ final case class SharedOptions(
       compileDefaults = nativeCompileDefaults,
       embedResources = embedResources,
       buildTargetStr = nativeTarget,
+      multithreading = nativeMultithreading,
       maxDefaultNativeVersions = maxDefaultScalaNativeVersions
     )
   }

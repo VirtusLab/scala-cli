@@ -401,4 +401,60 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
         }
       }
     }
+
+  for {
+    expectedMultithreadingState <- Seq(true, false)
+    // multithreading should be enabled by Scala Native by default
+    setExplicitly <- if (expectedMultithreadingState) Seq(true, false) else Seq(true)
+    useDirective  <- if (setExplicitly) Seq(true, false) else Seq(false)
+    directive =
+      if (useDirective && setExplicitly)
+        s"//> using nativeMultithreading $expectedMultithreadingState"
+      else ""
+    cliOptions =
+      if (!useDirective && setExplicitly)
+        Seq(s"--native-multithreading=$expectedMultithreadingState")
+      else Nil
+    testDescriptionString = useDirective -> setExplicitly match {
+      case (_, false)    => "(implicitly)"
+      case (true, true)  => "with directive"
+      case (false, true) => "with command line option"
+    }
+  }
+    test(
+      s"Scala Native multithreading set to $expectedMultithreadingState $testDescriptionString"
+    ) {
+      val fileName       = "multithreading.sc"
+      val expectedOutput = "42"
+      val threadSleep    = "100"
+      val threadAwait    = "2.seconds"
+      val inputs = TestInputs(
+        os.rel / fileName ->
+          s"""$directive
+             |import scala.concurrent._
+             |import scala.concurrent.duration._
+             |import ExecutionContext.Implicits.global
+             |val promise = Promise[Int]()
+             |val thread = new Thread(new Runnable {
+             |    def run(): Unit = {
+             |      Thread.sleep($threadSleep)
+             |      promise.success($expectedOutput)
+             |    }
+             |  })
+             |thread.start()
+             |val result = Await.result(promise.future, $threadAwait)
+             |println(result)
+             |""".stripMargin
+      )
+      inputs.fromRoot { root =>
+        val r = os.proc(TestUtil.cli, extraOptions, fileName, "--native", cliOptions)
+          .call(cwd = root, stderr = os.Pipe, check = expectedMultithreadingState)
+        if (!expectedMultithreadingState) expect(r.exitCode == 1)
+        else {
+          expect(r.exitCode == 0)
+          expect(r.out.trim() == expectedOutput)
+        }
+        expect(r.err.trim().contains(s"multithreadingEnabled=$expectedMultithreadingState"))
+      }
+    }
 }
