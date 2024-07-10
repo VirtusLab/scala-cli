@@ -104,7 +104,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
           // TODO dep.exclude
           // TODO dep.attributes
           val artNameWithPrefix = dep.nameAttributes match {
-            case NoAttributes => name
+            case NoAttributes           => name
             case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
           }
           val scope0 =
