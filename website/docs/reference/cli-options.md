@@ -358,7 +358,7 @@ Available in commands:
 
 Sets the export format to SBT
 
-### `--maven`
+### `--mvn`
 
 Sets the export format to Maven
 
@@ -383,6 +383,14 @@ Project name to be used on Mill build file
 ### `--sbt-version`
 
 Version of SBT to be used for the export
+
+### `--mvn-version`
+
+Version of Maven Compiler Plugin to be used for the export
+
+### `--mvn-scala-version`
+
+Version of Maven Scala Plugin to be used for the export
 
 ### `--output`
 
