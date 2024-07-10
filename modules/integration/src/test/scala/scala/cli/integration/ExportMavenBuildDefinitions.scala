@@ -9,7 +9,7 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
       "--power",
       "export",
       extraOptions,
-      "--maven",
+      "--mvn",
       "-o",
       outputDir.toString,
       args

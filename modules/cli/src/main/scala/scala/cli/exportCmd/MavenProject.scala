@@ -103,7 +103,7 @@ final case class MavenLibraryDependency(
   scope: Option[String] = None
 ) {
 
-  private val scopeParam = scope.fold("")(s => <scope>{scope}</scope>)
+  private val scopeParam = scope.fold("")(s => <scope>{s}</scope>)
 
   def toXml: Elem =
     <dependency>

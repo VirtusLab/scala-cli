@@ -8,6 +8,7 @@ trait MavenTestHelper {
     Seq[os.Shellable](
       "mvn",
       "clean",
-      "install"
+      "compile",
+      "exec:java"
     )
 }
