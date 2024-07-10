@@ -81,10 +81,12 @@ object Export extends ScalaCommand[ExportOptions] {
     SbtProjectDescriptor(sbtVersion, extraSettings, logger)
 
   def mavenProjectDescriptor(
+    mavenPluginVersion: String,
+    mavenScalaPluginVersion: String,
     extraSettings: Seq[String],
     logger: Logger
-  ): MavenProjectDescription =
-    MavenProjectDescription(extraSettings, logger)
+  ): MavenProjectDescriptor =
+    MavenProjectDescriptor(mavenPluginVersion, mavenScalaPluginVersion, extraSettings, logger)
 
   def millProjectDescriptor(
     cache: FileCache[Task],
@@ -138,7 +140,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val shouldExportToMill  = options.mill.getOrElse(false)
     val shouldExportToSbt   = options.sbt.getOrElse(false)
-    val shouldExportToMaven = options.maven.getOrElse(false)
+    val shouldExportToMaven = options.mvn.getOrElse(false)
 
     val exportOptions = List(shouldExportToMill, shouldExportToSbt, shouldExportToMaven)
 
@@ -224,15 +226,18 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     else {
       val sbtVersion = options.sbtVersion.getOrElse("1.10.0")
+      //todo: how to use it from deps.sc file here?
+      val defaultMavenCompilerVersion = options.mvnVersion.getOrElse("3.8.1")
+      val defaultScalaMavenCompilerVersion = options.mvnScalaVersion.getOrElse("4.9.1")
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
-
+      
       val projectDescriptor =
         if (shouldExportToMill)
           millProjectDescriptor(options.shared.coursierCache, options.project, logger)
         else if (shouldExportToMaven)
-          mavenProjectDescriptor(Nil, logger) // todo: do we need extraSettings?
+          mavenProjectDescriptor(defaultMavenCompilerVersion, defaultScalaMavenCompilerVersion, Nil, logger) // todo: do we need extraSettings?
         else if (shouldExportToJson)
           jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default

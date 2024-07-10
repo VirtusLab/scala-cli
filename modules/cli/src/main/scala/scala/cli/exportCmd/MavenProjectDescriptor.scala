@@ -30,8 +30,12 @@ object POMBuilderHelper {
     )
 }
 
-final case class MavenProjectDescription(extraSettings: Seq[String], logger: Logger)
-    extends ProjectDescriptor {
+final case class MavenProjectDescriptor(
+  mavenPluginVersion: String,
+  mavenScalaPluginVersion: String,
+  extraSettings: Seq[String],
+  logger: Logger
+) extends ProjectDescriptor {
   private val q  = "\""
   private val nl = System.lineSeparator()
 
@@ -108,17 +112,15 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
             case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
           }
           val scope0 =
-            // FIXME This ignores the isCompileOnly when scope == Scope.Test
             if (scope == Scope.Test) Some("test")
-            else if (isCompileOnly) Some("provided")
+            else if (isCompileOnly)
+              Some("provided") // maven seems to support either test or provided, not both
             else None
 
           MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
         }
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
-          // add scala dependency
-          // todo: get scala version from directive
           val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
           List(MavenLibraryDependency("org.scala-lang", scalaDep, scalaV))
         }
@@ -137,7 +139,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
 
   private def getScalaVersion(options: BuildOptions): String =
     options.scalaOptions.scalaVersion
-      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+      .flatMap(_.versionOpt)
       .getOrElse(ScalaCli.getDefaultScalaVersion)
 
   private def plugins(
@@ -185,7 +187,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     MavenPlugin(
       "net.alchim31.maven",
       "scala-maven-plugin",
-      "4.9.1",
+      mavenScalaPluginVersion,
       jdkVersion,
       configurationElements
     )
@@ -210,7 +212,7 @@ final case class MavenProjectDescription(extraSettings: Seq[String], logger: Log
     MavenPlugin(
       "org.apache.maven.plugins",
       "maven-compiler-plugin",
-      "3.8.1",
+      mavenPluginVersion,
       jdkVersion,
       Seq(javacOptionsElem, sourceArg, targetArg)
     )

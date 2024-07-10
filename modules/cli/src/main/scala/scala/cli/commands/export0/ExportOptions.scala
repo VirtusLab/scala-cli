@@ -30,7 +30,7 @@ final case class ExportOptions(
   @Tag(tags.experimental)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Maven")
-    maven: Option[Boolean] = None,
+    mvn: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
@@ -55,6 +55,14 @@ final case class ExportOptions(
   @Tag(tags.restricted)
   @HelpMessage("Version of SBT to be used for the export")
     sbtVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Compiler Plugin to be used for the export")
+    mvnVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Scala Plugin to be used for the export")
+  mvnScalaVersion: Option[String] = None,
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)

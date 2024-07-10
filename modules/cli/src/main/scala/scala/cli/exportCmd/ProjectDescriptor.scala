@@ -68,8 +68,8 @@ object ProjectDescriptor {
   def isPureJavaProject(options: BuildOptions, sources: Sources): Boolean =
     !options.scalaOptions.addScalaLibrary.contains(true) &&
     !options.scalaOptions.addScalaCompiler.contains(true) &&
-    sources.paths.forall(_._1.last.endsWith(".java")) &&
-    sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
+    sources.hasJava &&
+    !sources.hasScala &&
     options.classPathOptions.allExtraDependencies.toSeq
       .forall(_.value.nameAttributes == NoAttributes)
 
