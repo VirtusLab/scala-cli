@@ -48,6 +48,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
+  //todo: fill this
   private def javaOptionsSettings(options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
@@ -122,7 +123,11 @@ final case class MavenProjectDescriptor(
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
           val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
-          List(MavenLibraryDependency("org.scala-lang", scalaDep, scalaV))
+          val scalaCompilerDep = if scalaV.startsWith("3") then "scala3-compiler_3" else "scala-compiler"
+          List(
+            MavenLibraryDependency("org.scala-lang", scalaDep, scalaV),
+            MavenLibraryDependency("org.scala-lang", scalaCompilerDep, scalaV)
+          )
         }
         else Nil
 
@@ -153,11 +158,13 @@ final case class MavenProjectDescriptor(
     val pureJava = ProjectDescriptor.isPureJavaProject(options, sourcesMain)
 
     val javacOptions = javacOptionsSettings(options)
+    //todo: set this option correctly in pom
+    val javaOptions = javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
     val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
 
-    val reqdPlugins = if (pureJava) Seq(mavenJavaPlugin) else Seq(scalaPlugin)
+    val reqdPlugins = if (pureJava) Seq(mavenJavaPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
 
     MavenProject(
       plugins = reqdPlugins
@@ -170,9 +177,7 @@ final case class MavenProjectDescriptor(
     scalaVersion: String
   ): MavenPlugin = {
 
-    val compileMode = buildNode("recompileMode", "incremental")
-    val scalaVersionNode =
-      buildNode("scalaVersion", scalaVersion) // todo: set this value in properties
+    val scalaVersionNode = buildNode("scalaVersion", scalaVersion)
     val javacOptionsElem = {
       val opts = javacOptions.map { opt =>
         buildNode("javacArg", opt)
@@ -182,14 +187,22 @@ final case class MavenProjectDescriptor(
       </javacArgs>
     }
 
-    val configurationElements = Seq(compileMode, /*scalaVersionNone,*/ javacOptionsElem)
+    val execElements = {
+      <executions>
+        <execution>
+          <goals>
+            <goal>compile</goal>
+          </goals>
+        </execution>
+      </executions>
+    }
 
     MavenPlugin(
       "net.alchim31.maven",
       "scala-maven-plugin",
       mavenScalaPluginVersion,
       jdkVersion,
-      configurationElements
+      execElements
     )
   }
 
@@ -208,13 +221,20 @@ final case class MavenProjectDescriptor(
 
     val sourceArg = buildNode("source", jdkVersion)
     val targetArg = buildNode("target", jdkVersion)
+    val configNode = {
+      <configuration>
+        {javacOptionsElem}
+        {sourceArg}
+        {targetArg}
+      </configuration>
+    }
 
     MavenPlugin(
       "org.apache.maven.plugins",
       "maven-compiler-plugin",
       mavenPluginVersion,
       jdkVersion,
-      Seq(javacOptionsElem, sourceArg, targetArg)
+      configNode
     )
   }
 

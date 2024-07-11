@@ -81,10 +81,6 @@ final case class MavenModel(
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
 
-      <!-- <properties>
-        {propsElements}
-      </properties> -->
-
       <dependencies>
         {dependencies.map(_.toXml)}
       </dependencies>
@@ -103,7 +99,7 @@ final case class MavenLibraryDependency(
   scope: Option[String] = None
 ) {
 
-  private val scopeParam = scope.fold("")(s => <scope>{s}</scope>)
+  private val scopeParam = scope.fold(scala.xml.Null)(s => <scope>{s}</scope>)
 
   def toXml: Elem =
     <dependency>
@@ -119,7 +115,7 @@ final case class MavenPlugin(
   artifactId: String,
   version: String,
   jdk: String,
-  configurationElems: Seq[Elem]
+  additionalNode: Elem
 ) {
 
   def toXml: Elem =
@@ -127,8 +123,6 @@ final case class MavenPlugin(
       <groupId>{groupId}</groupId>
       <artifactId>{artifactId}</artifactId>
       <version>{version}</version>
-      <configuration>
-        {configurationElems}
-      </configuration>
+      {additionalNode}
     </plugin>
 }
