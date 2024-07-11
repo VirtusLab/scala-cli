@@ -1,3 +1,3 @@
 package scala.cli.integration
 
-class ExportMavenTestJava extends ExportMavenTestDefinitions with Test3Lts
+class ExportMavenTestJava extends ExportMavenTestDefinitions with Test3Lts with MavenJava
