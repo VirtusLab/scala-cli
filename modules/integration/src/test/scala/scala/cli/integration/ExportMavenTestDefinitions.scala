@@ -18,8 +18,11 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
   override def buildToolCommand(root: os.Path, args: String*): os.proc =
     if (language == SCALA) mavenCommand(args*) else mavenJavaCommand(args*)
 
-  override val runMainArgs: Seq[String]  = Seq("run")
-  override val runTestsArgs: Seq[String] = Seq("test")
+  // todo: not sure if this is right
+  override val runMainArgs: Seq[String] =
+    if (language == JAVA) Seq("-Dexec.mainClass=main") else Seq("-DmainClass=main")
+  override val runTestsArgs: Seq[String] =
+    if (language == JAVA) Seq("-Dexec.mainClass=main") else Seq("-DmainClass=main")
 
 }
 
