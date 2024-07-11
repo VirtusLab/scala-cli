@@ -34,31 +34,27 @@ class ArgsFileTests extends ScalaCliSuite {
     }
   }
 
-  test("pass scalac options using arguments file in shebang script") {
-    val inputs = TestInputs(
-      os.rel / "args.txt" -> """|-release 8""".stripMargin,
-      os.rel / "script-with-shebang" ->
-        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
-            |import java.net.http.HttpClient
-            |
-            |println("Hello :)")
-            |""".stripMargin
-    )
+  if (!Properties.isWin)
+    test("pass scalac options using arguments file in shebang script") {
+      val inputs = TestInputs(
+        os.rel / "args.txt" -> """|-release 8""".stripMargin,
+        os.rel / "script-with-shebang" ->
+          s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
+              |import java.net.http.HttpClient
+              |
+              |println("Hello :)")
+              |""".stripMargin
+      )
 
-    inputs.fromRoot { root =>
-      val res = if (!Properties.isWin) {
+      inputs.fromRoot { root =>
         os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
-        os.proc("./script-with-shebang").call(cwd = root, check = false, stderr = os.Pipe)
-      }
-      else
-        os.proc(TestUtil.cli, "shebang", "script-with-shebang")
-          .call(cwd = root, check = false, stderr = os.Pipe)
-      assert(res.exitCode == 1)
+        val res = os.proc("./script-with-shebang").call(cwd = root, check = false, stderr = os.Pipe)
+        assert(res.exitCode == 1)
 
-      val compilationError = res.err.text()
-      assert(compilationError.contains("Compilation failed"))
+        val compilationError = res.err.text()
+        assert(compilationError.contains("Compilation failed"))
+      }
     }
-  }
 
   test("multiple args files") {
     val preCompileDir = "PreCompileDir"
