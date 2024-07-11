@@ -1,6 +1,6 @@
 package scala.cli.commands.shared
 
-import bloop.rifle.internal.Constants
+import bloop.rifle.internal.BuildInfo
 import bloop.rifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
 import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -192,7 +192,7 @@ final case class SharedCompilationServerOptions(
       .map(_.trim)
       .filter(_.nonEmpty)
       .fold[BloopRifleConfig.BloopVersionConstraint](BloopRifleConfig.AtLeast(
-        BloopVersion(Constants.bloopVersion)
+        BloopVersion(BuildInfo.version)
       ))(v => BloopRifleConfig.Strict(BloopVersion(v)))
 
   def bloopDefaultJvmOptions(logger: Logger): Option[List[String]] = {

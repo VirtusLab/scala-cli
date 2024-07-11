@@ -83,7 +83,7 @@ class BloopTests extends ScalaCliSuite {
   test("bloop exit works") {
     def bloopRunning(): Boolean = {
       val javaProcesses = os.proc("jps", "-l").call().out.text()
-      javaProcesses.contains("bloop.Bloop")
+      javaProcesses.contains("bloop.BloopServer")
     }
 
     val inputs = TestInputs.empty
