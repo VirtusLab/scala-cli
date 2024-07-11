@@ -184,6 +184,8 @@ object Deps {
   def scalametaTrees = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
     .exclude(("com.lihaoyi", "sourcecode_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
+  def scalametaSemanticDbShared =
+    ivy"org.scalameta:semanticdb-shared_${Scala.scala213}:${Versions.scalaMeta}"
   def scalaPackager    = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
   def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   def scalaPy          = ivy"dev.scalapy::scalapy-core::0.5.3"

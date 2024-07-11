@@ -679,6 +679,7 @@ trait Build extends ScalaCliCrossSbtModule
     Deps.javaClassName,
     Deps.jsoniterCore,
     Deps.scalametaTrees,
+    Deps.scalametaSemanticDbShared,
     Deps.nativeTestRunner,
     Deps.osLib,
     Deps.pprint,
