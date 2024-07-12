@@ -135,7 +135,7 @@ final case class MavenProjectDescriptor(
         providedDeps ++ scalaDep
       }
 
-      toDependencies(options.classPathOptions.extraDependencies, true)
+      toDependencies(options.classPathOptions.allExtraDependencies, true)
     }
 
     MavenProject(
