@@ -39,7 +39,8 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           )
         else if (
           actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion ||
-          actualScalaVersion.startsWith("3.5")
+          actualScalaVersion.startsWith("3.5") ||
+          actualScalaVersion.startsWith("3.3.4")
         )
           Seq(
             "index.html",
