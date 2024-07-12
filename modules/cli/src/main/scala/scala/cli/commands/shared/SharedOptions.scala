@@ -442,7 +442,7 @@ final case class SharedOptions(
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
         exclude = exclude.map(Positioned.commandLine),
-        offline = coursier.getOffline()
+        offline = coursier.getOffline(logger)
       ),
       notForBloopOptions = bo.PostBuildOptions(
         scalaJsLinkerOptions = linkerOptions(js),
@@ -595,11 +595,11 @@ final case class SharedOptions(
         options => bloopRifleConfig(Some(options)),
         threads.bloop,
         strictBloopJsonCheckOrDefault,
-        coursier.getOffline().getOrElse(false)
+        coursier.getOffline(logger).getOrElse(false)
       )
     else SimpleScalaCompilerMaker("java", Nil)
 
-  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
+  lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""), logger)
 
   def inputs(
     args: Seq[String],

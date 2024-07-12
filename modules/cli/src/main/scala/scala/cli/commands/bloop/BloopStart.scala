@@ -24,13 +24,13 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
     val buildOptions = BuildOptions(
       javaOptions = JvmUtils.javaOptions(jvm).orExit(global.logging.logger),
       internal = InternalOptions(
-        cache = Some(coursier.coursierCache(global.logging.logger.coursierLogger("")))
+        cache = Some(coursier.coursierCache(global.logging.logger.coursierLogger(""), global.logging.logger))
       )
     )
 
     compilationServer.bloopRifleConfig(
       global.logging.logger,
-      coursier.coursierCache(global.logging.logger.coursierLogger("Downloading Bloop")),
+      coursier.coursierCache(global.logging.logger.coursierLogger("Downloading Bloop"), logger),
       global.logging.verbosity,
       buildOptions.javaHome().value.javaCommand,
       Directories.directories

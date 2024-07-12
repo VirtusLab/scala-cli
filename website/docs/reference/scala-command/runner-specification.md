@@ -659,6 +659,7 @@ Available keys:
   - interactive                                    Globally enables interactive mode (the '--interactive' flag).
   - interactive-was-suggested                      Setting indicating if the global interactive mode was already suggested.
   - java.properties                                Java properties for Scala CLI's execution.
+  - offline                                        Globally enables offline mode (the '--offline' flag).
   - pgp.public-key                                 The PGP public key, used for signing.
   - pgp.secret-key                                 The PGP secret key, used for signing.
   - pgp.secret-key-password                        The PGP secret key password, used for signing.
