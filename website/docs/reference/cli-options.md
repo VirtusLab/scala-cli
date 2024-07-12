@@ -1408,6 +1408,10 @@ Build target type
 
 Embed resources into the Scala Native binary (can be read with the Java resources API)
 
+### `--native-multithreading`
+
+Enable/disable Scala Native multithreading support
+
 ## Scalac options
 
 Available in commands:

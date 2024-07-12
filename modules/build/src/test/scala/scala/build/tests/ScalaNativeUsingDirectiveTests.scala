@@ -236,4 +236,17 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
       )
     }
   }
+
+  for { multithreadingDirective <- Seq("`native-multithreading`", "nativeMultithreading") }
+    test(s"ScalaNativeOptions for $multithreadingDirective") {
+      val inputs = TestInputs(
+        os.rel / "p.sc" ->
+          s"""//> using $multithreadingDirective
+             |def foo() = println("hello foo")
+             |""".stripMargin
+      )
+      inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+        assert(maybeBuild.options.scalaNativeOptions.multithreading.get)
+      }
+    }
 }

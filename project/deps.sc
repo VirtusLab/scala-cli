@@ -7,7 +7,7 @@ object Scala {
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts    = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
   def scala3Next   = "3.4.2"               // the newest/next version of Scala
-  def scala3NextRc = "3.5.0-RC3"           // the latest RC version of Scala Next
+  def scala3NextRc = "3.5.0-RC4"           // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -97,7 +97,7 @@ object Deps {
     def coursierM1Cli                     = coursierDefault
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
-    def scalaMeta                         = "4.9.7"
+    def scalaMeta                         = "4.9.8"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.4"
     def scalaNative                       = scalaNative05
@@ -182,16 +182,15 @@ object Deps {
   def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
   // Force using of 2.13 - is there a better way?
   def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
-  // Force using of 2.13 - is there a better way?
-  def scalametaTrees = ivy"org.scalameta:trees_2.13:${Versions.scalaMeta}"
-    .exclude(("com.lihaoyi", "sourcecode_2.13"))
-    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def scalaPackager    = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
-  def scalaPackagerCli = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
-  def scalaPy          = ivy"dev.scalapy::scalapy-core::0.5.3"
+  def scalaPackager      = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
+  def scalaPackagerCli   = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
+  def scalaPy            = ivy"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
+  def scalametaSemanticDbShared =
+    ivy"org.scalameta:semanticdb-shared_${Scala.scala213}:${Versions.scalaMeta}"
+      .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
   def signingCliShared =
     ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
