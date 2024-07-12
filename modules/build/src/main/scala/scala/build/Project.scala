@@ -7,7 +7,7 @@ import coursier.core.Classifier
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 import java.util.Arrays
 
 import scala.build.options.{GeneratorConfig, ScalacOpt, Scope, ShadowingSeq}
@@ -54,13 +54,14 @@ final case class Project(
 
     val sourceGen0: Option[List[BloopConfig.SourceGenerator]] =
       generateSource.map(config =>
-        println(os.pwd)
-        println(config.commandFilePath)
-        println(config.inputDir)
-        println(config.glob)
-        val command0 = s"${os.pwd}/testing-a/${config.commandFilePath}"
+        println(s"Input Directory => ${config.inputDir}")
+        println(s"Globber => ${config.glob}")
+        println(s"Command File Path => ${config.commandFilePath}")
+        // val command0 = s"${os.pwd}/testing-a/${config.commandFilePath}"
+        val command0 = config.commandFilePath
         val sourceGlobs0 = BloopConfig.SourcesGlobs(
-          (os.pwd / "testing-a" / config.inputDir).toNIO,
+          // (os.pwd / "testing-a" / config.inputDir).toNIO,
+          Paths.get(config.inputDir),
           None,
           config.glob,
           Nil
@@ -69,6 +70,7 @@ final case class Project(
         val sourceGen = BloopConfig.SourceGenerator(
           List(sourceGlobs0),
           (os.pwd / "testing-a" / "source-generator-output").toNIO,
+          // Paths.get(config.inputDir),
           List("python3", command0)
           // Nil
         )

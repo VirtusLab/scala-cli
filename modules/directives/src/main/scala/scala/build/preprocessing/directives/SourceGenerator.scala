@@ -13,16 +13,14 @@ import scala.build.{Positioned, options}
 @DirectiveDescription("Generate code using Source Generator")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class SourceGenerator(
-  sourceGenerator: Option[Positioned[String]] = None
+  sourceGenerator: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] = DirectiveValueParser.WithScopePath.empty(None)
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
-    val maybeGenerateSource = sourceGenerator
+    val sourceGen = sourceGenerator.value
+    
+    val maybeGenerateSource = sourceGen
       .map(GeneratorConfig.parse)
       .sequence
-
-    // val buildOpt = BuildOptions(
-    //   generateSource = Some(generateSource0)
-    // )
 
     val generateSource = maybeGenerateSource match {
       case Left(buildException) => throw buildException
