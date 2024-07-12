@@ -2,7 +2,7 @@ package scala.cli.integration
 
 trait MavenTestHelper {
 
-  protected def mavenCommand(args: String*): os.proc = os.proc(maven, args)
+  protected def mavenCommand(args: String*): os.proc     = os.proc(maven, args)
   protected def mavenJavaCommand(args: String*): os.proc = os.proc(mavenJava, args)
 
   protected lazy val maven: os.Shellable =

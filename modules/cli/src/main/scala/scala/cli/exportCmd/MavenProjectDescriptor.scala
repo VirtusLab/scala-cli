@@ -48,7 +48,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  //todo: fill this
+  // todo: fill this
   private def javaOptionsSettings(options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
@@ -123,7 +123,8 @@ final case class MavenProjectDescriptor(
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
           val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
-          val scalaCompilerDep = if scalaV.startsWith("3") then "scala3-compiler_3" else "scala-compiler"
+          val scalaCompilerDep =
+            if scalaV.startsWith("3") then "scala3-compiler_3" else "scala-compiler"
           List(
             MavenLibraryDependency("org.scala-lang", scalaDep, scalaV),
             MavenLibraryDependency("org.scala-lang", scalaCompilerDep, scalaV)
@@ -158,7 +159,7 @@ final case class MavenProjectDescriptor(
     val pureJava = ProjectDescriptor.isPureJavaProject(options, sourcesMain)
 
     val javacOptions = javacOptionsSettings(options)
-    //todo: set this option correctly in pom
+    // todo: set this option correctly in pom
     val javaOptions = javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
@@ -187,7 +188,7 @@ final case class MavenProjectDescriptor(
       </javacArgs>
     }
 
-    val execElements = {
+    val execElements =
       <executions>
         <execution>
           <goals>
@@ -195,7 +196,6 @@ final case class MavenProjectDescriptor(
           </goals>
         </execution>
       </executions>
-    }
 
     MavenPlugin(
       "net.alchim31.maven",
@@ -221,13 +221,12 @@ final case class MavenProjectDescriptor(
 
     val sourceArg = buildNode("source", jdkVersion)
     val targetArg = buildNode("target", jdkVersion)
-    val configNode = {
+    val configNode =
       <configuration>
         {javacOptionsElem}
         {sourceArg}
         {targetArg}
       </configuration>
-    }
 
     MavenPlugin(
       "org.apache.maven.plugins",
