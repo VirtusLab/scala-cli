@@ -72,29 +72,9 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains(root.toString))
     }
 
-  def compileOnlyTest(): Unit = {
-    val userName = "John"
-    prepareTestInputs(
-      ExportTestProjects.compileOnlySource(actualScalaVersion, userName = userName)
-    ).fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
-      val res = buildToolCommand(root, runMainArgs*)
-        .call(cwd = root / outputDir)
-      val output = res.out.trim(Charset.defaultCharset())
-      expect(output.contains(userName))
-      expect(!output.contains("jsoniter-scala-macros"))
-    }
-  }
-
   if (runExportTests) {
-    test("compile-time only for jsoniter macros") {
-      compileOnlyTest()
-    }
     test("JVM") {
       jvmTest()
-    }
-    test("Scala.js") {
-      simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
     }
     test("Ensure test framework NPE is not thrown when depending on logback") {
       logbackBugCase()

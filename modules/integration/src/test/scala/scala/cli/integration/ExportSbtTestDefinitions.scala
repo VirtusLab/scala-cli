@@ -1,7 +1,8 @@
 package scala.cli.integration
 
 abstract class ExportSbtTestDefinitions extends ScalaCliSuite
-    with TestScalaVersionArgs with ExportCommonTestDefinitions with SbtTestHelper {
+    with TestScalaVersionArgs with ExportCommonTestDefinitions
+    with ExportScalaOrientedBuildToolsTestDefinitions with SbtTestHelper {
   _: TestScalaVersion =>
   override def exportCommand(args: String*): os.proc =
     os.proc(
