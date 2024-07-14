@@ -29,7 +29,7 @@ final case class Project(
   javaHomeOpt: Option[os.Path],
   scope: Scope,
   javacOptions: List[String],
-  generateSource: Option[GeneratorConfig]
+  generateSource: Option[Seq[GeneratorConfig]]
 ) {
 
   import Project._
@@ -52,50 +52,24 @@ final case class Project(
       )
     }
 
-    val sourceGen0: Option[List[BloopConfig.SourceGenerator]] =
-      generateSource.map(config =>
-        println(s"Input Directory => ${config.inputDir}")
-        println(s"Globber => ${config.glob}")
-        println(s"Command File Path => ${config.commandFilePath}")
-        // val command0 = s"${os.pwd}/testing-a/${config.commandFilePath}"
-        val command0 = config.commandFilePath
-        val sourceGlobs0 = BloopConfig.SourcesGlobs(
-          // (os.pwd / "testing-a" / config.inputDir).toNIO,
-          Paths.get(config.inputDir),
-          None,
-          config.glob,
-          Nil
-        )
+    val sourceGenerator: Option[List[BloopConfig.SourceGenerator]] =
+      generateSource.map(configs =>
+        configs.map { config =>
+          val command0 = config.commandFilePath
+          val sourceGlobs0 = BloopConfig.SourcesGlobs(
+            Paths.get(config.inputDir),
+            None,
+            config.glob,
+            Nil
+          )
 
-        val sourceGen = BloopConfig.SourceGenerator(
-          List(sourceGlobs0),
-          (os.pwd / "testing-a" / "source-generator-output").toNIO,
-          // Paths.get(config.inputDir),
-          List("python3", command0)
-          // Nil
-        )
-
-        List(sourceGen)
+          BloopConfig.SourceGenerator(
+            List(sourceGlobs0),
+            (config.outputPath / "source-generator-output").toNIO,
+            List("python3", command0)
+          )
+        }.toList
       )
-
-    // val sourceGen: BloopConfig.SourceGenerator = {
-    //   val command = s"${os.pwd}/${generateSource.commandFilePath}"
-    //   val sourceGlobs = BloopConfig.SourcesGlobs(
-    //     (os.pwd / generateSource.inputDir).toNIO,
-    //     None,
-    //     List(generateSource.glob),
-    //     Nil
-    //   )
-
-    //   BloopConfig.SourceGenerator(
-    //     List(sourceGlobs),
-    //     (os.pwd / "testing-a" / "source-generator-output").toNIO,
-    //     List("python3", command)
-    //     // Nil
-    //   )
-    // }
-
-    
 
     baseBloopProject(
       projectName,
@@ -113,7 +87,7 @@ final case class Project(
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
         resolution = resolution,
-        sourceGenerators = sourceGen0
+        sourceGenerators = sourceGenerator
       )
   }
 

@@ -1017,7 +1017,7 @@ object Build {
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
       javacOptions = javacOptions,
-      generateSource = hardcodedSource
+      generateSource = Option(sourceGeneratorConfig)
     )
     project
   }

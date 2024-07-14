@@ -4,7 +4,7 @@ final case class SourceGeneratorOptions(
   useBuildInfo: Option[Boolean] = None,
   projectVersion: Option[String] = None,
   computeVersion: Option[ComputeVersion] = None,
-  generatorConfig: Option[GeneratorConfig] = None
+  generatorConfig: Seq[GeneratorConfig] = Nil,
 )
 
 object SourceGeneratorOptions {

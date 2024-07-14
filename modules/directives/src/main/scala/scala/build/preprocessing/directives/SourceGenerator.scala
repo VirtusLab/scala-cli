@@ -13,26 +13,26 @@ import scala.build.{Positioned, options}
 @DirectiveDescription("Generate code using Source Generator")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
 final case class SourceGenerator(
-  sourceGenerator: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] = DirectiveValueParser.WithScopePath.empty(None)
+  sourceGenerator: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptions {
-  def buildOptions: Either[BuildException, BuildOptions] = either {
-    val sourceGen = sourceGenerator.value
-    
-    val maybeGenerateSource = sourceGen
-      .map(GeneratorConfig.parse)
-      .sequence
-
-    val generateSource = maybeGenerateSource match {
-      case Left(buildException) => throw buildException
-      case Right(config) => config
-    }
-
-    BuildOptions(sourceGeneratorOptions =
-      SourceGeneratorOptions(generatorConfig = generateSource)
-    )
-  }
+  def buildOptions: Either[BuildException, BuildOptions] =
+    SourceGenerator.buildOptions(sourceGenerator)
 }
 
 object SourceGenerator {
   val handler: DirectiveHandler[SourceGenerator] = DirectiveHandler.derive
+  def buildOptions(sourceGenerator: DirectiveValueParser.WithScopePath[List[Positioned[String]]])
+    : Either[BuildException, BuildOptions] = {
+    val sourceGenValue = sourceGenerator.value
+    sourceGenValue
+      .map(config => GeneratorConfig.parse(config, sourceGenerator.scopePath.subPath))
+      .sequence
+      .left.map(CompositeBuildException(_))
+      .map { configs =>
+        BuildOptions(sourceGeneratorOptions =
+          SourceGeneratorOptions(generatorConfig = configs)
+        )
+      }
+  }
 }
