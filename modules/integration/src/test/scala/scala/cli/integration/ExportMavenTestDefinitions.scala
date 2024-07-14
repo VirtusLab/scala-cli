@@ -19,9 +19,11 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
 
   // todo: not sure if this is right. how to get the main class name
   override val runMainArgs: Seq[String] =
-    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main") else Seq("scala:run", "-DmainClass=main")
+    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main")
+    else Seq("scala:run", "-DmainClass=main")
   override val runTestsArgs: Seq[String] =
-    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main") else Seq("scala:run", "-DmainClass=main")
+    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main")
+    else Seq("scala:run", "-DmainClass=main")
 
 }
 

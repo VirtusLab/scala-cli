@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs
     with ExportCommonTestDefinitions
-  with ExportScalaOrientedBuildToolsTestDefinitions
+    with ExportScalaOrientedBuildToolsTestDefinitions
     with MillTestHelper { _: TestScalaVersion =>
   override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
 
