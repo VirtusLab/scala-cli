@@ -908,6 +908,12 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--args-file`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+File with scalac options.
+
 ### `--scalac-option`
 
 Aliases: `-O`, `--scala-opt`, `--scala-option`

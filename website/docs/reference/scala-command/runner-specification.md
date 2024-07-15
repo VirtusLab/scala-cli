@@ -496,6 +496,10 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
+**--args-file**
+
+File with scalac options.
+
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -1241,6 +1245,10 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
+**--args-file**
+
+File with scalac options.
+
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -1817,6 +1825,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 
@@ -2418,6 +2430,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 
@@ -3029,6 +3045,10 @@ Working directory for Bloop, if it needs to be started
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
 
+**--args-file**
+
+File with scalac options.
+
 **--scalac-option**
 
 Add a `scalac` option. Note that options starting with `-g`, `-language`, `-opt`, `-P`, `-target`, `-V`, `-W`, `-X`, and `-Y` are assumed to be Scala compiler options and don't require to be passed after `-O` or `--scalac-option`.
@@ -3596,6 +3616,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 
@@ -4239,6 +4263,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 
@@ -4889,6 +4917,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 
@@ -5804,6 +5836,10 @@ Working directory for Bloop, if it needs to be started
 **--server**
 
 Enable / disable usage of Bloop compilation server. Bloop is used by default so use `--server=false` to disable it. Disabling compilation server allows to test compilation in more controlled mannter (no caching or incremental compiler) but has a detrimental effect of performance.
+
+**--args-file**
+
+File with scalac options.
 
 **--scalac-option**
 

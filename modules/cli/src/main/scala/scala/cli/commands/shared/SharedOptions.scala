@@ -224,8 +224,6 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
-  @Recurse
-    argsFiles: List[ArgFileOption] = Nil
 ) extends HasGlobalOptions {
   // format: on
 
@@ -294,7 +292,7 @@ final case class SharedOptions(
   }
 
   lazy val scalacOptionsFromFiles: List[String] =
-    argsFiles.flatMap(argFile =>
+    scalac.argsFiles.flatMap(argFile =>
       ArgSplitter.splitToArgs(os.read(os.Path(argFile.file, os.pwd)))
     )
 
@@ -806,38 +804,5 @@ object SharedOptions {
           st ++ tlt
       }
     dependencies -> maxScalaNativeVersions
-  }
-}
-
-case class ArgFileOption(file: String) extends AnyVal
-
-object ArgFileOption {
-  private val arg = Arg(
-    name = Name("args-file"),
-    valueDescription = Some(ValueDescription("@arguments-file")),
-    helpMessage = Some(HelpMessage("File with scalac options."))
-  )
-  implicit lazy val parser: Parser[List[ArgFileOption]] = new Parser[List[ArgFileOption]] {
-    type D = List[ArgFileOption] *: EmptyTuple
-
-    override def withDefaultOrigin(origin: String): Parser[List[ArgFileOption]] = this
-
-    override def init: D = Nil *: EmptyTuple
-
-    override def step(args: List[String], index: Int, d: D, nameFormatter: Formatter[Name])
-      : Either[(core.Error, Arg, List[String]), Option[(D, Arg, List[String])]] =
-      args match
-        case head :: rest if head.startsWith("@") =>
-          val newD = (ArgFileOption(head.stripPrefix("@")) :: d._1) *: EmptyTuple
-          Right(Some(newD, arg, rest))
-        case _ => Right(None)
-
-    override def get(
-      d: D,
-      nameFormatter: Formatter[Name]
-    ): Either[core.Error, List[ArgFileOption]] = Right(d.head)
-
-    override def args: Seq[Arg] = Seq(arg)
-
   }
 }
