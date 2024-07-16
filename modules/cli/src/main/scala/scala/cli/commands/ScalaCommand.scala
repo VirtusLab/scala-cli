@@ -172,7 +172,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
     val logger = options.global.logging.logger
     sharedOptions(options).foreach { so =>
-      val scalacOpts = so.scalac.scalacOption.toScalacOptShadowingSeq
+      val scalacOpts = so.scalacOptions.toScalacOptShadowingSeq
       if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
         logger.message(
           LegacyScalaOptions.yScriptRunnerWarning(scalacOpts.getOption(YScriptRunnerOption))
@@ -188,7 +188,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   def maybePrintSimpleScalacOutput(options: T, buildOptions: BuildOptions): Unit =
     for {
       shared <- sharedOptions(options)
-      scalacOptions        = shared.scalac.scalacOption
+      scalacOptions        = shared.scalacOptions
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
       if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
       logger = shared.logger

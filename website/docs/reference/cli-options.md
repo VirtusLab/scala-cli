@@ -1408,6 +1408,10 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--args-file`
+
+File with scalac options.
+
 ### `--scalac-option`
 
 Aliases: `-O`, `--scala-opt`, `--scala-option`

@@ -2,7 +2,7 @@ package scala.cli.commands.shared
 
 import caseapp.*
 import caseapp.core.Scala3Helpers.*
-import caseapp.core.parser.{Argument, NilParser, StandardArgument}
+import caseapp.core.parser.{Argument, ConsParser, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 import com.github.plokhotnyuk.jsoniter_scala.core.*
@@ -12,6 +12,8 @@ import scala.cli.commands.tags
 
 // format: off
 final case class ScalacOptions(
+  @Recurse
+  argsFiles: List[ArgFileOption] = Nil,
   @Group(HelpGroup.Scala.toString)
   @HelpMessage("Add a scalac option")
   @ValueDescription("option")
@@ -19,7 +21,7 @@ final case class ScalacOptions(
   @Name("scala-opt")
   @Name("scala-option")
   @Tag(tags.must)
-    scalacOption: List[String] = Nil
+    scalacOption: List[String] = Nil,
 )
 // format: on
 
@@ -72,8 +74,9 @@ object ScalacOptions {
 
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
   val ScalaCliRedirectedOptions = Set(
-    "-classpath", // redirected to --extra-jars
-    "-d"          // redirected to --compilation-output
+    "-classpath",
+    "-cp", // redirected to --extra-jars
+    "-d"   // redirected to --compilation-output
   )
   val ScalacDeprecatedOptions: Set[String] = Set(
     YScriptRunnerOption // old 'scala' runner specific, no longer supported
@@ -115,11 +118,46 @@ object ScalacOptions {
     }
 
   implicit lazy val parser: Parser[ScalacOptions] = {
-    val baseParser =
-      scalacOptionsArgument ::
-        NilParser
-    baseParser.to[ScalacOptions]
+    val baseParser = scalacOptionsArgument :: NilParser
+    implicit val p = ArgFileOption.parser
+    baseParser.addAll[List[ArgFileOption]].to[ScalacOptions]
   }
+
   implicit lazy val help: Help[ScalacOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[ScalacOptions] = JsonCodecMaker.make
+}
+
+case class ArgFileOption(file: String) extends AnyVal
+
+object ArgFileOption {
+  val arg = Arg(
+    name = Name("args-file"),
+    valueDescription = Some(ValueDescription("@arguments-file")),
+    helpMessage = Some(HelpMessage("File with scalac options.")),
+    group = Some(Group("Scala")),
+    origin = Some("ScalacOptions")
+  )
+  implicit lazy val parser: Parser[List[ArgFileOption]] = new Parser[List[ArgFileOption]] {
+    type D = List[ArgFileOption] *: EmptyTuple
+
+    override def withDefaultOrigin(origin: String): Parser[List[ArgFileOption]] = this
+
+    override def init: D = Nil *: EmptyTuple
+
+    override def step(args: List[String], index: Int, d: D, nameFormatter: Formatter[Name])
+      : Either[(core.Error, Arg, List[String]), Option[(D, Arg, List[String])]] =
+      args match
+        case head :: rest if head.startsWith("@") =>
+          val newD = (ArgFileOption(head.stripPrefix("@")) :: d._1) *: EmptyTuple
+          Right(Some(newD, arg, rest))
+        case _ => Right(None)
+
+    override def get(
+      d: D,
+      nameFormatter: Formatter[Name]
+    ): Either[core.Error, List[ArgFileOption]] = Right(d.head)
+
+    override def args: Seq[Arg] = Seq(arg)
+
+  }
 }

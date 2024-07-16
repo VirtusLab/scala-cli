@@ -2,7 +2,9 @@ package scala.cli.commands.shared
 
 import bloop.rifle.BloopRifleConfig
 import caseapp.*
+import caseapp.core.Arg
 import caseapp.core.help.Help
+import caseapp.core.util.Formatter
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
@@ -290,13 +292,20 @@ final case class SharedOptions(
     )
   }
 
+  lazy val scalacOptionsFromFiles: List[String] =
+    scalac.argsFiles.flatMap(argFile =>
+      ArgSplitter.splitToArgs(os.read(os.Path(argFile.file, os.pwd)))
+    )
+
+  def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
+
   def buildOptions(
     enableJmh: Boolean = false,
     jmhVersion: Option[String] = None,
     ignoreErrors: Boolean = false
   ): Either[BuildException, bo.BuildOptions] = either {
-    val releaseOpt = scalac.scalacOption.getScalacOption("-release")
-    val targetOpt  = scalac.scalacOption.getScalacPrefixOption("-target")
+    val releaseOpt = scalacOptions.getScalacOption("-release")
+    val targetOpt  = scalacOptions.getScalacPrefixOption("-target")
     jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
       case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
         val compilerTargetsString = compilerTargets.distinct.mkString(", ")
@@ -380,8 +389,7 @@ final case class SharedOptions(
           semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
           semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
         ),
-        scalacOptions = scalac
-          .scalacOption
+        scalacOptions = scalacOptions
           .withScalacExtraOptions(scalacExtra)
           .toScalacOptShadowingSeq
           .filterNonRedirected
@@ -465,7 +473,9 @@ final case class SharedOptions(
   }
 
   def extraJarsAndClassPath: List[os.Path] =
-    (extraJars ++ scalac.scalacOption.getScalacOption("-classpath"))
+    (extraJars ++ scalacOptions.getScalacOption("-classpath") ++ scalacOptions.getScalacOption(
+      "-cp"
+    ))
       .extractedClassPath
 
   def extraClasspathWasPassed: Boolean = extraJarsAndClassPath.exists(!_.hasSourceJarSuffix)
@@ -635,6 +645,7 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
+  import ArgFileOption.parser
   implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
   implicit lazy val help: Help[SharedOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make
