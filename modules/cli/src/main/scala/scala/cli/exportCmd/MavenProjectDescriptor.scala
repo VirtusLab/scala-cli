@@ -7,7 +7,6 @@ import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
-
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName
@@ -15,8 +14,8 @@ import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
-import scala.cli.exportCmd.POMBuilderHelper._
-import scala.xml.Elem
+import scala.cli.exportCmd.POMBuilderHelper.*
+import scala.xml.{Elem, XML}
 
 object POMBuilderHelper {
   def buildNode(name: String, value: String): Elem =
@@ -237,6 +236,16 @@ final case class MavenProjectDescriptor(
     )
   }
 
+  private def customResourcesSettings(options: BuildOptions): MavenProject = {
+    val resourceDirs =
+      if (options.classPathOptions.resourcesDir.isEmpty) Nil
+      else
+        options.classPathOptions.resourcesDir.map(_.toNIO.toAbsolutePath.toString)
+    MavenProject(
+      resourceDirectories = resourceDirs
+    )
+  }
+
   def `export`(
     optionsMain: BuildOptions,
     optionsTest: BuildOptions,
@@ -248,6 +257,7 @@ final case class MavenProjectDescriptor(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, Scope.Main, sourcesMain),
+      customResourcesSettings(optionsMain),
       plugins(optionsMain, Scope.Main, jdk, sourcesMain),
       projectArtifactSettings()
     )

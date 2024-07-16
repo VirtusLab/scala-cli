@@ -1,9 +1,8 @@
 package scala.cli.exportCmd
 
 import java.nio.charset.StandardCharsets
-
 import scala.build.options.{ConfigMonoid, Scope}
-import scala.xml.{Elem, PrettyPrinter, XML}
+import scala.xml.{Elem, NodeSeq, PrettyPrinter, XML}
 
 final case class MavenProject(
   groupId: Option[String] = None,
@@ -14,7 +13,8 @@ final case class MavenProject(
   settings: Seq[Seq[String]] = Nil,
   dependencies: Seq[MavenLibraryDependency] = Nil,
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
-  testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil
+  testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
+  resourceDirectories: Seq[String] = Nil
   // properties: Seq[(String, String)] = Nil // using Seq[Tuple] since derive was failing for Map
 ) extends Project {
 
@@ -32,7 +32,8 @@ final case class MavenProject(
       artifactId.getOrElse("artifactId"),
       version.getOrElse("0.1-SNAPSHOT"),
       dependencies,
-      plugins
+      plugins,
+      resourceDirectories
       // properties
     )
 
@@ -66,13 +67,26 @@ final case class MavenModel(
   artifactId: String,
   version: String,
   dependencies: Seq[MavenLibraryDependency],
-  plugins: Seq[MavenPlugin]
+  plugins: Seq[MavenPlugin],
+  resourceDirectories: Seq[String]
   // properties: Seq[(String, String)] //todo: bring back only if it is needed
 ) {
 
-//  private val propsElements = properties.map { case (key, value) =>
-//    POMBuilderHelper.buildNode(key, value)
-//  }
+  private def resourceNodes: NodeSeq =
+    if (resourceDirectories.isEmpty)
+      NodeSeq.Empty
+    else {
+      val resourceNodes = resourceDirectories.map { path =>
+        <resource>
+          <directory>
+            {path}
+          </directory>
+        </resource>
+      }
+      <resources>
+        {resourceNodes}
+      </resources>
+    }
 
   def toXml: Elem =
     <project>
@@ -85,6 +99,7 @@ final case class MavenModel(
         {dependencies.map(_.toXml)}
       </dependencies>
       <build>
+        {resourceNodes}
         <plugins>
           {plugins.map(_.toXml)}
         </plugins>
