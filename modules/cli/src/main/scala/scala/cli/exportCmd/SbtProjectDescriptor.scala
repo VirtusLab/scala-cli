@@ -121,9 +121,11 @@ final case class SbtProjectDescriptor(
   private def scalaVersionSettings(options: BuildOptions): SbtProject = {
 
     val scalaVerSetting = {
-      val sv = options.scalaOptions.scalaVersion
-        .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+      val sv = options
+        .scalaOptions
+        .resolveFullScalaVersion
         .getOrElse(ScalaCli.getDefaultScalaVersion)
+
       s"""scalaVersion := "$sv""""
     }
 

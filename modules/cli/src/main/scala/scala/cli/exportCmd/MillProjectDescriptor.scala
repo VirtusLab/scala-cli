@@ -38,8 +38,9 @@ final case class MillProjectDescriptor(
       options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
-    val sv = options.scalaOptions.scalaVersion
-      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+    val sv = options
+      .scalaOptions
+      .resolveFullScalaVersion
       .getOrElse(ScalaCli.getDefaultScalaVersion)
 
     if (pureJava)

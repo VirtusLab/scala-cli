@@ -3,6 +3,7 @@ package scala.build.options
 import dependency.AnyDependency
 
 import scala.build.Positioned
+import scala.build.internal.Constants
 
 final case class ScalaOptions(
   scalaVersion: Option[MaybeScalaVersion] = None,
@@ -28,6 +29,17 @@ final case class ScalaOptions(
         extraPlatforms = opt.extraPlatforms - pf
       )
     opt
+  }
+  
+  def resolveFullScalaVersion: Option[String] = {
+    scalaVersion
+      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
+      .map {
+        case "3" => Constants.defaultScalaVersion
+        case "2.12" => Constants.defaultScala212Version
+        case "2.13" => Constants.defaultScala213Version
+        case v => v
+      }
   }
 }
 
