@@ -847,4 +847,61 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       expect(res.out.trim().contains(scalaVersion))
     }
   }
+
+  if (!Properties.isWin) // FIXME: run this test on Windows
+    test("coursier scala installation works in --offline mode") {
+      TestInputs.empty.fromRoot { root =>
+        val localCache = root / "local-cache"
+        val localBin   = root / "local-bin"
+        val sv         = "3.5.0-RC4"
+        os.proc(
+          TestUtil.cs,
+          "install",
+          "--cache",
+          localCache,
+          "--install-dir",
+          localBin,
+          s"scala:$sv"
+        ).call(cwd = root)
+        val scalaBinary: os.Path = localBin / "scala"
+        val fileBytes            = os.read.bytes(scalaBinary)
+        val shebang              = new String(fileBytes.takeWhile(_ != '\n'), "UTF-8")
+        val binaryData           = fileBytes.drop(shebang.length + 1)
+        val execLine             = new String(binaryData.takeWhile(_ != '\n'), "UTF-8")
+        val scriptPathRegex      = """exec "([^"]+/bin/scala).*"""".r
+        val scalaScript = execLine match { case scriptPathRegex(extractedPath) => extractedPath }
+        val scalaScriptPath = os.Path(scalaScript)
+        val lineToChange    = "eval \"${SCALA_CLI_CMD_BASH[@]}\" \\"
+        // FIXME: the way the scala script calls the launcher currently ignores the --debug flag
+        val newContent = os.read(scalaScriptPath).replace(
+          lineToChange,
+          s"""SCALA_CLI_CMD_BASH=(\"\\\"${TestUtil.cliPath}\\\"\")
+             |$lineToChange""".stripMargin
+        )
+        os.write.over(scalaScriptPath, newContent)
+        val r =
+          os.proc(
+            scalaScript,
+            "--offline",
+            "--power",
+            "--with-compiler",
+            "-e",
+            "println(dotty.tools.dotc.config.Properties.versionNumberString)"
+          ).call(
+            cwd = root,
+            env = Map("COURSIER_CACHE" -> localCache.toString),
+            check = false // need to clean up even on failure
+          )
+        // clean up cs local binaries
+        val csPrebuiltBinaryDir =
+          os.Path(scalaScript.substring(0, scalaScript.indexOf(sv) + sv.length))
+        try os.remove.all(csPrebuiltBinaryDir)
+        catch {
+          case ex: java.nio.file.FileSystemException =>
+            println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+        }
+        expect(r.exitCode == 0)
+        expect(r.out.trim() == sv)
+      }
+    }
 }
