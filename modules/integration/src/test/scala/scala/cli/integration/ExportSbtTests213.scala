@@ -15,4 +15,6 @@ class ExportSbtTests213 extends ExportSbtTestDefinitions with Test213 {
       simpleTest(ExportTestProjects.customJarTest(actualScalaVersion))
     }
   }
+
+  override lazy val majorScalaVersion: String = "2.13"
 }

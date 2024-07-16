@@ -21,6 +21,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
   protected val prepareTestInputs: TestInputs => TestInputs = identity
 
   protected val outputDir: os.RelPath = os.rel / "output-project"
+  def majorScalaVersion: String
 
   protected def simpleTest(inputs: TestInputs, extraExportArgs: Seq[String] = Nil): Unit =
     prepareTestInputs(inputs).fromRoot { root =>
@@ -61,6 +62,16 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains("Hello"))
     }
 
+  protected def scalaVersionTest(majorScalaVersion: String): Unit =
+    prepareTestInputs(ExportTestProjects.majorScalaVersionTest(majorScalaVersion)).fromRoot {
+      root =>
+        exportCommand(".").call(cwd = root, stdout = os.Inherit)
+        val res = buildToolCommand(root, runMainArgs*)
+          .call(cwd = root / outputDir)
+        val output = res.out.text(Charset.defaultCharset())
+        expect(output.contains("Hello"))
+    }
+
   def extraSourceFromDirectiveWithExtraDependency(inputs: String*): Unit =
     prepareTestInputs(
       ExportTestProjects.extraSourceFromDirectiveWithExtraDependency(actualScalaVersion)
@@ -92,6 +103,9 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
     test("JVM") {
       jvmTest()
+    }
+    test("Scala Version Test") {
+      scalaVersionTest(majorScalaVersion)
     }
     test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
