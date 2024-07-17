@@ -121,10 +121,10 @@ final case class SbtProjectDescriptor(
   private def scalaVersionSettings(options: BuildOptions): SbtProject = {
 
     val scalaVerSetting = {
-      val sv = options
-        .scalaOptions
-        .resolveFullScalaVersion
-        .getOrElse(ScalaCli.getDefaultScalaVersion)
+      
+      val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
+        ScalaCli.getDefaultScalaVersion
+      )
 
       s"""scalaVersion := "$sv""""
     }

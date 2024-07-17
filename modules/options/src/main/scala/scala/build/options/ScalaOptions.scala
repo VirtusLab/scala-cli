@@ -30,20 +30,6 @@ final case class ScalaOptions(
       )
     opt
   }
-
-  def resolveFullScalaVersion: Option[String] =
-    scalaVersion
-      .flatMap(_.versionOpt) // FIXME If versionOpt is empty, the project is pure Java
-      .map {
-        case "3"                                     => Constants.defaultScalaVersion
-        case "2.12"                                  => Constants.defaultScala212Version
-        case "2.13"                                  => Constants.defaultScala213Version
-        case ver @ s"$m.$mn.$p"                      => ver
-        case s"3.${lts}" if lts.toLowerCase == "lts" => Constants.defaultScalaVersion
-        case s"3.${any}"                             => Constants.defaultScalaVersion
-        case v                                       => v
-        // todo: how to get current lts and next versions
-      }
 }
 
 object ScalaOptions {

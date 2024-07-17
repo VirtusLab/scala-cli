@@ -38,10 +38,9 @@ final case class MillProjectDescriptor(
       options.classPathOptions.allExtraDependencies.toSeq
         .forall(_.value.nameAttributes == NoAttributes)
 
-    val sv = options
-      .scalaOptions
-      .resolveFullScalaVersion
-      .getOrElse(ScalaCli.getDefaultScalaVersion)
+    val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
+      ScalaCli.getDefaultScalaVersion
+    )
 
     if (pureJava)
       MillProject()

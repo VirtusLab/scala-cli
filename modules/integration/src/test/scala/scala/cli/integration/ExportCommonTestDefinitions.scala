@@ -21,7 +21,6 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
   protected val prepareTestInputs: TestInputs => TestInputs = identity
 
   protected val outputDir: os.RelPath = os.rel / "output-project"
-  def majorScalaVersion: String
 
   protected def simpleTest(inputs: TestInputs, extraExportArgs: Seq[String] = Nil): Unit =
     prepareTestInputs(inputs).fromRoot { root =>
@@ -97,15 +96,14 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
   }
 
+  private val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
+
   if (runExportTests) {
     test("compile-time only for jsoniter macros") {
       compileOnlyTest()
     }
     test("JVM") {
       jvmTest()
-    }
-    test("Scala Version Test") {
-      scalaVersionTest(majorScalaVersion)
     }
     test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
@@ -119,5 +117,11 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     test("extra source passed both via directive and from command line") {
       extraSourceFromDirectiveWithExtraDependency(".")
     }
+    scalaVersionsInDir.foreach { scalaV =>
+      test(s"check export for project with scala version in directive as $scalaV") {
+        scalaVersionTest(scalaV)
+      }
+    }
+
   }
 }

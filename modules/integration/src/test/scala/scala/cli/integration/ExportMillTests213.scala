@@ -12,6 +12,4 @@ class ExportMillTests213 extends ExportMillTestDefinitions with Test213 {
       simpleTest(ExportTestProjects.customJarTest(actualScalaVersion))
     }
   }
-
-  override lazy val majorScalaVersion: String = "2.13"
 }

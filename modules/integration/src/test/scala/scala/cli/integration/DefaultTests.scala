@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import java.nio.charset.Charset
+
 class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDefinitions {
   override def warmUpExtraTestOptions: Seq[String] = TestUtil.extraOptions
 
