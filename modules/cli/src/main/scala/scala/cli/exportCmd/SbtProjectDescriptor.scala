@@ -121,7 +121,7 @@ final case class SbtProjectDescriptor(
   private def scalaVersionSettings(options: BuildOptions): SbtProject = {
 
     val scalaVerSetting = {
-      
+
       val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
         ScalaCli.getDefaultScalaVersion
       )
