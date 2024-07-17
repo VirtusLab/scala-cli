@@ -66,7 +66,7 @@ final case class Project(
           BloopConfig.SourceGenerator(
             List(sourceGlobs0),
             (config.outputPath / "source-generator-output").toNIO,
-            List("python3", command0)
+            command0
           )
         }.toList
       )
