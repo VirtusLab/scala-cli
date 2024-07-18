@@ -3,6 +3,7 @@ package scala.build.options
 import dependency.AnyDependency
 
 import scala.build.Positioned
+import scala.build.internal.Constants
 
 final case class ScalaOptions(
   scalaVersion: Option[MaybeScalaVersion] = None,

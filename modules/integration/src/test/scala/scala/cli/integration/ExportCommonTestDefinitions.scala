@@ -61,6 +61,16 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains("Hello"))
     }
 
+  protected def scalaVersionTest(scalaVersion: String): Unit =
+    prepareTestInputs(ExportTestProjects.scalaVersionTest(scalaVersion)).fromRoot {
+      root =>
+        exportCommand(".").call(cwd = root, stdout = os.Inherit)
+        val res = buildToolCommand(root, runMainArgs*)
+          .call(cwd = root / outputDir)
+        val output = res.out.text(Charset.defaultCharset())
+        expect(output.contains("Hello"))
+    }
+
   def extraSourceFromDirectiveWithExtraDependency(inputs: String*): Unit =
     prepareTestInputs(
       ExportTestProjects.extraSourceFromDirectiveWithExtraDependency(actualScalaVersion)
@@ -86,6 +96,8 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
   }
 
+  private val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
+
   if (runExportTests) {
     test("compile-time only for jsoniter macros") {
       compileOnlyTest()
@@ -105,5 +117,11 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     test("extra source passed both via directive and from command line") {
       extraSourceFromDirectiveWithExtraDependency(".")
     }
+    scalaVersionsInDir.foreach { scalaV =>
+      test(s"check export for project with scala version in directive as $scalaV") {
+        scalaVersionTest(scalaV)
+      }
+    }
+
   }
 }
