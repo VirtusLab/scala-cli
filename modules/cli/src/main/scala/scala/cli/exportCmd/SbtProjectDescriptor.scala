@@ -123,7 +123,7 @@ final case class SbtProjectDescriptor(
     val scalaVerSetting = {
 
       val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
-        ScalaCli.getDefaultScalaVersion
+        ScalaCli.getDefaultScalaVersion // FIXME account for pure Java projects, where Scala version isn't defined
       )
 
       s"""scalaVersion := "$sv""""
