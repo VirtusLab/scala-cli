@@ -61,7 +61,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains("Hello"))
     }
 
-  protected def scalaVersionTest(majorScalaVersion: String): Unit =
+  protected def scalaVersionTest(scalaVersion: String): Unit =
     prepareTestInputs(ExportTestProjects.majorScalaVersionTest(majorScalaVersion)).fromRoot {
       root =>
         exportCommand(".").call(cwd = root, stdout = os.Inherit)
