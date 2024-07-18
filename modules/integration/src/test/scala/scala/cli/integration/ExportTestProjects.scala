@@ -315,7 +315,7 @@ object ExportTestProjects {
            |""".stripMargin
     )
 
-  def majorScalaVersionTest(scalaVersionMajor: String): TestInputs =
+  def scalaVersionTest(scalaVersion: String): TestInputs =
     TestInputs(
       os.rel / "Hello.scala" ->
         s"""//> using scala $scalaVersionMajor
