@@ -62,7 +62,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
 
   protected def scalaVersionTest(scalaVersion: String): Unit =
-    prepareTestInputs(ExportTestProjects.majorScalaVersionTest(majorScalaVersion)).fromRoot {
+    prepareTestInputs(ExportTestProjects.scalaVersionTest(scalaVersion)).fromRoot {
       root =>
         exportCommand(".").call(cwd = root, stdout = os.Inherit)
         val res = buildToolCommand(root, runMainArgs*)

@@ -318,7 +318,7 @@ object ExportTestProjects {
   def scalaVersionTest(scalaVersion: String): TestInputs =
     TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using scala $scalaVersionMajor
+        s"""//> using scala $scalaVersion
            |object Main extends App {
            |        println("Hello")
            |}
