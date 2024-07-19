@@ -16,12 +16,12 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
       args
     )
 
-  override def buildToolCommand(root: os.Path, args: String*): os.proc = sbtCommand(args*)
+  override def buildToolCommand(root: os.Path, mainClass:Option[String], args: String*): os.proc = sbtCommand(args*)
 
-  override val runMainArgs: Seq[String]  = Seq("run")
-  override val runTestsArgs: Seq[String] = Seq("test")
+  override def runMainArgs(mainClass: Option[String]): Seq[String]  = Seq("run")
+  override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq("test")
 
   test("Scala Native") {
-    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion))
+    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion), mainClass = None)
   }
 }

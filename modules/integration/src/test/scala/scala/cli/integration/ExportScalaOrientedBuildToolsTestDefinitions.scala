@@ -11,13 +11,13 @@ import java.nio.charset.Charset
 trait ExportScalaOrientedBuildToolsTestDefinitions {
   _: ExportCommonTestDefinitions & ScalaCliSuite & TestScalaVersionArgs =>
 
-  def compileOnlyTest(): Unit = {
+  def compileOnlyTest(mainClass: String): Unit = {
     val userName = "John"
     prepareTestInputs(
       ExportTestProjects.compileOnlySource(actualScalaVersion, userName = userName)
     ).fromRoot { root =>
       exportCommand(".").call(cwd = root, stdout = os.Inherit)
-      val res = buildToolCommand(root, runMainArgs*)
+      val res = buildToolCommand(root, None, runMainArgs(Some(mainClass))*)
         .call(cwd = root / outputDir)
       val output = res.out.trim(Charset.defaultCharset())
       expect(output.contains(userName))
@@ -27,10 +27,10 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
 
   if (runExportTests) {
     test("compile-time only for jsoniter macros") {
-      compileOnlyTest()
+      compileOnlyTest("main")
     }
     test("Scala.js") {
-      simpleTest(ExportTestProjects.jsTest(actualScalaVersion))
+      simpleTest(ExportTestProjects.jsTest(actualScalaVersion), mainClass = None)
     }
   }
 }

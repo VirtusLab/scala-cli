@@ -25,31 +25,38 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       args
     )
 
-  override def buildToolCommand(root: os.Path, args: String*): os.proc =
+  override def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc =
     millCommand(root, args*)
 
-  override val runMainArgs: Seq[String] = Seq(s"$millDefaultProjectName.run")
+  override def runMainArgs(mainClass: Option[String]): Seq[String] = Seq(s"$millDefaultProjectName.run")
 
-  override val runTestsArgs: Seq[String] = Seq(s"$millDefaultProjectName.test")
+  override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq(s"$millDefaultProjectName.test")
 
-  def jvmTestScalacOptions(): Unit =
-    ExportTestProjects.jvmTest(actualScalaVersion).withMillJvmOpts.fromRoot { root =>
+  def jvmTestScalacOptions(className: String): Unit =
+    ExportTestProjects.jvmTest(actualScalaVersion, className).withMillJvmOpts.fromRoot { root =>
       exportCommand(".").call(cwd = root, stdout = os.Inherit)
       val res =
-        buildToolCommand(root, "--disable-ticker", "show", s"$millDefaultProjectName.scalacOptions")
+        buildToolCommand(
+          root,
+          Some(className),
+          "--disable-ticker",
+          "show",
+          s"$millDefaultProjectName.scalacOptions"
+        )
           .call(cwd = root / outputDir)
       val output = res.out.text(Charset.defaultCharset())
       expect(output.filterNot(_.isWhitespace) == "[\"-deprecation\"]")
     }
 
-  def jvmTestCompilerPlugin(): Unit =
-    ExportTestProjects.jvmTest(actualScalaVersion).withMillJvmOpts.fromRoot { root =>
+  def jvmTestCompilerPlugin(mainClass: String): Unit =
+    ExportTestProjects.jvmTest(actualScalaVersion, mainClass).withMillJvmOpts.fromRoot { root =>
       exportCommand(".").call(cwd = root, stdout = os.Inherit)
       locally {
         // scalacPluginIvyDeps
         val res =
           buildToolCommand(
             root,
+            Some(mainClass),
             "--disable-ticker",
             "show",
             s"$millDefaultProjectName.scalacPluginIvyDeps"
@@ -62,7 +69,9 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       locally {
         // test
         val res =
-          buildToolCommand(root, s"$millDefaultProjectName.test").call(cwd = root / outputDir)
+          buildToolCommand(root, Some(mainClass), s"$millDefaultProjectName.test").call(cwd =
+            root / outputDir
+          )
         val output = res.out.text(Charset.defaultCharset())
         expect(output.contains("1 succeeded"))
       }
@@ -74,20 +83,24 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
       jvmTest(
         mainArgs = Seq(s"$customProjectName.run"),
         testArgs = Seq(s"$customProjectName.test"),
-        extraExportArgs = Seq("-p", customProjectName)
+        extraExportArgs = Seq("-p", customProjectName),
+        mainClassName = "Hello"
       )
     }
     test("JVM scalac options") {
-      jvmTestScalacOptions()
+      jvmTestScalacOptions("Hello")
     }
   }
   if (runExportTests && !actualScalaVersion.startsWith("3."))
     test("JVM with compiler plugin") {
-      jvmTestCompilerPlugin()
+      jvmTestCompilerPlugin("Hello")
     }
 
   test("Scala Native") {
     // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
-    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true))
+    simpleTest(
+      ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true),
+      mainClass = None
+    )
   }
 }

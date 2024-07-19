@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 object ExportTestProjects {
-  def jvmTest(scalaVersion: String): TestInputs = {
+  def jvmTest(scalaVersion: String, mainClassName: String): TestInputs = {
 
     val mainFile =
       if (scalaVersion.startsWith("3."))
@@ -14,7 +14,7 @@ object ExportTestProjects {
            |
            |import scala.io.Source
            |
-           |object Hello {
+           |object $mainClassName {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + dotty.tools.dotc.config.Properties.simpleVersionString
            |    println(message)
@@ -31,7 +31,7 @@ object ExportTestProjects {
            |
            |import scala.io.Source
            |
-           |object Hello {
+           |object $mainClassName {
            |  def main(args: Array[String]): Unit = {
            |    val message = "Hello from " + scala.util.Properties.versionNumberString
            |    println(message)
@@ -40,8 +40,11 @@ object ExportTestProjects {
            |  }
            |}
            |""".stripMargin
+
+    println(mainFile)
+
     TestInputs(
-      os.rel / "Hello.scala" -> mainFile,
+      os.rel / s"$mainClassName.scala" -> mainFile,
       os.rel / "Zio.test.scala" ->
         """|//> using dep "dev.zio::zio::1.0.8"
            |//> using dep "dev.zio::zio-test-sbt::1.0.8"
@@ -195,9 +198,9 @@ object ExportTestProjects {
     TestInputs(os.rel / "Test.scala" -> testFile)
   }
 
-  def pureJavaTest: TestInputs = {
+  def pureJavaTest(mainClass: String): TestInputs = {
     val testFile =
-      s"""public class ScalaCliJavaTest {
+      s"""public class $mainClass {
          |  public static void main(String[] args) {
          |    String className = "scala.concurrent.ExecutionContext";
          |    ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -279,12 +282,12 @@ object ExportTestProjects {
          |println("Hello")
          |""".stripMargin)
 
-  def extraSourceFromDirectiveWithExtraDependency(scalaVersion: String): TestInputs =
+  def extraSourceFromDirectiveWithExtraDependency(scalaVersion: String, mainClass: String): TestInputs =
     TestInputs(
-      os.rel / "Main.scala" ->
+      os.rel / s"$mainClass.scala" ->
         s"""//> using scala "$scalaVersion"
            |//> using file "Message.scala"
-           |object Main extends App {
+           |object $mainClass extends App {
            |  println(Message(value = os.pwd.toString).value)
            |}
            |""".stripMargin,
@@ -315,11 +318,11 @@ object ExportTestProjects {
            |""".stripMargin
     )
 
-  def scalaVersionTest(scalaVersion: String): TestInputs =
+  def scalaVersionTest(scalaVersion: String, mainClass: String): TestInputs =
     TestInputs(
       os.rel / "Hello.scala" ->
         s"""//> using scala $scalaVersion
-           |object Main extends App {
+           |object $mainClass extends App {
            |        println("Hello")
            |}
            |""".stripMargin

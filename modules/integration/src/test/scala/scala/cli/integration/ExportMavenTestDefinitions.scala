@@ -15,13 +15,16 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
       args
     )
 
-  override def buildToolCommand(root: os.Path, args: String*): os.proc = mavenCommand(args*)
+  override def buildToolCommand(root: os.Path, mainClass:Option[String], args: String*): os.proc = mavenCommand(args*)
 
   // todo: not sure if this is right. how to get the main class name
-  override val runMainArgs: Seq[String] =
-    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main")
-    else Seq("scala:run", "-DmainClass=main")
-  override val runTestsArgs: Seq[String] =
+  override def runMainArgs(mainClass: Option[String]): Seq[String] = {
+    require(mainClass.nonEmpty, "Main class or Test class is mandatory to build in maven")
+    if (language == JAVA) Seq("exec:java", s"-Dexec.mainClass=${mainClass.get}")
+    else Seq("scala:run", s"-DmainClass=${mainClass.get}")
+  }
+
+  override def runTestsArgs(mainClass: Option[String]): Seq[String] =
     if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=main")
     else Seq("scala:run", "-DmainClass=main")
 
