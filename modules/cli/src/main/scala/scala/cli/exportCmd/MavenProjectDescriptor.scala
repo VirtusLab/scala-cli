@@ -7,6 +7,7 @@ import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
+
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.Runner.frameworkName

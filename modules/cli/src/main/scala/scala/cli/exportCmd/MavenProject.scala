@@ -1,6 +1,7 @@
 package scala.cli.exportCmd
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.options.{ConfigMonoid, Scope}
 import scala.xml.{Elem, NodeSeq, PrettyPrinter, XML}
 
