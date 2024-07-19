@@ -8,6 +8,85 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.4.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.1)
+
+### Pass compiler args as an `@argument` file
+You can shorten or simplify a Scala CLI command by using an `@argument` file to specify a text file that contains compiler arguments. 
+```text title=args.txt
+-d
+outputDirectory
+```
+The feature may help to work around the [Windows command line character limit](https://learn.microsoft.com/en-us/troubleshoot/windows-client/shell-experience/command-line-string-limitation), 
+among other things, making sure your scripts run on any operating system of your choice.
+```bash
+scala-cli run -e 'println("Hey, I am using an @args file!")' @args.txt
+```
+The feature works similarly to the [command-line argument files feature of Java 9](https://docs.oracle.com/javase/9/tools/java.htm#JSWOR-GUID-4856361B-8BFD-4964-AE84-121F5F6CF111) 
+and fixes backwards compatibility with the old `scala` runner (pre-Scala-3.5.0).
+
+Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#3012](https://github.com/VirtusLab/scala-cli/pull/3012)
+
+### Explicitly enable or disable multithreading in Scala Native
+It is now possible to explicitly enable or disable multithreading in Scala Native builds.
+You can do it by setting the `//> using nativeMultithreading` directive:
+```scala title=native_multithreading.sc
+//> using platform native
+//> using nativeMultithreading
+import scala.concurrent._
+import scala.concurrent.duration._
+import ExecutionContext.Implicits.global
+val promise = Promise[Int]()
+val thread = new Thread(new Runnable {
+    def run(): Unit = {
+      Thread.sleep(100)
+      promise.success(42)
+    }
+  })
+thread.start()
+val result = Await.result(promise.future, 2.seconds)
+println(result)
+```
+Or the `--native-multithreading` command line option:
+```bash
+scala-cli run native_multithreading.sc --native --native-multithreading
+```
+Added by [@Gedochao](https://github.com/Gedochao) in [#3011.](https://github.com/VirtusLab/scala-cli/pull/3011.)
+
+### Features
+* Add a command line option & directive for enabling/disabling Scala Native multithreading by [@Gedochao](https://github.com/Gedochao) in [#3011](https://github.com/VirtusLab/scala-cli/pull/3011)
+* feat: allow to pass scalac options using files by [@kasiaMarek](https://github.com/kasiaMarek) in [#3012](https://github.com/VirtusLab/scala-cli/pull/3012)
+
+### Fixes
+* fix for 2954 running script in root dir by [@philwalk](https://github.com/philwalk) in [#2988](https://github.com/VirtusLab/scala-cli/pull/2988)
+* Pass `javaHome` to Bloop by [@kasiaMarek](https://github.com/kasiaMarek) in [#2985](https://github.com/VirtusLab/scala-cli/pull/2985)
+* bugfix: Print info diagnostics by [@tgodzik](https://github.com/tgodzik) in [#2990](https://github.com/VirtusLab/scala-cli/pull/2990)
+* Ensure BSP respects --power mode by [@Gedochao](https://github.com/Gedochao) in [#2997](https://github.com/VirtusLab/scala-cli/pull/2997)
+* Add Scala to pure Java test builds by [@Gedochao](https://github.com/Gedochao) in [#3009](https://github.com/VirtusLab/scala-cli/pull/3009)
+* Fix --offline mode for scala-cli as scala installation via coursier by [@Gedochao](https://github.com/Gedochao) in [#3029](https://github.com/VirtusLab/scala-cli/pull/3029)
+
+### Documentation changes
+* Fix typo in docs by [@ghostdogpr](https://github.com/ghostdogpr) in [#2996](https://github.com/VirtusLab/scala-cli/pull/2996)
+* docs: remove `.` from command snippet by [@spaceunifyfifty](https://github.com/spaceunifyfifty) in [#2998](https://github.com/VirtusLab/scala-cli/pull/2998)
+
+### Updates
+* Update scala-cli.sh launcher for 1.4.0 by [@github-actions](https://github.com/features/actions) in [#2992](https://github.com/VirtusLab/scala-cli/pull/2992)
+* Update winget-releaser to latest by [@vedantmgoyal9](https://github.com/vedantmgoyal9) in [#2991](https://github.com/VirtusLab/scala-cli/pull/2991)
+* Update ammonite to 3.0.0-M2-13-23a8ef64 by [@scala-steward](https://github.com/scala-steward) in [#2989](https://github.com/VirtusLab/scala-cli/pull/2989)
+* Update Scala 3 Next RC to 3.5.0-RC2 by [@scala-steward](https://github.com/scala-steward) in [#2981](https://github.com/VirtusLab/scala-cli/pull/2981)
+* chore: Bump outdated `javac-semanticdb` plugin to 0.10.0 by [@tgodzik](https://github.com/tgodzik) in [#3004](https://github.com/VirtusLab/scala-cli/pull/3004)
+* Update Scala 3 Next RC to 3.5.0-RC3 by [@scala-steward](https://github.com/scala-steward) in [#3002](https://github.com/VirtusLab/scala-cli/pull/3002)
+* Update sbt to 1.10.1 by [@scala-steward](https://github.com/scala-steward) in [#3015](https://github.com/VirtusLab/scala-cli/pull/3015)
+* Bump Scala 3 Next RC to 3.5.0-RC4 by [@Gedochao](https://github.com/Gedochao) in [#3018](https://github.com/VirtusLab/scala-cli/pull/3018)
+* Swap `scalameta` `trees` for `semanticdb-shared` & bump `scalameta` to 4.9.8 by [@Gedochao](https://github.com/Gedochao) in [#3017](https://github.com/VirtusLab/scala-cli/pull/3017)
+* Update Scala 3 Next RC to 3.5.1-RC1 by [@scala-steward](https://github.com/scala-steward) in [#3027](https://github.com/VirtusLab/scala-cli/pull/3027)
+
+## New Contributors
+* [@vedantmgoyal9](https://github.com/vedantmgoyal9) made their first contribution in [#2991](https://github.com/VirtusLab/scala-cli/pull/2991)
+* [@ghostdogpr](https://github.com/ghostdogpr) made their first contribution in [#2996](https://github.com/VirtusLab/scala-cli/pull/2996)
+* [@spaceunifyfifty](https://github.com/spaceunifyfifty) made their first contribution in [#2998](https://github.com/VirtusLab/scala-cli/pull/2998)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.4.0...v1.4.1
+
 ## [v1.4.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.0)
 
 ### Running the REPL with the test scope included

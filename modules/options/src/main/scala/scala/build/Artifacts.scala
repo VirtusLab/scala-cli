@@ -624,9 +624,11 @@ object Artifacts {
     val forceVersion = forceScalaVersions ++ forcedVersions
 
     // FIXME Many parameters that we could allow to customize here
-    var fetcher = coursier.Fetch()
+    val defaultFetcher = coursier.Fetch()
+    var fetcher = defaultFetcher
       .withCache(cache)
-      .addRepositories(extraRepositoriesWithFallback*)
+      // repository order matters here, since in some cases coursier resolves only the head
+      .withRepositories(extraRepositoriesWithFallback ++ defaultFetcher.repositories)
       .addDependencies(dependencies.map(_.value)*)
       .mapResolutionParams(_.addForceVersion(forceVersion*))
     for (classifiers <- classifiersOpt) {
