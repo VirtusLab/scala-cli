@@ -144,9 +144,9 @@ final case class MavenProjectDescriptor(
   }
 
   private def getScalaVersion(options: BuildOptions): String =
-    options.scalaOptions.scalaVersion
-      .flatMap(_.versionOpt)
-      .getOrElse(ScalaCli.getDefaultScalaVersion)
+    options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
+      ScalaCli.getDefaultScalaVersion // FIXME account for pure Java projects, where Scala version isn't defined
+    )
 
   private def plugins(
     options: BuildOptions,
@@ -253,7 +253,10 @@ final case class MavenProjectDescriptor(
     sourcesMain: Sources,
     sourcesTest: Sources
   ): Either[BuildException, MavenProject] = {
-    val jdk = optionsMain.javaOptions.jvmIdOpt.map(_.value).getOrElse("17")
+    val jdk =
+      optionsMain.javaOptions.jvmIdOpt.map(_.value).getOrElse(
+        "17"
+      ) // todo: get from constants for default jdk
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
