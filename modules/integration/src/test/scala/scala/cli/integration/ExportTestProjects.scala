@@ -41,8 +41,6 @@ object ExportTestProjects {
            |}
            |""".stripMargin
 
-    println(mainFile)
-
     TestInputs(
       os.rel / s"$mainClassName.scala" -> mainFile,
       os.rel / "Zio.test.scala" ->
