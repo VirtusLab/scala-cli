@@ -394,23 +394,25 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       if (dryRun)
         logger.message("Dry run, not running REPL.")
       else {
+        val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
         val depClassPathArgs: Seq[String] =
-          if replArtifacts.depsClassPath.nonEmpty && !replArtifacts.replMainClass.startsWith(
-              "ammonite"
-            )
-          then
+          if replArtifacts.depsClassPath.nonEmpty && !isAmmonite then
             Seq(
               "-classpath",
-              replArtifacts.depsClassPath.map(_.toString).mkString(File.pathSeparator)
+              (mainJarsOrClassDirs ++ replArtifacts.depsClassPath)
+                .map(_.toString).mkString(File.pathSeparator)
             )
           else Nil
+        val replLauncherClasspath =
+          if isAmmonite then mainJarsOrClassDirs ++ replArtifacts.replClassPath
+          else replArtifacts.replClassPath
         val retCode = Runner.runJvm(
           javaCommand = options.javaHome().value.javaCommand,
           javaArgs = scalapyJavaOpts ++
             replArtifacts.replJavaOpts ++
             options.javaOptions.javaOpts.toSeq.map(_.value.value) ++
             extraProps.toVector.sorted.map { case (k, v) => s"-D$k=$v" },
-          classPath = mainJarsOrClassDirs ++ replArtifacts.replClassPath,
+          classPath = replLauncherClasspath,
           mainClass = replArtifacts.replMainClass,
           args = maybeAdaptForWindows(depClassPathArgs ++ replArgs),
           logger = logger,
