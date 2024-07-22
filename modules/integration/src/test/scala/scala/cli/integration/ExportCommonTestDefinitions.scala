@@ -13,7 +13,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
   protected def runExportTests: Boolean = Properties.isMac
   protected def exportCommand(args: String*): os.proc
 
-  protected def buildToolCommand(root: os.Path, mainClass:Option[String], args: String*): os.proc
+  protected def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc
 
   protected def runMainArgs(mainClass: Option[String]): Seq[String]
   protected def runTestsArgs(mainClass: Option[String]): Seq[String]
@@ -22,7 +22,11 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
 
   protected val outputDir: os.RelPath = os.rel / "output-project"
 
-  protected def simpleTest(inputs: TestInputs, mainClass:Option[String], extraExportArgs: Seq[String] = Nil): Unit =
+  protected def simpleTest(
+    inputs: TestInputs,
+    mainClass: Option[String],
+    extraExportArgs: Seq[String] = Nil
+  ): Unit =
     prepareTestInputs(inputs).fromRoot { root =>
       val exportArgs = "." +: extraExportArgs
       exportCommand(exportArgs*).call(cwd = root, stdout = os.Inherit)
@@ -38,19 +42,24 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     extraExportArgs: Seq[String] = Nil,
     mainClassName: String
   ): Unit =
-    prepareTestInputs(ExportTestProjects.jvmTest(actualScalaVersion, mainClassName)).fromRoot { root =>
-      val exportArgs = "." +: extraExportArgs
-      exportCommand(exportArgs*).call(cwd = root, stdout = os.Inherit)
-      // main
-      val res    = buildToolCommand(root, Some(mainClassName), mainArgs*).call(cwd = root / outputDir)
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello from " + actualScalaVersion))
-      // resource
-      expect(output.contains("resource:1,2"))
-      // test
-      val testRes    = buildToolCommand(root, Some(mainClassName), testArgs*).call(cwd = root / outputDir)
-      val testOutput = testRes.out.text(Charset.defaultCharset())
-      expect(testOutput.contains("1 succeeded") || testOutput.contains("BUILD SUCCESS")) //maven returns 'BUILD SUCCESS'
+    prepareTestInputs(ExportTestProjects.jvmTest(actualScalaVersion, mainClassName)).fromRoot {
+      root =>
+        val exportArgs = "." +: extraExportArgs
+        exportCommand(exportArgs*).call(cwd = root, stdout = os.Inherit)
+        // main
+        val res =
+          buildToolCommand(root, Some(mainClassName), mainArgs*).call(cwd = root / outputDir)
+        val output = res.out.text(Charset.defaultCharset())
+        expect(output.contains("Hello from " + actualScalaVersion))
+        // resource
+        expect(output.contains("resource:1,2"))
+        // test
+        val testRes =
+          buildToolCommand(root, Some(mainClassName), testArgs*).call(cwd = root / outputDir)
+        val testOutput = testRes.out.text(Charset.defaultCharset())
+        expect(
+          testOutput.contains("1 succeeded") || testOutput.contains("BUILD SUCCESS")
+        ) // maven returns 'BUILD SUCCESS'
     }
 
   protected def scalaVersionTest(scalaVersion: String, mainClass: String): Unit =
@@ -81,7 +90,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
     }
     test("extra source from a directive introducing a dependency") {
-      extraSourceFromDirectiveWithExtraDependency("Main","Main.scala")
+      extraSourceFromDirectiveWithExtraDependency("Main", "Main.scala")
     }
     test("extra source passed both via directive and from command line") {
       extraSourceFromDirectiveWithExtraDependency("Main", ".")

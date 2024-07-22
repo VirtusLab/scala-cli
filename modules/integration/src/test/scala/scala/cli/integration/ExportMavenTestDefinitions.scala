@@ -15,7 +15,8 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
       args
     )
 
-  override def buildToolCommand(root: os.Path, mainClass:Option[String], args: String*): os.proc = mavenCommand(args*)
+  override def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc =
+    mavenCommand(args*)
 
   // todo: not sure if this is right. how to get the main class name
   override def runMainArgs(mainClass: Option[String]): Seq[String] = {

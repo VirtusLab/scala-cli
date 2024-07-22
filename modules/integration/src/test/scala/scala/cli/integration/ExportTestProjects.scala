@@ -280,7 +280,10 @@ object ExportTestProjects {
          |println("Hello")
          |""".stripMargin)
 
-  def extraSourceFromDirectiveWithExtraDependency(scalaVersion: String, mainClass: String): TestInputs =
+  def extraSourceFromDirectiveWithExtraDependency(
+    scalaVersion: String,
+    mainClass: String
+  ): TestInputs =
     TestInputs(
       os.rel / s"$mainClass.scala" ->
         s"""//> using scala "$scalaVersion"

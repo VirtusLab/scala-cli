@@ -16,7 +16,8 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
       args
     )
 
-  override def buildToolCommand(root: os.Path, mainClass:Option[String], args: String*): os.proc = sbtCommand(args*)
+  override def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc =
+    sbtCommand(args*)
 
   override def runMainArgs(mainClass: Option[String]): Seq[String]  = Seq("run")
   override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq("test")

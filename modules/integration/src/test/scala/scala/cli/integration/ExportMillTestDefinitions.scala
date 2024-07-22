@@ -28,9 +28,11 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
   override def buildToolCommand(root: os.Path, mainClass: Option[String], args: String*): os.proc =
     millCommand(root, args*)
 
-  override def runMainArgs(mainClass: Option[String]): Seq[String] = Seq(s"$millDefaultProjectName.run")
+  override def runMainArgs(mainClass: Option[String]): Seq[String] =
+    Seq(s"$millDefaultProjectName.run")
 
-  override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq(s"$millDefaultProjectName.test")
+  override def runTestsArgs(mainClass: Option[String]): Seq[String] =
+    Seq(s"$millDefaultProjectName.test")
 
   def jvmTestScalacOptions(className: String): Unit =
     ExportTestProjects.jvmTest(actualScalaVersion, className).withMillJvmOpts.fromRoot { root =>
