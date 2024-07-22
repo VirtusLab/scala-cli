@@ -125,8 +125,8 @@ object Doc extends ScalaCommand[DocOptions] {
     "-snippet-compiler:compile",
     "-Ygenerate-inkuire",
     "-external-mappings:" +
-      ".*scala.*::scaladoc3::https://scala-lang.org/api/3.x/," +
-      ".*java.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
+      ".*/scala/.*::scaladoc3::https://scala-lang.org/api/3.x/," +
+      ".*/java/.*::javadoc::https://docs.oracle.com/javase/8/docs/api/",
     "-author",
     "-groups"
   )
