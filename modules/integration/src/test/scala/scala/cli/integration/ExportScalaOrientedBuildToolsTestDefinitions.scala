@@ -25,6 +25,42 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     }
   }
 
+  def testZioTest(testClassName: String, testArgs: Seq[String] = Nil): Unit = {
+
+    val testInput = TestInputs(
+      os.rel / "Zio.test.scala" ->
+        s"""|//> using dep "dev.zio::zio::1.0.8"
+            |//> using dep "dev.zio::zio-test-sbt::1.0.8"
+            |
+            |import zio._
+            |import zio.test._
+            |import zio.test.Assertion.equalTo
+            |
+            |object $testClassName extends DefaultRunnableSpec {
+            |  def spec = suite("associativity")(
+            |    testM("associativity") {
+            |      check(Gen.anyInt, Gen.anyInt, Gen.anyInt) { (x, y, z) =>
+            |        assert((x + y) + z)(equalTo(x + (y + z)))
+            |      }
+            |    }
+            |  )
+            |}
+            |""".stripMargin,
+      os.rel / "input" / "input" ->
+        """|1
+           |2""".stripMargin
+    )
+
+    prepareTestInputs(testInput).fromRoot { root =>
+      val exportArgs     = Seq(".")
+      val testArgsToPass = runTestsArgs(None)
+      exportCommand(exportArgs*).call(cwd = root, stdout = os.Inherit)
+      val testRes    = buildToolCommand(root, None, testArgsToPass*).call(cwd = root / outputDir)
+      val testOutput = testRes.out.text(Charset.defaultCharset())
+      expect(testOutput.contains("1 succeeded"))
+    }
+  }
+
   if (runExportTests) {
     test("compile-time only for jsoniter macros") {
       compileOnlyTest("main")
@@ -32,5 +68,6 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion), mainClass = None)
     }
+    test("zio test") {}
   }
 }

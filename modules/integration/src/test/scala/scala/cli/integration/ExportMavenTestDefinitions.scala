@@ -25,8 +25,8 @@ abstract class ExportMavenTestDefinitions extends ScalaCliSuite
   }
 
   override def runTestsArgs(mainClass: Option[String]): Seq[String] =
-    if (language == JAVA) Seq("exec:java", "-Dexec.mainClass=Main")
-    else Seq("scala:run", "-DmainClass=Main")
+    if (language == JAVA) Seq("test")
+    else Seq("test")
 
 }
 
