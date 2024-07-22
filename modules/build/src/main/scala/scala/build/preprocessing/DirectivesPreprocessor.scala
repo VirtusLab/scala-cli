@@ -45,6 +45,7 @@ case class DirectivesPreprocessor(
   def preprocess(extractedDirectives: ExtractedDirectives)
     : Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
+    println(s"DirectivesPreprocessor: $directives")
 
     val (
       buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
@@ -77,9 +78,6 @@ case class DirectivesPreprocessor(
         remainingDirectives
       )
     }
-
-    for (vals <- unusedDirectives) println(s"preprocess- ${vals.toString}  ${vals.key}") 
-
 
     val (optionsWithActualRequirements, optionsWithEmptyRequirements) =
       buildOptionsWithTargetRequirements.global.partition(_.requirements.nonEmpty)
@@ -140,7 +138,6 @@ case class DirectivesPreprocessor(
       .toMap
 
     val unused = directives.filter(d => !handlersMap.contains(d.key))
-    for (vals <- unused) println(s"${vals.toString}  ${vals.key}") 
 
     val res = directives
       .iterator
