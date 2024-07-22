@@ -50,16 +50,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       // test
       val testRes    = buildToolCommand(root, Some(mainClassName), testArgs*).call(cwd = root / outputDir)
       val testOutput = testRes.out.text(Charset.defaultCharset())
-      expect(testOutput.contains("1 succeeded"))
-    }
-
-  protected def logbackBugCase(mainClass: String): Unit =
-    prepareTestInputs(ExportTestProjects.logbackBugCase(actualScalaVersion)).fromRoot { root =>
-      exportCommand(".").call(cwd = root, stdout = os.Inherit)
-      val res = buildToolCommand(root, Some(mainClass), runMainArgs(Some(mainClass))*)
-        .call(cwd = root / outputDir)
-      val output = res.out.text(Charset.defaultCharset())
-      expect(output.contains("Hello"))
+      expect(testOutput.contains("1 succeeded") || testOutput.contains("BUILD SUCCESS")) //maven returns 'BUILD SUCCESS'
     }
 
   protected def scalaVersionTest(scalaVersion: String, mainClass: String): Unit =
@@ -88,9 +79,6 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
   if (runExportTests) {
     test("JVM") {
       jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
-    }
-    test("Ensure test framework NPE is not thrown when depending on logback") {
-      logbackBugCase("main")
     }
     test("extra source from a directive introducing a dependency") {
       extraSourceFromDirectiveWithExtraDependency("Main","Main.scala")

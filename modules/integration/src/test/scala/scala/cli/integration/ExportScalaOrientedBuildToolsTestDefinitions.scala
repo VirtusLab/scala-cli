@@ -60,6 +60,14 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
       expect(testOutput.contains("1 succeeded"))
     }
   }
+  protected def logbackBugCase(mainClass: String): Unit =
+    prepareTestInputs(ExportTestProjects.logbackBugCase(actualScalaVersion)).fromRoot { root =>
+      exportCommand(".").call(cwd = root, stdout = os.Inherit)
+      val res = buildToolCommand(root, Some(mainClass), runMainArgs(Some(mainClass))*)
+        .call(cwd = root / outputDir)
+      val output = res.out.text(Charset.defaultCharset())
+      expect(output.contains("Hello"))
+    }
 
   if (runExportTests) {
     test("compile-time only for jsoniter macros") {
@@ -68,6 +76,11 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     test("Scala.js") {
       simpleTest(ExportTestProjects.jsTest(actualScalaVersion), mainClass = None)
     }
-    test("zio test") {}
+    test("zio test") {
+      testZioTest("ZioSpec")
+    }
+    test("Ensure test framework NPE is not thrown when depending on logback") {
+      logbackBugCase("main")
+    }
   }
 }
