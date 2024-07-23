@@ -28,8 +28,8 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
   def testZioTest(testClassName: String, testArgs: Seq[String] = Nil): Unit = {
 
     val testInput = TestInputs(
-      //todo: remove this hack after the PR https://github.com/VirtusLab/scala-cli/pull/3046 is merged
-      os.rel / "Hello.scala" -> """@main def main = println()""",
+      // todo: remove this hack after the PR https://github.com/VirtusLab/scala-cli/pull/3046 is merged
+      os.rel / "Hello.scala" -> """object Hello extends App""",
       os.rel / "Zio.test.scala" ->
         s"""|//> using dep "dev.zio::zio::1.0.8"
             |//> using dep "dev.zio::zio-test-sbt::1.0.8"

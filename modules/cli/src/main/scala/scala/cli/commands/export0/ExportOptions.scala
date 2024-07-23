@@ -30,7 +30,8 @@ final case class ExportOptions(
   @Tag(tags.experimental)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Maven")
-    mvn: Option[Boolean] = None,
+  @Name("mvn")
+    maven: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)

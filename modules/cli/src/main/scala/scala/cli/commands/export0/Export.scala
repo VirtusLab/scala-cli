@@ -140,7 +140,7 @@ object Export extends ScalaCommand[ExportOptions] {
 
     val shouldExportToMill  = options.mill.getOrElse(false)
     val shouldExportToSbt   = options.sbt.getOrElse(false)
-    val shouldExportToMaven = options.mvn.getOrElse(false)
+    val shouldExportToMaven = options.maven.getOrElse(false)
 
     val exportOptions = List(shouldExportToMill, shouldExportToSbt, shouldExportToMaven)
 

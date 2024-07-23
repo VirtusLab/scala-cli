@@ -358,7 +358,9 @@ Available in commands:
 
 Sets the export format to SBT
 
-### `--mvn`
+### `--maven`
+
+Aliases: `--mvn`
 
 Sets the export format to Maven
 
