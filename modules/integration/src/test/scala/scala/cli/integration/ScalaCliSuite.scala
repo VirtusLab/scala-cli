@@ -23,7 +23,7 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     }
   }
 
-  override def munitTimeout: Duration = new FiniteDuration(240, TimeUnit.SECONDS)
+  override def munitTimeout: Duration = new FiniteDuration(300, TimeUnit.SECONDS)
 
   override def munitFixtures: List[Fixture[Unit]] = List(testStartEndLogger)
   def group: ScalaCliSuite.TestGroup              = ScalaCliSuite.TestGroup.Third

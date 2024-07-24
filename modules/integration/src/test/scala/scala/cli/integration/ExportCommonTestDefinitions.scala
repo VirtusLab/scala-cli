@@ -96,6 +96,18 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
   }
 
+  def justTestScope(): Unit = {
+    val expectedMessage = "exporting just the test scope actually works!"
+    prepareTestInputs(ExportTestProjects.justTestScope(expectedMessage))
+      .fromRoot { root =>
+        exportCommand(".").call(cwd = root)
+        val testRes = buildToolCommand(root, runTestsArgs*)
+          .call(cwd = root / outputDir)
+        val testOutput = testRes.out.text()
+        expect(testOutput.contains(expectedMessage))
+      }
+  }
+
   private val scalaVersionsInDir: Seq[String] = Seq("2.12", "2.13", "2", "3", "3.lts")
 
   if (runExportTests) {
@@ -121,6 +133,10 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       test(s"check export for project with scala version in directive as $scalaV") {
         scalaVersionTest(scalaV)
       }
+    }
+
+    test("just test scope") {
+      justTestScope()
     }
 
   }

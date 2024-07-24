@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.integration.Constants.munitVersion
+
 object ExportTestProjects {
   def jvmTest(scalaVersion: String): TestInputs = {
 
@@ -324,4 +326,17 @@ object ExportTestProjects {
            |}
            |""".stripMargin
     )
+
+  def justTestScope(msg: String): TestInputs = TestInputs(
+    os.rel / "MyTests.test.scala" ->
+      s"""//> using dep org.scalameta::munit::$munitVersion
+         |
+         |class MyTests extends munit.FunSuite {
+         |  test("foo") {
+         |    assert(2 + 2 == 4)
+         |    println("$msg")
+         |  }
+         |}
+         |""".stripMargin
+  )
 }
