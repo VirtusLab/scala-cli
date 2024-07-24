@@ -1,6 +1,9 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import org.jsoup._
+
+import scala.jdk.CollectionConverters._
 
 abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
@@ -55,8 +58,16 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             "lib/Messages$.html"
           )
       val entries =
-        os.walk(root / dest).map(_.relativeTo(expectedDestDocPath)).map(_.toString()).toList
+        os.walk(root / dest).filter(!os.isDir(_)).map { path =>
+          path.relativeTo(expectedDestDocPath).toString() -> os.read(path)
+        }.toMap
       expect(expectedEntries.forall(e => entries.contains(e)))
+
+      val documentableNameElement =
+        Jsoup.parse(entries("index.html")).select(".documentableName").asScala
+      documentableNameElement.filter(_.text().contains("lib")).foreach { element =>
+        expect(!element.attr("href").startsWith("http"))
+      }
     }
   }
 }

@@ -116,7 +116,8 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
 object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
     def ivyDeps = super.ivyDeps() ++ Seq(
-      Deps.jgit
+      Deps.jgit,
+      Deps.jsoup
     )
   }
   object docker extends CliIntegrationDocker {
