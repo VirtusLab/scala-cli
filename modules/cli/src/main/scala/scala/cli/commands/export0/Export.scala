@@ -226,9 +226,8 @@ object Export extends ScalaCommand[ExportOptions] {
     }
     else {
       val sbtVersion = options.sbtVersion.getOrElse("1.10.1")
-      // todo: how to use it from deps.sc file here?
-      val defaultMavenCompilerVersion      = options.mvnVersion.getOrElse("3.8.1")
-      val defaultScalaMavenCompilerVersion = options.mvnScalaVersion.getOrElse("4.9.1")
+      val defaultMavenCompilerVersion      = options.mvnVersion.getOrElse(Constants.mavenVersion)
+      val defaultScalaMavenCompilerVersion = options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
