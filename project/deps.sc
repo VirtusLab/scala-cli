@@ -111,8 +111,8 @@ object Deps {
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
     def bloop                             = "1.5.17-sc-2"
-    def mavenCompilerVersion              = "3.8.1"
-    def mavenScalaPluginVersion           = "4.9.1"
+    def mavenVersion                      = "3.8.1"
+    def mavenScalaCompilerPluginVersion   = "4.9.1"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
