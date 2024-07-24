@@ -83,12 +83,12 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
       expect(output.contains(root.toString))
     }
 
-  def justTestScope(): Unit = {
+  def justTestScope(mainClass: String): Unit = {
     val expectedMessage = "exporting just the test scope actually works!"
-    prepareTestInputs(ExportTestProjects.justTestScope(expectedMessage))
+    prepareTestInputs(ExportTestProjects.justTestScope(mainClass, expectedMessage))
       .fromRoot { root =>
         exportCommand(".").call(cwd = root)
-        val testRes = buildToolCommand(root, runTestsArgs*)
+        val testRes = buildToolCommand(root, Some(mainClass), runTestsArgs(Some(mainClass))*)
           .call(cwd = root / outputDir)
         val testOutput = testRes.out.text()
         expect(testOutput.contains(expectedMessage))
@@ -114,7 +114,7 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
 
     test("just test scope") {
-      justTestScope()
+      justTestScope("MyTests")
     }
 
   }

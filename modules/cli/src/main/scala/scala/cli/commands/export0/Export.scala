@@ -225,9 +225,10 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.10.1")
-      val defaultMavenCompilerVersion      = options.mvnVersion.getOrElse(Constants.mavenVersion)
-      val defaultScalaMavenCompilerVersion = options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
+      val sbtVersion                  = options.sbtVersion.getOrElse("1.10.1")
+      val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
+      val defaultScalaMavenCompilerVersion =
+        options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)

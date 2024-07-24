@@ -331,11 +331,11 @@ object ExportTestProjects {
            |""".stripMargin
     )
 
-  def justTestScope(msg: String): TestInputs = TestInputs(
+  def justTestScope(testClass: String, msg: String): TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
       s"""//> using dep org.scalameta::munit::$munitVersion
          |
-         |class MyTests extends munit.FunSuite {
+         |class $testClass extends munit.FunSuite {
          |  test("foo") {
          |    assert(2 + 2 == 4)
          |    println("$msg")
