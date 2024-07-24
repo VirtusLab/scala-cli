@@ -261,6 +261,7 @@ final case class MavenProjectDescriptor(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, Scope.Main, sourcesMain),
+      dependencySettings(optionsTest, Scope.Test, sourcesMain),
       customResourcesSettings(optionsMain),
       plugins(optionsMain, Scope.Main, jdk, sourcesMain),
       projectArtifactSettings()
