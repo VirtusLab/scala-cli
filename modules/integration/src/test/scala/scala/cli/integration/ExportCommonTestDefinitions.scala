@@ -114,7 +114,8 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
     }
 
     test("just test scope") {
-      justTestScope("MyTests")
+      // Keeping the test name ends with Test to support maven convention
+      justTestScope("MyTest")
     }
 
   }

@@ -1,5 +1,7 @@
 package scala.cli.exportCmd
 
+import os.RelPath
+
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.{ConfigMonoid, Scope}

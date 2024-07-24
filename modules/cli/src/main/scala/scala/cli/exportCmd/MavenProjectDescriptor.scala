@@ -193,6 +193,7 @@ final case class MavenProjectDescriptor(
         <execution>
           <goals>
             <goal>compile</goal>
+            <goal>testCompile</goal>
           </goals>
         </execution>
       </executions>
