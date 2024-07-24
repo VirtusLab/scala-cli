@@ -906,4 +906,19 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         expect(r.out.trim() == sv)
       }
     }
+
+  test("scalac help respects --cli-default-scala-version") {
+    TestInputs.empty.fromRoot { root =>
+      val sv = Constants.scala3NextRc
+      val launcherVersionOverrideHelp =
+        os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
+          .call(cwd = root).out.trim()
+      val standardVersionOverrideHelp =
+        os.proc(TestUtil.cli, "--scalac-help", "-S", sv)
+          .call(cwd = root).out.trim()
+      val migrationPrefix = sv.take(2) + (sv.charAt(2).asDigit + 1).toString
+      expect(launcherVersionOverrideHelp.contains(s"$migrationPrefix-migration"))
+      expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)
+    }
+  }
 }
