@@ -159,7 +159,7 @@ final case class MavenProjectDescriptor(
     val pureJava = ProjectDescriptor.isPureJavaProject(options, sourcesMain)
 
     val javacOptions = javacOptionsSettings(options)
-    // todo: set this option correctly in pom
+
     val javaOptions = javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
