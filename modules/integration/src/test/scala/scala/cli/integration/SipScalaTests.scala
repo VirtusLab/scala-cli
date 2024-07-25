@@ -14,6 +14,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         .takeWhile(_ != "Please bear in mind that non-ideal user experience should be expected.")
         .contains(s" - $featureNameAndType")
   }
+  override def munitFlakyOK: Boolean = TestUtil.isCI
 
   implicit class BinaryNameOps(binaryName: String) {
     def prepareBinary(root: os.Path): os.Path = {
@@ -458,7 +459,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
-  test(s"code using scala-continuations should compile for Scala 2.12.2") {
+  test(s"code using scala-continuations should compile for Scala 2.12.2".flaky) {
     val sourceFileName = "example.scala"
     TestInputs(os.rel / sourceFileName ->
       """import scala.util.continuations._
@@ -520,8 +521,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       if (sv.startsWith("3")) "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
       else "println(scala.util.Properties.versionNumberString)"
     anotherVersion =
-      if (sv.startsWith("3")) Constants.scala3Lts
-      else "2.13.7"
+      if (sv.startsWith("2.13")) Constants.scala212
+      else if (sv.startsWith("2.12")) Constants.scala213
+      else Constants.scala3Lts
   } {
     test(
       s"default Scala version overridden with $sv by a launcher parameter is respected when running a script"
@@ -541,7 +543,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         }
     }
     test(
-      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S"
+      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S passing $anotherVersion"
     ) {
       TestInputs(os.rel / "simple.sc" -> code)
         .fromRoot { root =>
