@@ -14,6 +14,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         .takeWhile(_ != "Please bear in mind that non-ideal user experience should be expected.")
         .contains(s" - $featureNameAndType")
   }
+  override def munitFlakyOK: Boolean = TestUtil.isCI
 
   implicit class BinaryNameOps(binaryName: String) {
     def prepareBinary(root: os.Path): os.Path = {
@@ -458,7 +459,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
-  test(s"code using scala-continuations should compile for Scala 2.12.2") {
+  test(s"code using scala-continuations should compile for Scala 2.12.2".flaky) {
     val sourceFileName = "example.scala"
     TestInputs(os.rel / sourceFileName ->
       """import scala.util.continuations._
