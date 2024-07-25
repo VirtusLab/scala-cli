@@ -22,4 +22,5 @@ object TestUtil {
 
     file.map(f => os.read.bytes(os.Path(f, os.pwd)))
   }
+  val isCI: Boolean = System.getenv("CI") != null
 }
