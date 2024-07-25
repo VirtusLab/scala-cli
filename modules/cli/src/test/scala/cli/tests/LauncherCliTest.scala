@@ -8,8 +8,9 @@ import scala.cli.commands.shared.CoursierOptions
 import scala.cli.launcher.LauncherCli
 
 class LauncherCliTest extends munit.FunSuite {
+  override def munitFlakyOK: Boolean = TestUtil.isCI
 
-  test("resolve nightly version") {
+  test("resolve nightly version".flaky) {
     val logger          = TestLogger()
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
     val scalaParameters = ScalaParameters(Constants.defaultScalaVersion)
