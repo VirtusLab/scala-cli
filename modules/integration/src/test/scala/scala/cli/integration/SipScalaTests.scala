@@ -520,8 +520,9 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       if (sv.startsWith("3")) "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
       else "println(scala.util.Properties.versionNumberString)"
     anotherVersion =
-      if (sv.startsWith("3")) Constants.scala3Lts
-      else "2.13.7"
+      if (sv.startsWith("2.13")) Constants.scala212
+      else if (sv.startsWith("2.12")) Constants.scala213
+      else Constants.scala3Lts
   } {
     test(
       s"default Scala version overridden with $sv by a launcher parameter is respected when running a script"
@@ -541,7 +542,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         }
     }
     test(
-      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S"
+      s"default Scala version overridden with $sv by a launcher parameter is overridable by -S passing $anotherVersion"
     ) {
       TestInputs(os.rel / "simple.sc" -> code)
         .fromRoot { root =>
