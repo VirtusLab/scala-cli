@@ -224,7 +224,7 @@ object Build {
     options: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData) =
-    CrossSources.forInputs(
+    CrossSources.forModuleInputs(
       inputs,
       Sources.defaultPreprocessors(
         options.archiveCache,
@@ -238,7 +238,8 @@ object Build {
 
   private def build(
     inputs: Module,
-    crossSources: CrossSources,options: BuildOptions,
+    crossSources: CrossSources,
+    options: BuildOptions,
     logger: Logger,
     buildClient: BloopBuildClient,
     compiler: ScalaCompiler,
@@ -280,12 +281,12 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val inputs0 = if (allInputs.mayAppendHash) {
+      val inputs0 = if (inputs.mayAppendHash) {
         updateInputs(
           inputs,
           overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
         )
-      } else allInputs
+      } else inputs
 
       val scopedSources = value(crossSources.scopedSources(baseOptions))
 
