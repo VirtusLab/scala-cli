@@ -15,7 +15,7 @@ trait BloopBuildClient extends bsp4j.BuildClient {
 object BloopBuildClient {
   def create(
     projectNameOpt: Option[ProjectName],
-    logger : Logger,
+    logger: Logger,
     keepDiagnostics: Boolean
   ): BloopBuildClient =
     new ConsoleBloopBuildClient(

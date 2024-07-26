@@ -8,6 +8,7 @@ import java.io.File
 import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.{BuildException, InputsException}
