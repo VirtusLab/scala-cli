@@ -380,9 +380,7 @@ jobs:
           submodules: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          jvm: "https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.2.0/graalvm-ce-java17-darwin-aarch64-22.2.0.tar.gz"
-      - name: Ensure it's running on aarch64
-        run: scala-cli -e 'assert(System.getProperty("os.arch") == "aarch64")'
+          apps: ""
       - name: Generate native launcher and generate os packages
         run: .github/scripts/build-linux-aarch64.sh
         env:
