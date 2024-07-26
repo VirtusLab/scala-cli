@@ -25,8 +25,9 @@ trait ComposeRunDefinitions { _: RunTestDefinitions =>
     )
 
     inputs.fromRoot { root =>
-      val called = os.proc(TestUtil.cli, extraOptions, "--power", "core", Constants.moduleConfigFileName)
-        .call(cwd = root, stderr = os.Pipe)
+      val called =
+        os.proc(TestUtil.cli, extraOptions, "--power", "core", Constants.moduleConfigFileName)
+          .call(cwd = root, stderr = os.Pipe)
       expect(called.out.trim() ==
         """util
           |util2""".stripMargin)
