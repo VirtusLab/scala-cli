@@ -89,8 +89,7 @@ class PublishSetupTests extends ScalaCliSuite {
       .toMap
   }
 
-  override def munitFlakyOK =
-    TestUtil.isCI && TestUtil.isNativeCli && Properties.isMac && !TestUtil.isM1
+  override def munitFlakyOK = TestUtil.isCI && TestUtil.isNativeCli && Properties.isMac
 
   test("local") {
     val expectedDirectives = Map(

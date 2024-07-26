@@ -192,14 +192,17 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
       if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
       logger = shared.logger
-      artifacts      <- buildOptions.artifacts(logger, Scope.Main).toOption
+      fixedBuildOptions = buildOptions.copy(scalaOptions =
+        buildOptions.scalaOptions.copy(defaultScalaVersion = Some(ScalaCli.getDefaultScalaVersion))
+      )
+      artifacts      <- fixedBuildOptions.artifacts(logger, Scope.Main).toOption
       scalaArtifacts <- artifacts.scalaOpt
       compilerClassPath   = scalaArtifacts.compilerClassPath
       scalaVersion        = scalaArtifacts.params.scalaVersion
       compileClassPath    = artifacts.compileClassPath
       simpleScalaCompiler = SimpleScalaCompiler("java", Nil, scaladoc = false)
-      javacOptions        = buildOptions.javaOptions.javacOptions.map(_.value)
-      javaHome            = buildOptions.javaHomeLocation().value
+      javacOptions        = fixedBuildOptions.javaOptions.javacOptions.map(_.value)
+      javaHome            = fixedBuildOptions.javaHomeLocation().value
     } {
       val exitCode = simpleScalaCompiler.runSimpleScalacLike(
         scalaVersion,
