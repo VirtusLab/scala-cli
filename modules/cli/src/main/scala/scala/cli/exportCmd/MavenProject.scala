@@ -114,10 +114,11 @@ final case class MavenLibraryDependency(
   groupId: String,
   artifactId: String,
   version: String,
-  scope: Option[String] = None
+  scope: MavenScopes
 ) {
 
-  private val scopeParam = scope.fold(scala.xml.Null)(s => <scope>{s}</scope>)
+  private val scopeParam =
+    if scope == MavenScopes.Main then scala.xml.Null else <scope>{scope.name}</scope>
 
   def toXml: Elem =
     <dependency>

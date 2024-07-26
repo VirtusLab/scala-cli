@@ -68,9 +68,6 @@ final case class MavenProjectDescriptor(
         options0
       }
 
-    // MavenProject(
-    //   settings = Seq(javacOptionsSettings)
-    // )
     javacOptionsSettings.toList
   }
 
@@ -84,6 +81,7 @@ final case class MavenProjectDescriptor(
 
   private def dependencySettings(
     options: BuildOptions,
+    testOptions: BuildOptions,
     scope: Scope,
     sources: Sources
   ): MavenProject = {
@@ -96,46 +94,65 @@ final case class MavenProjectDescriptor(
         case s"3.$x.$y"       => "3"
       }
 
+    def buildMavenDepModels(
+      mainDeps: ShadowingSeq[Positioned[AnyDependency]],
+      isCompileOnly: Boolean
+    ) =
+      mainDeps.toSeq.toList.map(_.value).map { dep =>
+        val org  = dep.organization
+        val name = dep.name
+        val ver  = dep.version
+        // TODO dep.userParams
+        // TODO dep.exclude
+        // TODO dep.attributes
+        val artNameWithPrefix = dep.nameAttributes match {
+          case NoAttributes           => name
+          case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
+        }
+        val scope0 =
+          if (scope == Scope.Test) MavenScopes.Test
+          else if (isCompileOnly)
+            MavenScopes.Provided // maven seems to support either test or provided, not both
+          else MavenScopes.Main
+
+        MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
+      }
+
     val depSettings = {
       def toDependencies(
-        deps: ShadowingSeq[Positioned[AnyDependency]],
+        mainDeps: ShadowingSeq[Positioned[AnyDependency]],
+        testDeps: ShadowingSeq[Positioned[AnyDependency]],
         isCompileOnly: Boolean
       ): Seq[MavenLibraryDependency] = {
-        val providedDeps = deps.toSeq.toList.map(_.value).map { dep =>
-          val org  = dep.organization
-          val name = dep.name
-          val ver  = dep.version
-          // TODO dep.userParams
-          // TODO dep.exclude
-          // TODO dep.attributes
-          val artNameWithPrefix = dep.nameAttributes match {
-            case NoAttributes           => name
-            case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
-          }
-          val scope0 =
-            if (scope == Scope.Test) Some("test")
-            else if (isCompileOnly)
-              Some("provided") // maven seems to support either test or provided, not both
-            else None
-
-          MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
-        }
+        val scopePriorities       = List()
+        val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
+        val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
+        val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
+          k.groupId + k.artifactId + k.version
+        ).map { (_, list) =>
+          val highestScope = MavenScopes.getHighestPriorityScope(list.map(_.scope))
+          list.head.copy(scope = highestScope)
+        }.toList
 
         val scalaDep = if (!ProjectDescriptor.isPureJavaProject(options, sources)) {
           val scalaDep = if scalaV.startsWith("3") then "scala3-library_3" else "scala-library"
           val scalaCompilerDep =
             if scalaV.startsWith("3") then "scala3-compiler_3" else "scala-compiler"
           List(
-            MavenLibraryDependency("org.scala-lang", scalaDep, scalaV),
-            MavenLibraryDependency("org.scala-lang", scalaCompilerDep, scalaV)
+            MavenLibraryDependency("org.scala-lang", scalaDep, scalaV, MavenScopes.Main),
+            MavenLibraryDependency("org.scala-lang", scalaCompilerDep, scalaV, MavenScopes.Main)
           )
         }
         else Nil
 
-        providedDeps ++ scalaDep
+        resolvedDeps ++ scalaDep
       }
 
-      toDependencies(options.classPathOptions.allExtraDependencies, true)
+      toDependencies(
+        options.classPathOptions.allExtraDependencies,
+        testOptions.classPathOptions.allExtraDependencies,
+        true
+      )
     }
 
     MavenProject(
@@ -261,8 +278,7 @@ final case class MavenProjectDescriptor(
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),
-      dependencySettings(optionsMain, Scope.Main, sourcesMain),
-      dependencySettings(optionsTest, Scope.Test, sourcesMain),
+      dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain),
       customResourcesSettings(optionsMain),
       plugins(optionsMain, Scope.Main, jdk, sourcesMain),
       projectArtifactSettings()
@@ -270,4 +286,16 @@ final case class MavenProjectDescriptor(
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }
 
+}
+
+enum MavenScopes(val priority: Int, val name: String) {
+  case Main     extends MavenScopes(1, "main")
+  case Test     extends MavenScopes(2, "test")
+  case Provided extends MavenScopes(3, "provided")
+}
+
+object MavenScopes {
+  def getHighestPriorityScope(scopes: Seq[MavenScopes]): MavenScopes =
+    // if scope is empty return Main Scope, depending on priority, with 1 being highest
+    scopes.minByOption(_.priority).getOrElse(Main)
 }
