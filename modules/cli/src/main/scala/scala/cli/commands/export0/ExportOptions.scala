@@ -64,6 +64,10 @@ final case class ExportOptions(
   @Tag(tags.experimental)
   @HelpMessage("Version of Maven Scala Plugin to be used for the export")
   mvnScalaVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Exec Plugin to be used for the export")
+  mvnExecPluginVersion: Option[String] = None,
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)

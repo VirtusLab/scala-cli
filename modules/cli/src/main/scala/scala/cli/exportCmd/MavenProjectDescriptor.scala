@@ -33,6 +33,7 @@ object POMBuilderHelper {
 final case class MavenProjectDescriptor(
   mavenPluginVersion: String,
   mavenScalaPluginVersion: String,
+  mavenExecPluginVersion: String,
   extraSettings: Seq[String],
   logger: Logger
 ) extends ProjectDescriptor {
@@ -180,9 +181,11 @@ final case class MavenProjectDescriptor(
     val javaOptions = javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
+    val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
     val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
 
-    val reqdPlugins = if (pureJava) Seq(mavenJavaPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
+    val reqdPlugins =
+      if (pureJava) Seq(mavenJavaPlugin, mavenExecPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
 
     MavenProject(
       plugins = reqdPlugins
@@ -254,6 +257,18 @@ final case class MavenProjectDescriptor(
       configNode
     )
   }
+
+  private def buildJavaExecPlugin(
+    javacOptions: Seq[String],
+    jdkVersion: String
+  ): MavenPlugin =
+    MavenPlugin(
+      "org.codehaus.mojo",
+      "exec-maven-plugin",
+      mavenExecPluginVersion,
+      jdkVersion,
+      <configuration></configuration>
+    )
 
   private def customResourcesSettings(options: BuildOptions): MavenProject = {
     val resourceDirs =

@@ -394,6 +394,10 @@ Version of Maven Compiler Plugin to be used for the export
 
 Version of Maven Scala Plugin to be used for the export
 
+### `--mvn-exec-plugin-version`
+
+Version of Maven Exec Plugin to be used for the export
+
 ### `--output`
 
 Aliases: `-o`

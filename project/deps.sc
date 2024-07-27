@@ -114,6 +114,7 @@ object Deps {
     def bloop                             = "1.5.17-sc-2"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
+    def mavenExecPluginVersion            = "3.3.0"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions

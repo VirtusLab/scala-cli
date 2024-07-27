@@ -83,10 +83,17 @@ object Export extends ScalaCommand[ExportOptions] {
   def mavenProjectDescriptor(
     mavenPluginVersion: String,
     mavenScalaPluginVersion: String,
+    mavenExecPluginVersion: String,
     extraSettings: Seq[String],
     logger: Logger
   ): MavenProjectDescriptor =
-    MavenProjectDescriptor(mavenPluginVersion, mavenScalaPluginVersion, extraSettings, logger)
+    MavenProjectDescriptor(
+      mavenPluginVersion,
+      mavenScalaPluginVersion,
+      mavenExecPluginVersion,
+      extraSettings,
+      logger
+    )
 
   def millProjectDescriptor(
     cache: FileCache[Task],
@@ -229,6 +236,8 @@ object Export extends ScalaCommand[ExportOptions] {
       val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
       val defaultScalaMavenCompilerVersion =
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
+      val defaultMavenExecPluginVersion =
+        options.mvnExecPluginVersion.getOrElse(Constants.mavenExecPluginVersion)
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
@@ -240,6 +249,7 @@ object Export extends ScalaCommand[ExportOptions] {
           mavenProjectDescriptor(
             defaultMavenCompilerVersion,
             defaultScalaMavenCompilerVersion,
+            defaultMavenExecPluginVersion,
             Nil,
             logger
           ) // todo: do we need extraSettings?

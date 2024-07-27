@@ -494,6 +494,7 @@ trait Core extends ScalaCliCrossSbtModule
          |
          |  def mavenVersion = "${Deps.Versions.mavenVersion}"
          |  def mavenScalaCompilerPluginVersion = "${Deps.Versions.mavenScalaCompilerPluginVersion}"
+         |  def mavenExecPluginVersion = "${Deps.Versions.mavenExecPluginVersion}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
