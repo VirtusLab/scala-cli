@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
 
 import scala.build.Logger
+import scala.build.internals.EnvsUtil
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 
@@ -73,8 +74,8 @@ object ProcUtil {
   def findApplicationPathsOnPATH(appName: String): List[String] = {
     import java.io.File.pathSeparator, java.io.File.pathSeparatorChar
 
-    var path = System.getenv("PATH")
-    val pwd  = os.pwd.toString
+    var path: String = EnvsUtil.EnvVar.Misc.path.valueOpt.getOrElse("")
+    val pwd: String  = os.pwd.toString
 
     // on unix & macs, an empty PATH counts as ".", the working directory
     if (path.length == 0)
@@ -113,7 +114,7 @@ object ProcUtil {
     "/bin/fish"
   )
 
-  def isShebangCapableShell = Option(System.getenv("SHELL")) match
+  def isShebangCapableShell = EnvsUtil.EnvVar.Misc.shell.valueOpt match
     case Some(currentShell) if shebangCapableShells.exists(sh => currentShell.contains(sh)) => true
     case _                                                                                  => false
 }

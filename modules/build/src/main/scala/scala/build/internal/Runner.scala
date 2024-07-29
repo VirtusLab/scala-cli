@@ -12,6 +12,7 @@ import java.nio.file.{Files, Path, Paths}
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors._
+import scala.build.internals.EnvsUtil
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.util.{Failure, Properties, Success}
 
@@ -191,12 +192,12 @@ object Runner {
     if (Paths.get(app).getNameCount >= 2) Some(asIs)
     else {
       def pathEntries =
-        Option(System.getenv("PATH"))
+        EnvsUtil.EnvVar.Misc.path.valueOpt
           .iterator
           .flatMap(_.split(File.pathSeparator).iterator)
       def pathSep =
         if (Properties.isWin)
-          Option(System.getenv("PATHEXT"))
+          EnvsUtil.EnvVar.Misc.pathExt.valueOpt
             .iterator
             .flatMap(_.split(File.pathSeparator).iterator)
         else Iterator("")

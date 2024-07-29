@@ -3,6 +3,8 @@ package scala.build.internal.zip
 import java.io.{Closeable, InputStream}
 import java.util.zip.ZipEntry
 
+import scala.build.internals.EnvsUtil
+
 /*
  * juz.ZipInputStream is buggy on Arch Linux from native images (CRC32 calculation issues,
  * see oracle/graalvm#4479), so we use a custom ZipInputStream with disabled CRC32 calculation.
@@ -35,7 +37,7 @@ object WrappedZipInputStream {
         case "true" | "1" => true
         case _            => false
       }
-    Option(System.getenv("SCALA_CLI_VENDORED_ZIS")).map(toBoolean)
+    EnvsUtil.EnvVar.ScalaCli.vendoredZipInputStream.valueOpt.map(toBoolean)
       .orElse(sys.props.get("scala-cli.zis.vendored").map(toBoolean))
       .getOrElse(false)
   }

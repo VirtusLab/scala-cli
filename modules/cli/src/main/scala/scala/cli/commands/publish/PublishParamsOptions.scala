@@ -2,6 +2,7 @@ package scala.cli.commands.publish
 
 import caseapp.*
 
+import scala.build.internals.EnvsUtil
 import scala.cli.commands.shared.{HelpGroup, SharedVersionOptions}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
@@ -77,10 +78,8 @@ final case class PublishParamsOptions(
 ) {
   // format: on
 
-  def setupCi: Boolean =
-    ci.getOrElse(false)
-  def isCi: Boolean =
-    ci.getOrElse(System.getenv("CI") != null)
+  def setupCi: Boolean = ci.getOrElse(false)
+  def isCi: Boolean    = ci.getOrElse(EnvsUtil.EnvVar.Internal.ci.valueOpt.nonEmpty)
 }
 
 object PublishParamsOptions {

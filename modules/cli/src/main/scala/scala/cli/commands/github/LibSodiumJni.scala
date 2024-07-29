@@ -12,7 +12,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, FetchExternalBinary}
-import scala.cli.internal.{Constants => CliConstants}
+import scala.build.internals.EnvsUtil
+import scala.cli.internal.Constants as CliConstants
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -135,7 +136,7 @@ object LibSodiumJni {
         case Some(sodiumLib) =>
           System.load(sodiumLib.toString)
         case None =>
-          val allow = Option(System.getenv("SCALA_CLI_SODIUM_JNI_ALLOW"))
+          val allow = EnvsUtil.EnvVar.ScalaCli.allowSodiumJni.valueOpt
             .map(_.toLowerCase(Locale.ROOT))
             .forall {
               case "false" | "0" => false

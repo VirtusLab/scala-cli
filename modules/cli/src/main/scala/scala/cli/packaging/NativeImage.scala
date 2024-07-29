@@ -4,6 +4,7 @@ import java.io.File
 
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
+import scala.build.internals.EnvsUtil
 import scala.build.{Build, Logger, Positioned}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -37,19 +38,20 @@ object NativeImage {
 
   private def vcVersions = Seq("2022", "2019", "2017")
   private def vcEditions = Seq("Enterprise", "Community", "BuildTools")
-  lazy val vcvarsCandidates = Option(System.getenv("VCVARSALL")) ++ {
-    for {
-      isX86   <- Seq(false, true)
-      version <- vcVersions
-      edition <- vcEditions
-    } yield {
-      val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
-      """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
+  private lazy val vcVarsCandidates: Iterable[String] =
+    EnvsUtil.EnvVar.Misc.vcVarsAll.valueOpt ++ {
+      for {
+        isX86   <- Seq(false, true)
+        version <- vcVersions
+        edition <- vcEditions
+      } yield {
+        val programFiles = if (isX86) "Program Files (x86)" else "Program Files"
+        """C:\""" + programFiles + """\Microsoft Visual Studio\""" + version + "\\" + edition + """\VC\Auxiliary\Build\vcvars64.bat"""
+      }
     }
-  }
 
   private def vcvarsOpt: Option[os.Path] =
-    vcvarsCandidates
+    vcVarsCandidates
       .iterator
       .map(os.Path(_, os.pwd))
       .filter(os.exists(_))
