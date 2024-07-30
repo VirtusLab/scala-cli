@@ -24,7 +24,7 @@ import scala.util.Try
 @DirectiveLevel(SpecificationLevel.SHOULD)
 // format: off
 final case class Exclude(
-  exclude: List[Positioned[String]] = Nil                       
+  exclude: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
 // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
