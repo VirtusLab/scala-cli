@@ -912,10 +912,10 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       val sv = Constants.scala3NextRc
       val launcherVersionOverrideHelp =
         os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
-          .call(cwd = root).out.trim()
+          .call(cwd = root, mergeErrIntoOut = true).out.trim()
       val standardVersionOverrideHelp =
         os.proc(TestUtil.cli, "--scalac-help", "-S", sv)
-          .call(cwd = root).out.trim()
+          .call(cwd = root, mergeErrIntoOut = true).out.trim()
       val migrationPrefix = sv.take(2) + (sv.charAt(2).asDigit + 1).toString
       expect(launcherVersionOverrideHelp.contains(s"$migrationPrefix-migration"))
       expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)
