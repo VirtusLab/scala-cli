@@ -1,4 +1,4 @@
-package scala.build.internal.util
+package scala.build.internals
 
 object ConsoleUtils {
   import Console.*

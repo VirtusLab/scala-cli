@@ -13,8 +13,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
-import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.EnvsUtil
 import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt}
 import scala.cli.CurrentParams
