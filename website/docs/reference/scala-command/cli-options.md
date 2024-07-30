@@ -426,6 +426,14 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--help-envs`
+
+Aliases: `--env-help`, `--envs-help`, `--help-env`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Show environment variable help
+
 ### `--help-js`
 
 `IMPLEMENTATION specific` per Scala Runner specification

@@ -11,6 +11,14 @@ import scala.cli.commands.tags
 @HelpMessage("Print help message")
 case class HelpGroupOptions(
   @Group(HelpGroup.Help.toString)
+  @HelpMessage("Show environment variable help")
+  @Tag(tags.implementation)
+  @Tag(tags.inShortHelp)
+  @Name("helpEnv")
+  @Name("envHelp")
+  @Name("envsHelp")
+  helpEnvs: Boolean = false,
+  @Group(HelpGroup.Help.toString)
   @HelpMessage("Show options for ScalaJS")
   @Tag(tags.implementation)
   @Tag(tags.inShortHelp)

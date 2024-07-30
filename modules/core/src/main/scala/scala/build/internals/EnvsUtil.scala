@@ -1,6 +1,21 @@
 package scala.build.internals
 
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
+
 object EnvsUtil {
+  def helpMessage(isPower: Boolean): String =
+    s"""The following is the list of environment variables used and recognized by Scala CLI.
+       |It should by no means be treated as an exhaustive list
+       |Some tools and libraries Scala CLI integrates with may have their own, which may or may not be listed here.
+       |${if isPower then "" else "For the expanded list, pass --power." + System.lineSeparator()}
+       |${
+        val maxFullNameLength =
+          EnvVar.all.filter(!_.requiresPower || isPower).map(_.name.length).max
+        EnvVar.allGroups
+          .map(_.subsectionMessage(maxFullNameLength, isPower))
+          .filter(_.linesIterator.size > 1)
+          .mkString(s"${System.lineSeparator() * 2}")
+      }""".stripMargin
 
   /** @param name
     *   The name of the environment variable
@@ -9,30 +24,54 @@ object EnvsUtil {
     * @param passToIde
     *   Whether to pass this variable to the IDE/BSP client (true by default, should only be
     *   disabled for env vars which aren't safe to save on disk)
+    * @param requiresPower
+    *   Whether this variable is related to a feature that requires power mode; also used for
+    *   internal toggles and such
     */
-  case class EnvVar(name: String, description: String, passToIde: Boolean = true) {
+  case class EnvVar(
+    name: String,
+    description: String,
+    passToIde: Boolean = true,
+    requiresPower: Boolean = false
+  ) {
     def valueOpt: Option[String]  = Option(System.getenv(name))
     override def toString: String = s"$name=${valueOpt.getOrElse("")}"
+    def helpMessage(spaces: String): String = {
+      val powerString =
+        if requiresPower then s"${ScalaCliConsole.GRAY}(power)${Console.RESET} " else ""
+      s"${Console.YELLOW}$name${Console.RESET}$spaces$powerString$description"
+    }
   }
   object EnvVar {
-    def all: Set[EnvVar] = Set(
-      EnvVar.Java.all,
-      EnvVar.Misc.all,
-      EnvVar.Coursier.all,
-      EnvVar.ScalaCli.all,
-      EnvVar.Spark.all,
-      EnvVar.Internal.all
-    ).flatten
-    def allBsp: Set[EnvVar] = all.filter(_.passToIde)
-    object Java {
-      def all         = Set(javaHome, javaOpts, jdkJavaOpts)
-      val javaHome    = EnvVar("JAVA_HOME", "Java installation directory")
-      val javaOpts    = EnvVar("JAVA_OPTS", "Java options")
-      val jdkJavaOpts = EnvVar("JDK_JAVA_OPTIONS", "JDK Java options")
+    trait EnvVarGroup {
+      def all: Seq[EnvVar]
+      def groupName: String
+      def subsectionMessage(maxFullNameLength: Int, isPower: Boolean): String = {
+        val envsToInclude = all.filter(!_.requiresPower || isPower)
+        s"""$groupName
+           |${
+            envsToInclude
+              .map(ev =>
+                s"  ${ev.helpMessage(spaces = " " * (maxFullNameLength - ev.name.length + 2))}"
+              )
+              .mkString(System.lineSeparator())
+          }""".stripMargin
+      }
+    }
+    def allGroups: Seq[EnvVarGroup] = Seq(ScalaCli, Java, Coursier, Spark, Misc, Internal)
+    def all: Seq[EnvVar]            = allGroups.flatMap(_.all)
+    def allBsp: Seq[EnvVar]         = all.filter(_.passToIde)
+    object Java extends EnvVarGroup {
+      override def groupName: String = "Java"
+      override def all               = Seq(javaHome, javaOpts, jdkJavaOpts)
+      val javaHome                   = EnvVar("JAVA_HOME", "Java installation directory")
+      val javaOpts                   = EnvVar("JAVA_OPTS", "Java options")
+      val jdkJavaOpts                = EnvVar("JDK_JAVA_OPTIONS", "JDK Java options")
     }
 
-    object Misc {
-      def all = Set(
+    object Misc extends EnvVarGroup {
+      override def groupName: String = "Miscellaneous"
+      override def all = Seq(
         path,
         dyldLibraryPath,
         ldLibraryPath,
@@ -50,14 +89,16 @@ object EnvsUtil {
       val zDotDir         = EnvVar("ZDOTDIR", "Zsh configuration directory")
     }
 
-    object Coursier {
-      def all           = Set(coursierCache, coursierMode)
-      val coursierCache = EnvVar("COURSIER_CACHE", "Coursier cache location")
-      val coursierMode  = EnvVar("COURSIER_MODE", "Coursier mode (can be set to 'offline')")
+    object Coursier extends EnvVarGroup {
+      override def groupName: String = "Coursier"
+      override def all               = Seq(coursierCache, coursierMode)
+      val coursierCache              = EnvVar("COURSIER_CACHE", "Coursier cache location")
+      val coursierMode = EnvVar("COURSIER_MODE", "Coursier mode (can be set to 'offline')")
     }
 
-    object ScalaCli {
-      def all = Set(
+    object ScalaCli extends EnvVarGroup {
+      override def groupName: String = "Scala CLI"
+      def all = Seq(
         config,
         home,
         interactive,
@@ -78,14 +119,16 @@ object EnvsUtil {
         EnvVar("SCALA_CLI_VENDORED_ZIS", "Toggle io.github.scala_cli.zip.ZipInputStream")
     }
 
-    object Spark {
-      def all       = Set(sparkHome)
-      val sparkHome = EnvVar("SPARK_HOME", "Spark installation directory")
+    object Spark extends EnvVarGroup {
+      override def groupName: String = "Spark"
+      override def all               = Seq(sparkHome)
+      val sparkHome = EnvVar("SPARK_HOME", "Spark installation directory", requiresPower = true)
     }
 
-    object Internal {
-      def all = Set(ci)
-      val ci  = EnvVar("CI", "Marker for running on the CI")
+    object Internal extends EnvVarGroup {
+      override def groupName: String = "Internal"
+      def all                        = Seq(ci)
+      val ci = EnvVar("CI", "Marker for running on the CI", requiresPower = true)
     }
   }
 
