@@ -138,7 +138,6 @@ object DirectiveValueParser {
   given DirectiveSingleValueParser[String] =
     (key, value, scopePath, path) =>
       value.asString.toRight {
-        println("do we get here?")
         val pos = value.position(path)
         new MalformedDirectiveError(
           message =

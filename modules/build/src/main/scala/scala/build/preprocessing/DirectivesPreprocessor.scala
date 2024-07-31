@@ -45,8 +45,6 @@ case class DirectivesPreprocessor(
   def preprocess(extractedDirectives: ExtractedDirectives)
     : Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
-    println(s"DirectivesPreprocessor: $directives")
-
     val (
       buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
       buildOptionsWithTargetRequirements: PartiallyProcessedDirectives[
@@ -129,6 +127,7 @@ case class DirectivesPreprocessor(
       else
         if handler.isExperimental && !shouldSuppressExperimentalFeatures then
           logger.experimentalWarning(scopedDirective.directive.toString, FeatureType.Directive)
+        // println(scopedDirective.cwd)
         handler.handleValues(scopedDirective, logger)
 
     val handlersMap = handlers
