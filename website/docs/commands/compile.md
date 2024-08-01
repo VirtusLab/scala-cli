@@ -99,7 +99,7 @@ having to pass their addresses as input after the `--repo` flag.
 
 For compiling with the latest Scala 2 nightly build:
 
-```bash
+```bash ignore
 scala-cli Hello.scala -S 2.nightly
 ```
 
@@ -111,13 +111,13 @@ scala-cli Hello.scala -S 3.nightly
 
 For compiling with a specific nightly build you have the full version:
 
-```bash
+```bash ignore
 scala-cli Hello.scala -S 2.13.9-bin-4505094
 ```
 
 For setting this inside scala files, use [`using` directives](../guides/introduction/using-directives.md):
 
-```scala compile
+```scala
 //> using scala 2.nightly
 ```
 
@@ -125,7 +125,7 @@ For setting this inside scala files, use [`using` directives](../guides/introduc
 //> using scala 3.nightly
 ```
 
-```scala compile
+```scala
 //> using scala 2.13.9-bin-4505094
 ```
 

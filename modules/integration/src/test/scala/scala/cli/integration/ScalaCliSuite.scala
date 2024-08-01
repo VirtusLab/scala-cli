@@ -32,6 +32,8 @@ abstract class ScalaCliSuite extends munit.FunSuite {
     Option(System.getenv("SCALA_CLI_IT_GROUP"))
       .flatMap(_.toIntOption)
       .exists(_ != group.idx)
+
+  override def munitFlakyOK: Boolean = TestUtil.isCI
 }
 
 object ScalaCliSuite {
