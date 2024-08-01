@@ -4,7 +4,7 @@ import java.io.File
 
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.build.{Build, Logger, Positioned}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
@@ -39,7 +39,7 @@ object NativeImage {
   private def vcVersions = Seq("2022", "2019", "2017")
   private def vcEditions = Seq("Enterprise", "Community", "BuildTools")
   private lazy val vcVarsCandidates: Iterable[String] =
-    EnvsUtil.EnvVar.Misc.vcVarsAll.valueOpt ++ {
+    EnvVar.Misc.vcVarsAll.valueOpt ++ {
       for {
         isX86   <- Seq(false, true)
         version <- vcVersions

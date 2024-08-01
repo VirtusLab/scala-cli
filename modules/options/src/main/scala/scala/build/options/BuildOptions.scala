@@ -21,7 +21,7 @@ import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion, Util}
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
@@ -286,7 +286,7 @@ final case class BuildOptions(
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
     val params =
-      if EnvsUtil.EnvVar.Internal.ci.valueOpt.isEmpty then
+      if EnvVar.Internal.ci.valueOpt.isEmpty then
         computeScalaParams(Constants.version, finalCache, value(finalRepositories)).orElse(
           // when the passed scala version is missed in the cache, we always force a cache refresh
           // https://github.com/VirtusLab/scala-cli/issues/1090
@@ -596,8 +596,8 @@ object BuildOptions {
           currentEnv.keys.find(_.equalsIgnoreCase(name)).getOrElse(name)
         else
           name
-      val javaHomeKey = keyFor(EnvsUtil.EnvVar.Java.javaHome.name)
-      val pathKey     = keyFor(EnvsUtil.EnvVar.Misc.path.name)
+      val javaHomeKey = keyFor(EnvVar.Java.javaHome.name)
+      val pathKey     = keyFor(EnvVar.Misc.path.name)
       val updatedPath = {
         val valueOpt = currentEnv.get(pathKey)
         val entry    = (javaHome / "bin").toString

@@ -20,7 +20,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
-import scala.build.internals.{EnvsUtil, FeatureType}
+import scala.build.internals.{EnvVar, FeatureType}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
@@ -286,7 +286,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   private def maybePrintEnvsHelp(options: T): Unit =
     if sharedOptions(options).exists(_.helpGroups.helpEnvs) then
-      println(EnvsUtil.helpMessage(isPower = allowRestrictedFeatures))
+      println(EnvVar.helpMessage(isPower = allowRestrictedFeatures))
       sys.exit(0)
 
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat

@@ -6,7 +6,7 @@ import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 import java.io.File
 
 import scala.build.Logger
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.cli.CurrentParams
 import scala.cli.commands.{CustomWindowsEnvVarUpdater, ScalaCommand}
 import scala.util.Properties
@@ -19,7 +19,7 @@ object AddPath extends ScalaCommand[AddPathOptions] {
     else {
       val update = EnvironmentUpdate(
         Nil,
-        Seq(EnvsUtil.EnvVar.Misc.path.name -> args.all.mkString(File.pathSeparator))
+        Seq(EnvVar.Misc.path.name -> args.all.mkString(File.pathSeparator))
       )
       val didUpdate =
         if (Properties.isWin) {

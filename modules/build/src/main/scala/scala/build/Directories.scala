@@ -4,7 +4,7 @@ import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
 
 import scala.build.errors.ConfigDbException
 import scala.build.internal.JniGetWinDirs
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.cli.config.ConfigDb
 import scala.util.Properties
 
@@ -20,7 +20,7 @@ trait Directories {
   def cacheDir: os.Path
 
   final def dbPath: os.Path =
-    EnvsUtil.EnvVar.ScalaCli.config.valueOpt
+    EnvVar.ScalaCli.config.valueOpt
       .filter(_.trim.nonEmpty)
       .map(os.Path(_, os.pwd))
       .getOrElse(secretsDir / Directories.defaultDbFileName)
@@ -96,7 +96,7 @@ object Directories {
     SubDir(dir)
 
   lazy val directories: Directories =
-    EnvsUtil.EnvVar.ScalaCli.home.valueOpt.filter(_.trim.nonEmpty) match {
+    EnvVar.ScalaCli.home.valueOpt.filter(_.trim.nonEmpty) match {
       case None =>
         scala.build.Directories.default()
       case Some(homeDir) =>

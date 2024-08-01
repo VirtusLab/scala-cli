@@ -11,7 +11,7 @@ import java.util.Locale
 
 import scala.build.Directories
 import scala.build.internal.Constants
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
@@ -46,7 +46,7 @@ object ScalaCli {
       powerEntry <- configDb.get(Keys.power).toOption
       power      <- powerEntry
     } yield power
-    val isPowerEnv = EnvsUtil.EnvVar.ScalaCli.power.valueOpt.flatMap(_.toBooleanOption)
+    val isPowerEnv = EnvVar.ScalaCli.power.valueOpt.flatMap(_.toBooleanOption)
     val isPower    = isPowerEnv.orElse(isPowerConfigDb).getOrElse(false)
     !isPower
   }
@@ -95,8 +95,8 @@ object ScalaCli {
     baos.toByteArray
   }
 
-  private def isCI = EnvsUtil.EnvVar.Internal.ci.valueOpt.nonEmpty
-  private def printStackTraces = EnvsUtil.EnvVar.ScalaCli.printStackTraces.valueOpt
+  private def isCI = EnvVar.Internal.ci.valueOpt.nonEmpty
+  private def printStackTraces = EnvVar.ScalaCli.printStackTraces.valueOpt
     .map(_.toLowerCase(Locale.ROOT))
     .exists {
       case "true" | "1" => true
@@ -158,7 +158,7 @@ object ScalaCli {
             // for https://github.com/VirtusLab/scala-cli/issues/828
             System.err.println(
               s"""Running
-                 |  export ${EnvsUtil.EnvVar.ScalaCli.vendoredZipInputStream.name}=true
+                 |  export ${EnvVar.ScalaCli.vendoredZipInputStream.name}=true
                  |before running $fullRunnerName might fix the issue.
                  |""".stripMargin
             )
@@ -211,7 +211,7 @@ object ScalaCli {
 
     // load java properties from JAVA_OPTS and JDK_JAVA_OPTIONS environment variables
     val javaOpts: Seq[String] =
-      EnvsUtil.EnvVar.Java.javaOpts.valueOpt.toSeq ++ EnvsUtil.EnvVar.Java.jdkJavaOpts.valueOpt.toSeq
+      EnvVar.Java.javaOpts.valueOpt.toSeq ++ EnvVar.Java.jdkJavaOpts.valueOpt.toSeq
 
     val ignoredJavaOpts =
       javaOpts
@@ -226,7 +226,7 @@ object ScalaCli {
         }.flatten
     if ignoredJavaOpts.nonEmpty then
       System.err.println(
-        s"Warning: Only java properties are supported in ${EnvsUtil.EnvVar.Java.javaOpts.name} and ${EnvsUtil.EnvVar
+        s"Warning: Only java properties are supported in ${EnvVar.Java.javaOpts.name} and ${EnvVar
             .Java.jdkJavaOpts.name} environment variables. Other options are ignored: ${ignoredJavaOpts.mkString(", ")}"
       )
   }

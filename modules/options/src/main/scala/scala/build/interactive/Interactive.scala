@@ -1,7 +1,7 @@
 package scala.build.interactive
 
 import scala.build.internal.StdInConcurrentReader
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 
 sealed abstract class Interactive extends Product with Serializable {
   def confirmOperation(msg: String): Option[Boolean]                = None
@@ -11,7 +11,7 @@ sealed abstract class Interactive extends Product with Serializable {
 object Interactive {
 
   private var interactiveInputsOpt =
-    EnvsUtil.EnvVar.ScalaCli.interactiveInputs.valueOpt.map(_.linesIterator.toList)
+    EnvVar.ScalaCli.interactiveInputs.valueOpt.map(_.linesIterator.toList)
 
   private def readLine(): String =
     interactiveInputsOpt match {
@@ -39,7 +39,7 @@ object Interactive {
         if (
           interactiveInputsOpt.nonEmpty ||
           coursier.paths.Util.useAnsiOutput() ||
-          EnvsUtil.EnvVar.ScalaCli.interactive.valueOpt.nonEmpty
+          EnvVar.ScalaCli.interactive.valueOpt.nonEmpty
         )
           action
         else None

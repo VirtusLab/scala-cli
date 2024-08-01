@@ -9,7 +9,7 @@ import scala.build.*
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
-import scala.build.internals.EnvsUtil
+import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.publish.ConfigUtil.*
@@ -64,7 +64,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       .flatMap(_.get(Keys.power).toOption)
       .flatten
       .getOrElse(false)
-    val envPowerMode       = latestEnvs.get(EnvsUtil.EnvVar.ScalaCli.power.name).exists(_.toBoolean)
+    val envPowerMode       = latestEnvs.get(EnvVar.ScalaCli.power.name).exists(_.toBoolean)
     val launcherPowerArg   = latestLauncherOptions.powerOptions.power
     val subCommandPowerArg = latestSharedOptions.powerOptions.power
     val latestPowerMode = configPowerMode || launcherPowerArg || subCommandPowerArg || envPowerMode
@@ -209,7 +209,7 @@ object Bsp extends ScalaCommand[BspOptions] {
           baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
-    val withEnvs = envs.get(EnvsUtil.EnvVar.Java.javaHome.name)
+    val withEnvs = envs.get(EnvVar.Java.javaHome.name)
       .filter(_ => withDefaults.javaOptions.javaHomeOpt.isEmpty)
       .map(javaHome =>
         withDefaults.copy(javaOptions =
