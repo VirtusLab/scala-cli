@@ -377,8 +377,6 @@ trait RunScalacCompatTestDefinitions {
     }
   }
 
-  override def munitFlakyOK: Boolean = TestUtil.isCI && Properties.isMac && TestUtil.isNativeCli
-
   def verifyScala212VersionCompiles(scalaPatchVersion: String): Unit = {
     TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>

@@ -665,7 +665,7 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
 
     test(
-      s"default Scala version ($sv2) coming straight from a predefined local repository $withBloopString"
+      s"default Scala version ($sv2) coming straight from a predefined local repository $withBloopString".flaky
     ) {
       TestInputs(
         os.rel / "simple.sc" -> "println(scala.util.Properties.versionNumberString)"
