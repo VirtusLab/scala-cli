@@ -586,6 +586,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 
 
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
+
 **--help-js**
 
 Show options for ScalaJS
@@ -1339,6 +1345,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 
 
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
+
 **--help-js**
 
 Show options for ScalaJS
@@ -1923,6 +1935,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 
@@ -2532,6 +2550,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 
@@ -3151,6 +3175,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 
 
 
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
+
 **--help-js**
 
 Show options for ScalaJS
@@ -3726,6 +3756,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 
@@ -4377,6 +4413,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 
@@ -5035,6 +5077,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 
@@ -5958,6 +6006,12 @@ Should include Scala CLI runner on the runtime ClassPath. Runner is added by def
 **--forbid**
 
 
+
+**--help-envs**
+
+Show environment variable help
+
+Aliases: `--help-env` ,`--env-help` ,`--envs-help`
 
 **--help-js**
 

@@ -20,7 +20,7 @@ import scala.build.errors.BuildException
 import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
-import scala.build.internals.FeatureType
+import scala.build.internals.{EnvVar, FeatureType}
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
@@ -284,6 +284,11 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       sys.exit(exitCode.orExit(logger))
     }
 
+  private def maybePrintEnvsHelp(options: T): Unit =
+    if sharedOptions(options).exists(_.helpGroups.helpEnvs) then
+      println(EnvVar.helpMessage(isPower = allowRestrictedFeatures))
+      sys.exit(0)
+
   override def helpFormat: HelpFormat = ScalaCliHelp.helpFormat
 
   override val messages: Help[T] =
@@ -378,6 +383,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       maybePrintSimpleScalacOutput(options, bo)
       maybePrintToolsHelp(options, bo)
     }
+    maybePrintEnvsHelp(options)
     logger.flushExperimentalWarnings
     runCommand(options, remainingArgs, options.global.logging.logger)
   }

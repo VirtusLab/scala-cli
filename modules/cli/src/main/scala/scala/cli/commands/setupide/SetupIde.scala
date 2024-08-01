@@ -14,6 +14,7 @@ import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.Constants
+import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
@@ -185,7 +186,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val scalaCliOptionsForBspJson    = writeToArray(options.shared)(SharedOptions.jsonCodec)
     val scalaCliLaunchOptsForBspJson = writeToArray(launcherOptions)(LauncherOptions.jsonCodec)
     val scalaCliBspInputsJson        = writeToArray(ideInputs)
-    val scalaCliBspEnvsJson          = writeToArray(sys.env)
+    val envsForBsp          = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
+    val scalaCliBspEnvsJson = writeToArray(envsForBsp)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(

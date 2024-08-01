@@ -5,6 +5,7 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.{CacheLogger, CachePolicy, FileCache}
 
+import scala.build.internals.EnvVar
 import scala.cli.commands.tags
 import scala.concurrent.duration.Duration
 
@@ -54,7 +55,7 @@ final case class CoursierOptions(
   }
 
   def getOffline(): Option[Boolean] = offline
-    .orElse(Option(System.getenv("COURSIER_MODE")).map(_ == "offline"))
+    .orElse(EnvVar.Coursier.coursierMode.valueOpt.map(_ == "offline"))
     .orElse(Option(System.getProperty("coursier.mode")).map(_ == "offline"))
 }
 

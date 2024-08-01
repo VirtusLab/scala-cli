@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 import scala.build.errors.Severity
 import scala.build.internal.WrapperParams
-import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.collection.mutable

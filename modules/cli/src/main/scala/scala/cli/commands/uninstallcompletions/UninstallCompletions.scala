@@ -6,6 +6,7 @@ import caseapp.core.help.HelpFormat
 import java.nio.charset.Charset
 
 import scala.build.Logger
+import scala.build.internals.EnvVar
 import scala.cli.CurrentParams
 import scala.cli.commands.installcompletions.InstallCompletions
 import scala.cli.commands.shared.HelpGroup
@@ -31,7 +32,7 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
   ): Unit = {
     val name = InstallCompletions.getName(options.shared.name)
 
-    val zDotDir = Option(System.getenv("ZDOTDIR"))
+    val zDotDir = EnvVar.Misc.zDotDir.valueOpt
       .map(os.Path(_, os.pwd))
       .getOrElse(os.home)
     val rcFiles = options.shared.rcFile.map(file => Seq(os.Path(file, os.pwd))).getOrElse(Seq(

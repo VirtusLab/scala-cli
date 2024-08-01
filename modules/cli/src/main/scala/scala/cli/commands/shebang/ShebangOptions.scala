@@ -2,7 +2,7 @@ package scala.cli.commands.shebang
 
 import caseapp.*
 
-import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}
 import scala.cli.commands.run.RunOptions
 import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}

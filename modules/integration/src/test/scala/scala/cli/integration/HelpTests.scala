@@ -72,6 +72,15 @@ class HelpTests extends ScalaCliSuite {
       "-cp, --jar, --jars, --class, --classes, -classpath, --extra-jar, --classpath, --extra-jars, --class-path, --extra-class, --extra-classes, --extra-class-path paths"
     ))
   }
+  for (withPower <- Seq(true, false))
+    test("envs help" + (if (withPower) " with power" else "")) {
+      val powerOptions = if (withPower) Seq("--power") else Nil
+      val help         = os.proc(TestUtil.cli, "--envs-help", powerOptions).call()
+      val helpOutput   = help.out.trim()
+      if (!withPower) expect(!helpOutput.contains("(power)"))
+      expect(helpOutput.nonEmpty)
+      expect(helpOutput.contains("environment variables"))
+    }
 }
 
 object HelpTests {

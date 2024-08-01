@@ -495,6 +495,12 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
+### `--help-envs`
+
+Aliases: `--env-help`, `--envs-help`, `--help-env`
+
+Show environment variable help
+
 ### `--help-js`
 
 Show options for ScalaJS

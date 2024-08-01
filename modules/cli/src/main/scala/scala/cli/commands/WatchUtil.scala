@@ -2,7 +2,7 @@ package scala.cli.commands
 
 import scala.annotation.tailrec
 import scala.build.internal.StdInConcurrentReader
-import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
 
 object WatchUtil {
 

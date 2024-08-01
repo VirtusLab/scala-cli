@@ -13,8 +13,9 @@ import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
-import scala.build.internal.util.ConsoleUtils.ScalaCliConsole
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
@@ -498,9 +499,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           if (pythonLibraryPaths.isEmpty) Map.empty
           else {
             val prependTo =
-              if (Properties.isWin) "PATH"
-              else if (Properties.isMac) "DYLD_LIBRARY_PATH"
-              else "LD_LIBRARY_PATH"
+              if (Properties.isWin) EnvVar.Misc.path.name
+              else if (Properties.isMac) EnvVar.Misc.dyldLibraryPath.name
+              else EnvVar.Misc.ldLibraryPath.name
             val currentOpt = Option(System.getenv(prependTo))
             val currentEntries = currentOpt
               .map(_.split(File.pathSeparator).toSet)
