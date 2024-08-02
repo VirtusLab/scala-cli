@@ -8,6 +8,82 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.4.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.2)
+
+## What's Changed
+
+### Environment variable help with `--env-help`
+You can now list environment variables used internally with the `--envs-help` flag.
+This does include some environment variable used by Scala CLI's dependencies (like Coursier, Bloop, etc.), but should not be treated as an exhaustive list.
+
+```bash
+scala-cli --env-help --power
+# The following is the list of environment variables used and recognized by Scala CLI.
+# It should by no means be treated as an exhaustive list.
+# Some tools and libraries Scala CLI integrates with may have their own, which may or may not be listed here.
+# 
+# Scala CLI
+#   SCALA_CLI_CONFIG              Scala CLI configuration file path
+#   SCALA_CLI_HOME                Scala CLI home directory
+#   SCALA_CLI_INTERACTIVE         Interactive mode toggle
+#   SCALA_CLI_INTERACTIVE_INPUTS  Interactive mode inputs
+#   SCALA_CLI_POWER               Power mode toggle
+#   SCALA_CLI_PRINT_STACK_TRACES  Print stack traces toggle
+#   SCALA_CLI_SODIUM_JNI_ALLOW    Allow to load libsodiumjni
+#   SCALA_CLI_VENDORED_ZIS        Toggle io.github.scala_cli.zip.ZipInputStream
+# 
+# Java
+#   JAVA_HOME                     Java installation directory
+#   JAVA_OPTS                     Java options
+#   JDK_JAVA_OPTIONS              JDK Java options
+# 
+# Coursier
+#   COURSIER_CACHE                Coursier cache location
+#   COURSIER_MODE                 Coursier mode (can be set to 'offline')
+# 
+# Spark
+#   SPARK_HOME                    (power) Spark installation directory
+# 
+# Miscellaneous
+#   PATH                          The app path variable
+#   DYLD_LIBRARY_PATH             Runtime library paths on Mac OS X
+#   LD_LIBRARY_PATH               Runtime library paths on Linux
+#   PATHEXT                       Executable file extensions on Windows
+#   SHELL                         The currently used shell
+#   VCVARSALL                     Visual C++ Redistributable Runtimes
+#   ZDOTDIR                       Zsh configuration directory
+# 
+# Internal
+#   CI                            (power) Marker for running on the CI
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3055.](https://github.com/VirtusLab/scala-cli/pull/3055.)
+
+### Features
+* Add environment variable help under `--envs-help` & refactor environment variable usage by [@Gedochao](https://github.com/Gedochao) in [#3055](https://github.com/VirtusLab/scala-cli/pull/3055)
+
+### Fixes
+* Fix default scaladoc config, so that id doesn't break all scaladoc links by [@KacperFKorban](https://github.com/KacperFKorban) in [#3041](https://github.com/VirtusLab/scala-cli/pull/3041)
+* Fix the REPL crashing when a dependency's classpath is called by a macro by [@Gedochao](https://github.com/Gedochao) in [#3043](https://github.com/VirtusLab/scala-cli/pull/3043)
+* Fix Mill export for projects with just the test scope by [@Gedochao](https://github.com/Gedochao) in [#3046](https://github.com/VirtusLab/scala-cli/pull/3046)
+* Ensure `--cli-default-scala-version` is respected by `--scalac-help` by [@Gedochao](https://github.com/Gedochao) in [#3048](https://github.com/VirtusLab/scala-cli/pull/3048)
+* Fix `generate-linux-arm64-native-launcher` by [@Gedochao](https://github.com/Gedochao) in [#3053](https://github.com/VirtusLab/scala-cli/pull/3053)
+
+### Internal changes
+* Prevent some flaky tests from failing on the CI by [@Gedochao](https://github.com/Gedochao) in [#3049](https://github.com/VirtusLab/scala-cli/pull/3049)
+* Switch to GitHub M1/`aarch64` runners on the CI by [@Gedochao](https://github.com/Gedochao) in [#3050](https://github.com/VirtusLab/scala-cli/pull/3050)
+* Fix Scala 2 nightly test failures by tagging them as flaky or skipping by [@Gedochao](https://github.com/Gedochao) in [#3064](https://github.com/VirtusLab/scala-cli/pull/3064)
+
+### Updates
+* Update scala-cli.sh launcher for 1.4.1 by [@github-actions](https://github.com/features/actions) in [#3039](https://github.com/VirtusLab/scala-cli/pull/3039)
+* Update ammonite to 3.0.0-M2-15-9bed9700 by [@scala-steward](https://github.com/scala-steward) in [#3059](https://github.com/VirtusLab/scala-cli/pull/3059)
+* Update metaconfig-typesafe-config to 0.13.0 by [@scala-steward](https://github.com/scala-steward) in [#3058](https://github.com/VirtusLab/scala-cli/pull/3058)
+* Update semanticdb-shared_2.13.14 to 4.9.9 by [@scala-steward](https://github.com/scala-steward) in [#3063](https://github.com/VirtusLab/scala-cli/pull/3063)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.8.3 by [@scala-steward](https://github.com/scala-steward) in [#3062](https://github.com/VirtusLab/scala-cli/pull/3062)
+* Update os-lib to 0.10.3 by [@scala-steward](https://github.com/scala-steward) in [#3061](https://github.com/VirtusLab/scala-cli/pull/3061)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.4.1...v1.4.2
+
 ## [v1.4.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.1)
 
 ### Pass compiler args as an `@argument` file
