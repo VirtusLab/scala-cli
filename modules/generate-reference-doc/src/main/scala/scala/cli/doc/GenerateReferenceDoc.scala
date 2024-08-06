@@ -13,6 +13,7 @@ import java.util
 
 import scala.build.info.{ArtifactId, BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
 import scala.build.internal.Constants
+import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
@@ -606,6 +607,34 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     b.mkString
   }
 
+  private def envVarContent(groups: Seq[EnvVar.EnvVarGroup], onlyRestricted: Boolean): String = {
+    val b = new StringBuilder
+    b.section(
+      """---
+        |title: Environment variables
+        |sidebar_position: 7
+        |---""".stripMargin
+    )
+    b.section(
+      """Scala CLI uses environment variables to configure its behavior.
+        |Below you can find a list of environment variables used and recognized by Scala CLI.
+        |
+        |However, it should by no means be treated as an exhaustive list.
+        |Some tools and libraries Scala CLI integrates with may have their own, which may or may not be listed here.
+        |""".stripMargin
+    )
+    groups.foreach { group =>
+      b.section(
+        s"## ${group.groupName}",
+        group.all
+          .filter(ev => !ev.requiresPower || !onlyRestricted)
+          .map(ev => s"  - `${ev.name}`: ${if ev.requiresPower then "⚡ " else ""}${ev.description}")
+          .mkString("\n")
+      )
+    }
+    b.mkString
+  }
+
   def run(options: InternalDocOptions, args: RemainingArgs): Unit = {
 
     val scalaCli = new ScalaCliCommands(
@@ -644,16 +673,21 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     )
     val restrictedDocsDir = os.rel / "scala-command"
 
+    val allEnvVarsContent        = envVarContent(EnvVar.allGroups, onlyRestricted = false)
+    val restrictedEnvVarsContent = envVarContent(Seq(EnvVar.ScalaCli), onlyRestricted = true)
+
     if (options.check) {
       val content = Seq(
         (os.rel / "cli-options.md")                           -> allCliOptionsContent,
         (os.rel / "commands.md")                              -> allCommandsContent,
         (os.rel / "directives.md")                            -> allDirectivesContent,
         (os.rel / "build-info.md")                            -> buildInfoContent,
+        (os.rel / "env-vars.md")                              -> allEnvVarsContent,
         (os.rel / restrictedDocsDir / "cli-options.md")       -> restrictedCliOptionsContent,
         (os.rel / restrictedDocsDir / "commands.md")          -> restrictedCommandsContent,
         (os.rel / restrictedDocsDir / "directives.md")        -> restrictedDirectivesContent,
-        (os.rel / restrictedDocsDir / "runner-specification") -> scalaOptionsReference
+        (os.rel / restrictedDocsDir / "runner-specification") -> scalaOptionsReference,
+        (os.rel / restrictedDocsDir / "env-vars.md")          -> restrictedEnvVarsContent
       )
       var anyDiff = false
       for ((dest, content0) <- content) {
@@ -678,6 +712,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       maybeWrite(options.outputPath / "commands.md", allCommandsContent)
       maybeWrite(options.outputPath / "directives.md", allDirectivesContent)
       maybeWrite(options.outputPath / "build-info.md", buildInfoContent)
+      maybeWrite(options.outputPath / "env-vars.md", allEnvVarsContent)
 
       maybeWrite(
         options.outputPath / restrictedDocsDir / "cli-options.md",
@@ -691,6 +726,10 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       maybeWrite(
         options.outputPath / restrictedDocsDir / "runner-specification.md",
         scalaOptionsReference
+      )
+      maybeWrite(
+        options.outputPath / restrictedDocsDir / "env-vars.md",
+        restrictedEnvVarsContent
       )
     }
   }
