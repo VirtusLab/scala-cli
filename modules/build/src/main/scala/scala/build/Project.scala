@@ -63,10 +63,11 @@ final case class Project(
             Nil
           )
 
+          println(s"This is script path ${command0}")
           BloopConfig.SourceGenerator(
             List(sourceGlobs0),
             (config.outputPath / "source-generator-output").toNIO,
-            command0
+            List("/Users/kiki/Kerja/scala-cli/testing-a/scala-cli",  "--power", "run", command0)
           )
         }.toList
       )

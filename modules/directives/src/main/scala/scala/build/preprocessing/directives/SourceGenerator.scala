@@ -36,20 +36,17 @@ final case class SourceGenerator(
   inputDirectory: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(None),
   glob: Option[Positioned[String]] = None,
-  commandProcessor: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] =
-    DirectiveValueParser.WithScopePath.empty(None),
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
     // println(s"ScopePath of Scripts: ${scripts.scopePath}")
     // println(s"Values of Scripts: ${scripts.value(0).value}")
     // println(s"Values of InputDir: ${inputDirectory.value}")
-    SourceGenerator.buildOptions(testy,scripts)
+    SourceGenerator.buildOptions(scripts)
 }
 
 object SourceGenerator {
   val handler: DirectiveHandler[SourceGenerator] = DirectiveHandler.derive
   def buildOptions(
-    sourceGenerator: DirectiveValueParser.WithScopePath[List[Positioned[String]]],
     scripts: DirectiveValueParser.WithScopePath[List[Positioned[String]]]
   ): Either[BuildException, BuildOptions] = {
     val proc = UsingDirectivesProcessor()
@@ -84,18 +81,25 @@ object SourceGenerator {
       }
     }
 
-    val strictDirectives = scriptConvert
-    .map(modify(_))
-    .map(_.take(3))
+    val componentKeyword = Seq("inputDirectory", "glob")
+    val strictDirectives = scriptConvert.map(modify(_))
 
-    // println(scripts.scopePath.subPath)
-    // strictDirectives.map(f => f.map(w => println(w)))
+    val generatorComponents = strictDirectives.map(directiveSeq =>
+      directiveSeq.filter(rawDirective =>
+        componentKeyword.exists(keyword => rawDirective.key.contains(keyword))
+      )
+    )
 
-    val directive = strictDirectives.collect {
-      case Seq(inputDir, glob, processor) => 
-        GeneratorConfig(inputDir.values.mkString, List(glob.values.mkString), processor.values.mkString.split(" ").toList,scripts.scopePath.subPath)
+    // generatorComponents.map(f => f.map(g => println(g.values)))
+    val directive = generatorComponents.collect {
+      case Seq(inputDir, glob) =>
+        GeneratorConfig(
+          inputDir.values.mkString,
+          List(glob.values.mkString),
+          scripts.value(0).value,
+          scripts.scopePath.subPath
+        )
     }
-    println(directive.size)
 
     // val sourceGenValue = sourceGenerator.value
     // sourceGenValue
@@ -107,9 +111,10 @@ object SourceGenerator {
     //       SourceGeneratorOptions(generatorConfig = configs)
     //     )
     //   }
-    
     // directive.map { f => println(f)}
 
-    Right(BuildOptions(sourceGeneratorOptions = SourceGeneratorOptions(generatorConfig = directive)))
+    Right(BuildOptions(sourceGeneratorOptions =
+      SourceGeneratorOptions(generatorConfig = directive)
+    ))
   }
 }

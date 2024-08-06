@@ -21,6 +21,7 @@ object DirectiveSpecialSyntax {
     val pattern = """(((?:\$)+)(\{\.\}))""".r
     path match {
       case Right(p) =>
+        println(p)
         pattern.replaceAllIn(
           directiveValue,
           (m: Regex.Match) => {
