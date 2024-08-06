@@ -9,7 +9,7 @@ class ScalafixTests extends ScalaCliSuite {
 
   val emptyInputs: TestInputs = TestInputs(os.rel / ".placeholder" -> "")
 
-  val simpleInputsUnformattedContent: String =
+  val simpleInputsOriginalContent: String =
     """package foo
       |
       |final object Hello {
@@ -24,9 +24,9 @@ class ScalafixTests extends ScalaCliSuite {
           |  RedundantSyntax
           |]
           |""".stripMargin,
-    os.rel / "Hello.scala" -> simpleInputsUnformattedContent
+    os.rel / "Hello.scala" -> simpleInputsOriginalContent
   )
-  val expectedSimpleInputsFormattedContent: String = noCrLf {
+  val expectedSimpleInputsRewrittenContent: String = noCrLf {
     """package foo
       |
       |object Hello {
@@ -44,7 +44,7 @@ class ScalafixTests extends ScalaCliSuite {
     simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "scalafix", ".").call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      expect(updatedContent == expectedSimpleInputsFormattedContent)
+      expect(updatedContent == expectedSimpleInputsRewrittenContent)
     }
   }
 
@@ -53,7 +53,7 @@ class ScalafixTests extends ScalaCliSuite {
       val res = os.proc(TestUtil.cli, "scalafix", "--check", ".").call(cwd = root, check = false)
       expect(res.exitCode == 1)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      expect(updatedContent == noCrLf(simpleInputsUnformattedContent))
+      expect(updatedContent == noCrLf(simpleInputsOriginalContent))
     }
   }
 }

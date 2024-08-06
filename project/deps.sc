@@ -100,7 +100,7 @@ object Deps {
     def signingCli           = "0.2.3"
     def signingCliJvmVersion = 17
     def javaClassName        = "0.1.3"
-    def scalafix             = "0.12.0"
+    def scalafix             = "0.12.1"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
@@ -209,7 +209,7 @@ object Deps {
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
+  def zipInputStream     = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
   def scalafixInterfaces = ivy"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
