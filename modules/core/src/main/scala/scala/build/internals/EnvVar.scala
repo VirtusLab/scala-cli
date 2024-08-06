@@ -87,13 +87,40 @@ object EnvVar {
     val shell           = EnvVar("SHELL", "The currently used shell")
     val vcVarsAll       = EnvVar("VCVARSALL", "Visual C++ Redistributable Runtimes")
     val zDotDir         = EnvVar("ZDOTDIR", "Zsh configuration directory")
+    val mavenHome       = EnvVar("MAVEN_HOME", "Maven home directory")
   }
 
   object Coursier extends EnvVarGroup {
     override def groupName: String = "Coursier"
-    override def all               = Seq(coursierCache, coursierMode)
-    val coursierCache              = EnvVar("COURSIER_CACHE", "Coursier cache location")
-    val coursierMode = EnvVar("COURSIER_MODE", "Coursier mode (can be set to 'offline')")
+    override def all = Seq(
+      coursierBinDir,
+      coursierCache,
+      coursierConfigDir,
+      coursierCredentials,
+      insideEmacs,
+      coursierExperimental,
+      coursierJni,
+      coursierMode,
+      coursierNoTerm,
+      coursierProgress,
+      coursierRepositories,
+      coursierVendoredZis,
+      csMavenHome
+    )
+    val coursierBinDir       = EnvVar("COURSIER_BIN_DIR", "Coursier app binaries directory")
+    val coursierCache        = EnvVar("COURSIER_CACHE", "Coursier cache location")
+    val coursierConfigDir    = EnvVar("COURSIER_CONFIG_DIR", "Coursier configuration directory")
+    val coursierCredentials  = EnvVar("COURSIER_CREDENTIALS", "Coursier credentials")
+    val coursierExperimental = EnvVar("COURSIER_EXPERIMENTAL", "Experimental mode toggle")
+    val coursierJni          = EnvVar("COURSIER_JNI", "Coursier JNI toggle")
+    val coursierMode         = EnvVar("COURSIER_MODE", "Coursier mode (can be set to 'offline')")
+    val coursierNoTerm       = EnvVar("COURSIER_NO_TERM", "Terminal toggle")
+    val coursierProgress     = EnvVar("COURSIER_PROGRESS", "Progress bar toggle")
+    val coursierRepositories = EnvVar("COURSIER_REPOSITORIES", "Coursier repositories")
+    val coursierVendoredZis =
+      EnvVar("COURSIER_VENDORED_ZIS", "Toggle io.github.scala_cli.zip.ZipInputStream")
+    val csMavenHome = EnvVar("CS_MAVEN_HOME", "Coursier Maven home directory")
+    val insideEmacs = EnvVar("INSIDE_EMACS", "Emacs toggle")
   }
 
   object ScalaCli extends EnvVarGroup {
