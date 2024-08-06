@@ -57,7 +57,7 @@ object EnvVar {
         }""".stripMargin
     }
   }
-  def allGroups: Seq[EnvVarGroup] = Seq(ScalaCli, Java, Coursier, Spark, Misc, Internal)
+  def allGroups: Seq[EnvVarGroup] = Seq(ScalaCli, Java, Bloop, Coursier, Spark, Misc, Internal)
   def all: Seq[EnvVar]            = allGroups.flatMap(_.all)
   def allBsp: Seq[EnvVar]         = all.filter(_.passToIde)
   object Java extends EnvVarGroup {
@@ -83,6 +83,7 @@ object EnvVar {
     val dyldLibraryPath = EnvVar("DYLD_LIBRARY_PATH", "Runtime library paths on Mac OS X")
     val ldLibraryPath   = EnvVar("LD_LIBRARY_PATH", "Runtime library paths on Linux")
     val pathExt         = EnvVar("PATHEXT", "Executable file extensions on Windows")
+    val pwd             = EnvVar("PWD", "Current working directory", passToIde = false)
     val shell           = EnvVar("SHELL", "The currently used shell")
     val vcVarsAll       = EnvVar("VCVARSALL", "Visual C++ Redistributable Runtimes")
     val zDotDir         = EnvVar("ZDOTDIR", "Zsh configuration directory")
@@ -108,6 +109,7 @@ object EnvVar {
       vendoredZipInputStream
     )
     val config            = EnvVar("SCALA_CLI_CONFIG", "Scala CLI configuration file path")
+    val extraTimeout      = Bloop.bloopExtraTimeout.copy(requiresPower = false)
     val home              = EnvVar("SCALA_CLI_HOME", "Scala CLI home directory")
     val interactive       = EnvVar("SCALA_CLI_INTERACTIVE", "Interactive mode toggle")
     val interactiveInputs = EnvVar("SCALA_CLI_INTERACTIVE_INPUTS", "Interactive mode inputs")
@@ -122,6 +124,35 @@ object EnvVar {
     override def groupName: String = "Spark"
     override def all               = Seq(sparkHome)
     val sparkHome = EnvVar("SPARK_HOME", "Spark installation directory", requiresPower = true)
+  }
+
+  object Bloop extends EnvVarGroup {
+    override def groupName: String = "Bloop"
+    override def all = Seq(
+      bloopComputationCores,
+      bloopDaemonDir,
+      bloopJavaOpts,
+      bloopModule,
+      bloopPort,
+      bloopScalaVersion,
+      bloopVersion,
+      bloopServer,
+      bloopExtraTimeout
+    )
+    val bloopComputationCores = EnvVar(
+      "BLOOP_COMPUTATION_CORES",
+      "Number of computation cores to be used",
+      requiresPower = true
+    )
+    val bloopDaemonDir = EnvVar("BLOOP_DAEMON_DIR", "Bloop daemon directory", requiresPower = true)
+    val bloopJavaOpts  = EnvVar("BLOOP_JAVA_OPTS", "Bloop Java options", requiresPower = true)
+    val bloopModule    = EnvVar("BLOOP_MODULE", "Bloop default module", requiresPower = true)
+    val bloopPort      = EnvVar("BLOOP_PORT", "Bloop default port", requiresPower = true)
+    val bloopScalaVersion =
+      EnvVar("BLOOP_SCALA_VERSION", "Bloop default Scala version", requiresPower = true)
+    val bloopVersion      = EnvVar("BLOOP_VERSION", "Bloop default version", requiresPower = true)
+    val bloopServer       = EnvVar("BLOOP_SERVER", "Bloop default host", requiresPower = true)
+    val bloopExtraTimeout = EnvVar("SCALA_CLI_EXTRA_TIMEOUT", "Extra timeout", requiresPower = true)
   }
 
   object Internal extends EnvVarGroup {
