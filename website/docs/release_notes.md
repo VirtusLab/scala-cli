@@ -8,9 +8,28 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.4.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.3)
+
+This release is a hotfix for v1.4.2, which due to technical difficulties was not released to Maven Central 
+(and, as an extension, wasn't available as a JAR). 
+
+All changes introduced by v1.4.2 are included in this release.
+
+### Internal changes
+* Ensure the `publish` step to be necessary for updating the native packages upon release by [@Gedochao](https://github.com/Gedochao) in [#3067](https://github.com/VirtusLab/scala-cli/pull/3067)
+
+### Updates
+* Update mill-main to 0.11.10 by [@scala-steward](https://github.com/scala-steward) in [#3060](https://github.com/VirtusLab/scala-cli/pull/3060)
+* Update mill-main to 0.11.11 by [@Gedochao](https://github.com/Gedochao) in [#3068](https://github.com/VirtusLab/scala-cli/pull/3068)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.4.2...v1.4.3
+
 ## [v1.4.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.2)
 
-## What's Changed
+:::caution
+v1.4.2 encountered certain difficulties during its release, which made it unavailable on Maven Central.
+It is recommended to upgrade directly to v1.4.3 or higher, rather than use it.
+:::
 
 ### Environment variable help with `--env-help`
 You can now list environment variables used internally with the `--envs-help` flag.
