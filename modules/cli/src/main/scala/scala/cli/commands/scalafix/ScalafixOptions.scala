@@ -26,19 +26,19 @@ final case class ScalafixOptions(
 
   @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
-  @HelpMessage("Pass an argument to scalafix.")
+  @HelpMessage("Pass extra argument(s) to scalafix.")
   @Tag(tags.inShortHelp)
   scalafixArg: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)
   @Tag(tags.implementation)
-  @HelpMessage("Pass rules directly to scalafix.")
+  @HelpMessage("Run rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
   rules: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)
   @Tag(tags.should)
-  @HelpMessage("Check if sources are well organized")
+  @HelpMessage("Fail the invocation instead of applying fixes")
   @Tag(tags.inShortHelp)
   check: Boolean = false,
 ) extends HasSharedOptions {

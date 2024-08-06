@@ -26,7 +26,7 @@ import scala.jdk.OptionConverters.*
 object Scalafix extends ScalaCommand[ScalafixOptions] {
   override def group: String = HelpCommandGroup.Main.toString
   override def sharedOptions(options: ScalafixOptions): Option[SharedOptions] = Some(options.shared)
-  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.SHOULD
+  override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
   val hiddenHelpGroups: Seq[HelpGroup] =
     Seq(
@@ -76,6 +76,14 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     val scalaVersion =
       options.buildOptions.orExit(logger).scalaParams.orExit(logger).map(_.scalaVersion)
         .getOrElse(Constants.defaultScalaVersion)
+
+    val scalaBinaryVersion = scalaVersion match
+      case v if v.startsWith("2.12.") => "2.12"
+      case v if v.startsWith("2.13.") => "2.13"
+      case v if v.startsWith("3.")    => "2.13"
+      case _ =>
+        logger.error("Unsupported scala version " + scalaVersion)
+        sys.exit(1)
     val configFilePathOpt = options.scalafixConf.map(os.Path(_, os.pwd))
     val relPaths          = sourcePaths.map(_.toNIO.getFileName)
     val toolClasspath     = options.shared.dependencies.compileOnlyDependency
@@ -83,19 +91,17 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     val scalafix = ScalafixInterface
       .fetchAndClassloadInstance("2.13")
       .newArguments()
-      .withParsedArguments(options.scalafixArg.asJava)
       .withWorkingDirectory(workspace.toNIO)
       .withPaths(relPaths.asJava)
       .withRules(options.rules.asJava)
-      .withConfig(Optional.ofNullable(configFilePathOpt.map(_.toNIO).orNull))
+      .withConfig(configFilePathOpt.map(_.toNIO).toJava)
       .withScalaVersion(scalaVersion)
-      .withToolClasspath(Seq.empty.asJava, toolClasspath.asJava)
       .withScalacOptions(Seq("-Wunused", "-Wunused:imports", "-P:semanticdb:synthetics:on").asJava)
 
     val rulesThatWillRun = scalafix.rulesThatWillRun().asScala
 
     logger.debug(
-      s"Rewriting and linting ${sourcePaths.size} Scala sources against ${rulesThatWillRun.size} rules"
+      s"Processing ${sourcePaths.size} Scala sources against ${rulesThatWillRun.size} rules"
     )
 
     val isSemantic = rulesThatWillRun.exists(_.kind().isSemantic)
@@ -132,8 +138,11 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     else
       scalafix
 
+    val customScalafixInstance = preparedScalafixInstance
+      .withParsedArguments(options.scalafixArg.asJava)
+
     val errors = if (options.check) {
-      val evaluation = preparedScalafixInstance.evaluate()
+      val evaluation = customScalafixInstance.evaluate()
       if (evaluation.isSuccessful)
         evaluation.getFileEvaluations.foldLeft(List.empty[String]) {
           case (errors, fileEvaluation) =>
@@ -146,7 +155,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
         evaluation.getErrorMessage.toScala.toList
     }
     else
-      preparedScalafixInstance.run().map(prepareErrorMessage).toList
+      customScalafixInstance.run().map(prepareErrorMessage).toList
 
     if (errors.isEmpty) sys.exit(0)
     else {
