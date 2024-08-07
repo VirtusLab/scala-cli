@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util
 
+import scala.build.internals.EnvVar
 import scala.build.{Directories, Logger}
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
@@ -57,7 +58,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         (script, defaultRcFile)
       case Zsh.id | "zsh" =>
         val completionScript = Zsh.script(name)
-        val zDotDir = Option(System.getenv("ZDOTDIR"))
+        val zDotDir = EnvVar.Misc.zDotDir.valueOpt
           .map(os.Path(_, os.pwd))
           .getOrElse(os.home)
         val defaultRcFile        = zDotDir / ".zshrc"
@@ -114,7 +115,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   def getFormat(format: Option[String]): Option[String] =
     format.map(_.trim).filter(_.nonEmpty)
       .orElse {
-        Option(System.getenv("SHELL")).map(_.split("[\\/]+").last).map {
+        EnvVar.Misc.shell.valueOpt.map(_.split("[\\/]+").last).map {
           case "bash" => Bash.id
           case "zsh"  => Zsh.id
           case other  => other

@@ -1672,6 +1672,7 @@ jobs:
       - checks
       - reference-doc
       - generate-linux-arm64-native-launcher
+      - publish
     if: github.event_name == 'push'
     runs-on: ubuntu-20.04
     steps:
@@ -1730,7 +1731,9 @@ jobs:
 
   update-packages:
     name: Update packages
-    needs: launchers
+    needs:
+      - launchers
+      - publish
     runs-on: ubuntu-20.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
@@ -1813,7 +1816,9 @@ jobs:
 
   update-windows-packages:
     name: Update Windows packages
-    needs: launchers
+    needs:
+      - launchers
+      - publish
     runs-on: "windows-2019"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:

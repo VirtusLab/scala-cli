@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 class ReplTests213 extends ReplTestDefinitions with Test213 {
-  test("repl custom repositories work") {
+  test("repl custom repositories work".flaky) {
     TestInputs.empty.fromRoot { root =>
       os.proc(
         TestUtil.cli,

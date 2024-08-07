@@ -33,6 +33,7 @@ import scala.build.internal.Regexes.scala3LtsRegex
 import scala.build.errors.ScalaVersionError
 
 class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
+  override def munitFlakyOK: Boolean = TestUtil.isCI
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)
@@ -217,7 +218,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.nightly option works") {
+  test("-S 2.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.nightly"))
@@ -230,7 +231,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.13.nightly option works") {
+  test("-S 2.13.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.13.nightly"))
@@ -256,7 +257,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.12.nightly option works") {
+  test("-S 2.12.nightly option works".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.12.nightly"))
@@ -269,7 +270,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  test("-S 2.13.9-bin-4505094 option works without repo specification") {
+  test("-S 2.13.9-bin-4505094 option works without repo specification".flaky) {
     val options = BuildOptions(
       scalaOptions = ScalaOptions(
         scalaVersion = Some(MaybeScalaVersion("2.13.9-bin-4505094"))

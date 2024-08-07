@@ -17,7 +17,7 @@ final case class JavaPropOptions(
   @ValueDescription("key=value|key")
   @Tag(tags.must)
     javaProp: List[String] = Nil
-)                                  
+)
 // format: on
 
 object JavaPropOptions {

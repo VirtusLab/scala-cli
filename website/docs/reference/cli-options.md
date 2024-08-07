@@ -465,7 +465,7 @@ Pass a global dialect for scalafmt. This overrides whatever value is configured 
 
 Aliases: `--fmt-version`
 
-Pass scalafmt version before running it (3.8.2 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.8.3 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -512,6 +512,12 @@ Available in commands:
 [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--help-envs`
+
+Aliases: `--env-help`, `--envs-help`, `--help-env`
+
+Show environment variable help
 
 ### `--help-js`
 
@@ -1196,7 +1202,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M2-13-23a8ef64 by default)
+Set the Ammonite version (3.0.0-M2-15-9bed9700 by default)
 
 ### `--ammonite-arg`
 

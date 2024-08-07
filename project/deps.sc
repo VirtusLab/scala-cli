@@ -88,7 +88,7 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.0-M2-13-23a8ef64"
+    def ammonite             = "3.0.0-M2-15-9bed9700"
     def ammoniteForScala3Lts = ammonite
     // jni-utils version may need to be sync-ed when bumping the coursier version
     def coursierDefault                   = "2.1.10"
@@ -98,7 +98,7 @@ object Deps {
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.18.1"
-    def scalaMeta                         = "4.9.8"
+    def scalaMeta                         = "4.9.9"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.4"
     def scalaNative                       = scalaNative05
@@ -123,7 +123,7 @@ object Deps {
   def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def asm                  = ivy"org.ow2.asm:asm:9.7"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.2"
+  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
@@ -164,19 +164,19 @@ object Deps {
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
-    ivy"com.geirsson::metaconfig-typesafe-config:0.12.0"
+    ivy"org.scalameta::metaconfig-typesafe-config:0.13.0"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:1.0.0"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.2"
+  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.3"
   def pprint                     = ivy"com.lihaoyi::pprint:0.9.0"
   def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.8.2"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.8.3"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

@@ -370,7 +370,7 @@ Aliases: `--fmt-version`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Pass scalafmt version before running it (3.8.2 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
+Pass scalafmt version before running it (3.8.3 by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.
 
 ## Global suppress warning options
 
@@ -425,6 +425,14 @@ Available in commands:
 [`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--help-envs`
+
+Aliases: `--env-help`, `--envs-help`, `--help-env`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Show environment variable help
 
 ### `--help-js`
 

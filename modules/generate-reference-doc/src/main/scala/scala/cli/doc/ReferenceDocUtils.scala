@@ -5,7 +5,7 @@ import caseapp.HelpMessage
 import java.util.stream.IntStream
 
 import scala.annotation.tailrec
-import scala.build.internal.util.ConsoleUtils.*
+import scala.build.internals.ConsoleUtils.*
 
 object ReferenceDocUtils {
   extension (s: String) {
