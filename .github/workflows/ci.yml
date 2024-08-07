@@ -1592,7 +1592,7 @@ jobs:
         retention-days: 2
 
   publish:
-    needs: [unit-tests, jvm-tests-1, jvm-tests-2, jvm-tests-3, jvm-tests-4, format, checks, reference-doc]
+    needs: [unit-tests, jvm-tests-1, jvm-tests-2, jvm-tests-3, jvm-tests-4, jvm-tests-5, format, checks, reference-doc]
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-20.04
     steps:
