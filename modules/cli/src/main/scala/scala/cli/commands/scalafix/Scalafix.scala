@@ -96,7 +96,6 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
       .withRules(options.rules.asJava)
       .withConfig(configFilePathOpt.map(_.toNIO).toJava)
       .withScalaVersion(scalaVersion)
-      .withScalacOptions(Seq("-Wunused", "-Wunused:imports", "-P:semanticdb:synthetics:on").asJava)
 
     val rulesThatWillRun = scalafix.rulesThatWillRun().asScala
 
