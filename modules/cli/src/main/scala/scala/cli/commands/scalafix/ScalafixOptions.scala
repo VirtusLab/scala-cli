@@ -19,25 +19,25 @@ final case class ScalafixOptions(
     shared: SharedOptions = SharedOptions(),
 
   @Group(HelpGroup.Format.toString)
-  @Tag(tags.implementation)
+  @Tag(tags.experimental)
   @HelpMessage("Custom path to the scalafix configuration file.")
   @Tag(tags.inShortHelp)
   scalafixConf: Option[String] = None,
 
   @Group(HelpGroup.Format.toString)
-  @Tag(tags.implementation)
+  @Tag(tags.experimental)
   @HelpMessage("Pass extra argument(s) to scalafix.")
   @Tag(tags.inShortHelp)
   scalafixArg: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)
-  @Tag(tags.implementation)
+  @Tag(tags.experimental)
   @HelpMessage("Run rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
   rules: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)
-  @Tag(tags.should)
+  @Tag(tags.experimental)
   @HelpMessage("Fail the invocation instead of applying fixes")
   @Tag(tags.inShortHelp)
   check: Boolean = false,
