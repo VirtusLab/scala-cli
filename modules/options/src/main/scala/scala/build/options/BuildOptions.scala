@@ -130,12 +130,11 @@ final case class BuildOptions(
       }
     else Nil
   }
-  private def dependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
+  private def defaultDependencies: Either[BuildException, Seq[Positioned[AnyDependency]]] = either {
     value(maybeJsDependencies).map(Positioned.none(_)) ++
       value(maybeNativeDependencies).map(Positioned.none(_)) ++
       value(scalaLibraryDependencies).map(Positioned.none(_)) ++
-      value(scalaCompilerDependencies).map(Positioned.none(_)) ++
-      classPathOptions.extraDependencies.toSeq
+      value(scalaCompilerDependencies).map(Positioned.none(_))
   }
 
   private def semanticDbPlugins(logger: Logger): Either[BuildException, Seq[AnyDependency]] =
@@ -451,7 +450,8 @@ final case class BuildOptions(
       scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
-      dependencies = value(dependencies),
+      defaultDependencies = value(defaultDependencies),
+      extraDependencies = classPathOptions.extraDependencies.toSeq,
       compileOnlyDependencies = classPathOptions.extraCompileOnlyDependencies.toSeq,
       extraClassPath = allExtraJars,
       extraCompileOnlyJars = allExtraCompileOnlyJars,

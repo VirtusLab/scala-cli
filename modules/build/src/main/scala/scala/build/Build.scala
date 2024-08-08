@@ -59,9 +59,14 @@ object Build {
     def outputOpt: Some[os.Path]          = Some(output)
     def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
     def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
-    def foundMainClasses(): Seq[String] =
-      MainClass.find(output).sorted ++
-        options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
+    def foundMainClasses(): Seq[String] = {
+      val found =
+        MainClass.find(output).sorted ++
+          options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
+      if (inputs.isEmpty && found.isEmpty)
+        artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
+      else found
+    }
     def retainedMainClass(
       mainClasses: Seq[String],
       commandString: String,

@@ -9,6 +9,11 @@ import scala.util.Properties
 
 trait RunScalacCompatTestDefinitions {
   _: RunTestDefinitions =>
+
+  final val smithyVersion = "1.50.0"
+  private def shutdownBloop() =
+    os.proc(TestUtil.cli, "bloop", "exit", "--power").call(mergeErrIntoOut = true)
+
   def commandLineScalacXOption(): Unit = {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->
@@ -274,6 +279,42 @@ trait RunScalacCompatTestDefinitions {
       expect(runRes.out.trim() == expectedOutput)
     }
   }
+
+  test("run main class from --dep even when no explicit inputs are passed") {
+    shutdownBloop()
+    val output = os.proc(
+      TestUtil.cli,
+      "--dep",
+      s"software.amazon.smithy:smithy-cli:$smithyVersion",
+      "--main-class",
+      "software.amazon.smithy.cli.SmithyCli",
+      "--",
+      "--version"
+    ).call()
+    assert(output.exitCode == 0)
+    assert(output.out.text().contains(smithyVersion))
+
+    // assert bloop wasn't started
+    assertNoDiff(shutdownBloop().out.text(), "No running Bloop server found.")
+  }
+
+  test("find and run main class from --dep even when no explicit inputs are passed") {
+    shutdownBloop()
+    val output = os.proc(
+      TestUtil.cli,
+      "run",
+      "--dep",
+      s"software.amazon.smithy:smithy-cli:$smithyVersion",
+      "--",
+      "--version"
+    ).call()
+    assert(output.exitCode == 0)
+    assert(output.out.text().contains(smithyVersion))
+
+    // assert bloop wasn't started
+    assertNoDiff(shutdownBloop().out.text(), "No running Bloop server found.")
+  }
+
   test("dont clear output dir") {
     val expectedOutput = "Hello"
     val `lib.scala`    = os.rel / "lib.scala"
