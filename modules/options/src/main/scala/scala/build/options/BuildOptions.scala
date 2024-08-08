@@ -46,7 +46,7 @@ final case class BuildOptions(
   testOptions: TestOptions = TestOptions(),
   notForBloopOptions: PostBuildOptions = PostBuildOptions(),
   sourceGeneratorOptions: SourceGeneratorOptions = SourceGeneratorOptions(),
-  useBuildServer: Option[Boolean] = None
+  useBuildServer: Option[Boolean] = None,
 ) {
 
   import BuildOptions.JavaHomeInfo

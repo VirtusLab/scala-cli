@@ -861,6 +861,8 @@ object Build {
       if (options.useBuildServer.getOrElse(true)) None
       else releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
 
+    val sourceGeneratorConfig = options.sourceGeneratorOptions.generatorConfig
+
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
         val params = value(options.scalaParams).getOrElse {
@@ -1009,7 +1011,8 @@ object Build {
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacOptions
+      javacOptions = javacOptions,
+      generateSource = Option(sourceGeneratorConfig)
     )
     project
   }
