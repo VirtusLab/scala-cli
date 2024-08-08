@@ -89,7 +89,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     val toolClasspath     = options.shared.dependencies.compileOnlyDependency
 
     val scalafix = ScalafixInterface
-      .fetchAndClassloadInstance("2.13")
+      .fetchAndClassloadInstance(scalaBinaryVersion)
       .newArguments()
       .withWorkingDirectory(workspace.toNIO)
       .withPaths(relPaths.asJava)
@@ -130,8 +130,12 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
         options.shared.dependencies.compileOnlyDependency ++ successfulBuildOpt.map(
           _.options.classPathOptions.extraCompileOnlyJars
         ).getOrElse(Seq.empty).map(_.toNIO.toString)
+      val scalacOptions = options.shared.scalac.scalacOption ++ successfulBuildOpt.map(
+        _.options.scalaOptions.scalacOptions.map(_.value.value).toSeq
+      ).getOrElse(Seq.empty)
 
       scalafix
+        .withScalacOptions(scalacOptions.asJava)
         .withClasspath(classPaths.map(_.toNIO).asJava)
         .withToolClasspath(Seq.empty.asJava, externalDeps.asJava)
     }
