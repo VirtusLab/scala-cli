@@ -85,6 +85,9 @@ object Export extends ScalaCommand[ExportOptions] {
     mavenScalaPluginVersion: String,
     mavenExecPluginVersion: String,
     extraSettings: Seq[String],
+    mavenGroupId: String,
+    mavenArtifactId: String,
+    mavenVersion: String,
     logger: Logger
   ): MavenProjectDescriptor =
     MavenProjectDescriptor(
@@ -92,6 +95,9 @@ object Export extends ScalaCommand[ExportOptions] {
       mavenScalaPluginVersion,
       mavenExecPluginVersion,
       extraSettings,
+      mavenGroupId,
+      mavenArtifactId,
+      mavenVersion,
       logger
     )
 
@@ -238,6 +244,12 @@ object Export extends ScalaCommand[ExportOptions] {
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
       val defaultMavenExecPluginVersion =
         options.mvnExecPluginVersion.getOrElse(Constants.mavenExecPluginVersion)
+      val defaultMavenArtifactId =
+        options.mvnAppArtifactId.getOrElse(Constants.mavenAppArtifactId)
+      val defaultMavenGroupId =
+        options.mvnAppGroupId.getOrElse(Constants.mavenAppGroupId)
+      val defaultMavenVersion =
+        options.mvnAppVersion.getOrElse(Constants.mavenAppVersion)
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
@@ -251,6 +263,9 @@ object Export extends ScalaCommand[ExportOptions] {
             defaultScalaMavenCompilerVersion,
             defaultMavenExecPluginVersion,
             Nil,
+            defaultMavenGroupId,
+            defaultMavenArtifactId,
+            defaultMavenVersion,
             logger
           )
         else if (shouldExportToJson)

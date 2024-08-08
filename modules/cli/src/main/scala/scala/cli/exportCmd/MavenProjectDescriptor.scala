@@ -15,6 +15,7 @@ import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
+import scala.cli.commands.export0.ExportOptions
 import scala.cli.exportCmd.POMBuilderHelper.*
 import scala.xml.{Elem, XML}
 
@@ -35,6 +36,9 @@ final case class MavenProjectDescriptor(
   mavenScalaPluginVersion: String,
   mavenExecPluginVersion: String,
   extraSettings: Seq[String],
+  mavenAppGroupId: String,
+  mavenAppArtifactId: String,
+  mavenAppVersion: String,
   logger: Logger
 ) extends ProjectDescriptor {
   private val q  = "\""
@@ -49,7 +53,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  // todo: fill this
+  // todo: fill this - to be done in separate issue to reduce scope for maven export
   private def javaOptionsSettings(options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
@@ -72,12 +76,15 @@ final case class MavenProjectDescriptor(
     javacOptionsSettings.toList
   }
 
-  private def projectArtifactSettings(): MavenProject =
-    // todo: Is it really needed to configure the values, or always use the default?
+  private def projectArtifactSettings(
+    mavenAppGroupId: String,
+    mavenAppArtifactId: String,
+    mavenAppVersion: String
+  ): MavenProject =
     MavenProject(
-      groupId = None,
-      artifactId = None,
-      version = None
+      groupId = Some(mavenAppGroupId),
+      artifactId = Some(mavenAppArtifactId),
+      version = Some(mavenAppVersion)
     )
 
   private def dependencySettings(
@@ -115,7 +122,8 @@ final case class MavenProjectDescriptor(
               s"Warning: Maven seems to support either test or provided, not both. So falling back to use Provided scope."
             )
             MavenScopes.Provided
-          } else MavenScopes.Main
+          }
+          else MavenScopes.Main
 
         MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
       }
@@ -296,7 +304,7 @@ final case class MavenProjectDescriptor(
       dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain),
       customResourcesSettings(optionsMain),
       plugins(optionsMain, Scope.Main, jdk, sourcesMain),
-      projectArtifactSettings()
+      projectArtifactSettings(mavenAppGroupId, mavenAppArtifactId, mavenAppVersion)
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))
   }

@@ -398,6 +398,18 @@ Version of Maven Scala Plugin to be used for the export
 
 Version of Maven Exec Plugin to be used for the export
 
+### `--mvn-app-artifact-id`
+
+ArtifactId to be used for the maven export
+
+### `--mvn-app-group-id`
+
+GroupId to be used for the maven export
+
+### `--mvn-app-version`
+
+Version to be used for the maven export
+
 ### `--output`
 
 Aliases: `-o`

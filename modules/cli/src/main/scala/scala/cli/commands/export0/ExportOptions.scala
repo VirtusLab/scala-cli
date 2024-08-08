@@ -68,6 +68,18 @@ final case class ExportOptions(
   @Tag(tags.experimental)
   @HelpMessage("Version of Maven Exec Plugin to be used for the export")
   mvnExecPluginVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("ArtifactId to be used for the maven export")
+  mvnAppArtifactId: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("GroupId to be used for the maven export")
+  mvnAppGroupId: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version to be used for the maven export")
+  mvnAppVersion: Option[String] = None,
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
