@@ -18,7 +18,6 @@ final case class MavenProject(
   mainSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   testSources: Seq[(os.SubPath, String, Array[Byte])] = Nil,
   resourceDirectories: Seq[String] = Nil
-  // properties: Seq[(String, String)] = Nil // using Seq[Tuple] since derive was failing for Map
 ) extends Project {
 
   def +(other: MavenProject): MavenProject =
@@ -37,7 +36,6 @@ final case class MavenProject(
       dependencies,
       plugins,
       resourceDirectories
-      // properties
     )
 
     val prettyPrinter = new PrettyPrinter(width = 80, step = 2)
@@ -72,7 +70,6 @@ final case class MavenModel(
   dependencies: Seq[MavenLibraryDependency],
   plugins: Seq[MavenPlugin],
   resourceDirectories: Seq[String]
-  // properties: Seq[(String, String)] //todo: bring back only if it is needed
 ) {
 
   private def resourceNodes: NodeSeq =

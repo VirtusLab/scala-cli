@@ -252,7 +252,7 @@ object Export extends ScalaCommand[ExportOptions] {
             defaultMavenExecPluginVersion,
             Nil,
             logger
-          ) // todo: do we need extraSettings?
+          )
         else if (shouldExportToJson)
           jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default

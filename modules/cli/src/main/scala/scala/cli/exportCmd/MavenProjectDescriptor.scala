@@ -88,12 +88,10 @@ final case class MavenProjectDescriptor(
   ): MavenProject = {
 
     val scalaV = getScalaVersion(options)
-    def getScalaMajorPrefix =
-      scalaV match {
-        case s"2.12.${patch}" => "2.12"
-        case s"2.13.${patch}" => "2.13"
-        case s"3.$x.$y"       => "3"
-      }
+    def getScalaPrefix =
+      if scalaV.startsWith("3") then "3"
+      else if scalaV.startsWith("2.13") then "2.13"
+      else "2.12"
 
     def buildMavenDepModels(
       mainDeps: ShadowingSeq[Positioned[AnyDependency]],
@@ -108,13 +106,16 @@ final case class MavenProjectDescriptor(
         // TODO dep.attributes
         val artNameWithPrefix = dep.nameAttributes match {
           case NoAttributes           => name
-          case s: ScalaNameAttributes => s"${name}_$getScalaMajorPrefix"
+          case s: ScalaNameAttributes => s"${name}_$getScalaPrefix"
         }
         val scope0 =
           if (scope == Scope.Test) MavenScopes.Test
-          else if (isCompileOnly)
-            MavenScopes.Provided // maven seems to support either test or provided, not both
-          else MavenScopes.Main
+          else if (isCompileOnly) {
+            System.err.println(
+              s"Warning: Maven seems to support either test or provided, not both. So falling back to use Provided scope."
+            )
+            MavenScopes.Provided
+          } else MavenScopes.Main
 
         MavenLibraryDependency(org, artNameWithPrefix, ver, scope0)
       }
@@ -163,7 +164,7 @@ final case class MavenProjectDescriptor(
 
   private def getScalaVersion(options: BuildOptions): String =
     options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
-      ScalaCli.getDefaultScalaVersion // FIXME account for pure Java projects, where Scala version isn't defined
+      ScalaCli.getDefaultScalaVersion
     )
 
   private def plugins(
@@ -173,7 +174,6 @@ final case class MavenProjectDescriptor(
     sourcesMain: Sources
   ): MavenProject = {
 
-    // todo: use this method from mill and sbt projects as well
     val pureJava = ProjectDescriptor.isPureJavaProject(options, sourcesMain)
 
     val javacOptions = javacOptionsSettings(options)
