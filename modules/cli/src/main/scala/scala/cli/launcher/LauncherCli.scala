@@ -21,7 +21,7 @@ object LauncherCli {
   def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
 
     val logger          = LoggingOptions().logger
-    val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
+    val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""), logger)
     val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
     val scalaParameters = ScalaParameters(scalaVersion)
     val snapshotsRepo   = Seq(Repositories.central, Repositories.sonatype("snapshots"))

@@ -157,7 +157,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
         ).orExit(logger)
     }
 
-    val cache        = options.coursier.coursierCache(logger.coursierLogger(""))
+    val cache        = options.coursier.coursierCache(logger.coursierLogger(""), logger)
     val archiveCache = ArchiveCache().withCache(cache)
 
     LibSodiumJni.init(cache, archiveCache, logger)

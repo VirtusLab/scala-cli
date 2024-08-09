@@ -39,6 +39,11 @@ or
 scala-cli -Dcoursier.mode=offline run Main.scala 
 ```
 
+Finally, it's possible to enable offline mode via global config:
+```bash ignore
+scala-cli --power config offline true
+```
+
 ## Changes in behaviour
 
 ### Scala artifacts

@@ -70,6 +70,13 @@ object Keys {
     description = "Globally enables power mode (the '--power' launcher flag)."
   )
 
+  val offline = new Key.BooleanEntry(
+    prefix = Seq.empty,
+    name = "offline",
+    specificationLevel = SpecificationLevel.EXPERIMENTAL,
+    description = "Globally enables offline mode (the '--offline' flag)."
+  )
+
   val suppressDirectivesInMultipleFilesWarning =
     new Key.BooleanEntry(
       prefix = Seq("suppress-warning"),
@@ -176,6 +183,7 @@ object Keys {
     pgpSecretKey,
     pgpSecretKeyPassword,
     power,
+    offline,
     proxyAddress,
     proxyPassword,
     proxyUser,
