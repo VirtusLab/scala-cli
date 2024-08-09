@@ -44,7 +44,7 @@ object Main {
 
   def bloopPid: Option[Int] = {
     val processes = os.proc("jps", "-l").call().out.text()
-    "(\\d+) bloop[.]Bloop".r
+    "(\\d+) bloop[.]BloopServer".r
       .findFirstMatchIn(processes)
       .map(_.group(1).toInt)
   }

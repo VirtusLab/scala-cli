@@ -1,6 +1,6 @@
 package scala.cli.commands.bloop
 
-import bloop.rifle.internal.{Constants, Operations}
+import bloop.rifle.internal.Operations
 import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.core.RemainingArgs
 

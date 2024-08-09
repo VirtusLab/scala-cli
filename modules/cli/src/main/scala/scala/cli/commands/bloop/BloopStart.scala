@@ -1,6 +1,6 @@
 package scala.cli.commands.bloop
 
-import bloop.rifle.internal.Constants
+import bloop.rifle.internal.BuildInfo
 import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.*
 
@@ -64,7 +64,7 @@ object BloopStart extends ScalaCommand[BloopStartOptions] {
         bloopRifleConfig,
         threads.startServerChecks,
         logger.bloopRifleLogger,
-        Constants.bloopVersion,
+        BuildInfo.version,
         bloopRifleConfig.javaPath
       )
       Await.result(f, Duration.Inf)

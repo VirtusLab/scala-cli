@@ -111,7 +111,7 @@ object Deps {
     def signingCliJvmVersion              = 17
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
-    def bloop                             = "1.5.17-sc-2"
+    def bloop                             = "2.0.0-RC1"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
@@ -128,7 +128,7 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.3"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def bloopRifle       = ivy"io.github.alexarchambault.bleep:bloop-rifle_2.13:${Versions.bloop}"
+  def bloopRifle       = ivy"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M28"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.12.0"

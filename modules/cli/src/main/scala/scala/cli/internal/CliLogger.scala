@@ -160,6 +160,8 @@ class CliLogger(
   def bloopRifleLogger =
     new BloopRifleLogger {
       def info(msg: => String) = logger.message(msg)
+      def debug(msg: => String) =
+        if (verbosity >= 3) logger.debug(msg)
       def debug(msg: => String, ex: Throwable) =
         if (verbosity >= 3) {
           logger.debug(msg)
