@@ -61,20 +61,18 @@ object OsLibc {
     else default
   }
 
-  private def defaultJvmVersion = "17"
-
   def baseDefaultJvm(os: String, jvmVersion: String): String = {
-    def java17OrHigher = Try(jvmVersion.takeWhile(_.isDigit).toInt)
+    def bloomMinimumJavaOrHigher = Try(jvmVersion.takeWhile(_.isDigit).toInt)
       .toOption
-      .forall(_ >= 17)
+      .forall(_ >= Constants.minimumBloopJavaVersion)
     if (os == "linux-musl") s"liberica:$jvmVersion" // zulu could work too
-    else if (java17OrHigher) s"temurin:$jvmVersion"
+    else if (bloomMinimumJavaOrHigher) s"temurin:$jvmVersion"
     else if (Os.isArmArchitecture) s"zulu:$jvmVersion" // adopt doesn't support Java 8 on macOS arm
     else s"temurin:$jvmVersion"
   }
 
   def defaultJvm(os: String): String =
-    baseDefaultJvm(os, defaultJvmVersion)
+    baseDefaultJvm(os, Constants.defaultJavaVersion.toString)
 
   def javaVersion(javaCmd: String): Int = {
     val javaVersionOutput = os.proc(javaCmd, "-version").call(
