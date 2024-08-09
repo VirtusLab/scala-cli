@@ -79,6 +79,28 @@ object Export extends ScalaCommand[ExportOptions] {
     logger: Logger
   ): SbtProjectDescriptor =
     SbtProjectDescriptor(sbtVersion, extraSettings, logger)
+
+  def mavenProjectDescriptor(
+    mavenPluginVersion: String,
+    mavenScalaPluginVersion: String,
+    mavenExecPluginVersion: String,
+    extraSettings: Seq[String],
+    mavenGroupId: String,
+    mavenArtifactId: String,
+    mavenVersion: String,
+    logger: Logger
+  ): MavenProjectDescriptor =
+    MavenProjectDescriptor(
+      mavenPluginVersion,
+      mavenScalaPluginVersion,
+      mavenExecPluginVersion,
+      extraSettings,
+      mavenGroupId,
+      mavenArtifactId,
+      mavenVersion,
+      logger
+    )
+
   def millProjectDescriptor(
     cache: FileCache[Task],
     projectName: Option[String],
@@ -129,9 +151,13 @@ object Export extends ScalaCommand[ExportOptions] {
       sys.exit(1)
     }
 
-    val shouldExportToMill = options.mill.getOrElse(false)
-    val shouldExportToSbt  = options.sbt.getOrElse(false)
-    if (shouldExportToMill && shouldExportToSbt) {
+    val shouldExportToMill  = options.mill.getOrElse(false)
+    val shouldExportToSbt   = options.sbt.getOrElse(false)
+    val shouldExportToMaven = options.maven.getOrElse(false)
+
+    val exportOptions = List(shouldExportToMill, shouldExportToSbt, shouldExportToMaven)
+
+    if (exportOptions.count(identity) > 1) {
       logger.error(
         s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
       )
@@ -139,7 +165,8 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     if (!shouldExportToJson) {
-      val buildToolName = if (shouldExportToMill) "mill" else "sbt"
+      val buildToolName =
+        if (shouldExportToMill) "mill" else if (shouldExportToMaven) "maven" else "sbt"
       logger.message(s"Exporting to a $buildToolName project...")
     }
     else if (!shouldExportJsonToStdout)
@@ -211,7 +238,18 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion = options.sbtVersion.getOrElse("1.10.1")
+      val sbtVersion                  = options.sbtVersion.getOrElse("1.10.1")
+      val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
+      val defaultScalaMavenCompilerVersion =
+        options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
+      val defaultMavenExecPluginVersion =
+        options.mvnExecPluginVersion.getOrElse(Constants.mavenExecPluginVersion)
+      val defaultMavenArtifactId =
+        options.mvnAppArtifactId.getOrElse(Constants.mavenAppArtifactId)
+      val defaultMavenGroupId =
+        options.mvnAppGroupId.getOrElse(Constants.mavenAppGroupId)
+      val defaultMavenVersion =
+        options.mvnAppVersion.getOrElse(Constants.mavenAppVersion)
 
       def sbtProjectDescriptor0 =
         sbtProjectDescriptor(options.sbtSetting.map(_.trim).filter(_.nonEmpty), sbtVersion, logger)
@@ -219,6 +257,17 @@ object Export extends ScalaCommand[ExportOptions] {
       val projectDescriptor =
         if (shouldExportToMill)
           millProjectDescriptor(options.shared.coursierCache, options.project, logger)
+        else if (shouldExportToMaven)
+          mavenProjectDescriptor(
+            defaultMavenCompilerVersion,
+            defaultScalaMavenCompilerVersion,
+            defaultMavenExecPluginVersion,
+            Nil,
+            defaultMavenGroupId,
+            defaultMavenArtifactId,
+            defaultMavenVersion,
+            logger
+          )
         else if (shouldExportToJson)
           jsonProjectDescriptor(options.project, inputs.workspace, logger)
         else // shouldExportToSbt isn't checked, as it's treated as default

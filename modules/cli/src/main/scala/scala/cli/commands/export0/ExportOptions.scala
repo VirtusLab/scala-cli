@@ -27,6 +27,12 @@ final case class ExportOptions(
   @HelpMessage("Sets the export format to SBT")
     sbt: Option[Boolean] = None,
   @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @Tag(tags.inShortHelp)
+  @HelpMessage("Sets the export format to Maven")
+  @Name("mvn")
+    maven: Option[Boolean] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
   @HelpMessage("Sets the export format to Mill")
@@ -50,6 +56,30 @@ final case class ExportOptions(
   @Tag(tags.restricted)
   @HelpMessage("Version of SBT to be used for the export")
     sbtVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Compiler Plugin to be used for the export")
+    mvnVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Scala Plugin to be used for the export")
+  mvnScalaVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version of Maven Exec Plugin to be used for the export")
+  mvnExecPluginVersion: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("ArtifactId to be used for the maven export")
+  mvnAppArtifactId: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("GroupId to be used for the maven export")
+  mvnAppGroupId: Option[String] = None,
+  @Group(HelpGroup.BuildToolExport.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Version to be used for the maven export")
+  mvnAppVersion: Option[String] = None,
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)

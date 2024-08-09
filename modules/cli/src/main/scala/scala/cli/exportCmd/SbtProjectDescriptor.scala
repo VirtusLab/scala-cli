@@ -45,12 +45,7 @@ final case class SbtProjectDescriptor(
 
   private def pureJavaSettings(options: BuildOptions, sources: Sources): SbtProject = {
 
-    val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
-      !options.scalaOptions.addScalaCompiler.contains(true) &&
-      sources.paths.forall(_._1.last.endsWith(".java")) &&
-      sources.inMemory.forall(_.generatedRelPath.last.endsWith(".java")) &&
-      options.classPathOptions.allExtraDependencies.toSeq
-        .forall(_.value.nameAttributes == NoAttributes)
+    val pureJava = ProjectDescriptor.isPureJavaProject(options, sources)
 
     val settings =
       if (pureJava)
@@ -123,7 +118,7 @@ final case class SbtProjectDescriptor(
     val scalaVerSetting = {
 
       val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
-        ScalaCli.getDefaultScalaVersion // FIXME account for pure Java projects, where Scala version isn't defined
+        ScalaCli.getDefaultScalaVersion
       )
 
       s"""scalaVersion := "$sv""""

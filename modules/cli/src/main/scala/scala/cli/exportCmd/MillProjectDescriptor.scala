@@ -31,15 +31,10 @@ final case class MillProjectDescriptor(
 
   private def scalaVersionSettings(options: BuildOptions, sources: Sources): MillProject = {
 
-    val pureJava = !options.scalaOptions.addScalaLibrary.contains(true) &&
-      !options.scalaOptions.addScalaCompiler.contains(true) &&
-      sources.hasJava &&
-      !sources.hasScala &&
-      options.classPathOptions.allExtraDependencies.toSeq
-        .forall(_.value.nameAttributes == NoAttributes)
+    val pureJava = ProjectDescriptor.isPureJavaProject(options, sources)
 
     val sv = options.scalaParams.toOption.flatten.map(_.scalaVersion).getOrElse(
-      ScalaCli.getDefaultScalaVersion // FIXME account for pure Java projects, where Scala version isn't defined
+      ScalaCli.getDefaultScalaVersion
     )
 
     if (pureJava)

@@ -358,6 +358,12 @@ Available in commands:
 
 Sets the export format to SBT
 
+### `--maven`
+
+Aliases: `--mvn`
+
+Sets the export format to Maven
+
 ### `--mill`
 
 Sets the export format to Mill
@@ -379,6 +385,30 @@ Project name to be used on Mill build file
 ### `--sbt-version`
 
 Version of SBT to be used for the export
+
+### `--mvn-version`
+
+Version of Maven Compiler Plugin to be used for the export
+
+### `--mvn-scala-version`
+
+Version of Maven Scala Plugin to be used for the export
+
+### `--mvn-exec-plugin-version`
+
+Version of Maven Exec Plugin to be used for the export
+
+### `--mvn-app-artifact-id`
+
+ArtifactId to be used for the maven export
+
+### `--mvn-app-group-id`
+
+GroupId to be used for the maven export
+
+### `--mvn-app-version`
+
+Version to be used for the maven export
 
 ### `--output`
 
