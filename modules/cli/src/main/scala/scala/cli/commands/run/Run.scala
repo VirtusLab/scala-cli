@@ -113,13 +113,22 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   def runCommand(
-    options: RunOptions,
+    options0: RunOptions,
     inputArgs: Seq[String],
     programArgs: Seq[String],
     defaultInputs: () => Option[Inputs],
     logger: Logger,
     invokeData: ScalaCliInvokeData
   ): Unit = {
+    val shouldDefaultServerFalse =
+      inputArgs.isEmpty && options0.shared.compilationServer.server.isEmpty &&
+      !options0.shared.hasSnippets
+    val options = if (shouldDefaultServerFalse) options0.copy(shared =
+      options0.shared.copy(compilationServer =
+        options0.shared.compilationServer.copy(server = Some(false))
+      )
+    )
+    else options0
     val initialBuildOptions = {
       val buildOptions = buildOptionsOrExit(options)
       if (invokeData.subCommand == SubCommand.Shebang) {

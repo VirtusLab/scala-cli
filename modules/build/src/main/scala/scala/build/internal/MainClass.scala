@@ -4,6 +4,7 @@ import org.objectweb.asm
 import org.objectweb.asm.ClassReader
 
 import java.io.{ByteArrayInputStream, InputStream}
+import java.util.jar.{Attributes, JarFile, JarInputStream, Manifest}
 import java.util.zip.ZipEntry
 
 import scala.build.input.Element
@@ -66,6 +67,16 @@ object MainClass {
       else Iterator.empty
     )
   }
+
+  def findInDependency(jar: os.Path): Option[String] =
+    jar match {
+      case jar if os.isFile(jar) && jar.last.endsWith(".jar") =>
+        val jarFile   = new JarFile(jar.toIO)
+        val manifest  = jarFile.getManifest()
+        val mainClass = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)
+        Option(mainClass).map(_.asInstanceOf[String])
+      case _ => None
+    }
 
   def find(output: os.Path): Seq[String] =
     output match {

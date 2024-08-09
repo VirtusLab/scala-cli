@@ -22,13 +22,14 @@ import scala.build.errors.{
 import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
-import scala.build.internal.Util.PositionedScalaDependencyOps
+import scala.build.internal.Util.{PositionedScalaDependencyOps, ScalaModuleOps}
 import scala.collection.mutable
 
 final case class Artifacts(
   javacPluginDependencies: Seq[(AnyDependency, String, os.Path)],
   extraJavacPlugins: Seq[os.Path],
-  userDependencies: Seq[AnyDependency],
+  defaultDependencies: Seq[AnyDependency],
+  extraDependencies: Seq[AnyDependency],
   userCompileOnlyDependencies: Seq[AnyDependency],
   internalDependencies: Seq[AnyDependency],
   detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)],
@@ -41,6 +42,22 @@ final case class Artifacts(
   hasJvmRunner: Boolean,
   resolution: Option[Resolution]
 ) {
+
+  def userDependencies = defaultDependencies ++ extraDependencies
+  lazy val jarsForUserExtraDependencies = {
+    val extraDependenciesMap =
+      extraDependencies.map(dep => dep.module.name -> dep.version).toMap
+    detailedArtifacts
+      .iterator
+      .collect {
+        case (dep, pub, _, path)
+            if pub.classifier != Classifier.sources &&
+            extraDependenciesMap.get(dep.module.name.value).contains(dep.version) => path
+      }
+      .toVector
+      .distinct
+  }
+
   lazy val artifacts: Seq[(String, os.Path)] =
     detailedArtifacts
       .iterator
@@ -93,7 +110,8 @@ object Artifacts {
     scalaArtifactsParamsOpt: Option[ScalaArtifactsParams],
     javacPluginDependencies: Seq[Positioned[AnyDependency]],
     extraJavacPlugins: Seq[os.Path],
-    dependencies: Seq[Positioned[AnyDependency]],
+    defaultDependencies: Seq[Positioned[AnyDependency]],
+    extraDependencies: Seq[Positioned[AnyDependency]],
     compileOnlyDependencies: Seq[Positioned[AnyDependency]],
     extraClassPath: Seq[os.Path],
     extraCompileOnlyJars: Seq[os.Path],
@@ -109,6 +127,7 @@ object Artifacts {
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, Artifacts] = either {
+    val dependencies = defaultDependencies ++ extraDependencies
 
     val jvmTestRunnerDependencies =
       if (addJvmTestRunner)
@@ -428,7 +447,8 @@ object Artifacts {
     Artifacts(
       javacPlugins0,
       extraJavacPlugins,
-      dependencies.map(_.value) ++ scalaOpt.toSeq.flatMap(_.extraDependencies),
+      defaultDependencies.map(_.value),
+      extraDependencies.map(_.value) ++ scalaOpt.toSeq.flatMap(_.extraDependencies),
       compileOnlyDependencies.map(_.value),
       internalDependencies.map(_.value),
       fetchRes.fullDetailedArtifacts.collect { case (d, p, a, Some(f)) =>

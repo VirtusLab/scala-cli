@@ -478,7 +478,8 @@ final case class SharedOptions(
     ))
       .extractedClassPath
 
-  def extraClasspathWasPassed: Boolean = extraJarsAndClassPath.exists(!_.hasSourceJarSuffix)
+  def extraClasspathWasPassed: Boolean =
+    extraJarsAndClassPath.exists(!_.hasSourceJarSuffix) || dependencies.dependency.nonEmpty
 
   def extraCompileOnlyClassPath: List[os.Path] = extraCompileOnlyJars.extractedClassPath
 
@@ -626,6 +627,10 @@ final case class SharedOptions(
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
   def allJavaSnippets: List[String]     = snippet.javaSnippet ++ snippet.executeJava
   def allMarkdownSnippets: List[String] = snippet.markdownSnippet ++ snippet.executeMarkdown
+
+  def hasSnippets =
+    allScriptSnippets.nonEmpty || allScalaSnippets.nonEmpty || allJavaSnippets
+      .nonEmpty || allMarkdownSnippets.nonEmpty
 
   def validateInputArgs(
     args: Seq[String]
