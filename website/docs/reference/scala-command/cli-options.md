@@ -750,6 +750,12 @@ Emit source maps
 
 Set the destination path of source maps
 
+### `--js-es-module-import-map`
+
+`SHOULD have` per Scala Runner specification
+
+A file relative to the root directory containing import maps for ES module imports
+
 ### `--js-dom`
 
 `SHOULD have` per Scala Runner specification
