@@ -568,7 +568,7 @@ final case class SharedOptions(
       .orElse {
         for (javaHome <- options.javaHomeLocationOpt()) yield {
           val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
-          if (javaHomeVersion >= 17)
+          if (javaHomeVersion >= Constants.minimumBloopJavaVersion)
             BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
           else defaultJvmHome
         }
