@@ -313,7 +313,7 @@ object CrossSources {
     val resourceDirs: Seq[WithBuildRequirements[os.Path]] =
       resolveResourceDirs(allInputs, preprocessedSources)
     val resourceFiles: Seq[WithBuildRequirements[os.Path]] =
-      resolveResourceFiles(allInputs, preprocessedSources)  
+      resolveResourceFiles(allInputs, preprocessedSources)
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
       (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
@@ -400,12 +400,12 @@ object CrossSources {
   }
 
   /** @return
-   * the resource files that should be added to the classpath
-   */
+    *   the resource files that should be added to the classpath
+    */
   private def resolveResourceFiles(
-                                   allInputs: Inputs,
-                                   preprocessedSources: Seq[PreprocessedSource]
-                                 ): Seq[WithBuildRequirements[os.Path]] = {
+    allInputs: Inputs,
+    preprocessedSources: Seq[PreprocessedSource]
+  ): Seq[WithBuildRequirements[os.Path]] = {
     val fromInputs = allInputs.elements
       .collect { case r: ResourceFile => WithBuildRequirements(BuildRequirements(), r.path) }
     val fromSources =

@@ -37,7 +37,14 @@ import scala.build.preprocessing.directives.{Python, Toolkit}
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.{HasGlobalOptions, ScalaJsOptions, ScalaNativeOptions, SharedOptions, SourceGeneratorOptions, SuppressWarningOptions}
+import scala.cli.commands.shared.{
+  HasGlobalOptions,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  SharedOptions,
+  SourceGeneratorOptions,
+  SuppressWarningOptions
+}
 import scala.cli.commands.tags
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
