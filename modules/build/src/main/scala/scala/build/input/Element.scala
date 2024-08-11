@@ -110,6 +110,7 @@ final case class MarkdownFile(base: os.Path, subPath: os.SubPath)
 final case class Directory(path: os.Path) extends OnDisk with Compiled
 
 final case class ResourceDirectory(path: os.Path) extends OnDisk
+final case class ResourceFile(path: os.Path) extends OnDisk
 
 final case class VirtualScript(content: Array[Byte], source: String, wrapperPath: os.SubPath)
     extends VirtualSourceFile with AnyScalaFile with AnyScript

@@ -637,7 +637,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           SuppressWarningOptions()
         )
       assert(crossSourcesResult.isRight)
-      val Right(CrossSources(onDiskSources, _, _, _, _, _)) =
+      val Right(CrossSources(onDiskSources, _, _, _, _, _, _)) =
         crossSourcesResult.map(_._1)
       val onDiskPaths = onDiskSources.map(_.value._1.last)
       expect(onDiskPaths == inputArgs)

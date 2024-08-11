@@ -16,6 +16,7 @@ final case class Sources(
   inMemory: Seq[Sources.InMemory],
   defaultMainClass: Option[String],
   resourceDirs: Seq[os.Path],
+  resourceFiles: Seq[os.Path],
   buildOptions: BuildOptions
 ) {
 

@@ -32,6 +32,7 @@ final case class ScopedSources(
   inMemory: Seq[HasScope[Sources.InMemory]],
   defaultMainElemPath: Option[os.Path],
   resourceDirs: Seq[HasScope[os.Path]],
+  resourceFiles: Seq[HasScope[os.Path]],
   buildOptions: Seq[HasScope[BuildOptions]],
   unwrappedScripts: Seq[HasScope[Sources.UnwrappedScript]]
 ) {
@@ -103,6 +104,7 @@ final case class ScopedSources(
       inMemory.flatMap(_.valueFor(scope).toSeq) ++ wrappedScripts ++ maybeBuildInfoSource,
       defaultMainClass,
       resourceDirs.flatMap(_.valueFor(scope).toSeq),
+      resourceFiles.flatMap(_.valueFor(scope).toSeq),
       combinedOptions
     )
   }

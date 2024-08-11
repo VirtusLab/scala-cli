@@ -13,6 +13,7 @@ final case class ClassPathOptions(
   extraDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   extraCompileOnlyDependencies: ShadowingSeq[Positioned[AnyDependency]] = ShadowingSeq.empty,
   resourcesDir: Seq[os.Path] = Nil,
+  resourceFiles: Seq[os.Path] = Nil,
   resourcesVirtualDir: Seq[os.SubPath] = Nil
 ) {
   def allExtraDependencies: ShadowingSeq[Positioned[AnyDependency]] =

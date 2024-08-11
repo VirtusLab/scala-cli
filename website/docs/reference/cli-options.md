@@ -1566,6 +1566,12 @@ Aliases: `--resource-dir`
 
 Add a resource directory
 
+### `--resource-files`
+
+Aliases: `--resource-file`
+
+Add a resource file
+
 ### `--as-jar`
 
 [Internal]

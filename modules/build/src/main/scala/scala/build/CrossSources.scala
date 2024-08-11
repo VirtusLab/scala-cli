@@ -49,6 +49,7 @@ final case class CrossSources(
   inMemory: Seq[WithBuildRequirements[Sources.InMemory]],
   defaultMainElemPath: Option[os.Path],
   resourceDirs: Seq[WithBuildRequirements[os.Path]],
+  resourceFiles: Seq[WithBuildRequirements[os.Path]],
   buildOptions: Seq[WithBuildRequirements[BuildOptions]],
   unwrappedScripts: Seq[WithBuildRequirements[Sources.UnwrappedScript]]
 ) {
@@ -132,6 +133,7 @@ final case class CrossSources(
       crossSources0.inMemory.map(_.scopedValue(defaultScope)),
       defaultMainElemPath,
       crossSources0.resourceDirs.map(_.scopedValue(defaultScope)),
+      crossSources0.resourceFiles.map(_.scopedValue(defaultScope)),
       crossSources0.buildOptions.map(_.scopedValue(defaultScope)),
       crossSources0.unwrappedScripts.map(_.scopedValue(defaultScope))
     )
@@ -310,6 +312,8 @@ object CrossSources {
 
     val resourceDirs: Seq[WithBuildRequirements[os.Path]] =
       resolveResourceDirs(allInputs, preprocessedSources)
+    val resourceFiles: Seq[WithBuildRequirements[os.Path]] =
+      resolveResourceFiles(allInputs, preprocessedSources)  
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
       (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
@@ -368,6 +372,7 @@ object CrossSources {
         inMemory,
         defaultMainElemPath,
         resourceDirs,
+        resourceFiles,
         buildOptions,
         unwrappedScripts
       ),
@@ -391,6 +396,25 @@ object CrossSources {
     val fromSourcesWithRequirements = preprocessedSources
       .flatMap(_.optionsWithTargetRequirements)
       .flatMap(_.map(_.classPathOptions.resourcesDir).flatten)
+    fromInputs ++ fromSources ++ fromSourcesWithRequirements
+  }
+
+  /** @return
+   * the resource files that should be added to the classpath
+   */
+  private def resolveResourceFiles(
+                                   allInputs: Inputs,
+                                   preprocessedSources: Seq[PreprocessedSource]
+                                 ): Seq[WithBuildRequirements[os.Path]] = {
+    val fromInputs = allInputs.elements
+      .collect { case r: ResourceFile => WithBuildRequirements(BuildRequirements(), r.path) }
+    val fromSources =
+      preprocessedSources.flatMap(_.options)
+        .flatMap(_.classPathOptions.resourceFiles)
+        .map(r => WithBuildRequirements(BuildRequirements(), r))
+    val fromSourcesWithRequirements = preprocessedSources
+      .flatMap(_.optionsWithTargetRequirements)
+      .flatMap(_.map(_.classPathOptions.resourceFiles).flatten)
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 

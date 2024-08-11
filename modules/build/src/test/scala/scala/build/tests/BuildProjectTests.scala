@@ -72,7 +72,7 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
       )
     )
     val inputs    = Inputs.empty("project")
-    val sources   = Sources(Nil, Nil, None, Nil, options)
+    val sources   = Sources(Nil, Nil, None, Nil, Nil, options)
     val logger    = new LoggerMock()
     val artifacts = options.artifacts(logger, Scope.Test).orThrow
 
