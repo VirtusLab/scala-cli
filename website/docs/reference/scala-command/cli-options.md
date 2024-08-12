@@ -126,7 +126,7 @@ Bloop global options file
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 ### `--bloop-working-dir`
 

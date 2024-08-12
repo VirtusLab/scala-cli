@@ -1,4 +1,6 @@
-import mill._, scalalib._
+import Deps.Versions
+import mill._
+import scalalib._
 
 object Scala {
   def scala212        = "2.12.19"
@@ -69,6 +71,12 @@ object Scala {
   }
 }
 
+object Java {
+  def minimumBloopJava    = 17
+  def minimumInternalJava = 16
+  def defaultJava         = minimumBloopJava
+}
+
 // Dependencies used in integration test fixtures
 object TestDeps {
   def pprint           = Deps.pprint
@@ -108,7 +116,7 @@ object Deps {
     def maxScalaNativeForMillExport       = scalaNative04
     def scalaPackager                     = "0.1.29"
     def signingCli                        = "0.2.3"
-    def signingCliJvmVersion              = 17
+    def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
     def bloop                             = "2.0.0-RC1"
@@ -233,7 +241,7 @@ object Deps {
 }
 
 def graalVmVersion     = "22.3.1"
-def graalVmJavaVersion = 17
+def graalVmJavaVersion = Java.defaultJava
 def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli

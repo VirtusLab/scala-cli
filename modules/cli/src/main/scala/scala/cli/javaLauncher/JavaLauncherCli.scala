@@ -19,7 +19,7 @@ object JavaLauncherCli {
 
     val buildOptions = BuildOptions(
       javaOptions = JavaOptions(
-        jvmIdOpt = Some(OsLibc.baseDefaultJvm(OsLibc.jvmIndexOs, "17")).map(Positioned.none)
+        jvmIdOpt = Some(OsLibc.defaultJvm(OsLibc.jvmIndexOs)).map(Positioned.none)
       )
     )
     val launcherKind = sys.props.get("scala-cli.kind") match {

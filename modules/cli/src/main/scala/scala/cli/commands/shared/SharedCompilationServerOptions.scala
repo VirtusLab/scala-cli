@@ -6,7 +6,7 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
-import coursier.core.{Version => Ver}
+import coursier.core.Version as Ver
 import coursier.util.Task
 
 import java.io.File
@@ -15,6 +15,7 @@ import java.util.Random
 
 import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
+import scala.cli.commands.Constants
 import scala.cli.commands.bloop.BloopJson
 import scala.cli.commands.shared.*
 import scala.cli.internal.Pid
@@ -86,7 +87,7 @@ final case class SharedCompilationServerOptions(
     bloopGlobalOptionsFile: Option[String] = None,
 
   @Group(HelpGroup.CompilationServer.toString)
-  @HelpMessage("JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)")
+  @HelpMessage(s"JVM to use to start Bloop (e.g. 'system|${Constants.minimumBloopJavaVersion}', 'temurin:21', …)")
   @Hidden
     bloopJvm: Option[String] = None,
 
@@ -276,7 +277,7 @@ final case class SharedCompilationServerOptions(
       javaOpts =
         (if (bloopDefaultJavaOpts) baseConfig.javaOpts
          else Nil) ++ bloopJavaOpt ++ bloopDefaultJvmOptions(logger).getOrElse(Nil),
-      minimumBloopJvm = javaV.getOrElse(17),
+      minimumBloopJvm = javaV.getOrElse(Constants.minimumBloopJavaVersion),
       retainedBloopVersion = retainedBloopVersion
     )
   }

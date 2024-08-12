@@ -494,7 +494,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -1257,7 +1257,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -1852,7 +1852,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -2471,7 +2471,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -3099,7 +3099,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -3685,7 +3685,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -4346,7 +4346,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -5014,7 +5014,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -5947,7 +5947,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 
@@ -6226,7 +6226,7 @@ Bloop global options file
 
 **--bloop-jvm**
 
-JVM to use to start Bloop (e.g. 'system|11', 'temurin:17', …)
+JVM to use to start Bloop (e.g. 'system|17', 'temurin:21', …)
 
 **--bloop-working-dir**
 

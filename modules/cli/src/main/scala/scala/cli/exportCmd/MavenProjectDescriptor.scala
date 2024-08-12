@@ -295,9 +295,8 @@ final case class MavenProjectDescriptor(
     sourcesTest: Sources
   ): Either[BuildException, MavenProject] = {
     val jdk =
-      optionsMain.javaOptions.jvmIdOpt.map(_.value).getOrElse(
-        "17"
-      ) // todo: get from constants for default jdk
+      optionsMain.javaOptions.jvmIdOpt.map(_.value)
+        .getOrElse(Constants.defaultJavaVersion.toString)
     val projectChunks = Seq(
       sources(sourcesMain, sourcesTest),
       javaOptionsSettings(optionsMain),

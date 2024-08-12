@@ -138,14 +138,15 @@ object ScalaCli {
         }
 
         e match {
-          case _: UnsupportedClassVersionError if javaMajorVersion < 17 =>
-            warnRequiresJava17()
+          case _: UnsupportedClassVersionError
+              if javaMajorVersion < Constants.minimumBloopJavaVersion =>
+            warnRequiresMinimumBloopJava()
           case _: NoClassDefFoundError
               if isJava17ClassName(e.getMessage) &&
               CurrentParams.verbosity <= 1 &&
-              javaMajorVersion < 16 =>
+              javaMajorVersion < Constants.minimumInternalJavaVersion =>
             // Actually Java >= 16 here, but let's recommend a LTS version…
-            warnRequiresJava17()
+            warnRequiresMinimumBloopJava()
           case _: FailedToStartServerException =>
             System.err.println(
               s"""Running
@@ -169,9 +170,9 @@ object ScalaCli {
         else sys.exit(1)
     }
 
-  private def warnRequiresJava17(): Unit =
+  private def warnRequiresMinimumBloopJava(): Unit =
     System.err.println(
-      s"Java >= 17 is required to run $fullRunnerName (found Java $javaMajorVersion)"
+      s"Java >= ${Constants.minimumBloopJavaVersion} is required to run $fullRunnerName (found Java $javaMajorVersion)"
     )
 
   def loadJavaProperties(cwd: os.Path) = {
@@ -250,7 +251,7 @@ object ScalaCli {
             val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
-                javaMajorVersion < 17
+                javaMajorVersion < Constants.minimumBloopJavaVersion
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>

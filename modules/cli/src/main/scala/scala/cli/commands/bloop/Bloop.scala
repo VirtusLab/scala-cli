@@ -4,7 +4,7 @@ import bloop.rifle.internal.Operations
 import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
 import caseapp.core.RemainingArgs
 
-import scala.build.internal.OsLibc
+import scala.build.internal.{Constants, OsLibc}
 import scala.build.{Directories, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
@@ -38,7 +38,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
     val javaHomeInfo = opts.compilationServer.bloopJvm
       .map(JvmUtils.downloadJvm(_, options))
       .getOrElse {
-        JvmUtils.getJavaCmdVersionOrHigher(17, options)
+        JvmUtils.getJavaCmdVersionOrHigher(Constants.minimumBloopJavaVersion, options)
       }.orExit(logger)
 
     opts.compilationServer.bloopRifleConfig(
