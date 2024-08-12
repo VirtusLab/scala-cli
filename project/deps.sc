@@ -103,6 +103,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
+    def jmh                               = "1.29"
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.18.1"
@@ -162,6 +163,7 @@ object Deps {
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
   def jgit     = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
   def jimfs    = ivy"com.google.jimfs:jimfs:1.3.0"
+  def jmh      = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jniUtils = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
