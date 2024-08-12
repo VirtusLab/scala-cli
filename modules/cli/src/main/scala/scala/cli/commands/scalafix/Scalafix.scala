@@ -4,9 +4,15 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 import scalafix.interfaces.ScalafixError.*
-import scalafix.interfaces.{ScalafixError, ScalafixException, ScalafixRule, Scalafix as ScalafixInterface}
+import scalafix.interfaces.{
+  Scalafix => ScalafixInterface,
+  ScalafixError,
+  ScalafixException,
+  ScalafixRule
+}
 
 import java.util.Optional
+
 import scala.build.input.{Inputs, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.{BuildOptions, Scope}
@@ -15,7 +21,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.compile.Compile.buildOptionsOrExit
 import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
-import scala.cli.commands.{compile, ScalaCommand, SpecificationLevel}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel, compile}
 import scala.cli.config.Keys
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
@@ -108,7 +114,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
         case e: ScalafixException => Left(e)
     val needToBuild: Boolean = rulesThatWillRun match
       case Right(rules) => rules.exists(_.kind().isSemantic)
-      case Left(_) => true
+      case Left(_)      => true
 
     val preparedScalafixInstance = if (needToBuild) {
       val res = Build.build(
