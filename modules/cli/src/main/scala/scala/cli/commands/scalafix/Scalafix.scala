@@ -4,10 +4,9 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 import scalafix.interfaces.ScalafixError.*
-import scalafix.interfaces.{Scalafix => ScalafixInterface, ScalafixError}
+import scalafix.interfaces.{ScalafixError, ScalafixException, ScalafixRule, Scalafix as ScalafixInterface}
 
 import java.util.Optional
-
 import scala.build.input.{Inputs, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.{BuildOptions, Scope}
@@ -16,10 +15,12 @@ import scala.cli.CurrentParams
 import scala.cli.commands.compile.Compile.buildOptionsOrExit
 import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
-import scala.cli.commands.{ScalaCommand, SpecificationLevel, compile}
+import scala.cli.commands.{compile, ScalaCommand, SpecificationLevel}
 import scala.cli.config.Keys
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
+import scala.collection.mutable
+import scala.collection.mutable.Buffer
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 
@@ -55,7 +56,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     )
     val inputs        = options.shared.inputs(args.all).orExit(logger)
     val threads       = BuildThreads.create()
-    val compilerMaker = options.shared.compilerMaker(threads).orExit(logger)
+    val compilerMaker = options.shared.compilerMaker(threads)
     val configDb      = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
@@ -86,7 +87,6 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
         sys.exit(1)
     val configFilePathOpt = options.scalafixConf.map(os.Path(_, os.pwd))
     val relPaths          = sourcePaths.map(_.toNIO.getFileName)
-    val toolClasspath     = options.shared.dependencies.compileOnlyDependency
 
     val scalafix = ScalafixInterface
       .fetchAndClassloadInstance(scalaBinaryVersion)
@@ -97,15 +97,20 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
       .withConfig(configFilePathOpt.map(_.toNIO).toJava)
       .withScalaVersion(scalaVersion)
 
-    val rulesThatWillRun = scalafix.rulesThatWillRun().asScala
-
     logger.debug(
-      s"Processing ${sourcePaths.size} Scala sources against ${rulesThatWillRun.size} rules"
+      s"Processing ${sourcePaths.size} Scala sources"
     )
 
-    val isSemantic = rulesThatWillRun.exists(_.kind().isSemantic)
+    val rulesThatWillRun: Either[ScalafixException, mutable.Buffer[ScalafixRule]] =
+      try
+        Right(scalafix.rulesThatWillRun().asScala)
+      catch
+        case e: ScalafixException => Left(e)
+    val needToBuild: Boolean = rulesThatWillRun match
+      case Right(rules) => rules.exists(_.kind().isSemantic)
+      case Left(_) => true
 
-    val preparedScalafixInstance = if (isSemantic || toolClasspath.nonEmpty) {
+    val preparedScalafixInstance = if (needToBuild) {
       val res = Build.build(
         inputs,
         buildOptionsWithSemanticDb,
@@ -127,10 +132,10 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
       val classPaths = successfulBuildOpt.map(_.fullClassPath).getOrElse(Seq.empty)
       val externalDeps =
         options.shared.dependencies.compileOnlyDependency ++ successfulBuildOpt.map(
-          _.options.classPathOptions.extraCompileOnlyJars
-        ).getOrElse(Seq.empty).map(_.toNIO.toString)
+          _.options.classPathOptions.extraCompileOnlyDependencies.values.flatten.map(_.value.render)
+        ).getOrElse(Seq.empty)
       val scalacOptions = options.shared.scalac.scalacOption ++ successfulBuildOpt.map(
-        _.options.scalaOptions.scalacOptions.map(_.value.value).toSeq
+        _.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       ).getOrElse(Seq.empty)
 
       scalafix
