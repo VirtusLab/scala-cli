@@ -55,8 +55,6 @@ class ScalafixTests213 extends ScalafixTestDefinitions with Test213 {
     externalRuleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "scalafix", "--power", ".", "-S", "2").call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      println(updatedContent)
-      println(expectedContent)
       expect(updatedContent == expectedContent)
     }
   }
