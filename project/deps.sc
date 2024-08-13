@@ -205,6 +205,7 @@ object Deps {
   def scalametaSemanticDbShared =
     ivy"org.scalameta:semanticdb-shared_${Scala.scala213}:${Versions.scalaMeta}"
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
+      .exclude("com.lihaoyi" -> "sourcecode")
   def signingCliShared =
     ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
