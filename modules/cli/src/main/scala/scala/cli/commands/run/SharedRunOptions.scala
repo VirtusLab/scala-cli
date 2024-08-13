@@ -9,8 +9,6 @@ import scala.cli.commands.tags
 // format: off
 final case class SharedRunOptions(
   @Recurse
-    benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
-  @Recurse
     sharedJava: SharedJavaOptions = SharedJavaOptions(),
   @Recurse
     watch: SharedWatchOptions = SharedWatchOptions(),

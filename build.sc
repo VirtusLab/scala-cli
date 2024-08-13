@@ -436,8 +436,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def localRepoResourcePath = "$localRepoResourcePath"
          |
          |  def jmhVersion = "${Deps.Versions.jmh}"
-         |  def jmhOrg = "${Deps.jmh.dep.module.organization.value}"
-         |  def jmhModule = "${Deps.jmh.dep.module.name.value}"
+         |  def jmhOrg = "${Deps.jmhCore.dep.module.organization.value}"
+         |  def jmhCoreModule = "${Deps.jmhCore.dep.module.name.value}"
+         |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
          |
          |  def ammoniteVersion = "${Deps.Versions.ammonite}"
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"

@@ -1,12 +1,14 @@
 package scala.cli.integration
 
+import com.eed3si9n.expecty.Expecty.expect
+
 import java.io.File
 import java.net.ServerSocket
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
 
-import scala.Console._
+import scala.Console.*
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
@@ -323,5 +325,17 @@ object TestUtil {
     println(s"Tagging as $tag...")
     os.proc("git", "tag", tag).call(cwd = cwd)
     println(s"Git initialized at $cwd")
+  }
+
+  def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
+    val res = os.proc(cmd*).call(cwd = cwd, check = false)
+    if (Properties.isLinux && res.exitCode == 127)
+      // /bin/sh seems to have issues with '%' signs in PATH, that coursier can leave
+      // in the JVM path entry (https://unix.stackexchange.com/questions/126955/percent-in-path-environment-variable)
+      os.proc((("/bin/bash": os.Shellable) +: cmd)*).call(cwd = cwd)
+    else {
+      expect(res.exitCode == 0)
+      res
+    }
   }
 }

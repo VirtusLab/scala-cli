@@ -16,18 +16,6 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  def maybeUseBash(cmd: os.Shellable*)(cwd: os.Path = null): os.CommandResult = {
-    val res = os.proc(cmd*).call(cwd = cwd, check = false)
-    if (Properties.isLinux && res.exitCode == 127)
-      // /bin/sh seems to have issues with '%' signs in PATH, that coursier can leave
-      // in the JVM path entry (https://unix.stackexchange.com/questions/126955/percent-in-path-environment-variable)
-      os.proc((("/bin/bash": os.Shellable) +: cmd)*).call(cwd = cwd)
-    else {
-      expect(res.exitCode == 0)
-      res
-    }
-  }
-
   test("simple script") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -53,7 +41,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = maybeUseBash(launcher)(cwd = root).out.trim()
+      val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -80,7 +68,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
       expect(Files.isExecutable(launcher.toNIO))
 
-      val output = maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      val output = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
       expect(output == message)
     }
   }
@@ -577,7 +565,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         }
       val runnableLauncherSize = os.size(runnableLauncher)
 
-      val output                  = maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
+      val output = TestUtil.maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
       val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
       expect(output == message)
       expect(runnableLauncherSize < maxRunnableLauncherSize)
@@ -1132,12 +1120,12 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       // bootstrap
       os.proc(packageCmds).call(cwd = root).out.trim()
-      val output = maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      val output = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
       expect(output == root.toString)
 
       // assembly
       os.proc(packageCmds, "--assembly", "-f").call(cwd = root).out.trim()
-      val outputAssembly = maybeUseBash(launcher.toString)(cwd = root).out.trim()
+      val outputAssembly = TestUtil.maybeUseBash(launcher.toString)(cwd = root).out.trim()
       expect(outputAssembly == root.toString)
     }
   }
