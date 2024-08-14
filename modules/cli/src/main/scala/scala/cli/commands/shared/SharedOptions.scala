@@ -87,6 +87,8 @@ final case class SharedOptions(
     workspace: SharedWorkspaceOptions = SharedWorkspaceOptions(),
   @Recurse
     sharedPython: SharedPythonOptions = SharedPythonOptions(),
+  @Recurse
+    benchmarking: BenchmarkingOptions = BenchmarkingOptions(),
 
   @Group(HelpGroup.Scala.toString)
   @HelpMessage(s"Set the Scala version (${Constants.defaultScalaVersion} by default)")
@@ -422,18 +424,9 @@ final case class SharedOptions(
           (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++ dependencies.repository)
             .map(_.trim)
             .filter(_.nonEmpty),
-        extraDependencies = ShadowingSeq.from(
-          SharedOptions.parseDependencies(
-            dependencies.dependency.map(Positioned.none),
-            ignoreErrors
-          ) ++ resolvedToolkitDependency
-        ),
-        extraCompileOnlyDependencies = ShadowingSeq.from(
-          SharedOptions.parseDependencies(
-            dependencies.compileOnlyDependency.map(Positioned.none),
-            ignoreErrors
-          ) ++ resolvedToolkitDependency
-        )
+        extraDependencies = extraDependencies(ignoreErrors, resolvedToolkitDependency),
+        extraCompileOnlyDependencies =
+          extraCompileOnlyDependencies(ignoreErrors, resolvedToolkitDependency)
       ),
       internal = bo.InternalOptions(
         cache = Some(coursierCache),
@@ -454,6 +447,35 @@ final case class SharedOptions(
       useBuildServer = compilationServer.server
     )
   }
+
+  private def resolvedDependencies(
+    deps: List[String],
+    ignoreErrors: Boolean,
+    extraResolvedDependencies: Seq[Positioned[AnyDependency]]
+  ) = ShadowingSeq.from {
+    SharedOptions.parseDependencies(deps.map(Positioned.none), ignoreErrors) ++
+      extraResolvedDependencies
+  }
+
+  private def extraCompileOnlyDependencies(
+    ignoreErrors: Boolean,
+    resolvedDeps: Seq[Positioned[AnyDependency]]
+  ) = {
+    val jmhCorePrefix = s"${Constants.jmhOrg}:${Constants.jmhCoreModule}"
+    val jmhDeps =
+      if benchmarking.jmh.getOrElse(false) &&
+        !dependencies.compileOnlyDependency.exists(_.startsWith(jmhCorePrefix)) &&
+        !dependencies.dependency.exists(_.startsWith(jmhCorePrefix))
+      then List(s"$jmhCorePrefix:${Constants.jmhVersion}")
+      else List.empty
+    val finalDeps = dependencies.compileOnlyDependency ++ jmhDeps
+    resolvedDependencies(finalDeps, ignoreErrors, resolvedDeps)
+  }
+
+  private def extraDependencies(
+    ignoreErrors: Boolean,
+    resolvedDeps: Seq[Positioned[AnyDependency]]
+  ) = resolvedDependencies(dependencies.dependency, ignoreErrors, resolvedDeps)
 
   extension (rawClassPath: List[String]) {
     def extractedClassPath: List[os.Path] =

@@ -135,9 +135,8 @@ object Artifacts {
       else
         Nil
 
-    val jmhDependencies = addJmhDependencies.toSeq.map { version =>
-      dep"org.openjdk.jmh:jmh-generator-bytecode:$version"
-    }
+    val jmhDependencies = addJmhDependencies.toSeq
+      .map(version => dep"${Constants.jmhOrg}:${Constants.jmhGeneratorBytecodeModule}:$version")
 
     val maybeSnapshotRepo = {
       val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||

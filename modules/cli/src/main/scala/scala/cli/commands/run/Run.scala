@@ -74,8 +74,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     import options.sharedRun.*
     val logger = options.shared.logger
     val baseOptions = shared.buildOptions(
-      enableJmh = benchmarking.jmh.contains(true),
-      jmhVersion = benchmarking.jmhVersion
+      enableJmh = shared.benchmarking.jmh.contains(true),
+      jmhVersion = shared.benchmarking.jmhVersion
     ).orExit(logger)
     baseOptions.copy(
       mainClass = mainClass.mainClass,

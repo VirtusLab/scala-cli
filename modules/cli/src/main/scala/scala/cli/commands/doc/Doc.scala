@@ -11,7 +11,7 @@ import scala.build.*
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
-import scala.build.internal.Runner
+import scala.build.internal.{Constants, Runner}
 import scala.build.options.BuildOptions
 import scala.cli.CurrentParams
 import scala.cli.commands.publish.ConfigUtil.*
@@ -27,6 +27,15 @@ object Doc extends ScalaCommand[DocOptions] {
   override def group: String = HelpCommandGroup.Main.toString
 
   override def sharedOptions(options: DocOptions): Option[SharedOptions] = Some(options.shared)
+
+  override def buildOptions(options: DocOptions): Option[BuildOptions] =
+    sharedOptions(options)
+      .map(shared =>
+        shared.buildOptions(
+          enableJmh = shared.benchmarking.jmh.getOrElse(false),
+          jmhVersion = shared.benchmarking.jmhVersion
+        ).orExit(shared.logger)
+      )
 
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Doc)
 
