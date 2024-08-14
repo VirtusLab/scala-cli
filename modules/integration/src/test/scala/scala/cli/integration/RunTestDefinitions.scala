@@ -1967,13 +1967,42 @@ abstract class RunTestDefinitions
     }
   }
 
-  if (!actualScalaVersion.contains("RC"))
-    test("offline mode should fail on missing artifacts") {
+  if (!actualScalaVersion.contains("RC")) {
+    val actualAnnouncedScalaVersion = actualScalaVersion match {
+      case _
+          if actualScalaVersion == Constants.scala3Next &&
+          Constants.scala3Next != Constants.scala3NextAnnounced =>
+        // if the version isn't public yet, Coursier won't be able to install it
+        Constants.scala3NextAnnounced
+      case s => s
+    }
+
+    test(
+      s"offline mode should fail on missing artifacts (with Scala $actualAnnouncedScalaVersion)"
+    ) {
       // Kill bloop deamon to test scalac fallback
       os.proc(TestUtil.cli, "--power", "bloop", "exit")
         .call(cwd = os.pwd)
 
-      val depScalaVersion = actualScalaVersion match {
+      // ensure extra options use an announced Scala version
+      val customExtraOptions: Seq[String] =
+        if (
+          scalaVersionOpt.isEmpty &&
+          Constants.scala3Next != Constants.scala3NextAnnounced
+        )
+          extraOptions ++ Seq("--scala", actualAnnouncedScalaVersion)
+        else if (
+          actualScalaVersion == Constants.scala3Next &&
+          actualScalaVersion != actualAnnouncedScalaVersion
+        )
+          extraOptions
+            .map {
+              case opt if opt == Constants.scala3Next => actualAnnouncedScalaVersion
+              case opt                                => opt
+            }
+        else extraOptions
+
+      val depScalaVersion = actualAnnouncedScalaVersion match {
         case sv if sv.startsWith("2.12") => "2.12"
         case sv if sv.startsWith("2.13") => "2.13"
         case _                           => "3"
@@ -2008,7 +2037,7 @@ abstract class RunTestDefinitions
           TestUtil.cli,
           "--power",
           "NoDeps.scala",
-          extraOptions,
+          customExtraOptions,
           "--offline",
           "--cache",
           cachePath.toString
@@ -2020,19 +2049,23 @@ abstract class RunTestDefinitions
         expect(emptyCacheWalkSize == os.walk(cachePath).size)
 
         // Download the artifacts for scala
-        os.proc(TestUtil.cs, "install", s"scala:$actualScalaVersion")
+        os.proc(TestUtil.cs, "install", s"scala:$actualAnnouncedScalaVersion")
           .call(cwd = root, env = extraEnv)
-        os.proc(TestUtil.cs, "install", s"scalac:$actualScalaVersion")
+        os.proc(TestUtil.cs, "install", s"scalac:$actualAnnouncedScalaVersion")
           .call(cwd = root, env = extraEnv)
-        (if (actualScalaVersion.startsWith("3")) Some("scala3-sbt-bridge")
+        (if (actualAnnouncedScalaVersion.startsWith("3")) Some("scala3-sbt-bridge")
          else if (
-           actualScalaVersion.startsWith("2.13.") &&
-           actualScalaVersion.coursierVersion >= "2.13.12".coursierVersion
+           actualAnnouncedScalaVersion.startsWith("2.13.") &&
+           actualAnnouncedScalaVersion.coursierVersion >= "2.13.12".coursierVersion
          )
            Some("scala2-sbt-bridge")
          else None)
           .foreach { bridgeArtifactName =>
-            os.proc(TestUtil.cs, "fetch", s"org.scala-lang:$bridgeArtifactName:$actualScalaVersion")
+            os.proc(
+              TestUtil.cs,
+              "fetch",
+              s"org.scala-lang:$bridgeArtifactName:$actualAnnouncedScalaVersion"
+            )
               .call(cwd = root, env = extraEnv)
           }
 
@@ -2046,7 +2079,7 @@ abstract class RunTestDefinitions
           TestUtil.cli,
           "--power",
           "NoDeps.scala",
-          extraOptions,
+          customExtraOptions,
           "--offline",
           "--cache",
           cachePath.toString,
@@ -2076,7 +2109,7 @@ abstract class RunTestDefinitions
             "--power",
             cliOption,
             "WithDeps.scala",
-            extraOptions,
+            customExtraOptions,
             "--cache",
             cachePath.toString
           )
@@ -2098,7 +2131,7 @@ abstract class RunTestDefinitions
           TestUtil.cli,
           "--power",
           "WithDeps.scala",
-          extraOptions,
+          customExtraOptions,
           "--offline",
           "--cache",
           cachePath.toString,
@@ -2118,6 +2151,7 @@ abstract class RunTestDefinitions
         expect(withDependencyCacheWalkSize == os.walk(cachePath).size)
       }
     }
+  }
 
   test("JVM id is printed with compilation info correctly") {
     val msg   = "Hello"
