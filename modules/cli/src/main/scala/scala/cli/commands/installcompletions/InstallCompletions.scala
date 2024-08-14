@@ -1,7 +1,7 @@
 package scala.cli.commands.installcompletions
 
 import caseapp.*
-import caseapp.core.complete.{Bash, Zsh}
+import caseapp.core.complete.{Bash, Fish, Zsh}
 import caseapp.core.help.HelpFormat
 
 import java.io.File
@@ -47,6 +47,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         )
         System.err.println(s"$name install completions --shell zsh")
         System.err.println(s"$name install completions --shell bash")
+        System.err.println(s"$name install completions --shell fish")
         sys.exit(1)
       }
     }
@@ -75,6 +76,10 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
           s"""fpath=("$dir" $$fpath)""",
           "compinit"
         ).map(_ + System.lineSeparator()).mkString
+        (script, defaultRcFile)
+      case Fish.id | "fish" =>
+        val script        = Fish.script(name)
+        val defaultRcFile = os.home / ".config" / "fish" / "config.fish"
         (script, defaultRcFile)
       case _ =>
         System.err.println(s"Unrecognized or unsupported shell: $format")
@@ -118,6 +123,7 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         EnvVar.Misc.shell.valueOpt.map(_.split("[\\/]+").last).map {
           case "bash" => Bash.id
           case "zsh"  => Zsh.id
+          case "fish" => Fish.id
           case other  => other
         }
       }
