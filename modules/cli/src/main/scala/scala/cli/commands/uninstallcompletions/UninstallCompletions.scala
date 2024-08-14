@@ -26,10 +26,10 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
     List("uninstall-completions")
   )
   override def runCommand(
-    options: UninstallCompletionsOptions,
-    args: RemainingArgs,
-    logger: Logger
-  ): Unit = {
+                           options: UninstallCompletionsOptions,
+                           args: RemainingArgs,
+                           logger: Logger
+                         ): Unit = {
     val name = InstallCompletions.getName(options.shared.name)
 
     val zDotDir = EnvVar.Misc.zDotDir.valueOpt
@@ -37,7 +37,8 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
       .getOrElse(os.home)
     val rcFiles = options.shared.rcFile.map(file => Seq(os.Path(file, os.pwd))).getOrElse(Seq(
       zDotDir / ".zshrc",
-      os.home / ".bashrc"
+      os.home / ".bashrc",
+      os.home / ".config" / "fish" / "config.fish"
     )).filter(os.exists(_))
 
     rcFiles.foreach { rcFile =>
