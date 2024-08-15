@@ -84,6 +84,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(output == message)
     }
   }
+
   test("resource directory for coursier bootstrap launcher") {
     val fileName = "hello.sc"
     val message  = "1,2,3"
@@ -285,6 +286,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(output == message)
     }
   }
+
   def smallModulesJsTest(jvm: Boolean): Unit = {
     val fileName = "Hello.scala"
     val message  = "Hello World from JS"
@@ -664,6 +666,72 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           .filter(_.startsWith("hello/"))
           .toVector
         expect(entries.contains("hello/Hello.class"))
+      }
+    }
+  }
+
+  test("assembly classpath") {
+    val lib = os.rel / "lib"
+    val app = os.rel / "app"
+    val inputs = TestInputs(
+      lib / "lib" / "Message.scala" ->
+        s"""package lib
+           |
+           |object Message {
+           |  def hello(name: String) = s"Hello $$name"
+           |}
+           |""".stripMargin,
+      app / "app" / "Hello.scala" ->
+        s"""package app
+           |
+           |import lib.Message.hello
+           |
+           |object Hello {
+           |  def main(args: Array[String]): Unit = println(hello("assembly"))
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val classpath = os.proc(
+        TestUtil.cli,
+        "compile",
+        extraOptions,
+        "--print-classpath",
+        lib.toString
+      ).call(
+        cwd = root,
+        stdin = os.Inherit
+      ).out.text().trim
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        "--main-class",
+        "app.Hello",
+        "--assembly",
+        "-o",
+        "hello.jar",
+        s"--classpath=$classpath",
+        app.toString
+      ).call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
+
+      val launcher = root / "hello.jar"
+      expect(os.isFile(launcher))
+
+      Using.resource(new ZipFile(launcher.toIO)) { zf =>
+        val entries = zf.entries()
+          .asScala
+          .iterator
+          .map(_.getName)
+          .toVector
+        expect(entries.exists(_.endsWith("lib/Message.class")))
+        expect(entries.contains("app/Hello.class"))
       }
     }
   }

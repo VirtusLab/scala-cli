@@ -856,26 +856,28 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     alreadyExistsCheck: () => Either[BuildException, Unit],
     logger: Logger
   ): Either[BuildException, Unit] = either {
-    val byteCodeZipEntries = os.walk(build.output)
-      .filter(os.isFile(_))
-      .map { path =>
-        val name         = path.relativeTo(build.output).toString
-        val content      = os.read.bytes(path)
-        val lastModified = os.mtime(path)
-        val ent          = new ZipEntry(name)
-        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-        ent.setSize(content.length)
-        (ent, content)
-      }
+    val compiledClasses = os.walk(build.output).filter(os.isFile(_))
+    val (extraClasseFolders, extraJars) =
+      build.options.classPathOptions.extraClassPath.partition(os.isDir(_))
+    val extraClasses = extraClasseFolders.flatMap(os.walk(_)).filter(os.isFile(_))
+
+    val byteCodeZipEntries = (compiledClasses ++ extraClasses).map { path =>
+      val name         = path.relativeTo(build.output).toString
+      val content      = os.read.bytes(path)
+      val lastModified = os.mtime(path)
+      val ent          = new ZipEntry(name)
+      ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+      ent.setSize(content.length)
+      (ent, content)
+    }
 
     val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
-    val allFiles =
-      build.artifacts.runtimeArtifacts.map(_._2) ++ build.options.classPathOptions.extraClassPath
-    val files =
-      if (provided.isEmpty) allFiles
+    val allJars  = build.artifacts.runtimeArtifacts.map(_._2) ++ extraJars.filter(os.exists(_))
+    val jars =
+      if (provided.isEmpty) allJars
       else {
         val providedFilesSet = value(providedFiles(build, provided, logger)).toSet
-        allFiles.filterNot(providedFilesSet.contains)
+        allJars.filterNot(providedFilesSet.contains)
       }
 
     val preambleOpt =
@@ -889,7 +891,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         None
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
-      .withFiles(files.map(_.toIO))
+      .withFiles(jars.map(_.toIO))
       .withMainClass(mainClassOpt)
       .withPreambleOpt(preambleOpt)
     value(alreadyExistsCheck())
