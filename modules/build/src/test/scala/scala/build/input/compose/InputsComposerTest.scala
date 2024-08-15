@@ -101,11 +101,19 @@ class InputsComposerTest extends TestUtil.ScalaCliBuildSuite {
 
       val buildOrder = inputs.modulesBuildOrder
 
-      def baseProjectName(projectName: ProjectName): String = {
+      def baseProjectName(projectName: ProjectName): String =
         projectName.name.take(projectName.name.indexOf("_"))
-      }
 
-      assert(buildOrder.map(_.projectName).map(baseProjectName) == Seq("utils", "core", "root1", "root2", "uberRoot"), clue = buildOrder.map(_.projectName).map(baseProjectName))
+      assert(
+        buildOrder.map(_.projectName).map(baseProjectName) == Seq(
+          "utils",
+          "core",
+          "root1",
+          "root2",
+          "uberRoot"
+        ),
+        clue = buildOrder.map(_.projectName).map(baseProjectName)
+      )
     }
   }
 }

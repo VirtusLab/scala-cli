@@ -80,6 +80,7 @@ final class BspImpl(
         event
       }
     val params = new b.DidChangeBuildTarget(events.asJava)
+    pprint.err.log(params)
     actualLocalClient.onBuildTargetDidChange(params)
   }
 
@@ -369,6 +370,7 @@ final class BspImpl(
           new b.CompileResult(b.StatusCode.ERROR)
         )
       case Right(params) =>
+        println(params)
         for (targetId <- currentBloopSession.bspServer.targetIds)
           actualLocalClient.resetBuildExceptionDiagnostics(targetId)
 

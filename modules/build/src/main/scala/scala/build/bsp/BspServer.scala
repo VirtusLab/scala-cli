@@ -192,8 +192,10 @@ class BspServer(
   ): CompletableFuture[b.CleanCacheResult] =
     super.buildTargetCleanCache(check(params))
 
-  override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
+  override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] = {
+    pprint.err.log(params)
     compile(() => super.buildTargetCompile(check(params)))
+  }
 
   override def buildTargetDependencySources(
     params: b.DependencySourcesParams
