@@ -62,6 +62,8 @@ class BspClient(
                 }
               }
 
+              diag0.setData(scalaDiagnostic)
+
               if (
                 diag0.getMessage.contains(
                   "cannot be a main method since it cannot be accessed statically"
