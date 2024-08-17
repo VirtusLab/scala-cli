@@ -1004,6 +1004,10 @@ object Build {
       else Nil
     }
 
+    val moduleDeps = inputs.moduleDependencies ++ {
+      if (scope == Scope.Test) Seq(inputs.scopeProjectName(Scope.Main)) else Nil
+    }
+
     value(validate(logger, options))
 
     val fullClassPath = artifacts.compileClassPath ++
@@ -1036,7 +1040,7 @@ object Build {
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
       javacOptions = javacOptions,
-      moduleDependencies = inputs.moduleDependencies
+      moduleDependencies = moduleDeps
     )
     project
   }
