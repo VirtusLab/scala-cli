@@ -1256,7 +1256,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
+        (_, localClient, remoteServer) =>
           async {
             val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
@@ -1282,9 +1282,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
                  |""".stripMargin
             os.write.over(root / sourceFilePath, updatedSourceFile)
 
+            expect(!localClient.logMessages().exists(_.getMessage.startsWith("Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime")))
+
             val errorResponse =
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(errorResponse.getStatusCode == b.StatusCode.ERROR)
+            expect(errorResponse.getStatusCode == b.StatusCode.OK)
+            expect(localClient.logMessages().exists(_.getMessage.startsWith("Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime")))
 
             val reloadResponse =
               extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))

@@ -140,7 +140,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val bspBuildOptions = buildOptions(sharedOptions, launcherOptions, envs)
       
       refreshPowerMode(launcherOptions, sharedOptions, envs)
-      
+
       BspReloadableOptions(
         buildOptions = bspBuildOptions,
         bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
@@ -155,7 +155,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       val launcherOptions = getLauncherOptions()
       val envs            = getEnvsFromFile()
       val bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
-        .orExit(sharedOptions.logger)
+
       refreshPowerMode(launcherOptions, sharedOptions, envs)
 
       BspReloadableOptions(
