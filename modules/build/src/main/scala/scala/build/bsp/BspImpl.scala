@@ -333,7 +333,22 @@ final class BspImpl(
       executor
     )
 
-    preBuild.thenCompose {
+    preBuild.thenCompose { x =>
+      Thread.sleep(1000)
+      x.foreach{ r =>
+        r.prebuildModules.foreach{ m =>
+          pprint.err.log(m.mainScope.project.projectName)
+          m.mainScope.sources.paths.foreach(path => pprint.err.log(os.read(path._1)))
+          m.mainScope.project.classPath.foreach(p => pprint.err.log(p.toString))
+        }
+        r.prebuildModules.foreach { m =>
+          pprint.err.log(m.testScope.project.projectName)
+          m.testScope.sources.paths.foreach(path => pprint.err.log(os.read(path._1)))
+          m.testScope.project.classPath.foreach(p => pprint.err.log(p.toString))
+        }
+      }
+      CompletableFuture.supplyAsync(() => x, executor)
+    }.thenCompose {
       case Left((ex, projectName)) =>
         val taskId = new b.TaskId(UUID.randomUUID().toString)
 

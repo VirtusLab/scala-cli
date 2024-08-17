@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.{BuildTargetEvent, JvmTestEnvironmentParams, SourcesParams}
+import ch.epfl.scala.bsp4j.{BuildTargetEvent, JvmTestEnvironmentParams}
 import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
@@ -8,6 +8,7 @@ import com.google.gson.{Gson, JsonElement}
 import java.net.URI
 import java.nio.file.Paths
 import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
+
 import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.cli.integration.compose.ComposeBspTestDefinitions
@@ -778,7 +779,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
   }
 
-  test("tes scope uses artifacts from main scope") {
+  test("test workspace update after adding file to main scope") {
     val inputs = TestInputs(
       os.rel / "Messages.scala" ->
         """//> using dep "com.lihaoyi::os-lib:0.7.8"
