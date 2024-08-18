@@ -50,20 +50,20 @@ object SourceGenerator {
     scripts: DirectiveValueParser.WithScopePath[List[Positioned[String]]],
     excludeScripts: Option[Boolean]
   ): Either[BuildException, BuildOptions] = {
-    val proc = UsingDirectivesProcessor()
-    val scriptConvert = scripts.value
+    val directiveProcessor = UsingDirectivesProcessor()
+    val parsedDirectives = scripts.value
       .map(script => os.Path(script.value))
       .map(os.read(_))
       .map(_.toCharArray())
-      .map(proc.extract(_).asScala)
+      .map(directiveProcessor.extract(_).asScala)
       .map(_.headOption)
 
-    val scriptsValue = scripts.value
+    val scriptPaths = scripts.value
       .map(script =>
         os.Path(script.value)
       )
 
-    def modify(script: Option[UsingDirectives]) =
+    def processDirectives(script: Option[UsingDirectives]) =
       script.toSeq.flatMap { directives =>
         def toStrictValue(value: UsingValue): Seq[Value[_]] = value match {
           case uvs: UsingValues   => uvs.values.asScala.toSeq.flatMap(toStrictValue)
@@ -76,8 +76,6 @@ object SourceGenerator {
           toStrictValue(ud.getValue()),
           ud.getPosition().getColumn()
         )
-
-        // println(directives.getAst())
 
         directives.getAst match
           case uds: UsingDefs => uds.getUsingDefs.asScala.toSeq.map(toStrictDirective)
@@ -98,20 +96,24 @@ object SourceGenerator {
         }
       )
     }
+    val processedDirectives = parsedDirectives.map(processDirectives(_))
 
-    val componentKeyword = Seq("inputDirectory", "glob")
-    val strictDirectives = scriptConvert.map(modify(_))
-
-    val generatorComponents = strictDirectives.map(directiveSeq =>
+    val sourceGeneratorKeywords = Seq("inputDirectory", "glob")
+    val sourceGeneratorDirectives = processedDirectives.map(directiveSeq =>
       directiveSeq.filter(rawDirective =>
-        componentKeyword.exists(keyword => rawDirective.key.contains(keyword))
+        sourceGeneratorKeywords.exists(keyword => rawDirective.key.contains(keyword))
       )
     )
 
-    val pathModifier = scriptsValue.iterator
-    val directive = generatorComponents.collect {
+    sourceGeneratorDirectives.foreach { components =>
+      if (components.length != components.distinct.length)
+        throw new IllegalArgumentException(s"Duplicate elements found in sequence: $components")
+    }
+
+    val pathIterator = scriptPaths.iterator
+    val generatorConfigs = sourceGeneratorDirectives.collect {
       case Seq(inputDir, glob) =>
-        val relPath = pathModifier.next()
+        val relPath = pathIterator.next()
         GeneratorConfig(
           replaceSpecialSyntax(inputDir.values.mkString, relPath),
           List(glob.values.mkString),
@@ -126,7 +128,7 @@ object SourceGenerator {
     }
 
     Right(BuildOptions(
-      sourceGeneratorOptions = SourceGeneratorOptions(generatorConfig = directive),
+      sourceGeneratorOptions = SourceGeneratorOptions(generatorConfig = generatorConfigs),
       internal = InternalOptions(exclude = excludedGeneratorPath)
     ))
   }
