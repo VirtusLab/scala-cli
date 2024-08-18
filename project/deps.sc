@@ -7,9 +7,10 @@ object Scala {
   def scala213        = "2.13.14"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
-  def scala3Lts    = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
-  def scala3Next   = "3.4.2"               // the newest/next version of Scala
-  def scala3NextRc = "3.5.0-RC7"           // the latest RC version of Scala Next
+  def scala3Lts  = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
+  def scala3Next = "3.5.0"               // the newest/next version of Scala
+  def scala3NextAnnounced = "3.4.2"     // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.5.0-RC7" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -38,19 +39,21 @@ object Scala {
     val max31  = 3
     val max32  = 2
     val max33  = patchVer(scala3Lts)
-    val max34  = patchVer(scala3Next)
+    val max34  = 3
+    val max35  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
       (0 to max32).map(i => s"3.2.$i") ++
-      (0 until max33).map(i => s"3.3.$i") ++
-      (0 until max34).map(i => s"3.4.$i") ++ Seq(scala3Next)
+      (0 to max33).map(i => s"3.3.$i") ++
+      (0 to max34).map(i => s"3.4.$i") ++
+      (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
   }
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = scala3Next
+  def maxAmmoniteScala3Version   = scala3NextAnnounced
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
