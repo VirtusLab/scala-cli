@@ -21,6 +21,9 @@ import scala.build.options.{BuildOptions, SourceGeneratorOptions, GeneratorConfi
 import scala.build.options.GeneratorConfig
 import scala.build.{Positioned, options}
 import scala.build.directives.DirectiveValueParser.WithScopePath
+import scala.util.matching.Regex
+import java.nio.file.Paths
+import scala.build.options.InternalOptions
 
 @DirectiveGroupName("SourceGenerator")
 @DirectivePrefix("sourceGenerator.")
@@ -35,19 +38,17 @@ final case class SourceGenerator(
   excludeScripts: Option[Boolean] = None,
   inputDirectory: DirectiveValueParser.WithScopePath[Option[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(None),
-  glob: Option[Positioned[String]] = None,
+  glob: Option[Positioned[String]] = None
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
-    // println(s"ScopePath of Scripts: ${scripts.scopePath}")
-    // println(s"Values of Scripts: ${scripts.value(0).value}")
-    // println(s"Values of InputDir: ${inputDirectory.value}")
-    SourceGenerator.buildOptions(scripts)
+    SourceGenerator.buildOptions(scripts, excludeScripts)
 }
 
 object SourceGenerator {
   val handler: DirectiveHandler[SourceGenerator] = DirectiveHandler.derive
   def buildOptions(
-    scripts: DirectiveValueParser.WithScopePath[List[Positioned[String]]]
+    scripts: DirectiveValueParser.WithScopePath[List[Positioned[String]]],
+    excludeScripts: Option[Boolean]
   ): Either[BuildException, BuildOptions] = {
     val proc = UsingDirectivesProcessor()
     val scriptConvert = scripts.value
@@ -57,9 +58,12 @@ object SourceGenerator {
       .map(proc.extract(_).asScala)
       .map(_.headOption)
 
-    // println(scriptConvert.size)
+    val scriptsValue = scripts.value
+      .map(script =>
+        os.Path(script.value)
+      )
 
-    def modify(script: Option[UsingDirectives]) = {
+    def modify(script: Option[UsingDirectives]) =
       script.toSeq.flatMap { directives =>
         def toStrictValue(value: UsingValue): Seq[Value[_]] = value match {
           case uvs: UsingValues   => uvs.values.asScala.toSeq.flatMap(toStrictValue)
@@ -79,6 +83,20 @@ object SourceGenerator {
           case uds: UsingDefs => uds.getUsingDefs.asScala.toSeq.map(toStrictDirective)
           case _              => Nil // There should be nothing else here other than UsingDefs
       }
+
+    def replaceSpecialSyntax(directiveValue: String, path: os.Path): String = {
+      val pattern = """(((?:\$)+)(\{\.\}))""".r
+      pattern.replaceAllIn(
+        directiveValue,
+        (m: Regex.Match) => {
+          val dollarSigns = m.group(2)
+          val dollars     = "\\$" * (dollarSigns.length / 2)
+          if (dollarSigns.length % 2 == 0)
+            s"$dollars${m.group(3)}"
+          else
+            s"$dollars${path / os.up}"
+        }
+      )
     }
 
     val componentKeyword = Seq("inputDirectory", "glob")
@@ -90,31 +108,26 @@ object SourceGenerator {
       )
     )
 
-    // generatorComponents.map(f => f.map(g => println(g.values)))
+    val pathModifier = scriptsValue.iterator
     val directive = generatorComponents.collect {
       case Seq(inputDir, glob) =>
+        val relPath = pathModifier.next()
         GeneratorConfig(
-          inputDir.values.mkString,
+          replaceSpecialSyntax(inputDir.values.mkString, relPath),
           List(glob.values.mkString),
           scripts.value(0).value,
           scripts.scopePath.subPath
         )
     }
 
-    // val sourceGenValue = sourceGenerator.value
-    // sourceGenValue
-    //   .map(config => GeneratorConfig.parse(config, sourceGenerator.scopePath.subPath))
-    //   .sequence
-    //   .left.map(CompositeBuildException(_))
-    //   .map { configs =>
-    //     BuildOptions(sourceGeneratorOptions =
-    //       SourceGeneratorOptions(generatorConfig = configs)
-    //     )
-    //   }
-    // directive.map { f => println(f)}
+    val excludedGeneratorPath = excludeScripts.match {
+      case Some(true) => scripts.value
+      case _          => List.empty[Positioned[String]]
+    }
 
-    Right(BuildOptions(sourceGeneratorOptions =
-      SourceGeneratorOptions(generatorConfig = directive)
+    Right(BuildOptions(
+      sourceGeneratorOptions = SourceGeneratorOptions(generatorConfig = directive),
+      internal = InternalOptions(exclude = excludedGeneratorPath)
     ))
   }
 }
