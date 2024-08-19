@@ -29,7 +29,7 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success}
 
-/** The implementation for [[Bsp]].
+/** The implementation for [[Bsp]] command.
   *
   * @param argsToInputs
   *   a function transforming terminal args to [[Inputs]]
@@ -52,6 +52,12 @@ final class BspImpl(
 )(using ScalaCliInvokeData) extends Bsp {
 
   import BspImpl.{PreBuildData, PreBuildProject, buildTargetIdToEvent, responseError}
+
+  private val shownGlobalMessages =
+    new java.util.concurrent.ConcurrentHashMap[String, Unit]()
+  private var actualLocalClient: BspClient                     = _
+  private var localClient: b.BuildClient with BloopBuildClient = _
+  private val bloopSession                                     = new BloopSession.Reference
 
   /** Sends the buildTarget/didChange BSP notification to the BSP client, indicating that the build
     * targets defined in the current session have changed.
@@ -257,9 +263,6 @@ final class BspImpl(
           client.resetBuildExceptionDiagnostics(targetId)
     }
 
-  private val shownGlobalMessages =
-    new java.util.concurrent.ConcurrentHashMap[String, Unit]()
-
   private def showGlobalWarningOnce(msg: String): Unit =
     shownGlobalMessages.computeIfAbsent(
       msg,
@@ -378,9 +381,6 @@ final class BspImpl(
     }
   }
 
-  private var actualLocalClient: BspClient                     = _
-  private var localClient: b.BuildClient with BloopBuildClient = _
-
   /** Returns a reference to the [[BspClient]], respecting the given verbosity
     * @param verbosity
     *   verbosity to be passed to the resulting [[BspImpl.LoggingBspClient]]
@@ -450,33 +450,30 @@ final class BspImpl(
     bloopSession0
   }
 
-  private val bloopSession = new BloopSession.Reference
-
   /** The logic for the actual running of the `bsp` command, initializing the BSP connection.
     * @param initialInputs
     *   the initial input sources passed upon initializing the BSP connection (which are subject to
     *   change on subsequent workspace/reload requests)
     */
-  def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
+  override def run(initialInputs: Inputs, initialBspOptions: BspReloadableOptions): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
 
-    actualLocalClient = new BspClient(
-      threads.buildThreads.bloop.jsonrpc, // meh
-      logger
-    )
+    actualLocalClient = new BspClient(logger)
     localClient = getLocalClient(verbosity)
 
     val currentBloopSession = newBloopSession(initialInputs, initialBspOptions)
     bloopSession.update(null, currentBloopSession, "BSP server already initialized")
 
-    val actualLocalServer
-      : b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with b.JvmBuildServer
-        with ScalaScriptBuildServer with HasGeneratedSources =
-      new BuildServerProxy(
-        () => bloopSession.get().bspServer,
-        () => onReload()
-      )
+    val actualLocalServer: b.BuildServer
+      with b.ScalaBuildServer
+      with b.JavaBuildServer
+      with b.JvmBuildServer
+      with ScalaScriptBuildServer
+      with HasGeneratedSources = new BuildServerProxy(
+      () => bloopSession.get().bspServer,
+      () => onReload()
+    )
 
     val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
       with b.JvmBuildServer with ScalaScriptBuildServer =
@@ -540,9 +537,8 @@ final class BspImpl(
     Future.firstCompletedOf(futures)(es)
   }
 
-  /** Shuts down the current Bloop session
-    */
-  def shutdown(): Unit =
+  /** Shuts down the current Bloop session */
+  override def shutdown(): Unit =
     for (currentBloopSession <- bloopSession.getAndNullify())
       currentBloopSession.dispose()
 

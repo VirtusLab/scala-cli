@@ -18,7 +18,6 @@ import scala.build.{BloopBuildClient, GeneratedSource, Logger}
 import scala.jdk.CollectionConverters.*
 
 class BspClient(
-  readFilesEs: ExecutorService,
   @volatile var logger: Logger,
   var forwardToOpt: Option[b.BuildClient] = None
 ) extends b.BuildClient with BuildClientForwardStubs with BloopBuildClient
@@ -27,76 +26,68 @@ class BspClient(
   private def updatedPublishDiagnosticsParams(
     params: b.PublishDiagnosticsParams,
     genSource: GeneratedSource
-  ): Either[() => b.PublishDiagnosticsParams, b.PublishDiagnosticsParams] = {
+  ): b.PublishDiagnosticsParams = {
     val updatedUri = genSource.reportingPath.fold(
       _ => params.getTextDocument.getUri,
       _.toNIO.toUri.toASCIIString
     )
     val updatedDiagnostics =
       if (genSource.wrapperParamsOpt.isEmpty)
-        Right(params.getDiagnostics)
+        params.getDiagnostics
       else
-        Left { () =>
-          val updateLine = scalaLine => scalaLineToScLine(scalaLine, genSource.wrapperParamsOpt)
-          params.getDiagnostics.asScala.toSeq
-            .map { diag =>
-              val updatedDiagOpt = for {
-                startLine <- updateLine(diag.getRange.getStart.getLine)
-                endLine   <- updateLine(diag.getRange.getEnd.getLine)
-              } yield {
-                val diag0 = diag.duplicate()
-                diag0.getRange.getStart.setLine(startLine)
-                diag0.getRange.getEnd.setLine(endLine)
+        val updateLine = scalaLine => scalaLineToScLine(scalaLine, genSource.wrapperParamsOpt)
+        params.getDiagnostics.asScala.toSeq
+          .map { diag =>
+            val updatedDiagOpt = for {
+              startLine <- updateLine(diag.getRange.getStart.getLine)
+              endLine   <- updateLine(diag.getRange.getEnd.getLine)
+            } yield {
+              val diag0 = diag.duplicate()
+              diag0.getRange.getStart.setLine(startLine)
+              diag0.getRange.getEnd.setLine(endLine)
 
-                val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
-                  diag0.getData().asInstanceOf[JsonElement],
-                  classOf[b.ScalaDiagnostic]
-                )
+              val scalaDiagnostic = new Gson().fromJson[b.ScalaDiagnostic](
+                diag0.getData().asInstanceOf[JsonElement],
+                classOf[b.ScalaDiagnostic]
+              )
 
-                scalaDiagnostic.getActions().asScala.foreach { action =>
-                  for {
-                    change    <- action.getEdit().getChanges().asScala
-                    startLine <- updateLine(change.getRange.getStart.getLine)
-                    endLine   <- updateLine(change.getRange.getEnd.getLine)
-                  } yield {
-                    change.getRange().getStart.setLine(startLine)
-                    change.getRange().getEnd.setLine(endLine)
-                  }
+              scalaDiagnostic.getActions().asScala.foreach { action =>
+                for {
+                  change    <- action.getEdit().getChanges().asScala
+                  startLine <- updateLine(change.getRange.getStart.getLine)
+                  endLine   <- updateLine(change.getRange.getEnd.getLine)
+                } yield {
+                  change.getRange().getStart.setLine(startLine)
+                  change.getRange().getEnd.setLine(endLine)
                 }
-
-                diag0.setData(scalaDiagnostic)
-
-                if (
-                  diag0.getMessage.contains(
-                    "cannot be a main method since it cannot be accessed statically"
-                  )
-                )
-                  diag0.setMessage(
-                    WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
-                  )
-
-                diag0
               }
-              updatedDiagOpt.getOrElse(diag)
+
+              diag0.setData(scalaDiagnostic)
+
+              if (
+                diag0.getMessage.contains(
+                  "cannot be a main method since it cannot be accessed statically"
+                )
+              )
+                diag0.setMessage(
+                  WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
+                )
+
+              diag0
             }
-            .asJava
-        }
-    def updatedParamsFor(
-      updatedDiagnostics: java.util.List[b.Diagnostic]
-    ): b.PublishDiagnosticsParams = {
-      val updatedTextDoc = new b.TextDocumentIdentifier(updatedUri)
-      val updatedParams = new b.PublishDiagnosticsParams(
-        updatedTextDoc,
-        params.getBuildTarget,
-        updatedDiagnostics,
-        params.getReset
-      )
-      updatedParams.setOriginId(params.getOriginId)
-      updatedParams
-    }
-    updatedDiagnostics
-      .left.map(f => () => updatedParamsFor(f()))
-      .map(updatedParamsFor(_))
+            updatedDiagOpt.getOrElse(diag)
+          }
+          .asJava
+
+    val updatedTextDoc = new b.TextDocumentIdentifier(updatedUri)
+    val updatedParams = new b.PublishDiagnosticsParams(
+      updatedTextDoc,
+      params.getBuildTarget,
+      updatedDiagnostics,
+      params.getReset
+    )
+    updatedParams.setOriginId(params.getOriginId)
+    updatedParams
   }
 
   override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
@@ -116,24 +107,11 @@ class BspClient(
         }
     }
 
-    def call(updatedParams0: b.PublishDiagnosticsParams): Unit =
-      super.onBuildPublishDiagnostics(updatedParams0)
     updatedParamsOpt match {
       case None =>
-        call(params)
-      case Some(Right(updatedParams0)) =>
-        call(updatedParams0)
-      case Some(Left(updateParamsFunc)) =>
-        val runnable =
-          new Runnable {
-            def run(): Unit =
-              try call(updateParamsFunc())
-              catch {
-                case t: Throwable =>
-                  logger.debug(s"Caught $t while publishing updated diagnostics")
-              }
-          }
-        readFilesEs.submit(runnable)
+        super.onBuildPublishDiagnostics(params)
+      case Some(updatedParams) =>
+        super.onBuildPublishDiagnostics(updatedParams)
     }
   }
 
