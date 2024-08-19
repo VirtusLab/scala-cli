@@ -1282,12 +1282,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
                  |""".stripMargin
             os.write.over(root / sourceFilePath, updatedSourceFile)
 
-            expect(!localClient.logMessages().exists(_.getMessage.startsWith("Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime")))
+            expect(!localClient.logMessages().exists(_.getMessage.startsWith(
+              "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
+            )))
 
             val errorResponse =
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
             expect(errorResponse.getStatusCode == b.StatusCode.OK)
-            expect(localClient.logMessages().exists(_.getMessage.startsWith("Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime")))
+            expect(localClient.logMessages().exists(_.getMessage.startsWith(
+              "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
+            )))
 
             val reloadResponse =
               extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))
