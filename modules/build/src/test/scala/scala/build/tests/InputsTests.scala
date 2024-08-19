@@ -24,7 +24,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
   def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
   val buildOptions: BuildOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir),
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
     )
   )

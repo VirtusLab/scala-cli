@@ -18,7 +18,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
   val directories     = Directories.under(extraRepoTmpDir)
   val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir)
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
   val buildThreads = BuildThreads.create()

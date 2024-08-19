@@ -68,7 +68,7 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
   test("workspace for bsp") {
     val options = BuildOptions(
       internal = InternalOptions(localRepository =
-        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir)
+        LocalRepo.localRepo(scala.build.Directories.default().localRepoDir, TestLogger())
       )
     )
     val inputs    = Inputs.empty("project")

@@ -430,7 +430,7 @@ final case class SharedOptions(
       ),
       internal = bo.InternalOptions(
         cache = Some(coursierCache),
-        localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir),
+        localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir, logger),
         verbosity = Some(logging.verbosity),
         strictBloopJsonCheck = strictBloopJsonCheck,
         interactive = Some(() => interactive),
