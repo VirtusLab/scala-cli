@@ -206,7 +206,7 @@ object Build {
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
     // appended for options from the sources.
-    val optionsHash     = options.hash
+    val optionsHash = options.hash
 
     inputs.copy(baseProjectName = inputs.baseProjectName + optionsHash.fold("")("_" + _))
   }
@@ -275,7 +275,7 @@ object Build {
         inputs,
         overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
       )
-      
+
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
       val scopedSources = value(crossSources.scopedSources(baseOptions))
