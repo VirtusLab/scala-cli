@@ -56,7 +56,7 @@ Run JMH benchmarks
 
 ### `--jmh-version`
 
-Set JMH version
+Set JMH version (default: 1.37)
 
 ## Compilation server options
 
