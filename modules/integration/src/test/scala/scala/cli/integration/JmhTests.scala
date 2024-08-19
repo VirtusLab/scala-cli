@@ -6,36 +6,12 @@ import java.nio.file.Files
 
 import scala.util.Properties
 
-class JmhTests extends ScalaCliSuite {
+class JmhTests extends ScalaCliSuite with JmhSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
-
-  lazy val inputs: TestInputs = TestInputs(
-    os.rel / "benchmark.scala" ->
-      s"""package bench
-         |
-         |import java.util.concurrent.TimeUnit
-         |import org.openjdk.jmh.annotations._
-         |
-         |@BenchmarkMode(Array(Mode.AverageTime))
-         |@OutputTimeUnit(TimeUnit.NANOSECONDS)
-         |@Warmup(iterations = 1, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-         |@Measurement(iterations = 10, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-         |@Fork(0)
-         |class Benchmarks {
-         |
-         |  @Benchmark
-         |  def foo(): Unit = {
-         |    (1L to 10000000L).sum
-         |  }
-         |
-         |}
-         |""".stripMargin
-  )
-  lazy val expectedInOutput = """Result "bench.Benchmarks.foo":"""
 
   test("simple") {
     // TODO extract running benchmarks to a separate scope, or a separate sub-command
-    inputs.fromRoot { root =>
+    simpleInputs.fromRoot { root =>
       val res =
         os.proc(TestUtil.cli, "--power", TestUtil.extraOptions, ".", "--jmh").call(cwd = root)
       val output = res.out.trim()
@@ -44,14 +20,14 @@ class JmhTests extends ScalaCliSuite {
   }
 
   test("compile") {
-    inputs.fromRoot { root =>
+    simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", "--jmh")
         .call(cwd = root)
     }
   }
 
   test("doc") {
-    inputs.fromRoot { root =>
+    simpleInputs.fromRoot { root =>
       val res = os.proc(TestUtil.cli, "doc", "--power", TestUtil.extraOptions, ".", "--jmh")
         .call(cwd = root, stderr = os.Pipe)
       expect(!res.err.trim().contains("Error"))
@@ -60,7 +36,7 @@ class JmhTests extends ScalaCliSuite {
 
   test("setup-ide") {
     // TODO fix setting jmh via a reload & add tests for it
-    inputs.fromRoot { root =>
+    simpleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "setup-ide", "--power", TestUtil.extraOptions, ".", "--jmh")
         .call(cwd = root)
     }
@@ -69,7 +45,7 @@ class JmhTests extends ScalaCliSuite {
   test("package") {
     // TODO make package with --jmh build an artifact that actually runs benchmarks
     val expectedMessage = "Placeholder main method"
-    inputs
+    simpleInputs
       .add(os.rel / "Main.scala" -> s"""@main def main: Unit = println("$expectedMessage")""")
       .fromRoot { root =>
         val launcherName = {
@@ -96,7 +72,7 @@ class JmhTests extends ScalaCliSuite {
   }
 
   test("export") {
-    inputs.fromRoot { root =>
+    simpleInputs.fromRoot { root =>
       // TODO add proper support for JMH export, we're checking if it doesn't fail the command for now
       os.proc(TestUtil.cli, "export", "--power", TestUtil.extraOptions, ".", "--jmh")
         .call(cwd = root)
