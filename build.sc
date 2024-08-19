@@ -1045,6 +1045,11 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |
            |  def ghOrg  = "$ghOrg"
            |  def ghName = "$ghName"
+           |
+           |  def jmhVersion = "${Deps.Versions.jmh}"
+           |  def jmhOrg = "${Deps.jmhCore.dep.module.organization.value}"
+           |  def jmhCoreModule = "${Deps.jmhCore.dep.module.name.value}"
+           |  def jmhGeneratorBytecodeModule = "${Deps.jmhGeneratorBytecode.dep.module.name.value}"
            |}
            |""".stripMargin
       if (!os.isFile(dest) || os.read(dest) != code)

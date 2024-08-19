@@ -9,74 +9,130 @@ import scala.util.Properties
 class JmhTests extends ScalaCliSuite with JmhSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
 
-  test("simple") {
-    // TODO extract running benchmarks to a separate scope, or a separate sub-command
-    simpleInputs.fromRoot { root =>
-      val res =
-        os.proc(TestUtil.cli, "--power", TestUtil.extraOptions, ".", "--jmh").call(cwd = root)
-      val output = res.out.trim()
-      expect(output.contains(expectedInOutput))
+  for {
+    useDirective <- Seq(None, Some("//> using jmh"))
+    directiveString = useDirective.getOrElse("")
+    jmhOptions      = if (useDirective.isEmpty) Seq("--jmh") else Nil
+    testMessage = useDirective match {
+      case None            => jmhOptions.mkString(" ")
+      case Some(directive) => directive
     }
-  }
-
-  test("compile") {
-    simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", "--jmh")
-        .call(cwd = root)
-    }
-  }
-
-  test("doc") {
-    simpleInputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "doc", "--power", TestUtil.extraOptions, ".", "--jmh")
-        .call(cwd = root, stderr = os.Pipe)
-      expect(!res.err.trim().contains("Error"))
-    }
-  }
-
-  test("setup-ide") {
-    // TODO fix setting jmh via a reload & add tests for it
-    simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "setup-ide", "--power", TestUtil.extraOptions, ".", "--jmh")
-        .call(cwd = root)
-    }
-  }
-
-  test("package") {
-    // TODO make package with --jmh build an artifact that actually runs benchmarks
-    val expectedMessage = "Placeholder main method"
-    simpleInputs
-      .add(os.rel / "Main.scala" -> s"""@main def main: Unit = println("$expectedMessage")""")
-      .fromRoot { root =>
-        val launcherName = {
-          val ext = if (Properties.isWin) ".bat" else ""
-          "launcher" + ext
-        }
-        os.proc(
-          TestUtil.cli,
-          "package",
-          "--power",
-          TestUtil.extraOptions,
-          ".",
-          "--jmh",
-          "-o",
-          launcherName
-        )
-          .call(cwd = root)
-        val launcher = root / launcherName
-        expect(os.isFile(launcher))
-        expect(Files.isExecutable(launcher.toNIO))
-        val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
-        expect(output == expectedMessage)
+  } {
+    test(s"run ($testMessage)") {
+      // TODO extract running benchmarks to a separate scope, or a separate sub-command
+      simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "--power", TestUtil.extraOptions, ".", jmhOptions).call(cwd = root)
+        val output = res.out.trim()
+        expect(output.contains(expectedInBenchmarkingOutput))
+        expect(output.contains(s"JMH version: ${Constants.jmhVersion}"))
       }
-  }
+    }
 
-  test("export") {
-    simpleInputs.fromRoot { root =>
-      // TODO add proper support for JMH export, we're checking if it doesn't fail the command for now
-      os.proc(TestUtil.cli, "export", "--power", TestUtil.extraOptions, ".", "--jmh")
-        .call(cwd = root)
+    test(s"compile ($testMessage)") {
+      simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root)
+      }
+    }
+
+    test(s"doc ($testMessage)") {
+      simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "doc", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(!res.err.trim().contains("Error"))
+      }
+    }
+
+    test(s"setup-ide ($testMessage)") {
+      // TODO fix setting jmh via a reload & add tests for it
+      simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+        os.proc(TestUtil.cli, "setup-ide", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root)
+      }
+    }
+
+    test(s"package ($testMessage)") {
+      // TODO make package with --jmh build an artifact that actually runs benchmarks
+      val expectedMessage = "Placeholder main method"
+      simpleBenchmarkingInputs(directiveString)
+        .add(os.rel / "Main.scala" -> s"""@main def main: Unit = println("$expectedMessage")""")
+        .fromRoot { root =>
+          val launcherName = {
+            val ext = if (Properties.isWin) ".bat" else ""
+            "launcher" + ext
+          }
+          os.proc(
+            TestUtil.cli,
+            "package",
+            "--power",
+            TestUtil.extraOptions,
+            ".",
+            jmhOptions,
+            "-o",
+            launcherName
+          )
+            .call(cwd = root)
+          val launcher = root / launcherName
+          expect(os.isFile(launcher))
+          expect(Files.isExecutable(launcher.toNIO))
+          val output = TestUtil.maybeUseBash(launcher)(cwd = root).out.trim()
+          expect(output == expectedMessage)
+        }
+    }
+
+    test(s"export ($testMessage)") {
+      simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+        // TODO add proper support for JMH export, we're checking if it doesn't fail the command for now
+        os.proc(TestUtil.cli, "export", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root)
+      }
     }
   }
 
+  for {
+    useDirective <- Seq(None, Some("//> using jmh false"))
+    directiveString = useDirective.getOrElse("")
+    jmhOptions      = if (useDirective.isEmpty) Seq("--jmh=false") else Nil
+    testMessage = useDirective match {
+      case None             => jmhOptions.mkString(" ")
+      case Some(directives) => directives.linesIterator.mkString("; ")
+    }
+    if !Properties.isWin
+  } test(s"should not compile when jmh is explicitly disabled ($testMessage)") {
+    simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root, check = false)
+      expect(res.exitCode == 1)
+    }
+  }
+
+  for {
+    useDirective <- Seq(
+      None,
+      Some(
+        s"""//> using jmh
+           |//> using jmhVersion $exampleOldJmhVersion
+           |""".stripMargin
+      )
+    )
+    directiveString = useDirective.getOrElse("")
+    jmhOptions =
+      if (useDirective.isEmpty) Seq("--jmh", "--jmh-version", exampleOldJmhVersion) else Nil
+    testMessage = useDirective match {
+      case None             => jmhOptions.mkString(" ")
+      case Some(directives) => directives.linesIterator.mkString("; ")
+    }
+    if !Properties.isWin
+  } test(s"should use the passed jmh version ($testMessage)") {
+    simpleBenchmarkingInputs(directiveString).fromRoot { root =>
+      val res =
+        os.proc(TestUtil.cli, "run", "--power", TestUtil.extraOptions, ".", jmhOptions)
+          .call(cwd = root)
+      val output = res.out.trim()
+      expect(output.contains(expectedInBenchmarkingOutput))
+      expect(output.contains(s"JMH version: $exampleOldJmhVersion"))
+    }
+  }
 }

@@ -1,9 +1,10 @@
 package scala.cli.integration
 
 trait JmhSuite { _: ScalaCliSuite =>
-  protected lazy val simpleInputs: TestInputs = TestInputs(
+  protected def simpleBenchmarkingInputs(directivesString: String = ""): TestInputs = TestInputs(
     os.rel / "benchmark.scala" ->
-      s"""package bench
+      s"""$directivesString
+         |package bench
          |
          |import java.util.concurrent.TimeUnit
          |import org.openjdk.jmh.annotations._
@@ -23,5 +24,6 @@ trait JmhSuite { _: ScalaCliSuite =>
          |}
          |""".stripMargin
   )
-  protected lazy val expectedInOutput = """Result "bench.Benchmarks.foo":"""
+  protected lazy val expectedInBenchmarkingOutput = """Result "bench.Benchmarks.foo":"""
+  protected lazy val exampleOldJmhVersion         = "1.29"
 }

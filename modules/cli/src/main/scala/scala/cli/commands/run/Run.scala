@@ -72,11 +72,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   override def buildOptions(options: RunOptions): Some[BuildOptions] = Some {
     import options.*
     import options.sharedRun.*
-    val logger = options.shared.logger
-    val baseOptions = shared.buildOptions(
-      enableJmh = shared.benchmarking.jmh.contains(true),
-      jmhVersion = shared.benchmarking.jmhVersion
-    ).orExit(logger)
+    val logger      = options.shared.logger
+    val baseOptions = shared.buildOptions().orExit(logger)
     baseOptions.copy(
       mainClass = mainClass.mainClass,
       javaOptions = baseOptions.javaOptions.copy(
@@ -375,7 +372,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
-        if (build.options.jmhOptions.runJmh.contains(false)) Some("org.openjdk.jmh.Main")
+        if build.options.jmhOptions.enableJmh.contains(true) && !build.options.jmhOptions.canRunJmh
+        then Some("org.openjdk.jmh.Main")
         else None
       }
     val mainClass = mainClassOpt match {

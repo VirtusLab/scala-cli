@@ -301,152 +301,148 @@ final case class SharedOptions(
 
   def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
 
-  def buildOptions(
-    enableJmh: Boolean = false,
-    jmhVersion: Option[String] = None,
-    ignoreErrors: Boolean = false
-  ): Either[BuildException, bo.BuildOptions] = either {
-    val releaseOpt = scalacOptions.getScalacOption("-release")
-    val targetOpt  = scalacOptions.getScalacPrefixOption("-target")
-    jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
-      case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
-        val compilerTargetsString = compilerTargets.distinct.mkString(", ")
-        logger.error(
-          s"Warning: different target JVM ($j) and scala compiler target JVM ($compilerTargetsString) were passed."
-        )
-      case _ =>
-    }
-    val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
-    val platformOpt = value {
-      (parsedPlatform, js.js, native.native) match {
-        case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
-        case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
-        case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
-        case (Some(p), _, _) =>
-          val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
-          val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
-          val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
-          Left(new AmbiguousPlatformError(platformsSeq.distinct.map(_.toString)))
-        case (_, true, true) =>
-          Left(new AmbiguousPlatformError(Seq(Platform.JS.toString, Platform.Native.toString)))
-        case (_, true, _) => Right(Some(Platform.JS))
-        case (_, _, true) => Right(Some(Platform.Native))
-        case _            => Right(None)
-      }
-    }
-    val (assumedSourceJars, extraRegularJarsAndClasspath) =
-      extraJarsAndClassPath.partition(_.hasSourceJarSuffix)
-    if assumedSourceJars.nonEmpty then
-      val assumedSourceJarsString = assumedSourceJars.mkString(", ")
-      logger.message(
-        s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole
-            .GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
-           |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
-      )
-    val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
-      SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
-    val scalapyMaxDefaultScalaNativeVersions =
-      if sharedPython.python.contains(true) then
-        List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
-      else Nil
-    val maxDefaultScalaNativeVersions =
-      toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
-    val snOpts = scalaNativeOptions(native, maxDefaultScalaNativeVersions)
-    bo.BuildOptions(
-      sourceGeneratorOptions = bo.SourceGeneratorOptions(
-        useBuildInfo = sourceGenerator.useBuildInfo,
-        projectVersion = sharedVersionOptions.projectVersion,
-        computeVersion = value {
-          sharedVersionOptions.computeVersion
-            .map(Positioned.commandLine)
-            .map(ComputeVersion.parse)
-            .sequence
-        }
-      ),
-      suppressWarningOptions =
-        bo.SuppressWarningOptions(
-          suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
-            suppress.suppressDirectivesInMultipleFilesWarning,
-            Keys.suppressDirectivesInMultipleFilesWarning
-          ),
-          suppressOutdatedDependencyWarning = getOptionOrFromConfig(
-            suppress.suppressOutdatedDependencyWarning,
-            Keys.suppressOutdatedDependenciessWarning
-          ),
-          suppressExperimentalFeatureWarning = getOptionOrFromConfig(
-            suppress.global.suppressExperimentalFeatureWarning,
-            Keys.suppressExperimentalFeatureWarning
+  def buildOptions(ignoreErrors: Boolean = false): Either[BuildException, bo.BuildOptions] =
+    either {
+      val releaseOpt = scalacOptions.getScalacOption("-release")
+      val targetOpt  = scalacOptions.getScalacPrefixOption("-target")
+      jvm.jvm -> (releaseOpt.toSeq ++ targetOpt) match {
+        case (Some(j), compilerTargets) if compilerTargets.exists(_ != j) =>
+          val compilerTargetsString = compilerTargets.distinct.mkString(", ")
+          logger.error(
+            s"Warning: different target JVM ($j) and scala compiler target JVM ($compilerTargetsString) were passed."
           )
+        case _ =>
+      }
+      val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
+      val platformOpt = value {
+        (parsedPlatform, js.js, native.native) match {
+          case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
+          case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
+          case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
+          case (Some(p), _, _) =>
+            val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
+            val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
+            val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
+            Left(new AmbiguousPlatformError(platformsSeq.distinct.map(_.toString)))
+          case (_, true, true) =>
+            Left(new AmbiguousPlatformError(Seq(Platform.JS.toString, Platform.Native.toString)))
+          case (_, true, _) => Right(Some(Platform.JS))
+          case (_, _, true) => Right(Some(Platform.Native))
+          case _            => Right(None)
+        }
+      }
+      val (assumedSourceJars, extraRegularJarsAndClasspath) =
+        extraJarsAndClassPath.partition(_.hasSourceJarSuffix)
+      if assumedSourceJars.nonEmpty then
+        val assumedSourceJarsString = assumedSourceJars.mkString(", ")
+        logger.message(
+          s"""[${Console.YELLOW}warn${Console.RESET}] Jars with the ${ScalaCliConsole
+              .GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
+             |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
+        )
+      val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
+        SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
+      val scalapyMaxDefaultScalaNativeVersions =
+        if sharedPython.python.contains(true) then
+          List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
+        else Nil
+      val maxDefaultScalaNativeVersions =
+        toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
+      val snOpts = scalaNativeOptions(native, maxDefaultScalaNativeVersions)
+      bo.BuildOptions(
+        sourceGeneratorOptions = bo.SourceGeneratorOptions(
+          useBuildInfo = sourceGenerator.useBuildInfo,
+          projectVersion = sharedVersionOptions.projectVersion,
+          computeVersion = value {
+            sharedVersionOptions.computeVersion
+              .map(Positioned.commandLine)
+              .map(ComputeVersion.parse)
+              .sequence
+          }
         ),
-      scalaOptions = bo.ScalaOptions(
-        scalaVersion = scalaVersion
-          .map(_.trim)
-          .filter(_.nonEmpty)
-          .map(bo.MaybeScalaVersion(_)),
-        scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
-        addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
-        addScalaCompiler = withCompiler,
-        semanticDbOptions = bo.SemanticDbOptions(
-          generateSemanticDbs = semanticDbOptions.semanticDb,
-          semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
-          semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
-        ),
-        scalacOptions = scalacOptions
-          .withScalacExtraOptions(scalacExtra)
-          .toScalacOptShadowingSeq
-          .filterNonRedirected
-          .filterNonDeprecated
-          .map(Positioned.commandLine),
-        compilerPlugins =
-          SharedOptions.parseDependencies(
-            dependencies.compilerPlugin.map(Positioned.none),
-            ignoreErrors
+        suppressWarningOptions =
+          bo.SuppressWarningOptions(
+            suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
+              suppress.suppressDirectivesInMultipleFilesWarning,
+              Keys.suppressDirectivesInMultipleFilesWarning
+            ),
+            suppressOutdatedDependencyWarning = getOptionOrFromConfig(
+              suppress.suppressOutdatedDependencyWarning,
+              Keys.suppressOutdatedDependenciessWarning
+            ),
+            suppressExperimentalFeatureWarning = getOptionOrFromConfig(
+              suppress.global.suppressExperimentalFeatureWarning,
+              Keys.suppressExperimentalFeatureWarning
+            )
           ),
-        platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
-      ),
-      scriptOptions = bo.ScriptOptions(
-        forceObjectWrapper = objectWrapper
-      ),
-      scalaJsOptions = scalaJsOptions(js),
-      scalaNativeOptions = snOpts,
-      javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
-      jmhOptions = bo.JmhOptions(
-        addJmhDependencies =
-          if (enableJmh) jmhVersion.orElse(Some(Constants.jmhVersion))
-          else None,
-        runJmh = if (enableJmh) Some(true) else None
-      ),
-      classPathOptions = bo.ClassPathOptions(
-        extraClassPath = extraRegularJarsAndClasspath,
-        extraCompileOnlyJars = extraCompileOnlyClassPath,
-        extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
-        extraRepositories =
-          (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++ dependencies.repository)
+        scalaOptions = bo.ScalaOptions(
+          scalaVersion = scalaVersion
             .map(_.trim)
-            .filter(_.nonEmpty),
-        extraDependencies = extraDependencies(ignoreErrors, resolvedToolkitDependency),
-        extraCompileOnlyDependencies =
-          extraCompileOnlyDependencies(ignoreErrors, resolvedToolkitDependency)
-      ),
-      internal = bo.InternalOptions(
-        cache = Some(coursierCache),
-        localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir, logger),
-        verbosity = Some(logging.verbosity),
-        strictBloopJsonCheck = strictBloopJsonCheck,
-        interactive = Some(() => interactive),
-        exclude = exclude.map(Positioned.commandLine),
-        offline = coursier.getOffline()
-      ),
-      notForBloopOptions = bo.PostBuildOptions(
-        scalaJsLinkerOptions = linkerOptions(js),
-        addRunnerDependencyOpt = runner,
-        python = sharedPython.python,
-        pythonSetup = sharedPython.pythonSetup,
-        scalaPyVersion = sharedPython.scalaPyVersion
-      ),
-      useBuildServer = compilationServer.server
-    )
-  }
+            .filter(_.nonEmpty)
+            .map(bo.MaybeScalaVersion(_)),
+          scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
+          addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
+          addScalaCompiler = withCompiler,
+          semanticDbOptions = bo.SemanticDbOptions(
+            generateSemanticDbs = semanticDbOptions.semanticDb,
+            semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
+            semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
+          ),
+          scalacOptions = scalacOptions
+            .withScalacExtraOptions(scalacExtra)
+            .toScalacOptShadowingSeq
+            .filterNonRedirected
+            .filterNonDeprecated
+            .map(Positioned.commandLine),
+          compilerPlugins =
+            SharedOptions.parseDependencies(
+              dependencies.compilerPlugin.map(Positioned.none),
+              ignoreErrors
+            ),
+          platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
+        ),
+        scriptOptions = bo.ScriptOptions(
+          forceObjectWrapper = objectWrapper
+        ),
+        scalaJsOptions = scalaJsOptions(js),
+        scalaNativeOptions = snOpts,
+        javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
+        jmhOptions = bo.JmhOptions(
+          jmhVersion = benchmarking.jmhVersion,
+          enableJmh = benchmarking.jmh,
+          runJmh = benchmarking.jmh
+        ),
+        classPathOptions = bo.ClassPathOptions(
+          extraClassPath = extraRegularJarsAndClasspath,
+          extraCompileOnlyJars = extraCompileOnlyClassPath,
+          extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
+          extraRepositories =
+            (ScalaCli.launcherOptions.scalaRunner.cliPredefinedRepository ++ dependencies.repository)
+              .map(_.trim)
+              .filter(_.nonEmpty),
+          extraDependencies = extraDependencies(ignoreErrors, resolvedToolkitDependency),
+          extraCompileOnlyDependencies =
+            extraCompileOnlyDependencies(ignoreErrors, resolvedToolkitDependency)
+        ),
+        internal = bo.InternalOptions(
+          cache = Some(coursierCache),
+          localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir, logger),
+          verbosity = Some(logging.verbosity),
+          strictBloopJsonCheck = strictBloopJsonCheck,
+          interactive = Some(() => interactive),
+          exclude = exclude.map(Positioned.commandLine),
+          offline = coursier.getOffline()
+        ),
+        notForBloopOptions = bo.PostBuildOptions(
+          scalaJsLinkerOptions = linkerOptions(js),
+          addRunnerDependencyOpt = runner,
+          python = sharedPython.python,
+          pythonSetup = sharedPython.pythonSetup,
+          scalaPyVersion = sharedPython.scalaPyVersion
+        ),
+        useBuildServer = compilationServer.server
+      )
+    }
 
   private def resolvedDependencies(
     deps: List[String],
@@ -460,17 +456,7 @@ final case class SharedOptions(
   private def extraCompileOnlyDependencies(
     ignoreErrors: Boolean,
     resolvedDeps: Seq[Positioned[AnyDependency]]
-  ) = {
-    val jmhCorePrefix = s"${Constants.jmhOrg}:${Constants.jmhCoreModule}"
-    val jmhDeps =
-      if benchmarking.jmh.getOrElse(false) &&
-        !dependencies.compileOnlyDependency.exists(_.startsWith(jmhCorePrefix)) &&
-        !dependencies.dependency.exists(_.startsWith(jmhCorePrefix))
-      then List(s"$jmhCorePrefix:${Constants.jmhVersion}")
-      else List.empty
-    val finalDeps = dependencies.compileOnlyDependency ++ jmhDeps
-    resolvedDependencies(finalDeps, ignoreErrors, resolvedDeps)
-  }
+  ) = resolvedDependencies(dependencies.compileOnlyDependency, ignoreErrors, resolvedDeps)
 
   private def extraDependencies(
     ignoreErrors: Boolean,
@@ -580,7 +566,7 @@ final case class SharedOptions(
 
   def bloopRifleConfig(extraBuildOptions: Option[BuildOptions] = None)
     : Either[BuildException, BloopRifleConfig] = either {
-    val options = extraBuildOptions.foldLeft(value(buildOptions(false, None)))(_ orElse _)
+    val options = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
     lazy val defaultJvmHome = value {
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
     }
