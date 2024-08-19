@@ -7,9 +7,10 @@ object Scala {
   def scala213        = "2.13.14"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
-  def scala3Lts    = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
-  def scala3Next   = "3.4.2"               // the newest/next version of Scala
-  def scala3NextRc = "3.5.1-RC2"           // the latest RC version of Scala Next
+  def scala3Lts  = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
+  def scala3Next = "3.5.0"               // the newest/next version of Scala
+  def scala3NextAnnounced = "3.4.2"     // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.5.1-RC2" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -38,19 +39,21 @@ object Scala {
     val max31  = 3
     val max32  = 2
     val max33  = patchVer(scala3Lts)
-    val max34  = patchVer(scala3Next)
+    val max34  = 3
+    val max35  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
       (0 to max31).map(i => s"3.1.$i") ++
       (0 to max32).map(i => s"3.2.$i") ++
-      (0 until max33).map(i => s"3.3.$i") ++
-      (0 until max34).map(i => s"3.4.$i") ++ Seq(scala3Next)
+      (0 to max33).map(i => s"3.3.$i") ++
+      (0 to max34).map(i => s"3.4.$i") ++
+      (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
   }
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = scala3Next
+  def maxAmmoniteScala3Version   = scala3NextAnnounced
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
@@ -120,7 +123,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
-    def bloop                             = "2.0.0-RC1"
+    def bloop                             = "2.0.0"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
@@ -158,7 +161,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.2.1-jre"
+  def guava   = ivy"com.google.guava:guava:33.3.0-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
   def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
@@ -180,7 +183,7 @@ object Deps {
   def metaconfigTypesafe =
     ivy"org.scalameta::metaconfig-typesafe-config:0.13.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit                      = ivy"org.scalameta::munit:1.0.0"
+  def munit                      = ivy"org.scalameta::munit:1.0.1"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.10.3"
@@ -208,6 +211,7 @@ object Deps {
   def scalametaSemanticDbShared =
     ivy"org.scalameta:semanticdb-shared_${Scala.scala213}:${Versions.scalaMeta}"
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
+      .exclude("com.lihaoyi" -> "sourcecode")
   def signingCliShared =
     ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
@@ -223,7 +227,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.13"
-  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.7"
+  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.9.8"
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface             = ivy"org.scala-sbt:test-interface:1.0"

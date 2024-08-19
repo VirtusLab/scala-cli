@@ -1003,6 +1003,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def scala3Lts                  = "${Scala.scala3Lts}"
            |  def scala3NextRc               = "${Scala.scala3NextRc}"
            |  def scala3Next                 = "${Scala.scala3Next}"
+           |  def scala3NextAnnounced        = "${Scala.scala3NextAnnounced}"
            |  def defaultScala               = "${Scala.defaultUser}"
            |  def defaultScalafmtVersion     = "${Deps.scalafmtCli.dep.version}"
            |  def maxAmmoniteScala212Version = "${Scala.maxAmmoniteScala212Version}"
