@@ -37,7 +37,8 @@ object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
       .getOrElse(os.home)
     val rcFiles = options.shared.rcFile.map(file => Seq(os.Path(file, os.pwd))).getOrElse(Seq(
       zDotDir / ".zshrc",
-      os.home / ".bashrc"
+      os.home / ".bashrc",
+      os.home / ".config" / "fish" / "config.fish"
     )).filter(os.exists(_))
 
     rcFiles.foreach { rcFile =>
