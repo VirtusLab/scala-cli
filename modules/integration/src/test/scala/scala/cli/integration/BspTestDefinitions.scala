@@ -786,6 +786,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           |""".stripMargin
     )
 
+    val actualScalaMajorVersion = actualScalaVersion.split("\\.")
+      .take(if (actualScalaVersion.startsWith("3")) 1 else 2)
+      .mkString(".")
+
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
@@ -821,18 +825,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               uri.drop(idx + 1)
             }
 
-          if (actualScalaVersion.startsWith("2.13")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.13-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_2.13-0.7.8")))
-          }
-          else if (actualScalaVersion.startsWith("2.12")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.12-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_2.12-0.7.8")))
-          }
-          else {
-            expect(foundDepSources.exists(_.startsWith("utest_3-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_3-0.7.8")))
-          }
+          expect(foundDepSources.exists(_.startsWith(s"utest_$actualScalaMajorVersion-0.7.10")))
+          expect(foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.7.8")))
 
           expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
@@ -870,18 +864,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               uri.drop(idx + 1)
             }
 
-          if (actualScalaVersion.startsWith("2.13")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.13-0.7.10")))
-            expect(!foundDepSources.exists(_.startsWith("os-lib_2.13-0.7.8")))
-          }
-          else if (actualScalaVersion.startsWith("2.12")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.12-0.7.10")))
-            expect(!foundDepSources.exists(_.startsWith("os-lib_2.12-0.7.8")))
-          }
-          else {
-            expect(foundDepSources.exists(_.startsWith("utest_3-0.7.10")))
-            expect(!foundDepSources.exists(_.startsWith("os-lib_3-0.7.8")))
-          }
+          expect(foundDepSources.exists(_.startsWith(s"utest_$actualScalaMajorVersion-0.7.10")))
+          expect(!foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.7.8")))
 
           expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
