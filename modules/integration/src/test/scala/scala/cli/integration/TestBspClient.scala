@@ -28,6 +28,12 @@ class TestBspClient extends b.BuildClient {
     p.future
   }
 
+  def logMessages(): Seq[b.LogMessageParams] =
+    lock.synchronized {
+      messages0.reverseIterator.collect {
+        case p: b.LogMessageParams => p
+      }.toSeq
+    }
   def diagnostics(): Seq[b.PublishDiagnosticsParams] =
     lock.synchronized {
       messages0.reverseIterator.collect {

@@ -786,6 +786,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           |""".stripMargin
     )
 
+    val actualScalaMajorVersion = actualScalaVersion.split("\\.")
+      .take(if (actualScalaVersion.startsWith("3")) 1 else 2)
+      .mkString(".")
+
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
@@ -821,24 +825,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               uri.drop(idx + 1)
             }
 
-          if (actualScalaVersion.startsWith("2.13")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.13-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_2.13-0.7.8")))
-          }
-          else if (actualScalaVersion.startsWith("2.12")) {
-            expect(foundDepSources.exists(_.startsWith("utest_2.12-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_2.12-0.7.8")))
-          }
-          else {
-            expect(foundDepSources.exists(_.startsWith("utest_3-0.7.10")))
-            expect(foundDepSources.exists(_.startsWith("os-lib_3-0.7.8")))
-          }
+          expect(foundDepSources.exists(_.startsWith(s"utest_$actualScalaMajorVersion-0.7.10")))
+          expect(foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.7.8")))
 
           expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
           expect(foundDepSources.forall(_.endsWith("-sources.jar")))
         }
 
-        localClient.buildTargetDidChange()
+        val changeFuture = localClient.buildTargetDidChange()
 
         val newFileContent =
           """object Messages {
@@ -850,6 +844,31 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         {
           val resp = await(remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala)
           expect(resp.getStatusCode == b.StatusCode.OK)
+        }
+
+        expect(changeFuture.isCompleted)
+
+        {
+          val resp = await {
+            remoteServer
+              .buildTargetDependencySources(new b.DependencySourcesParams(targets))
+              .asScala
+          }
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          expect(foundTargets == Seq(targetUri))
+          val foundDepSources = resp.getItems.asScala
+            .flatMap(_.getSources.asScala)
+            .toSeq
+            .map { uri =>
+              val idx = uri.lastIndexOf('/')
+              uri.drop(idx + 1)
+            }
+
+          expect(foundDepSources.exists(_.startsWith(s"utest_$actualScalaMajorVersion-0.7.10")))
+          expect(!foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.7.8")))
+
+          expect(foundDepSources.exists(_.startsWith("test-interface-1.0")))
+          expect(foundDepSources.forall(_.endsWith("-sources.jar")))
         }
       }
     }
@@ -1221,7 +1240,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
       val jsonOptions    = List("--json-options", ideOptionsPath.toString)
       withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
+        (_, localClient, remoteServer) =>
           async {
             val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
@@ -1247,9 +1266,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
                  |""".stripMargin
             os.write.over(root / sourceFilePath, updatedSourceFile)
 
+            expect(!localClient.logMessages().exists(_.getMessage.startsWith(
+              "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
+            )))
+
             val errorResponse =
               await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(errorResponse.getStatusCode == b.StatusCode.ERROR)
+            expect(errorResponse.getStatusCode == b.StatusCode.OK)
+            expect(localClient.logMessages().exists(_.getMessage.startsWith(
+              "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
+            )))
 
             val reloadResponse =
               extractWorkspaceReloadResponse(await(remoteServer.workspaceReload().asScala))

@@ -130,19 +130,21 @@ object Bsp extends ScalaCommand[BspOptions] {
 
     val (inputs, finalBuildOptions) = preprocessInputs(args.all).orExit(logger)
 
-    /** values used for lauching the bsp, especially for launching a bloop server, they include
-      * options extracted from sources
+    /** values used for launching the bsp, especially for launching the bloop server, they do not
+      * include options extracted from sources, except in bloopRifleConfig - it's needed for
+      * correctly launching the bloop server
       */
     val initialBspOptions = {
       val sharedOptions   = getSharedOptions()
       val launcherOptions = getLauncherOptions()
       val envs            = getEnvsFromFile()
       val bspBuildOptions = buildOptions(sharedOptions, launcherOptions, envs)
-        .orElse(finalBuildOptions)
+
       refreshPowerMode(launcherOptions, sharedOptions, envs)
+
       BspReloadableOptions(
         buildOptions = bspBuildOptions,
-        bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(bspBuildOptions))
+        bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
           .orExit(sharedOptions.logger),
         logger = sharedOptions.logging.logger,
         verbosity = sharedOptions.logging.verbosity
@@ -150,11 +152,11 @@ object Bsp extends ScalaCommand[BspOptions] {
     }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
-      val sharedOptions   = getSharedOptions()
-      val launcherOptions = getLauncherOptions()
-      val envs            = getEnvsFromFile()
-      val bloopRifleConfig = sharedOptions.bloopRifleConfig(Some(finalBuildOptions))
-        .orExit(sharedOptions.logger)
+      val sharedOptions    = getSharedOptions()
+      val launcherOptions  = getLauncherOptions()
+      val envs             = getEnvsFromFile()
+      val bloopRifleConfig = sharedOptions.bloopRifleConfig()
+
       refreshPowerMode(launcherOptions, sharedOptions, envs)
 
       BspReloadableOptions(
