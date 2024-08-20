@@ -16,12 +16,12 @@ import dependency.parser.DependencyParser
 import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
-
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
+import scala.build.compose.Inputs
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
 import scala.build.input.compose.InputsComposer
@@ -39,14 +39,7 @@ import scala.build.preprocessing.directives.{Python, Toolkit}
 import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.{
-  HasGlobalOptions,
-  ScalaJsOptions,
-  ScalaNativeOptions,
-  SharedOptions,
-  SourceGeneratorOptions,
-  SuppressWarningOptions
-}
+import scala.cli.commands.shared.{HasGlobalOptions, ScalaJsOptions, ScalaNativeOptions, SharedOptions, SourceGeneratorOptions, SuppressWarningOptions}
 import scala.cli.commands.tags
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -651,7 +644,7 @@ final case class SharedOptions(
   def composeInputs(
     args: Seq[String],
     defaultInputs: () => Option[Module] = () => Module.default()
-  )(using ScalaCliInvokeData): Either[BuildException, compose.Inputs] = {
+  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
     val updatedModuleInputsFromArgs
       : (Seq[String], Option[ProjectName]) => Either[BuildException, Module] =
       (args, projectNameOpt) =>

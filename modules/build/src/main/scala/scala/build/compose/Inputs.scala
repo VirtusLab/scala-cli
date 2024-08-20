@@ -1,6 +1,7 @@
-package scala.build.input.compose
+package scala.build.compose
 
 import scala.build.bsp.buildtargets.ProjectName
+import scala.build.compose.{Inputs, InputsComposer}
 import scala.build.input.{Module, WorkspaceOrigin}
 import scala.build.options.BuildOptions
 import scala.collection.mutable
@@ -68,6 +69,11 @@ case class ComposedInputs(
 
   override lazy val targetDependenciesBuildOrder: Seq[Module] = {
     val buildOrderWithTarget = buildOrderForModule(targetModule, Set.empty).map(nameMap)
+    buildOrderWithTarget.dropRight(1)
+  }
+
+  def buildOrderForModule(module: Module): Seq[Module] = {
+    buildOrderForModule(module, Set.empty).map(nameMap)
     buildOrderWithTarget.dropRight(1)
   }
 

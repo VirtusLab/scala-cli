@@ -10,18 +10,12 @@ import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
 import java.io.{InputStream, OutputStream}
 import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
-
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
 import scala.build.compiler.BloopCompiler
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  Diagnostic,
-  ParsingInputsException
-}
-import scala.build.input.{Module, ScalaCliInvokeData, compose}
+import scala.build.compose.Inputs
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, ParsingInputsException}
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
@@ -44,12 +38,12 @@ import scala.util.{Failure, Success}
   *   the output stream of bytes
   */
 final class BspImpl(
-  argsToInputs: Seq[String] => Either[BuildException, compose.Inputs],
-  bspReloadableOptionsReference: BspReloadableOptions.Reference,
-  threads: BspThreads,
-  in: InputStream,
-  out: OutputStream,
-  actionableDiagnostics: Option[Boolean]
+                     argsToInputs: Seq[String] => Either[BuildException, Inputs],
+                     bspReloadableOptionsReference: BspReloadableOptions.Reference,
+                     threads: BspThreads,
+                     in: InputStream,
+                     out: OutputStream,
+                     actionableDiagnostics: Option[Boolean]
 )(using ScalaCliInvokeData) extends Bsp {
 
   import BspImpl.{
@@ -457,9 +451,9 @@ final class BspImpl(
     *   a new [[BloopSession]]
     */
   private def newBloopSession(
-    inputs: compose.Inputs,
-    reloadableOptions: BspReloadableOptions,
-    presetIntelliJ: Boolean = false
+                               inputs: Inputs,
+                               reloadableOptions: BspReloadableOptions,
+                               presetIntelliJ: Boolean = false
   ): BloopSession = {
     val logger       = reloadableOptions.logger
     val buildOptions = reloadableOptions.buildOptions
@@ -510,8 +504,8 @@ final class BspImpl(
     *   change on subsequent workspace/reload requests)
     */
   override def run(
-    initialInputs: compose.Inputs,
-    initialBspOptions: BspReloadableOptions
+                    initialInputs: Inputs,
+                    initialBspOptions: BspReloadableOptions
   ): Future[Unit] = {
     val logger    = initialBspOptions.logger
     val verbosity = initialBspOptions.verbosity
@@ -613,10 +607,10 @@ final class BspImpl(
     *   a future containing a valid workspace/reload response
     */
   private def reloadBsp(
-    currentBloopSession: BloopSession,
-    previousInputs: compose.Inputs,
-    newInputs: compose.Inputs,
-    reloadableOptions: BspReloadableOptions
+                         currentBloopSession: BloopSession,
+                         previousInputs: Inputs,
+                         newInputs: Inputs,
+                         reloadableOptions: BspReloadableOptions
   ): CompletableFuture[AnyRef] = {
     val previousTargetIds = currentBloopSession.bspServer.targetIds
     val wasIntelliJ       = currentBloopSession.bspServer.isIntelliJ

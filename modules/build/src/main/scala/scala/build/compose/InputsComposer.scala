@@ -1,4 +1,4 @@
-package scala.build.input.compose
+package scala.build.compose
 
 import toml.Value
 import toml.Value.*
@@ -6,9 +6,9 @@ import toml.Value.*
 import scala.build.EitherCps.*
 import scala.build.EitherSequence
 import scala.build.bsp.buildtargets.ProjectName
+import scala.build.compose.{ComposedInputs, Inputs, InputsComposer, SimpleInputs}
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleConfigurationError}
 import scala.build.input.Module
-import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.collection.mutable

@@ -3,17 +3,17 @@ package scala.build.bsp
 import com.swoval.files.PathWatchers
 
 import java.util.concurrent.atomic.AtomicReference
-
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.{Module, OnDisk, SingleFile, Virtual, compose}
+import scala.build.compose.{Inputs, input as compose}
+import scala.build.input.{Module, OnDisk, SingleFile, Virtual}
 
 final class BloopSession(
-  val inputs: compose.Inputs,
-//  val inputsHash: String, TODO Fix inputs hash comparing
-  val remoteServer: BloopCompiler,
-  val bspServer: BspServer,
-  val watcher: Build.Watcher
+                          val inputs: Inputs,
+                          //  val inputsHash: String, TODO Fix inputs hash comparing
+                          val remoteServer: BloopCompiler,
+                          val bspServer: BspServer,
+                          val watcher: Build.Watcher
 ) {
   def resetDiagnostics(localClient: BspClient): Unit = for {
     module   <- inputs.modules
@@ -65,10 +65,10 @@ final class BloopSession(
 object BloopSession {
 
   def apply(
-    inputs: compose.Inputs,
-    remoteServer: BloopCompiler,
-    bspServer: BspServer,
-    watcher: Build.Watcher
+             inputs: Inputs,
+             remoteServer: BloopCompiler,
+             bspServer: BspServer,
+             watcher: Build.Watcher
   ): BloopSession = new BloopSession(inputs, remoteServer, bspServer, watcher)
 
   final class Reference {
