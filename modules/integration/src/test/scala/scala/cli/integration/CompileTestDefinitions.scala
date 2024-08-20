@@ -685,7 +685,6 @@ abstract class CompileTestDefinitions
           |  println("Hello")
           |}
           |""".stripMargin,
-
       os.rel / "Test.test.scala" ->
         """object Test extends App {
           |  println("Hello")
@@ -701,17 +700,22 @@ abstract class CompileTestDefinitions
 
       expect(buildTargetDirs.size == 1)
 
-      os.write.over(root/filename, """//> using dep com.lihaoyi::os-lib:0.9.1
-                                      |
-                                      |object Main extends App {
-                                      |  println("Hello")
-                                      |}
-                                      |""".stripMargin)
+      os.write.over(
+        root / filename,
+        """//> using dep com.lihaoyi::os-lib:0.9.1
+          |
+          |object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+      )
 
       os.proc(TestUtil.cli, "compile", extraOptions :+ "--test", ".").call(cwd = root)
       expect(buildTargetDirs.size == 1)
 
-      os.proc(TestUtil.cli, "compile", extraOptions ++ Seq("--test", "-nowarn"), ".").call(cwd = root)
+      os.proc(TestUtil.cli, "compile", extraOptions ++ Seq("--test", "-nowarn"), ".").call(cwd =
+        root
+      )
       expect(buildTargetDirs.size == 2)
     }
   }
