@@ -45,7 +45,6 @@ case class DirectivesPreprocessor(
   def preprocess(extractedDirectives: ExtractedDirectives)
     : Either[BuildException, PreprocessedDirectives] = either {
     val ExtractedDirectives(directives, directivesPositions) = extractedDirectives
-
     val (
       buildOptionsWithoutRequirements: PartiallyProcessedDirectives[BuildOptions],
       buildOptionsWithTargetRequirements: PartiallyProcessedDirectives[

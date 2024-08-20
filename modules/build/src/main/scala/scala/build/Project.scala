@@ -7,10 +7,10 @@ import coursier.core.Classifier
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 import java.util.Arrays
 
-import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
+import scala.build.options.{GeneratorConfig, ScalacOpt, Scope, ShadowingSeq}
 
 final case class Project(
   workspace: os.Path,
@@ -28,7 +28,8 @@ final case class Project(
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
   scope: Scope,
-  javacOptions: List[String]
+  javacOptions: List[String],
+  generateSource: Option[Seq[GeneratorConfig]]
 ) {
 
   import Project._
@@ -50,6 +51,26 @@ final case class Project(
         bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)
       )
     }
+
+    val sourceGenerator: Option[List[BloopConfig.SourceGenerator]] =
+      generateSource.map(configs =>
+        configs.map { config =>
+          val command0 = config.commandFilePath
+          val sourceGlobs0 = BloopConfig.SourcesGlobs(
+            Paths.get(config.inputDir),
+            None,
+            config.glob,
+            Nil
+          )
+
+          BloopConfig.SourceGenerator(
+            List(sourceGlobs0),
+            (config.outputPath / "source-generator-output").toNIO,
+            List("/Users/kiki/Kerja/scala-cli/testing-a/scala-cli", "run", command0, "--power", "--")
+          )
+        }.toList
+      )
+
     baseBloopProject(
       projectName,
       directory.toNIO,
@@ -65,7 +86,8 @@ final case class Project(
         platform = Some(platform),
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
-        resolution = resolution
+        resolution = resolution,
+        sourceGenerators = sourceGenerator
       )
   }
 
