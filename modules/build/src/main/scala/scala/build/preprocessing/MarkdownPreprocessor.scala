@@ -6,8 +6,8 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{
-  Inputs,
   MarkdownFile,
+  Module,
   ScalaCliInvokeData,
   SingleElement,
   VirtualMarkdownFile

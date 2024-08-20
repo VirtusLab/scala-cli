@@ -20,10 +20,12 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.*
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
-import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
+import scala.build.input.compose.InputsComposer
+import scala.build.input.{Element, Module, ResourceDirectory, ScalaCliInvokeData, compose}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
@@ -623,27 +625,53 @@ final case class SharedOptions(
 
   lazy val coursierCache = coursier.coursierCache(logging.logger.coursierLogger(""))
 
+  private def moduleInputsFromArgs(
+    args: Seq[String],
+    forcedProjectName: Option[ProjectName],
+    defaultInputs: () => Option[Module] = () => Module.default()
+  )(using ScalaCliInvokeData) = SharedOptions.inputs(
+    args,
+    defaultInputs,
+    resourceDirs,
+    Directories.directories,
+    logger = logger,
+    coursierCache,
+    workspace.forcedWorkspaceOpt,
+    input.defaultForbiddenDirectories,
+    input.forbid,
+    scriptSnippetList = allScriptSnippets,
+    scalaSnippetList = allScalaSnippets,
+    javaSnippetList = allJavaSnippets,
+    markdownSnippetList = allMarkdownSnippets,
+    enableMarkdown = markdown.enableMarkdown,
+    extraClasspathWasPassed = extraClasspathWasPassed,
+    forcedProjectName = forcedProjectName
+  )
+
+  def composeInputs(
+    args: Seq[String],
+    defaultInputs: () => Option[Module] = () => Module.default()
+  )(using ScalaCliInvokeData): Either[BuildException, compose.Inputs] = {
+    val updatedModuleInputsFromArgs
+      : (Seq[String], Option[ProjectName]) => Either[BuildException, Module] =
+      (args, projectNameOpt) =>
+        for {
+          moduleInputs <- moduleInputsFromArgs(args, projectNameOpt, defaultInputs)
+          options      <- buildOptions()
+        } yield Build.updateInputs(moduleInputs, options)
+
+    InputsComposer(
+      args,
+      Os.pwd,
+      updatedModuleInputsFromArgs,
+      ScalaCli.allowRestrictedFeatures
+    ).getInputs
+  }
+
   def inputs(
     args: Seq[String],
-    defaultInputs: () => Option[Inputs] = () => Inputs.default()
-  )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
-    SharedOptions.inputs(
-      args,
-      defaultInputs,
-      resourceDirs,
-      Directories.directories,
-      logger = logger,
-      coursierCache,
-      workspace.forcedWorkspaceOpt,
-      input.defaultForbiddenDirectories,
-      input.forbid,
-      scriptSnippetList = allScriptSnippets,
-      scalaSnippetList = allScalaSnippets,
-      javaSnippetList = allJavaSnippets,
-      markdownSnippetList = allMarkdownSnippets,
-      enableMarkdown = markdown.enableMarkdown,
-      extraClasspathWasPassed = extraClasspathWasPassed
-    )
+    defaultInputs: () => Option[Module] = () => Module.default()
+  )(using ScalaCliInvokeData) = moduleInputsFromArgs(args, forcedProjectName = None, defaultInputs)
 
   def allScriptSnippets: List[String]   = snippet.scriptSnippet ++ snippet.executeScript
   def allScalaSnippets: List[String]    = snippet.scalaSnippet ++ snippet.executeScala
@@ -657,7 +685,7 @@ final case class SharedOptions(
   def validateInputArgs(
     args: Seq[String]
   )(using ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
-    Inputs.validateArgs(
+    Module.validateArgs(
       args,
       Os.pwd,
       SharedOptions.downloadInputs(coursierCache),
@@ -686,10 +714,10 @@ object SharedOptions {
         .map(f => os.read.bytes(os.Path(f, Os.pwd)))
   }
 
-  /** [[Inputs]] builder, handy when you don't have a [[SharedOptions]] instance at hand */
+  /** [[Module]] builder, handy when you don't have a [[SharedOptions]] instance at hand */
   def inputs(
     args: Seq[String],
-    defaultInputs: () => Option[Inputs],
+    defaultInputs: () => Option[Module],
     resourceDirs: Seq[String],
     directories: scala.build.Directories,
     logger: scala.build.Logger,
@@ -702,8 +730,9 @@ object SharedOptions {
     javaSnippetList: List[String],
     markdownSnippetList: List[String],
     enableMarkdown: Boolean = false,
-    extraClasspathWasPassed: Boolean = false
-  )(using ScalaCliInvokeData): Either[BuildException, Inputs] = {
+    extraClasspathWasPassed: Boolean = false,
+    forcedProjectName: Option[ProjectName] = None
+  )(using ScalaCliInvokeData): Either[BuildException, Module] = {
     val resourceInputs = resourceDirs
       .map(os.Path(_, Os.pwd))
       .map { path =>
@@ -713,7 +742,7 @@ object SharedOptions {
       }
       .map(ResourceDirectory.apply)
 
-    val maybeInputs = Inputs(
+    val maybeInputs = Module(
       args,
       Os.pwd,
       defaultInputs = defaultInputs,
@@ -727,7 +756,8 @@ object SharedOptions {
       forcedWorkspace = forcedWorkspaceOpt,
       enableMarkdown = enableMarkdown,
       allowRestrictedFeatures = ScalaCli.allowRestrictedFeatures,
-      extraClasspathWasPassed = extraClasspathWasPassed
+      extraClasspathWasPassed = extraClasspathWasPassed,
+      forcedProjectName = forcedProjectName
     )
 
     maybeInputs.map { inputs =>

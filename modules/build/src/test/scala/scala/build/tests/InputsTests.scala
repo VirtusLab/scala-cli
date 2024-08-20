@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.Build
 import scala.build.input.{
-  Inputs,
+  Module,
   ScalaCliInvokeData,
   VirtualJavaFile,
   VirtualScalaFile,
@@ -142,7 +142,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
     )
 
     TestInputs().fromRoot { root =>
-      val elements = Inputs.validateArgs(
+      val elements = Module.validateArgs(
         urls,
         root,
         download = url => Right(Array.emptyByteArray),

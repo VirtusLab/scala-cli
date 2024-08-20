@@ -123,8 +123,8 @@ object MarkdownCodeWrapper {
         else System.lineSeparator()
       val nextScopeIndex = if index == 0 || fence.resetScope then scopeIndex + 1 else scopeIndex
       val newAcc = acc + (System.lineSeparator() * (fence.startLine - line - 1)) // padding
-        .:++(classOpener) // new class opening (if applicable)
-        .:++(fence.body) // snippet body
+        .:++(classOpener)            // new class opening (if applicable)
+        .:++(fence.body)             // snippet body
         .:++(System.lineSeparator()) // padding in place of closing backticks
       generateMainScalaLines(
         snippets = snippets,
@@ -157,7 +157,7 @@ object MarkdownCodeWrapper {
     else {
       val fence: MarkdownCodeBlock = snippets(index)
       val newAcc = acc + (System.lineSeparator() * (fence.startLine - line)) // padding
-        .:++(fence.body) // snippet body
+        .:++(fence.body)             // snippet body
         .:++(System.lineSeparator()) // padding in place of closing backticks
       generateRawScalaLines(snippets, index + 1, fence.endLine + 1, newAcc)
     }

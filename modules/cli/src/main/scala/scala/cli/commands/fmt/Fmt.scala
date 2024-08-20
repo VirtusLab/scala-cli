@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 
-import scala.build.input.{Inputs, Script, SourceScalaFile}
+import scala.build.input.{Module, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
 import scala.build.{Logger, Sources}

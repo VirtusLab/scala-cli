@@ -140,7 +140,7 @@ final case class CrossSources(
 
 object CrossSources {
 
-  private def withinTestSubDirectory(p: ScopePath, inputs: Inputs): Boolean =
+  private def withinTestSubDirectory(p: ScopePath, inputs: Module): Boolean =
     p.root.exists { path =>
       val fullPath = path / p.subPath
       inputs.elements.exists {
@@ -155,14 +155,14 @@ object CrossSources {
   /** @return
     *   a CrossSources and Inputs which contains element processed from using directives
     */
-  def forInputs(
-    inputs: Inputs,
+  def forModuleInputs(
+    inputs: Module,
     preprocessors: Seq[Preprocessor],
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
-  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
+  )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Module)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
       : Either[BuildException, Seq[PreprocessedSource]] =
@@ -379,7 +379,7 @@ object CrossSources {
     *   the resource directories that should be added to the classpath
     */
   private def resolveResourceDirs(
-    allInputs: Inputs,
+    allInputs: Module,
     preprocessedSources: Seq[PreprocessedSource]
   ): Seq[WithBuildRequirements[os.Path]] = {
     val fromInputs = allInputs.elements

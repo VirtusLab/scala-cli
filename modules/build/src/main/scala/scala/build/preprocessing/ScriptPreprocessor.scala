@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
+import scala.build.input.{Module, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
 import scala.build.internal.*
 import scala.build.internal.util.WarningMessages
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}

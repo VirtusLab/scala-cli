@@ -6,29 +6,35 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.Build
 import scala.build.compiler.BloopCompiler
-import scala.build.input.{Inputs, OnDisk, SingleFile, Virtual}
+import scala.build.input.{Module, OnDisk, SingleFile, Virtual, compose}
 
 final class BloopSession(
-  val inputs: Inputs,
-  val inputsHash: String,
+  val inputs: compose.Inputs,
+//  val inputsHash: String, TODO Fix inputs hash comparing
   val remoteServer: BloopCompiler,
   val bspServer: BspServer,
   val watcher: Build.Watcher
 ) {
-  def resetDiagnostics(localClient: BspClient): Unit =
-    for (targetId <- bspServer.targetIds)
-      inputs.flattened().foreach {
-        case f: SingleFile =>
-          localClient.resetDiagnostics(f.path, targetId)
-        case _: Virtual =>
-      }
+  def resetDiagnostics(localClient: BspClient): Unit = for {
+    module   <- inputs.modules
+    targetId <- bspServer.targetProjectIdOpt(module.projectName)
+  } do
+    module.flattened().foreach {
+      case f: SingleFile =>
+        localClient.resetDiagnostics(f.path, targetId)
+      case _: Virtual =>
+    }
+
   def dispose(): Unit = {
     watcher.dispose()
     remoteServer.shutdown()
   }
 
-  def registerWatchInputs(): Unit =
-    inputs.elements.foreach {
+  def registerWatchInputs(): Unit = for {
+    module  <- inputs.modules
+    element <- module.elements
+  } do
+    element match {
       case elem: OnDisk =>
         val eventFilter: PathWatchers.Event => Boolean = { event =>
           val newOrDeletedFile =
@@ -37,8 +43,11 @@ final class BloopSession(
           lazy val p        = os.Path(event.getTypedPath.getPath.toAbsolutePath)
           lazy val relPath  = p.relativeTo(elem.path)
           lazy val isHidden = relPath.segments.exists(_.startsWith("."))
-          def isScalaFile   = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
-          def isJavaFile    = relPath.last.endsWith(".java")
+
+          def isScalaFile = relPath.last.endsWith(".sc") || relPath.last.endsWith(".scala")
+
+          def isJavaFile = relPath.last.endsWith(".java")
+
           newOrDeletedFile && !isHidden && (isScalaFile || isJavaFile)
         }
         val watcher0 = watcher.newWatcher()
@@ -56,11 +65,11 @@ final class BloopSession(
 object BloopSession {
 
   def apply(
-    inputs: Inputs,
+    inputs: compose.Inputs,
     remoteServer: BloopCompiler,
     bspServer: BspServer,
     watcher: Build.Watcher
-  ): BloopSession = new BloopSession(inputs, inputs.sourceHash(), remoteServer, bspServer, watcher)
+  ): BloopSession = new BloopSession(inputs, remoteServer, bspServer, watcher)
 
   final class Reference {
     private val ref = new AtomicReference[BloopSession](null)

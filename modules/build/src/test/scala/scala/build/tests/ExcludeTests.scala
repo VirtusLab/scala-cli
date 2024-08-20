@@ -41,7 +41,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -64,7 +64,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -88,7 +88,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -122,7 +122,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -156,7 +156,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),
@@ -190,7 +190,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
-        CrossSources.forInputs(
+        CrossSources.forModuleInputs(
           inputs,
           preprocessors,
           TestLogger(),

@@ -6,6 +6,7 @@ import java.io.File
 import java.net.URI
 import java.nio.file.Paths
 
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.Severity
 import scala.build.internal.WrapperParams
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
@@ -15,9 +16,10 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
 class ConsoleBloopBuildClient(
+  projectNameOpt: Option[ProjectName],
   logger: Logger,
   keepDiagnostics: Boolean = false,
-  generatedSources: mutable.Map[Scope, Seq[GeneratedSource]] = mutable.Map()
+  generatedSources: mutable.Map[ProjectName, Seq[GeneratedSource]] = mutable.Map()
 ) extends BloopBuildClient {
   import ConsoleBloopBuildClient._
   private var projectParams = Seq.empty[String]
@@ -26,14 +28,14 @@ class ConsoleBloopBuildClient(
     if (projectParams.isEmpty) ""
     else " (" + projectParams.mkString(", ") + ")"
 
-  private def projectName = "project" + projectNameSuffix
+  private def projectDisplayName = s"${projectNameOpt.fold("project")(_.name)}$projectNameSuffix"
 
   private var printedStart = false
 
   private val diagnostics0 = new mutable.ListBuffer[(Either[String, os.Path], bsp4j.Diagnostic)]
 
-  def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =
-    generatedSources(scope) = newGeneratedSources
+  def setGeneratedSources(projectName: ProjectName, newGeneratedSources: Seq[GeneratedSource]) =
+    generatedSources(projectName) = newGeneratedSources
   def setProjectParams(newParams: Seq[String]): Unit = {
     projectParams = newParams
   }
@@ -109,7 +111,7 @@ class ConsoleBloopBuildClient(
     for (msg <- Option(params.getMessage) if !msg.contains(" no-op compilation")) {
       printedStart = true
       val msg0 =
-        if (params.getDataKind == "compile-task") s"Compiling $projectName"
+        if (params.getDataKind == "compile-task") s"Compiling $projectDisplayName"
         else msg
       logger.message(gray + msg0 + reset)
     }
@@ -125,8 +127,8 @@ class ConsoleBloopBuildClient(
         val msg0 =
           if (params.getDataKind == "compile-report")
             params.getStatus match {
-              case bsp4j.StatusCode.OK        => s"Compiled $projectName"
-              case bsp4j.StatusCode.ERROR     => s"Error compiling $projectName"
+              case bsp4j.StatusCode.OK        => s"Compiled $projectDisplayName"
+              case bsp4j.StatusCode.ERROR     => s"Error compiling $projectDisplayName"
               case bsp4j.StatusCode.CANCELLED => s"Compilation cancelled$projectNameSuffix"
             }
           else msg

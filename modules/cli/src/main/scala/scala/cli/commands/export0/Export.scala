@@ -14,7 +14,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.errors.BuildException
-import scala.build.input.Inputs
+import scala.build.input.Module
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Platform, Scope}
 import scala.cli.CurrentParams
@@ -31,7 +31,7 @@ object Export extends ScalaCommand[ExportOptions] {
     super.helpFormat.withPrimaryGroup(HelpGroup.BuildToolExport)
 
   private def prepareBuild(
-    inputs: Inputs,
+    inputs: Module,
     buildOptions: BuildOptions,
     logger: Logger,
     verbosity: Int,
@@ -40,8 +40,8 @@ object Export extends ScalaCommand[ExportOptions] {
 
     logger.log("Preparing build")
 
-    val (crossSources: CrossSources, allInputs: Inputs) = value {
-      CrossSources.forInputs(
+    val (crossSources: CrossSources, allInputs: Module) = value {
+      CrossSources.forModuleInputs(
         inputs,
         Sources.defaultPreprocessors(
           buildOptions.archiveCache,

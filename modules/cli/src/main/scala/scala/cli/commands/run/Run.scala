@@ -11,8 +11,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
-import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.errors.{BuildException, InputsException}
+import scala.build.input.compose.{ComposedInputs, SimpleInputs}
+import scala.build.input.{Module, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.EnvVar
@@ -64,7 +65,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       options,
       args.remaining,
       args.unparsed,
-      () => Inputs.default(),
+      () => Module.default(),
       logger,
       invokeData
     )
@@ -116,7 +117,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     options0: RunOptions,
     inputArgs: Seq[String],
     programArgs: Seq[String],
-    defaultInputs: () => Option[Inputs],
+    defaultInputs: () => Option[Module],
     logger: Logger,
     invokeData: ScalaCliInvokeData
   ): Unit = {
@@ -143,7 +144,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       else buildOptions
     }
 
-    val inputs = options.shared.inputs(
+    val inputs = options.shared.composeInputs(
       inputArgs,
       defaultInputs
     )(
@@ -159,7 +160,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       allowTerminate: Boolean,
       runMode: RunMode,
       showCommand: Boolean,
-      scratchDirOpt: Option[os.Path]
+      scratchDirOpt: Option[os.Path],
+      classpathFromModuleDeps: Seq[os.Path] = Nil
     ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
       val potentialMainClasses = build.foundMainClasses()
       if (options.sharedRun.mainClass.mainClassLs.contains(true))
@@ -180,7 +182,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             runMode,
             showCommand,
             scratchDirOpt,
-            asJar = options.shared.asJar
+            asJar = options.shared.asJar,
+            classpathFromModuleDeps
           )
         }
 
@@ -253,8 +256,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         */
       val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
+      val moduleToWatch = inputs match
+        case ComposedInputs(modules, targetModule, workspace) =>
+          logger.exit(InputsException("Watch mode is not available in compose mode"))
+        case SimpleInputs(singleModule) => singleModule
+
       val watcher = Build.watch(
-        inputs,
+        moduleToWatch,
         initialBuildOptions,
         compilerMaker,
         None,
@@ -327,9 +335,34 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       }
     }
     else {
-      val builds =
+      val moduleDependencies: Seq[Build.Successful] =
+        for (module <- inputs.targetDependenciesBuildOrder) yield {
+          val builds =
+            Build.build(
+              module,
+              initialBuildOptions,
+              compilerMaker,
+              None,
+              logger,
+              crossBuilds = cross,
+              buildTests = false,
+              partial = None,
+              actionableDiagnostics = actionableDiagnostics,
+              withProjectName = true
+            )
+              .orExit(logger)
+
+          builds.main match {
+            case s: Build.Successful => s
+            case _: Build.Failed =>
+              System.err.println(s"Compilation of module ${module.projectName} failed")
+              sys.exit(1)
+          }
+        }
+
+      val targetBuilds =
         Build.build(
-          inputs,
+          inputs.targetModule,
           initialBuildOptions,
           compilerMaker,
           None,
@@ -337,18 +370,21 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           crossBuilds = cross,
           buildTests = false,
           partial = None,
-          actionableDiagnostics = actionableDiagnostics
+          actionableDiagnostics = actionableDiagnostics,
+          withProjectName = inputs.isInstanceOf[ComposedInputs]
         )
           .orExit(logger)
-      builds.main match {
+      targetBuilds.main match {
         case s: Build.Successful =>
           s.copyOutput(options.shared)
+          val mainWithModuleDeps = s.copy()
           val res = maybeRun(
             s,
             allowTerminate = true,
             runMode = runMode(options),
             showCommand = options.sharedRun.command,
-            scratchDirOpt = scratchDirOpt(options)
+            scratchDirOpt = scratchDirOpt(options),
+            moduleDependencies.flatMap(_.fullClassPath).distinct
           )
             .orExit(logger)
           for ((process, onExit) <- res)
@@ -370,7 +406,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     runMode: RunMode,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path],
-    asJar: Boolean
+    asJar: Boolean,
+    classpathFromModuleDeps: Seq[os.Path]
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
@@ -396,7 +433,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       runMode,
       showCommand,
       scratchDirOpt,
-      asJar
+      asJar,
+      classpathFromModuleDeps
     )
     value(res)
   }
@@ -431,7 +469,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     runMode: RunMode,
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path],
-    asJar: Boolean
+    asJar: Boolean,
+    classpathFromModuleDeps: Seq[os.Path]
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     build.options.platform.value match {
@@ -578,7 +617,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val command = Runner.jvmCommand(
                 build.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPathMaybeAsJar(asJar),
+                build.fullClassPathMaybeAsJar(asJar) ++ classpathFromModuleDeps,
                 mainClass,
                 args,
                 extraEnv = pythonExtraEnv,
@@ -591,7 +630,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val proc = Runner.runJvm(
                 build.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPathMaybeAsJar(asJar),
+                build.fullClassPathMaybeAsJar(asJar) ++ classpathFromModuleDeps,
                 mainClass,
                 args,
                 logger,

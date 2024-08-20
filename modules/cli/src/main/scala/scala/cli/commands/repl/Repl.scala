@@ -18,7 +18,7 @@ import scala.build.errors.{
   FetchingDependenciesError,
   MultipleScalaVersionsError
 }
-import scala.build.input.Inputs
+import scala.build.input.Module
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.commands.publish.ConfigUtil.*
@@ -109,8 +109,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
   override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    def default = Inputs.default().getOrElse {
-      Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
+    def default = Module.default().getOrElse {
+      Module.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val inputs =
       options.shared.inputs(args.remaining, defaultInputs = () => Some(default)).orExit(logger)
