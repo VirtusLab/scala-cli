@@ -676,4 +676,43 @@ abstract class CompileTestDefinitions
       expect(out.contains("Too small maximum heap"))
     }
   }
+
+  test("new build targets should only be created when CLI options change") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin,
+
+      os.rel / "Test.test.scala" ->
+        """object Test extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions :+ "--test", ".").call(cwd = root)
+
+      def buildTargetDirs = os.list(root / Constants.workspaceDirName)
+        .filter(os.isDir)
+        .filter(_.last != ".bloop")
+
+      expect(buildTargetDirs.size == 1)
+
+      os.write.over(root/filename, """//> using dep com.lihaoyi::os-lib:0.9.1
+                                      |
+                                      |object Main extends App {
+                                      |  println("Hello")
+                                      |}
+                                      |""".stripMargin)
+
+      os.proc(TestUtil.cli, "compile", extraOptions :+ "--test", ".").call(cwd = root)
+      expect(buildTargetDirs.size == 1)
+
+      os.proc(TestUtil.cli, "compile", extraOptions ++ Seq("--test", "-nowarn"), ".").call(cwd = root)
+      expect(buildTargetDirs.size == 2)
+    }
+  }
 }
