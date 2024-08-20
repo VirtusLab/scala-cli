@@ -6,8 +6,8 @@ import java.nio.file.FileSystems
 
 import scala.build.Ops.*
 import scala.build.options.{BuildOptions, InternalOptions, PackageType}
-import scala.build.tests.TestInputs
 import scala.build.tests.util.BloopServer
+import scala.build.tests.{TestInputs, TestLogger}
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.commands.package0.Package
 import scala.cli.internal.CachedBinary
@@ -24,7 +24,7 @@ class PackageTests extends munit.FunSuite {
 
   val defaultOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir)
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
 

@@ -56,13 +56,13 @@ object LocalRepo {
 
   def localRepo(
     baseDir: os.Path,
+    logger: Logger,
     loader: ClassLoader = Thread.currentThread().getContextClassLoader
   ): Option[String] = {
     val archiveUrl = loader.getResource(resourcePath)
 
-    if (archiveUrl == null) None
+    if archiveUrl == null then None
     else {
-
       val version =
         using(archiveUrl.openStream()) { is =>
           using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
@@ -75,10 +75,14 @@ object LocalRepo {
 
       val repoDir = baseDir / version
 
-      if (!os.exists(repoDir))
+      if !os.exists(repoDir) then
         withLock((repoDir / os.up).toNIO, version) {
           val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-          os.remove.all(tmpRepoDir)
+          try os.remove.all(tmpRepoDir)
+          catch {
+            case t: Throwable =>
+              logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
+          }
           using(archiveUrl.openStream()) { is =>
             using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
               extractZip(zis, tmpRepoDir)

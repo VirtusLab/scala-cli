@@ -3,8 +3,8 @@ package scala.cli.tests
 import com.eed3si9n.expecty.Expecty.{assert => expect}
 
 import scala.build.options.{BuildOptions, InternalOptions}
-import scala.build.tests.TestInputs
 import scala.build.tests.util.BloopServer
+import scala.build.tests.{TestInputs, TestLogger}
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
@@ -34,7 +34,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
   val defaultOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir)
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
 

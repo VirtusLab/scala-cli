@@ -40,7 +40,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   val buildThreads    = BuildThreads.create()
   val baseOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir),
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
     )
   )
@@ -354,7 +354,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   test("User scalac options shadow internal ones") {
     val defaultOptions = BuildOptions(
       internal = InternalOptions(
-        localRepository = LocalRepo.localRepo(directories.localRepoDir)
+        localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
       )
     )
 

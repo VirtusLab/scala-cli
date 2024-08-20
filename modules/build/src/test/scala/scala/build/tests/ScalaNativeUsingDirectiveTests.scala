@@ -17,7 +17,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
   val buildOptions = BuildOptions(
     internal = InternalOptions(
-      localRepository = LocalRepo.localRepo(directories.localRepoDir),
+      localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
     )
   )
