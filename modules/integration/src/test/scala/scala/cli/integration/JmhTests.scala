@@ -73,6 +73,40 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
       }
     }
 
+    test(s"setup-ide + bsp ($testMessage)") {
+      val inputs = simpleBenchmarkingInputs(directiveString)
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "setup-ide", "--power", extraOptions, ".", jmhOptions)
+          .call(cwd = root)
+        val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+        expect(ideOptionsPath.toNIO.toFile.exists())
+        val ideLauncherOptsPath = root / Constants.workspaceDirName / "ide-launcher-options.json"
+        expect(ideLauncherOptsPath.toNIO.toFile.exists())
+        val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+        expect(ideEnvsPath.toNIO.toFile.exists())
+        val jsonOptions = List(
+          "--json-options",
+          ideOptionsPath.toString,
+          "--json-launcher-options",
+          ideLauncherOptsPath.toString,
+          "--envs-file",
+          ideEnvsPath.toString
+        )
+        withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+          (_, _, remoteServer) =>
+            async {
+              val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+              val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+              expect(targets.length == 2)
+
+              val compileResult =
+                await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+            }
+        }
+      }
+    }
+
     test(s"package ($testMessage)") {
       // TODO make package with --jmh build an artifact that actually runs benchmarks
       val expectedMessage = "Placeholder main method"
