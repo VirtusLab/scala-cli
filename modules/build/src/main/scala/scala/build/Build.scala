@@ -200,22 +200,15 @@ object Build {
     */
   def updateInputs(
     inputs: Inputs,
-    options: BuildOptions,
-    testOptions: Option[BuildOptions] = None
+    options: BuildOptions
   ): Inputs = {
 
     // If some options are manually overridden, append a hash of the options to the project name
     // Using options, not options0 - only the command-line options are taken into account. No hash is
     // appended for options from the sources.
-    val optionsHash     = options.hash
-    val testOptionsHash = testOptions.flatMap(_.hash)
+    val optionsHash = options.hash
 
-    inputs.copy(
-      baseProjectName =
-        inputs.baseProjectName
-          + optionsHash.map("_" + _).getOrElse("")
-          + testOptionsHash.map("_" + _).getOrElse("")
-    )
+    inputs.copy(baseProjectName = inputs.baseProjectName + optionsHash.fold("")("_" + _))
   }
 
   private def allInputs(
@@ -278,6 +271,11 @@ object Build {
       overrideOptions: BuildOptions
     ): Either[BuildException, NonCrossBuilds] = either {
 
+      val inputs0 = updateInputs(
+        inputs,
+        overrideOptions.orElse(options) // update hash in inputs with options coming from the CLI or cross-building, not from the sources
+      )
+
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
       val scopedSources = value(crossSources.scopedSources(baseOptions))
@@ -289,12 +287,6 @@ object Build {
       val testSources =
         value(scopedSources.sources(Scope.Test, baseOptions, inputs.workspace, logger))
       val testOptions = testSources.buildOptions
-
-      val inputs0 = updateInputs(
-        inputs,
-        mainOptions, // update hash in inputs with options coming from the CLI or cross-building, not from the sources
-        Some(testOptions).filter(_ != mainOptions)
-      )
 
       def doBuildScope(
         options: BuildOptions,

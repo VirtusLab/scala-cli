@@ -183,16 +183,7 @@ abstract class CompileTestDefinitions
 
   test("no arg") {
     simpleInputs.fromRoot { root =>
-      val projectFilePrefix = root.baseName + "_"
       os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
-      val projDirs = os.list(root / Constants.workspaceDirName)
-        .filter(_.last.startsWith(projectFilePrefix))
-        .filter(os.isDir(_))
-      expect(projDirs.length == 1)
-      val projDir     = projDirs.head
-      val projDirName = projDir.last
-      val elems       = projDirName.stripPrefix(projectFilePrefix).split("[-_]").toSeq
-      expect(elems.length == 1)
     }
   }
 
@@ -254,18 +245,6 @@ abstract class CompileTestDefinitions
         )
       expect(isDefinedTestPathInClassPath)
       checkIfCompileOutputIsCopied("Tests", tempOutput)
-
-      val projectFilePrefix = root.baseName + "_"
-
-      val projDirs = os.list(root / Constants.workspaceDirName)
-        .filter(_.last.startsWith(projectFilePrefix))
-        .filter(os.isDir(_))
-      expect(projDirs.length == 1)
-      val projDir     = projDirs.head
-      val projDirName = projDir.last
-      val elems       = projDirName.stripPrefix(projectFilePrefix).split("[-_]").toSeq
-      expect(elems.length == 2)
-      expect(elems.toSet.size == 2)
     }
   }
 
@@ -695,6 +674,49 @@ abstract class CompileTestDefinitions
       val out = res.out.text()
       expect(out.contains("Error occurred during initialization of VM"))
       expect(out.contains("Too small maximum heap"))
+    }
+  }
+
+  test("new build targets should only be created when CLI options change") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin,
+      os.rel / "Test.test.scala" ->
+        """object Test extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "compile", extraOptions :+ "--test", ".").call(cwd = root)
+
+      def buildTargetDirs = os.list(root / Constants.workspaceDirName)
+        .filter(os.isDir)
+        .filter(_.last != ".bloop")
+
+      expect(buildTargetDirs.size == 1)
+
+      os.write.over(
+        root / filename,
+        """//> using dep com.lihaoyi::os-lib:0.9.1
+          |
+          |object Main extends App {
+          |  println("Hello")
+          |}
+          |""".stripMargin
+      )
+
+      os.proc(TestUtil.cli, "compile", extraOptions :+ "--test", ".").call(cwd = root)
+      expect(buildTargetDirs.size == 1)
+
+      os.proc(TestUtil.cli, "compile", extraOptions ++ Seq("--test", "-nowarn"), ".").call(cwd =
+        root
+      )
+      expect(buildTargetDirs.size == 2)
     }
   }
 }
