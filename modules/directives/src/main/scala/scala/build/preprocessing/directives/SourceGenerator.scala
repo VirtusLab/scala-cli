@@ -58,11 +58,6 @@ object SourceGenerator {
       .map(directiveProcessor.extract(_).asScala)
       .map(_.headOption)
 
-    val scriptPaths = scripts.value
-      .map(script =>
-        os.Path(script.value)
-      )
-
     def processDirectives(script: Option[UsingDirectives]) =
       script.toSeq.flatMap { directives =>
         def toStrictValue(value: UsingValue): Seq[Value[_]] = value match {
@@ -96,6 +91,13 @@ object SourceGenerator {
         }
       )
     }
+
+    def checkForDuplicateDirective(listOfDirective: Seq[StrictDirective]): Unit = {
+      val directiveKeys = listOfDirective.map(directive => directive.key)
+      if (directiveKeys.length != directiveKeys.distinct.length)
+        throw new IllegalArgumentException(s"Duplicate directives found in generator files.")
+    }
+
     val processedDirectives = parsedDirectives.map(processDirectives(_))
 
     val sourceGeneratorKeywords = Seq("inputDirectory", "glob")
@@ -105,15 +107,15 @@ object SourceGenerator {
       )
     )
 
-    sourceGeneratorDirectives.foreach { components =>
-      if (components.length != components.distinct.length)
-        throw new IllegalArgumentException(s"Duplicate elements found in sequence: $components")
-    }
+    sourceGeneratorDirectives.foreach(components => checkForDuplicateDirective(components))
 
-    val pathIterator = scriptPaths.iterator
+    val scriptPathIterator = scripts.value.map(script =>
+      os.Path(script.value)
+    ).iterator
+
     val generatorConfigs = sourceGeneratorDirectives.collect {
       case Seq(inputDir, glob) =>
-        val relPath = pathIterator.next()
+        val relPath = scriptPathIterator.next()
         GeneratorConfig(
           replaceSpecialSyntax(inputDir.values.mkString, relPath),
           List(glob.values.mkString),
