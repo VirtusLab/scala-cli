@@ -862,10 +862,6 @@ object Build {
     val semanticDbSourceRoot =
       options.scalaOptions.semanticDbOptions.semanticDbSourceRoot.getOrElse(inputs.workspace)
 
-    val releaseFlagVersion =
-      if (options.useBuildServer.getOrElse(true)) None
-      else releaseFlag(options, compilerJvmVersionOpt, logger).map(_.toString)
-
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
         val params = value(options.scalaParams).getOrElse {
@@ -909,14 +905,6 @@ object Build {
             Seq(ScalacOpt("-scalajs"))
           else Nil
 
-        val scalacReleaseV =
-          // the -release flag is not supported for Scala 2.12.x < 2.12.5
-          if params.scalaVersion.asVersion < "2.12.5".asVersion then Nil
-          else
-            releaseFlagVersion
-              .map(v => List("-release", v).map(ScalacOpt(_)))
-              .getOrElse(Nil)
-
         val scalapyOptions =
           if (
             params.scalaVersion.startsWith("2.13.") &&
@@ -931,7 +919,6 @@ object Build {
             semanticDbScalacOptions ++
             sourceRootScalacOptions ++
             scalaJsScalacOptions ++
-            scalacReleaseV ++
             scalapyOptions
 
         val compilerParams = ScalaCompilerParams(
@@ -973,9 +960,7 @@ object Build {
         else
           Nil
 
-      val javacReleaseV = releaseFlagVersion.map(v => List("--release", v)).getOrElse(Nil)
-
-      javacReleaseV ++ semanticDbJavacOptions ++ options.javaOptions.javacOptions.map(_.value)
+      semanticDbJavacOptions ++ options.javaOptions.javacOptions.map(_.value)
     }
 
     // `test` scope should contains class path to main scope
@@ -1014,7 +999,7 @@ object Build {
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacOptions
+      javacOptions = javacOptions.toList
     )
     project
   }
