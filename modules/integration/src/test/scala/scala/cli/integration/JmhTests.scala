@@ -1,13 +1,18 @@
 package scala.cli.integration
 
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Files
 
+import scala.async.Async.{async, await}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
-class JmhTests extends ScalaCliSuite with JmhSuite {
-  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
+class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
+  override def group: ScalaCliSuite.TestGroup      = ScalaCliSuite.TestGroup.First
+  override protected val extraOptions: Seq[String] = TestUtil.extraOptions
 
   for {
     useDirective <- Seq(None, Some("//> using jmh"))
@@ -22,7 +27,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
       // TODO extract running benchmarks to a separate scope, or a separate sub-command
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
         val res =
-          os.proc(TestUtil.cli, "--power", TestUtil.extraOptions, ".", jmhOptions).call(cwd = root)
+          os.proc(TestUtil.cli, "--power", extraOptions, ".", jmhOptions).call(cwd = root)
         val output = res.out.trim()
         expect(output.contains(expectedInBenchmarkingOutput))
         expect(output.contains(s"JMH version: ${Constants.jmhVersion}"))
@@ -31,14 +36,14 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
 
     test(s"compile ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        os.proc(TestUtil.cli, "compile", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root)
       }
     }
 
     test(s"doc ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "doc", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        val res = os.proc(TestUtil.cli, "doc", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(!res.err.trim().contains("Error"))
       }
@@ -47,8 +52,24 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
     test(s"setup-ide ($testMessage)") {
       // TODO fix setting jmh via a reload & add tests for it
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
-        os.proc(TestUtil.cli, "setup-ide", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        os.proc(TestUtil.cli, "setup-ide", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root)
+      }
+    }
+
+    test(s"bsp ($testMessage)") {
+      withBsp(simpleBenchmarkingInputs(directiveString), Seq(".", "--power") ++ jmhOptions) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+            expect(targets.length == 2)
+
+            val compileResult =
+              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
+
+          }
       }
     }
 
@@ -84,7 +105,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
     test(s"export ($testMessage)") {
       simpleBenchmarkingInputs(directiveString).fromRoot { root =>
         // TODO add proper support for JMH export, we're checking if it doesn't fail the command for now
-        os.proc(TestUtil.cli, "export", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        os.proc(TestUtil.cli, "export", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root)
       }
     }
@@ -102,7 +123,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
   } test(s"should not compile when jmh is explicitly disabled ($testMessage)") {
     simpleBenchmarkingInputs(directiveString).fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "compile", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        os.proc(TestUtil.cli, "compile", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root, check = false)
       expect(res.exitCode == 1)
     }
@@ -128,7 +149,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite {
   } test(s"should use the passed jmh version ($testMessage)") {
     simpleBenchmarkingInputs(directiveString).fromRoot { root =>
       val res =
-        os.proc(TestUtil.cli, "run", "--power", TestUtil.extraOptions, ".", jmhOptions)
+        os.proc(TestUtil.cli, "run", "--power", extraOptions, ".", jmhOptions)
           .call(cwd = root)
       val output = res.out.trim()
       expect(output.contains(expectedInBenchmarkingOutput))
