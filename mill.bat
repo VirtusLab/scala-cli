@@ -16,7 +16,7 @@ rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] (
-    set "DEFAULT_MILL_VERSION=0.11.11"
+    set "DEFAULT_MILL_VERSION=0.11.12"
 )
 
 set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
