@@ -7,7 +7,8 @@ import scala.build.internal.Constants
   * @param enableJmh
   *   toggle for enabling JMH dependency handling in the build (overrides [[runJmh]] when disabled)
   * @param runJmh
-  *   toggle for whether JMH should actually be runnable from this build
+  *   toggle for whether JMH should actually be runnable from this build (this value gets changed in
+  *   JMH builds to detect which main class is to be called as benchmarks are being run)
   */
 final case class JmhOptions(
   jmhVersion: Option[String] = None,
