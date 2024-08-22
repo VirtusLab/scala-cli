@@ -2008,7 +2008,7 @@ abstract class RunTestDefinitions
         case _                           => "3"
       }
 
-      val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.3"
+      val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.4"
       val inputs = TestInputs(
         os.rel / "NoDeps.scala" ->
           """//> using jvm zulu:11
