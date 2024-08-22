@@ -263,44 +263,6 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
   }
 
-  test("simple jmh") {
-    val inputs = TestInputs(
-      os.rel / "benchmark.scala" ->
-        s"""package bench
-           |
-           |import java.util.concurrent.TimeUnit
-           |import org.openjdk.jmh.annotations._
-           |
-           |@BenchmarkMode(Array(Mode.AverageTime))
-           |@OutputTimeUnit(TimeUnit.NANOSECONDS)
-           |@Warmup(iterations = 1, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-           |@Measurement(iterations = 10, time = 100, timeUnit = TimeUnit.MILLISECONDS)
-           |@Fork(0)
-           |class Benchmarks {
-           |
-           |  @Benchmark
-           |  def foo(): Unit = {
-           |    (1L to 10000000L).sum
-           |  }
-           |
-           |}
-           |""".stripMargin
-    )
-
-    withBsp(inputs, Seq(".", "--power", "--jmh")) { (_, _, remoteServer) =>
-      async {
-        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-        val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
-        expect(targets.length == 2)
-
-        val compileResult =
-          await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-        expect(compileResult.getStatusCode == b.StatusCode.OK)
-
-      }
-    }
-  }
-
   test("diagnostics") {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->

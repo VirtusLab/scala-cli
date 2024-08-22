@@ -5,6 +5,17 @@ sidebar_position: 2
 
 ## using directives
 
+### Benchmarking options
+
+Add benchmarking options
+
+`//> using jmh` _value_
+
+`//> using jmhVersion` _value_
+
+#### Examples
+`//> using jmhVersion 1.37`
+
 ### BuildInfo
 
 Generate BuildInfo for project

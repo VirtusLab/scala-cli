@@ -30,12 +30,7 @@ object Doc extends ScalaCommand[DocOptions] {
 
   override def buildOptions(options: DocOptions): Option[BuildOptions] =
     sharedOptions(options)
-      .map(shared =>
-        shared.buildOptions(
-          enableJmh = shared.benchmarking.jmh.getOrElse(false),
-          jmhVersion = shared.benchmarking.jmhVersion
-        ).orExit(shared.logger)
-      )
+      .map(shared => shared.buildOptions().orExit(shared.logger))
 
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Doc)
 

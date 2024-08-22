@@ -459,7 +459,7 @@ final case class BuildOptions(
       fetchSources = classPathOptions.fetchSources.getOrElse(false),
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
-      addJmhDependencies = jmhOptions.addJmhDependencies,
+      addJmhDependencies = jmhOptions.finalJmhVersion,
       extraRepositories = value(finalRepositories),
       keepResolution = internal.keepResolution,
       includeBuildServerDeps = useBuildServer.getOrElse(true),

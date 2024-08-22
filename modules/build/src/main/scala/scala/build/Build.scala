@@ -451,7 +451,7 @@ object Build {
 
     build0 match {
       case successful: Successful =>
-        if (options.jmhOptions.runJmh.getOrElse(false) && scope == Scope.Main)
+        if (options.jmhOptions.canRunJmh && scope == Scope.Main)
           value {
             val res = jmhBuild(
               inputs,

@@ -33,7 +33,7 @@ object Bloop extends ScalaCommand[BloopOptions] {
       jvm = opts.jvm,
       coursier = opts.coursier
     )
-    val options = sharedOptions.buildOptions(false, None).orExit(opts.global.logging.logger)
+    val options = sharedOptions.buildOptions().orExit(opts.global.logging.logger)
 
     val javaHomeInfo = opts.compilationServer.bloopJvm
       .map(JvmUtils.downloadJvm(_, options))
