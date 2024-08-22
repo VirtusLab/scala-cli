@@ -8,6 +8,188 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.5.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.0)
+
+### Support for Scala 3.5.0
+This Scala CLI version switches the default Scala version to 3.5.0.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.5.0
+# Scala version (default): 3.5.0
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3093](https://github.com/VirtusLab/scala-cli/pull/3093).
+
+### Support for Scala Native 0.5.5
+This Scala CLI version switches the default Scala Native version to 0.5.5.
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.5!")' --native
+# Compiling project (Scala 3.5.0, Scala Native 0.5.5)
+# Compiled project (Scala 3.5.0, Scala Native 0.5.5)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (894 ms)
+# [info] Discovered 888 classes and 5407 methods after classloading
+# [info] Checking intermediate code (quick) (31 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (299 ms)
+# [info] Discovered 499 classes and 2497 methods after classloading
+# [info] Checking intermediate code (quick) (5 ms)
+# [info] Discovered 478 classes and 1912 methods after optimization
+# [info] Optimizing (debug mode) (403 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (368 ms)
+# [info] Compiling to native code (1565 ms)
+# [info] Linking with [pthread, dl]
+# [info] Linking native code (immix gc, none lto) (83 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (3625 ms)
+# Hello from Scala Native 0.5.5!
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3117](https://github.com/VirtusLab/scala-cli/pull/3117).
+
+### (⚡️ experimental) Support for exporting to a Maven project
+It is now possible to export a Scala CLI project to Maven.
+
+```bash
+scala-cli export --script-snippet 'println("No need to create the pom.xml yourself!")' --mvn --power -o mvn-demo
+# Some utilized features are marked as experimental:
+#  - `export` sub-command
+#  - `--mvn` option
+# Please bear in mind that non-ideal user experience should be expected.
+# If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+# Exporting to a maven project...
+# Exported to: ~/scala-cli-tests/mvn-demo
+cd mvn-demo
+mvn scala:run -DmainClass=snippet_sc
+# (...)
+# No need to create the pom.xml yourself!
+# [INFO] ------------------------------------------------------------------------
+# [INFO] BUILD SUCCESS
+# [INFO] ------------------------------------------------------------------------
+# [INFO] Total time:  2.589 s
+# [INFO] Finished at: 2024-08-22T12:08:36+02:00
+# [INFO] ------------------------------------------------------------------------
+```
+
+Added by [@yadavan88](https://github.com/yadavan88) in [#3003](https://github.com/VirtusLab/scala-cli/pull/3003).
+
+### Support for launching apps from dependencies without other inputs
+It is now possible to launch an app by just specifying its dependency, without the need to provide any source files.
+In such a case the build server will not be started, as there's no compilation to be done.
+There's also no need to specify the main class, as it's now being detected automatically in dependencies as well.
+Do note that explicitly calling the `run` sub-command is necessary here, as otherwise Scala CLI will default to the REPL.
+
+```bash
+scala-cli run --dep io.get-coursier:coursier-cli_2.13:2.1.10 -- version
+# 2.1.10
+```
+
+This can be used similarly to [Coursier's `cs launch`](https://get-coursier.io/docs/cli-launch).
+
+Added by [@kasiaMarek](https://github.com/kasiaMarek) in [#3079](https://github.com/VirtusLab/scala-cli/pull/3079).
+
+### (⚡️ experimental) JMH available in various commands and via `using` directives
+Some improvements have been done to the experimental support for JMH (Java Microbenchmark Harness).
+
+The `--jmh` and `--jmh-version` options can now be passed to a number of commands:
+- `run`, as it was before (note that when `--jmh` is passed to `run`, the project's main class will default to running the benchmarks rather than the project's default main method; this behaviour is likely to be changed in future versions);
+- `compile`, so that a Scala CLI project with benchmarking can be compiled separately from being run;
+- `package`, although the resulting artifacts will run the project as normal for now, rather than benchmarks;
+- `setup-ide`, so that benchmarking projects can be imported to your IDE of choice;
+- `test` and `export` will now also no longer fail with `--jmh`, although no specific implementations for benchmarking are in place there yet.
+
+It is now also possible to control JMH with `using` directives:
+- `//> using jmh` allows to enable JMH for the project, being the equivalent of the `--jmh` option.
+- `//> using jmhVersion <version>` allows to set the JMH version to use, being the equivalent of the `--jmh-version` option.
+
+```scala compile power
+//> using jmh
+//> using jmhVersion 1.37
+package bench
+
+import org.openjdk.jmh.annotations.*
+import java.util.concurrent.TimeUnit
+
+@BenchmarkMode(Array(Mode.AverageTime))
+@OutputTimeUnit(TimeUnit.NANOSECONDS)
+@Warmup(iterations = 1, time = 100, timeUnit = TimeUnit.MILLISECONDS)
+@Measurement(iterations = 10, time = 100, timeUnit = TimeUnit.MILLISECONDS)
+@Fork(0)
+class Benchmarks {
+  @Benchmark
+  def foo(): Unit = {
+    (1L to 1000L).sum
+  }
+}
+```
+
+Expect more improvements in this area in the future.
+Also, do play with it and give us feedback about the current implementation!
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3091](https://github.com/VirtusLab/scala-cli/pull/3091) and [#3118](https://github.com/VirtusLab/scala-cli/pull/3118).
+
+### Support for auto-completions in `fish`
+We now have command line auto-completions for the `fish` shell.
+
+Added by [@KristianLentino99](https://github.com/KristianLentino99) in [#3104](https://github.com/VirtusLab/scala-cli/pull/3104).
+
+### `--js-es-module-import-map` no longer requires `--power` mode
+A bit of a minor thing, but you can now use the `--js-es-module-import-map` option without enabling `--power` mode.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3086](https://github.com/VirtusLab/scala-cli/pull/3086).
+
+### Features
+* Add support for exporting to a Maven project by [@yadavan88](https://github.com/yadavan88) in [#3003](https://github.com/VirtusLab/scala-cli/pull/3003)
+* improvement: allow to run main class from deps with no inputs by [@kasiaMarek](https://github.com/kasiaMarek) in [#3079](https://github.com/VirtusLab/scala-cli/pull/3079)
+* Promote `--js-es-module-import-map` to stable by [@Gedochao](https://github.com/Gedochao) in [#3086](https://github.com/VirtusLab/scala-cli/pull/3086)
+* Tweak benchmarking with JMH by [@Gedochao](https://github.com/Gedochao) in [#3091](https://github.com/VirtusLab/scala-cli/pull/3091)
+* Add support for fish auto-completions by [@KristianLentino99](https://github.com/KristianLentino99) in [#3104](https://github.com/VirtusLab/scala-cli/pull/3104)
+* Add directives for JMH by [@Gedochao](https://github.com/Gedochao) in [#3118](https://github.com/VirtusLab/scala-cli/pull/3118)
+
+### Fixes
+* bugfix: Exclude sourcecode dependency by [@tgodzik](https://github.com/tgodzik) in [#3094](https://github.com/VirtusLab/scala-cli/pull/3094)
+* bugfix: Exclude both sourcecode and collection-compat correctly by [@tgodzik](https://github.com/tgodzik) in [#3105](https://github.com/VirtusLab/scala-cli/pull/3105)
+* Make package command handle directories in extra classpath by [@joan38](https://github.com/joan38) in [#3096](https://github.com/VirtusLab/scala-cli/pull/3096)
+* Add extra try-catch clause + extra logging in `LocalRepo` by [@Gedochao](https://github.com/Gedochao) in [#3114](https://github.com/VirtusLab/scala-cli/pull/3114)
+* Fix/changing options from sources should not require reload by [@MaciejG604](https://github.com/MaciejG604) in [#3112](https://github.com/VirtusLab/scala-cli/pull/3112)
+* fix: remove the --release flag by [@kasiaMarek](https://github.com/kasiaMarek) in [#3119](https://github.com/VirtusLab/scala-cli/pull/3119)
+* Remove adding test options to the project/build target name hash by [@MaciejG604](https://github.com/MaciejG604) in [#3107](https://github.com/VirtusLab/scala-cli/pull/3107)
+
+### Internal changes
+* Make the `publish` CI job depend on `jvm-tests-5` (Scala 3 Next RC test suite) by [@Gedochao](https://github.com/Gedochao) in [#3078](https://github.com/VirtusLab/scala-cli/pull/3078)
+* Include scanning the `.exe` launcher in the release procedure by [@Gedochao](https://github.com/Gedochao) in [#3081](https://github.com/VirtusLab/scala-cli/pull/3081)
+* refactor: Switch to original fork of Bloop by [@tgodzik](https://github.com/tgodzik) in [#3020](https://github.com/VirtusLab/scala-cli/pull/3020)
+* Extract used Java versions to constants by [@Gedochao](https://github.com/Gedochao) in [#3087](https://github.com/VirtusLab/scala-cli/pull/3087)
+* NIT Extract bsp testing utils to a helper trait by [@Gedochao](https://github.com/Gedochao) in [#3092](https://github.com/VirtusLab/scala-cli/pull/3092)
+* Fix/simplify code by [@MaciejG604](https://github.com/MaciejG604) in [#3106](https://github.com/VirtusLab/scala-cli/pull/3106)
+
+### Documentation changes
+* Add more env vars & generate reference docs for them by [@Gedochao](https://github.com/Gedochao) in [#3075](https://github.com/VirtusLab/scala-cli/pull/3075)
+
+### Updates
+* Update scala-cli.sh launcher for 1.4.3 by [@github-actions](https://github.com/github-actions) in [#3073](https://github.com/VirtusLab/scala-cli/pull/3073)
+* Update bloop-config_2.13 to 2.0.3 by [@scala-steward](https://github.com/scala-steward) in [#3072](https://github.com/VirtusLab/scala-cli/pull/3072)
+* Update Scala toolkit to 0.5.0 by [@Gedochao](https://github.com/Gedochao) in [#3076](https://github.com/VirtusLab/scala-cli/pull/3076)
+* Update Typelevel toolkit to 0.1.27 by [@Gedochao](https://github.com/Gedochao) in [#3077](https://github.com/VirtusLab/scala-cli/pull/3077)
+* Update Scala 3 Next RC to 3.5.0-RC7 by [@Gedochao](https://github.com/Gedochao) in [#3080](https://github.com/VirtusLab/scala-cli/pull/3080)
+* Update bloop-rifle_2.13 to 2.0.0 by [@scala-steward](https://github.com/scala-steward) in [#3108](https://github.com/VirtusLab/scala-cli/pull/3108)
+* Update munit to 1.0.1 by [@scala-steward](https://github.com/scala-steward) in [#3100](https://github.com/VirtusLab/scala-cli/pull/3100)
+* Update Scala 3 Next to 3.5.0 by [@Gedochao](https://github.com/Gedochao) in [#3093](https://github.com/VirtusLab/scala-cli/pull/3093)
+* Update sttp to 3.9.8 by [@scala-steward](https://github.com/scala-steward) in [#3098](https://github.com/VirtusLab/scala-cli/pull/3098)
+* Update guava to 33.3.0-jre by [@scala-steward](https://github.com/scala-steward) in [#3113](https://github.com/VirtusLab/scala-cli/pull/3113)
+* Update slf4j-nop to 2.0.16 by [@scala-steward](https://github.com/scala-steward) in [#3101](https://github.com/VirtusLab/scala-cli/pull/3101)
+* Update Scala 3 Next RC to 3.5.1-RC2 by [@scala-steward](https://github.com/scala-steward) in [#3099](https://github.com/VirtusLab/scala-cli/pull/3099)
+* Update Scala Native to 0.5.5 by [@Gedochao](https://github.com/Gedochao) in [#3117](https://github.com/VirtusLab/scala-cli/pull/3117)
+* Update os-lib to 0.10.4 by [@scala-steward](https://github.com/scala-steward) in [#3121](https://github.com/VirtusLab/scala-cli/pull/3121)
+* Update mill-main to 0.11.12 by [@scala-steward](https://github.com/scala-steward) in [#3120](https://github.com/VirtusLab/scala-cli/pull/3120)
+
+## New Contributors
+* @KristianLentino99 made their first contribution in [#3104](https://github.com/VirtusLab/scala-cli/pull/3104)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.4.3...v1.5.0
+
 ## [v1.4.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.4.3)
 
 This release is a hotfix for v1.4.2, which due to technical difficulties was not released to Maven Central 
