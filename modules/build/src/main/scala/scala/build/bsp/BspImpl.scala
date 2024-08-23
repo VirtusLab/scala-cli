@@ -423,7 +423,7 @@ final class BspImpl(
     *   BSP client
     */
   private def getLocalClient(verbosity: Int): b.BuildClient with BloopBuildClient =
-    if (verbosity >= 3)
+    if (verbosity >= 2)
       new BspImpl.LoggingBspClient(actualLocalClient)
     else
       actualLocalClient
@@ -517,7 +517,7 @@ final class BspImpl(
 
     val localServer: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer
       with b.JvmBuildServer with ScalaScriptBuildServer =
-      if (verbosity >= 3)
+      if (verbosity >= 2)
         new LoggingBuildServerAll(actualLocalServer)
       else
         actualLocalServer
