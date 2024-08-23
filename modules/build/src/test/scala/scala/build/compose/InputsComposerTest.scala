@@ -1,10 +1,10 @@
-package scala.build.input.compose
+package scala.build.compose
 
 import scala.build.Build
 import scala.build.bsp.buildtargets.ProjectName
+import scala.build.compose.InputsComposer
 import scala.build.errors.BuildException
 import scala.build.input.Module
-import scala.build.input.compose.InputsComposer
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.build.tests.{TestInputs, TestUtil}

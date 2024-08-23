@@ -1,15 +1,12 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.{BuildTargetEvent, JvmTestEnvironmentParams}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{BuildTargetEvent, JvmTestEnvironmentParams}
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 
 import java.net.URI
 import java.nio.file.Paths
-import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
-
-import scala.annotation.tailrec
 import scala.async.Async.{async, await}
 import scala.cli.integration.compose.ComposeBspTestDefinitions
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -805,7 +802,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       .take(if (actualScalaVersion.startsWith("3")) 1 else 2)
       .mkString(".")
 
-    withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
+    withBsp(inputs, Seq(".", "-v", "-v", "-v")) { (root, localClient, remoteServer) =>
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {

@@ -3,10 +3,10 @@ package scala.build.bsp.buildtargets
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
 import ch.epfl.scala.bsp4j as b
 
-import scala.build.GeneratedSource
-import scala.build.input.{Module, compose}
+import scala.build.input.Module
 import scala.build.internal.Constants
 import scala.build.options.Scope
+import scala.build.{GeneratedSource, compose}
 
 trait ManagesBuildTargets {
   def targetIds: List[b.BuildTargetIdentifier]

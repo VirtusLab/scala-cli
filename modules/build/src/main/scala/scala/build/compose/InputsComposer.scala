@@ -45,20 +45,20 @@ object InputsComposer {
     } yield fromArgs.orElse(fromCwd)
   }
 
-  private[input] object Keys {
+  private[compose] object Keys {
     val modules   = "modules"
     val roots     = "roots"
     val dependsOn = "dependsOn"
   }
 
-  private[input] case class ModuleDefinition(
+  private[compose] case class ModuleDefinition(
     name: String,
     roots: Seq[String],
     dependsOn: Seq[String] = Nil
   )
 
   // TODO Check for module dependencies that do not exist
-  private[input] def readAllModules(modules: Option[Value])
+  private[compose] def readAllModules(modules: Option[Value])
     : Either[BuildException, Seq[ModuleDefinition]] = modules match {
     case Some(Tbl(values)) => EitherSequence.sequence {
         values.toSeq.map(readModule)

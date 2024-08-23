@@ -4,10 +4,10 @@ import ch.epfl.scala.bsp4j as b
 
 import java.util.concurrent.CompletableFuture
 
-import scala.build.GeneratedSource
 import scala.build.bsp.buildtargets.{ManagesBuildTargets, ProjectName}
-import scala.build.input.{Module, compose}
+import scala.build.input.Module
 import scala.build.options.Scope
+import scala.build.{GeneratedSource, compose}
 
 /** A wrapper for [[BspServer]], allowing to reload the workspace on the fly.
   * @param bspServer

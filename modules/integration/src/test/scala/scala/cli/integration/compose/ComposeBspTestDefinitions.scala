@@ -195,6 +195,100 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
     }
   }
 
+  test("composed bsp modules should share classpath of modules they depend on") {
+    val testInputs = TestInputs(
+      os.rel / Constants.moduleConfigFileName ->
+        """[modules.core]
+          |dependsOn = ["utils"]
+          |
+          |[modules.utils]
+          |roots = ["Utils.scala", "Utils2.scala"]
+          |""".stripMargin,
+      os.rel / "core" / "Core.scala" ->
+        """//> using dep com.lihaoyi::pprint:0.6.6
+          |
+          |object Core extends App {
+          |  pprint.println(Utils.util)
+          |  pprint.println(Utils2.util)
+          |  pprint.println(os.pwd)
+          |}
+          |""".stripMargin,
+      os.rel / "Utils.scala"  ->
+        """//> using dep com.lihaoyi::os-lib:0.9.1
+          |object Utils { def util: String = os.pwd.baseName}""".stripMargin,
+      os.rel / "Utils2.scala" -> "object Utils2 { def util: String = \"util2\"}"
+    )
+
+    val actualScalaMajorVersion = actualScalaVersion.split("\\.")
+      .take(if (actualScalaVersion.startsWith("3")) 1 else 2)
+      .mkString(".")
+
+    withBsp(testInputs, Seq("--power", ".")) { (root, _, remoteServer) =>
+      async {
+        val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+        val coreTarget = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 4)
+          expect(extractMainTargetsOfModules(targets).size == 2)
+          expect(extractTestTargetsOfModules(targets).size == 2)
+          extractMainTargets(targets.filter(_.getUri.contains("core")))
+        }
+        val utilsTarget = {
+          val targets = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
+          expect(targets.length == 4)
+          expect(extractMainTargetsOfModules(targets).size == 2)
+          expect(extractTestTargetsOfModules(targets).size == 2)
+          extractMainTargets(targets.filter(_.getUri.contains("utils")))
+        }
+
+        val coreTargetUri = TestUtil.normalizeUri(coreTarget.getUri)
+        checkTargetUri(root, coreTargetUri)
+
+        val utilsTargetUri = TestUtil.normalizeUri(utilsTarget.getUri)
+        checkTargetUri(root, utilsTargetUri)
+
+        {
+          val resp = await {
+            remoteServer
+              .buildTargetDependencySources(new b.DependencySourcesParams(List(utilsTarget).asJava))
+              .asScala
+          }
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          expect(foundTargets == Seq(utilsTargetUri))
+          val foundDepSources = resp.getItems.asScala
+            .flatMap(_.getSources.asScala)
+            .toSeq
+            .map { uri =>
+              val idx = uri.lastIndexOf('/')
+              uri.drop(idx + 1)
+            }
+
+          expect(foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.9.1")))
+        }
+
+        {
+          val resp = await {
+            remoteServer
+              .buildTargetDependencySources(new b.DependencySourcesParams(List(coreTarget).asJava))
+              .asScala
+          }
+          val foundTargets = resp.getItems.asScala.map(_.getTarget.getUri).toSeq
+          expect(foundTargets == Seq(coreTargetUri))
+          val foundDepSources = resp.getItems.asScala
+            .flatMap(_.getSources.asScala)
+            .toSeq
+            .map { uri =>
+              val idx = uri.lastIndexOf('/')
+              uri.drop(idx + 1)
+            }
+
+          expect(foundDepSources.exists(_.startsWith(s"pprint_$actualScalaMajorVersion-0.6.6")))
+          expect(foundDepSources.exists(_.startsWith(s"os-lib_$actualScalaMajorVersion-0.9.1")))
+        }
+      }
+    }
+  }
+
   private def extractMainTargetsOfModules(targets: Seq[BuildTargetIdentifier])
     : Seq[BuildTargetIdentifier] =
     targets.collect {

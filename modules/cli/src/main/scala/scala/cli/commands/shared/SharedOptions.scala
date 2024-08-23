@@ -16,16 +16,15 @@ import dependency.parser.DependencyParser
 import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
-import scala.build.*
 import scala.build.bsp.buildtargets.ProjectName
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.build.compose.Inputs
+import scala.build.compose.{Inputs, InputsComposer}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
-import scala.build.input.compose.InputsComposer
-import scala.build.input.{Element, Module, ResourceDirectory, ScalaCliInvokeData, compose}
+import scala.build.input.{Element, Module, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
@@ -36,10 +35,17 @@ import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, S
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
 import scala.build.preprocessing.directives.{Python, Toolkit}
-import scala.build.options as bo
+import scala.build.{compose, options as bo, *}
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.{HasGlobalOptions, ScalaJsOptions, ScalaNativeOptions, SharedOptions, SourceGeneratorOptions, SuppressWarningOptions}
+import scala.cli.commands.shared.{
+  HasGlobalOptions,
+  ScalaJsOptions,
+  ScalaNativeOptions,
+  SharedOptions,
+  SourceGeneratorOptions,
+  SuppressWarningOptions
+}
 import scala.cli.commands.tags
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -228,11 +234,11 @@ final case class SharedOptions(
   override def global: GlobalOptions =
     GlobalOptions(logging = logging, globalSuppress = suppress.global, powerOptions = powerOptions)
 
-  private def scalaJsOptions(opts: ScalaJsOptions): options.ScalaJsOptions = {
-    import opts._
-    options.ScalaJsOptions(
+  private def scalaJsOptions(opts: ScalaJsOptions): bo.ScalaJsOptions = {
+    import opts.*
+    bo.ScalaJsOptions(
       version = jsVersion,
-      mode = options.ScalaJsMode(jsMode),
+      mode = bo.ScalaJsMode(jsMode),
       moduleKindStr = jsModuleKind,
       checkIr = jsCheckIr,
       emitSourceMaps = jsEmitSourceMaps,
@@ -250,9 +256,9 @@ final case class SharedOptions(
     )
   }
 
-  private def linkerOptions(opts: ScalaJsOptions): options.scalajs.ScalaJsLinkerOptions = {
-    import opts._
-    options.scalajs.ScalaJsLinkerOptions(
+  private def linkerOptions(opts: ScalaJsOptions): bo.scalajs.ScalaJsLinkerOptions = {
+    import opts.*
+    bo.scalajs.ScalaJsLinkerOptions(
       linkerPath = jsLinkerPath
         .filter(_.trim.nonEmpty)
         .map(os.Path(_, Os.pwd)),
@@ -269,9 +275,9 @@ final case class SharedOptions(
   private def scalaNativeOptions(
     opts: ScalaNativeOptions,
     maxDefaultScalaNativeVersions: List[(String, String)]
-  ): options.ScalaNativeOptions = {
-    import opts._
-    options.ScalaNativeOptions(
+  ): bo.ScalaNativeOptions = {
+    import opts.*
+    bo.ScalaNativeOptions(
       version = nativeVersion,
       modeStr = nativeMode,
       ltoStr = nativeLto,

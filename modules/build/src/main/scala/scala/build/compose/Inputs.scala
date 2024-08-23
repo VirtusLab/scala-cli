@@ -73,7 +73,7 @@ case class ComposedInputs(
   }
 
   def buildOrderForModule(module: Module): Seq[Module] = {
-    buildOrderForModule(module, Set.empty).map(nameMap)
+    val buildOrderWithTarget = buildOrderForModule(module, Set.empty).map(nameMap)
     buildOrderWithTarget.dropRight(1)
   }
 

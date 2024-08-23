@@ -7,13 +7,13 @@ import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
+
 import scala.build.EitherCps.{either, value}
 import scala.build.*
 import scala.build.bsp.IdeInputs
-import scala.build.compose.Inputs
+import scala.build.compose.{ComposedInputs, Inputs, InputsComposer, SimpleInputs}
 import scala.build.errors.{BuildException, WorkspaceError}
-import scala.build.input.compose.{ComposedInputs, InputsComposer, SimpleInputs}
-import scala.build.input.{Module, OnDisk, Virtual, WorkspaceOrigin, compose}
+import scala.build.input.{Module, OnDisk, Virtual, WorkspaceOrigin}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
@@ -84,12 +84,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   }
 
   def runSafe(
-               options: SharedOptions,
-               inputs: Inputs,
-               logger: Logger,
-               buildOptions: BuildOptions,
-               previousCommandName: Option[String],
-               args: Seq[String]
+    options: SharedOptions,
+    inputs: Inputs,
+    logger: Logger,
+    buildOptions: BuildOptions,
+    previousCommandName: Option[String],
+    args: Seq[String]
   ): Unit =
     writeBspConfiguration(
       SetupIdeOptions(shared = options),
@@ -126,11 +126,11 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
   override def sharedOptions(options: SetupIdeOptions): Option[SharedOptions] = Some(options.shared)
 
   private def writeBspConfiguration(
-                                     options: SetupIdeOptions,
-                                     inputs: Inputs,
-                                     buildOptions: BuildOptions,
-                                     previousCommandName: Option[String],
-                                     args: Seq[String]
+    options: SetupIdeOptions,
+    inputs: Inputs,
+    buildOptions: BuildOptions,
+    previousCommandName: Option[String],
+    args: Seq[String]
   ): Either[BuildException, Option[os.Path]] = either {
 
     val virtualInputs = inputs.modules.flatMap(_.elements).collect {

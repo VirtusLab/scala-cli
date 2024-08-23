@@ -11,8 +11,8 @@ import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.compose.{ComposedInputs, SimpleInputs}
 import scala.build.errors.{BuildException, InputsException}
-import scala.build.input.compose.{ComposedInputs, SimpleInputs}
 import scala.build.input.{Module, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
