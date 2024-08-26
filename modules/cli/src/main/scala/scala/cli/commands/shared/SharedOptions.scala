@@ -574,7 +574,8 @@ final case class SharedOptions(
     }
 
     def maybeHighestJavaFromExtraOptions =
-      if (extraBuildOptions.nonEmpty) Some(BuildOptions.pickJavaHomeWithHighestVersion(extraBuildOptions))
+      if (extraBuildOptions.nonEmpty)
+        Some(BuildOptions.pickJavaHomeWithHighestVersion(extraBuildOptions))
       else None
 
     val javaHomeInfo = compilationServer.bloopJvm

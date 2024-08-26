@@ -1,7 +1,7 @@
 package scala.cli.integration.compose
 
-import ch.epfl.scala.bsp4j as b
 import ch.epfl.scala.bsp4j.BuildTargetIdentifier
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.async.Async.{async, await}
@@ -84,7 +84,10 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
             extractMainTargets(targets.filter(_.getUri.contains("utils")))
         }
 
-        def checkTarget(target: BuildTargetIdentifier, expectedSources: Seq[os.Path]): Future[Unit] = async {
+        def checkTarget(
+          target: BuildTargetIdentifier,
+          expectedSources: Seq[os.Path]
+        ): Future[Unit] = async {
           val targetUri = TestUtil.normalizeUri(target.getUri)
           checkTargetUri(root, targetUri)
 
@@ -126,7 +129,8 @@ trait ComposeBspTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
               .toSeq
               .flatMap(_.map(TestUtil.normalizeUri))
 
-            val expextedSources0 = expectedSources.map(s => TestUtil.normalizeUri(s.toNIO.toUri.toASCIIString))
+            val expextedSources0 =
+              expectedSources.map(s => TestUtil.normalizeUri(s.toNIO.toUri.toASCIIString))
 
             expect(foundSources == expextedSources0)
           }
