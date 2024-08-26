@@ -573,6 +573,10 @@ final case class SharedOptions(
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), sharedBuildOptions)
     }
 
+    def maybeHighestJavaFromExtraOptions =
+      if (extraBuildOptions.nonEmpty) Some(BuildOptions.pickJavaHomeWithHighestVersion(extraBuildOptions))
+      else None
+
     val javaHomeInfo = compilationServer.bloopJvm
       .map(jvmId => value(JvmUtils.downloadJvm(jvmId, sharedBuildOptions)))
       .orElse { // JavaHome from SharedOptions
@@ -583,7 +587,7 @@ final case class SharedOptions(
         }
       }.filter(_.version >= Constants.minimumBloopJavaVersion)
       // JavaHome from additional options, the one with the highest version
-      .orElse(Some(BuildOptions.pickJavaHomeWithHighestVersion(extraBuildOptions)))
+      .orElse(maybeHighestJavaFromExtraOptions)
       .filter(_.version >= Constants.minimumBloopJavaVersion)
       .getOrElse(defaultJvmHome)
 
