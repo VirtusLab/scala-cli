@@ -476,6 +476,6 @@ object Inputs {
   def empty(projectName: String): Inputs =
     Inputs(Nil, None, os.pwd, projectName, false, None, true, false)
 
-  def baseName(p: os.Path) = if (p == os.root) "" else p.baseName
+  def baseName(p: os.Path) = if (p == os.root || p.lastOpt.isEmpty) "" else p.baseName
 
 }
