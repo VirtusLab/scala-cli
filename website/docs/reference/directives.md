@@ -127,7 +127,7 @@ Exclude sources from the project
 
 ### JVM version
 
-Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`
+Use a specific JVM, such as `14`, `adopt:11`, or `graalvm:21`, or `system`. scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs.
 
 `//> using jvm` _value_
 
