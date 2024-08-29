@@ -110,10 +110,10 @@ That can be done by passing an appropriate option or by setting the appropriate 
 
 It is generally advised to not spread the `using` directives in multiple files, and put them in the
 optional `project.scala` configuration file.
-The relevant warnings can be suppressed with the `--suppress-outdated-dependency-warning` option.
+The relevant warnings can be suppressed with the `--suppress-warning-directives-in-multiple-files` option.
 
 ```bash
-scala-cli Deps1.sc Deps2.sc --suppress-outdated-dependency-warning
+scala-cli Deps1.sc Deps2.sc --suppress-warning-directives-in-multiple-files
 ```
 
 Alternatively, the global config key `suppress-warning.directives-in-multiple-files` can be used.
