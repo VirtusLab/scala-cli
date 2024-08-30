@@ -862,10 +862,10 @@ object Build {
           )
         }
 
-        val pluginScalacOptions = scalaArtifacts.compilerPlugins.distinct.map {
+        val pluginScalacOptions = scalaArtifacts.compilerPlugins.map {
           case (_, _, path) =>
             ScalacOpt(s"-Xplugin:$path")
-        }
+        }.distinct
 
         val semanticDbTargetRootOptions: Seq[ScalacOpt] =
           (semanticDbTargetRoot match
