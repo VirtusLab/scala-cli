@@ -30,7 +30,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
 
     val (crossSources, _) =
-      CrossSources.forInputs(
+      CrossSources.forModuleInputs(
         inputs,
         Sources.defaultPreprocessors(
           buildOptions.archiveCache,

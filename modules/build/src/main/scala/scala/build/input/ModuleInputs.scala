@@ -7,6 +7,7 @@ import java.security.MessageDigest
 
 import scala.annotation.tailrec
 import scala.build.Directories
+import scala.build.bsp.buildtargets.ProjectName
 import scala.build.errors.{BuildException, InputsException, WorkspaceError}
 import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
@@ -16,7 +17,7 @@ import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.matching.Regex
 import scala.util.{Properties, Try}
 
-final case class Inputs(
+final case class ModuleInputs(
   elements: Seq[Element],
   defaultMainClassElement: Option[Script],
   workspace: os.Path,
@@ -26,6 +27,9 @@ final case class Inputs(
   enableMarkdown: Boolean,
   allowRestrictedFeatures: Boolean
 ) {
+
+  def withForcedWorkspace(workspacePath: os.Path) =
+    copy(workspace = workspacePath, workspaceOrigin = Some(WorkspaceOrigin.Forced))
 
   def isEmpty: Boolean = elements.isEmpty
 
@@ -51,34 +55,35 @@ final case class Inputs(
     }
 
   private lazy val inputsHash: String = elements.inputsHash
-  lazy val projectName: String = {
+
+  lazy val projectName: ProjectName = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Directory) => d.path != workspace
       case _                 => true
     })
-    if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
+    if needsSuffix then ProjectName(s"$baseProjectName-$inputsHash")
+    else ProjectName(baseProjectName)
   }
 
-  def scopeProjectName(scope: Scope): String =
-    if scope == Scope.Main then projectName else s"$projectName-${scope.name}"
+  def scopeProjectName(scope: Scope): ProjectName = projectName.withScopeAppended(scope)
 
-  def add(extraElements: Seq[Element]): Inputs =
+  def add(extraElements: Seq[Element]): ModuleInputs =
     if elements.isEmpty then this else copy(elements = (elements ++ extraElements).distinct)
-  def withElements(elements: Seq[Element]): Inputs =
+  def withElements(elements: Seq[Element]): ModuleInputs =
     copy(elements = elements)
 
   def generatedSrcRoot(scope: Scope): os.Path =
-    workspace / Constants.workspaceDirName / projectName / "src_generated" / scope.name
+    workspace / Constants.workspaceDirName / projectName.name / "src_generated" / scope.name
 
-  private def inHomeDir(directories: Directories): Inputs =
+  private def inHomeDir(directories: Directories): ModuleInputs =
     copy(
       workspace = elements.homeWorkspace(directories),
       mayAppendHash = false,
       workspaceOrigin = Some(WorkspaceOrigin.HomeDir)
     )
-  def avoid(forbidden: Seq[os.Path], directories: Directories): Inputs =
+  def avoid(forbidden: Seq[os.Path], directories: Directories): ModuleInputs =
     if forbidden.exists(workspace.startsWith) then inHomeDir(directories) else this
-  def checkAttributes(directories: Directories): Inputs = {
+  def checkAttributes(directories: Directories): ModuleInputs = {
     @tailrec
     def existingParent(p: os.Path): Option[os.Path] =
       if (os.exists(p)) Some(p)
@@ -117,17 +122,16 @@ final case class Inputs(
   }
 
   def nativeWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "native"
+    workspace / Constants.workspaceDirName / projectName.name / "native"
   def nativeImageWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "native-image"
+    workspace / Constants.workspaceDirName / projectName.name / "native-image"
   def libraryJarWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "jar"
+    workspace / Constants.workspaceDirName / projectName.name / "jar"
   def docJarWorkDir: os.Path =
-    workspace / Constants.workspaceDirName / projectName / "doc"
-
+    workspace / Constants.workspaceDirName / projectName.name / "doc"
 }
 
-object Inputs {
+object ModuleInputs {
   private def forValidatedElems(
     validElems: Seq[Element],
     workspace: os.Path,
@@ -135,8 +139,9 @@ object Inputs {
     workspaceOrigin: WorkspaceOrigin,
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
-  ): Inputs = {
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName]
+  ): ModuleInputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
     val allDirs = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
@@ -149,11 +154,11 @@ object Inputs {
     }
     // only on-disk scripts need a main class override
     val defaultMainClassElemOpt = validElems.collectFirst { case script: Script => script }
-    Inputs(
+    ModuleInputs(
       updatedElems,
       defaultMainClassElemOpt,
       workspace,
-      baseName(workspace),
+      forcedProjectName.fold(baseName(workspace))(_.name),
       mayAppendHash = needsHash,
       workspaceOrigin = Some(workspaceOrigin),
       enableMarkdown = enableMarkdown,
@@ -329,8 +334,9 @@ object Inputs {
     forcedWorkspace: Option[os.Path],
     enableMarkdown: Boolean,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
-  )(using invokeData: ScalaCliInvokeData): Either[BuildException, Inputs] = {
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName]
+  )(using invokeData: ScalaCliInvokeData): Either[BuildException, ModuleInputs] = {
     val validatedArgs: Seq[Either[String, Seq[Element]]] =
       validateArgs(
         args,
@@ -412,7 +418,8 @@ object Inputs {
           workspaceOrigin0,
           enableMarkdown,
           allowRestrictedFeatures,
-          extraClasspathWasPassed
+          extraClasspathWasPassed,
+          forcedProjectName
         ))
     }
     else
@@ -422,7 +429,7 @@ object Inputs {
   def apply(
     args: Seq[String],
     cwd: os.Path,
-    defaultInputs: () => Option[Inputs] = () => None,
+    defaultInputs: () => Option[ModuleInputs] = () => None,
     download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
     stdinOpt: => Option[Array[Byte]] = None,
     scriptSnippetList: List[String] = List.empty,
@@ -433,8 +440,9 @@ object Inputs {
     forcedWorkspace: Option[os.Path] = None,
     enableMarkdown: Boolean = false,
     allowRestrictedFeatures: Boolean,
-    extraClasspathWasPassed: Boolean
-  )(using ScalaCliInvokeData): Either[BuildException, Inputs] =
+    extraClasspathWasPassed: Boolean,
+    forcedProjectName: Option[ProjectName] = None
+  )(using ScalaCliInvokeData): Either[BuildException, ModuleInputs] =
     if (
       args.isEmpty && scriptSnippetList.isEmpty && scalaSnippetList.isEmpty && javaSnippetList.isEmpty &&
       markdownSnippetList.isEmpty && !extraClasspathWasPassed
@@ -456,13 +464,14 @@ object Inputs {
         forcedWorkspace,
         enableMarkdown,
         allowRestrictedFeatures,
-        extraClasspathWasPassed
+        extraClasspathWasPassed,
+        forcedProjectName
       )
 
-  def default(): Option[Inputs] = None
+  def default(): Option[ModuleInputs] = None
 
-  def empty(workspace: os.Path, enableMarkdown: Boolean): Inputs =
-    Inputs(
+  def empty(workspace: os.Path, enableMarkdown: Boolean): ModuleInputs =
+    ModuleInputs(
       elements = Nil,
       defaultMainClassElement = None,
       workspace = workspace,
@@ -473,9 +482,8 @@ object Inputs {
       allowRestrictedFeatures = false
     )
 
-  def empty(projectName: String): Inputs =
-    Inputs(Nil, None, os.pwd, projectName, false, None, true, false)
+  def empty(projectName: String): ModuleInputs =
+    ModuleInputs(Nil, None, os.pwd, projectName, false, None, true, false)
 
   def baseName(p: os.Path) = if (p == os.root) "" else p.baseName
-
 }

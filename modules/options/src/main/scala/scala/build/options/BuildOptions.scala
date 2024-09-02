@@ -619,6 +619,10 @@ object BuildOptions {
     }
   }
 
+  def pickJavaHomeWithHighestVersion(buildOptionsSeq: Seq[BuildOptions]): JavaHomeInfo =
+    buildOptionsSeq.map(_.javaHome().value)
+      .maxBy(_.version)
+
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
   implicit val monoid: ConfigMonoid[BuildOptions]     = ConfigMonoid.derive
 }

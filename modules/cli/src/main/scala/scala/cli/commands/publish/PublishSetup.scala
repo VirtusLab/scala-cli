@@ -80,7 +80,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         )
       )
 
-      val (crossSources, _) = CrossSources.forInputs(
+      val (crossSources, _) = CrossSources.forModuleInputs(
         inputs,
         Sources.defaultPreprocessors(
           cliBuildOptions.archiveCache,
