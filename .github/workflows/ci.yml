@@ -1609,7 +1609,7 @@ jobs:
       env:
         PGP_SECRET: ${{ secrets.PGP_SECRET }}
     - run: ./mill -i ci.setShouldPublish
-    - run: ./mill -i publishSonatype '{__[],_,test-runner[2.13.14],test-runner[2.12.19],runner[2.13.14],runner[2.12.19]}.publishArtifacts'
+    - run: ./mill -i publishSonatype '{__[],_,test-runner[2.13.14],test-runner[2.12.20],runner[2.13.14],runner[2.12.20]}.publishArtifacts'
       if: env.SHOULD_PUBLISH == 'true'
       env:
         PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
