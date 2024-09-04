@@ -19,10 +19,10 @@ If you merely want to get started with Scala CLI, you might want to first look
 at [the Getting started page](../../getting_started.md).
 :::
 
-## How to test Scala CLI as the new `scala` command?
+## How to start using Scala CLI as the new `scala` command?
 
-There is a dedicated `scala-experimental` distribution of Scala CLI, which can install it as `scala` on your machine.
-For instructions on how to try it out, refer to [the relevant doc](../../reference/scala-command/index.md).
+Refer to the [official instructions for installing Scala](https://www.scala-lang.org/download/). 
+Scala CLI is available as the `scala` command alongside the Scala distribution in Scala 3.5.0 and later.
 
 ## How has the passing of arguments been changed from the old `scala` runner to Scala CLI?
 
@@ -381,3 +381,71 @@ println("Args: " + args.mkString(" "))
 
 For more information about the `shebang` sub-command, refer to [the appropriate doc](../../commands/shebang.md).
 For more details on how to use Scala CLI in shebang scripts, refer to [the relevant guide](../scripting/shebang.md).
+
+## How to run a main class from compiled sources with Scala CLI?
+
+With the old `scala` runner, running a main class from compiled sources was as simple as passing the main class name 
+as an arg. The old runner would then assume the current working directory is to be added to the classpath and could 
+implicitly run any compiled class files it would find.
+
+```scala title=hello.scala
+@main def hello = println("Hello")
+```
+
+This syntax has been dropped and is no longer supported with the new `scala` runner.
+```bash ignore
+scalac hello.scala
+scala hello # NOTE: this syntax is not supported by Scala CLI
+# Hello
+```
+
+With Scala CLI, all inputs have to be passed explicitly, so any compiled classes in the current working directory 
+would be ignored unless passed explicitly. 
+```bash ignore
+scalac hello.scala
+scala-cli run -cp .
+# Hello
+```
+
+:::note
+If only the classpath is passed with `-cp`, then the `run` sub-command can't be skipped, as otherwise Scala CLI 
+will default to the REPL (as there are no explicit source file inputs present).
+
+```bash ignore
+scalac hello.scala
+scala-cli -cp .
+# Welcome to Scala 3.5.0 (17, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#                                                                                                                  
+# scala> 
+```
+:::
+
+It is possible to explicitly specify the main class to be run (for example, if there are multiple main classes 
+in the build). The `run` sub-command becomes optional then, as passing `-M` indicates the intention to run something.
+```bash
+scalac hello.scala
+scala-cli -cp . -M hello
+# Hello
+```
+
+:::note
+If you want to compile your sources with a separate command, and then run them later, you can also do it 
+with the `compile` sub-command, rather than the `scalac` script.
+
+You don't have to specify the class files location, Scala CLI won't recompile them if they are up to date.
+```bash ignore
+scala-cli compile hello.scala
+scala-cli hello.scala
+# Hello
+```
+
+Alternatively, you can also specify the location for the compiled classes explicitly, and then add them 
+to the classpath, as you would with `scalac`.
+```bash ignore
+scala-cli compile hello.scala -d compiled_classes
+scala-cli hello.scala
+# Hello
+```
+:::
+
