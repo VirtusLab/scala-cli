@@ -3,7 +3,7 @@ import mill._
 import scalalib._
 
 object Scala {
-  def scala212        = "2.12.19"
+  def scala212        = "2.12.20"
   def scala213        = "2.13.14"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
@@ -51,7 +51,7 @@ object Scala {
       (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
   }
 
-  def maxAmmoniteScala212Version = scala212
+  def maxAmmoniteScala212Version = "2.12.19"
   def maxAmmoniteScala213Version = scala213
   def maxAmmoniteScala3Version   = "3.4.2"
   lazy val listMaxAmmoniteScalaVersion =
