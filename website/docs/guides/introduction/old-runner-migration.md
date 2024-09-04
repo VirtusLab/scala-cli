@@ -24,6 +24,22 @@ at [the Getting started page](../../getting_started.md).
 Refer to the [official instructions for installing Scala](https://www.scala-lang.org/download/). 
 Scala CLI is available as the `scala` command alongside the Scala distribution in Scala 3.5.0 and later.
 
+## Can I still use the old `scala` runner with Scala 3.5+?
+
+Yes, even though its usage has been deprecated, it is still available under the `scala_legacy` command. 
+However, it is likely to be dropped in a future version.
+
+```bash ignore
+scala_legacy
+# [warning] MainGenericRunner class is deprecated since Scala 3.5.0, and Scala CLI features will not work.
+# [warning] Please be sure to update to the Scala CLI launcher to use the new features.
+# [warning] Check the Scala 3.5.0 release notes to troubleshoot your installation.
+# Welcome to Scala 3.5.0 (17, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#                                                                                                                  
+# scala> 
+```
+
 ## How has the passing of arguments been changed from the old `scala` runner to Scala CLI?
 
 Let us take a closer look on how the old runner handled arguments when compared to Scala CLI.
