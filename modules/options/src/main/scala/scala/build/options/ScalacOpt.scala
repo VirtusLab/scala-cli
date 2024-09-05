@@ -8,8 +8,9 @@ final case class ScalacOpt(value: String) {
     else Some("@").filter(value.startsWith)
 
   /** @return raw key for the option (only if the key can be shadowed from the CLI) */
-  private[options] def shadowableKey: Option[String] =
-    key.filterNot(key => ScalacOpt.repeatingKeys.exists(_.startsWith(key)))
+  private[options] def shadowableKey: Option[String] = key match
+    case Some(key) if ScalacOpt.repeatingKeys.exists(_.startsWith(key)) => Some(value)
+    case otherwise                                                      => otherwise
 }
 
 object ScalacOpt {
