@@ -56,7 +56,8 @@ final case class Inputs(
       case Seq(d: Directory) => d.path != workspace
       case _                 => true
     })
-    if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
+    // if needsSuffix then s"$baseProjectName-$inputsHash" else baseProjectName
+    baseProjectName
   }
 
   def scopeProjectName(scope: Scope): String =
