@@ -8,9 +8,9 @@ Scala CLI is a command-line tool to interact with the Scala language. It lets yo
 Scala code. (and more!) It shares some similarities with build tools, but it doesn't aim at supporting multi-module
 projects, nor to be extended via a task system.
 
-As of [SIP-46](https://github.com/scala/improvement-proposals/pull/46), Scala CLI has been accepted as the new `scala`
-command and is currently in the experimental phase. If you want to try it out, check for more
-details [here](https://scala-cli.virtuslab.org/docs/reference/scala-command/).
+As of Scala 3.5.0, Scala CLI has become the official `scala` runner of the language (for more information 
+refer to [SIP-46](https://github.com/scala/improvement-proposals/pull/46)). For more details on using Scala CLI
+via the `scala` command, refer to [this doc](https://scala-cli.virtuslab.org/docs/reference/scala-command/).
 
 ## Docs
 - user-facing documentation: [scala-cli.virtuslab.org](https://scala-cli.virtuslab.org/)
