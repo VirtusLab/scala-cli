@@ -13,7 +13,7 @@ import scala.util.matching.Regex
 val SnippetBlock = """ *(`{2}`+)[^ ]+ title=([\w\d.\-/_]+) *""".r
 val CompileBlock = """ *(`{2}`+) *(\w+) +(compile|fail) *(?:title=([\w\d.\-/_]+))? *(power)? *""".r
 def compileBlockEnds(backticks: String) = s""" *$backticks *""".r
-val BashCommand                         = """ *```bash *(fail|run-fail)? *""".r
+val BashCommand                         = """ *```bash *(fail|run-fail)? *(clean)? *""".r
 val CheckBlock                          = """ *\<\!-- Expected(-regex)?: *""".r
 val CheckBlockEnd                       = """ *\--> *""".r
 val Clear                               = """ *<!--+ *clear *-+-> *""".r
@@ -35,8 +35,12 @@ enum Commands:
     case Check(patterns, regex, _) =>
       val kind = if regex then "regexes" else "patterns"
       s"last output matches $kind: ${patterns.map(p => s"'$p'").mkString(", ")}"
-    case Run(cmd, shouldFail, _) =>
-      val prefix = if shouldFail then "[failure expected] " else ""
+    case Run(cmd, shouldFail, shouldClean, _) =>
+      val prefix = shouldFail -> shouldClean match
+        case (true, true)  => "[failure expected, clean]"
+        case (true, false) => "[failure expected]"
+        case (false, true) => "[clean]"
+        case _             => ""
       cmd.mkString(prefix, " ", "")
     case Write(name, _, _) =>
       name
@@ -53,7 +57,7 @@ enum Commands:
     shouldFail: Boolean,
     power: Boolean
   )
-  case Run(scriptLines: Seq[String], shouldFail: Boolean, context: Context)
+  case Run(scriptLines: Seq[String], shouldFail: Boolean, shouldClean: Boolean, context: Context)
   case Check(patterns: Seq[String], regex: Boolean, context: Context)
   case Clear(context: Context)
 
@@ -100,8 +104,8 @@ def parse(content: Seq[String], currentCommands: Seq[Commands], context: Context
         compileBlockEnds(backticks)
       )
 
-    case BashCommand(failGroup) :: tail =>
-      parseMultiline(tail, Commands.Run(_, failGroup != null, context))
+    case BashCommand(failGroup, clean) :: tail =>
+      parseMultiline(tail, Commands.Run(_, failGroup != null, clean != null, context))
 
     case CheckBlock(regexOpt) :: tail =>
       val isRegex = regexOpt == "-regex"
@@ -274,7 +278,15 @@ def checkFile(file: os.Path, options: Options): Unit =
       res.exitCode
 
     cmd match
-      case Commands.Run(cmds, shouldFail, _) =>
+      case Commands.Run(cmds, shouldFail, shouldClean, _) =>
+        if shouldClean then
+          os.list(out)
+            .filterNot(_ == binDir)
+            .filterNot(_.last.endsWith(".scala"))
+            .filterNot(_.last.endsWith(".sc"))
+            .filterNot(_.last.endsWith(".java"))
+            .filterNot(_.last.endsWith(".md"))
+            .foreach(os.remove.all)
         val script = out / ".scala-build" / "run.sh"
         os.write.over(script, mkBashScript(cmds), createFolders = true)
         os.perms.set(script, "rwxr-xr-x")
