@@ -625,7 +625,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("cli scalac options shadowing using directives") {
-    val cliScalacOptions = Seq("-Xmaxwarns", "4", "-g:source", "-language:no2AutoTupling")
+    val cliScalacOptions =
+      Seq("-Xmaxwarns", "4", "-g:source", "-language:no2AutoTupling", "-language", "no2AutoTupling")
     val usingDirectiveScalacOptions = Seq(
       "-nobootcp",
       "-Xmaxwarns",

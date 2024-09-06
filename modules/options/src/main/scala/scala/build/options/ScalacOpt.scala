@@ -9,15 +9,16 @@ final case class ScalacOpt(value: String) {
 
   /** @return raw key for the option (only if the key can be shadowed from the CLI) */
   private[options] def shadowableKey: Option[String] = key match
-    case Some(key) if ScalacOpt.repeatingKeys.exists(_.startsWith(key)) => Some(value)
-    case otherwise                                                      => otherwise
+    case Some(key)
+        if ScalacOpt.repeatingKeys.exists(rKey => rKey.startsWith(key + ":") || rKey == key) => None
+    case otherwise => otherwise
 }
 
 object ScalacOpt {
   private val repeatingKeys = Set(
-    "-Xplugin:",
+    "-Xplugin",
     "-P", // plugin options
-    "-language:"
+    "-language"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {
@@ -25,7 +26,8 @@ object ScalacOpt {
   }
   implicit val keyOf: ShadowingSeq.KeyOf[ScalacOpt] =
     ShadowingSeq.KeyOf(
-      _.shadowableKey,
+      opts =>
+        opts.headOption.flatMap(_.shadowableKey).orElse(Some(opts.map(_.value).mkString(":"))),
       seq => groupCliOptions(seq.map(_.value))
     )
 

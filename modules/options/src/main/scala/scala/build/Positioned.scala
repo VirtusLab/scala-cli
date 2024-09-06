@@ -61,7 +61,7 @@ object Positioned {
     underlying: ShadowingSeq.KeyOf[T]
   ): ShadowingSeq.KeyOf[Positioned[T]] =
     ShadowingSeq.KeyOf(
-      p => underlying.get(p.value),
+      pSeq => underlying.makeKey(pSeq.map(_.value)),
       seq => underlying.groups(seq.map(_.value))
     )
 }
