@@ -422,8 +422,7 @@ scala_legacy hello # NOTE: this syntax is not supported by Scala CLI
 
 With Scala CLI, all inputs have to be passed explicitly, so any compiled classes in the current working directory 
 would be ignored unless passed explicitly. 
-```bash ignore
-scala clean .
+```bash clean
 scalac hello.scala
 scala run -cp .
 # Hello
@@ -434,7 +433,6 @@ If only the classpath is passed with `-cp`, then the `run` sub-command can't be 
 will default to the REPL (as there are no explicit source file inputs present).
 
 ```bash ignore
-scala clean .
 scalac hello.scala
 scala -cp .
 # Welcome to Scala 3.5.0 (17, Java OpenJDK 64-Bit Server VM).
@@ -446,8 +444,7 @@ scala -cp .
 
 It is possible to explicitly specify the main class to be run (for example, if there are multiple main classes 
 in the build). The `run` sub-command becomes optional then, as passing `-M` indicates the intention to run something.
-```bash
-scala clean .
+```bash clean
 scalac hello.scala
 scala -cp . -M hello
 # Hello
@@ -458,8 +455,7 @@ If you want to compile your sources with a separate command, and then run them l
 with the `compile` sub-command, rather than the `scalac` script.
 
 You don't have to specify the class files location, Scala CLI won't recompile them if they are up to date.
-```bash ignore
-scala clean hello.scala
+```bash clean
 scala compile hello.scala
 scala hello.scala
 # Hello
