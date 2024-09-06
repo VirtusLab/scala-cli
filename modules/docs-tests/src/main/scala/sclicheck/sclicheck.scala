@@ -187,15 +187,50 @@ def checkFile(file: os.Path, options: Options): Unit =
   val binDir = {
     val binDir0 = out / ".scala-cli"
     os.makeDir.all(binDir0)
-    val escapedCommand = options.scalaCliCommand
-      .map(arg => "\"" + arg.replace("\"", "\\\"") + "\"")
-      .mkString(" ")
-    val helperScript =
-      s"""#!/usr/bin/env bash
-         |exec $escapedCommand "$$@"
-         |""".stripMargin
-    os.write(binDir0 / "scala-cli", helperScript)
-    os.perms.set(binDir0 / "scala-cli", "rwxr-xr-x")
+
+    def createHelperScript(command: Seq[String], scriptName: String): Unit = {
+      val escapedCommand = command
+        .map(arg => "\"" + arg.replace("\"", "\\\"") + "\"")
+        .mkString(" ")
+      val scriptCode =
+        s"""#!/usr/bin/env bash
+           |exec $escapedCommand "$$@"
+           |""".stripMargin
+      os.write(binDir0 / scriptName, scriptCode)
+      os.perms.set(binDir0 / scriptName, "rwxr-xr-x")
+    }
+    createHelperScript(options.scalaCliCommand, "scala-cli")
+    createHelperScript(options.scalaCliCommand, "scala")
+    val coursierCliDep =
+      s"${Constants.coursierOrg}:${Constants.coursierCliModule}:${Constants.coursierCliVersion}"
+    createHelperScript(
+      options.scalaCliCommand ++ Seq(
+        "run",
+        "--dep",
+        coursierCliDep,
+        "--",
+        "launch",
+        s"scala:${Constants.defaultScalaVersion}",
+        "-M",
+        "dotty.tools.MainGenericRunner",
+        "--"
+      ),
+      "scala_legacy"
+    )
+    createHelperScript(
+      options.scalaCliCommand ++ Seq(
+        "run",
+        "--dep",
+        coursierCliDep,
+        "--",
+        "launch",
+        s"scala:${Constants.defaultScalaVersion}",
+        "-M",
+        "dotty.tools.dotc.Main",
+        "--"
+      ),
+      "scalac"
+    )
     binDir0
   }
   val extraEnv = {

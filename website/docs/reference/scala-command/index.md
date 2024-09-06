@@ -49,7 +49,7 @@ bit slower than a native launcher.
 Also, the specified version (and potentially any of its dependencies, if they are not already installed) would be
 downloaded if it's not available in the local cache, so it may require additional setup for isolated environments.
 
-```bash ignore
+```bash
 scala --cli-version 1.5.0 version
 # Scala CLI version: 1.5.0
 # Scala version (default): 3.5.0
@@ -82,13 +82,10 @@ migrate any existing scripts and automations to Scala CLI under either `scala` o
 command may be dropped at some point in the future.
 :::
 
-```bash ignore
-scala_legacy
+```bash
+scala_legacy -version
 # [warning] MainGenericRunner class is deprecated since Scala 3.5.0, and Scala CLI features will not work.
 # [warning] Please be sure to update to the Scala CLI launcher to use the new features.
 # [warning] Check the Scala 3.5.0 release notes to troubleshoot your installation.
-# Welcome to Scala 3.5.0 (17, Java OpenJDK 64-Bit Server VM).
-# Type in expressions for evaluation. Or try :help.
-#                                                                                                                  
-# scala> 
+# Scala code runner version 3.5.0 -- Copyright 2002-2024, LAMP/EPFL
 ```
