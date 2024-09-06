@@ -625,10 +625,24 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("cli scalac options shadowing using directives") {
-    val cliScalacOptions            = Seq("-Xmaxwarns", "4", "-g:source")
-    val usingDirectiveScalacOptions = Seq("-nobootcp", "-Xmaxwarns", "5", "-g:none")
+    val cliScalacOptions = Seq("-Xmaxwarns", "4", "-g:source", "-language:no2AutoTupling")
+    val usingDirectiveScalacOptions = Seq(
+      "-nobootcp",
+      "-Xmaxwarns",
+      "5",
+      "-g:none",
+      "-language:no2AutoTupling",
+      "-language:strictEquality"
+    )
 
-    val expectedOptions = Seq("-Xmaxwarns", "4", "-g:source", "-nobootcp")
+    val expectedOptions = Seq(
+      "-Xmaxwarns",
+      "4",
+      "-g:source",
+      "-language:no2AutoTupling",
+      "-nobootcp",
+      "-language:strictEquality"
+    )
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
@@ -650,7 +664,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       assert(maybeBuild.isRight)
       val build         = maybeBuild.toOption.get
       val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
-      expect(scalacOptions == expectedOptions)
+      assertEquals(scalacOptions, expectedOptions)
     }
   }
 
