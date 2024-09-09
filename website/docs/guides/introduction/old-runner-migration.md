@@ -406,7 +406,7 @@ For more details on how to use Scala CLI in shebang scripts, refer to [the relev
 ## How to run a main class from compiled sources with Scala CLI?
 
 With the old `scala` runner, running a main class from compiled sources was as simple as passing the main class name 
-as an arg. The old runner would then assume the current working directory is to be added to the classpath and could 
+as an argument. The old runner would then assume that the current working directory is to be added to the classpath and could 
 implicitly run any compiled class files it would find.
 
 ```scala title=hello.scala
