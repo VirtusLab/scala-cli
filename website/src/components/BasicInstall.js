@@ -7,23 +7,24 @@ import {currentOs} from "./osUtils";
 export default function BasicInstall(props){
   return  <BrowserOnly>{() =>
       <div>
-        <Tabs 
+        <Tabs
           groupId="operating-systems"
           defaultValue={currentOs()}
           values={[
-          {label: 'Windows', value: 'windows'},
           {label: 'macOS', value: 'mac'},
           {label: 'Linux', value: 'linux'},
+          {label: 'Windows', value: 'windows'},
           {label: 'GitHub Actions', value: 'gha'}
         ]}>
-          
+
           <TabItem value="windows">
-            <a className="no_monospace" href="https://github.com/Virtuslab/scala-cli/releases/latest/download/scala-cli-x86_64-pc-win32.msi">
-              Download Scala CLI for Windows
-            </a>
+            <p>Install Scala CLI with <a className="no_monospace" href="https://learn.microsoft.com/en-us/windows/package-manager/winget/#install-winget">WinGet</a> by running the following one-line command in your terminal:</p>
+            <code>
+              winget install virtuslab.scalacli
+            </code>
           </TabItem>
 
-          <TabItem value="linux" >
+          <TabItem value="linux">
             <p>Run the following one-line command in your terminal:</p>
             <code>
               curl -sSLf https://scala-cli.virtuslab.org/get | sh
@@ -31,7 +32,7 @@ export default function BasicInstall(props){
           </TabItem>
 
           <TabItem value="mac">
-            <p>Run the following one-line command in your terminal:</p>
+            <p>Install Scala CLI with <a className="no_monospace" href="https://brew.sh/">Homebrew</a> by running the following one-line command in your terminal:</p>
             <code>
               brew install Virtuslab/scala-cli/scala-cli
             </code>
@@ -47,6 +48,6 @@ export default function BasicInstall(props){
           </TabItem>
 
         </Tabs>
-      </div>          
+      </div>
   }</BrowserOnly>
 }

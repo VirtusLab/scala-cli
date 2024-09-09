@@ -145,7 +145,8 @@ object Deps {
   def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M28"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.12.0"
   // Force using of 2.13 - is there a better way?
-  def coursier = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursier    = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierCli = ivy"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
   def coursierJvm = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"

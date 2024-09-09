@@ -19,10 +19,23 @@ If you merely want to get started with Scala CLI, you might want to first look
 at [the Getting started page](../../getting_started.md).
 :::
 
-## How to test Scala CLI as the new `scala` command?
+## How to start using Scala CLI as the new `scala` command?
 
-There is a dedicated `scala-experimental` distribution of Scala CLI, which can install it as `scala` on your machine.
-For instructions on how to try it out, refer to [the relevant doc](../../reference/scala-command/index.md).
+Refer to the [official instructions for installing Scala](https://www.scala-lang.org/download/). 
+Scala CLI is available as the `scala` command alongside the Scala distribution in Scala 3.5.0 and later.
+
+## Can I still use the old `scala` runner with Scala 3.5+?
+
+Yes, even though its usage has been deprecated, it is still available under the `scala_legacy` command. 
+However, it is likely to be dropped in a future version.
+
+```bash
+scala_legacy -version
+# [warning] MainGenericRunner class is deprecated since Scala 3.5.0, and Scala CLI features will not work.
+# [warning] Please be sure to update to the Scala CLI launcher to use the new features.
+# [warning] Check the Scala 3.5.0 release notes to troubleshoot your installation.
+# Scala code runner version 3.5.0 -- Copyright 2002-2024, LAMP/EPFL
+```
 
 ## How has the passing of arguments been changed from the old `scala` runner to Scala CLI?
 
@@ -30,18 +43,22 @@ Let us take a closer look on how the old runner handled arguments when compared 
 
 ### The old ways
 
-In the old `scala` runner, the first argument was treated as the input source, while the second and following arguments
+In the old runner, the first argument was treated as the input source, while the second and following arguments
 were considered program arguments.
 
-```bash ignore
-scala Source.scala programArg1 programArg2
+```scala title=Source.scala
+@main def main(args: String*): Unit = println(args.mkString(" "))
+```
+
+```bash
+scala_legacy Source.scala programArg1 programArg2
 ```
 
 Since everything after the first argument had to be arbitrarily read as a program argument, regardless of format, all
 runner options had to be passed before the source input.
 
-```bash ignore
-scala -save script.sc programArg1 programArg2
+```bash
+scala_legacy -save Source.scala programArg1 programArg2
 ```
 
 ### The ways of Scala CLI
@@ -49,15 +66,19 @@ scala -save script.sc programArg1 programArg2
 With Scala CLI's default way of handling arguments, inputs and program arguments have to be
 divided by `--`. There is no limit for the number of either.
 
+```scala title=Source2.scala
+def placeholder = println("Example extra source")
+```
+
 ```bash ignore
-scala-cli Source1.scala Source2.scala -- programArg1 programArg2
+scala Source.scala Source2.scala -- programArg1 programArg2
 ```
 
 Additionally, a Scala CLI sub-command can be passed before the inputs section.
 For example, to call the above example specifying the `run` sub-command explicitly, pass it like this:
 
-```bash ignore
-scala-cli run Source1.scala Source2.scala -- programArg1 programArg2
+```bash
+scala run Source.scala Source2.scala -- programArg1 programArg2
 ```
 
 More on sub-commands can be found [here](../../commands/basics.md).
@@ -65,20 +86,20 @@ More on sub-commands can be found [here](../../commands/basics.md).
 Runner options can be passed on whatever position in the inputs section (before `--`).
 For example, all the following examples are correct ways to specify the Scala version explicitly as `3.2`
 
-```bash ignore
-scala-cli -S 3.2 Source1.scala Source2.scala -- programArg1 programArg2
-scala-cli Source1.scala -S 3.2 Source2.scala -- programArg1 programArg2
-scala-cli Source1.scala Source2.scala -S 3.2 -- programArg1 programArg2
+```bash
+scala -S 3.2 Source.scala Source2.scala -- programArg1 programArg2
+scala Source.scala -S 3.2 Source2.scala -- programArg1 programArg2
+scala Source.scala Source2.scala -S 3.2 -- programArg1 programArg2
 ```
 
 :::note
 The exception to this rule are the launcher options, like `--cli-version` or `--cli-scala-version`.
 Those have to be passed before the inputs section (before any source inputs).
 
-For example, to explicitly specify the launcher should run Scala CLI `v0.1.20`, pass it like this:
+For example, to explicitly specify the launcher should run Scala CLI `v1.5.0`, pass it like this:
 
-```bash ignore
-scala-cli --cli-version 0.1.20 Source1.scala Source2.scala -- programArg1 programArg2
+```bash
+scala --cli-version 1.5.0 Source.scala Source2.scala -- programArg1 programArg2
 ```
 
 Also, if a Scala CLI sub-command is being passed explicitly, all launcher options have to be passed before the
@@ -87,7 +108,7 @@ sub-command.
 For example, to call [the `package` sub-command](../../commands/package.md) using the nightly CLI version, do it like this:
 
 ```bash ignore
-scala-cli --cli-version nightly package --help
+scala --cli-version nightly package --help
 ```
 
 :::
@@ -98,8 +119,8 @@ To provide better support for shebang scripts, Scala CLI
 has [a dedicated `shebang` sub-command](../../commands/shebang.md), which handles arguments similarly to the old `scala`
 script.
 
-```bash ignore
-scala-cli shebang Source.scala programArg1 programArg2
+```bash
+scala shebang Source.scala programArg1 programArg2
 ```
 
 The purpose of the `shebang` sub-command is essentially to only be used in a shebang header (more
@@ -215,12 +236,12 @@ object Main {
 
 <ChainedSnippets>
 
-```bash ignore
-scala Main.scala Hello world
+```bash
+scala_legacy Main.scala Hello world
 ```
 
 ```bash
-scala-cli Main.scala -- Hello world
+scala Main.scala -- Hello world
 ```
 
 ```text
@@ -243,7 +264,7 @@ In other words, when explicitly declaring a main class when working with Scala C
 file.
 
 ```bash
-scala-cli main-in-script.sc -- Hello world 
+scala main-in-script.sc -- Hello world 
 # no output will be printed
 ```
 
@@ -264,7 +285,7 @@ However, it is supported by Scala CLI.
 <ChainedSnippets>
 
 ```bash
-scala-cli script.sc -- Hello world
+scala script.sc -- Hello world
 ```
 
 ```text
@@ -287,7 +308,7 @@ However, both the old Scala `3.x` runner as well as Scala CLI do not support it.
 <ChainedSnippets>
 
 ```bash fail
-scala-cli script.scala -- Hello world
+scala script.scala -- Hello world
 ```
 
 ```text
@@ -331,15 +352,15 @@ That is, all arguments starting with the second were treated as program args, ra
 This is in contrast with the Scala CLI default way of handling arguments, where inputs and program arguments have to be
 divided by `--`.
 
-```bash ignore
-scala-cli Source1.scala Source2.scala -- programArg1 programArg2
+```bash
+scala Source.scala Source2.scala -- programArg1 programArg2
 ```
 
 To better support shebang scripts, Scala CLI has a dedicated `shebang` sub-command, which handles arguments similarly to
 the old `scala` script.
 
-```bash ignore
-scala-cli shebang Source.scala programArg1 programArg2
+```bash
+scala shebang Source.scala programArg1 programArg2
 ```
 
 For more concrete examples on how to change the shebang header in your existing scripts, look below.
@@ -381,3 +402,71 @@ println("Args: " + args.mkString(" "))
 
 For more information about the `shebang` sub-command, refer to [the appropriate doc](../../commands/shebang.md).
 For more details on how to use Scala CLI in shebang scripts, refer to [the relevant guide](../scripting/shebang.md).
+
+## How to run a main class from compiled sources with Scala CLI?
+
+With the old `scala` runner, running a main class from compiled sources was as simple as passing the main class name 
+as an argument. The old runner would then assume that the current working directory is to be added to the classpath and could 
+implicitly run any compiled class files it would find.
+
+```scala title=hello.scala
+@main def hello = println("Hello")
+```
+
+This syntax has been dropped and is no longer supported with the new `scala` runner.
+```bash
+scalac hello.scala
+scala_legacy hello # NOTE: this syntax is not supported by Scala CLI
+# Hello
+```
+
+With Scala CLI, all inputs have to be passed explicitly, so any compiled classes in the current working directory 
+would be ignored unless passed explicitly. 
+```bash clean
+scalac hello.scala
+scala run -cp .
+# Hello
+```
+
+:::note
+If only the classpath is passed with `-cp`, then the `run` sub-command can't be skipped, as otherwise Scala CLI 
+will default to the REPL (as there are no explicit source file inputs present).
+
+```bash ignore
+scalac hello.scala
+scala -cp .
+# Welcome to Scala 3.5.0 (17, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#                                                                                                                  
+# scala> 
+```
+:::
+
+It is possible to explicitly specify the main class to be run (for example, if there are multiple main classes 
+in the build). The `run` sub-command becomes optional then, as passing `-M` indicates the intention to run something.
+```bash clean
+scalac hello.scala
+scala -cp . -M hello
+# Hello
+```
+
+:::note
+If you want to compile your sources with a separate command, and then run them later, you can also do it 
+with the `compile` sub-command, rather than the `scalac` script.
+
+You don't have to specify the class files location, Scala CLI won't recompile them if they are up to date.
+```bash clean
+scala compile hello.scala
+scala hello.scala
+# Hello
+```
+
+Alternatively, you can also specify the location for the compiled classes explicitly, and then add them 
+to the classpath, as you would with `scalac`.
+```bash
+scala compile hello.scala -d compiled_classes
+scala run -cp compiled_classes
+# Hello
+```
+:::
+
