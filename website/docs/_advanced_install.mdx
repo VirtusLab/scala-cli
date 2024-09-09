@@ -4,6 +4,17 @@ import SectionAbout from "../src/components/SectionAbout"
 import DownloadButton from "../src/components/DownloadButton"
 import {currentOs} from "../src/components/osUtils";
 
+
+<SectionAbout title="Scala 3 installation"/>
+<div className="row">
+    <div className="col col--9 col--offset-1 padding--lg">
+        If you install Scala 3.5.0 or newer on your machine, you can use Scala CLI under the `scala` command. <br/>
+        For Scala 3 installation instructions refer <a  className="no_monospace" href="https://www.scala-lang.org/download/">here</a>.
+
+        Note that even when installing the latest Scala 3 version, its `scala` command may refer to an older Scala CLI version.
+        For the latest stable Scala CLI release it usually is necessary to install it separately.
+    </div>
+</div>
 <SectionAbout title="Advanced Installation">
     <div className="margin--lg"/>
     <Tabs
@@ -550,7 +561,7 @@ Scala Native page contains detailed [installation guide](https://scala-native.re
 </div></div>
 
 
-<SectionAbout title="Uninstall scala CLI">
+<SectionAbout title="Uninstall Scala CLI">
     <div className="margin--lg"/>
     <Tabs
         groupId="uninstall-specific"
