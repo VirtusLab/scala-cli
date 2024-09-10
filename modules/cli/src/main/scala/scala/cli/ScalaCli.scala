@@ -12,6 +12,7 @@ import java.util.Locale
 import scala.build.Directories
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
+import scala.cli.commands.CommandUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
@@ -244,10 +245,26 @@ object ScalaCli {
           case Some(ver) =>
             val powerArgs              = launcherOpts.powerOptions.toCliArgs
             val initialScalaRunnerArgs = launcherOpts.scalaRunner
-            val finalScalaRunnerArgs =
-              // if the version was specified, it doesn't make sense to check for CLI updates
-              (if Version(ver) < Version("1.4.0") then initialScalaRunnerArgs
-               else initialScalaRunnerArgs.copy(skipCliUpdates = Some(true))).toCliArgs
+            val finalScalaRunnerArgs = (Version(ver) match
+              case v if v < Version("1.4.0") && !ver.contains("nightly") =>
+                initialScalaRunnerArgs.copy(
+                  skipCliUpdates = None,
+                  predefinedCliVersion = None,
+                  initialLauncherPath = None
+                )
+              case v if v < Version("1.5.1") && !ver.contains("nightly") =>
+                initialScalaRunnerArgs.copy(
+                  predefinedCliVersion = None,
+                  initialLauncherPath = None
+                )
+              case _ if initialScalaRunnerArgs.initialLauncherPath.nonEmpty =>
+                initialScalaRunnerArgs
+              case _ =>
+                initialScalaRunnerArgs.copy(
+                  predefinedCliVersion = Some(ver),
+                  initialLauncherPath = Some(CommandUtils.getAbsolutePathToScalaCli(progName))
+                )
+            ).toCliArgs
             val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if

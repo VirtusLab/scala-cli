@@ -2162,4 +2162,22 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       }
     }
   }
+
+  // TODO: uncomment when the fix for https://github.com/VirtusLab/scala-cli/issues/3157 is on nightly
+//  test("setup-ide prepares a valid BSP configuration with --cli-version") {
+//    val scriptName = "cli-version.sc"
+//    val cliVersion = "nightly"
+//    val inputs = TestInputs(os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion""")
+//    inputs.fromRoot { root =>
+//      val cliVersionArgs = List("--cli-version", cliVersion)
+//      os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd = root)
+//      val expectedIdeLauncherFile = root / Constants.workspaceDirName / "ide-launcher-options.json"
+//      expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+//      expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
+//      val bspConfig = readBspConfig(root)
+//      expect(bspConfig.argv.head == TestUtil.cliPath)
+//      expect(bspConfig.argv.containsSlice(cliVersionArgs))
+//      expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+//    }
+//  }
 }
