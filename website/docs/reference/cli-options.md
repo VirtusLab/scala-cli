@@ -751,7 +751,7 @@ Generate a library JAR rather than an executable JAR
 
 ### `--source`
 
-Aliases: `--source-jar`, `--sources`, `--src`
+Aliases: `--sources`, `--src`
 
 Generate a source JAR rather than an executable JAR
 
@@ -2121,11 +2121,6 @@ Try to push the key even if Scala CLI thinks it's not a public key
 
 [Internal]
 Whether to exit with code 0 if no key is passed
-
-### `--force-signing-externally`
-
-[Internal]
-When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
 
 ### Pgp scala signing options
 
