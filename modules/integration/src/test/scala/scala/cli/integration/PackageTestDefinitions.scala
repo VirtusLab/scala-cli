@@ -912,6 +912,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
           )
         else if (
           actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion ||
+          (actualScalaVersion.coursierVersion >= "3.3.4".coursierVersion &&
+          actualScalaVersion.coursierVersion < "3.4.0".coursierVersion) ||
+          actualScalaVersion.startsWith("3.3.4") ||
           actualScalaVersion.startsWith("3.5")
         )
           Seq(

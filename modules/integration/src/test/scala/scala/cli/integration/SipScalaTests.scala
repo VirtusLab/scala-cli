@@ -907,18 +907,21 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
       }
     }
 
-  test("scalac help respects --cli-default-scala-version") {
-    TestInputs.empty.fromRoot { root =>
-      val sv = Constants.scala3NextRc
-      val launcherVersionOverrideHelp =
-        os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
-          .call(cwd = root).out.trim()
-      val standardVersionOverrideHelp =
-        os.proc(TestUtil.cli, "--scalac-help", "-S", sv)
-          .call(cwd = root).out.trim()
-      val migrationPrefix = sv.take(2) + (sv.charAt(2).asDigit + 1).toString
-      expect(launcherVersionOverrideHelp.contains(s"$migrationPrefix-migration"))
-      expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)
+  // this check is just to ensure this isn't being run for LTS RC jobs
+  // should be adjusted when a new LTS line is released
+  if (!Constants.scala3NextRc.startsWith(Constants.scala3LtsPrefix))
+    test("scalac help respects --cli-default-scala-version") {
+      TestInputs.empty.fromRoot { root =>
+        val sv = Constants.scala3NextRc
+        val launcherVersionOverrideHelp =
+          os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
+            .call(cwd = root).out.trim()
+        val standardVersionOverrideHelp =
+          os.proc(TestUtil.cli, "--scalac-help", "-S", sv)
+            .call(cwd = root).out.trim()
+        val migrationPrefix = sv.take(2) + (sv.charAt(2).asDigit + 1).toString
+        expect(launcherVersionOverrideHelp.contains(s"$migrationPrefix-migration"))
+        expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)
+      }
     }
-  }
 }
