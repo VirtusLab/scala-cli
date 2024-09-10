@@ -2163,21 +2163,43 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
   }
 
-  // TODO: uncomment when the fix for https://github.com/VirtusLab/scala-cli/issues/3157 is on nightly
-//  test("setup-ide prepares a valid BSP configuration with --cli-version") {
-//    val scriptName = "cli-version.sc"
-//    val cliVersion = "nightly"
-//    val inputs = TestInputs(os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion""")
-//    inputs.fromRoot { root =>
-//      val cliVersionArgs = List("--cli-version", cliVersion)
-//      os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd = root)
-//      val expectedIdeLauncherFile = root / Constants.workspaceDirName / "ide-launcher-options.json"
-//      expect(expectedIdeLauncherFile.toNIO.toFile.exists())
-//      expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
-//      val bspConfig = readBspConfig(root)
-//      expect(bspConfig.argv.head == TestUtil.cliPath)
-//      expect(bspConfig.argv.containsSlice(cliVersionArgs))
-//      expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
-//    }
-//  }
+  for { cliVersion <- Seq("1.5.0", "1.5.0-19-g932866db6-SNAPSHOT", "1.0.0") }
+    test(s"setup-ide doesn't pass unrecognised arguments to old --cli-versions: $cliVersion") {
+      val scriptName = "cli-version.sc"
+      val inputs = TestInputs(
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+      )
+      inputs.fromRoot { root =>
+        val r =
+          os.proc(TestUtil.cli, "--cli-version", cliVersion, "setup-ide", scriptName, extraOptions)
+            .call(cwd = root, stderr = os.Pipe, check = false)
+        expect(!r.err.text().contains("Unrecognized argument"))
+        expect(r.exitCode == 0)
+      }
+    }
+
+  // TODO: test for the most recent CLI version as well when 1.5.1 is out
+  for { cliVersion <- Seq("1.5.0-34-g31a88e428-SNAPSHOT") }
+    test(
+      s"setup-ide prepares a valid BSP configuration with --cli-version $cliVersion"
+    ) {
+      val scriptName = "cli-version.sc"
+      val inputs = TestInputs(
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+      )
+      inputs.fromRoot { root =>
+        val cliVersionArgs = List("--cli-version", cliVersion)
+        os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd =
+          root
+        )
+        val expectedIdeLauncherFile =
+          root / Constants.workspaceDirName / "ide-launcher-options.json"
+        expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+        expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
+        val bspConfig = readBspConfig(root)
+        expect(bspConfig.argv.head == TestUtil.cliPath)
+        expect(bspConfig.argv.containsSlice(cliVersionArgs))
+        expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+      }
+    }
 }

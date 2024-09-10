@@ -252,7 +252,9 @@ object ScalaCli {
                   predefinedCliVersion = None,
                   initialLauncherPath = None
                 )
-              case v if v < Version("1.5.1") && !ver.contains("nightly") =>
+              case v
+                  if v < Version("1.5.0-34-g31a88e428-SNAPSHOT") && v < Version("1.5.1") &&
+                  !ver.contains("nightly") =>
                 initialScalaRunnerArgs.copy(
                   predefinedCliVersion = None,
                   initialLauncherPath = None
