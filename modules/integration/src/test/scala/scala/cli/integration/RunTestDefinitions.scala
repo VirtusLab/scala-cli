@@ -2303,4 +2303,37 @@ abstract class RunTestDefinitions
         expect(res.out.trim() == expectedOutput)
       }
   }
+
+  test(
+    "prioritise main class in a .scala file over main classes in dependencies on the classpath"
+  ) {
+    val expectedMessage = "Main"
+    TestInputs(
+      os.rel / "Main.scala" -> s"""object Main extends App { println("$expectedMessage") }"""
+    )
+      .fromRoot { root =>
+        val localCache        = root / "local-cache"
+        val dependencyVersion = "42.7.4"
+        val csRes = os.proc(
+          TestUtil.cs,
+          "fetch",
+          "--cache",
+          localCache,
+          s"org.postgresql:postgresql:$dependencyVersion"
+        )
+          .call(cwd = root)
+        val dependencyJar = csRes.out.trim().linesIterator.toSeq.head
+
+        // pass classpath via -cp
+        val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "-cp", dependencyJar)
+          .call(cwd = root)
+        expect(res.out.trim() == expectedMessage)
+
+        // pass classpath via args file
+        os.write(root / "args.txt", s"-cp $dependencyJar")
+        val res2 = os.proc(TestUtil.cli, "run", ".", extraOptions, "@args.txt")
+          .call(cwd = root)
+        expect(res2.out.trim() == expectedMessage)
+      }
+  }
 }

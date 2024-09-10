@@ -59,13 +59,14 @@ object Build {
     def outputOpt: Some[os.Path]          = Some(output)
     def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
     def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
+    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output).sorted
+    private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
+      options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
+    private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
+      artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
     def foundMainClasses(): Seq[String] = {
-      val found =
-        MainClass.find(output).sorted ++
-          options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
-      if (inputs.isEmpty && found.isEmpty)
-        artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
-      else found
+      val found = mainClassesFoundInProject ++ mainClassesFoundOnExtraClasspath
+      if inputs.isEmpty && found.isEmpty then mainClassesFoundInUserExtraDependencies else found
     }
     def retainedMainClass(
       mainClasses: Seq[String],
@@ -121,8 +122,11 @@ object Build {
         }
 
       val filteredMainClasses =
-        mainClasses.filter(!scriptInferredMainClasses.contains(_))
-      if (filteredMainClasses.length == 1) {
+        mainClasses
+          .filterNot(scriptInferredMainClasses.contains(_))
+          .filterNot(mainClassesFoundOnExtraClasspath.contains(_))
+          .filterNot(mainClassesFoundInUserExtraDependencies.contains(_))
+      if filteredMainClasses.length == 1 then {
         val pickedMainClass = filteredMainClasses.head
         if (scriptInferredMainClasses.nonEmpty) {
           val firstScript   = scriptInferredMainClasses.head
@@ -139,8 +143,7 @@ object Build {
         }
         Right(pickedMainClass)
       }
-      else
-        Left(mainClasses)
+      else Left(mainClasses)
     }
     def retainedMainClassOpt(
       mainClasses: Seq[String],
