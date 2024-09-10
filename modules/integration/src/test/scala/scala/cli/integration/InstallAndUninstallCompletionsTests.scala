@@ -69,9 +69,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   lazy val fishRcScript: String = {
     val progName = "scala-cli"
     val script =
-      s"""
-    complete $progName -a '($progName complete fish-v1 (math 1 + (count (__fish_print_cmd_args))) (__fish_print_cmd_args))'
-         |""".stripMargin
+      s"""complete $progName -a '($progName complete fish-v1 (math 1 + (count (__fish_print_cmd_args))) (__fish_print_cmd_args))'"""
     addTags(script)
   }
 
