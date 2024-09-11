@@ -2304,36 +2304,54 @@ abstract class RunTestDefinitions
       }
   }
 
-  test(
-    "prioritise main class in a .scala file over main classes in dependencies on the classpath"
-  ) {
-    val expectedMessage = "Main"
-    TestInputs(
-      os.rel / "Main.scala" -> s"""object Main extends App { println("$expectedMessage") }"""
-    )
-      .fromRoot { root =>
-        val localCache        = root / "local-cache"
-        val dependencyVersion = "42.7.4"
-        val csRes = os.proc(
-          TestUtil.cs,
-          "fetch",
-          "--cache",
-          localCache,
-          s"org.postgresql:postgresql:$dependencyVersion"
+  {
+    val expectedMessage = "Hello"
+    for {
+      (actualInputPath, inputPathToCall, inputs) <- {
+        val scalaInputPath  = os.rel / "Main.scala"
+        val scriptInputPath = os.rel / "script.sc"
+        val scalaInputs = TestInputs(
+          scalaInputPath -> s"""object Main extends App { println("$expectedMessage") }"""
         )
-          .call(cwd = root)
-        val dependencyJar = csRes.out.trim().linesIterator.toSeq.head
+        val scriptInputs = TestInputs(scriptInputPath -> s"""println("$expectedMessage")""")
+        Seq(
+          (scalaInputPath, ".", scalaInputs),
+          (scalaInputPath, scalaInputPath.toString, scalaInputs),
+          (scriptInputPath, ".", scriptInputs),
+          (scriptInputPath, scriptInputPath.toString, scriptInputs)
+        )
+      }
+      inputExtension = "." + actualInputPath.last.split('.').last
+    }
+      test(
+        s"prioritise main class in a $inputExtension file passed as $inputPathToCall over main classes in dependencies on the classpath"
+      ) {
+        inputs.fromRoot { root =>
+          val localCache        = root / "local-cache"
+          val dependencyVersion = "42.7.4"
+          val csRes = os.proc(
+            TestUtil.cs,
+            "fetch",
+            "--cache",
+            localCache,
+            s"org.postgresql:postgresql:$dependencyVersion"
+          )
+            .call(cwd = root)
+          val dependencyJar = csRes.out.trim().linesIterator.toSeq.head
 
-        // pass classpath via -cp
-        val res = os.proc(TestUtil.cli, "run", ".", extraOptions, "-cp", dependencyJar)
-          .call(cwd = root)
-        expect(res.out.trim() == expectedMessage)
+          // pass classpath via -cp
+          val res =
+            os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, "-cp", dependencyJar)
+              .call(cwd = root)
+          expect(res.out.trim() == expectedMessage)
 
-        // pass classpath via args file
-        os.write(root / "args.txt", s"-cp $dependencyJar")
-        val res2 = os.proc(TestUtil.cli, "run", ".", extraOptions, "@args.txt")
-          .call(cwd = root)
-        expect(res2.out.trim() == expectedMessage)
+          // pass classpath via args file
+          val argsFileName = "args.txt"
+          os.write(root / argsFileName, s"-cp $dependencyJar")
+          val res2 = os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, s"@$argsFileName")
+            .call(cwd = root)
+          expect(res2.out.trim() == expectedMessage)
+        }
       }
   }
 }

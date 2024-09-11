@@ -120,30 +120,65 @@ object Build {
           case Sources.InMemory(_, _, _, Some(wrapperParams)) =>
             wrapperParams.mainClass
         }
-
-      val filteredMainClasses =
+          .filter(mainClasses.contains(_))
+      val rawInputInferredMainClasses =
         mainClasses
           .filterNot(scriptInferredMainClasses.contains(_))
           .filterNot(mainClassesFoundOnExtraClasspath.contains(_))
           .filterNot(mainClassesFoundInUserExtraDependencies.contains(_))
-      if filteredMainClasses.length == 1 then {
-        val pickedMainClass = filteredMainClasses.head
-        if (scriptInferredMainClasses.nonEmpty) {
-          val firstScript   = scriptInferredMainClasses.head
-          val scriptsString = scriptInferredMainClasses.mkString(", ")
+      val extraClasspathInferredMainClasses =
+        mainClassesFoundOnExtraClasspath.filter(mainClasses.contains(_))
+      val userExtraDependenciesInferredMainClasses =
+        mainClassesFoundInUserExtraDependencies.filter(mainClasses.contains(_))
+
+      def logMessageOnLesserPriorityMainClasses(
+        pickedMainClass: String,
+        mainClassDescriptor: String,
+        lesserPriorityMainClasses: Seq[String]
+      ): Unit =
+        if lesserPriorityMainClasses.nonEmpty then {
+          val first          = lesserPriorityMainClasses.head
+          val completeString = lesserPriorityMainClasses.mkString(", ")
           logger.message(
-            s"Running $pickedMainClass. Also detected script main classes: $scriptsString"
-          )
-          logger.message(
-            s"You can run any one of them by passing option --main-class, i.e. --main-class $firstScript"
-          )
-          logger.message(
-            "All available main classes can always be listed by passing option --list-main-classes"
+            s"""Running $pickedMainClass. Also detected $mainClassDescriptor: $completeString
+               |You can run any one of them by passing option --main-class, i.e. --main-class $first
+               |All available main classes can always be listed by passing option --list-main-classes""".stripMargin
           )
         }
-        Right(pickedMainClass)
+
+      (
+        rawInputInferredMainClasses,
+        scriptInferredMainClasses,
+        extraClasspathInferredMainClasses,
+        userExtraDependenciesInferredMainClasses
+      ) match {
+        case (Seq(pickedMainClass), scriptInferredMainClasses, _, _) =>
+          logMessageOnLesserPriorityMainClasses(
+            pickedMainClass = pickedMainClass,
+            mainClassDescriptor = "script main classes",
+            lesserPriorityMainClasses = scriptInferredMainClasses
+          )
+          Right(pickedMainClass)
+        case (rawMcs, scriptMcs, extraCpMcs, userExtraDepsMcs) if rawMcs.length > 1 =>
+          Left(rawMcs ++ scriptMcs ++ extraCpMcs ++ userExtraDepsMcs)
+        case (Nil, Seq(pickedMainClass), _, _) => Right(pickedMainClass)
+        case (Nil, scriptMcs, extraCpMcs, userExtraDepsMcs) if scriptMcs.length > 1 =>
+          Left(scriptMcs ++ extraCpMcs ++ userExtraDepsMcs)
+        case (Nil, Nil, Seq(pickedMainClass), userExtraDepsMcs) =>
+          logMessageOnLesserPriorityMainClasses(
+            pickedMainClass = pickedMainClass,
+            mainClassDescriptor = "other main classes in dependencies",
+            lesserPriorityMainClasses = userExtraDepsMcs
+          )
+          Right(pickedMainClass)
+        case (Nil, Nil, extraCpMcs, userExtraDepsMcs) if extraCpMcs.length > 1 =>
+          Left(extraCpMcs ++ userExtraDepsMcs)
+        case (Nil, Nil, Nil, Seq(pickedMainClass)) => Right(pickedMainClass)
+        case (Nil, Nil, Nil, userExtraDepsMcs) if userExtraDepsMcs.length > 1 =>
+          Left(userExtraDepsMcs)
+        case (rawMcs, scriptMcs, extraCpMcs, userExtraDepsMcs) =>
+          Left(rawMcs ++ scriptMcs ++ extraCpMcs ++ userExtraDepsMcs)
       }
-      else Left(mainClasses)
     }
     def retainedMainClassOpt(
       mainClasses: Seq[String],
