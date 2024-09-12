@@ -162,6 +162,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     val bspArgs =
       List(launcher) ++
         finalLauncherOptions.toCliArgs ++
+        launcherJavaPropArgs ++
         List("bsp") ++
         debugOpt ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++

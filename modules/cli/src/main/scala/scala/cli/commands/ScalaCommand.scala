@@ -41,9 +41,10 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
     new AtomicReference(GlobalOptions.default)
 
-  private def globalOptions: GlobalOptions       = globalOptionsAtomic.get()
-  protected def launcherOptions: LauncherOptions = ScalaCli.launcherOptions
-  protected def defaultScalaVersion: String      = ScalaCli.getDefaultScalaVersion
+  private def globalOptions: GlobalOptions         = globalOptionsAtomic.get()
+  protected def launcherOptions: LauncherOptions   = ScalaCli.launcherOptions
+  protected def defaultScalaVersion: String        = ScalaCli.getDefaultScalaVersion
+  protected def launcherJavaPropArgs: List[String] = ScalaCli.getLauncherJavaPropArgs
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None

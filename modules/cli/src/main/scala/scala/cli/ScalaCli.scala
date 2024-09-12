@@ -65,6 +65,10 @@ object ScalaCli {
   def getDefaultScalaVersion: String =
     launcherOptions.scalaRunner.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
+  private var launcherJavaPropArgs: List[String] = List.empty
+
+  def getLauncherJavaPropArgs: List[String] = launcherJavaPropArgs
+
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
     (systemProps, args.drop(systemProps.size))
@@ -294,6 +298,7 @@ object ScalaCli {
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
+    if systemProps.nonEmpty then launcherJavaPropArgs = systemProps.toList
     setSystemProps(systemProps)
 
     (new BouncycastleSignerMaker).maybeInit()
