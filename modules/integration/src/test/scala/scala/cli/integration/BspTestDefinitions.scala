@@ -2185,7 +2185,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     ) {
       val scriptName = "cli-version.sc"
       val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")"""
       )
       inputs.fromRoot { root =>
         val cliVersionArgs = List("--cli-version", cliVersion)
@@ -2202,4 +2202,17 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
       }
     }
+
+  test("setup-ide passes Java props to the BSP configuration correctly") {
+    val scriptName = "hello.sc"
+    TestInputs(os.rel / scriptName -> s"""println("Hello")""").fromRoot { root =>
+      val javaProps = List("-Dfoo=bar", "-Dbar=baz")
+      os.proc(TestUtil.cli, javaProps, "setup-ide", scriptName, extraOptions)
+        .call(cwd = root)
+      val bspConfig = readBspConfig(root)
+      expect(bspConfig.argv.head == TestUtil.cliPath)
+      expect(bspConfig.argv.containsSlice(javaProps))
+      expect(bspConfig.argv.indexOfSlice(javaProps) < bspConfig.argv.indexOf("bsp"))
+    }
+  }
 }
