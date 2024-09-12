@@ -2185,7 +2185,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     ) {
       val scriptName = "cli-version.sc"
       val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")"""
       )
       inputs.fromRoot { root =>
         val cliVersionArgs = List("--cli-version", cliVersion)
