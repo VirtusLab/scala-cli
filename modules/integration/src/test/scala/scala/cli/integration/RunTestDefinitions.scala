@@ -2354,4 +2354,37 @@ abstract class RunTestDefinitions
         }
       }
   }
+
+  test("simple --watch .scala source") {
+    val expectedMessage1 = "Hello"
+    val inputPath        = os.rel / "smth.scala"
+    TestInputs(inputPath -> s"""object Smth extends App { println("$expectedMessage1") }""")
+      .fromRoot { root =>
+        val proc = os.proc(TestUtil.cli, "run", ".", "--watch", extraOptions)
+          .spawn(cwd = root, stderr = os.Pipe)
+        try
+          TestUtil.withThreadPool("simple-watch-scala-source-test", 2) { pool =>
+            val timeout = Duration("90 seconds")
+            val ec      = ExecutionContext.fromExecutorService(pool)
+            val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output1 == expectedMessage1)
+            val expectedMessage2 = "World"
+            while (!TestUtil.readLine(proc.stderr, ec, timeout).contains("re-run"))
+              Thread.sleep(100L)
+            os.write.over(
+              root / inputPath,
+              s"""object Smth extends App { println("$expectedMessage2") }""".stripMargin
+            )
+            val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output2 == expectedMessage2)
+          }
+        finally
+          if (proc.isAlive()) {
+            proc.destroy()
+            Thread.sleep(200L)
+            if (proc.isAlive())
+              proc.destroyForcibly()
+          }
+      }
+  }
 }
