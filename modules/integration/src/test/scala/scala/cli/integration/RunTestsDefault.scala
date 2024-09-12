@@ -2,8 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
 
 class RunTestsDefault extends RunTestDefinitions with TestDefault {
@@ -84,7 +83,7 @@ class RunTestsDefault extends RunTestDefinitions with TestDefault {
            |  def hello(name: String) = s"$hello $$name"
            |}
            |""".stripMargin
-      val inputs = TestInputs(
+      TestInputs(
         libSourcePath -> libSource("Hello"),
         os.rel / "app" / "TestApp.scala" ->
           """//> using lib "test-org::messages:0.1.0"
@@ -97,8 +96,7 @@ class RunTestsDefault extends RunTestDefinitions with TestDefault {
             |def run(): Unit =
             |  println(Messages.hello("user"))
             |""".stripMargin
-      )
-      inputs.fromRoot { root =>
+      ).fromRoot { root =>
         val testRepo = root / "test-repo"
 
         def publishLib(): Unit =
@@ -115,47 +113,33 @@ class RunTestsDefault extends RunTestDefinitions with TestDefault {
 
         publishLib()
 
-        val proc = os.proc(
-          TestUtil.cli,
-          "--power",
-          "run",
-          "--offline",
-          "app",
-          "-w",
-          "-r",
-          testRepo.toNIO.toUri.toASCIIString
-        )
-          .spawn(cwd = root)
+        TestUtil.withProcessWatching(
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "run",
+            "--offline",
+            "app",
+            "-w",
+            "-r",
+            testRepo.toNIO.toUri.toASCIIString
+          ).spawn(cwd = root)
+        ) { (proc, timeout, ec) =>
+          val output = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output == "Hello user")
 
-        try
-          TestUtil.withThreadPool("watch-artifacts-test", 2) { pool =>
-            val timeout = Duration("90 seconds")
-            val ec      = ExecutionContext.fromExecutorService(pool)
+          os.write.over(root / libSourcePath, libSource("Hola"))
+          publishLib()
 
-            val output = TestUtil.readLine(proc.stdout, ec, timeout)
-            expect(output == "Hello user")
-
-            os.write.over(root / libSourcePath, libSource("Hola"))
-            publishLib()
-
-            val secondOutput = TestUtil.readLine(proc.stdout, ec, timeout)
-            expect(secondOutput == "Hola user")
-          }
-        finally
-          if (proc.isAlive()) {
-            proc.destroy()
-            Thread.sleep(200L)
-            if (proc.isAlive())
-              proc.destroyForcibly()
-          }
+          val secondOutput = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(secondOutput == "Hola user")
+        }
       }
     }
 
   test("watch test - no infinite loop") {
-
     val fileName = "watch.scala"
-
-    val inputs = TestInputs(
+    TestInputs(
       os.rel / fileName ->
         """//> using lib "org.scalameta::munit::0.7.29"
           |
@@ -163,42 +147,31 @@ class RunTestsDefault extends RunTestDefinitions with TestDefault {
           |    test("is true true") { assert(true) }
           |}
           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val proc = os.proc(TestUtil.cli, "test", "-w", "watch.scala")
-        .spawn(cwd = root, mergeErrIntoOut = true)
+    ).fromRoot { root =>
+      TestUtil.withProcessWatching(
+        proc = os.proc(TestUtil.cli, "test", "-w", "watch.scala")
+          .spawn(cwd = root, mergeErrIntoOut = true),
+        timeout = 10.seconds
+      ) { (proc, timeout, ec) =>
+        val watchingMsg = "Watching sources, press Ctrl+C to exit, or press Enter to re-run."
+        val testingMsg  = "MyTests:"
 
-      val watchingMsg = "Watching sources, press Ctrl+C to exit, or press Enter to re-run."
-      val testingMsg  = "MyTests:"
+        def lineReadIter = Iterator.continually(Try(TestUtil.readLine(proc.stdout, ec, timeout)))
+          .takeWhile(_.isSuccess)
+          .map(_.get)
 
-      try
-        TestUtil.withThreadPool("watch-test-test", 2) { pool =>
-          val timeout     = Duration("10 seconds")
-          implicit val ec = ExecutionContext.fromExecutorService(pool)
+        val beforeAppendOut = lineReadIter.toSeq
+        expect(beforeAppendOut.count(_.contains(testingMsg)) == 1)
+        expect(beforeAppendOut.count(_.contains(watchingMsg)) == 1)
+        expect(beforeAppendOut.last.contains(watchingMsg))
 
-          def lineReadIter = Iterator.continually(Try(TestUtil.readLine(proc.stdout, ec, timeout)))
-            .takeWhile(_.isSuccess)
-            .map(_.get)
+        os.write.append(root / fileName, "\n//comment")
 
-          val beforeAppendOut = lineReadIter.toSeq
-          expect(beforeAppendOut.count(_.contains(testingMsg)) == 1)
-          expect(beforeAppendOut.count(_.contains(watchingMsg)) == 1)
-          expect(beforeAppendOut.last.contains(watchingMsg))
-
-          os.write.append(root / fileName, "\n//comment")
-
-          val afterAppendOut = lineReadIter.toSeq
-          expect(afterAppendOut.count(_.contains(testingMsg)) == 1)
-          expect(afterAppendOut.count(_.contains(watchingMsg)) == 1)
-          expect(afterAppendOut.last.contains(watchingMsg))
-        }
-      finally
-        if (proc.isAlive()) {
-          proc.destroy()
-          Thread.sleep(200L)
-          if (proc.isAlive())
-            proc.destroyForcibly()
-        }
+        val afterAppendOut = lineReadIter.toSeq
+        expect(afterAppendOut.count(_.contains(testingMsg)) == 1)
+        expect(afterAppendOut.count(_.contains(watchingMsg)) == 1)
+        expect(afterAppendOut.last.contains(watchingMsg))
+      }
     }
   }
 
