@@ -223,8 +223,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       Some(name),
       inputArgs
     )
-    if (CommandUtils.shouldCheckUpdate)
-      Update.checkUpdateSafe(logger)
+    if CommandUtils.shouldCheckUpdate then Update.checkUpdateSafe(logger)
 
     val configDb = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
@@ -232,7 +231,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    if (options.sharedRun.watch.watchMode) {
+    if options.sharedRun.watch.watchMode then {
 
       /** A handle to the Runner process, used to kill the process if it's still alive when a change
         * occured and restarts are allowed or to wait for it if restarts are not allowed
@@ -251,20 +250,18 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       val mainThreadOpt = AtomicReference(Option.empty[Thread])
 
       val watcher = Build.watch(
-        inputs,
-        initialBuildOptions,
-        compilerMaker,
-        None,
-        logger,
+        inputs = inputs,
+        options = initialBuildOptions,
+        compilerMaker = compilerMaker,
+        docCompilerMakerOpt = None,
+        logger = logger,
         crossBuilds = cross,
         buildTests = false,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () =>
-          if (processOpt.get().exists(_._1.isAlive()))
-            WatchUtil.printWatchWhileRunningMessage()
-          else
-            WatchUtil.printWatchMessage()
+          if processOpt.get().exists(_._1.isAlive()) then WatchUtil.printWatchWhileRunningMessage()
+          else WatchUtil.printWatchMessage()
       ) { res =>
         for ((process, onExitProcess) <- processOpt.get()) {
           onExitProcess.cancel(true)
@@ -296,8 +293,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   (proc, onExit)
               }
             s.copyOutput(options.shared)
-            if (options.sharedRun.watch.restart)
-              processOpt.set(maybeProcess)
+            if options.sharedRun.watch.restart then processOpt.set(maybeProcess)
             else {
               for ((proc, onExit) <- maybeProcess)
                 ProcUtil.waitForProcess(proc, onExit)

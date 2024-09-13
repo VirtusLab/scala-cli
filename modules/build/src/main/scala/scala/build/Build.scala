@@ -305,9 +305,7 @@ object Build {
       testDocOpt: Option[Build]
     )
 
-    def doBuild(
-      overrideOptions: BuildOptions
-    ): Either[BuildException, NonCrossBuilds] = either {
+    def doBuild(overrideOptions: BuildOptions): Either[BuildException, NonCrossBuilds] = either {
 
       val inputs0 = updateInputs(
         inputs,
@@ -685,9 +683,9 @@ object Build {
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
     val info = either {
-      val (crossSources, inputs0) = value(allInputs(inputs, options, logger))
-      val sharedOptions           = crossSources.sharedOptions(options)
-      val compiler = value {
+      val (crossSources: CrossSources, inputs0: Inputs) = value(allInputs(inputs, options, logger))
+      val sharedOptions                                 = crossSources.sharedOptions(options)
+      val compiler: ScalaCompiler = value {
         compilerMaker.create(
           inputs0.workspace / Constants.workspaceDirName,
           classesDir0,
@@ -696,7 +694,7 @@ object Build {
           sharedOptions
         )
       }
-      val docCompilerOpt = docCompilerMakerOpt.map(_.create(
+      val docCompilerOpt: Option[ScalaCompiler] = docCompilerMakerOpt.map(_.create(
         inputs0.workspace / Constants.workspaceDirName,
         classesDir0,
         buildClient,
@@ -711,20 +709,26 @@ object Build {
     def run(): Unit = {
       try {
         res =
-          info.flatMap { case (compiler, docCompilerOpt, crossSources, inputs) =>
-            build(
-              inputs,
-              crossSources,
-              options,
-              logger,
-              buildClient,
-              compiler,
-              docCompilerOpt,
-              crossBuilds = crossBuilds,
-              buildTests = buildTests,
-              partial = partial,
-              actionableDiagnostics = actionableDiagnostics
-            )
+          info.flatMap {
+            case (
+                  compiler: ScalaCompiler,
+                  docCompilerOpt: Option[ScalaCompiler],
+                  crossSources: CrossSources,
+                  inputs: Inputs
+                ) =>
+              build(
+                inputs = inputs,
+                crossSources = crossSources,
+                options = options,
+                logger = logger,
+                buildClient = buildClient,
+                compiler = compiler,
+                docCompilerOpt = docCompilerOpt,
+                crossBuilds = crossBuilds,
+                buildTests = buildTests,
+                partial = partial,
+                actionableDiagnostics = actionableDiagnostics
+              )
           }
         action(res)
       }
@@ -742,7 +746,7 @@ object Build {
 
     def doWatch(): Unit = {
       val elements: Seq[Element] =
-        if (res == null) inputs.elements
+        if res == null then inputs.elements
         else
           res
             .map { builds =>
@@ -777,10 +781,7 @@ object Build {
           case _: Virtual =>
         }
         watcher0.addObserver {
-          onChangeBufferedObserver { event =>
-            if (eventFilter(event))
-              watcher.schedule()
-          }
+          onChangeBufferedObserver(event => if eventFilter(event) then watcher.schedule())
         }
       }
 
@@ -797,14 +798,10 @@ object Build {
         }
         .getOrElse(Nil)
       for (artifact <- artifacts) {
-        val depth    = if (os.isFile(artifact)) -1 else Int.MaxValue
+        val depth    = if os.isFile(artifact) then -1 else Int.MaxValue
         val watcher0 = watcher.newWatcher()
         watcher0.register(artifact.toNIO, depth)
-        watcher0.addObserver {
-          onChangeBufferedObserver { _ =>
-            watcher.schedule()
-          }
-        }
+        watcher0.addObserver(onChangeBufferedObserver(_ => watcher.schedule()))
       }
     }
 
