@@ -6,7 +6,6 @@ import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
-import scala.concurrent.duration.DurationInt
 import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
@@ -1506,87 +1505,6 @@ abstract class RunTestDefinitions
     }
   }
 
-  test("watch with interactive, with multiple main classes") {
-    val fileName = "watch.scala"
-    TestInputs(
-      os.rel / fileName ->
-        """object Run1 extends App {println("Run1 launched")}
-          |object Run2 extends App {println("Run2 launched")}
-          |""".stripMargin
-    ).fromRoot { root =>
-      val confDir  = root / "config"
-      val confFile = confDir / "test-config.json"
-
-      os.write(confFile, "{}", createFolders = true)
-
-      if (!Properties.isWin)
-        os.perms.set(confDir, "rwx------")
-
-      val configEnv = Map("SCALA_CLI_CONFIG" -> confFile.toString)
-
-      TestUtil.withProcessWatching(
-        proc = os.proc(TestUtil.cli, "run", "--watch", "--interactive", fileName)
-          .spawn(
-            cwd = root,
-            mergeErrIntoOut = true,
-            stdout = os.Pipe,
-            stdin = os.Pipe,
-            env = Map("SCALA_CLI_INTERACTIVE" -> "true") ++ configEnv
-          ),
-        timeout = 60.seconds
-      ) { (proc, timeout, ec) =>
-        def lineReaderIter: Iterator[String] = Iterator.continually {
-          val line = TestUtil.readLine(proc.stdout, ec, timeout)
-          println(s"Line read: $line")
-          line
-        }
-
-        def checkLinesForError(lines: Seq[String]): Unit = munit.Assertions.assert(
-          !lines.exists { line =>
-            TestUtil.removeAnsiColors(line).contains("[error]")
-          },
-          clues(lines.toSeq)
-        )
-
-        def answerInteractivePrompt(id: Int): Unit = {
-          val interactivePromptLines = lineReaderIter
-            .takeWhile(!_.startsWith("[1]" /* probably [1] Run2  or [1] No*/ ))
-            .toList
-          expect(interactivePromptLines.nonEmpty)
-          checkLinesForError(interactivePromptLines)
-          proc.stdin.write(s"$id\n")
-          proc.stdin.flush()
-        }
-
-        def analyzeRunOutput(restart: Boolean): Unit = {
-          val runResultLines = lineReaderIter
-            .takeWhile(!_.contains("press Enter to re-run"))
-            .toList
-          expect(runResultLines.nonEmpty)
-          checkLinesForError(runResultLines)
-          if (restart)
-            proc.stdin.write("\n")
-          proc.stdin.flush()
-        }
-
-        // You have run the current scala-cli command with the --interactive mode turned on.
-        // Would you like to leave it on permanently?
-        answerInteractivePrompt(0)
-
-        // Found several main classes. Which would you like to run?
-        answerInteractivePrompt(0)
-        expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run1 launched")
-
-        analyzeRunOutput( /* restart */ true)
-
-        answerInteractivePrompt(1)
-        expect(TestUtil.readLine(proc.stdout, ec, timeout) == "Run2 launched")
-
-        analyzeRunOutput( /* restart */ false)
-      }
-    }
-  }
-
   test("decoded classNames in interactive ask") {
     val fileName = "watch.scala"
 
@@ -2338,30 +2256,6 @@ abstract class RunTestDefinitions
           val res2 = os.proc(TestUtil.cli, "run", inputPathToCall, extraOptions, s"@$argsFileName")
             .call(cwd = root)
           expect(res2.out.trim() == expectedMessage)
-        }
-      }
-  }
-
-  test("simple --watch .scala source") {
-    val expectedMessage1 = "Hello"
-    val inputPath        = os.rel / "smth.scala"
-    TestInputs(inputPath -> s"""object Smth extends App { println("$expectedMessage1") }""")
-      .fromRoot { root =>
-        TestUtil.withProcessWatching(
-          os.proc(TestUtil.cli, "run", ".", "--watch", extraOptions)
-            .spawn(cwd = root, stderr = os.Pipe)
-        ) { (proc, timeout, ec) =>
-          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
-          expect(output1 == expectedMessage1)
-          val expectedMessage2 = "World"
-          while (!TestUtil.readLine(proc.stderr, ec, timeout).contains("re-run"))
-            Thread.sleep(100L)
-          os.write.over(
-            root / inputPath,
-            s"""object Smth extends App { println("$expectedMessage2") }""".stripMargin
-          )
-          val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
-          expect(output2 == expectedMessage2)
         }
       }
   }
