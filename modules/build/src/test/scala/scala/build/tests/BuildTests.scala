@@ -596,7 +596,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
   test("cli dependency options shadowing using directives") {
     val usingDependency = "org.scalameta::munit::1.0.0-M1"
-    val cliDependency   = "org.scalameta::munit::1.0.1"
+    val cliDependency   = "org.scalameta::munit::1.0.2"
 
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
