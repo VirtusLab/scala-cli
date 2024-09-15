@@ -4,9 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 import java.net.ServerSocket
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, ThreadFactory}
+import java.util.{Locale, UUID}
 
 import scala.Console.*
 import scala.annotation.tailrec
@@ -338,4 +338,19 @@ object TestUtil {
       res
     }
   }
+
+  def withProcessWatching(
+    proc: os.SubProcess,
+    threadName: String = UUID.randomUUID().toString,
+    poolSize: Int = 2,
+    timeout: Duration = 90.seconds
+  )(f: (os.SubProcess, Duration, ExecutionContext) => Unit): Unit =
+    try withThreadPool(threadName, poolSize) { pool =>
+        f(proc, timeout, ExecutionContext.fromExecutorService(pool))
+      }
+    finally if (proc.isAlive()) {
+        proc.destroy()
+        Thread.sleep(200L)
+        if (proc.isAlive()) proc.destroyForcibly()
+      }
 }
