@@ -238,7 +238,7 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion                  = options.sbtVersion.getOrElse("1.10.1")
+      val sbtVersion                  = options.sbtVersion.getOrElse("1.10.2")
       val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
       val defaultScalaMavenCompilerVersion =
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
