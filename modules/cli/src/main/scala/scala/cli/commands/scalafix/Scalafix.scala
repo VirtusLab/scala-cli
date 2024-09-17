@@ -5,23 +5,23 @@ import caseapp.core.help.HelpFormat
 import dependency.*
 import scalafix.interfaces.ScalafixError.*
 import scalafix.interfaces.{
-  Scalafix => ScalafixInterface,
   ScalafixError,
   ScalafixException,
-  ScalafixRule
+  ScalafixRule,
+  Scalafix as ScalafixInterface
 }
 
 import java.util.Optional
-
 import scala.build.input.{Inputs, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, BuildThreads, Logger, Sources}
+import scala.build.{Build, BuildThreads, FixArtifacts, Logger, Sources}
 import scala.cli.CurrentParams
+import coursier.cache.FileCache
 import scala.cli.commands.compile.Compile.buildOptionsOrExit
 import scala.cli.commands.fmt.FmtUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
-import scala.cli.commands.{ScalaCommand, SpecificationLevel, compile}
+import scala.cli.commands.{compile, ScalaCommand, SpecificationLevel}
 import scala.cli.config.Keys
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
@@ -29,6 +29,7 @@ import scala.collection.mutable
 import scala.collection.mutable.Buffer
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
+import scala.build.EitherCps.{either, value}
 
 object Scalafix extends ScalaCommand[ScalafixOptions] {
   override def group: String = HelpCommandGroup.Main.toString
@@ -94,88 +95,163 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
     val configFilePathOpt = options.scalafixConf.map(os.Path(_, os.pwd))
     val relPaths          = sourcePaths.map(_.toNIO.getFileName)
 
-    val scalafix = ScalafixInterface
-      .fetchAndClassloadInstance(scalaBinaryVersion)
-      .newArguments()
-      .withWorkingDirectory(workspace.toNIO)
-      .withPaths(relPaths.asJava)
-      .withRules(options.rules.asJava)
-      .withConfig(configFilePathOpt.map(_.toNIO).toJava)
-      .withScalaVersion(scalaVersion)
+    //  --config | -c  <.scalafix.conf>
+    //        File path to a .scalafix.conf configuration file.
+    //  --sourceroot  </foo/myproject>
+    //        Absolute path passed to semanticdb with
+    //	-P:semanticdb:sourceroot:<path>. Relative filenames persisted in the
+    //	Semantic DB are absolutized by the sourceroot. Defaults to current
+    //	working directory if not provided.
+    //  --classpath  <entry1.jar:entry2.jar:target/scala-2.12/classes>
+    //        java.io.File.pathSeparator separated list of directories or jars
+    //	containing '.semanticdb' files. The 'semanticdb' files are emitted by
+    //	the semanticdb-scalac compiler plugin and are necessary for semantic
+    //	rules like ExplicitResultTypes to function.
+    //  --classpath-auto-roots  <target:project/target>
+    //        Automatically infer --classpath starting from these directories.
+    //	Ignored if --classpath is provided.
+    //  --no-strict-semanticdb
+    //        Disable validation when loading semanticdb files.
+    //  --rules | -r  <ProcedureSyntax OR file:LocalFile.scala OR scala:full.Name OR https://gist.com/.../Rule.scala>
+    //        Scalafix rules to run.
+    //  --test
+    //        Exit non-zero code if files have not been fixed. Won't write to files.
 
-    logger.debug(
-      s"Processing ${sourcePaths.size} Scala sources"
+    val res = Build.build(
+      inputs,
+      buildOptionsWithSemanticDb,
+      compilerMaker,
+      None,
+      logger,
+      crossBuilds = false,
+      buildTests = false,
+      partial = None,
+      actionableDiagnostics = actionableDiagnostics
     )
+    val builds = res.orExit(logger)
 
-    val rulesThatWillRun: Either[ScalafixException, mutable.Buffer[ScalafixRule]] =
-      try
-        Right(scalafix.rulesThatWillRun().asScala)
-      catch
-        case e: ScalafixException => Left(e)
-    val needToBuild: Boolean = rulesThatWillRun match
-      case Right(rules) => rules.exists(_.kind().isSemantic)
-      case Left(_)      => true
+    val successfulBuildOpt = for {
+      build <- builds.get(Scope.Main)
+      sOpt  <- build.successfulOpt
+    } yield sOpt
 
-    val preparedScalafixInstance = if (needToBuild) {
-      val res = Build.build(
-        inputs,
-        buildOptionsWithSemanticDb,
-        compilerMaker,
-        None,
-        logger,
-        crossBuilds = false,
-        buildTests = false,
-        partial = None,
-        actionableDiagnostics = actionableDiagnostics
-      )
-      val builds = res.orExit(logger)
-
-      val successfulBuildOpt = for {
-        build <- builds.get(Scope.Main)
-        sOpt  <- build.successfulOpt
-      } yield sOpt
-
-      val classPaths = successfulBuildOpt.map(_.fullClassPath).getOrElse(Seq.empty)
-      val externalDeps =
-        options.shared.dependencies.compileOnlyDependency ++ successfulBuildOpt.map(
-          _.options.classPathOptions.extraCompileOnlyDependencies.values.flatten.map(_.value.render)
-        ).getOrElse(Seq.empty)
-      val scalacOptions = options.shared.scalac.scalacOption ++ successfulBuildOpt.map(
-        _.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+    val classPaths = successfulBuildOpt.map(_.fullClassPath).getOrElse(Seq.empty)
+    val externalDeps =
+      options.shared.dependencies.compileOnlyDependency ++ successfulBuildOpt.map(
+        _.options.classPathOptions.extraCompileOnlyDependencies.values.flatten.map(_.value.render)
       ).getOrElse(Seq.empty)
+    val scalacOptions = options.shared.scalac.scalacOption ++ successfulBuildOpt.map(
+      _.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+    ).getOrElse(Seq.empty)
 
-      scalafix
-        .withScalacOptions(scalacOptions.asJava)
-        .withClasspath(classPaths.map(_.toNIO).asJava)
-        .withToolClasspath(Seq.empty.asJava, externalDeps.asJava)
+    val scalafixOptions =
+      configFilePathOpt.map(file => Seq("-c", file.toString)).getOrElse(Nil) ++
+        Seq("--sourceroot", workspace.toString) ++
+        Seq("--classpath", classPaths.mkString(java.io.File.pathSeparator))
+        //Seq("--scalac-options") ++ scalacOptions
+
+    either {
+      val artifacts = FixArtifacts.artifacts(
+        value(buildOptions.finalRepositories),
+        logger,
+        buildOptions.internal.cache.getOrElse(FileCache())
+      )
+
+      val proc = Runner.runJvm(
+        buildOptions.javaHome().value.javaCommand,
+        buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
+        value(artifacts.map(_.artifacts.map(_._2))),
+        "scalafix.cli.Cli",
+        scalafixOptions,
+        logger,
+        cwd = Some(workspace)
+      )
+
+      sys.exit(proc.waitFor())
     }
-    else
-      scalafix
 
-    val customScalafixInstance = preparedScalafixInstance
-      .withParsedArguments(options.scalafixArg.asJava)
-
-    val errors = if (options.check) {
-      val evaluation = customScalafixInstance.evaluate()
-      if (evaluation.isSuccessful)
-        evaluation.getFileEvaluations.foldLeft(List.empty[String]) {
-          case (errors, fileEvaluation) =>
-            val problemMessage = fileEvaluation.getErrorMessage.toScala.orElse(
-              fileEvaluation.previewPatchesAsUnifiedDiff.toScala
-            )
-            errors ++ problemMessage
-        }
-      else
-        evaluation.getErrorMessage.toScala.toList
-    }
-    else
-      customScalafixInstance.run().map(prepareErrorMessage).toList
-
-    if (errors.isEmpty) sys.exit(0)
-    else {
-      errors.tapEach(logger.error)
-      sys.exit(1)
-    }
+//    val scalafix = ScalafixInterface
+//      .fetchAndClassloadInstance(scalaBinaryVersion)
+//      .newArguments()
+//      .withWorkingDirectory(workspace.toNIO)
+//      .withPaths(relPaths.asJava)
+//      .withRules(options.rules.asJava)
+//      .withConfig(configFilePathOpt.map(_.toNIO).toJava)
+//      .withScalaVersion(scalaVersion)
+//
+//    logger.debug(
+//      s"Processing ${sourcePaths.size} Scala sources"
+//    )
+//
+//    val rulesThatWillRun: Either[ScalafixException, mutable.Buffer[ScalafixRule]] =
+//      try
+//        Right(scalafix.rulesThatWillRun().asScala)
+//      catch
+//        case e: ScalafixException => Left(e)
+//    val needToBuild: Boolean = rulesThatWillRun match
+//      case Right(rules) => rules.exists(_.kind().isSemantic)
+//      case Left(_)      => true
+//
+//    val preparedScalafixInstance = if (needToBuild) {
+//      val res = Build.build(
+//        inputs,
+//        buildOptionsWithSemanticDb,
+//        compilerMaker,
+//        None,
+//        logger,
+//        crossBuilds = false,
+//        buildTests = false,
+//        partial = None,
+//        actionableDiagnostics = actionableDiagnostics
+//      )
+//      val builds = res.orExit(logger)
+//
+//      val successfulBuildOpt = for {
+//        build <- builds.get(Scope.Main)
+//        sOpt  <- build.successfulOpt
+//      } yield sOpt
+//
+//      val classPaths = successfulBuildOpt.map(_.fullClassPath).getOrElse(Seq.empty)
+//      val externalDeps =
+//        options.shared.dependencies.compileOnlyDependency ++ successfulBuildOpt.map(
+//          _.options.classPathOptions.extraCompileOnlyDependencies.values.flatten.map(_.value.render)
+//        ).getOrElse(Seq.empty)
+//      val scalacOptions = options.shared.scalac.scalacOption ++ successfulBuildOpt.map(
+//        _.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+//      ).getOrElse(Seq.empty)
+//
+//      scalafix
+//        .withScalacOptions(scalacOptions.asJava)
+//        .withClasspath(classPaths.map(_.toNIO).asJava)
+//        .withToolClasspath(Seq.empty.asJava, externalDeps.asJava)
+//    }
+//    else
+//      scalafix
+//
+//    val customScalafixInstance = preparedScalafixInstance
+//      .withParsedArguments(options.scalafixArg.asJava)
+//
+//    val errors = if (options.check) {
+//      val evaluation = customScalafixInstance.evaluate()
+//      if (evaluation.isSuccessful)
+//        evaluation.getFileEvaluations.foldLeft(List.empty[String]) {
+//          case (errors, fileEvaluation) =>
+//            val problemMessage = fileEvaluation.getErrorMessage.toScala.orElse(
+//              fileEvaluation.previewPatchesAsUnifiedDiff.toScala
+//            )
+//            errors ++ problemMessage
+//        }
+//      else
+//        evaluation.getErrorMessage.toScala.toList
+//    }
+//    else
+//      customScalafixInstance.run().map(prepareErrorMessage).toList
+//
+//    if (errors.isEmpty) sys.exit(0)
+//    else {
+//      errors.tapEach(logger.error)
+//      sys.exit(1)
+//    }
   }
 
   private def prepareErrorMessage(error: ScalafixError): String = error match

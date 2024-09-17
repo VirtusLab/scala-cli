@@ -176,6 +176,8 @@ object Runner {
       useManifest,
       scratchDirOpt
     )
+    
+    println(command.mkString(" "))
 
     if (allowExecve)
       maybeExec("java", command, logger, cwd = cwd, extraEnv = extraEnv)
