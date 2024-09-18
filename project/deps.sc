@@ -102,7 +102,7 @@ object Deps {
     def ammonite             = "3.0.0-M2-30-486378af"
     def ammoniteForScala3Lts = ammonite
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.12"
+    def coursierDefault                   = "2.1.13"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
