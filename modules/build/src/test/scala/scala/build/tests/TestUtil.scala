@@ -8,20 +8,30 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 object TestUtil {
+
   abstract class ScalaCliBuildSuite extends munit.FunSuite {
+    extension (munitContext: BeforeEach | AfterEach) {
+      def locationAbsolutePath: os.Path =
+        os.pwd / os.RelPath {
+          (munitContext match {
+            case beforeEach: BeforeEach => beforeEach.test
+            case afterEach: AfterEach   => afterEach.test
+          }).location.path
+        }
+    }
     override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
     val testStartEndLogger = new Fixture[Unit]("files") {
       def apply(): Unit = ()
 
       override def beforeEach(context: BeforeEach): Unit = {
-        val fileName = os.Path(context.test.location.path).baseName
+        val fileName = context.locationAbsolutePath.baseName
         System.err.println(
           s">==== ${Console.CYAN}Running '${context.test.name}' from $fileName${Console.RESET}"
         )
       }
 
       override def afterEach(context: AfterEach): Unit = {
-        val fileName = os.Path(context.test.location.path).baseName
+        val fileName = context.locationAbsolutePath.baseName
         System.err.println(
           s"X==== ${Console.CYAN}Finishing '${context.test.name}' from $fileName${Console.RESET}"
         )
