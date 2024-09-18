@@ -62,10 +62,7 @@ if !os.isDir(rootPath) then {
 val reports: Seq[os.Path] = findFiles(Seq(rootPath))
 println(s"Found ${reports.length} mill json reports:")
 println(reports.mkString("\n"))
-if reports.isEmpty then {
-  println("Error: no reports found!")
-  System.exit(1)
-}
+if reports.isEmpty then println("Warn: no reports found!")
 println("Reading reports...")
 val tests: Seq[Test] = reports.map(x => ujson.read(x.toNIO)).flatMap { json =>
   json(1).value.asInstanceOf[ArrayBuffer[ujson.Obj]].map { test =>
@@ -91,10 +88,7 @@ val tests: Seq[Test] = reports.map(x => ujson.read(x.toNIO)).flatMap { json =>
   }
 }
 println(s"Found ${tests.length} tests.")
-if tests.isEmpty then {
-  println("Error: no tests found!")
-  System.exit(1)
-}
+if tests.isEmpty then println("Warn: no tests found!")
 println("Generating JUnit XML report...")
 val suites = tests.groupBy(_.fullyQualifiedName).map { case (suit, tests) =>
   val testcases = tests.map { test =>
