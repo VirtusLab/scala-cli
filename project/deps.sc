@@ -10,7 +10,7 @@ object Scala {
   def scala3Lts  = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
   def scala3Next = "3.5.1"               // the newest/next version of Scala
   def scala3NextAnnounced = "3.5.0"     // the newest/next version of Scala that's been announced
-  def scala3NextRc        = "3.5.1-RC2" // the latest RC version of Scala Next
+  def scala3NextRc        = "3.5.2-RC1" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
