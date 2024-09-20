@@ -211,18 +211,18 @@ class BloopTests extends ScalaCliSuite {
       val content =
         if (isScala)
           """|package a
-             |import java.net.http.HttpClient
+             |
              |
              |trait Simple {
-             |  def httpClient: HttpClient
+             |  val str = "".repeat(2)
              |}
              |""".stripMargin
         else """|package a;
                |
-               |import java.net.http.HttpClient;
-               |
-               |interface Simple {
-               |  HttpClient httpClient();
+               |class Simple {
+               |  void hello(){
+               |     String str = "".repeat(2);
+               |  }
                |}
                |""".stripMargin
       val inputs = TestInputs(os.rel / s"Simple.$lang" -> s"$directive$content")
@@ -234,8 +234,8 @@ class BloopTests extends ScalaCliSuite {
 
         val compilationError = res.err.text()
         val message =
-          if (isScala) "value http is not a member of java.net"
-          else "error: package java.net.http does not exist"
+          if (isScala) "value repeat is not a member of String"
+          else "error: cannot find symbol"
 
         assert(compilationError.contains("Compilation failed"))
         assert(compilationError.contains(message))

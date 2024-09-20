@@ -15,9 +15,8 @@ class ArgsFileTests extends ScalaCliSuite {
       os.rel / "args.txt" -> """|-release
                                 |8""".stripMargin,
       os.rel / fileName ->
-        s"""|import java.net.http.HttpClient
-            |
-            |println("Hello :)")
+        s"""|
+            |println("Hello :)".repeat(11))
             |""".stripMargin
     )
 
@@ -40,9 +39,8 @@ class ArgsFileTests extends ScalaCliSuite {
         os.rel / "args.txt" -> """|-release 8""".stripMargin,
         os.rel / "script-with-shebang" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
-              |import java.net.http.HttpClient
               |
-              |println("Hello :)")
+              |println("Hello :)".repeat(11))
               |""".stripMargin
       )
 
