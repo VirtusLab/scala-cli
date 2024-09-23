@@ -518,6 +518,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def giter8Organization = "${Deps.giter8.dep.module.organization.value}"
          |  def giter8Name = "${Deps.giter8.dep.module.name.value}"
          |  def giter8Version = "${Deps.giter8.dep.version}"
+         |  
+         |  def sbtVersion = "${Deps.Versions.sbtVersion}"
          |
          |  def mavenVersion = "${Deps.Versions.mavenVersion}"
          |  def mavenScalaCompilerPluginVersion = "${Deps.Versions.mavenScalaCompilerPluginVersion}"
