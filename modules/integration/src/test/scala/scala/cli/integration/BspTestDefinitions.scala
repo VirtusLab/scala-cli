@@ -2215,4 +2215,65 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       expect(bspConfig.argv.indexOfSlice(javaProps) < bspConfig.argv.indexOf("bsp"))
     }
   }
+
+  test("BSP loads verbosity on compile") {
+    val stderrFile = os.rel / "stderr.txt"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println("Hello World")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".", "-v"), stdErrOpt = Some(stderrFile)) {
+      (root, _, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets.asJava))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+          expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+        }
+    }
+  }
+
+  test("BSP loads verbosity on compile when passed from setup-ide") {
+    val stderrFile = os.rel / "stderr.txt"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println("Hello World")
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", "-v").call(cwd = root)
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(
+        inputs = inputs,
+        args = Seq("."),
+        bspOptions = jsonOptions,
+        reuseRoot = Some(root),
+        stdErrOpt = Some(stderrFile)
+      ) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
+            val compileResp = await {
+              remoteServer
+                .buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala
+            }
+            expect(compileResp.getStatusCode == b.StatusCode.OK)
+            expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+          }
+      }
+    }
+  }
 }
