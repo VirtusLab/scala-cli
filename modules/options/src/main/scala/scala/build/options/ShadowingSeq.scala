@@ -28,10 +28,9 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
     else {
       val l    = new mutable.ListBuffer[Seq[T]]
       val seen = new mutable.HashSet[String]
-
       for (group <- values.iterator ++ other.iterator) {
         assert(group.nonEmpty)
-        val keyOpt = key.get(group.head)
+        val keyOpt = key.makeKey(group)
         if (!keyOpt.exists(seen.contains)) {
           l += group
           for (key <- keyOpt)
@@ -58,13 +57,13 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
 object ShadowingSeq {
 
   final case class KeyOf[T](
-    get: T => Option[String],
+    makeKey: Seq[T] => Option[String],
     /** The indices at which sub-groups of values start */
     groups: Seq[T] => Seq[Int]
   )
   object KeyOf {
     implicit val keyOfAnyDependency: KeyOf[AnyDependency] =
-      KeyOf(dep => Some(dep.module.render), _.indices)
+      KeyOf(deps => deps.headOption.map(_.module.render), _.indices)
   }
 
   implicit def monoid[T](implicit key: KeyOf[T]): ConfigMonoid[ShadowingSeq[T]] =

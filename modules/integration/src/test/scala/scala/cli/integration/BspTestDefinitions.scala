@@ -2162,4 +2162,118 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       }
     }
   }
+
+  for { cliVersion <- Seq("1.5.0", "1.5.0-19-g932866db6-SNAPSHOT", "1.0.0") }
+    test(s"setup-ide doesn't pass unrecognised arguments to old --cli-versions: $cliVersion") {
+      val scriptName = "cli-version.sc"
+      val inputs = TestInputs(
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+      )
+      inputs.fromRoot { root =>
+        val r =
+          os.proc(TestUtil.cli, "--cli-version", cliVersion, "setup-ide", scriptName, extraOptions)
+            .call(cwd = root, stderr = os.Pipe, check = false)
+        expect(!r.err.text().contains("Unrecognized argument"))
+        expect(r.exitCode == 0)
+      }
+    }
+
+  // TODO: test for the most recent CLI version as well when 1.5.1 is out
+  for { cliVersion <- Seq("1.5.0-34-g31a88e428-SNAPSHOT") }
+    test(
+      s"setup-ide prepares a valid BSP configuration with --cli-version $cliVersion"
+    ) {
+      val scriptName = "cli-version.sc"
+      val inputs = TestInputs(
+        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")"""
+      )
+      inputs.fromRoot { root =>
+        val cliVersionArgs = List("--cli-version", cliVersion)
+        os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd =
+          root
+        )
+        val expectedIdeLauncherFile =
+          root / Constants.workspaceDirName / "ide-launcher-options.json"
+        expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+        expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
+        val bspConfig = readBspConfig(root)
+        expect(bspConfig.argv.head == TestUtil.cliPath)
+        expect(bspConfig.argv.containsSlice(cliVersionArgs))
+        expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+      }
+    }
+
+  test("setup-ide passes Java props to the BSP configuration correctly") {
+    val scriptName = "hello.sc"
+    TestInputs(os.rel / scriptName -> s"""println("Hello")""").fromRoot { root =>
+      val javaProps = List("-Dfoo=bar", "-Dbar=baz")
+      os.proc(TestUtil.cli, javaProps, "setup-ide", scriptName, extraOptions)
+        .call(cwd = root)
+      val bspConfig = readBspConfig(root)
+      expect(bspConfig.argv.head == TestUtil.cliPath)
+      expect(bspConfig.argv.containsSlice(javaProps))
+      expect(bspConfig.argv.indexOfSlice(javaProps) < bspConfig.argv.indexOf("bsp"))
+    }
+  }
+
+  test("BSP loads verbosity on compile") {
+    val stderrFile = os.rel / "stderr.txt"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println("Hello World")
+           |}
+           |""".stripMargin
+    )
+    withBsp(inputs, Seq(".", "-v"), stdErrOpt = Some(stderrFile)) {
+      (root, _, remoteServer) =>
+        async {
+          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
+          val compileResp = await {
+            remoteServer
+              .buildTargetCompile(new b.CompileParams(targets.asJava))
+              .asScala
+          }
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
+          expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+        }
+    }
+  }
+
+  test("BSP loads verbosity on compile when passed from setup-ide") {
+    val stderrFile = os.rel / "stderr.txt"
+    val inputs = TestInputs(
+      os.rel / "Hello.scala" ->
+        s"""object Hello extends App {
+           |  println("Hello World")
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "setup-ide", ".", "-v").call(cwd = root)
+      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+      val jsonOptions    = List("--json-options", ideOptionsPath.toString)
+      withBsp(
+        inputs = inputs,
+        args = Seq("."),
+        bspOptions = jsonOptions,
+        reuseRoot = Some(root),
+        stdErrOpt = Some(stderrFile)
+      ) {
+        (_, _, remoteServer) =>
+          async {
+            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            val targets          = buildTargetsResp.getTargets.asScala.map(_.getId())
+            val compileResp = await {
+              remoteServer
+                .buildTargetCompile(new b.CompileParams(targets.asJava))
+                .asScala
+            }
+            expect(compileResp.getStatusCode == b.StatusCode.OK)
+            expect(os.read(root / stderrFile).contains("Scheduling compilation"))
+          }
+      }
+    }
+  }
 }

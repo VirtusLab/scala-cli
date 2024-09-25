@@ -26,7 +26,6 @@ class BspServer(
     with JavaBuildServerForwardStubs
     with JvmBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
-
   private var client: Option[BuildClient] = None
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
@@ -200,7 +199,7 @@ class BspServer(
     super.buildTargetCleanCache(check(params))
 
   override def buildTargetCompile(params: b.CompileParams): CompletableFuture[b.CompileResult] =
-    compile(() => super.buildTargetCompile(check(params)))
+    compile(() => super.buildTargetCompile(check(params.withVerbosity(logger.verbosity > 0))))
 
   override def buildTargetDependencySources(
     params: b.DependencySourcesParams

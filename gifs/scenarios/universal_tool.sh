@@ -12,7 +12,7 @@ if [[ -z "${ASCIINEMA_REC}" ]]; then
   # Warm up scala-cli
   echo "println(1)" | scala-cli -
   echo "println(1)" | scala-cli --js - &&
-    echo "println(1)" | scala-cli --native -S 2.13 -
+    echo "println(1)" | scala-cli --native -
    
   # or do other preparation (e.g. create code)
 else
@@ -31,14 +31,11 @@ EOF
   clearConsole
 
   cat <<EOF | updateFile native.scala
-object Native extends App {
-  import scala.scalanative.posix.limits
-  println(s"Max path length in this OS is \${limits.PATH_MAX}")
-}
+import scala.scalanative.posix.limits
+@main def native() = println(s"Max path length in this OS is \${limits.PATH_MAX}")
 EOF
 
-  pe "# Scala Native works only with Scala 2.x so far"
-  pe "scala-cli --native -S 2.13 native.scala"
+  pe "scala-cli --native native.scala"
   doSleep 3
 
   echo " " && echo "ok" > status.txt

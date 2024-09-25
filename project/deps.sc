@@ -4,13 +4,13 @@ import scalalib._
 
 object Scala {
   def scala212        = "2.12.20"
-  def scala213        = "2.13.14"
+  def scala213        = "2.13.15"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts  = s"$scala3LtsPrefix.3" // the LTS version currently used in the build
-  def scala3Next = "3.5.0"               // the newest/next version of Scala
-  def scala3NextAnnounced = scala3Next  // the newest/next version of Scala that's been announced
-  def scala3NextRc        = "3.5.1-RC2" // the latest RC version of Scala Next
+  def scala3Next = "3.5.1"               // the newest/next version of Scala
+  def scala3NextAnnounced = "3.5.0"     // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.5.2-RC1" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -51,9 +51,9 @@ object Scala {
       (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
   }
 
-  def maxAmmoniteScala212Version = "2.12.19"
-  def maxAmmoniteScala213Version = scala213
-  def maxAmmoniteScala3Version   = "3.4.2"
+  def maxAmmoniteScala212Version = scala212
+  def maxAmmoniteScala213Version = "2.13.14"
+  def maxAmmoniteScala3Version   = scala3NextAnnounced
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
@@ -99,10 +99,10 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.0-M2-15-9bed9700"
+    def ammonite             = "3.0.0-M2-30-486378af"
     def ammoniteForScala3Lts = ammonite
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.10"
+    def coursierDefault                   = "2.1.13"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
@@ -119,11 +119,12 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative04
     def scalaPackager                     = "0.1.29"
-    def signingCli                        = "0.2.3"
+    def signingCli                        = "0.2.4"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.3"
     def bloop                             = "2.0.2"
+    def sbtVersion                        = "1.10.2"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
@@ -142,10 +143,11 @@ object Deps {
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M28"
+  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M29"
   def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.12.0"
   // Force using of 2.13 - is there a better way?
-  def coursier = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursier    = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierCli = ivy"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
   def coursierJvm = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
@@ -161,7 +163,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.3.0-jre"
+  def guava   = ivy"com.google.guava:guava:33.3.1-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
   def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
@@ -183,10 +185,10 @@ object Deps {
   def metaconfigTypesafe =
     ivy"org.scalameta::metaconfig-typesafe-config:0.13.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit                      = ivy"org.scalameta::munit:1.0.1"
+  def munit                      = ivy"org.scalameta::munit:1.0.2"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.5"
+  def osLib                      = ivy"com.lihaoyi::os-lib:0.10.6"
   def pprint                     = ivy"com.lihaoyi::pprint:0.9.0"
   def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"

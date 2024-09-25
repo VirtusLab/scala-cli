@@ -154,9 +154,15 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
     )
 
+    val launcher = launcherOptions.scalaRunner.initialLauncherPath
+      .getOrElse(CommandUtils.getAbsolutePathToScalaCli(progName))
+    val finalLauncherOptions = launcherOptions.copy(cliVersion =
+      launcherOptions.cliVersion.orElse(launcherOptions.scalaRunner.predefinedCliVersion)
+    )
     val bspArgs =
-      List(CommandUtils.getAbsolutePathToScalaCli(progName)) ++
-        launcherOptions.toCliArgs ++
+      List(launcher) ++
+        finalLauncherOptions.toCliArgs ++
+        launcherJavaPropArgs ++
         List("bsp") ++
         debugOpt ++
         List("--json-options", scalaCliBspJsonDestination.toString) ++
@@ -184,7 +190,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
     val json                         = gson.toJson(details)
     val scalaCliOptionsForBspJson    = writeToArray(options.shared)(SharedOptions.jsonCodec)
-    val scalaCliLaunchOptsForBspJson = writeToArray(launcherOptions)(LauncherOptions.jsonCodec)
+    val scalaCliLaunchOptsForBspJson = writeToArray(finalLauncherOptions)(LauncherOptions.jsonCodec)
     val scalaCliBspInputsJson        = writeToArray(ideInputs)
     val envsForBsp          = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
     val scalaCliBspEnvsJson = writeToArray(envsForBsp)

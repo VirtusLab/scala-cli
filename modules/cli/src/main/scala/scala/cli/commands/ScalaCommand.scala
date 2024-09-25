@@ -34,15 +34,17 @@ import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 
-abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], help: Help[T])
-    extends Command()(myParser, help)
+abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], inHelp: Help[T])
+    extends Command()(myParser, inHelp)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
+
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
     new AtomicReference(GlobalOptions.default)
 
-  private def globalOptions: GlobalOptions       = globalOptionsAtomic.get()
-  protected def launcherOptions: LauncherOptions = ScalaCli.launcherOptions
-  protected def defaultScalaVersion: String      = ScalaCli.getDefaultScalaVersion
+  private def globalOptions: GlobalOptions         = globalOptionsAtomic.get()
+  protected def launcherOptions: LauncherOptions   = ScalaCli.launcherOptions
+  protected def defaultScalaVersion: String        = ScalaCli.getDefaultScalaVersion
+  protected def launcherJavaPropArgs: List[String] = ScalaCli.getLauncherJavaPropArgs
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
@@ -83,7 +85,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       val maxCommandLength: Int    = names.map(_.length).max max 1
       val maxPotentialCommandNames = argv.slice(1, maxCommandLength + 1).toList
       validCommand(maxPotentialCommandNames).getOrElse(List(""))
-    }.getOrElse(List(name)).mkString(" ")
+    }.getOrElse(List(inHelp.progName)).mkString(" ")
 
   protected def actualFullCommand: String =
     if actualCommandName.nonEmpty then s"$progName $actualCommandName" else progName
@@ -293,30 +295,30 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   override val messages: Help[T] =
     if shouldExcludeInSip then
-      Help[T](helpMessage =
+      inHelp.copy(helpMessage =
         Some(HelpMessage(WarningMessages.powerCommandUsedInSip(
           actualCommandName,
           scalaSpecificationLevel
         )))
       )
     else if isExperimental then
-      help.copy(helpMessage =
-        help.helpMessage.map(hm =>
+      inHelp.copy(helpMessage =
+        inHelp.helpMessage.map(hm =>
           hm.copy(
             message =
               s"""${hm.message}
                  |
-                 |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin,
+                 |${WarningMessages.experimentalSubcommandWarning(inHelp.progName)}""".stripMargin,
             detailedMessage =
               if hm.detailedMessage.nonEmpty then
                 s"""${hm.detailedMessage}
                    |
-                   |${WarningMessages.experimentalSubcommandWarning(name)}""".stripMargin
+                   |${WarningMessages.experimentalSubcommandWarning(inHelp.progName)}""".stripMargin
               else hm.detailedMessage
           )
         )
       )
-    else help
+    else inHelp
 
   /** @param options
     *   command-specific [[T]] options

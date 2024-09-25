@@ -751,7 +751,7 @@ Generate a library JAR rather than an executable JAR
 
 ### `--source`
 
-Aliases: `--source-jar`, `--sources`, `--src`
+Aliases: `--sources`, `--src`
 
 Generate a source JAR rather than an executable JAR
 
@@ -1214,7 +1214,7 @@ Use Ammonite (instead of the default Scala REPL)
 
 Aliases: `--ammonite-ver`
 
-Set the Ammonite version (3.0.0-M2-15-9bed9700 by default)
+Set the Ammonite version (3.0.0-M2-30-486378af by default)
 
 ### `--ammonite-arg`
 
@@ -1533,7 +1533,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.5.0 by default)
+Set the Scala version (3.5.1 by default)
 
 ### `--scala-binary-version`
 
@@ -2122,11 +2122,6 @@ Try to push the key even if Scala CLI thinks it's not a public key
 [Internal]
 Whether to exit with code 0 if no key is passed
 
-### `--force-signing-externally`
-
-[Internal]
-When running Scala CLI on the JVM, force running scala-cli-singing using a native launcher or a JVM launcher
-
 ### Pgp scala signing options
 
 Available in commands:
@@ -2138,7 +2133,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.2.3 by default)
+scala-cli-signing version when running externally (0.2.4 by default)
 
 ### `--signing-cli-java-arg`
 

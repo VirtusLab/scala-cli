@@ -39,12 +39,22 @@ case class ScalaRunnerLauncherOptions(
   )
   @Hidden
   @Tag(tags.implementation)
-  skipCliUpdates: Option[Boolean] = None
+  skipCliUpdates: Option[Boolean] = None,
+  @Hidden
+  @Tag(tags.implementation)
+  predefinedCliVersion: Option[String] = None,
+  @Hidden
+  @Tag(tags.implementation)
+  @Name("initialLauncher")
+  initialLauncherPath: Option[String] = None
 ) {
   def toCliArgs: List[String] =
     cliUserScalaVersion.toList.flatMap(v => List("--cli-default-scala-version", v)) ++
       cliPredefinedRepository.flatMap(v => List("--repository", v)) ++
-      progName.toList.flatMap(v => List("--prog-name", v))
+      progName.toList.flatMap(v => List("--prog-name", v)) ++
+      skipCliUpdates.toList.filter(v => v).map(_ => "--skip-cli-updates") ++
+      predefinedCliVersion.toList.flatMap(v => List("--predefined-cli-version", v)) ++
+      initialLauncherPath.toList.flatMap(v => List("--initial-launcher-path", v))
 }
 
 object ScalaRunnerLauncherOptions {

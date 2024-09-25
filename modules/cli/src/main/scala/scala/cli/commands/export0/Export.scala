@@ -155,11 +155,15 @@ object Export extends ScalaCommand[ExportOptions] {
     val shouldExportToSbt   = options.sbt.getOrElse(false)
     val shouldExportToMaven = options.maven.getOrElse(false)
 
-    val exportOptions = List(shouldExportToMill, shouldExportToSbt, shouldExportToMaven)
-
-    if (exportOptions.count(identity) > 1) {
+    val exportOptions =
+      (if shouldExportToMill then List("Mill") else Nil) ++
+        (if shouldExportToSbt then List("SBT") else Nil) ++
+        (if shouldExportToMaven then List("Maven") else Nil)
+    val exportOptionsString = exportOptions.mkString(", ")
+    if exportOptions.length > 1 then {
       logger.error(
-        s"Error: Cannot export to both mill and sbt. Please pick one build tool to export."
+        s"""Error: Cannot export to more than one tool at once (currently chosen: $exportOptionsString). 
+           |Pick one build tool to export to.""".stripMargin
       )
       sys.exit(1)
     }
@@ -238,7 +242,7 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion                  = options.sbtVersion.getOrElse("1.10.1")
+      val sbtVersion                  = options.sbtVersion.getOrElse(Constants.sbtVersion)
       val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
       val defaultScalaMavenCompilerVersion =
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)

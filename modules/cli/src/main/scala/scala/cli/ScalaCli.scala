@@ -12,6 +12,7 @@ import java.util.Locale
 import scala.build.Directories
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
+import scala.cli.commands.CommandUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
@@ -63,6 +64,10 @@ object ScalaCli {
   def launcherOptions: LauncherOptions = maybeLauncherOptions.getOrElse(LauncherOptions())
   def getDefaultScalaVersion: String =
     launcherOptions.scalaRunner.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
+
+  private var launcherJavaPropArgs: List[String] = List.empty
+
+  def getLauncherJavaPropArgs: List[String] = launcherJavaPropArgs
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
@@ -244,10 +249,28 @@ object ScalaCli {
           case Some(ver) =>
             val powerArgs              = launcherOpts.powerOptions.toCliArgs
             val initialScalaRunnerArgs = launcherOpts.scalaRunner
-            val finalScalaRunnerArgs =
-              // if the version was specified, it doesn't make sense to check for CLI updates
-              (if Version(ver) < Version("1.4.0") then initialScalaRunnerArgs
-               else initialScalaRunnerArgs.copy(skipCliUpdates = Some(true))).toCliArgs
+            val finalScalaRunnerArgs = (Version(ver) match
+              case v if v < Version("1.4.0") && !ver.contains("nightly") =>
+                initialScalaRunnerArgs.copy(
+                  skipCliUpdates = None,
+                  predefinedCliVersion = None,
+                  initialLauncherPath = None
+                )
+              case v
+                  if v < Version("1.5.0-34-g31a88e428-SNAPSHOT") && v < Version("1.5.1") &&
+                  !ver.contains("nightly") =>
+                initialScalaRunnerArgs.copy(
+                  predefinedCliVersion = None,
+                  initialLauncherPath = None
+                )
+              case _ if initialScalaRunnerArgs.initialLauncherPath.nonEmpty =>
+                initialScalaRunnerArgs
+              case _ =>
+                initialScalaRunnerArgs.copy(
+                  predefinedCliVersion = Some(ver),
+                  initialLauncherPath = Some(CommandUtils.getAbsolutePathToScalaCli(progName))
+                )
+            ).toCliArgs
             val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
@@ -275,6 +298,7 @@ object ScalaCli {
         }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
+    if systemProps.nonEmpty then launcherJavaPropArgs = systemProps.toList
     setSystemProps(systemProps)
 
     (new BouncycastleSignerMaker).maybeInit()

@@ -10,6 +10,7 @@ final case class JavaOpt(value: String) {
         else if (value.startsWith("@")) Some("@")
         else None
       }
+
 }
 
 object JavaOpt {
@@ -29,7 +30,7 @@ object JavaOpt {
   }
   implicit val keyOf: ShadowingSeq.KeyOf[JavaOpt] =
     ShadowingSeq.KeyOf(
-      _.key,
+      opts => opts.headOption.flatMap(_.key).orElse(Some(opts.map(_.value).mkString(":"))),
       seq => ScalacOpt.groupCliOptions(seq.map(_.value))
     )
 }
