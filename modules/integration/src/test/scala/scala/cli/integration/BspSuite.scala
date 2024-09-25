@@ -86,7 +86,7 @@ trait BspSuite { _: ScalaCliSuite =>
     def attempt(): Try[T] = Try {
       val inputsRoot                              = inputs.root()
       val root                                    = reuseRoot.getOrElse(inputsRoot)
-      val stdErrPathOpt: Option[os.ProcessOutput] = stdErrOpt.map(path => inputsRoot / path)
+      val stdErrPathOpt: Option[os.ProcessOutput] = stdErrOpt.map(path => root / path)
       val stderr: os.ProcessOutput                = stdErrPathOpt.getOrElse(os.Inherit)
 
       val proc = os.proc(TestUtil.cli, "bsp", bspOptions ++ extraOptionsOverride, args)

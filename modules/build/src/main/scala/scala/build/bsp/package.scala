@@ -9,6 +9,31 @@ import scala.jdk.CollectionConverters.*
 
 package object bsp {
 
+  extension (compileParams: b.CompileParams) {
+    def duplicate(): b.CompileParams = {
+      val params = new b.CompileParams(compileParams.getTargets)
+      params.setOriginId(compileParams.getOriginId)
+      params.setArguments(compileParams.getArguments)
+      params
+    }
+
+    def withExtraArgs(extraArgs: List[String]): b.CompileParams = {
+      val params            = compileParams.duplicate()
+      val previousArguments = Option(params.getArguments).toList.flatMap(_.asScala)
+      val newArguments      = (previousArguments ++ extraArgs).asJava
+      params.setArguments(newArguments)
+      params
+    }
+
+    def withVerbosity(verbose: Boolean): b.CompileParams = {
+      val verboseArg = "--verbose"
+      val argumentsContainVerboseArg =
+        Option(compileParams.getArguments).exists(_.contains(verboseArg))
+      if verbose && !argumentsContainVerboseArg then compileParams.withExtraArgs(List(verboseArg))
+      else compileParams
+    }
+  }
+
   implicit class Ext[T](private val f: CompletableFuture[T]) extends AnyVal {
     def logF: CompletableFuture[T] =
       f.handle { (res, err) =>
