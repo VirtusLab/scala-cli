@@ -52,8 +52,8 @@ object Scala {
   }
 
   def maxAmmoniteScala212Version = scala212
-  def maxAmmoniteScala213Version = "2.13.14"
-  def maxAmmoniteScala3Version   = scala3NextAnnounced
+  def maxAmmoniteScala213Version = scala213
+  def maxAmmoniteScala3Version   = scala3Next
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
