@@ -39,7 +39,15 @@ class Default(actualHelp: => RuntimeCommandsHelp)
 
   override def runCommand(options: DefaultOptions, args: RemainingArgs, logger: Logger): Unit =
     // can't fully re-parse and redirect to Version because of --cli-version and --scala-version clashing
-    if options.version then Version.runCommand(VersionOptions(options.shared.global), args, logger)
+    if options.version then
+      Version.runCommand(
+        options = VersionOptions(
+          global = options.shared.global,
+          offline = options.shared.coursier.getOffline().getOrElse(false)
+        ),
+        args = args,
+        logger = logger
+      )
     else
       {
         val shouldDefaultToRun =
