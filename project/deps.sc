@@ -9,7 +9,7 @@ object Scala {
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts  = s"$scala3LtsPrefix.4" // the LTS version currently used in the build
   def scala3Next = "3.5.1"               // the newest/next version of Scala
-  def scala3NextAnnounced = "3.5.0"     // the newest/next version of Scala that's been announced
+  def scala3NextAnnounced = scala3Next  // the newest/next version of Scala that's been announced
   def scala3NextRc        = "3.5.2-RC1" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -18,13 +18,13 @@ object Scala {
   // The Scala version used by default to compile user input.
   def defaultUser = sys.props.get("scala.version.user").getOrElse(scala3Next)
 
-  val allScala2               = Seq(scala213, scala212)
-  val defaults                = Seq(defaultInternal, defaultUser).distinct
-  val allScala3               = Seq(scala3Lts, scala3Next, scala3NextRc)
-  val all                     = (allScala2 ++ allScala3 ++ defaults).distinct
-  val scala3MainVersions      = (defaults ++ allScala3).distinct
-  val mainVersions            = (Seq(scala213) ++ scala3MainVersions).distinct
-  val runnerScalaVersions     = runnerScala3 +: allScala2
+  val allScala2           = Seq(scala213, scala212)
+  val defaults            = Seq(defaultInternal, defaultUser).distinct
+  val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
+  val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
+  val scala3MainVersions  = (defaults ++ allScala3).distinct
+  val mainVersions        = (Seq(scala213) ++ scala3MainVersions).distinct
+  val runnerScalaVersions = runnerScala3 +: allScala2
   val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
   def scalaJs    = "1.16.0"
@@ -53,7 +53,7 @@ object Scala {
 
   def maxAmmoniteScala212Version = scala212
   def maxAmmoniteScala213Version = "2.13.14"
-  def maxAmmoniteScala3Version   = scala3NextAnnounced
+  def maxAmmoniteScala3Version   = "3.5.0"
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
