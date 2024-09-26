@@ -53,4 +53,37 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(scalaVersionHelp.contains(s"(${Constants.defaultScala} by default)"))
     }
   }
+
+  test("calling repl with -Xshow-phases flag") {
+    val cmd = Seq[os.Shellable](
+      TestUtil.cli,
+      "repl",
+      "-Xshow-phases",
+      extraOptions
+    )
+
+    val res = os.proc(cmd).call(mergeErrIntoOut = true)
+    expect(res.exitCode == 0)
+    val output = res.out.text()
+    expect(output.contains("parser"))
+    expect(output.contains("typer"))
+  }
+
+  test("calling repl with a directory with no scala artifacts") {
+    val inputs = TestInputs(
+      os.rel / "Testing.java" -> "public class Testing {}"
+    )
+    val cmd = Seq[os.Shellable](
+      TestUtil.cli,
+      "repl",
+      "--repl-dry-run",
+      ".",
+      extraOptions
+    )
+    inputs.fromRoot { root =>
+      val res = os.proc(cmd)
+        .call(cwd = root)
+      expect(res.exitCode == 0)
+    }
+  }
 }
