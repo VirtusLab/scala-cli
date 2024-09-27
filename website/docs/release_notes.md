@@ -8,6 +8,79 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.5.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.1)
+
+### Support for Scala 3.5.1, 3.3.4, 2.13.15 and 2.12.20
+This Scala CLI version switches the default Scala version to 3.5.1.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.5.1
+# Scala version (default): 3.5.1
+```
+
+It has also been tested with Scala 3.3.4, 2.13.15 and 2.12.20.
+The Scala CLI internals are now built with Scala 3.3.4.
+
+### Features
+* Apply increased verbosity when compiling via BSP by [@Gedochao](https://github.com/Gedochao) in [#3202](https://github.com/VirtusLab/scala-cli/pull/3202)
+
+### Fixes
+* improvement: Use distinct on ScalacOpt by [@tgodzik](https://github.com/tgodzik) in [#3139](https://github.com/VirtusLab/scala-cli/pull/3139)
+* bugfix: Check if last segment of path exists by [@tgodzik](https://github.com/tgodzik) in [#3131](https://github.com/VirtusLab/scala-cli/pull/3131)
+* bugfix: Fix duplicate options detection by [@tgodzik](https://github.com/tgodzik) in [#3151](https://github.com/VirtusLab/scala-cli/pull/3151)
+* bugfix: Also deduplicate if options split by space by [@tgodzik](https://github.com/tgodzik) in [#3154](https://github.com/VirtusLab/scala-cli/pull/3154)
+* Fix `setup-ide` for `--cli-version` by [@Gedochao](https://github.com/Gedochao) in [#3161](https://github.com/VirtusLab/scala-cli/pull/3161)
+* Ensure main classes from inputs take precedence before those found in JARs added to the class path by [@Gedochao](https://github.com/Gedochao) in [#3165](https://github.com/VirtusLab/scala-cli/pull/3165)
+* Ensure that passing Java props into Scala CLI as launcher args would also pass it into BSP configuration by [@Gedochao](https://github.com/Gedochao) in [#3169](https://github.com/VirtusLab/scala-cli/pull/3169)
+* NIT fixes for the `export` sub-command by [@Gedochao](https://github.com/Gedochao) in [#3197](https://github.com/VirtusLab/scala-cli/pull/3197)
+* Ensure `--version` passed to the default command works with `--offline` by [@Gedochao](https://github.com/Gedochao) in [#3207](https://github.com/VirtusLab/scala-cli/pull/3207)
+
+### Documentation changes
+* Docs: Fix suppress option for directives-in-multiple-files warning by [@mims-github](https://github.com/mims-github) in [#3133](https://github.com/VirtusLab/scala-cli/pull/3133)
+* Doc: Tips on how to list available JVMs using coursier by [@jatcwang](https://github.com/jatcwang) in [#3129](https://github.com/VirtusLab/scala-cli/pull/3129)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3160](https://github.com/VirtusLab/scala-cli/pull/3160)
+* Use Scala 3 in the Scala Native gif by [@Gedochao](https://github.com/Gedochao) in [#3195](https://github.com/VirtusLab/scala-cli/pull/3195)
+
+### Build and internal changes
+* Add tests for `setup-ide` with `--cli-version` by [@Gedochao](https://github.com/Gedochao) in [#3163](https://github.com/VirtusLab/scala-cli/pull/3163)
+* Change how help is referenced to avoid initialization oddness & update `case-app` to 2.1.0-M29 by [@coreyoconnor](https://github.com/coreyoconnor) in [#3152](https://github.com/VirtusLab/scala-cli/pull/3152)
+* Adjust tests for Scala 3.3.4 by [@Gedochao](https://github.com/Gedochao) in [#3164](https://github.com/VirtusLab/scala-cli/pull/3164)
+* NIT Refactor existing `--watch` tests by [@Gedochao](https://github.com/Gedochao) in [#3175](https://github.com/VirtusLab/scala-cli/pull/3175)
+* Generate an empty JUnit report when no tests were run, rather than fail by [@Gedochao](https://github.com/Gedochao) in [#3179](https://github.com/VirtusLab/scala-cli/pull/3179)
+* NIT Extract REPL tests relying on Ammonite into dedicated traits by [@Gedochao](https://github.com/Gedochao) in [#3209](https://github.com/VirtusLab/scala-cli/pull/3209)
+
+### Updates
+* Update scala-cli.sh launcher for 1.5.0 by [@github-actions](https://github.com/github-actions) in [#3125](https://github.com/VirtusLab/scala-cli/pull/3125)
+* Bump webpack from 5.89.0 to 5.94.0 in /website by [@dependabot](https://github.com/dependabot) in [#3136](https://github.com/VirtusLab/scala-cli/pull/3136)
+* Bump micromatch from 4.0.5 to 4.0.8 in /website by [@dependabot](https://github.com/dependabot) in [#3135](https://github.com/VirtusLab/scala-cli/pull/3135)
+* Update os-lib to 0.10.5 by [@scala-steward](https://github.com/scala-steward) in [#3140](https://github.com/VirtusLab/scala-cli/pull/3140)
+* Update Scala Next latest announced version to 3.5.0 by [@Gedochao](https://github.com/Gedochao) in [#3145](https://github.com/VirtusLab/scala-cli/pull/3145)
+* Update Scala 2.12 to 2.12.20 by [@Gedochao](https://github.com/Gedochao) in [#3144](https://github.com/VirtusLab/scala-cli/pull/3144)
+* Update Scala CLI as `scala` related docs  by [@Gedochao](https://github.com/Gedochao) in [#3155](https://github.com/VirtusLab/scala-cli/pull/3155)
+* Update os-lib to 0.10.6 by [@scala-steward](https://github.com/scala-steward) in [#3159](https://github.com/VirtusLab/scala-cli/pull/3159)
+* Update coursier to 2.1.11 by [@scala-steward](https://github.com/scala-steward) in [#3166](https://github.com/VirtusLab/scala-cli/pull/3166)
+* Update coursier to 2.1.12 by [@scala-steward](https://github.com/scala-steward) in [#3174](https://github.com/VirtusLab/scala-cli/pull/3174)
+* Update ammonite to 3.0.0-M2-30-486378af by [@scala-steward](https://github.com/scala-steward) in [#3172](https://github.com/VirtusLab/scala-cli/pull/3172)
+* Update sbt to 1.10.2 by [@scala-steward](https://github.com/scala-steward) in [#3180](https://github.com/VirtusLab/scala-cli/pull/3180)
+* Update munit to 1.0.2 by [@scala-steward](https://github.com/scala-steward) in [#3176](https://github.com/VirtusLab/scala-cli/pull/3176)
+* Bump `scala-cli-signing` to 0.2.4 by [@Gedochao](https://github.com/Gedochao) in [#3183](https://github.com/VirtusLab/scala-cli/pull/3183)
+* Bump `coursier` to 2.1.13 and `mill-native-image` to 0.1.26 by [@Gedochao](https://github.com/Gedochao) in [#3182](https://github.com/VirtusLab/scala-cli/pull/3182)
+* Update Scala Next to 3.5.1 by [@Gedochao](https://github.com/Gedochao) in [#3190](https://github.com/VirtusLab/scala-cli/pull/3190)
+* Update Scala 3 Next RC to 3.5.2-RC1 by [@scala-steward](https://github.com/scala-steward) in [#3187](https://github.com/VirtusLab/scala-cli/pull/3187)
+* Update Scala 2.13 to 2.13.15 by [@Gedochao](https://github.com/Gedochao) in [#3201](https://github.com/VirtusLab/scala-cli/pull/3201)
+* Update guava to 33.3.1-jre by [@scala-steward](https://github.com/scala-steward) in [#3203](https://github.com/VirtusLab/scala-cli/pull/3203)
+* chore: Update Bloop to 2.0.2 by [@tgodzik](https://github.com/tgodzik) in [#3192](https://github.com/VirtusLab/scala-cli/pull/3192)
+* Update Scala 3 LTS to 3.3.4 by [@Gedochao](https://github.com/Gedochao) in [#3208](https://github.com/VirtusLab/scala-cli/pull/3208)
+* Set Scala 3.5.1 as the latest announced version by [@Gedochao](https://github.com/Gedochao) in [#3206](https://github.com/VirtusLab/scala-cli/pull/3206)
+
+## New Contributors
+* [@mims-github](https://github.com/mims-github) made their first contribution in [#3133](https://github.com/VirtusLab/scala-cli/pull/3133)
+* [@jatcwang](https://github.com/jatcwang) made their first contribution in [#3129](https://github.com/VirtusLab/scala-cli/pull/3129)
+* [@coreyoconnor](https://github.com/coreyoconnor) made their first contribution in [#3152](https://github.com/VirtusLab/scala-cli/pull/3152)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.5.0...v1.5.1
+
 ## [v1.5.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.0)
 
 ### Support for Scala 3.5.0
