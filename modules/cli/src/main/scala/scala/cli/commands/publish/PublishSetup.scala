@@ -42,7 +42,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
   ): Unit = {
     Publish.maybePrintLicensesAndExit(options.publishParams)
 
-    val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+    val coursierCache = options.coursier.coursierCache(logger)
     val directories   = Directories.directories
 
     lazy val configDb = ConfigDbUtils.configDb.orExit(logger)
