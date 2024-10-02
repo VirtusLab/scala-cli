@@ -682,27 +682,30 @@ object Build {
     )
     val threads     = BuildThreads.create()
     val classesDir0 = classesRootDir(inputs.workspace, inputs.projectName)
-    val info = either {
-      val (crossSources: CrossSources, inputs0: Inputs) = value(allInputs(inputs, options, logger))
-      val sharedOptions                                 = crossSources.sharedOptions(options)
-      val compiler: ScalaCompiler = value {
-        compilerMaker.create(
+
+    def info: Either[BuildException, (ScalaCompiler, Option[ScalaCompiler], CrossSources, Inputs)] =
+      either {
+        val (crossSources: CrossSources, inputs0: Inputs) =
+          value(allInputs(inputs, options, logger))
+        val sharedOptions = crossSources.sharedOptions(options)
+        val compiler: ScalaCompiler = value {
+          compilerMaker.create(
+            inputs0.workspace / Constants.workspaceDirName,
+            classesDir0,
+            buildClient,
+            logger,
+            sharedOptions
+          )
+        }
+        val docCompilerOpt: Option[ScalaCompiler] = docCompilerMakerOpt.map(_.create(
           inputs0.workspace / Constants.workspaceDirName,
           classesDir0,
           buildClient,
           logger,
           sharedOptions
-        )
+        )).map(value)
+        (compiler, docCompilerOpt, crossSources, inputs0)
       }
-      val docCompilerOpt: Option[ScalaCompiler] = docCompilerMakerOpt.map(_.create(
-        inputs0.workspace / Constants.workspaceDirName,
-        classesDir0,
-        buildClient,
-        logger,
-        sharedOptions
-      )).map(value)
-      (compiler, docCompilerOpt, crossSources, inputs0)
-    }
 
     var res: Either[BuildException, Builds] = null
 
