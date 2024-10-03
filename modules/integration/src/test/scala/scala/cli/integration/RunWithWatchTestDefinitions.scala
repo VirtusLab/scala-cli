@@ -1,37 +1,81 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.SubProcess
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.util.{Properties, Try}
 
 trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
-  if (!Properties.isMac || !TestUtil.isCI)
-    // TODO make this pass reliably on Mac CI
-    test("simple --watch .scala source") {
-      val expectedMessage1 = "Hello"
-      val inputPath        = os.rel / "smth.scala"
-      TestInputs(inputPath -> s"""object Smth extends App { println("$expectedMessage1") }""")
-        .fromRoot { root =>
+  implicit class ProcOps(proc: SubProcess) {
+    def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit = {
+      def rerunWasTriggered(): Boolean = {
+        val stderrOutput = TestUtil.readLine(proc.stderr, ec, timeout)
+        println(stderrOutput)
+        stderrOutput.contains("re-run")
+      }
+      while (!rerunWasTriggered()) Thread.sleep(100L)
+    }
+  }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI) {
+    val expectedMessage1 = "Hello"
+    val expectedMessage2 = "World"
+    for {
+      (inputPath, inputs, codeToWriteOver) <-
+        Seq(
+          {
+            val inputPath             = os.rel / "raw.scala"
+            def code(message: String) = s"""object Smth extends App { println("$message") }"""
+            (
+              inputPath,
+              TestInputs(inputPath -> code(expectedMessage1)),
+              code(expectedMessage2)
+            )
+          }, {
+            val inputPath             = os.rel / "script.sc"
+            def code(message: String) = s"""println("$message")"""
+            (
+              inputPath,
+              TestInputs(inputPath -> code(expectedMessage1)),
+              code(expectedMessage2)
+            )
+          }, {
+            val inputPath = os.rel / "markdown.md"
+            def code(message: String) =
+              s"""# Some random docs with a Scala snippet
+                 |```scala
+                 |println("$message")
+                 |```
+                 |The snippet prints the message, of course.
+                 |""".stripMargin
+            (
+              inputPath,
+              TestInputs(inputPath -> code(expectedMessage1)),
+              code(expectedMessage2)
+            )
+          }
+        )
+    }
+      test(s"simple --watch ${inputPath.last}") {
+        inputs.fromRoot { root =>
           TestUtil.withProcessWatching(
-            proc = os.proc(TestUtil.cli, "run", ".", "--watch", extraOptions)
+            proc = os.proc(TestUtil.cli, "run", inputPath.toString(), "--watch", extraOptions)
               .spawn(cwd = root, stderr = os.Pipe),
             timeout = 120.seconds
           ) { (proc, timeout, ec) =>
             val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output1 == expectedMessage1)
-            val expectedMessage2 = "World"
-            while (!TestUtil.readLine(proc.stderr, ec, timeout).contains("re-run"))
-              Thread.sleep(100L)
-            os.write.over(
-              root / inputPath,
-              s"""object Smth extends App { println("$expectedMessage2") }"""
-            )
+            proc.printStderrUntilRerun(timeout)(ec)
+            os.write.over(root / inputPath, codeToWriteOver)
             val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
             expect(output2 == expectedMessage2)
           }
         }
-    }
+      }
+  }
 
   test("watch with interactive, with multiple main classes") {
     val fileName = "watch.scala"
@@ -220,4 +264,36 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       }
     }
   }
+
+  // TODO make this pass reliably on Mac CI
+  if (!Properties.isMac || !TestUtil.isCI)
+    test("--watch .scala source with changing directives") {
+      val inputPath = os.rel / "smth.scala"
+
+      def code(includeDirective: Boolean) = {
+        val directive = if (includeDirective) "//> using toolkit default" else ""
+        s"""$directive
+           |object Smth extends App { println(os.pwd) }
+           |""".stripMargin
+      }
+
+      TestInputs(inputPath -> code(includeDirective = true)).fromRoot { root =>
+        TestUtil.withProcessWatching(
+          os.proc(TestUtil.cli, "run", ".", "--watch", extraOptions)
+            .spawn(cwd = root, stderr = os.Pipe)
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == root.toString)
+          proc.printStderrUntilRerun(timeout)(ec)
+          os.write.over(root / inputPath, code(includeDirective = false))
+          TestUtil.readLine(proc.stderr, ec, timeout)
+          val output2 = TestUtil.readLine(proc.stderr, ec, timeout)
+          expect(output2.toLowerCase.contains("error"))
+          proc.printStderrUntilRerun(timeout)(ec)
+          os.write.over(root / inputPath, code(includeDirective = true))
+          val output3 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output3 == root.toString)
+        }
+      }
+    }
 }
