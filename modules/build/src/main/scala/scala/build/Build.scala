@@ -687,10 +687,23 @@ object Build {
       either {
         val (crossSources: CrossSources, inputs0: Inputs) =
           value(allInputs(inputs, options, logger))
+        val resourceDirectoriesFromDirectives = {
+          // resource directories passed via a command line option are registered as Input elements.
+          // however, those passed via a using directive are only passed via build options.
+          // TODO: refactor and clean this up
+          val resourceDirsFromCli =
+            inputs0.elements.flatMap { case rd: ResourceDirectory => Some(rd.path); case _ => None }
+          val latestResourceDirsFromBuildOptions: Seq[os.Path] =
+            crossSources.buildOptions.flatMap(_.value.classPathOptions.resourcesDir).distinct
+          latestResourceDirsFromBuildOptions
+            .filter(!resourceDirsFromCli.contains(_))
+            .map(ResourceDirectory(_))
+        }
+        val finalInputs   = inputs0.add(resourceDirectoriesFromDirectives)
         val sharedOptions = crossSources.sharedOptions(options)
         val compiler: ScalaCompiler = value {
           compilerMaker.create(
-            inputs0.workspace / Constants.workspaceDirName,
+            finalInputs.workspace / Constants.workspaceDirName,
             classesDir0,
             buildClient,
             logger,
@@ -698,13 +711,13 @@ object Build {
           )
         }
         val docCompilerOpt: Option[ScalaCompiler] = docCompilerMakerOpt.map(_.create(
-          inputs0.workspace / Constants.workspaceDirName,
+          finalInputs.workspace / Constants.workspaceDirName,
           classesDir0,
           buildClient,
           logger,
           sharedOptions
         )).map(value)
-        (compiler, docCompilerOpt, crossSources, inputs0)
+        (compiler, docCompilerOpt, crossSources, finalInputs)
       }
 
     var res: Either[BuildException, Builds] = null
