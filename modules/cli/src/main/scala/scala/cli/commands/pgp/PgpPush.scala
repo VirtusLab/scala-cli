@@ -31,7 +31,7 @@ object PgpPush extends ScalaCommand[PgpPushOptions] {
       sys.exit(1)
     }
 
-    lazy val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+    lazy val coursierCache = options.coursier.coursierCache(logger)
 
     for (key <- all) {
       val path = os.Path(key, os.pwd)

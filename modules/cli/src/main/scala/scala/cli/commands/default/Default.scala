@@ -43,7 +43,7 @@ class Default(actualHelp: => RuntimeCommandsHelp)
       Version.runCommand(
         options = VersionOptions(
           global = options.shared.global,
-          offline = options.shared.coursier.getOffline().getOrElse(false)
+          offline = options.shared.coursier.getOffline(logger).getOrElse(false)
         ),
         args = args,
         logger = logger
