@@ -54,6 +54,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
         inputArgs,
         () => None,
         Nil,
+        Nil,
         directories,
         logger,
         coursierCache,

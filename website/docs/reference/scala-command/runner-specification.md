@@ -114,6 +114,12 @@ Add a resource directory
 
 Aliases: `--resource-dir`
 
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
+
 **--with-compiler**
 
 Allows to include the Scala compiler artifacts on the classpath.
@@ -883,6 +889,12 @@ Add a resource directory
 
 Aliases: `--resource-dir`
 
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
+
 **--with-compiler**
 
 Allows to include the Scala compiler artifacts on the classpath.
@@ -1471,6 +1483,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 
@@ -2080,6 +2098,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 
@@ -2709,6 +2733,12 @@ Add a resource directory
 
 Aliases: `--resource-dir`
 
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
+
 **--with-compiler**
 
 Allows to include the Scala compiler artifacts on the classpath.
@@ -3324,6 +3354,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 
@@ -3959,6 +3995,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 
@@ -4657,6 +4699,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 
@@ -5590,6 +5638,12 @@ Aliases: `--jar` ,`--jars` ,`--extra-jar` ,`--class` ,`--extra-class` ,`--classe
 Add a resource directory
 
 Aliases: `--resource-dir`
+
+**--resource-files**
+
+Add a resource file
+
+Aliases: `--resource-file`
 
 **--with-compiler**
 

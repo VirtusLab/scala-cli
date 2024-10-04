@@ -23,7 +23,7 @@ import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
-import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
+import scala.build.input.{Element, Inputs, ResourceDirectory, ResourceFile, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
@@ -158,7 +158,12 @@ final case class SharedOptions(
   @Name("resourceDir")
   @Tag(tags.must)
     resourceDirs: List[String] = Nil,
-
+  @Group(HelpGroup.Java.toString)
+  @HelpMessage("Add a resource file")
+  @ValueDescription("paths")
+  @Name("resourceFile")
+  @Tag(tags.must)
+    resourceFiles: List[String] = Nil,
   @Hidden
   @Group(HelpGroup.Java.toString)
   @HelpMessage("Put project in class paths as a JAR rather than as a byte code directory")
@@ -617,6 +622,7 @@ final case class SharedOptions(
       args,
       defaultInputs,
       resourceDirs,
+      resourceFiles,
       Directories.directories,
       logger = logger,
       coursierCache,
@@ -677,6 +683,7 @@ object SharedOptions {
     args: Seq[String],
     defaultInputs: () => Option[Inputs],
     resourceDirs: Seq[String],
+    resourceFiles: Seq[String],
     directories: scala.build.Directories,
     logger: scala.build.Logger,
     cache: FileCache[Task],
@@ -698,6 +705,15 @@ object SharedOptions {
         path
       }
       .map(ResourceDirectory.apply)
+
+    val resourceFileInputs = resourceFiles
+      .map(os.Path(_, Os.pwd))
+      .map { path =>
+        if (!os.exists(path))
+          logger.message(s"WARNING: provided resource file path doesn't exist: $path")
+        path
+      }
+      .map(ResourceFile.apply)
 
     val maybeInputs = Inputs(
       args,
@@ -723,6 +739,7 @@ object SharedOptions {
 
       inputs
         .add(resourceInputs)
+        .add(resourceFileInputs)
         .checkAttributes(directories)
         .avoid(forbiddenDirs, directories)
     }

@@ -1038,6 +1038,14 @@ Aliases: `--resource-dir`
 
 Add a resource directory
 
+### `--resource-files`
+
+Aliases: `--resource-file`
+
+`MUST have` per Scala Runner specification
+
+Add a resource file
+
 ### `--platform`
 
 `SHOULD have` per Scala Runner specification
