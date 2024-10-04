@@ -43,6 +43,18 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
+            val inputPath = os.rel / "Main.java"
+            def code(message: String) = s"""public class Main {
+                                           |  public static void main(String[] args) {
+                                           |    System.out.println("$message");
+                                           |  }
+                                           |}""".stripMargin
+            (
+              inputPath,
+              TestInputs(inputPath -> code(expectedMessage1)),
+              code(expectedMessage2)
+            )
+          }, {
             val inputPath = os.rel / "markdown.md"
             def code(message: String) =
               s"""# Some random docs with a Scala snippet
