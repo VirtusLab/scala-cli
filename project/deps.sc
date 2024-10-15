@@ -139,7 +139,7 @@ object Deps {
   def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def asm                  = ivy"org.ow2.asm:asm:9.7.1"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.0.3"
+  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.1.0"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
