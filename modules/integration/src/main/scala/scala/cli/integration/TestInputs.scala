@@ -92,8 +92,8 @@ object TestInputs {
         case ex: IOException =>
           System.err.println(s"Ignoring $ex while removing $tmpDir0")
       }
-    f(tmpDir0)
-    //finally removeAll()
+    try f(tmpDir0)
+    finally removeAll()
   }
 
   private def tmpDir: os.Path = {
