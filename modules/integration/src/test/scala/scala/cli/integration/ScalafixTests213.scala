@@ -8,7 +8,7 @@ class ScalafixTests213 extends ScalafixTestDefinitions with Test213 {
   test("external rule") {
     val unnamedParamsInputsContent: String =
       """//> using options -P:semanticdb:synthetics:on
-        |//> using compileOnly.dep "com.github.jatcwang::scalafix-named-params:0.2.4"
+        |//> using compileOnly.dep "com.github.jatcwang::scalafix-named-params:0.2.5"
         |
         |package foo
         |
@@ -35,7 +35,7 @@ class ScalafixTests213 extends ScalafixTestDefinitions with Test213 {
     )
     val expectedContent: String = noCrLf {
       """//> using options -P:semanticdb:synthetics:on
-        |//> using compileOnly.dep "com.github.jatcwang::scalafix-named-params:0.2.4"
+        |//> using compileOnly.dep "com.github.jatcwang::scalafix-named-params:0.2.5"
         |
         |package foo
         |

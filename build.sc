@@ -534,6 +534,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def mavenAppArtifactId = "${Deps.Versions.mavenAppArtifactId}"
          |  def mavenAppGroupId = "${Deps.Versions.mavenAppGroupId}"
          |  def mavenAppVersion = "${Deps.Versions.mavenAppVersion}"
+         |
+         |  def scalafixVersion = "${Deps.Versions.scalafix}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)

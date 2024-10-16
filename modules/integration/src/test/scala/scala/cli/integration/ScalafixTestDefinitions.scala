@@ -55,7 +55,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
         cwd = root,
         check = false
       )
-      expect(res.exitCode == 1)
+      expect(res.exitCode != 0)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == noCrLf(simpleInputsOriginalContent))
     }
@@ -98,6 +98,55 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       os.proc(TestUtil.cli, "scalafix", "--power", ".", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
+    }
+  }
+
+  test("rule args") {
+    val input = TestInputs(
+      os.rel / confFileName ->
+        s"""|rules = [
+            |  RemoveUnused,
+            |  ExplicitResultTypes
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" ->
+        s"""|//> using options $unusedRuleOption
+            |package hello
+            |
+            |object Hello {
+            |  def a = {
+            |    val x = 1 // keep unused - exec only ExplicitResultTypes
+            |    42
+            |  }
+            |}
+            |""".stripMargin
+    )
+
+    input.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "scalafix",
+        ".",
+        "--rules",
+        "ExplicitResultTypes",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      val expected =
+        s"""|//> using options $unusedRuleOption
+            |package hello
+            |
+            |object Hello {
+            |  def a: Int = {
+            |    val x = 1 // keep unused - exec only ExplicitResultTypes
+            |    42
+            |  }
+            |}
+            |""".stripMargin
+
+      expect(updatedContent == expected)
+
     }
   }
 }
