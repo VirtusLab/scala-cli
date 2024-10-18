@@ -106,7 +106,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       os.rel / confFileName ->
         s"""|rules = [
             |  RemoveUnused,
-            |  ExplicitResultTypes
+            |  RedundantSyntax
             |]
             |""".stripMargin,
       os.rel / "Hello.scala" ->
@@ -115,8 +115,8 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
             |
             |object Hello {
             |  def a = {
-            |    val x = 1 // keep unused - exec only ExplicitResultTypes
-            |    42
+            |    val x = 1 // keep unused - exec only RedundantSyntax
+            |    s"Foo"
             |  }
             |}
             |""".stripMargin
@@ -128,7 +128,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
         "scalafix",
         ".",
         "--rules",
-        "ExplicitResultTypes",
+        "RedundantSyntax",
         "--power",
         scalaVersionArgs
       ).call(cwd = root)
@@ -138,9 +138,9 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
             |package hello
             |
             |object Hello {
-            |  def a: Int = {
-            |    val x = 1 // keep unused - exec only ExplicitResultTypes
-            |    42
+            |  def a = {
+            |    val x = 1 // keep unused - exec only RedundantSyntax
+            |    "Foo"
             |  }
             |}
             |""".stripMargin

@@ -34,11 +34,12 @@ final case class ScalafixOptions(
   @Tag(tags.experimental)
   @HelpMessage("Run rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
+  @Name("r")
   rules: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Fail the invocation instead of applying fixes")
+  @HelpMessage("Fail the invocation if rewrites are needed")
   @Tag(tags.inShortHelp)
   check: Boolean = false,
 ) extends HasSharedOptions {
@@ -50,7 +51,7 @@ object ScalafixOptions {
   implicit lazy val help: Help[ScalafixOptions]     = Help.derive
 
   val cmdName             = "scalafix"
-  private val helpHeader  = "Fixes Scala code according to scalafix rules."
+  private val helpHeader  = "Run Scalafix rules to lint or rewrite Scala code."
   val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader

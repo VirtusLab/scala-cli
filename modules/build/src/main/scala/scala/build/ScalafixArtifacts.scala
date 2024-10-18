@@ -2,20 +2,19 @@ package scala.build
 
 import coursier.cache.FileCache
 import coursier.core.{Repository, Version}
+import coursier.error.{CoursierError, ResolutionError}
 import coursier.util.Task
 import dependency.*
-
-import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
-import scala.build.internal.CsLoggerUtil.*
-import scala.build.internal.Constants
-import java.util.Properties
-import coursier.error.CoursierError
-import scala.build.errors.FetchingDependenciesError
-import coursier.error.ResolutionError
 import org.apache.commons.compress.archivers.zip.ZipFile
 import os.Path
+
 import java.io.ByteArrayInputStream
+import java.util.Properties
+
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.{BuildException, FetchingDependenciesError}
+import scala.build.internal.Constants
+import scala.build.internal.CsLoggerUtil.*
 
 final case class ScalafixArtifacts(
   scalafixJars: Seq[os.Path],
