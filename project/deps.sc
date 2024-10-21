@@ -8,7 +8,7 @@ object Scala {
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts  = s"$scala3LtsPrefix.4" // the LTS version currently used in the build
-  def scala3Next = "3.5.2"               // the newest/next version of Scala
+  def scala3Next = "3.6.1"               // the newest/next version of Scala
   def scala3NextAnnounced = "3.5.1"     // the newest/next version of Scala that's been announced
   def scala3NextRc        = "3.5.2-RC2" // the latest RC version of Scala Next
 
