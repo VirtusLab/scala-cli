@@ -25,7 +25,7 @@ object ScalafixArtifacts {
 
   def artifacts(
     scalaVersion: String,
-    compileOnlyDeps: Seq[Dependency],
+    externalRulesDeps: Seq[Positioned[AnyDependency]],
     extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task]
@@ -39,6 +39,7 @@ object ScalafixArtifacts {
 
       val scalafixDeps =
         Seq(dep"ch.epfl.scala:scalafix-cli_$fetchScalaVersion:${Constants.scalafixVersion}")
+
       val scalafix =
         value(
           Artifacts.artifacts(
@@ -50,16 +51,23 @@ object ScalafixArtifacts {
           )
         )
 
+      val scalaParameters =
+        // Scalafix for scala 3 uses 2.13-published community rules
+        // https://github.com/scalacenter/scalafix/issues/2041
+        if (scalaVersion.startsWith("3")) ScalaParameters(Constants.defaultScala213Version)
+        else ScalaParameters(scalaVersion)
+
       val tools =
         value(
           Artifacts.artifacts(
-            compileOnlyDeps.map(Positioned.none),
+            externalRulesDeps,
             extraRepositories,
-            None,
+            Some(scalaParameters),
             logger,
-            cache.withMessage(s"Downloading tools classpath for scalafix")
+            cache.withMessage(s"Downloading scalafix.deps")
           )
         )
+
       ScalafixArtifacts(scalafix.map(_._2), tools.map(_._2))
     }
 
@@ -81,7 +89,6 @@ object ScalafixArtifacts {
           propsData
         }
         else os.read(cachePath)
-
       val props  = new Properties()
       val stream = new ByteArrayInputStream(content.getBytes())
       props.load(stream)

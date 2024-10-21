@@ -34,7 +34,6 @@ final case class ScalafixOptions(
   @Tag(tags.experimental)
   @HelpMessage("Run rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
-  @Name("r")
   rules: List[String] = Nil,
 
   @Group(HelpGroup.Format.toString)

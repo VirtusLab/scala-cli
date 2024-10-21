@@ -101,7 +101,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     }
   }
 
-  test("rule args") {
+  test("--rules args") {
     val input = TestInputs(
       os.rel / confFileName ->
         s"""|rules = [
@@ -147,6 +147,157 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
       expect(updatedContent == expected)
 
+    }
+  }
+
+  test("--scalafix-arg arg") {
+    val original: String =
+      """|package foo
+         |
+         |final object Hello { // keep `final` beucase of parameter finalObject=false
+         |  s"Foo"
+         |}
+         |""".stripMargin
+    val inputs: TestInputs = TestInputs(
+      os.rel / confFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> original
+    )
+    val expectedContent: String = noCrLf {
+      """|package foo
+         |
+         |final object Hello { // keep `final` beucase of parameter finalObject=false
+         |  "Foo"
+         |}
+         |""".stripMargin
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "scalafix",
+        ".",
+        "--scalafix-arg=--settings.RedundantSyntax.finalObject=false",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+    }
+  }
+
+  test("--scalafix-conf arg") {
+    val original: String =
+      """|package foo
+         |
+         |final object Hello {
+         |  s"Foo"
+         |}
+         |""".stripMargin
+
+    val confFileName = "unusual-scalafix-filename"
+    val inputs: TestInputs = TestInputs(
+      os.rel / confFileName ->
+        s"""|rules = [
+            |  RedundantSyntax
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> original
+    )
+    val expectedContent: String = noCrLf {
+      """|package foo
+         |
+         |object Hello {
+         |  "Foo"
+         |}
+         |""".stripMargin
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "scalafix",
+        ".",
+        s"--scalafix-conf=$confFileName",
+        "--power",
+        scalaVersionArgs
+      ).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+    }
+  }
+
+  test("external rule") {
+    val original: String =
+      """|//> using scalafix.dep "io.github.ghostbuster91.scalafix-unified::unified:0.0.8"
+         |
+         |package foo
+         |
+         |object Hello {
+         |  val a = List[Int]()
+         |}
+         |""".stripMargin
+    val inputs: TestInputs = TestInputs(
+      os.rel / confFileName ->
+        s"""|rules = [
+            |  EmptyCollectionsUnified
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> original
+    )
+    val expectedContent: String = noCrLf {
+      """|//> using scalafix.dep "io.github.ghostbuster91.scalafix-unified::unified:0.0.8"
+         |
+         |package foo
+         |
+         |object Hello {
+         |  val a = List.empty[Int]
+         |}
+         |""".stripMargin
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "scalafix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
+    }
+  }
+
+  test {
+    val name = "explicit-result-types"
+    if (actualScalaVersion.startsWith("3")) name.ignore else munit.TestOptions(name)
+  } {
+    val original: String =
+      """|package foo
+         |
+         |object Hello {
+         |  def a(a: Int) = "asdasd" + a.toString
+         |}
+         |""".stripMargin
+    val inputs: TestInputs = TestInputs(
+      os.rel / confFileName ->
+        s"""|rules = [
+            |  ExplicitResultTypes
+            |]
+            |""".stripMargin,
+      os.rel / "Hello.scala" -> original
+    )
+    val expectedContent: String = noCrLf {
+      """|package foo
+         |
+         |object Hello {
+         |  def a(a: Int): String = "asdasd" + a.toString
+         |}
+         |""".stripMargin
+    }
+
+    inputs.fromRoot { root =>
+      os.proc(TestUtil.cli, "scalafix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      expect(updatedContent == expectedContent)
     }
   }
 }

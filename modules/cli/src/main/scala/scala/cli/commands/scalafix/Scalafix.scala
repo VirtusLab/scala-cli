@@ -5,7 +5,12 @@ import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
 import dependency.*
 import scalafix.interfaces.ScalafixError.*
-import scalafix.interfaces.{Scalafix => ScalafixInterface, ScalafixError, ScalafixException, ScalafixRule}
+import scalafix.interfaces.{
+  Scalafix => ScalafixInterface,
+  ScalafixError,
+  ScalafixException,
+  ScalafixRule
+}
 
 import java.io.File
 import java.util.Optional
@@ -96,12 +101,6 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
       case None => sys.exit(1)
       case Some(build) =>
         val classPaths = build.fullClassPath
-        val compileOnlyDeps = {
-          val params = ScalaParameters(scalaVersion)
-          build.options.classPathOptions.extraCompileOnlyDependencies.values.flatten.map(
-            _.value.applyParams(params)
-          )
-        }
 
         val scalacOptions = options.shared.scalac.scalacOption ++
           build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
@@ -111,7 +110,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
             value(
               ScalafixArtifacts.artifacts(
                 scalaVersion,
-                compileOnlyDeps,
+                build.options.classPathOptions.scalafixDependencies.values.flatten,
                 value(buildOptions.finalRepositories),
                 logger,
                 buildOptions.internal.cache.getOrElse(FileCache())
@@ -119,10 +118,9 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
             )
 
           val scalafixOptions =
-            configFilePathOpt.map(file => Seq("-c", file.toString)).getOrElse(Nil) ++
+            options.scalafixConf.toList.flatMap(scalafixConf => List("--config", scalafixConf)) ++
               Seq("--sourceroot", workspace.toString) ++
               Seq("--classpath", classPaths.mkString(java.io.File.pathSeparator)) ++
-              options.scalafixConf.toList.flatMap(scalafixConf => List("--config", scalafixConf)) ++
               (if (options.check) Seq("--test") else Nil) ++
               (if (scalacOptions.nonEmpty) scalacOptions.flatMap(Seq("--scalac-options", _))
                else Nil) ++

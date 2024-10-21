@@ -160,10 +160,7 @@ Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [c
 
 Fixes Scala code according to scalafix rules.
 
-`scalafix` is used to check project code or rewrite it under the hood with use of specified rules.
-
-The `.scalafix.conf` configuration file is optional.
-Default configuration values will be assumed by Scala CLI.
+`scalafix` is used to lint or rewrite project's code according to specified rules.
 
 All standard Scala CLI inputs are accepted, but only Scala sources will be refactored (.scala and .sc files).
 
@@ -572,4 +569,3 @@ Accepts option groups: [pgp sign](./cli-options.md#pgp-sign-options)
 Verify PGP signatures
 
 Accepts option groups: [pgp verify](./cli-options.md#pgp-verify-options)
-
