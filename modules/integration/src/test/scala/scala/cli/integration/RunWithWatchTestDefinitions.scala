@@ -43,6 +43,18 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
+            val inputPath = os.rel / "Main.java"
+            def code(message: String) = s"""public class Main {
+                                           |  public static void main(String[] args) {
+                                           |    System.out.println("$message");
+                                           |  }
+                                           |}""".stripMargin
+            (
+              inputPath,
+              TestInputs(inputPath -> code(expectedMessage1)),
+              code(expectedMessage2)
+            )
+          }, {
             val inputPath = os.rel / "markdown.md"
             def code(message: String) =
               s"""# Some random docs with a Scala snippet
@@ -296,4 +308,34 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
         }
       }
     }
+
+  for {
+    useDirective <- Seq(false, true)
+    // TODO make this pass reliably on Mac CI
+    if !Properties.isMac || !TestUtil.isCI
+    directive       = if (useDirective) "//> using resourceDirs ./resources" else ""
+    resourceOptions = if (useDirective) Nil else Seq("--resource-dirs", "./src/proj/resources")
+    title           = if (useDirective) "directive" else "command line"
+  } test(s"resources via $title with --watch") {
+    val expectedMessage1 = "Hello"
+    val expectedMessage2 = "world"
+    resourcesInputs(directive = directive, resourceContent = expectedMessage1)
+      .fromRoot { root =>
+        TestUtil.withProcessWatching(
+          os.proc(TestUtil.cli, "run", "src", "--watch", resourceOptions, extraOptions)
+            .spawn(cwd = root, stderr = os.Pipe)
+        ) { (proc, timeout, ec) =>
+          val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output1 == expectedMessage1)
+          proc.printStderrUntilRerun(timeout)(ec)
+          val Some((resourcePath, newResourceContent)) =
+            resourcesInputs(directive = directive, resourceContent = expectedMessage2)
+              .files
+              .find(_._1.toString.contains("resources"))
+          os.write.over(root / resourcePath, newResourceContent)
+          val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+          expect(output2 == expectedMessage2)
+        }
+      }
+  }
 }
