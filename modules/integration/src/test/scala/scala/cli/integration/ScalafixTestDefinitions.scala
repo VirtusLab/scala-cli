@@ -133,7 +133,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
         scalaVersionArgs
       ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      val expected =
+      val expected = noCrLf {
         s"""|//> using options $unusedRuleOption
             |package hello
             |
@@ -144,6 +144,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
             |  }
             |}
             |""".stripMargin
+      }
 
       expect(updatedContent == expected)
 

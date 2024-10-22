@@ -158,15 +158,19 @@ Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [c
 
 ## scalafix
 
-Fixes Scala code according to scalafix rules.
+Run Scalafix rules to lint or rewrite Scala code.
 
-`scalafix` is used to lint or rewrite project's code according to specified rules.
+`scalafix` is used to check project code or rewrite it under the hood with use of specified rules.
 
 All standard Scala CLI inputs are accepted, but only Scala sources will be refactored (.scala and .sc files).
 
 For detailed documentation refer to our website: https://scala-cli.virtuslab.org/docs/commands/scalafix
 
-Accepts option groups: [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [power](./cli-options.md#power-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [Scalafix](./cli-options.md#scalafix-options), [semantic db](./cli-options.md#semantic-db-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [source generator](./cli-options.md#source-generator-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
+The `scalafix` sub-command is experimental.
+Please bear in mind that non-ideal user experience should be expected.
+If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+
+Accepts option groups: [benchmarking](./cli-options.md#benchmarking-options), [compilation server](./cli-options.md#compilation-server-options), [coursier](./cli-options.md#coursier-options), [debug](./cli-options.md#debug-options), [dependency](./cli-options.md#dependency-options), [global suppress warning](./cli-options.md#global-suppress-warning-options), [help group](./cli-options.md#help-group-options), [input](./cli-options.md#input-options), [jvm](./cli-options.md#jvm-options), [logging](./cli-options.md#logging-options), [markdown](./cli-options.md#markdown-options), [power](./cli-options.md#power-options), [python](./cli-options.md#python-options), [Scala.js](./cli-options.md#scalajs-options), [Scala Native](./cli-options.md#scala-native-options), [scalac](./cli-options.md#scalac-options), [scalac extra](./cli-options.md#scalac-extra-options), [Scalafix](./cli-options.md#scalafix-options), [semantic db](./cli-options.md#semantic-db-options), [shared](./cli-options.md#shared-options), [snippet](./cli-options.md#snippet-options), [source generator](./cli-options.md#source-generator-options), [suppress warning](./cli-options.md#suppress-warning-options), [verbosity](./cli-options.md#verbosity-options), [version](./cli-options.md#version-options), [workspace](./cli-options.md#workspace-options)
 
 ## help
 
@@ -569,3 +573,4 @@ Accepts option groups: [pgp sign](./cli-options.md#pgp-sign-options)
 Verify PGP signatures
 
 Accepts option groups: [pgp verify](./cli-options.md#pgp-verify-options)
+

@@ -46,7 +46,7 @@ are assumed to be Scala compiler options and will be propagated to Scala Compile
 
 Available in commands:
 
-[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
+[`bsp`](./commands.md#bsp), [`compile`](./commands.md#compile), [`dependency-update`](./commands.md#dependency-update), [`doc`](./commands.md#doc), [`export`](./commands.md#export), [`fix`](./commands.md#fix), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`package`](./commands.md#package), [`publish`](./commands.md#publish), [`publish local`](./commands.md#publish-local), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`scalafix`](./commands.md#scalafix), [`setup-ide`](./commands.md#setup-ide), [`shebang`](./commands.md#shebang), [`test`](./commands.md#test)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
@@ -1478,20 +1478,6 @@ Aliases: `--verbose-scalac`
 
 Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
-## Scope options
-
-Available in commands:
-
-[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
-
-<!-- Automatically generated, DO NOT EDIT MANUALLY -->
-
-### `--test`
-
-Aliases: `--test-scope`, `--with-test`, `--with-test-scope`
-
-Include test scope
-
 ## Scalafix options
 
 Available in commands:
@@ -1506,15 +1492,29 @@ Custom path to the scalafix configuration file.
 
 ### `--scalafix-arg`
 
-Pass an argument to scalafix.
+Pass extra argument(s) to scalafix.
 
 ### `--rules`
 
-Pass rules directly to scalafix.
+Run rule(s) explicitly, overriding the configuration file default.
 
 ### `--check`
 
-Check if sources are well organized
+Fail the invocation if rewrites are needed
+
+## Scope options
+
+Available in commands:
+
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+
+<!-- Automatically generated, DO NOT EDIT MANUALLY -->
+
+### `--test`
+
+Aliases: `--test-scope`, `--with-test`, `--with-test-scope`
+
+Include test scope
 
 ## Secret options
 

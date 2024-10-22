@@ -57,9 +57,6 @@ object ScalafixOptions {
        |
        |`scalafix` is used to check project code or rewrite it under the hood with use of specified rules.
        |
-       |The `.scalafix.conf` configuration file is optional.
-       |Default configuration values will be assumed by $fullRunnerName.
-       |
        |All standard $fullRunnerName inputs are accepted, but only Scala sources will be refactored (.scala and .sc files).
        |
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
