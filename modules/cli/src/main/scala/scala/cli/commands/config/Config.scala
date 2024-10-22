@@ -46,7 +46,7 @@ object Config extends ScalaCommand[ConfigOptions] {
               )
               sys.exit(1)
             }
-            val coursierCache = options.coursier.coursierCache(logger.coursierLogger(""))
+            val coursierCache = options.coursier.coursierCache(logger)
             val secKeyEntry   = Keys.pgpSecretKey
             val pubKeyEntry   = Keys.pgpPublicKey
 
