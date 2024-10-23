@@ -78,7 +78,7 @@ How can configuration that’s contained in source files be centralized?
 configuration information.
 Therefore, when your project needs to centralize its configuration, we recommend creating a `project.scala` file, and
 placing the configuration there.
-We plan to add ways to Scala CLI to migrate these settings into a centralized location with one command or click.
+The experimental [Fix command](../../commands/fix.md) can do this automatically.
 
 We are aware that `using` directives may be a controversial topic, so we’ve created
 a [dedicated space for discussing `using` directives](https://github.com/VirtusLab/scala-cli/discussions/categories/using-directives-and-cmd-configuration-options).
