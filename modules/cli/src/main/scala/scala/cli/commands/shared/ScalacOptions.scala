@@ -101,16 +101,16 @@ object ScalacOptions {
           case h :: t
               if scalacOptionsPrefixes.exists(h.startsWith) &&
               !ScalacDeprecatedOptions.contains(h) =>
-            Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
+            Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
           case h :: t if scalacNoArgAliasedOptions.contains(h) =>
-            Right(Some((Some(h :: acc.getOrElse(Nil)), t)))
+            Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
           case h :: t if scalacAliasedOptions.contains(h) =>
             // check if the next scalac arg is a different option or a param to the current option
             val maybeOptionArg = t.headOption.filter(!_.startsWith("-"))
             // if it's a param, it'll be treated as such and considered already parsed
             val newTail = maybeOptionArg.map(_ => t.drop(1)).getOrElse(t)
             val newHead = List(h) ++ maybeOptionArg
-            Right(Some((Some(newHead ++ acc.getOrElse(Nil)), newTail)))
+            Right(Some((Some(acc.getOrElse(Nil) ++ newHead), newTail)))
           case _ => underlying.step(args, index, acc, formatter)
         }
       def get(acc: Option[List[String]], formatter: Formatter[Name]): Either[Error, List[String]] =
