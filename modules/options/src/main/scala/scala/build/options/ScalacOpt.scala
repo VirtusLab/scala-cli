@@ -18,7 +18,8 @@ object ScalacOpt {
   private val repeatingKeys = Set(
     "-Xplugin",
     "-P", // plugin options
-    "-language"
+    "-language",
+    "-Wconf"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {
