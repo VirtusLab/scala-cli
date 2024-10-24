@@ -515,13 +515,19 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
-  test("consecutive -Wconf:* flags are not ignored") {
+  for {
+    useDirective <- Seq(true, false)
+    if !Properties.isWin
+    optionsSource = if (useDirective) "using directive" else "command line"
+  } test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
     val sv                 = "3.5.2"
     val sourceFileName     = "example.scala"
     val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
+    val maybeDirectiveString =
+      if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
     TestInputs(os.rel / sourceFileName ->
       s"""//> using scala $sv
-         |//> using options ${warningConfOptions.mkString(" ")}
+         |$maybeDirectiveString
          |object WConfExample extends App {
          |  @deprecated("This method will be removed", "1.0.0")
          |  def oldMethod(): Unit = println("This is an old method.")
@@ -539,12 +545,19 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
         localBin,
         s"scalac:$sv"
       ).call(cwd = root)
-      val cliRes = os.proc(TestUtil.cli, "compile", sourceFileName, "--server=false")
-        .call(cwd = root, check = false, stderr = os.Pipe)
+      val cliRes =
+        os.proc(
+          TestUtil.cli,
+          "compile",
+          sourceFileName,
+          "--server=false",
+          if (useDirective) Nil else warningConfOptions
+        )
+          .call(cwd = root, check = false, stderr = os.Pipe)
       val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
         .call(cwd = root, check = false, stderr = os.Pipe)
       expect(scalacRes.exitCode == cliRes.exitCode)
-      expect(scalacRes.err.trim() == cliRes.err.trim())
+      expect(cliRes.err.trim() == scalacRes.err.trim())
     }
   }
 
