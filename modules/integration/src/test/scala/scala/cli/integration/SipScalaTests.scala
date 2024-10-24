@@ -515,6 +515,39 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
     }
   }
 
+  test("consecutive -Wconf:* flags are not ignored") {
+    val sv                 = "3.5.2"
+    val sourceFileName     = "example.scala"
+    val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
+    TestInputs(os.rel / sourceFileName ->
+      s"""//> using scala $sv
+         |//> using options ${warningConfOptions.mkString(" ")}
+         |object WConfExample extends App {
+         |  @deprecated("This method will be removed", "1.0.0")
+         |  def oldMethod(): Unit = println("This is an old method.")
+         |  oldMethod()
+         |}
+         |""".stripMargin).fromRoot { root =>
+      val localCache = root / "local-cache"
+      val localBin   = root / "local-bin"
+      os.proc(
+        TestUtil.cs,
+        "install",
+        "--cache",
+        localCache,
+        "--install-dir",
+        localBin,
+        s"scalac:$sv"
+      ).call(cwd = root)
+      val cliRes = os.proc(TestUtil.cli, "compile", sourceFileName, "--server=false")
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(scalacRes.exitCode == cliRes.exitCode)
+      expect(scalacRes.err.trim() == cliRes.err.trim())
+    }
+  }
+
   for {
     sv <- Seq(Constants.scala212, Constants.scala213, Constants.scala3NextRc)
     code =
