@@ -1,3 +1,5 @@
+package build.project
+
 import Deps.Versions
 import mill._
 import scalalib._
