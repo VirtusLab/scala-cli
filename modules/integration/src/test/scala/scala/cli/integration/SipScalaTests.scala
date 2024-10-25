@@ -516,6 +516,52 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
   }
 
   for {
+    useDirective <- Seq(true, false)
+    if !Properties.isWin
+    optionsSource = if (useDirective) "using directive" else "command line"
+  } test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
+    val sv                 = "3.5.2"
+    val sourceFileName     = "example.scala"
+    val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
+    val maybeDirectiveString =
+      if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
+    TestInputs(os.rel / sourceFileName ->
+      s"""//> using scala $sv
+         |$maybeDirectiveString
+         |object WConfExample extends App {
+         |  @deprecated("This method will be removed", "1.0.0")
+         |  def oldMethod(): Unit = println("This is an old method.")
+         |  oldMethod()
+         |}
+         |""".stripMargin).fromRoot { root =>
+      val localCache = root / "local-cache"
+      val localBin   = root / "local-bin"
+      os.proc(
+        TestUtil.cs,
+        "install",
+        "--cache",
+        localCache,
+        "--install-dir",
+        localBin,
+        s"scalac:$sv"
+      ).call(cwd = root)
+      val cliRes =
+        os.proc(
+          TestUtil.cli,
+          "compile",
+          sourceFileName,
+          "--server=false",
+          if (useDirective) Nil else warningConfOptions
+        )
+          .call(cwd = root, check = false, stderr = os.Pipe)
+      val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(scalacRes.exitCode == cliRes.exitCode)
+      expect(cliRes.err.trim() == scalacRes.err.trim())
+    }
+  }
+
+  for {
     sv <- Seq(Constants.scala212, Constants.scala213, Constants.scala3NextRc)
     code =
       if (sv.startsWith("3")) "println(dotty.tools.dotc.config.Properties.simpleVersionString)"
