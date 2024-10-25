@@ -1,9 +1,11 @@
+package build.project.settings
+
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.26`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.14`
 
-import $file.deps,
-  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
-import $file.utils, utils.isArmArchitecture
+import $file.project.deps, deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+import $file.project.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule
 import de.tobiasroeser.mill.vcs.version.VcsVersion

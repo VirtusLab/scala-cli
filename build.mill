@@ -1,9 +1,14 @@
+package build
+
+import $packages._
+
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.13`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.26`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Java, Scala, TestDeps}
-import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
-import $file.project.settings, settings.{
+import build.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
+import build.project.settings
+import build.project.settings.{
   CliLaunchers,
   FormatNativeImageConf,
   HasTests,
@@ -18,8 +23,8 @@ import $file.project.settings, settings.{
   projectFileName,
   jvmPropertiesFileName
 }
-import $file.project.deps, deps.customRepositories
-import $file.project.website
+import project.deps.customRepositories
+import project.website
 
 import java.io.File
 import java.net.URL
@@ -408,7 +413,7 @@ trait Core extends ScalaCliCrossSbtModule
     val testRunnerMainClass = `test-runner`(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
-    val runnerMainClass = runner(Scala.runnerScala3)
+    val runnerMainClass = build.runner(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
     val detailedVersionValue =
@@ -438,9 +443,9 @@ trait Core extends ScalaCliCrossSbtModule
          |  def testRunnerVersion = "${`test-runner`(Scala.runnerScala3).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
          |
-         |  def runnerOrganization = "${runner(Scala.runnerScala3).pomSettings().organization}"
-         |  def runnerModuleName = "${runner(Scala.runnerScala3).artifactName()}"
-         |  def runnerVersion = "${runner(Scala.runnerScala3).publishVersion()}"
+         |  def runnerOrganization = "${build.runner(Scala.runnerScala3).pomSettings().organization}"
+         |  def runnerModuleName = "${build.runner(Scala.runnerScala3).artifactName()}"
+         |  def runnerVersion = "${build.runner(Scala.runnerScala3).publishVersion()}"
          |  def runnerMainClass = "$runnerMainClass"
          |
          |  def semanticDbPluginOrganization = "${Deps.semanticDbScalac.dep.module.organization
