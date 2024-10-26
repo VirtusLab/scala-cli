@@ -94,7 +94,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill          = os.read(os.pwd / ".mill-version").trim
+    def mill          = _root_.mill.main.BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
