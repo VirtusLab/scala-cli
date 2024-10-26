@@ -20,7 +20,7 @@ lazy val (ghOrg, ghName) = {
     val repos = {
       var git: Git = null
       try {
-        git = Git.open(os.Path(sys.env("MILL_TEST_RESOURCE_DIR")).toIO)
+        git = Git.open(os.pwd.toIO)
         git.remoteList().call().asScala.toVector
       }
       finally
