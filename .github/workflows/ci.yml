@@ -1551,7 +1551,7 @@ jobs:
     - name: Java Home
       run: echo "$JAVA_HOME"
     - name: Build Scala CLI
-      run: ./mill copyJvmLauncher build
+      run: ./mill copyJvmLauncher --directory build
     - name: Build Benchmark
       run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark
