@@ -939,7 +939,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
       mainClass = `scala3-graal-processor`(crossScalaVersion).finalMainClass(),
       classPath = `scala3-graal-processor`(crossScalaVersion).runClasspath().map(_.path),
       mainArgs = Seq(cache.toNIO.toString, classpath),
-      workingDir = T.workspace
+      workingDir = T.workspace,
+      streamOut = false
     )
     val cp = res.out.trim()
     cp.split(File.pathSeparator).toSeq.map(p => PathRef(os.Path(p)))
