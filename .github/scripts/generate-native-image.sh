@@ -42,7 +42,7 @@ else
     esac
   fi
 
-  ./mill -i "$COMMAND" generate-native-image.sh ""
+  ./mill -i "$COMMAND" --scriptDest generate-native-image.sh --imageDest ""
   bash ./generate-native-image.sh
   "${CLEANUP[@]}"
 fi
