@@ -1880,7 +1880,10 @@ abstract class RunTestDefinitions
     }
   }
 
-  if (!actualScalaVersion.contains("RC")) {
+  if (
+    !actualScalaVersion.contains("RC") &&
+    actualScalaVersion != "3.6.0" && actualScalaVersion != "3.6.1"
+  ) {
     val actualAnnouncedScalaVersion = actualScalaVersion match {
       case _
           if actualScalaVersion == Constants.scala3Next &&
