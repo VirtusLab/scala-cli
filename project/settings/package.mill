@@ -188,7 +188,7 @@ trait CliLaunchers extends SbtModule { self =>
 
     private def staticLibDirName = "native-libs"
 
-    private def copyCsjniutilTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = T.task {
+    private def copyCsjniutilTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = {
       val jniUtilsVersion = Deps.jniUtils.dep.version
       val libRes = os.proc(
         cs,
