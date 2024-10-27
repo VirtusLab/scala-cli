@@ -12,10 +12,12 @@ object TestUtil {
   abstract class ScalaCliBuildSuite extends munit.FunSuite {
     extension (munitContext: BeforeEach | AfterEach) {
       def locationAbsolutePath: os.Path =
-        (munitContext match {
-          case beforeEach: BeforeEach => beforeEach.test
-          case afterEach: AfterEach   => afterEach.test
-        }).location.path
+        os.Path {
+          (munitContext match {
+            case beforeEach: BeforeEach => beforeEach.test
+            case afterEach: AfterEach   => afterEach.test
+          }).location.path
+        }
     }
     override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
     val testStartEndLogger = new Fixture[Unit]("files") {
