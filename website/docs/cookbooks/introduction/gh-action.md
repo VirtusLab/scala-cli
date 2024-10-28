@@ -64,8 +64,8 @@ jobs:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
-    - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@v0.1
+    - uses: coursier/cache-action@v6.4
+    - uses: VirtusLab/scala-cli-setup@v1.5
     - run: scala-cli test .
 ```
 
@@ -79,11 +79,11 @@ To check your code format in GitHub CI by adding new job `format`:
   format:
     runs-on: "ubuntu-latest"
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    - uses: coursier/cache-action@v6.3
-    - uses: VirtusLab/scala-cli-setup@v0.1
+    - uses: coursier/cache-action@v6.4
+    - uses: VirtusLab/scala-cli-setup@v1.5
     - name: Scalafmt check
       run: |
         scala-cli fmt --check . || (
