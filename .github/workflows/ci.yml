@@ -1050,7 +1050,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh mostly-static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyMostlyStaticLauncher artifacts/
+      run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: mostly-static-launchers

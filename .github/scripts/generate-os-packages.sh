@@ -89,7 +89,7 @@ generate_msi() {
 
   # Having the MSI automatically install Visual C++ redistributable when needed,
   # see https://wixtoolset.org/documentation/manual/v3/howtos/redistributables_and_install_checks/install_vcredist.html
-  "$mill" -i ci.writeWixConfigExtra wix-visual-cpp-redist.xml
+  "$mill" -i ci.writeWixConfigExtra --dest wix-visual-cpp-redist.xml
 
   packager \
     --msi \
