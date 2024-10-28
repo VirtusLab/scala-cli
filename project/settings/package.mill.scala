@@ -4,7 +4,8 @@ import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.28`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.14`
 
-import $file.project.deps, deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+import $file.project.deps,
+  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
 import $file.project.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule

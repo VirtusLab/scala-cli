@@ -1944,7 +1944,9 @@ object ci extends Module {
   }
 
   def checkScalaVersions() = T.command {
-    website.checkMainScalaVersions(T.workspace / "website" / "docs" / "reference" / "scala-versions.md")
+    website.checkMainScalaVersions(
+      T.workspace / "website" / "docs" / "reference" / "scala-versions.md"
+    )
     website.checkScalaJsVersions(
       T.workspace / "website" / "docs" / "guides" / "advanced" / "scala-js.md"
     )
