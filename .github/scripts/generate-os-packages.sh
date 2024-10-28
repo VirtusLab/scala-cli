@@ -34,12 +34,12 @@ launcher() {
     launcherName="scala"
   fi
 
-  "$mill" -i copyTo "$launcherMillCommand" "$launcherName" 1>&2
+  "$mill" -i copyTo --task "$launcherMillCommand" --dest "$launcherName" 1>&2
   echo "$launcherName"
 }
 
 version() {
-  "$mill" -i writePackageVersionTo scala-cli-version 1>&2
+  "$mill" -i writePackageVersionTo --dest scala-cli-version 1>&2
   cat scala-cli-version
 }
 
