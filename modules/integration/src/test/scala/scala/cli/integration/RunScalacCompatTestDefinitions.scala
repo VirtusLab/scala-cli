@@ -7,6 +7,7 @@ import java.io.File
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
+/** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */
 trait RunScalacCompatTestDefinitions {
   _: RunTestDefinitions =>
 

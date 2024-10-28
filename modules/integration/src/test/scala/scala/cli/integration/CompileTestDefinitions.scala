@@ -10,6 +10,7 @@ abstract class CompileTestDefinitions
     extends ScalaCliSuite
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
+    with CompileScalacCompatTestDefinitions
     with SemanticDbTestDefinitions { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
