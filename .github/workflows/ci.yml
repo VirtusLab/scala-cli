@@ -1253,7 +1253,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyStaticLauncher artifacts/
+      run: ./mill -i copyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: static-launchers
