@@ -44,7 +44,7 @@ version() {
 }
 
 shortVersion() {
-  "$mill" -i writeShortPackageVersionTo scala-cli-short-version 1>&2
+  "$mill" -i writeShortPackageVersionTo --dest scala-cli-short-version 1>&2
   cat scala-cli-short-version
 }
 
