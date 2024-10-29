@@ -623,13 +623,6 @@ trait Config extends ScalaCliCrossSbtModule
   def scalacOptions = T {
     super.scalacOptions() ++ Seq("-release", "8")
   }
-
-  // Disabling Scalafix in 2.13 and 3, so that it doesn't remove
-  // some compatibility-related imports, that are actually only used
-  // in Scala 2.12.
-  def fix(args: String*) =
-    if (crossScalaVersion.startsWith("2.12.")) super.fix(args: _*)
-    else T.command(())
 }
 
 trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests

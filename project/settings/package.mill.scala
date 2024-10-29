@@ -5,7 +5,7 @@ import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.29`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.14`
 
 import $file.project.deps,
-  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion, Scala}
 import $file.project.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -785,8 +785,39 @@ trait ScalaCliScalafixModule extends ScalafixModule {
   override def semanticDbVersion = Deps.Versions.scalaMeta
 
   def scalafixConfig = T {
-    if (scalaVersion().startsWith("2.")) super.scalafixConfig()
-    else Some(T.workspace / ".scalafix3.conf")
+    if (scalaVersion().startsWith("2.12.")) {
+      val newConfigPath = T.dest / ".scalafix.conf"
+      val newConfigContent =
+        os.read(T.workspace / ".scalafix.conf").replace(
+          "targetDialect = Scala3",
+          "# targetDialect = Scala3"
+        )
+      os.write(newConfigPath, newConfigContent)
+      Some(newConfigPath)
+    }
+    else if (scalaVersion().startsWith("3.")) Some(T.workspace / ".scalafix3.conf")
+    else super.scalafixConfig()
+  }
+
+  // Run Scalafix only on the main Scala version of the module
+  // If the module has Scala 2.
+  override def fix(args: String*) = {
+    val allScalaVersions = this.millOuterCtx.crossValues.map(_.toString)
+
+    val mainScalaVersion =
+      if (allScalaVersions.contains(Scala.scala212)) Some(Scala.scala212)
+      else if (allScalaVersions.contains(Scala.scala213)) Some(Scala.scala213)
+      else if (allScalaVersions.contains(Scala.scala3Lts)) Some(Scala.scala3Lts)
+      else None
+
+    this match {
+      case m: CrossModuleBase if mainScalaVersion.contains(m.crossScalaVersion) =>
+        super.fix(args: _*)
+      case m: CrossModuleBase =>
+        T.command(())
+      case _ =>
+        super.fix(args: _*)
+    }
   }
   def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
