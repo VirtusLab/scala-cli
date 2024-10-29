@@ -8,7 +8,7 @@ import com.virtuslab.using_directives.custom.model.{
   UsingDirectives,
   Value
 }
-import com.virtuslab.using_directives.custom.utils.ast._
+import com.virtuslab.using_directives.custom.utils.ast.*
 
 import scala.annotation.targetName
 import scala.build.errors.*

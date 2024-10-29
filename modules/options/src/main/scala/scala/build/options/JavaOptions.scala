@@ -6,7 +6,7 @@ import coursier.jvm.{JavaHome, JvmCache, JvmIndex}
 import coursier.util.Task
 import dependency.AnyDependency
 
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.OsLibc
 import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.{Os, Position, Positioned}

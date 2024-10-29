@@ -1,7 +1,7 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import com.google.gson.{Gson, JsonElement}
 
 import java.lang.Boolean as JBoolean

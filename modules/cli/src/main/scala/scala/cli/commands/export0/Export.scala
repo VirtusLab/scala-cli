@@ -11,8 +11,8 @@ import coursier.util.{Artifact, Task}
 import java.io.{OutputStreamWriter, PrintStream}
 import java.nio.charset.{Charset, StandardCharsets}
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internal.Constants

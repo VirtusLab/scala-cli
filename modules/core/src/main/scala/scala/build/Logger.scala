@@ -1,13 +1,13 @@
 package scala.build
 
 import bloop.rifle.BloopRifleLogger
-import org.scalajs.logging.{Logger => ScalaJsLogger, NullLogger}
+import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.{OutputStream, PrintStream}
 
 import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.build.internals.FeatureType
-import scala.scalanative.{build => sn}
+import scala.scalanative.build as sn
 
 trait Logger {
   def error(message: String): Unit

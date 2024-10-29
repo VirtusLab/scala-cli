@@ -4,8 +4,8 @@ import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.Version
 import coursier.util.Task
-import dependency._
-import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
+import dependency.*
+import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
 import java.io.{File, InputStream, OutputStream}
 

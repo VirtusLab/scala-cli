@@ -4,7 +4,7 @@ package scala.build.internal
 // bars on screen
 
 import coursier.cache.internal.ConsoleDim
-import coursier.cache.loggers._
+import coursier.cache.loggers.*
 
 import java.io.Writer
 import java.sql.Timestamp

@@ -1,12 +1,12 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
-import java.util.concurrent.{CompletableFuture, TimeUnit}
 import java.util as ju
+import java.util.concurrent.{CompletableFuture, TimeUnit}
 
 import scala.build.Logger
 import scala.build.internal.Constants

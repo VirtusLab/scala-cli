@@ -3,7 +3,7 @@ package scala.cli.commands.pgp
 import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
 
-import scala.cli.signing.commands.{PgpVerify => OriginalPgpVerify, PgpVerifyOptions}
+import scala.cli.signing.commands.{PgpVerify as OriginalPgpVerify, PgpVerifyOptions}
 
 object PgpVerify extends PgpCommand[PgpVerifyOptions] {
   override def names = PgpCommandNames.pgpVerify

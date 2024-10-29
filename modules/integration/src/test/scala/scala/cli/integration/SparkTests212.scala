@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import java.io.File
 import java.util.Locale
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 class SparkTests212 extends SparkTestDefinitions with Test212 {

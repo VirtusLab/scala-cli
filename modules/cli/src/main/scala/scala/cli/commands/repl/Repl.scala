@@ -10,8 +10,8 @@ import dependency.*
 import java.io.File
 import java.util.zip.ZipFile
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.{
   BuildException,
   CantDownloadAmmoniteError,

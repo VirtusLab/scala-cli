@@ -1,7 +1,7 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 

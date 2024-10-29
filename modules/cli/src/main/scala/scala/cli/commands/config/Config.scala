@@ -12,7 +12,7 @@ import scala.build.{Directories, Logger}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.config._
+import scala.cli.config.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
 object Config extends ScalaCommand[ConfigOptions] {

@@ -11,7 +11,7 @@ import scala.build.errors.{
   MalformedInputError,
   ModuleFormatError
 }
-import scala.build.options._
+import scala.build.options.*
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel

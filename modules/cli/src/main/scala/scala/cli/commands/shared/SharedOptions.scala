@@ -17,9 +17,9 @@ import java.io.{File, InputStream}
 import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
-import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
@@ -29,12 +29,12 @@ import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
+import scala.build.options as bo
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
 import scala.build.preprocessing.directives.{Python, Toolkit}
-import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{

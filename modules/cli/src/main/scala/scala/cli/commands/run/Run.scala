@@ -9,8 +9,8 @@ import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}

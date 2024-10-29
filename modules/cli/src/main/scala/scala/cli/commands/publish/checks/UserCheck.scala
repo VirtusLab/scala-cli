@@ -5,8 +5,8 @@ import java.net.URI
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
-import scala.cli.commands.publish.ConfigUtil._
+import scala.build.options.PublishOptions as BPublishOptions
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, RepoParams, SetSecret}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError

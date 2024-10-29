@@ -1,13 +1,13 @@
 package scala.build.options
 
-import _root_.bloop.config.{Config => BloopConfig}
-import dependency._
+import _root_.bloop.config.Config as BloopConfig
+import dependency.*
 
 import java.nio.file.Paths
 
 import scala.build.internal.Constants
+import scala.scalanative.build as sn
 import scala.scalanative.build.LTO
-import scala.scalanative.{build => sn}
 
 enum ScalaNativeTarget:
   case Application, LibraryDynamic, LibraryStatic

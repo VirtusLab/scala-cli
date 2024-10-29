@@ -1,6 +1,6 @@
 package scala.build
 
-import coursier.core.{Dependency => CDependency, Module}
+import coursier.core.{Dependency as CDependency, Module}
 import coursier.parse.{DependencyParser, ModuleParser}
 import dependency.{DependencyLike, NameAttributes}
 
