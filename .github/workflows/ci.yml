@@ -822,7 +822,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: windows-launchers
