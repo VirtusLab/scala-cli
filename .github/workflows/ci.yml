@@ -197,7 +197,7 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: linux-launchers
@@ -413,7 +413,7 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v3
       with:
         name: macos-launchers
@@ -616,7 +616,7 @@ jobs:
         if: env.SHOULD_PUBLISH == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
-        run: ./mill -i copyDefaultLauncher artifacts/
+        run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v3
         with:
           name: macos-m1-launchers
