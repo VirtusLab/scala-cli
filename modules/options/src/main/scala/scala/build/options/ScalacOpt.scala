@@ -1,25 +1,33 @@
 package scala.build.options
 
+import scala.build.options.ScalacOpt.noDashPrefixes
+
 final case class ScalacOpt(value: String) {
 
   /** @return raw key for the option (if valid) */
   private[options] def key: Option[String] =
-    if value.startsWith("-") then Some(value.takeWhile(_ != ':'))
+    if value.startsWith("-") || value.startsWith("--") then Some(value.takeWhile(_ != ':'))
     else Some("@").filter(value.startsWith)
 
   /** @return raw key for the option (only if the key can be shadowed from the CLI) */
   private[options] def shadowableKey: Option[String] = key match
     case Some(key)
-        if ScalacOpt.repeatingKeys.exists(rKey => rKey.startsWith(key + ":") || rKey == key) => None
+        if ScalacOpt.repeatingKeys
+          .exists(rKey =>
+            rKey.startsWith(key.noDashPrefixes + ":") || rKey == key.noDashPrefixes
+          ) => None
     case otherwise => otherwise
 }
 
 object ScalacOpt {
+  extension (opt: String) {
+    def noDashPrefixes: String = opt.stripPrefix("--").stripPrefix("-")
+  }
   private val repeatingKeys = Set(
-    "-Xplugin",
-    "-P", // plugin options
-    "-language",
-    "-Wconf"
+    "Xplugin",
+    "P", // plugin options
+    "language",
+    "Wconf"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {
@@ -32,12 +40,12 @@ object ScalacOpt {
       seq => groupCliOptions(seq.map(_.value))
     )
 
-  // Groups options (starting with `-` or `@`) with option arguments that follow
+  // Groups options (starting with `-`, `--` or `@`) with option arguments that follow
   def groupCliOptions(opts: Seq[String]): Seq[Int] =
     opts
       .zipWithIndex
       .collect {
-        case (opt, idx) if opt.startsWith("-") || opt.startsWith("@") =>
+        case (opt, idx) if opt.startsWith("-") || opt.startsWith("--") || opt.startsWith("@") =>
           idx
       }
 

@@ -40,15 +40,26 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     for {
       mode <- modes
       if actualScalaVersion == Constants.scala3Next
+      dashPrefix <- Seq("-", "--")
       syntaxVariant <- Seq(
-        Seq(Seq("-color:never"), Seq("-language:noAutoTupling"), Seq("-language:strictEquality")),
         Seq(
-          Seq("-color", "never"),
-          Seq("-language", "noAutoTupling"),
-          Seq("-language", "strictEquality")
+          Seq(s"${dashPrefix}color:never"),
+          Seq(s"${dashPrefix}language:noAutoTupling"),
+          Seq(s"${dashPrefix}language:strictEquality")
         ),
-        Seq(Seq("-color:never"), Seq("\"-language:noAutoTupling,strictEquality\"")),
-        Seq(Seq("-color", "never"), Seq("-language", "\"noAutoTupling,strictEquality\""))
+        Seq(
+          Seq(s"${dashPrefix}color", "never"),
+          Seq(s"${dashPrefix}language", "noAutoTupling"),
+          Seq(s"${dashPrefix}language", "strictEquality")
+        ),
+        Seq(
+          Seq(s"${dashPrefix}color:never"),
+          Seq(s"\"${dashPrefix}language:noAutoTupling,strictEquality\"")
+        ),
+        Seq(
+          Seq(s"${dashPrefix}color", "never"),
+          Seq(s"${dashPrefix}language", "\"noAutoTupling,strictEquality\"")
+        )
       )
       (cliOpts, directiveOpts) = {
         val (initialCliOpts, initialDirectiveOpts) = mode match {
