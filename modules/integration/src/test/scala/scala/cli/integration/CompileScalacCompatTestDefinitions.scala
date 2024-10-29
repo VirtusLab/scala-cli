@@ -31,6 +31,78 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
       }
     }
 
+  // Given the vast number of ways compiler options can be passed from the CLI,
+  // we test them all (or most, at the very least), as a (perhaps overkill) sanity check.
+  // Pieces of the existing `-language:*` test are reused, but kept separate for clarity.
+  {
+    val modes @ Seq(viaDirective, viaCli, viaCliWithExplicitOpt, mixed, mixedWithExplicitOpt) =
+      Seq("directive", "cli", "cli with -O", "mixed", "mixed with -O")
+    for {
+      mode <- modes
+      if actualScalaVersion == Constants.scala3Next
+      syntaxVariant <- Seq(
+        Seq(Seq("-color:never"), Seq("-language:noAutoTupling"), Seq("-language:strictEquality")),
+        Seq(
+          Seq("-color", "never"),
+          Seq("-language", "noAutoTupling"),
+          Seq("-language", "strictEquality")
+        ),
+        Seq(Seq("-color:never"), Seq("\"-language:noAutoTupling,strictEquality\"")),
+        Seq(Seq("-color", "never"), Seq("-language", "\"noAutoTupling,strictEquality\""))
+      )
+      (cliOpts, directiveOpts) = {
+        val (initialCliOpts, initialDirectiveOpts) = mode match {
+          case m if m == mixed => syntaxVariant.splitAt(syntaxVariant.length - 1)
+          case m if m == mixedWithExplicitOpt =>
+            val (initialCliOpts, initialDirectiveOpts) =
+              syntaxVariant.splitAt(syntaxVariant.length - 1)
+            initialCliOpts.map(_.flatMap(o => Seq("-O", o))) -> initialDirectiveOpts
+          case c if c == viaCli => syntaxVariant -> Nil
+          case c if c == viaCliWithExplicitOpt =>
+            syntaxVariant.map(_.flatMap(o => Seq("-O", o))) -> Nil
+          case _ => Nil -> syntaxVariant
+        }
+        initialCliOpts.flatten.map(_.filter(_ != '"')) -> initialDirectiveOpts.flatten
+      }
+      cliOptsString       = cliOpts.mkString(" ")
+      directiveOptsString = directiveOpts.mkString(" ")
+      includeDirective =
+        (mode == viaDirective || mode == mixed || mode == mixedWithExplicitOpt) && directiveOpts.nonEmpty
+      directiveString = if (includeDirective) s"//> using options $directiveOptsString" else ""
+      allOptsString = mode match {
+        case m if m.startsWith(mixed) =>
+          s"opts passed via command line: $cliOptsString, opts passed via directive: $directiveString"
+        case c if c.startsWith(viaCli) =>
+          s"opts passed via command line: $cliOptsString"
+        case _ =>
+          s"opts passed via directive: $directiveString"
+      }
+    } test(s"compiler options passed in $mode mode: $allOptsString") {
+      val sourceFileName = "example.scala"
+      TestInputs(os.rel / sourceFileName ->
+        s"""//> using scala $actualScalaVersion
+           |$directiveString
+           |case class Cat(name: String)
+           |case class Dog(name: String)
+           |def strictEquality(c: Cat, d: Dog):Boolean = c == d
+           |def takesTuple(tpl: Tuple) = ???
+           |def withTuple() = takesTuple(1, 2)
+           |""".stripMargin).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "compile", sourceFileName, cliOpts)
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        println(res.err.trim())
+        expect(res.exitCode == 1)
+        val errOutput = res.err.trim()
+        val expectedStrictEqualityError =
+          "Values of types Cat and Dog cannot be compared with == or !="
+        expect(errOutput.contains(expectedStrictEqualityError))
+        val expectedNoAutoTuplingError =
+          "too many arguments for method takesTuple: (tpl: Tuple): Nothing"
+        expect(errOutput.trim().contains(expectedNoAutoTuplingError))
+      }
+    }
+  }
+
   for {
     useDirective <- Seq(true, false)
     if !Properties.isWin

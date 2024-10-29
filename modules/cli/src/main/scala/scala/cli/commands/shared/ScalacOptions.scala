@@ -41,9 +41,19 @@ object ScalacOptions {
   private val scalacOptionsPurePrefixes =
     Set("-V", "-W", "-X", "-Y")
   private val scalacOptionsPrefixes =
-    Set("-g", "-language", "-opt", "-P", "-target", "-source") ++ scalacOptionsPurePrefixes
+    Set("-P") ++ scalacOptionsPurePrefixes
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
-    Set("-encoding", "-release", "-color", YScriptRunnerOption)
+    Set(
+      "-encoding",
+      "-release",
+      "-color",
+      "-g",
+      "-language",
+      "-opt",
+      "-target",
+      "-source",
+      YScriptRunnerOption
+    )
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
       "-unchecked",
@@ -104,6 +114,9 @@ object ScalacOptions {
             Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
           case h :: t if scalacNoArgAliasedOptions.contains(h) =>
             Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
+          case h :: t
+              if scalacAliasedOptions.exists(o => h.startsWith(o + ":")) &&
+              h.count(_ == ':') == 1 => Right(Some((Some(acc.getOrElse(Nil) :+ h), t)))
           case h :: t if scalacAliasedOptions.contains(h) =>
             // check if the next scalac arg is a different option or a param to the current option
             val maybeOptionArg = t.headOption.filter(!_.startsWith("-"))
