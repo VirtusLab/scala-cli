@@ -1,6 +1,6 @@
 package build.project.settings
 
-import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`com.goyeau::mill-scalafix::0.4.2`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.29`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.14`
 
