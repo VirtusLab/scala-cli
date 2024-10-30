@@ -394,6 +394,8 @@ Add Scala.js options
 
 `//> using jsEmitSourceMaps` _true|false_
 
+`//> using jsEmitWasm` _true|false_
+
 `//> using jsDom` _true|false_
 
 `//> using jsHeader` _value_
