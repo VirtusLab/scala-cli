@@ -1306,7 +1306,7 @@ def writeShortPackageVersionTo(dest: String) = T.command {
 
 def importedLauncher(workspace: os.Path, directory: String = "artifacts"): Array[Byte] = {
   val ext  = if (Properties.isWin) ".zip" else ".gz"
-  val from = workspace / directory / s"scala-cli-${Upload.platformSuffix}$ext"
+  val from = os.Path(directory, workspace) / s"scala-cli-${Upload.platformSuffix}$ext"
   System.err.println(s"Importing launcher from $from")
   if (!os.exists(from))
     sys.error(s"$from not found")
