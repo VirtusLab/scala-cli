@@ -43,6 +43,8 @@ import scala.util.Try
     |`//> using jsModuleSplitStyleStr` _value_
     |
     |`//> using jsEsVersionStr` _value_
+    |    
+    |`//> using jsEmitWasm` _true|false_
     |
     |`//> using jsEsModuleImportMap` _value_
     |""".stripMargin
@@ -65,7 +67,8 @@ final case class ScalaJs(
   jsAvoidClasses: Option[Boolean] = None,
   jsAvoidLetsAndConsts: Option[Boolean] = None,
   jsModuleSplitStyleStr: Option[String] = None,
-  jsEsVersionStr: Option[String] = None
+  jsEsVersionStr: Option[String] = None,
+  jsEmitWasm: Option[Boolean] = None
 ) extends HasBuildOptions {
   // format: on
   def buildOptions: Either[BuildException, BuildOptions] =
@@ -83,7 +86,8 @@ final case class ScalaJs(
       avoidLetsAndConsts = jsAvoidLetsAndConsts,
       moduleSplitStyleStr = jsModuleSplitStyleStr,
       esVersionStr = jsEsVersionStr,
-      noOpt = jsNoOpt
+      noOpt = jsNoOpt,
+      jsEmitWasm = jsEmitWasm.getOrElse(false)
     )
 
     def absFilePath(pathStr: String): Either[ImportMapNotFound, Path] =

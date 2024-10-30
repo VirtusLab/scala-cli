@@ -11,7 +11,8 @@ final case class ScalaJsLinkerConfig(
   jsHeader: Option[String] = None,
   prettyPrint: Boolean = false,
   relativizeSourceMapBase: Option[String] = None,
-  remapEsModuleImportMap: Option[os.Path] = None
+  remapEsModuleImportMap: Option[os.Path] = None,
+  emitWasm: Boolean = false
 ) {
   def linkerCliArgs: Seq[String] = {
     val moduleKindArgs       = Seq("--moduleKind", moduleKind)
@@ -34,6 +35,7 @@ final case class ScalaJsLinkerConfig(
     val jsEsModuleImportMap = if (remapEsModuleImportMap.nonEmpty)
       Seq("--importmap", remapEsModuleImportMap.getOrElse(os.pwd / "importmap.json").toString)
     else Nil
+    val jsEmitWasm = if (emitWasm) Seq("--emitWasm") else Nil
 
     val configArgs = Seq[os.Shellable](
       moduleKindArgs,
@@ -45,7 +47,8 @@ final case class ScalaJsLinkerConfig(
       relativizeSourceMapBaseArgs,
       jsHeaderArg,
       prettyPrintArgs,
-      jsEsModuleImportMap
+      jsEsModuleImportMap,
+      jsEmitWasm
     )
 
     configArgs.flatMap(_.value)

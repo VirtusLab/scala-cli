@@ -251,7 +251,8 @@ final case class SharedOptions(
       smallModuleForPackage = jsSmallModuleForPackage,
       esVersionStr = jsEsVersion,
       noOpt = jsNoOpt,
-      remapEsModuleImportMap = jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd))
+      remapEsModuleImportMap = jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
+      jsEmitWasm = jsEmitWasm
     )
   }
 

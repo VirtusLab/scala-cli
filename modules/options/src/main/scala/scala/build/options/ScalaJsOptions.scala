@@ -25,7 +25,8 @@ final case class ScalaJsOptions(
   moduleSplitStyleStr: Option[String] = None,
   smallModuleForPackage: List[String] = Nil,
   esVersionStr: Option[String] = None,
-  noOpt: Option[Boolean] = None
+  noOpt: Option[Boolean] = None,
+  jsEmitWasm: Boolean = false
 ) {
   def fullOpt: Either[UnrecognizedJsOptModeError, Boolean] =
     if (mode.isValid)
@@ -150,7 +151,8 @@ final case class ScalaJsOptions(
       smallModuleForPackage = smallModuleForPackage,
       esFeatures = esFeatures,
       jsHeader = header,
-      remapEsModuleImportMap = remapEsModuleImportMap
+      remapEsModuleImportMap = remapEsModuleImportMap,
+      emitWasm = jsEmitWasm
     )
   }
 }
