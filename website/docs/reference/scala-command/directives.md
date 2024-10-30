@@ -269,8 +269,6 @@ Add Scala.js options
 
 `//> using jsEmitSourceMaps` _true|false_
 
-`//> using jsEmitWasm` _true|false_
-
 `//> using jsDom` _true|false_
 
 `//> using jsHeader` _value_
@@ -284,6 +282,8 @@ Add Scala.js options
 `//> using jsModuleSplitStyleStr` _value_
 
 `//> using jsEsVersionStr` _value_
+    
+`//> using jsEmitWasm` _true|false_
 
 `//> using jsEsModuleImportMap` _value_
 

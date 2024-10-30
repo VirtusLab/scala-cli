@@ -1310,10 +1310,6 @@ The Scala.js module kind: commonjs/common, esmodule/es, nomodule/none
 
 Emit source maps
 
-### `--js-emit-wasm`
-
-Experimental (!): Use the webassembly (WASM) backend of the scala JS linker. 
-
 ### `--js-source-maps-path`
 
 Set the destination path of source maps
@@ -1325,6 +1321,10 @@ A file relative to the root directory containing import maps for ES module impor
 ### `--js-dom`
 
 Enable jsdom
+
+### `--js-emit-wasm`
+
+Experimental: emit WASM
 
 ### `--js-header`
 
