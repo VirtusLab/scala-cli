@@ -51,8 +51,6 @@ final case class PackageOptions(
   @Name("sourcesJar")
   @Name("jarSources")
   @Name("sources")
-  @Name("source")
-  @Tag(tags.deprecated("source")) // alias to be removed in 1.6.x
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
     src: Boolean = false,

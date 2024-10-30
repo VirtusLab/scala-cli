@@ -859,16 +859,11 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("source JAR") {
     val dest = os.rel / "sources.jar"
     simpleInputWithScalaAndSc.fromRoot { root =>
-      val r =
-        os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--source").call(
-          cwd = root,
-          stdin = os.Inherit,
-          stdout = os.Inherit,
-          stderr = os.Pipe
-        )
-      expect(r.err.trim().contains(
-        "The --source option alias has been deprecated and may be removed in a future version"
-      ))
+      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--src").call(
+        cwd = root,
+        stdin = os.Inherit,
+        stdout = os.Inherit
+      )
 
       expect(os.isFile(root / dest))
 
