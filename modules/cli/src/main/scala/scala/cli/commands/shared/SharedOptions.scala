@@ -252,7 +252,7 @@ final case class SharedOptions(
       esVersionStr = jsEsVersion,
       noOpt = jsNoOpt,
       remapEsModuleImportMap = jsEsModuleImportMap.filter(_.trim.nonEmpty).map(os.Path(_, Os.pwd)),
-      jsEmitWasm = jsEmitWasm
+      jsEmitWasm = jsEmitWasm.getOrElse(false)
     )
   }
 
