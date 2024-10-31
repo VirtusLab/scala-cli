@@ -24,6 +24,7 @@ object ScalacOpt {
     def noDashPrefixes: String = opt.stripPrefix("--").stripPrefix("-")
   }
   private val repeatingKeys = Set(
+    "Xmacro-settings",
     "Xplugin",
     "P", // plugin options
     "language",
