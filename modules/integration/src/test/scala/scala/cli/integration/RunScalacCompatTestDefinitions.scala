@@ -597,10 +597,9 @@ trait RunScalacCompatTestDefinitions {
           TestUtil.cli,
           "run",
           ".",
-          "-O",
-          "-experimental",
           if (useDirective) Nil else macroSettingOptions,
-          extraOptions
+          extraOptions,
+          "-experimental"
         )
           .call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim() == macroSettings.mkString(", "))

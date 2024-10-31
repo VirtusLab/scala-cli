@@ -64,6 +64,8 @@ object ScalacOptions {
     )
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
+      "experimental",
+      "explain",
       "unchecked",
       "nowarn",
       "feature",
