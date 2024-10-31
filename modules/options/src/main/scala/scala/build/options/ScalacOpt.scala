@@ -27,7 +27,8 @@ object ScalacOpt {
     "Xplugin",
     "P", // plugin options
     "language",
-    "Wconf"
+    "Wconf",
+    "Wunused"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {

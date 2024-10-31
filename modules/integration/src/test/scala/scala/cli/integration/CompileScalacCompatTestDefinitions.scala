@@ -118,57 +118,91 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     useDirective <- Seq(true, false)
     if !Properties.isWin
     optionsSource = if (useDirective) "using directive" else "command line"
-  } test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
-    val sv                 = actualScalaVersion
-    val sourceFileName     = "example.scala"
-    val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
-    val maybeDirectiveString =
-      if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
-    TestInputs(os.rel / sourceFileName ->
-      s"""//> using scala $sv
-         |$maybeDirectiveString
-         |object WConfExample extends App {
-         |  @deprecated("This method will be removed", "1.0.0")
-         |  def oldMethod(): Unit = println("This is an old method.")
-         |  oldMethod()
-         |}
-         |""".stripMargin).fromRoot { root =>
-      val localBin = root / "local-bin"
-      os.proc(
-        TestUtil.cs,
-        "install",
-        "--install-dir",
-        localBin,
-        s"scalac:$sv"
-      ).call(cwd = root)
-      val cliRes =
+    sv            = actualScalaVersion
+  } {
+    test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
+      val sourceFileName     = "example.scala"
+      val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
+      val maybeDirectiveString =
+        if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
+      TestInputs(os.rel / sourceFileName ->
+        s"""//> using scala $sv
+           |$maybeDirectiveString
+           |object WConfExample extends App {
+           |  @deprecated("This method will be removed", "1.0.0")
+           |  def oldMethod(): Unit = println("This is an old method.")
+           |  oldMethod()
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val localBin = root / "local-bin"
         os.proc(
-          TestUtil.cli,
-          "compile",
-          sourceFileName,
-          "--server=false",
-          if (useDirective) Nil else warningConfOptions
-        )
-          .call(cwd = root, check = false, stderr = os.Pipe)
-      val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
-        .call(cwd = root, check = false, stderr = os.Pipe)
-      expect(scalacRes.exitCode == cliRes.exitCode)
-      val scalacResErr = scalacRes.err.trim()
-      if (sv != Constants.scala3Lts) {
-        // TODO run this check for LTS when -Wconf gets fixed there
-        val cliResErr =
-          cliRes.err.trim().linesIterator.toList
-            // skip potentially irrelevant logs
-            .dropWhile(_.contains("Check"))
-            .mkString(System.lineSeparator())
-        expect(cliResErr == scalacResErr)
-      }
-      else expect(
-        TestUtil.removeAnsiColors(cliRes.err.trim())
-          .contains(
-            "method oldMethod in object WConfExample is deprecated since 1.0.0: This method will be removed"
+          TestUtil.cs,
+          "install",
+          "--install-dir",
+          localBin,
+          s"scalac:$sv"
+        ).call(cwd = root)
+        val cliRes =
+          os.proc(
+            TestUtil.cli,
+            "compile",
+            sourceFileName,
+            "--server=false",
+            if (useDirective) Nil else warningConfOptions
           )
-      )
+            .call(cwd = root, check = false, stderr = os.Pipe)
+        val scalacRes = os.proc(localBin / "scalac", warningConfOptions, sourceFileName)
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(scalacRes.exitCode == cliRes.exitCode)
+        val scalacResErr = scalacRes.err.trim()
+        if (sv != Constants.scala3Lts) {
+          // TODO run this check for LTS when -Wconf gets fixed there
+          val cliResErr =
+            cliRes.err.trim().linesIterator.toList
+              // skip potentially irrelevant logs
+              .dropWhile(_.contains("Check"))
+              .mkString(System.lineSeparator())
+          expect(cliResErr == scalacResErr)
+        }
+        else expect(
+          TestUtil.removeAnsiColors(cliRes.err.trim())
+            .contains(
+              "method oldMethod in object WConfExample is deprecated since 1.0.0: This method will be removed"
+            )
+        )
+      }
     }
+
+    if (!sv.startsWith("2.12"))
+      test(s"consecutive -Wunused:* flags are not ignored (passed via $optionsSource)") {
+        val sourceFileName    = "example.scala"
+        val unusedLintOptions = Seq("-Wunused:locals", "-Wunused:privates")
+        val maybeDirectiveString =
+          if (useDirective) s"//> using options ${unusedLintOptions.mkString(" ")}" else ""
+        TestInputs(os.rel / sourceFileName ->
+          s"""//> using scala $sv
+             |$maybeDirectiveString
+             |object WUnusedExample {
+             |  private def unusedPrivate(): String = "stuff"
+             |  def methodWithUnusedLocal() = {
+             |    val smth = "hello"
+             |    println("Hello")
+             |  }
+             |}
+             |""".stripMargin).fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "compile",
+              sourceFileName,
+              if (useDirective) Nil else unusedLintOptions
+            )
+              .call(cwd = root, stderr = os.Pipe)
+          val err           = r.err.trim()
+          val unusedKeyword = if (sv.startsWith("2")) "never used" else "unused"
+          expect(err.linesIterator.exists(l => l.contains(unusedKeyword) && l.contains("local")))
+          expect(err.linesIterator.exists(l => l.contains(unusedKeyword) && l.contains("private")))
+        }
+      }
   }
 }
