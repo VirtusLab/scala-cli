@@ -24,12 +24,20 @@ object ScalacOpt {
     def noDashPrefixes: String = opt.stripPrefix("--").stripPrefix("-")
   }
   private val repeatingKeys = Set(
+    "coverage-exclude-classlikes",
+    "coverage-exclude-files",
+    "language",
+    "P", // plugin options
+    "Wconf",
+    "Wunused",
+    "Wshadow",
+    "Xlint",
     "Xmacro-settings",
     "Xplugin",
-    "P", // plugin options
-    "language",
-    "Wconf",
-    "Wunused"
+    "Xplugin-disable",
+    "Xplugin-require",
+    "Yimports",
+    "Yfrom-tasty-ignore-list"
   )
 
   implicit val hashedType: HashedType[ScalacOpt] = {

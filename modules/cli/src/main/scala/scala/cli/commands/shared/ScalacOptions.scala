@@ -50,6 +50,8 @@ object ScalacOptions {
   private val scalacOptionsPrefixes     = Set("P") ++ scalacOptionsPurePrefixes
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set(
+      "coverage-exclude-classlikes",
+      "coverage-exclude-files",
       "encoding",
       "release",
       "color",
