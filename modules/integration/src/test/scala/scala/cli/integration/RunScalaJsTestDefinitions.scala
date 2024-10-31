@@ -291,7 +291,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  test("Emit Wasm".only) {
+  test("Emit Wasm") {
     val outDir = "out"
 
     val inputs = TestInputs(
