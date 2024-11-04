@@ -61,7 +61,7 @@ final case class ScalaJsOptions(
 
   @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.experimental)
-  @HelpMessage("Experimental: emit WASM")
+  @HelpMessage("Emit WASM")
     jsEmitWasm: Option[Boolean] = None,
 
   @Group(HelpGroup.ScalaJs.toString)

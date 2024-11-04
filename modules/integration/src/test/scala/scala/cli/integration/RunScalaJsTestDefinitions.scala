@@ -324,14 +324,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         .call(cwd = root).out.trim()
       expect(os.exists(absOutDir / "main.wasm"))
 
-      // This would require node 22. As it's tested in the scala-cli-js repo, I'm going to claim that is isn't necessary here.
-      // os.proc("node", "--experimental-wasm-exnref", "main.js").call(
-      //   cwd = root / outDir,
-      //   check = true,
-      //   stdin = os.Inherit,
-      //   stdout = os.Inherit,
-      //   stderr = os.Inherit
-      // )
+      // TODO : Run WASM using node. Requires node 22.
     }
   }
 
