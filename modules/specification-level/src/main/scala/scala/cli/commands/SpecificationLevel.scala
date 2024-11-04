@@ -58,6 +58,8 @@ object SpecificationLevel {
 }
 
 object tags {
+  val valueSeparator: String = ":" // separates values in a tag
+
   // specification level tags
   val experimental: String   = SpecificationLevel.EXPERIMENTAL.toString
   val restricted: String     = SpecificationLevel.RESTRICTED.toString
@@ -68,7 +70,10 @@ object tags {
   // other tags
   // the `inShortHelp` tag whitelists options to be included in --help
   // this is in contrast to blacklisting options in --help with the @Hidden annotation
-  val inShortHelp: String = "inShortHelp" // included in --help by default
+  val inShortHelp: String      = "inShortHelp" // included in --help by default
+  val deprecatedPrefix: String = "deprecated"
+  def deprecated(name: String): String =
+    s"$deprecatedPrefix$valueSeparator$name" // produces a deprecated warning for the given name
 
   def levelFor(name: String): Option[SpecificationLevel] = name match {
     case `experimental`   => Some(SpecificationLevel.EXPERIMENTAL)
