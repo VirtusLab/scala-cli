@@ -1324,7 +1324,7 @@ Enable jsdom
 
 ### `--js-emit-wasm`
 
-Experimental: emit WASM
+Emit WASM
 
 ### `--js-header`
 
