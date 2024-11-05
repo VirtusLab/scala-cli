@@ -751,7 +751,7 @@ Generate a library JAR rather than an executable JAR
 
 ### `--src`
 
-Aliases: [deprecated] `--source`, `--sources`
+Aliases: `--jar-sources`, [deprecated] `--source`, `--sources`, `--sources-jar`
 
 Generate a source JAR rather than an executable JAR
 

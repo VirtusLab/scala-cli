@@ -48,6 +48,8 @@ final case class PackageOptions(
     library: Boolean = false,
   @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a source JAR rather than an executable JAR")
+  @Name("sourcesJar")
+  @Name("jarSources")
   @Name("sources")
   @Name("source")
   @Tag(tags.deprecated("source")) // alias to be removed in 1.6.x
