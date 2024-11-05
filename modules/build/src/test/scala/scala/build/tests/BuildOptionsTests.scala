@@ -17,6 +17,7 @@ import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
+  ClassPathOptions,
   InternalOptions,
   MaybeScalaVersion,
   ScalaOptions,
@@ -318,34 +319,61 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
       expect(scalaParams == expectedScalaParams)
     }
 
-  for {
-    (prefix, defaultMatchingVersion) <- Seq(
-      "2.12" -> defaultScala212Version,
-      "2.13" -> defaultScala213Version,
-      "3"    -> defaultScalaVersion
-    )
-  } {
-    val options = BuildOptions(
-      scalaOptions = ScalaOptions(
-        scalaVersion = Some(prefix).map(MaybeScalaVersion(_))
-      ),
-      internal = InternalOptions(
-        cache = Some(FileCache().withTtl(0.seconds))
+  {
+    val cache = FileCache().withTtl(0.seconds)
+    val repositories = BuildOptions(
+      internal = InternalOptions(cache = Some(cache)),
+      classPathOptions =
+        ClassPathOptions(extraRepositories = Seq(coursier.Repositories.scalaIntegration.root))
+    ).finalRepositories.orThrow
+    val allScalaVersions = ScalaVersionUtil.allMatchingVersions(None, cache, repositories)
+    for {
+      (prefix, defaultMatchingVersion, predefinedDefaultScalaVersion) <- {
+        val scala2Nightlies  = allScalaVersions.filter(ScalaVersionUtil.isScala2Nightly)
+        val latest212Nightly = scala2Nightlies.filter(_.startsWith("2.12")).maxBy(Version(_))
+        val latest213Nightly = scala2Nightlies.filter(_.startsWith("2.13")).maxBy(Version(_))
+        val latestScala3NextNightly =
+          allScalaVersions
+            .filter(ScalaVersionUtil.isScala3Nightly)
+            .filter(_.startsWith(scala3NextPrefix))
+            .maxBy(Version(_))
+        Seq(
+          ("2.12", defaultScala212Version, None),
+          ("2.12", defaultScala212Version, Some(latest212Nightly)),
+          ("2.13", defaultScala213Version, None),
+          ("2.13", defaultScala213Version, Some(latest213Nightly)),
+          ("3", defaultScalaVersion, None),
+          (scala3NextPrefix, defaultScalaVersion, None),
+          (scala3NextPrefix, defaultScalaVersion, Some(latestScala3NextNightly))
+        )
+      }
+      options = BuildOptions(
+        scalaOptions = ScalaOptions(
+          scalaVersion = Some(prefix).map(MaybeScalaVersion(_)),
+          defaultScalaVersion = predefinedDefaultScalaVersion
+        ),
+        internal = InternalOptions(
+          cache = Some(cache)
+        ),
+        classPathOptions = ClassPathOptions(
+          extraRepositories = Seq(coursier.Repositories.scalaIntegration.root)
+        )
       )
-    )
-
-    val latestMatchingVersion = ScalaVersionUtil
-      .allMatchingVersions(None, options.finalCache, options.finalRepositories.orThrow)
-      .filter(ScalaVersionUtil.isStable)
-      .filter(_.startsWith(prefix))
-      .maxBy(Version(_))
-
-    test(
-      s"-S $prefix should chose the latest version ($latestMatchingVersion), not necessarily the default ($defaultMatchingVersion)"
-    ) {
+      latestMatchingVersion = allScalaVersions
+        .filter(ScalaVersionUtil.isStable)
+        .filter(_.startsWith(prefix))
+        .maxBy(Version(_))
+      expectedVersion = predefinedDefaultScalaVersion.getOrElse(defaultMatchingVersion)
+      expectedVersionDescription =
+        if expectedVersion == defaultMatchingVersion then "default" else "overridden default"
+      launcherDefaultVersionDescription = if expectedVersion == defaultMatchingVersion then ""
+      else s"or the launcher default ($defaultMatchingVersion)"
+      testDescription =
+        s"-S $prefix should choose the $expectedVersionDescription version ($expectedVersion), not necessarily the latest stable ($latestMatchingVersion) $launcherDefaultVersionDescription"
+    } test(testDescription) {
       val scalaParams = options.scalaParams.orThrow.getOrElse(???)
 
-      val expectedScalaParams = ScalaParameters(latestMatchingVersion)
+      val expectedScalaParams = ScalaParameters(expectedVersion)
 
       expect(scalaParams == expectedScalaParams, s"expected $expectedScalaParams, got $scalaParams")
     }
