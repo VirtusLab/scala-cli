@@ -1322,6 +1322,10 @@ A file relative to the root directory containing import maps for ES module impor
 
 Enable jsdom
 
+### `--js-emit-wasm`
+
+Emit WASM
+
 ### `--js-header`
 
 A header that will be added at the top of generated .js files
