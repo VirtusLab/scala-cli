@@ -121,6 +121,7 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
             options.scalafixConf.toList.flatMap(scalafixConf => List("--config", scalafixConf)) ++
               Seq("--sourceroot", workspace.toString) ++
               Seq("--classpath", classPaths.mkString(java.io.File.pathSeparator)) ++
+              Seq("--scala-version", scalaVersion) ++
               (if (options.check) Seq("--test") else Nil) ++
               (if (scalacOptions.nonEmpty) scalacOptions.flatMap(Seq("--scalac-options", _))
                else Nil) ++
@@ -129,6 +130,8 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
                else Nil) ++
               options.rules.flatMap(Seq("-r", _))
               ++ options.scalafixArg
+
+          println(s"AAAAAAAAAAAA: ${artifacts.scalafixJars}")
 
           val proc = Runner.runJvm(
             buildOptions.javaHome().value.javaCommand,

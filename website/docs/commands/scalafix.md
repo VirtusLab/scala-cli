@@ -39,7 +39,7 @@ Read more about Scalafix:
 
 ### Using external rules
 
-Adding an [external scalafix rule]() to scala-cli might be done by declaring [`scalafix.dep`](./compile.md#compile-only-dependencies):
+Adding an [external scalafix rule](https://scalacenter.github.io/scalafix/docs/rules/external-rules.html) to scala-cli might be done by declaring [`scalafix.dep`](./compile.md#compile-only-dependencies):
 ```scala title=externalRule.scala
-//> using scalafix.dep "com.github.jatcwang::scalafix-named-params:0.2.5"
+//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
 ```

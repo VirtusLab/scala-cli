@@ -233,29 +233,25 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("external rule") {
     val original: String =
-      """|//> using scalafix.dep "io.github.ghostbuster91.scalafix-unified::unified:0.0.8"
+      """|//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
          |
-         |package foo
-         |
-         |object Hello {
-         |  val a = List[Int]()
+         |object CollectHeadOptionTest {
+         |  def x1: Option[String] = List(1, 2, 3).collect { case n if n % 2 == 0 => n.toString }.headOption
          |}
          |""".stripMargin
     val inputs: TestInputs = TestInputs(
       os.rel / confFileName ->
         s"""|rules = [
-            |  EmptyCollectionsUnified
+            |  CollectHeadOption
             |]
             |""".stripMargin,
       os.rel / "Hello.scala" -> original
     )
     val expectedContent: String = noCrLf {
-      """|//> using scalafix.dep "io.github.ghostbuster91.scalafix-unified::unified:0.0.8"
+      """|//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
          |
-         |package foo
-         |
-         |object Hello {
-         |  val a = List.empty[Int]
+         |object CollectHeadOptionTest {
+         |  def x1: Option[String] = List(1, 2, 3).collectFirst{ case n if n % 2 == 0 => n.toString }
          |}
          |""".stripMargin
     }
@@ -267,10 +263,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     }
   }
 
-  test {
-    val name = "explicit-result-types"
-    if (actualScalaVersion.startsWith("3")) name.ignore else munit.TestOptions(name)
-  } {
+  test("explicit-result-types") {
     val original: String =
       """|package foo
          |
