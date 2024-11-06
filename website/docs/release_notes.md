@@ -8,6 +8,112 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.5.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.2)
+
+### `--source` is now deprecated and scheduled for removal in Scala CLI v1.6.x
+Due to how easy it is to confuse `--source` (the command line option for producing source JARs 
+with the `package` sub-command) and `-source` (the Scala compiler option, which can also be passed 
+as `--source` in recent Scala 3 versions), using the former is now deprecated, and will likely be removed 
+in Scala CLI v1.6.x.
+
+```bash ignore
+scala-cli --power package --source .                       
+# [warn] The --source option alias has been deprecated and may be removed in a future version.
+# (...)
+```
+
+Do note that the deprecation (and future removal) only affects the option alias.
+The feature of packaging source JARs remains unchanged.
+It is now recommended to switch to using the `--src` alias instead.
+
+```bash ignore
+scala-cli --power package --src .  
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3257](https://github.com/VirtusLab/scala-cli/pull/3257).
+
+### Support for Scala 3.5.2
+This Scala CLI version switches the default Scala version to 3.5.2.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.5.2
+# Scala version (default): 3.5.2
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3230](https://github.com/VirtusLab/scala-cli/pull/3230).
+
+### (experimental) Initial support for emitting Wasm with a command line option and a directive
+It is now possible to emit Wasm via Scala.js with the `//> using jsEmitWasm` directive:
+```scala title=wasm.sc compile power
+//> using platform js
+//> using jsEmitWasm
+//> using jsModuleKind es
+//> using jsModuleSplitStyleStr fewestmodules
+println("Hello")
+```
+Or with the `--js-emit-wasm` command line option:
+```bash ignore
+scala-cli --power package wasm.sc --js --js-emit-wasm
+# The `--js-emit-wasm` option is experimental
+# Please bear in mind that non-ideal user experience should be expected.
+# If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+# Compiling project (Scala 3.5.2, Scala.js 1.17.0)
+# Compiled project (Scala 3.5.2, Scala.js 1.17.0)
+# Wrote ~/wasm/wasm.js/main.js, run it with
+#   node ./wasm.js/main.js
+tree wasm.js
+# wasm.js
+# ├── __loader.js
+# ├── main.js
+# └── main.wasm
+# 
+# 1 directory, 3 files
+```
+
+For more information about Wasm (WebAssembly) support via Scala.js, refer [here](https://www.scala-js.org/doc/project/webassembly.html).
+
+Added by [@Quafadas](https://github.com/Quafadas) in [#3255](https://github.com/VirtusLab/scala-cli/pull/3255).
+
+### Features
+* Add a `--js-emit-wasm` option and a corresponding `using` directive by [@Quafadas](https://github.com/Quafadas) in [#3255](https://github.com/VirtusLab/scala-cli/pull/3255)
+
+### Deprecations
+* Deprecate the `--source` command line option for the package sub-command by [@Gedochao](https://github.com/Gedochao) in [#3257](https://github.com/VirtusLab/scala-cli/pull/3257)
+
+### Fixes
+* Fix `--watch` to work correctly with changing `using` directives & sources requiring code generation (scripts, markdown, etc) by [@Gedochao](https://github.com/Gedochao) in [#3218](https://github.com/VirtusLab/scala-cli/pull/3218)
+* Ensure resource directories passed via a using directive aren't ignored in `--watch` mode by [@Gedochao](https://github.com/Gedochao) in [#3221](https://github.com/VirtusLab/scala-cli/pull/3221)
+* Ensure consecutive `-Wconf:*` flags are not ignored by [@Gedochao](https://github.com/Gedochao) in [#3245](https://github.com/VirtusLab/scala-cli/pull/3245)
+
+### Documentation changes
+* Mention the `Fix` command in the `Using directives` guide by [@dabrowski-adam](https://github.com/dabrowski-adam) in [#3239](https://github.com/VirtusLab/scala-cli/pull/3239)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3242](https://github.com/VirtusLab/scala-cli/pull/3242)
+
+### Updates
+* Update scala-cli.sh launcher for 1.5.1 by [@github-actions](https://github.com/github-actions) in [#3217](https://github.com/VirtusLab/scala-cli/pull/3217)
+* Update sttp to 3.10.0 by [@scala-steward](https://github.com/scala-steward) in [#3219](https://github.com/VirtusLab/scala-cli/pull/3219)
+* Update asm to 9.7.1 by [@scala-steward](https://github.com/scala-steward) in [#3223](https://github.com/VirtusLab/scala-cli/pull/3223)
+* Update bloop-rifle_2.13 to 2.0.3 by [@scala-steward](https://github.com/scala-steward) in [#3225](https://github.com/VirtusLab/scala-cli/pull/3225)
+* Update bloop-config_2.13 to 2.1.0 by [@scala-steward](https://github.com/scala-steward) in [#3228](https://github.com/VirtusLab/scala-cli/pull/3228)
+* chore: Update next to 3.5.2-RC2 by [@tgodzik](https://github.com/tgodzik) in [#3224](https://github.com/VirtusLab/scala-cli/pull/3224)
+* Update `coursier` to 2.1.14 by [@scala-steward](https://github.com/scala-steward) in [#3226](https://github.com/VirtusLab/scala-cli/pull/3226)
+* Update core_2.13 to 3.10.1 by [@scala-steward](https://github.com/scala-steward) in [#3229](https://github.com/VirtusLab/scala-cli/pull/3229)
+* Update `os-lib` to 0.11.2 by [@Gedochao](https://github.com/Gedochao) in [#3232](https://github.com/VirtusLab/scala-cli/pull/3232)
+* Update sbt, scripted-plugin to 1.10.3 by [@scala-steward](https://github.com/scala-steward) in [#3235](https://github.com/VirtusLab/scala-cli/pull/3235)
+* Update dependency to 0.2.4 by [@scala-steward](https://github.com/scala-steward) in [#3234](https://github.com/VirtusLab/scala-cli/pull/3234)
+* Bump Scala Next to 3.5.2 by [@Gedochao](https://github.com/Gedochao) in [#3230](https://github.com/VirtusLab/scala-cli/pull/3230)
+* Update os-lib to 0.11.3 by [@scala-steward](https://github.com/scala-steward) in [#3240](https://github.com/VirtusLab/scala-cli/pull/3240)
+* Set Scala 3.5.2 as the latest announced Scala Next version by [@Gedochao](https://github.com/Gedochao) in [#3243](https://github.com/VirtusLab/scala-cli/pull/3243)
+* Set Scala 3.6.1 as the Next RC version (which it effectively is) by [@Gedochao](https://github.com/Gedochao) in [#3244](https://github.com/VirtusLab/scala-cli/pull/3244)
+* Update dependencies in `gh-action.md` examples by [@kubukoz](https://github.com/kubukoz) in [#3249](https://github.com/VirtusLab/scala-cli/pull/3249)
+* Bump `scala-js-cli` to 1.17.0.1 by [@Gedochao](https://github.com/Gedochao) in [#3252](https://github.com/VirtusLab/scala-cli/pull/3252)
+
+## New Contributors
+* [@dabrowski-adam](https://github.com/dabrowski-adam) made their first contribution in [#3239](https://github.com/VirtusLab/scala-cli/pull/3239)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.5.1...v1.5.2
+
 ## [v1.5.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.1)
 
 ### Support for Scala 3.5.1, 3.3.4, 2.13.15 and 2.12.20
