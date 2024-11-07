@@ -14,7 +14,7 @@ Scala CLI runs [Scalafix](https://scalacenter.github.io/scalafix/) - Refactoring
 
 Before using this command you need to provide the configuration at `.scalafix.conf`.
 For example:
-```
+``` text title=.scalafix.conf
 // .scalafix.conf
 rules = [
   DisableSyntax
@@ -23,13 +23,13 @@ rules = [
 
 Then you can run it:
 ```bash
-scala-cli scalafix .
+scala-cli scalafix . --power
 ```
 
 If you’re setting up a continuous integration (CI) server, Scala CLI also has you covered.
 You can run linter using a `--check` flag:
 ```bash fail
-scala-cli scalafix --check .
+scala-cli scalafix --check . --power
 ```
 
 Read more about Scalafix:

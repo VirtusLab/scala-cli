@@ -131,8 +131,6 @@ object Scalafix extends ScalaCommand[ScalafixOptions] {
               options.rules.flatMap(Seq("-r", _))
               ++ options.scalafixArg
 
-          println(s"AAAAAAAAAAAA: ${artifacts.scalafixJars}")
-
           val proc = Runner.runJvm(
             buildOptions.javaHome().value.javaCommand,
             buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
