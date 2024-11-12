@@ -8,7 +8,27 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.5.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.3)
+
+This is a hotfix release, which makes all the fixes and enhancements of Scala CLI 1.5.2 available through the standard distribution channels (rather than just Maven Central).
+For the main release notes, please refer to the [v1.5.2 ones](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.2).
+
+### Hot-fixes 
+- Tag failing native packager tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3270](https://github.com/VirtusLab/scala-cli/pull/3270)
+- Make publishing depend on all integration tests & docs tests by [@Gedochao](https://github.com/Gedochao) in [#3272](https://github.com/VirtusLab/scala-cli/pull/3272)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.5.2...v1.5.3
+
 ## [v1.5.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.2)
+
+### Scala CLI 1.5.2 will only be available on JVM
+Due to technical difficulties with our release pipeline, Scala CLI 1.5.2 was only released as a JVM launcher on Maven Central. While it can be used as such, we followed it up with a hotfix 1.5.3 release, which should be available through all standard distribution channels.
+
+```bash
+scala-cli --cli-version 1.5.2 --version
+# Scala CLI version: 1.5.2
+# Scala version (default): 3.5.2
+```
 
 ### `--source` is now deprecated and scheduled for removal in Scala CLI v1.6.x
 Due to how easy it is to confuse `--source` (the command line option for producing source JARs 
