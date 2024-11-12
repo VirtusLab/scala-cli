@@ -1633,6 +1633,7 @@ jobs:
       - format
       - checks
       - reference-doc
+      - docs-tests
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-20.04
     steps:
