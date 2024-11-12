@@ -1592,7 +1592,47 @@ jobs:
         retention-days: 2
 
   publish:
-    needs: [unit-tests, jvm-tests-1, jvm-tests-2, jvm-tests-3, jvm-tests-4, jvm-tests-5, format, checks, reference-doc]
+    needs:
+      - unit-tests
+      - jvm-tests-1
+      - jvm-tests-2
+      - jvm-tests-3
+      - jvm-tests-4
+      - jvm-tests-5
+      - native-linux-tests-1
+      - native-linux-tests-2
+      - native-linux-tests-3
+      - native-linux-tests-4
+      - native-linux-tests-5
+      - native-macos-tests-1
+      - native-macos-tests-2
+      - native-macos-tests-3
+      - native-macos-tests-4
+      - native-macos-tests-5
+      - native-macos-m1-tests-1
+      - native-macos-m1-tests-2
+      - native-macos-m1-tests-3
+      - native-macos-m1-tests-4
+      - native-macos-m1-tests-5
+      - native-windows-tests-1
+      - native-windows-tests-2
+      - native-windows-tests-3
+      - native-windows-tests-4
+      - native-windows-tests-5
+      - native-mostly-static-tests-1
+      - native-mostly-static-tests-2
+      - native-mostly-static-tests-3
+      - native-mostly-static-tests-4
+      - native-mostly-static-tests-5
+      - native-static-tests-1
+      - native-static-tests-2
+      - native-static-tests-3
+      - native-static-tests-4
+      - native-static-tests-5
+      - vc-redist
+      - format
+      - checks
+      - reference-doc
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
     runs-on: ubuntu-20.04
     steps:
