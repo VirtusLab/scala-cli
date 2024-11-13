@@ -1,5 +1,5 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.13`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.17`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.26`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
@@ -228,6 +228,7 @@ trait GenerateReferenceDoc extends CrossSbtModule with ScalaCliScalafixModule {
   )
   def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
   def ivyDeps = Agg(
+    Deps.argonautShapeless,
     Deps.caseApp,
     Deps.munit
   )
