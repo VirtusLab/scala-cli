@@ -205,4 +205,36 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
         }
       }
   }
+
+  {
+    val prefixes = Seq("-", "--")
+    for {
+      prefix1 <- prefixes
+      prefix2 <- prefixes
+      optionKey = "Werror"
+      option1   = prefix1 + optionKey
+      option2   = prefix2 + optionKey
+      if actualScalaVersion.startsWith("3")
+    } test(
+      s"allow to override $option1 compiler option passed via directive by passing $option2 from the command line"
+    ) {
+      val file = "example.scala"
+      TestInputs(os.rel / file ->
+        s"""//> using options -Wunused:all $option1
+           |@main def main() = {
+           |  val unused = ""
+           |  println("Hello, world!")
+           |}
+           |""".stripMargin).fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "compile",
+          file,
+          s"$option2:false",
+          extraOptions
+        )
+          .call(cwd = root, stderr = os.Pipe)
+      }
+    }
+  }
 }
