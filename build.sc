@@ -1817,7 +1817,7 @@ object ci extends Module {
       "--env", "GPG_EMAIL",
       "--env", "KEYGRIP",
       "--privileged",
-      "fedora",
+      "fedora:40",
       "sh", "updateCentOsPackages.sh"
     )
     // format: on
