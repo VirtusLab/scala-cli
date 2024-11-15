@@ -48,7 +48,7 @@ Add dependencies
 
 `//> using test.dep org.scalameta::munit:0.7.29`
 
-`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
+`//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
 ### Java options
 
