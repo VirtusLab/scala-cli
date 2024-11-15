@@ -101,8 +101,9 @@ object Deps {
   object Versions {
     def ammonite             = "3.0.0-2-6342755f"
     def ammoniteForScala3Lts = ammonite
+    def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.14"
+    def coursierDefault                   = "2.1.17"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
@@ -137,7 +138,9 @@ object Deps {
   // that Scala CLI supports.
   def ammonite             = ivy"com.lihaoyi:::ammonite:${Versions.ammonite}"
   def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
-  def asm                  = ivy"org.ow2.asm:asm:9.7.1"
+  def argonautShapeless =
+    ivy"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
+  def asm = ivy"org.ow2.asm:asm:9.7.1"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.1.0"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
