@@ -166,6 +166,11 @@ object Deps {
   def guava   = ivy"com.google.guava:guava:33.3.1-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
+      .exclude(
+        "org.jline" -> "jline-reader",
+        "org.jline" -> "jline-terminal",
+        "org.jline" -> "jline-terminal-jna"
+      )
   def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
   def jimfs                = ivy"com.google.jimfs:jimfs:1.3.0"
   def jmhGeneratorBytecode = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
