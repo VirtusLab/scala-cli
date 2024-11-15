@@ -157,7 +157,7 @@ object Deps {
   def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency   = ivy"io.get-coursier::dependency:0.2.4"
+  def dependency   = ivy"io.get-coursier::dependency:0.2.5"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
