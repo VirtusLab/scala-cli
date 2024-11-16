@@ -10,8 +10,15 @@ import ReactPlayer from 'react-player'
 
 ## [v1.5.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.3)
 
-This is a hotfix release, which makes all the fixes and enhancements of Scala CLI 1.5.2 available through the standard distribution channels (rather than just Maven Central).
+This is a hotfix release, which makes all the fixes and enhancements of Scala CLI 1.5.2 available through most standard distribution channels (rather than just Maven Central).
 For the main release notes, please refer to the [v1.5.2 ones](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.2).
+
+### Distribution limitations
+Due to technical difficulties within our release pipeline, Scala CLI 1.5.3 is **not** available via the following channels:
+- `yum` (on RedHat/Cent OS/Fedora)
+- `SDKMAN!`
+
+We will follow up with a 1.5.4 hotfix release to address this issue.
 
 ### Hot-fixes 
 - Tag failing native packager tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3270](https://github.com/VirtusLab/scala-cli/pull/3270)
