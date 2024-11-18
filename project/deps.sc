@@ -113,7 +113,7 @@ object Deps {
     def jsoup                             = "1.18.1"
     def scalaMeta                         = "4.9.9"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.5"
+    def scalaNative05                     = "0.5.6"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
