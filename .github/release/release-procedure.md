@@ -15,6 +15,8 @@
     - [ ] Copy any fixes over to the draft after getting the PR reviewed and merged.
 - [ ] Mark the release draft as `pre-release` and then `Publish Release`
 - [ ] Wait for a green release CI build with all the updated versions.
+  - [ ] Double check if none of the steps failed, including individual distribution channels in 
+    the `update-packages` and `windows-packages` jobs.
 - [ ] ScalaCLI Setup
     - [ ] Merge pull request with updated Scala CLI version
       in [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) repository. Pull request should be opened

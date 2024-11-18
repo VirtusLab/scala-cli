@@ -1828,31 +1828,38 @@ jobs:
             ${{ secrets.HOMEBREW_SCALA_EXPERIMENTAL_KEY }}
             ${{ secrets.SCALA_CLI_SETUP_KEY }}
       - run: ./mill -i ci.updateInstallationScript
+        continue-on-error: true
       - run: ./mill -i ci.updateScalaCliBrewFormula
+        continue-on-error: true
       - name: GPG setup
         run: .github/scripts/gpg-setup.sh
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
       - run: ./mill -i ci.updateDebianPackages
+        continue-on-error: true
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
       - run: ./mill -i ci.updateCentOsPackages
+        continue-on-error: true
         env:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           KEYGRIP: ${{ secrets.KEYGRIP }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           GPG_EMAIL: ${{ secrets.GPG_EMAIL }}
       - run: ./mill -i ci.updateStandaloneLauncher
+        continue-on-error: true
         env:
           UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish to SDKMAN
+        continue-on-error: true
         run: .github/scripts/publish-sdkman.sh
         shell: bash
         env:
           SDKMAN_KEY: ${{ secrets.SDKMAN_KEY }}
           SDKMAN_TOKEN: ${{ secrets.SDKMAN_TOKEN }}
       - run: ./mill -i ci.updateScalaCliSetup
+        continue-on-error: true
       - run: ./mill -i ci.updateScalaExperimentalBrewFormula
 
   update-windows-packages:
@@ -1876,6 +1883,7 @@ jobs:
         path: artifacts/
     - name: Publish to chocolatey
       run: ./mill -i ci.updateChocolateyPackage
+      continue-on-error: true
       env:
         CHOCO_SECRET: ${{ secrets.CHOCO_SECRET_KEY }}
     - uses: vedantmgoyal9/winget-releaser@main
