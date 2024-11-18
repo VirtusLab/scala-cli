@@ -14,7 +14,7 @@ object New extends ScalaCommand[NewOptions] {
 
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
 
-  val giter8Dependency =
+  private def giter8Dependency =
     Seq(dep"${Constants.giter8Organization}::${Constants.giter8Name}:${Constants.giter8Version}")
 
   override def runCommand(options: NewOptions, remainingArgs: RemainingArgs, logger: Logger): Unit =
