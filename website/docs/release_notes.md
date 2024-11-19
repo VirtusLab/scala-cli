@@ -8,17 +8,79 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.5.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.4)
+
+### Hotfix release
+Although Scala CLI 1.5.4 includes a few updates and improvements, it is primarily a hotfix release for versions 1.5.2 and 1.5.3, which due to technical limitations weren't available on some of our distribution channels.
+
+For extra context refer to:
+* [Scala CLI 1.5.2 release notes](#v152)
+* [Scala CLI 1.5.3 release notes](#v153)
+
+### Support for Scala Native 0.5.6
+This Scala CLI version switches the default Scala Native version to 0.5.6.
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.6!")' --native
+# Compiling project (Scala 3.5.2, Scala Native 0.5.6)
+# Compiled project (Scala 3.5.2, Scala Native 0.5.6)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (949 ms)
+# [info] Discovered 887 classes and 5408 methods after classloading
+# [info] Checking intermediate code (quick) (40 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (285 ms)
+# [info] Discovered 499 classes and 2500 methods after classloading
+# [info] Checking intermediate code (quick) (7 ms)
+# [info] Discovered 478 classes and 1914 methods after optimization
+# [info] Optimizing (debug mode) (429 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (296 ms)
+# [info] Compiling to native code (1464 ms)
+# [info] Linking with [pthread, dl]
+# [info] Linking native code (immix gc, none lto) (208 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (3728 ms)
+# Hello from Scala Native 0.5.6!
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3295](https://github.com/VirtusLab/scala-cli/pull/3295)
+
+### Fixes
+* Pin Fedora docker image at `fedora:40` by [@Gedochao](https://github.com/Gedochao) in [#3283](https://github.com/VirtusLab/scala-cli/pull/3283)
+* Don't fail the `update-packages` and `windows-packages` jobs on individual distributions' steps by [@Gedochao](https://github.com/Gedochao) in [#3288](https://github.com/VirtusLab/scala-cli/pull/3288)
+
+### Documentation changes
+* Fix broken example in `//> using dep` reference doc by [@Gedochao](https://github.com/Gedochao) in [#3281](https://github.com/VirtusLab/scala-cli/pull/3281)
+* Mention distribution limitations in the Scala CLI 1.5.3 release notes by [@Gedochao](https://github.com/Gedochao) in [#3286](https://github.com/VirtusLab/scala-cli/pull/3286)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3287](https://github.com/VirtusLab/scala-cli/pull/3287)
+
+### Updates
+* Update `mill-native-image` to 0.1.29 by [@Gedochao](https://github.com/Gedochao) in [#3278](https://github.com/VirtusLab/scala-cli/pull/3278)
+* Update expecty to 0.17.0 by [@scala-steward](https://github.com/scala-steward) in [#3277](https://github.com/VirtusLab/scala-cli/pull/3277)
+* Update Bloop to 2.0.5 by [@Gedochao](https://github.com/Gedochao) in [#3276](https://github.com/VirtusLab/scala-cli/pull/3276)
+* Update dependency to 0.2.5 by [@scala-steward](https://github.com/scala-steward) in [#3269](https://github.com/VirtusLab/scala-cli/pull/3269)
+* Update `coursier` to 2.1.17 by [@Gedochao](https://github.com/Gedochao) in [#3275](https://github.com/VirtusLab/scala-cli/pull/3275)
+* Update SBT to 1.10.5 by [@Gedochao](https://github.com/Gedochao) in [#3280](https://github.com/VirtusLab/scala-cli/pull/3280)
+* Update `java-class-name` to 0.1.4 by [@Gedochao](https://github.com/Gedochao) in [#3284](https://github.com/VirtusLab/scala-cli/pull/3284)
+* Update scala-cli.sh launcher for 1.5.3 by [@Gedochao](https://github.com/Gedochao) in [#3285](https://github.com/VirtusLab/scala-cli/pull/3285)
+* Update Scala Native to 0.5.6 by [@Gedochao](https://github.com/Gedochao) in [#3295](https://github.com/VirtusLab/scala-cli/pull/3295)
+* Update Mill to 0.11.13 by [@Gedochao](https://github.com/Gedochao) in [#3296](https://github.com/VirtusLab/scala-cli/pull/3296)
+* Update coursier to 2.1.17 for Linux arm64 builds by [@Gedochao](https://github.com/Gedochao) in [#3298](https://github.com/VirtusLab/scala-cli/pull/3298)
+* Update coursier/dependency to 0.3.1 by [@Gedochao](https://github.com/Gedochao) in [#3297](https://github.com/VirtusLab/scala-cli/pull/3297)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.5.3...v1.5.4
+
 ## [v1.5.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.3)
 
 This is a hotfix release, which makes all the fixes and enhancements of Scala CLI 1.5.2 available through most standard distribution channels (rather than just Maven Central).
-For the main release notes, please refer to the [v1.5.2 ones](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.2).
+For the main release notes, please refer to the [v1.5.2 ones](#v152).
 
 ### Distribution limitations
 Due to technical difficulties within our release pipeline, Scala CLI 1.5.3 is **not** available via the following channels:
 - `yum` (on RedHat/Cent OS/Fedora)
 - `SDKMAN!`
 
-We will follow up with a 1.5.4 hotfix release to address this issue.
+We have followed up with a 1.5.4 hotfix release to address this issue.
 
 ### Hot-fixes 
 - Tag failing native packager tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3270](https://github.com/VirtusLab/scala-cli/pull/3270)
