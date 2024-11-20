@@ -813,6 +813,12 @@
     "allDeclaredFields": true
   },
   {
+    "name": "com.google.cloud.tools.jib.api.DockerInfoDetails",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
     "name": "com.google.cloud.tools.jib.cache.LayerEntriesSelector$LayerEntryTemplate",
     "allDeclaredFields": true,
     "allDeclaredMethods": true,
@@ -897,6 +903,30 @@
   {
     "name": "com.google.cloud.tools.jib.image.json.ManifestTemplate",
     "allDeclaredMethods": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate$ManifestDescriptorTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciIndexTemplate$ManifestDescriptorTemplate$Platform",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.google.cloud.tools.jib.image.json.OciManifestTemplate",
+    "allDeclaredFields": true,
+    "allDeclaredMethods": true,
+    "allDeclaredConstructors": true
   },
   {
     "name": "com.google.cloud.tools.jib.image.json.V22ManifestListTemplate",

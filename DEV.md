@@ -186,6 +186,8 @@ Here's some of the more important external projects used by Scala CLI:
   Scala.js linker
 - [scala-cli-signing](https://github.com/VirtusLab/scala-cli-signing): provides both libraries and binaries to handle
   PGP concerns in Scala CLI
+- [scala-packager](https://github.com/VirtusLab/scala-packager): provides a library to package applications 
+  in native formats
 - [libsodiumjni](https://github.com/VirtusLab/libsodiumjni): provides minimal JNI bindings for
   [libsodium](https://github.com/jedisct1/libsodium), that is used by Scala CLI to encrypt secrets
   uploaded as GitHub repository secrets in the `publish setup` sub-command
