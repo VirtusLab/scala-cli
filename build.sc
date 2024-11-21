@@ -497,6 +497,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
+         |  def scala3NextRcVersion = "${Scala.scala3NextRc}"
+         |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
          |
          |  def workspaceDirName = "$workspaceDirName"
