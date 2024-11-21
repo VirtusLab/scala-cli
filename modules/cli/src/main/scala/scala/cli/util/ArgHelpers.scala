@@ -2,6 +2,7 @@ package scala.cli.util
 
 import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
+import caseapp.core.util.CaseUtil
 
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
@@ -12,8 +13,24 @@ import scala.cli.commands.{SpecificationLevel, tags}
 object ArgHelpers {
   extension (arg: Arg) {
     private def hasTag(tag: String): Boolean = arg.tags.exists(_.name == tag)
-    def isExperimental: Boolean              = arg.hasTag(tags.experimental)
-    def isRestricted: Boolean                = arg.hasTag(tags.restricted)
+    private def hasTagPrefix(tagPrefix: String): Boolean =
+      arg.tags.exists(_.name.startsWith(tagPrefix))
+    def isExperimental: Boolean = arg.hasTag(tags.experimental)
+    def isRestricted: Boolean   = arg.hasTag(tags.restricted)
+    def isDeprecated: Boolean   = arg.hasTagPrefix(tags.deprecatedPrefix)
+
+    def deprecatedNames: List[String] = arg.tags
+      .filter(_.name.startsWith(tags.deprecatedPrefix))
+      .map(_.name.stripPrefix(s"${tags.deprecatedPrefix}${tags.valueSeparator}"))
+      .toList
+
+    def deprecatedOptionAliases: List[String] = arg.deprecatedNames.map {
+      case name if name.startsWith("-") => name
+      case name if name.length == 1     => "-" + name
+      case name => "--" + CaseUtil.pascalCaseSplit(name.toCharArray.toList).map(
+          _.toLowerCase
+        ).mkString("-")
+    }
 
     def isExperimentalOrRestricted: Boolean = arg.isRestricted || arg.isExperimental
 

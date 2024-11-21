@@ -749,9 +749,9 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
-### `--source`
+### `--src`
 
-Aliases: `--sources`, `--src`
+Aliases: `--jar-sources`, [deprecated] `--source`, `--sources`, `--sources-jar`
 
 Generate a source JAR rather than an executable JAR
 
@@ -1322,6 +1322,10 @@ A file relative to the root directory containing import maps for ES module impor
 
 Enable jsdom
 
+### `--js-emit-wasm`
+
+Emit WASM
+
 ### `--js-header`
 
 A header that will be added at the top of generated .js files
@@ -1384,7 +1388,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.5.5 by default).
+Set the Scala Native version (0.5.6 by default).
 
 ### `--native-mode`
 

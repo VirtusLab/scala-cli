@@ -291,6 +291,43 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("Emit Wasm") {
+    val outDir = "out"
+
+    val inputs = TestInputs(
+      os.rel / "run.scala" ->
+        s"""//> using jsEmitWasm true
+           |//> using jsModuleKind es
+           |//> using jsModuleSplitStyleStr fewestmodules
+           |
+           |object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println("Hello")
+           |  }
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val absOutDir = root / outDir
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "run.scala",
+        "--js",
+        "-o",
+        absOutDir.toString(),
+        "-f",
+        extraOptions
+      )
+        .call(cwd = root).out.trim()
+      expect(os.exists(absOutDir / "main.wasm"))
+
+      // TODO : Run WASM using node. Requires node 22.
+    }
+  }
+
   test("remap imports directive") {
     val importmapFile = "importmap.json"
     val outDir        = "out"
