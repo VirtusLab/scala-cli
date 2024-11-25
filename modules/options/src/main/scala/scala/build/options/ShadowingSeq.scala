@@ -2,6 +2,7 @@ package scala.build.options
 
 import dependency.AnyDependency
 
+import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.collection.mutable
 
 /** Seq ensuring some of its values are unique according to some key */
@@ -31,10 +32,11 @@ final case class ShadowingSeq[T] private (values: Seq[Seq[T]]) {
       for (group <- values.iterator ++ other.iterator) {
         assert(group.nonEmpty)
         val keyOpt = key.makeKey(group)
-        if (!keyOpt.exists(seen.contains)) {
+        if !keyOpt.exists(k => seen.contains(k.noDashPrefixes))
+        then {
           l += group
           for (key <- keyOpt)
-            seen += key
+            seen += key.noDashPrefixes
         }
       }
 

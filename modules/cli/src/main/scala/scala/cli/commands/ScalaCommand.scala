@@ -177,9 +177,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     sharedOptions(options).foreach { so =>
       val scalacOpts = so.scalacOptions.toScalacOptShadowingSeq
       scalacOpts.keys
-        .find(k =>
-          k == ScalacOpt(s"-$YScriptRunnerOption") || k == ScalacOpt(s"--$YScriptRunnerOption")
-        )
+        .find(_.value.noDashPrefixes == YScriptRunnerOption)
         .map(_.value)
         .foreach(k =>
           logger.message(LegacyScalaOptions.yScriptRunnerWarning(k, scalacOpts.getOption(k)))
