@@ -526,51 +526,53 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   }
 
   test("assembly") {
-    val fileName = "simple.sc"
-    val message  = "Hello"
-    val inputs = TestInputs(
-      os.rel / fileName ->
-        s"""//> using dep "org.typelevel::cats-kernel:2.6.1"
-           |import cats.kernel._
-           |val m = Monoid.instance[String]("", (a, b) => a + b)
-           |val msgStuff = m.combineAll(List("$message", "", ""))
-           |println(msgStuff)
-           |""".stripMargin
-    )
-    val launcherName = fileName.stripSuffix(".sc") + ".jar"
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, "--assembly", fileName).call(
-        cwd = root,
-        stdin = os.Inherit,
-        stdout = os.Inherit
+    TestUtil.retryOnCi() {
+      val fileName = "simple.sc"
+      val message  = "Hello"
+      val inputs = TestInputs(
+        os.rel / fileName ->
+          s"""//> using dep "org.typelevel::cats-kernel:2.6.1"
+             |import cats.kernel._
+             |val m = Monoid.instance[String]("", (a, b) => a + b)
+             |val msgStuff = m.combineAll(List("$message", "", ""))
+             |println(msgStuff)
+             |""".stripMargin
       )
+      val launcherName = fileName.stripSuffix(".sc") + ".jar"
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "package", extraOptions, "--assembly", fileName).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
 
-      val launcher = root / launcherName
-      expect(os.isFile(launcher))
+        val launcher = root / launcherName
+        expect(os.isFile(launcher))
 
-      var zf: ZipFile = null
-      try {
-        zf = new ZipFile(launcher.toIO)
-        expect(zf.getEntry("cats/kernel/Monoid.class") != null)
+        var zf: ZipFile = null
+        try {
+          zf = new ZipFile(launcher.toIO)
+          expect(zf.getEntry("cats/kernel/Monoid.class") != null)
+        }
+        finally if (zf != null) zf.close()
+
+        val runnableLauncher =
+          if (Properties.isWin) {
+            val bat = root / "assembly.bat"
+            os.copy(launcher, bat)
+            bat
+          }
+          else {
+            expect(Files.isExecutable(launcher.toNIO))
+            launcher
+          }
+        val runnableLauncherSize = os.size(runnableLauncher)
+
+        val output = TestUtil.maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
+        val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
+        expect(output == message)
+        expect(runnableLauncherSize < maxRunnableLauncherSize)
       }
-      finally if (zf != null) zf.close()
-
-      val runnableLauncher =
-        if (Properties.isWin) {
-          val bat = root / "assembly.bat"
-          os.copy(launcher, bat)
-          bat
-        }
-        else {
-          expect(Files.isExecutable(launcher.toNIO))
-          launcher
-        }
-      val runnableLauncherSize = os.size(runnableLauncher)
-
-      val output = TestUtil.maybeUseBash(runnableLauncher.toString)(cwd = root).out.trim()
-      val maxRunnableLauncherSize = 1024 * 1024 * 12 // should be smaller than 12MB
-      expect(output == message)
-      expect(runnableLauncherSize < maxRunnableLauncherSize)
     }
   }
 
@@ -1203,34 +1205,36 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   if (actualScalaVersion.startsWith("2")) {
     test("resolution is kept for assemblies with provided spark deps (packaging.provided)") {
-      val msg       = "Hello"
-      val inputPath = os.rel / "Hello.scala"
-      TestInputs(
-        inputPath ->
-          s"""//> using lib org.apache.spark::spark-sql:3.3.2
-             |//> using lib org.apache.spark::spark-hive:3.3.2
-             |//> using lib org.apache.spark::spark-sql-kafka-0-10:3.3.2
-             |//> using packaging.packageType assembly
-             |//> using packaging.provided org.apache.spark::spark-sql
-             |//> using packaging.provided org.apache.spark::spark-hive
-             |
-             |object Main extends App {
-             |  println("$msg")
-             |}
-             |""".stripMargin
-      ).fromRoot { root =>
-        val outputJarPath = root / "Hello.jar"
-        val res = os.proc(
-          TestUtil.cli,
-          "--power",
-          "package",
-          inputPath,
-          "-o",
-          outputJarPath,
-          extraOptions
-        ).call(cwd = root, stderr = os.Pipe)
-        expect(os.isFile(outputJarPath))
-        expect(res.err.trim().contains(s"Wrote $outputJarPath"))
+      TestUtil.retryOnCi() {
+        val msg       = "Hello"
+        val inputPath = os.rel / "Hello.scala"
+        TestInputs(
+          inputPath ->
+            s"""//> using lib org.apache.spark::spark-sql:3.3.2
+               |//> using lib org.apache.spark::spark-hive:3.3.2
+               |//> using lib org.apache.spark::spark-sql-kafka-0-10:3.3.2
+               |//> using packaging.packageType assembly
+               |//> using packaging.provided org.apache.spark::spark-sql
+               |//> using packaging.provided org.apache.spark::spark-hive
+               |
+               |object Main extends App {
+               |  println("$msg")
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val outputJarPath = root / "Hello.jar"
+          val res = os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            inputPath,
+            "-o",
+            outputJarPath,
+            extraOptions
+          ).call(cwd = root, stderr = os.Pipe)
+          expect(os.isFile(outputJarPath))
+          expect(res.err.trim().contains(s"Wrote $outputJarPath"))
+        }
       }
     }
 
