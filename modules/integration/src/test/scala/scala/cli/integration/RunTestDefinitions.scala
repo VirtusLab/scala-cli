@@ -2270,4 +2270,25 @@ abstract class RunTestDefinitions
         }
       }
   }
+
+  if (actualScalaVersion.startsWith("3")) test(
+    "fail with a valid error when multiple main classes are present and a dependency doesn't define main classes in the manifest"
+  ) {
+    val (main1, main2) = "main1" -> "main2"
+    val input          = "example.scala"
+    TestInputs(
+      os.rel / input ->
+        s"""//> using dep io.get-coursier:coursier_2.13:2.1.18
+           |@main def $main1() = println("$main1")
+           |@main def $main2() = println("$main2")
+           |""".stripMargin
+    ).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", input, extraOptions)
+        .call(cwd = root, stderr = os.Pipe, check = false)
+      val err = res.err.trim()
+      expect(err.contains("Found several main classes"))
+      expect(err.contains(main1))
+      expect(err.contains(main2))
+    }
+  }
 }

@@ -71,10 +71,11 @@ object MainClass {
   def findInDependency(jar: os.Path): Option[String] =
     jar match {
       case jar if os.isFile(jar) && jar.last.endsWith(".jar") =>
-        val jarFile   = new JarFile(jar.toIO)
-        val manifest  = jarFile.getManifest()
-        val mainClass = manifest.getMainAttributes().getValue(Attributes.Name.MAIN_CLASS)
-        Option(mainClass).map(_.asInstanceOf[String])
+        for {
+          manifest          <- Option(new JarFile(jar.toIO).getManifest)
+          mainAttributes    <- Option(manifest.getMainAttributes)
+          mainClass: String <- Option(mainAttributes.getValue(Attributes.Name.MAIN_CLASS))
+        } yield mainClass
       case _ => None
     }
 
