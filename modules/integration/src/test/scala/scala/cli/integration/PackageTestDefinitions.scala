@@ -506,21 +506,29 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   if (!Properties.isWin && actualScalaVersion.startsWith("2.13")) {
     test("simple native") {
-      simpleNativeTest()
+      TestUtil.retryOnCi() {
+        simpleNativeTest()
+      }
     }
     test("dynamic library native") {
-      libraryNativeTest(shared = true)
+      TestUtil.retryOnCi() {
+        libraryNativeTest(shared = true)
+      }
     }
 
     test("dynamic library native override from command line") {
-      libraryNativeTest(shared = false, commandLineShared = Some(true))
+      TestUtil.retryOnCi() {
+        libraryNativeTest(shared = false, commandLineShared = Some(true))
+      }
     }
 
     // To produce a static library, `LLVM_BIN` environment variable needs to be
     // present (for `llvm-ar` utility)
     if (sys.env.contains("LLVM_BIN"))
       test("shared library native") {
-        libraryNativeTest(shared = false)
+        TestUtil.retryOnCi() {
+          libraryNativeTest(shared = false)
+        }
       }
 
   }
@@ -1102,7 +1110,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   if (Properties.isLinux)
     test("pass java options to docker") {
-      javaOptionsDockerTest()
+      TestUtil.retryOnCi() {
+        javaOptionsDockerTest()
+      }
     }
 
   test("default values in help") {

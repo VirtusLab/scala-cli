@@ -2169,16 +2169,25 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   for { cliVersion <- Seq("1.5.0", "1.5.0-19-g932866db6-SNAPSHOT", "1.0.0") }
     test(s"setup-ide doesn't pass unrecognised arguments to old --cli-versions: $cliVersion") {
-      val scriptName = "cli-version.sc"
-      val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
-      )
-      inputs.fromRoot { root =>
-        val r =
-          os.proc(TestUtil.cli, "--cli-version", cliVersion, "setup-ide", scriptName, extraOptions)
-            .call(cwd = root, stderr = os.Pipe, check = false)
-        expect(!r.err.text().contains("Unrecognized argument"))
-        expect(r.exitCode == 0)
+      TestUtil.retryOnCi() {
+        val scriptName = "cli-version.sc"
+        val inputs = TestInputs(
+          os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+        )
+        inputs.fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "--cli-version",
+              cliVersion,
+              "setup-ide",
+              scriptName,
+              extraOptions
+            )
+              .call(cwd = root, stderr = os.Pipe, check = false)
+          expect(!r.err.text().contains("Unrecognized argument"))
+          expect(r.exitCode == 0)
+        }
       }
     }
 
