@@ -54,11 +54,11 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
         ),
         Seq(
           Seq(s"${dashPrefix}color:never"),
-          Seq(s"\"${dashPrefix}language:noAutoTupling,strictEquality\"")
+          Seq(s"${dashPrefix}language:noAutoTupling,strictEquality")
         ),
         Seq(
           Seq(s"${dashPrefix}color", "never"),
-          Seq(s"${dashPrefix}language", "\"noAutoTupling,strictEquality\"")
+          Seq(s"${dashPrefix}language", "noAutoTupling,strictEquality")
         )
       )
       (cliOpts, directiveOpts) = {

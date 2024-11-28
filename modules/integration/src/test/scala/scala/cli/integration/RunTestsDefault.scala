@@ -95,4 +95,34 @@ class RunTestsDefault extends RunTestDefinitions
         .call(cwd = root)
     }
   }
+
+  test("meaningful commas dont have to be escaped in using directive values") {
+    val inputPath = os.rel / "example.scala"
+    TestInputs(inputPath ->
+      """//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar
+        |import tabby.Grid
+        |@main def main = println(Grid("a", "b", "c")(1, 2, 3))
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+        .call(cwd = root)
+    val out = res.out.trim()
+    expect(out.contains("a, b, c"))
+    }
+  }
+
+  test(
+    "using directives using commas with space as separators should produce a deprecation warning."
+  ) {
+    val inputPath = os.rel / "example.sc"
+    TestInputs(inputPath ->
+      """//> using options -Werror, -Wconf:cat=deprecation:e
+        |println("Deprecation warnings should have been printed")
+        |""".stripMargin)
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+          .call(cwd = root, stderr = os.Pipe)
+        val err = res.err.trim()
+        expect(err.contains("Use of commas as separators is deprecated"))
+      }
+  }
 }
