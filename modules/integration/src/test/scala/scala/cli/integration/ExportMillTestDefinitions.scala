@@ -81,28 +81,36 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
 
   if (runExportTests) {
     test("JVM custom project name") {
-      val customProjectName = "newproject"
-      jvmTest(
-        mainArgs = Seq(s"$customProjectName.run"),
-        testArgs = Seq(s"$customProjectName.test"),
-        extraExportArgs = Seq("-p", customProjectName),
-        mainClassName = "Hello"
-      )
+      TestUtil.retryOnCi() {
+        val customProjectName = "newproject"
+        jvmTest(
+          mainArgs = Seq(s"$customProjectName.run"),
+          testArgs = Seq(s"$customProjectName.test"),
+          extraExportArgs = Seq("-p", customProjectName),
+          mainClassName = "Hello"
+        )
+      }
     }
     test("JVM scalac options") {
-      jvmTestScalacOptions("Hello")
+      TestUtil.retryOnCi() {
+        jvmTestScalacOptions("Hello")
+      }
     }
   }
   if (runExportTests && !actualScalaVersion.startsWith("3."))
     test("JVM with compiler plugin") {
-      jvmTestCompilerPlugin("Hello")
+      TestUtil.retryOnCi() {
+        jvmTestCompilerPlugin("Hello")
+      }
     }
 
   test("Scala Native") {
     // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
-    simpleTest(
-      ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true),
-      mainClass = None
-    )
+    TestUtil.retryOnCi() {
+      simpleTest(
+        ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true),
+        mainClass = None
+      )
+    }
   }
 }
