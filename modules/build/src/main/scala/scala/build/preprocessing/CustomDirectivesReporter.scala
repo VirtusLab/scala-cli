@@ -8,8 +8,8 @@ import scala.build.errors.{Diagnostic, Severity}
 
 class CustomDirectivesReporter(path: Either[String, os.Path], onDiagnostic: Diagnostic => Unit)
     extends Reporter {
-
-  private var errorCount = 0
+  private var errorCount   = 0
+  private var warningCount = 0
 
   private def toScalaCliPosition(position: DirectivePosition): Position = {
     val coords = (position.getLine, position.getColumn)
@@ -28,15 +28,20 @@ class CustomDirectivesReporter(path: Either[String, os.Path], onDiagnostic: Diag
     }
   override def warning(msg: String): Unit =
     onDiagnostic {
+      warningCount += 1
       Diagnostic(msg, Severity.Warning)
     }
   override def warning(position: DirectivePosition, msg: String): Unit =
     onDiagnostic {
+      warningCount += 1
       Diagnostic(msg, Severity.Warning, Seq(toScalaCliPosition(position)))
     }
 
   override def hasErrors(): Boolean =
     errorCount != 0
+
+  override def hasWarnings(): Boolean =
+    warningCount != 0
 
   override def reset(): Unit = {
     errorCount = 0

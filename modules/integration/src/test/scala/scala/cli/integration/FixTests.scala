@@ -137,9 +137,9 @@ class FixTests extends ScalaCliSuite {
     val inputs = TestInputs(
       mainSubPath ->
         s"""//> using objectWrapper
-           |//> using dep "com.lihaoyi::os-lib:0.9.1"
+           |//> using dep com.lihaoyi::os-lib:0.9.1
            |
-           |//> using test.dep "org.typelevel::cats-core:2.9.0"
+           |//> using test.dep org.typelevel::cats-core:2.9.0
            |
            |package com.foo.main
            |
@@ -148,7 +148,7 @@ class FixTests extends ScalaCliSuite {
            |}
            |""".stripMargin,
       testSubPath ->
-        s"""//> using options -Xasync, -Xfatal-warnings
+        s"""//> using options -Xasync -Xfatal-warnings
            |//> using dep org.scalameta::munit::0.7.29
            |
            |package com.foo.test.bar
@@ -256,14 +256,14 @@ class FixTests extends ScalaCliSuite {
 
       val inputs = TestInputs(
         mainSubPath ->
-          s"""//> using platforms "jvm"
-             |//> using scala "3.3.0"
-             |//> using jvm "17"
+          s"""//> using platforms jvm
+             |//> using scala 3.3.0
+             |//> using jvm 17
              |//> using objectWrapper
              |//> using dep com.lihaoyi::os-lib:0.9.1
              |//> using file $includePath
              |
-             |//> using test.dep "org.typelevel::cats-core:2.9.0"
+             |//> using test.dep org.typelevel::cats-core:2.9.0
              |
              |package com.foo.main
              |
@@ -274,8 +274,8 @@ class FixTests extends ScalaCliSuite {
         withUsedTargetSubPath   -> withUsedTargetContents,
         withUnusedTargetSubPath -> withUnusedTargetContents,
         testSubPath ->
-          s"""//> using options -Xasync, -Xfatal-warnings
-             |//> using dep "org.scalameta::munit::0.7.29"
+          s"""//> using options -Xasync -Xfatal-warnings
+             |//> using dep org.scalameta::munit::0.7.29
              |//> using scala 3.2.2
              |
              |package com.foo.test.bar
