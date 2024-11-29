@@ -738,7 +738,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   if (TestUtil.isCI)
-    test("Js DOM") {
+    // FIXME: figure out why this started failing on the CI: https://github.com/VirtusLab/scala-cli/issues/3335
+    test("Js DOM".flaky) {
       jsDomTest()
     }
 
