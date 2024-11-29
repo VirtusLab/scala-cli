@@ -3,11 +3,12 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 import os.CommandResult
 
-import java.nio.charset.Charset
-import scala.jdk.CollectionConverters.IteratorHasAsScala
 import scala.util.Properties
 
-class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper {
+class SipScalaTests extends ScalaCliSuite
+    with SbtTestHelper
+    with MillTestHelper
+    with CoursierScalaInstallationTestHelper {
   implicit class StringEnrichment(s: String) {
     def containsExperimentalWarningOf(featureNameAndType: String): Boolean =
       s.contains(s"The $featureNameAndType is experimental") ||
@@ -837,94 +838,31 @@ class SipScalaTests extends ScalaCliSuite with SbtTestHelper with MillTestHelper
 
   test("coursier scala installation works in --offline mode") {
     TestInputs.empty.fromRoot { root =>
-      val localCache = root / "local-cache"
-      val localBin   = root / "local-bin"
-      val sv         = Constants.scala3NextAnnounced
-      os.proc(
-        TestUtil.cs,
-        "install",
-        "--cache",
-        localCache,
-        "--install-dir",
-        localBin,
-        s"scala:$sv"
-      ).call(cwd = root)
-      val launchScalaPath: os.Path =
-        if (Properties.isWin) {
-          val batchWrapperScript: os.Path = localBin / "scala.bat"
-          val charset                     = Charset.defaultCharset().toString
-          val batchWrapperContent         = new String(os.read.bytes(batchWrapperScript), charset)
-          val setCommandLine = batchWrapperContent
-            .lines()
-            .iterator()
-            .asScala
-            .toList
-            .find(_.startsWith("SET CMDLINE="))
-            .getOrElse("")
-          val scriptPathRegex = """SET CMDLINE="(.*\\bin\\scala\.bat)" %CMD_LINE_ARGS%""".r
-          val batchScript =
-            setCommandLine match { case scriptPathRegex(extractedPath) => extractedPath }
-          val batchScriptPath = os.Path(batchScript)
-          val oldContent      = os.read(batchScriptPath)
-          val newContent = oldContent.replace(
-            "call %SCALA_CLI_CMD_WIN%",
-            s"""set "SCALA_CLI_CMD_WIN=${TestUtil.cliPath}"
-               |call %SCALA_CLI_CMD_WIN%""".stripMargin
+      val localCache   = root / "local-cache"
+      val localBin     = root / "local-bin"
+      val scalaVersion = Constants.scala3NextAnnounced
+      withScalaRunnerWrapper(
+        root = root,
+        localCache = localCache,
+        localBin = localBin,
+        scalaVersion = scalaVersion
+      ) { launchScalaPath =>
+        val r =
+          os.proc(
+            launchScalaPath,
+            "--offline",
+            "--power",
+            "--with-compiler",
+            "-e",
+            "println(dotty.tools.dotc.config.Properties.versionNumberString)"
+          ).call(
+            cwd = root,
+            env = Map("COURSIER_CACHE" -> localCache.toString),
+            check = false // need to clean up even on failure
           )
-          expect(newContent != oldContent)
-          os.write.over(batchScriptPath, newContent)
-          batchWrapperScript
-        }
-        else {
-          val scalaBinary: os.Path = localBin / "scala"
-          val fileBytes            = os.read.bytes(scalaBinary)
-          val shebang              = new String(fileBytes.takeWhile(_ != '\n'), "UTF-8")
-          val binaryData           = fileBytes.drop(shebang.length + 1)
-          val execLine             = new String(binaryData.takeWhile(_ != '\n'), "UTF-8")
-          val scriptPathRegex      = """exec "([^"]+/bin/scala).*"""".r
-          val scalaScript = execLine match { case scriptPathRegex(extractedPath) => extractedPath }
-          val scalaScriptPath = os.Path(scalaScript)
-          val lineToChange    = "eval \"${SCALA_CLI_CMD_BASH[@]}\" \\"
-          // FIXME: the way the scala script calls the launcher currently ignores the --debug flag
-          val newContent = os.read(scalaScriptPath).replace(
-            lineToChange,
-            s"""SCALA_CLI_CMD_BASH=(\"\\\"${TestUtil.cliPath}\\\"\")
-               |$lineToChange""".stripMargin
-          )
-          os.write.over(scalaScriptPath, newContent)
-          scalaBinary
-        }
-      val wrapperVersion = os.proc(launchScalaPath, "version", "--cli-version")
-        .call(cwd = root).out.trim()
-      val cliVersion = os.proc(TestUtil.cli, "version", "--cli-version")
-        .call(cwd = root).out.trim()
-      expect(wrapperVersion == cliVersion)
-      val r =
-        os.proc(
-          launchScalaPath,
-          "--offline",
-          "--power",
-          "--with-compiler",
-          "-e",
-          "println(dotty.tools.dotc.config.Properties.versionNumberString)"
-        ).call(
-          cwd = root,
-          env = Map("COURSIER_CACHE" -> localCache.toString),
-          check = false // need to clean up even on failure
-        )
-      // clean up cs local binaries
-      val csPrebuiltBinaryDir =
-        os.Path(launchScalaPath.toString().substring(
-          0,
-          launchScalaPath.toString().indexOf(sv) + sv.length
-        ))
-      try os.remove.all(csPrebuiltBinaryDir)
-      catch {
-        case ex: java.nio.file.FileSystemException =>
-          println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+        expect(r.exitCode == 0)
+        expect(r.out.trim() == scalaVersion)
       }
-      expect(r.exitCode == 0)
-      expect(r.out.trim() == sv)
     }
   }
 
