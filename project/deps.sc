@@ -249,7 +249,7 @@ object Deps {
   val toolkitVersionForNative05 = toolkitVersion
   def toolkit                   = ivy"org.scala-lang:toolkit:$toolkitVersion"
   def toolkitTest               = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion   = "0.1.27"
+  val typelevelToolkitVersion   = "0.1.29"
   def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest      = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.1"
