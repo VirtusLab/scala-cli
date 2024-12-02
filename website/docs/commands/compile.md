@@ -31,7 +31,7 @@ For a full list of options, run `scala-cli compile --help`, or check the options
 `--test` makes Scala CLI compile main and test scopes:
 
 ```scala title=Sample.test.scala
-//> using dep org.scalameta::munit:0.7.29
+//> using dep org.scalameta::munit:1.0.2
 class Test extends munit.FunSuite {
   test("sample") {
     assert(2 + 2 == 4)
@@ -487,7 +487,7 @@ For example, to exclude all files in the `example/scala` directory, add the foll
  `project.file` file:
 
 ```scala title=project.scala
-//> using exclude "example/scala"
+//> using exclude example/scala
 ```
 
 ## Compile-Only Dependencies
@@ -499,7 +499,7 @@ To declare a compile-only dependency, you should use the `compileOnly.dep` direc
 option. For instance, to include the `jsoniter-scala-macros` library at compile-time, you would use:
 
 ```scala title=CompileOnly.scala
-//> using compileOnly.dep "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2
 ```
 
 or by using the `--compile-lib` command line option:

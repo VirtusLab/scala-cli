@@ -91,7 +91,7 @@ To demonstrate this, let's start prototyping with [os-lib](https://github.com/co
 <ChainedSnippets>
 
 ```bash ignore
-scala-cli repl --dep com.lihaoyi::os-lib:0.9.0
+scala-cli repl --dep com.lihaoyi::os-lib:0.11.3
 ```
 
 ```scala ignore
@@ -119,7 +119,7 @@ cd scala-cli-getting-started
 Now we can write our logic in a file named `files.scala`:
 
 ```scala title=files.scala
-//> using dep com.lihaoyi::os-lib:0.9.0
+//> using dep com.lihaoyi::os-lib:0.11.3
 
 def filesByExtension(
   extension: String,
@@ -156,7 +156,7 @@ With our IDE in place, how can we test if our code works correctly? The best way
 We also need to add a test framework. Scala CLI support most popular test frameworks, and for this guide we will stick with [munit](https://scalameta.org/munit/). To add a test framework, we just need an ordinary dependency, and once again we'll add that with the `using` directive:
 
 ```scala title=files.test.scala
-//> using dep org.scalameta::munit:1.0.0-M1
+//> using dep org.scalameta::munit:1.0.2
 
 class TestSuite extends munit.FunSuite {
   test("hello") {
@@ -176,8 +176,8 @@ scala-cli test .
 ```
 
 ```
-Compiling project (test, Scala 3.0.2, JVM)
-Compiled project (test, Scala 3.0.2, JVM)
+Compiling project (test, Scala 3.5.2, JVM)
+Compiled project (test, Scala 3.5.2, JVM)
 TestSuite:
   + hello 0.058s
 ```
