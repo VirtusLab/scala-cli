@@ -25,7 +25,7 @@ trait ReplAmmoniteTests3StableDefinitions {
   test("https://github.com/scala/scala3/issues/21229") {
     TestInputs(
       os.rel / "Pprint.scala" ->
-        """//> using dep "com.lihaoyi::pprint::0.9.0"
+        """//> using dep com.lihaoyi::pprint::0.9.0
           |package stuff
           |import scala.quoted.*
           |def foo = pprint(1)
@@ -52,7 +52,7 @@ trait ReplAmmoniteTests3StableDefinitions {
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |package checkcp
           |object CheckCp {
           |  def hasDir: Boolean =

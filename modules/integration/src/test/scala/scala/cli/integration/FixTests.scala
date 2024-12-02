@@ -322,7 +322,7 @@ class FixTests extends ScalaCliSuite {
              |Removing directives from src/Main.scala
              |Removing directives from test/MyTests.scala
              |  Keeping:
-             |    //> using scala "3.2.2"""".stripMargin
+             |    //> using scala 3.2.2""".stripMargin
         )
 
         val projectFileContents          = os.read(root / projectFileName)
@@ -367,7 +367,7 @@ class FixTests extends ScalaCliSuite {
         // Directives with no 'test.' equivalent are retained
         assertNoDiff(
           testFileContents,
-          """//> using scala "3.2.2"
+          """//> using scala 3.2.2
             |
             |package com.foo.test.bar
             |

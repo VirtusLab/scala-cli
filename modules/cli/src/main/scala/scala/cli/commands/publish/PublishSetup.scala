@@ -262,12 +262,15 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
         def extraDirectivesLines(extraDirectives: Seq[(String, String)]) =
           extraDirectives.map {
-            case (k, v) =>
-              s"""//> using $k $v""" + nl
+            case (k, v) if v.exists(_.isWhitespace) => s"""//> using $k "$v"""" + nl
+            case (k, v)                             => s"""//> using $k $v""" + nl
           }.mkString
 
         val extraLines = missingFieldsWithDefaultsAndValues.map {
           case (_, default, None) => extraDirectivesLines(default.extraDirectives)
+          case (check, default, Some(value)) if value.exists(_.isWhitespace) =>
+            s"""//> using ${check.directivePath} "$value"""" + nl +
+              extraDirectivesLines(default.extraDirectives)
           case (check, default, Some(value)) =>
             s"""//> using ${check.directivePath} $value""" + nl +
               extraDirectivesLines(default.extraDirectives)

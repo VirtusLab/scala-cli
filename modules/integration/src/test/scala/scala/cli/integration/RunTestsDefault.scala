@@ -72,7 +72,7 @@ class RunTestsDefault extends RunTestDefinitions
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |object CheckCp {
           |  def main(args: Array[String]): Unit = {
           |    val cp = sys.props("java.class.path")

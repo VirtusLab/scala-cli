@@ -406,7 +406,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val inputs = TestInputs(
         os.rel / "f.sc" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-              |//> using scala "$actualScalaVersion"
+              |//> using scala $actualScalaVersion
               |println(args.toList)""".stripMargin
       )
       inputs.fromRoot { root =>
@@ -420,7 +420,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     val inputs = TestInputs(
       os.rel / "script-with-shebang" ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-            |//> using scala "$actualScalaVersion"
+            |//> using scala $actualScalaVersion
             |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
@@ -438,7 +438,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   test("script file with NO shebang header and no extension run with scala-cli shebang") {
     val inputs = TestInputs(
       os.rel / "script-no-shebang" ->
-        s"""//> using scala "$actualScalaVersion"
+        s"""//> using scala $actualScalaVersion
            |println(args.toList)""".stripMargin
     )
     inputs.fromRoot { root =>
@@ -465,8 +465,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
     val inputs = TestInputs(
       os.rel / "script.sc" ->
-        s"""//> using scala "$actualScalaVersion"
-           |//> using dep "$dependencyOsLib"
+        s"""//> using scala $actualScalaVersion
+           |//> using dep $dependencyOsLib
            |
            |println(args.toList)""".stripMargin
     )
@@ -482,7 +482,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     test("no deadlock when running background threads") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
-          s"""//> using scala "$actualScalaVersion"
+          s"""//> using scala $actualScalaVersion
              |
              |import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
              |import scala.concurrent.duration._
@@ -507,7 +507,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     test("user readable error when @main is used") {
       val inputs = TestInputs(
         os.rel / "script.sc" ->
-          """//> using dep "com.lihaoyi::os-lib:0.9.1"
+          """//> using dep com.lihaoyi::os-lib:0.9.1
             |/*ignore this while regexing*/ @main def main(args: Strings*): Unit = println("Hello")
             |""".stripMargin
       )
@@ -687,7 +687,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val inputs = TestInputs(
         os.rel / "script-with-shebang" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-              |//> using scala "$actualScalaVersion"
+              |//> using scala $actualScalaVersion
               |println(args.toList)""".stripMargin
       )
       inputs.fromRoot { root =>

@@ -15,8 +15,8 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
           |}
           |""".stripMargin,
       os.rel / "test" / "MessagesTests.scala" ->
-        """//> using scala "2.13"
-          |//> using dep "com.lihaoyi::utest::0.7.10"
+        """//> using scala 2.13
+          |//> using dep com.lihaoyi::utest::0.7.10
           |package messages
           |package tests
           |import utest._

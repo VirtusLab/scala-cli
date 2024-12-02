@@ -175,9 +175,9 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
     test("watch artifacts") {
       val libSourcePath = os.rel / "lib" / "Messages.scala"
       def libSource(hello: String) =
-        s"""//> using publish.organization "test-org"
-           |//> using publish.name "messages"
-           |//> using publish.version "0.1.0"
+        s"""//> using publish.organization test-org
+           |//> using publish.name messages
+           |//> using publish.version 0.1.0
            |
            |package messages
            |
@@ -188,7 +188,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       TestInputs(
         libSourcePath -> libSource("Hello"),
         os.rel / "app" / "TestApp.scala" ->
-          """//> using lib "test-org::messages:0.1.0"
+          """//> using lib test-org::messages:0.1.0
             |
             |package testapp
             |
@@ -243,7 +243,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
     val fileName = "watch.scala"
     TestInputs(
       os.rel / fileName ->
-        """//> using lib "org.scalameta::munit::0.7.29"
+        """//> using dep org.scalameta::munit::0.7.29
           |
           |class MyTests extends munit.FunSuite {
           |    test("is true true") { assert(true) }

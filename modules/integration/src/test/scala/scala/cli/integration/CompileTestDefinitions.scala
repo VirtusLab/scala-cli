@@ -20,7 +20,7 @@ abstract class CompileTestDefinitions
 
   val simpleInputs: TestInputs = TestInputs(
     os.rel / "MyTests.scala" ->
-      """//> using dep "com.lihaoyi::os-lib::0.8.1"
+      """//> using dep com.lihaoyi::os-lib::0.8.1
         |
         |object MyTests {
         |  def main(args: Array[String]): Unit = {
@@ -33,7 +33,7 @@ abstract class CompileTestDefinitions
 
   val mainAndTestInputs: TestInputs = TestInputs(
     os.rel / "Main.scala" ->
-      """//> using dep "com.lihaoyi::utest:0.7.10"
+      """//> using dep com.lihaoyi::utest:0.7.10
         |
         |object Main {
         |  val err = utest.compileError("pprint.log(2)")
@@ -45,7 +45,7 @@ abstract class CompileTestDefinitions
         |}
         |""".stripMargin,
     os.rel / "Tests.test.scala" ->
-      """//> using dep "com.lihaoyi::pprint:0.6.6"
+      """//> using dep com.lihaoyi::pprint:0.6.6
         |
         |import utest._
         |
@@ -82,14 +82,14 @@ abstract class CompileTestDefinitions
   test("with one file per scope, no warning about spread directives should be printed") {
     TestInputs(
       os.rel / "Bar.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |object Bar extends App {
           |  println(os.pwd)
           |}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using dep "org.scalameta::munit:0.7.29"
+        """//> using dep org.scalameta::munit:0.7.29
           |
           |class Foo extends munit.FunSuite {
           |  test("Hello") {
@@ -108,19 +108,19 @@ abstract class CompileTestDefinitions
   test("with >1 file per scope, the warning about spread directives should be printed") {
     TestInputs(
       os.rel / "Bar.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |object Bar extends App {
           |  pprint.pprintln(Foo(os.pwd.toString).value)
           |}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi::pprint:0.8.1"
+        """//> using dep com.lihaoyi::pprint:0.8.1
           |
           |case class Foo(value: String)
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using dep "org.scalameta::munit:0.7.29"
+        """//> using dep org.scalameta::munit:0.7.29
           |
           |class FooTest extends munit.FunSuite {
           |  test("Hello") {
@@ -141,13 +141,13 @@ abstract class CompileTestDefinitions
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
-        """//> using target.platform "jvm"
-          |//> using jvm "17"
+        """//> using target.platform jvm
+          |//> using jvm 17
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.test.scala" ->
-        """//> using target.scala.>= "2.13"
-          |//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using target.scala.>= 2.13
+          |//> using dep com.lihaoyi::os-lib::0.8.1
           |class Foo {}
           |""".stripMargin
     )
@@ -165,11 +165,11 @@ abstract class CompileTestDefinitions
   ) {
     val inputs = TestInputs(
       os.rel / "Bar.java" ->
-        """//> using jvm "17"
+        """//> using jvm 17
           |public class Bar {}
           |""".stripMargin,
       os.rel / "Foo.scala" ->
-        """//> using dep "com.lihaoyi::os-lib::0.8.1"
+        """//> using dep com.lihaoyi::os-lib::0.8.1
           |class Foo {}
           |""".stripMargin
     )
@@ -259,7 +259,7 @@ abstract class CompileTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "Tests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest:0.7.10"
+        """//> using dep com.lihaoyi::utest:0.7.10
           |
           |import utest._
           |
@@ -452,7 +452,7 @@ abstract class CompileTestDefinitions
       val fileName = "Hello.scala"
       val inputs = TestInputs(
         os.rel / fileName ->
-          s"""//> using options "-coverage-out:."
+          s"""//> using options -coverage-out:.
              |
              |@main def main = ()
              |""".stripMargin
@@ -475,7 +475,7 @@ abstract class CompileTestDefinitions
     val sparkVersion = "3.3.0"
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using dep "org.apache.spark::spark-sql:$sparkVersion"
+        s"""//> using dep org.apache.spark::spark-sql:$sparkVersion
            |object Hello {
            |  def main(args: Array[String]): Unit =
            |    println("Hello")
@@ -505,7 +505,7 @@ abstract class CompileTestDefinitions
   test("override settings from tests") {
     val inputs = TestInputs(
       os.rel / "MainStuff.scala" ->
-        """//> using jvm "8"
+        """//> using jvm 8
           |object MainStuff {
           |  def javaVer = sys.props("java.version")
           |  def main(args: Array[String]): Unit = {
@@ -515,8 +515,8 @@ abstract class CompileTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "TestStuff.test.scala" ->
-        """//> using jvm "17"
-          |//> using dep "org.scalameta::munit:0.7.29"
+        """//> using jvm 17
+          |//> using dep org.scalameta::munit:0.7.29
           |class TestStuff extends munit.FunSuite {
           |  test("the test") {
           |    val javaVer = MainStuff.javaVer
