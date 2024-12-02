@@ -840,7 +840,7 @@ class SipScalaTests extends ScalaCliSuite
     TestInputs.empty.fromRoot { root =>
       val localCache   = root / "local-cache"
       val localBin     = root / "local-bin"
-      val scalaVersion = Constants.scala3NextAnnounced
+      val scalaVersion = Constants.scala3NextRcAnnounced
       withScalaRunnerWrapper(
         root = root,
         localCache = localCache,
