@@ -97,13 +97,13 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   test(s"class wrapper for scala 3") {
     val inputs = TestInputs(
       os.rel / "script1.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |
            |def main(args: String*): Unit = println("Hello")
            |main()
            |""".stripMargin,
       os.rel / "script2.sc" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |println("Hello")
           |""".stripMargin
@@ -136,14 +136,14 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   } {
     val inputs = TestInputs(
       os.rel / "script1.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |${if (useDirectives) directive else ""}
            |
            |def main(args: String*): Unit = println("Hello")
            |main()
            |""".stripMargin,
       os.rel / "script2.sc" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |println("Hello")
           |""".stripMargin
@@ -179,14 +179,14 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   } {
     val inputs = TestInputs(
       os.rel / "script1.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |${if (useDirectives) directive else ""}
            |
            |def main(args: String*): Unit = println("Hello")
            |main()
            |""".stripMargin,
       os.rel / "script2.sc" ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |
           |println("Hello")
           |""".stripMargin
@@ -222,7 +222,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   } {
     val inputs = TestInputs(
       os.rel / "script1.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |//> using $targetDirective
            |//> using objectWrapper
            |
@@ -230,7 +230,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
            |main()
            |""".stripMargin,
       os.rel / "script2.sc" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
            |//> using $enablingDirective
            |
            |println("Hello")

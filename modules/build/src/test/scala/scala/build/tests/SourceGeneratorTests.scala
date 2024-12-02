@@ -157,12 +157,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for native") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 3.2.2
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |//> using platform scala-native
@@ -233,12 +233,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for js") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 3.2.2
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |//> using platform scala-js
@@ -310,12 +310,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
   test("BuildInfo for Scala 2") {
     val inputs = TestInputs(
       os.rel / "main.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.9.1"
-           |//> using option "-Xasync"
-           |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        s"""//> using dep com.lihaoyi::os-lib:0.9.1
+           |//> using option -Xasync
+           |//> using plugin org.wartremover:::wartremover:3.0.9
            |//> using scala 2.13.6
            |//> using jvm 11
-           |//> using mainClass "Main"
+           |//> using mainClass Main
            |//> using resourceDir ./resources
            |//> using jar TEST1.jar TEST2.jar
            |

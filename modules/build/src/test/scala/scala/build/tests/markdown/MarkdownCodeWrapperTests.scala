@@ -143,7 +143,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   test("a test Scala snippet is wrapped correctly") {
     val snippet =
-      """//> using dep "org.scalameta::munit:0.7.29"
+      """//> using dep org.scalameta::munit:0.7.29
         |class Test extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin
@@ -163,7 +163,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   test("multiple test Scala snippets are glued together correctly") {
     val snippet1 =
-      """//> using dep "org.scalameta::munit:0.7.29"
+      """//> using dep org.scalameta::munit:0.7.29
         |class Test1 extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin

@@ -44,10 +44,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  test("resolving position of lib directive") {
+  test("resolving position of dep directive") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using dep "com.lihaoyi::utest:0.7.10"
+        """//> using dep com.lihaoyi::utest:0.7.10
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
@@ -64,15 +64,15 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           case _                                     => sys.error("cannot happen")
         }
 
-        expect(startPos == (0, 15))
-        expect(endPos == (0, 40))
+        expect(startPos == (0, 14))
+        expect(endPos == (0, 39))
     }
   }
 
   test("should parse javac options") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->
-        """//> using javacOpt "source", "1.8", "target", "1.8"
+        """//> using javacOpt source 1.8 target 1.8
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
@@ -90,7 +90,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       Seq("--no-fallback", "--enable-url-protocols=http,https")
     TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using packaging.graalvmArgs "$noFallback", "$enableUrl"
+        s"""//> using packaging.graalvmArgs $noFallback $enableUrl
            |""".stripMargin
     ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
@@ -155,8 +155,8 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
 
     test(s"resolve test scope dependencies correctly when building for ${scope.name} scope") {
-      withProjectFile(projectFileContent = """//> using dep "com.lihaoyi::os-lib:0.9.1"
-                                             |//> using test.dep "org.scalameta::munit::0.7.29"
+      withProjectFile(projectFileContent = """//> using dep com.lihaoyi::os-lib:0.9.1
+                                             |//> using test.dep org.scalameta::munit::0.7.29
                                              |""".stripMargin) { (build, isTestScope) =>
         val deps = build.options.classPathOptions.extraDependencies.toSeq.map(_.value)
         expect(deps.nonEmpty)
@@ -172,9 +172,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javacOpts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javacOpt "source", "1.8"
-          |//> using test.javacOpt "target", "1.8"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javacOpt source 1.8
+          |//> using test.javacOpt target 1.8
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javacOpts = build.options.javaOptions.javacOptions.map(_.value)
@@ -185,9 +185,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope scalac opts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using option "--explain"
-          |//> using test.option "-deprecation"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using option --explain
+          |//> using test.option -deprecation
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val scalacOpts = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
@@ -198,9 +198,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javaOpts correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javaOpt "-Xmx2g"
-          |//> using test.javaOpt "-Dsomething=a"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javaOpt -Xmx2g
+          |//> using test.javaOpt -Dsomething=a
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
@@ -211,9 +211,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope javaProps correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using javaProp "foo=1"
-          |//> using test.javaProp "bar=2"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using javaProp foo=1
+          |//> using test.javaProp bar=2
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val javaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
@@ -224,9 +224,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
     test(s"resolve test scope resourceDir correctly when building for ${scope.name} scope") {
       withProjectFile(projectFileContent =
-        """//> using resourceDir "./mainResources"
-          |//> using test.resourceDir "./testResources"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
+        """//> using resourceDir ./mainResources
+          |//> using test.resourceDir ./testResources
+          |//> using test.dep org.scalameta::munit::0.7.29
           |""".stripMargin
       ) { (build, isTestScope) =>
         val resourcesDirs = build.options.classPathOptions.resourcesDir
@@ -265,7 +265,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     val filePath = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:${.}""""
+        """//> using options -coverage-out:${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
@@ -284,7 +284,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     val filePath = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:$$${.}""""
+        """//> using options -coverage-out:$$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
@@ -303,7 +303,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     val filePath = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
-        """//> using options "-coverage-out:$${.}""""
+        """//> using options -coverage-out:$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>

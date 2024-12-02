@@ -119,7 +119,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
 
   test("a test Scala snippet is extracted correctly from markdown") {
     val code =
-      """//> using dep "org.scalameta::munit:0.7.29"
+      """//> using dep org.scalameta::munit:0.7.29
         |class Test extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin

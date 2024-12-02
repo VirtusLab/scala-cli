@@ -330,7 +330,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           |pprint.log(g)
           |""".stripMargin,
       os.rel / "simple2.sc" ->
-        """//> using dep com.lihaoyi::geny:0.6.5, "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::geny:0.6.5 com.lihaoyi::pprint:0.6.6
           |import geny.Generator
           |val g = Generator("Hel", "lo")
           |pprint.log(g)
@@ -422,7 +422,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           |}
           |""".stripMargin,
       os.rel / "Ignored.scala" ->
-        """//> using target.scala.== "2.12"
+        """//> using target.scala.== 2.12
           |object Ignored {
           |  def foo = 2
           |}
@@ -702,16 +702,16 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   test("repeated Java options") {
     val inputs = TestInputs(
       os.rel / "foo.sc" ->
-        """//> using javaOpt --add-opens, "foo/bar"
-          |//> using javaOpt --add-opens, "other/thing"
-          |//> using javaOpt --add-exports, "foo/bar"
-          |//> using javaOpt --add-exports, "other/thing"
-          |//> using javaOpt --add-modules, "foo/bar"
-          |//> using javaOpt --add-modules, other/thing
-          |//> using javaOpt --add-reads, "foo/bar"
-          |//> using javaOpt --add-reads, "other/thing"
-          |//> using javaOpt "--patch-module", "foo/bar"
-          |//> using javaOpt "--patch-module", "other/thing"
+        """//> using javaOpt --add-opens foo/bar
+          |//> using javaOpt --add-opens other/thing
+          |//> using javaOpt --add-exports foo/bar
+          |//> using javaOpt --add-exports other/thing
+          |//> using javaOpt --add-modules foo/bar
+          |//> using javaOpt --add-modules other/thing
+          |//> using javaOpt --add-reads foo/bar
+          |//> using javaOpt --add-reads other/thing
+          |//> using javaOpt --patch-module foo/bar
+          |//> using javaOpt --patch-module other/thing
           |
           |def foo = "bar"
           |""".stripMargin
@@ -743,7 +743,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   test("-source:future not internally duplicating") {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
-        """//> using option "-source:future"
+        """//> using option -source:future
           |def foo = "bar"
           |""".stripMargin
     )
@@ -762,7 +762,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
         """//> using scala 2.13
-          |//> using options -deprecation, "-feature", "-Xmaxwarns", "1"
+          |//> using options -deprecation -feature -Xmaxwarns 1
           |//> using option -Xdisable-assertions
           |
           |def foo = "bar"
