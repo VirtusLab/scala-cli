@@ -7,6 +7,7 @@ import java.io.File
 import scala.collection.mutable.ArrayBuffer
 import scala.annotation.tailrec
 import java.nio.file.Paths
+import scala.util.Try
 
 case class Trace(declaringClass: String, methodName: String, fileName: String, lineNumber: Int) {
   override def toString: String = s"$declaringClass.$methodName($fileName:$lineNumber)"
@@ -97,11 +98,14 @@ val suites = tests.groupBy(_.fullyQualifiedName).map { case (suit, tests) =>
     } time={test.duration.toString}>
         {
       test.failure.map { failure =>
+        val maybeTrace = Try(failure.trace(1)).toOption
+        val fileName   = maybeTrace.map(_.fileName).getOrElse("unknown")
+        val lineNumber = maybeTrace.map(_.lineNumber).getOrElse(-1)
         <failure message={failure.message} type="ERROR">
             ERROR: {failure.message}
             Category: {failure.name}
-            File: {failure.trace(1).fileName}
-            Line: {failure.trace(1).lineNumber}
+            File: {fileName}
+            Line: {lineNumber}
           </failure>
       }.orNull
     }
