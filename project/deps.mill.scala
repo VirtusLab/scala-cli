@@ -197,7 +197,7 @@ object Deps {
   def metaconfigTypesafe =
     ivy"org.scalameta::metaconfig-typesafe-config:0.13.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit                      = ivy"org.scalameta::munit:1.0.2"
+  def munit                      = ivy"org.scalameta::munit:1.0.3"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def osLib                      = ivy"com.lihaoyi::os-lib:0.11.3"
