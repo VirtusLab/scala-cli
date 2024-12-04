@@ -814,8 +814,12 @@ jobs:
       run: .github/scripts/get-latest-cs.sh
       shell: bash
     - name: Generate native launcher
-      run: .github/scripts/generate-native-image.sh
-      shell: bash
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 30
+        max_attempts: 5
+        shell: bash
+        command: .github/scripts/generate-native-image.sh
     - run: ./mill -i ci.setShouldPublish
     - name: Build OS packages
       if: env.SHOULD_PUBLISH == 'true'
