@@ -329,7 +329,8 @@ trait BuildMacros extends ScalaCliCrossSbtModule
         os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
           check =
             false,
-          mergeErrIntoOut = true
+          mergeErrIntoOut = true,
+          cwd = T.workspace
         )
       assert(0 == compile().exitCode)
 
