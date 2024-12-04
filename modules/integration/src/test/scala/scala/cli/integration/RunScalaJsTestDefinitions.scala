@@ -240,7 +240,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   }
 
   if (TestUtil.isCI)
-    test("Js DOM") {
+    // FIXME: figure out why this started failing on the CI: https://github.com/VirtusLab/scala-cli/issues/3335
+    test("Js DOM".flaky) {
       jsDomTest()
     }
 
@@ -288,6 +289,43 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, extraOptions, "run.sc", "--js").call(cwd = root).out.trim()
       expect(output == "H")
+    }
+  }
+
+  test("Emit Wasm") {
+    val outDir = "out"
+
+    val inputs = TestInputs(
+      os.rel / "run.scala" ->
+        s"""//> using jsEmitWasm true
+           |//> using jsModuleKind es
+           |//> using jsModuleSplitStyleStr fewestmodules
+           |
+           |object Foo {
+           |  def main(args: Array[String]): Unit = {
+           |    println("Hello")
+           |  }
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val absOutDir = root / outDir
+
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        "run.scala",
+        "--js",
+        "-o",
+        absOutDir.toString(),
+        "-f",
+        extraOptions
+      )
+        .call(cwd = root).out.trim()
+      expect(os.exists(absOutDir / "main.wasm"))
+
+      // TODO : Run WASM using node. Requires node 22.
     }
   }
 

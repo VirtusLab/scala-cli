@@ -3,13 +3,13 @@ package scala.cli.commands
 import caseapp.Name
 import caseapp.core.app.Command
 import caseapp.core.parser.Parser
-import caseapp.core.util.Formatter
+import caseapp.core.util.{CaseUtil, Formatter}
 import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
-import scala.build.internals.FeatureType
+import scala.build.internals.{ConsoleUtils, FeatureType}
 import scala.cli.ScalaCli
 import scala.cli.util.ArgHelpers.*
 
@@ -56,6 +56,16 @@ object RestrictedCommandsParser {
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
               if arg.isExperimental && !shouldSuppressExperimentalWarnings =>
             logger.experimentalWarning(passedOption, FeatureType.Option)
+            r
+          case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
+              if arg.isDeprecated =>
+            // TODO implement proper deprecation logic: https://github.com/VirtusLab/scala-cli/issues/3258
+            arg.deprecatedOptionAliases.find(_ == passedOption)
+              .foreach { deprecatedAlias =>
+                logger.message(
+                  s"""[${Console.YELLOW}warn${Console.RESET}] The $deprecatedAlias option alias has been deprecated and may be removed in a future version."""
+                )
+              }
             r
           case (other, _) =>
             other

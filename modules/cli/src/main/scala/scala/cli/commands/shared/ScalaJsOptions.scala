@@ -60,6 +60,11 @@ final case class ScalaJsOptions(
     jsDom: Option[Boolean] = None,
 
   @Group(HelpGroup.ScalaJs.toString)
+  @Tag(tags.experimental)
+  @HelpMessage("Emit WASM")
+    jsEmitWasm: Option[Boolean] = None,
+
+  @Group(HelpGroup.ScalaJs.toString)
   @Tag(tags.should)
   @HelpMessage("A header that will be added at the top of generated .js files")
     jsHeader: Option[String] = None,

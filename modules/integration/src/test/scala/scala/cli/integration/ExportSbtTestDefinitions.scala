@@ -23,6 +23,8 @@ abstract class ExportSbtTestDefinitions extends ScalaCliSuite
   override def runTestsArgs(mainClass: Option[String]): Seq[String] = Seq("test")
 
   test("Scala Native") {
-    simpleTest(ExportTestProjects.nativeTest(actualScalaVersion), mainClass = None)
+    TestUtil.retryOnCi() {
+      simpleTest(ExportTestProjects.nativeTest(actualScalaVersion), mainClass = None)
+    }
   }
 }

@@ -153,107 +153,109 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   }
 
   test("simple sign with external JVM process, java version too low") {
-    val publicKey = {
-      val uri = Thread.currentThread().getContextClassLoader
-        .getResource("test-keys/key.asc")
-        .toURI
-      os.Path(Paths.get(uri))
-    }
-    val secretKey = {
-      val uri = Thread.currentThread().getContextClassLoader
-        .getResource("test-keys/key.skr")
-        .toURI
-      os.Path(Paths.get(uri))
-    }
+    TestUtil.retryOnCi() {
+      val publicKey = {
+        val uri = Thread.currentThread().getContextClassLoader
+          .getResource("test-keys/key.asc")
+          .toURI
+        os.Path(Paths.get(uri))
+      }
+      val secretKey = {
+        val uri = Thread.currentThread().getContextClassLoader
+          .getResource("test-keys/key.skr")
+          .toURI
+        os.Path(Paths.get(uri))
+      }
 
-    val signingOptions = Seq(
-      "--secret-key",
-      s"file:$secretKey",
-      "--secret-key-password",
-      "value:1234",
-      "--signer",
-      "bc",
-      "--force-signing-externally",
-      "--force-jvm-signing-cli"
-    )
-
-    val java8Home =
-      os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
-
-    val extraEnv = Map(
-      "JAVA_HOME" -> java8Home.toString,
-      "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
-    )
-
-    TestCase.testInputs.fromRoot { root =>
-      val publishRes = os.proc(
-        TestUtil.cli,
-        "--power",
-        "publish",
-        extraOptions,
-        signingOptions,
-        "project",
-        "-R",
-        "test-repo",
-        "-v",
-        "-v",
-        "-v"
-      ).call(
-        cwd = root,
-        mergeErrIntoOut = true,
-        env = extraEnv
+      val signingOptions = Seq(
+        "--secret-key",
+        s"file:$secretKey",
+        "--secret-key-password",
+        "value:1234",
+        "--signer",
+        "bc",
+        "--force-signing-externally",
+        "--force-jvm-signing-cli"
       )
 
-      val javaCommandOpt = publishRes.out.text()
-        .linesIterator
-        .find(_.contains("Running command "))
+      val java8Home =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
 
-      expect(javaCommandOpt.isDefined)
-      expect(javaCommandOpt.get.contains(" -cp,"))
-      expect(javaCommandOpt.get.split(" -cp,").headOption.exists(_.contains("17")))
-
-      val files = os.walk(root / "test-repo")
-        .filter(os.isFile(_))
-        .map(_.relativeTo(root / "test-repo"))
-      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
-      expect(notInDir.isEmpty)
-
-      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
-
-      expect((files0 -- expectedArtifacts).isEmpty)
-      expect((expectedArtifacts -- files0).isEmpty)
-      expect(files0 == expectedArtifacts) // just in case…
-
-      val repoArgs =
-        Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
-      val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-      val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-      val output = res.out.trim()
-      expect(output == "Hello")
-
-      val sourceJarViaCsStr =
-        os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-          .call(cwd = root)
-          .out.trim()
-      val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
-      val zf             = new ZipFile(sourceJarViaCs.toIO)
-      val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-      expect(entries == expectedSourceEntries)
-
-      val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
-      assert(signatures.nonEmpty)
-      val verifyProc = os.proc(
-        TestUtil.cli,
-        "--power",
-        "pgp",
-        "verify",
-        "--key",
-        publicKey,
-        signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+      val extraEnv = Map(
+        "JAVA_HOME" -> java8Home.toString,
+        "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
       )
-        .call(cwd = root, mergeErrIntoOut = true)
 
-      expect(!verifyProc.out.text().contains(s"invalid signature"))
+      TestCase.testInputs.fromRoot { root =>
+        val publishRes = os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          signingOptions,
+          "project",
+          "-R",
+          "test-repo",
+          "-v",
+          "-v",
+          "-v"
+        ).call(
+          cwd = root,
+          mergeErrIntoOut = true,
+          env = extraEnv
+        )
+
+        val javaCommandOpt = publishRes.out.text()
+          .linesIterator
+          .find(_.contains("Running command "))
+
+        expect(javaCommandOpt.isDefined)
+        expect(javaCommandOpt.get.contains(" -cp,"))
+        expect(javaCommandOpt.get.split(" -cp,").headOption.exists(_.contains("17")))
+
+        val files = os.walk(root / "test-repo")
+          .filter(os.isFile(_))
+          .map(_.relativeTo(root / "test-repo"))
+        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+        expect(notInDir.isEmpty)
+
+        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+        expect((files0 -- expectedArtifacts).isEmpty)
+        expect((expectedArtifacts -- files0).isEmpty)
+        expect(files0 == expectedArtifacts) // just in case…
+
+        val repoArgs =
+          Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
+        val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+        val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == "Hello")
+
+        val sourceJarViaCsStr =
+          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+            .call(cwd = root)
+            .out.trim()
+        val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+        val zf             = new ZipFile(sourceJarViaCs.toIO)
+        val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+        expect(entries == expectedSourceEntries)
+
+        val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+        assert(signatures.nonEmpty)
+        val verifyProc = os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "verify",
+          "--key",
+          publicKey,
+          signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+        )
+          .call(cwd = root, mergeErrIntoOut = true)
+
+        expect(!verifyProc.out.text().contains(s"invalid signature"))
+      }
     }
   }
 

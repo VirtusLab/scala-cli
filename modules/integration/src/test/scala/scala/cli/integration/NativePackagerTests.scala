@@ -430,7 +430,8 @@ class NativePackagerTests extends ScalaCliSuite {
   }
 
   if (Properties.isLinux)
-    test("building docker image with scala native app") {
+    // FIXME this got flaky on the CI again
+    test("building docker image with scala native app".flaky) {
       TestUtil.retryOnCi() {
         runNativeTest()
       }

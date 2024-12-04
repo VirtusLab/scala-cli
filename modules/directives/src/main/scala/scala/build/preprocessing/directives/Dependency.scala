@@ -14,6 +14,7 @@ import scala.build.options.{
   ShadowingSeq,
   WithBuildRequirements
 }
+import scala.build.preprocessing.directives.Dependency.DependencyType
 import scala.build.preprocessing.directives.DirectiveUtil.*
 import scala.cli.commands.SpecificationLevel
 
@@ -21,7 +22,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.dep org.scalatest::scalatest:3.2.10")
 @DirectiveExamples("//> using test.dep org.scalameta::munit:0.7.29")
 @DirectiveExamples(
-  "//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"
+  "//> using dep \"tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar\""
 )
 @DirectiveUsage(
   "//> using dep org:name:ver | //> using deps org:name:ver org2:name2:ver2",
@@ -46,27 +47,48 @@ final case class Dependency(
   @DirectiveName("compileOnly.dep")
   @DirectiveName("compileOnly.deps")
   @DirectiveName("compileOnly.dependencies")
-  compileOnlyDependency: List[Positioned[String]] = Nil
+  compileOnlyDependency: List[Positioned[String]] = Nil,
+  @DirectiveName("scalafix.dep")
+  @DirectiveName("scalafix.deps")
+  @DirectiveName("scalafix.dependencies")
+  scalafixDependency: List[Positioned[String]] = Nil
 ) extends HasBuildOptionsWithRequirements {
   def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = List(
-    Dependency.buildOptions(dependency).map(_.withEmptyRequirements),
-    Dependency.buildOptions(testDependency).map(_.withScopeRequirement(Scope.Test)),
-    Dependency.buildOptions(compileOnlyDependency, isCompileOnly = true)
+    Dependency.buildOptions(dependency, DependencyType.Runtime).map(_.withEmptyRequirements),
+    Dependency.buildOptions(testDependency, DependencyType.Runtime).map(
+      _.withScopeRequirement(Scope.Test)
+    ),
+    Dependency.buildOptions(compileOnlyDependency, DependencyType.CompileOnly)
+      .map(_.withEmptyRequirements),
+    Dependency.buildOptions(scalafixDependency, DependencyType.Scalafix)
       .map(_.withEmptyRequirements)
   )
 }
 
 object Dependency {
   val handler: DirectiveHandler[Dependency] = DirectiveHandler.derive
+
+  sealed trait DependencyType
+  object DependencyType {
+    case object Runtime     extends DependencyType
+    case object CompileOnly extends DependencyType
+    case object Scalafix    extends DependencyType
+  }
+
   def buildOptions(
     ds: List[Positioned[String]],
-    isCompileOnly: Boolean = false
+    tpe: DependencyType
   ): Either[BuildException, BuildOptions] = either {
     val dependencies: ShadowingSeq[Positioned[AnyDependency]] =
       value(ds.asDependencies.map(ShadowingSeq.from))
     val classPathOptions =
-      if (isCompileOnly) ClassPathOptions(extraCompileOnlyDependencies = dependencies)
-      else ClassPathOptions(extraDependencies = dependencies)
+      tpe match {
+        case DependencyType.Runtime => ClassPathOptions(extraDependencies = dependencies)
+        case DependencyType.CompileOnly =>
+          ClassPathOptions(extraCompileOnlyDependencies = dependencies)
+        case DependencyType.Scalafix => ClassPathOptions(scalafixDependencies = dependencies)
+      }
+
     BuildOptions(classPathOptions = classPathOptions)
   }
 }

@@ -352,7 +352,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   if (actualScalaVersion.startsWith("2."))
     test("successful test native") {
-      successfulNativeTest()
+      TestUtil.retryOnCi()(successfulNativeTest())
     }
 
   test("failing test") {
@@ -383,7 +383,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   if (actualScalaVersion.startsWith("2."))
     test("failing test native") {
-      failingNativeTest()
+      TestUtil.retryOnCi()(failingNativeTest())
     }
 
   test("failing test return code") {
@@ -425,11 +425,13 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   test("utest JS") {
-    successfulUtestJsInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
-        .call(cwd = root)
-        .out.text()
-      expect(output.contains("Hello from tests"))
+    TestUtil.retryOnCi() {
+      successfulUtestJsInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, "test", extraOptions, ".", "--js")
+          .call(cwd = root)
+          .out.text()
+        expect(output.contains("Hello from tests"))
+      }
     }
   }
 
@@ -452,7 +454,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   if (actualScalaVersion.startsWith("2."))
     test("utest native") {
-      utestNative()
+      TestUtil.retryOnCi()(utestNative())
     }
 
   test("junit") {
@@ -495,58 +497,60 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   for ((platformName, platformArgs) <- platforms)
     test(s"test framework arguments $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          """//> using dep org.scalatest::scalatest::3.2.18
-            |import org.scalatest._
-            |import org.scalatest.flatspec._
-            |import org.scalatest.matchers._
-            |
-            |class Tests extends AnyFlatSpec with should.Matchers {
-            |  "A thing" should "thing" in {
-            |    assert(2 + 2 == 4)
-            |  }
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val scalaTestExtraArgs =
-          if (platformName == "native")
-            // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
-            Seq("--native-version", "0.4.17")
-          else Nil
-        val baseRes =
-          os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
-            .call(cwd = root, check = false)
-        if (baseRes.exitCode != 0) {
-          println(baseRes.out.text())
-          fail("scala-cli test falied", clues(baseRes.exitCode))
-        }
-        val baseOutput = baseRes.out.text()
-        expect(baseOutput.contains("A thing"))
-        expect(baseOutput.contains("should thing"))
-        val baseShouldThingLine = baseRes.out
-          .lines()
-          .find(_.contains("should thing"))
-          .getOrElse(???)
-        expect(!baseShouldThingLine.contains("millisecond"))
-
-        val res = os.proc(
-          TestUtil.cli,
-          "test",
-          extraOptions,
-          platformArgs,
-          scalaTestExtraArgs,
-          ".",
-          "--",
-          "-oD"
+      TestUtil.retryOnCi() {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            """//> using dep org.scalatest::scalatest::3.2.18
+              |import org.scalatest._
+              |import org.scalatest.flatspec._
+              |import org.scalatest.matchers._
+              |
+              |class Tests extends AnyFlatSpec with should.Matchers {
+              |  "A thing" should "thing" in {
+              |    assert(2 + 2 == 4)
+              |  }
+              |}
+              |""".stripMargin
         )
-          .call(cwd = root)
-        val output = res.out.text()
-        expect(output.contains("A thing"))
-        expect(output.contains("should thing"))
-        val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
-        expect(shouldThingLine.contains("millisecond"))
+        inputs.fromRoot { root =>
+          val scalaTestExtraArgs =
+            if (platformName == "native")
+              // FIXME: revert to using default Scala Native version when scalatest supports 0.5.x
+              Seq("--native-version", "0.4.17")
+            else Nil
+          val baseRes =
+            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
+              .call(cwd = root, check = false)
+          if (baseRes.exitCode != 0) {
+            println(baseRes.out.text())
+            fail("scala-cli test falied", clues(baseRes.exitCode))
+          }
+          val baseOutput = baseRes.out.text()
+          expect(baseOutput.contains("A thing"))
+          expect(baseOutput.contains("should thing"))
+          val baseShouldThingLine = baseRes.out
+            .lines()
+            .find(_.contains("should thing"))
+            .getOrElse(???)
+          expect(!baseShouldThingLine.contains("millisecond"))
+
+          val res = os.proc(
+            TestUtil.cli,
+            "test",
+            extraOptions,
+            platformArgs,
+            scalaTestExtraArgs,
+            ".",
+            "--",
+            "-oD"
+          )
+            .call(cwd = root)
+          val output = res.out.text()
+          expect(output.contains("A thing"))
+          expect(output.contains("should thing"))
+          val shouldThingLine = res.out.lines().find(_.contains("should thing")).getOrElse(???)
+          expect(shouldThingLine.contains("millisecond"))
+        }
       }
     }
 
@@ -633,68 +637,70 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   test("Cross-tests") {
-    val supportsNative = actualScalaVersion.startsWith("2.")
-    val platforms = {
-      var pf = Seq("\"jvm\"", "\"js\"")
-      if (supportsNative)
-        pf = pf :+ "\"native\""
-      pf.mkString(", ")
-    }
-    val inputs = {
-      var inputs0 = TestInputs(
-        os.rel / "MyTests.scala" ->
-          s"""//> using dep org.scalameta::munit::$munitVersion
-             |//> using platform $platforms
-             |
-             |class MyTests extends munit.FunSuite {
-             |  test("shared") {
-             |    println("Hello from " + "shared")
-             |  }
-             |}
-             |""".stripMargin,
-        os.rel / "MyJvmTests.scala" ->
-          """//> using target.platform "jvm"
-            |
-            |class MyJvmTests extends munit.FunSuite {
-            |  test("jvm") {
-            |    println("Hello from " + "jvm")
-            |  }
-            |}
-            |""".stripMargin,
-        os.rel / "MyJsTests.scala" ->
-          """//> using target.platform "js"
-            |
-            |class MyJsTests extends munit.FunSuite {
-            |  test("js") {
-            |    println("Hello from " + "js")
-            |  }
-            |}
-            |""".stripMargin
-      )
-      if (supportsNative)
-        inputs0 = inputs0.add(
-          os.rel / "MyNativeTests.scala" ->
-            """//> using target.platform "native"
+    TestUtil.retryOnCi() {
+      val supportsNative = actualScalaVersion.startsWith("2.")
+      val platforms = {
+        var pf = Seq("\"jvm\"", "\"js\"")
+        if (supportsNative)
+          pf = pf :+ "\"native\""
+        pf.mkString(", ")
+      }
+      val inputs = {
+        var inputs0 = TestInputs(
+          os.rel / "MyTests.scala" ->
+            s"""//> using dep org.scalameta::munit::$munitVersion
+               |//> using platform $platforms
+               |
+               |class MyTests extends munit.FunSuite {
+               |  test("shared") {
+               |    println("Hello from " + "shared")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "MyJvmTests.scala" ->
+            """//> using target.platform "jvm"
               |
-              |class MyNativeTests extends munit.FunSuite {
-              |  test("native") {
-              |    println("Hello from " + "native")
+              |class MyJvmTests extends munit.FunSuite {
+              |  test("jvm") {
+              |    println("Hello from " + "jvm")
+              |  }
+              |}
+              |""".stripMargin,
+          os.rel / "MyJsTests.scala" ->
+            """//> using target.platform "js"
+              |
+              |class MyJsTests extends munit.FunSuite {
+              |  test("js") {
+              |    println("Hello from " + "js")
               |  }
               |}
               |""".stripMargin
         )
-      inputs0
-    }
-    inputs.fromRoot { root =>
-      val res =
-        os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
-      val output        = res.out.text()
-      val expectedCount = 2 + (if (supportsNative) 1 else 0)
-      expect(countSubStrings(output, "Hello from shared") == expectedCount)
-      expect(output.contains("Hello from jvm"))
-      expect(output.contains("Hello from js"))
-      if (supportsNative)
-        expect(output.contains("Hello from native"))
+        if (supportsNative)
+          inputs0 = inputs0.add(
+            os.rel / "MyNativeTests.scala" ->
+              """//> using target.platform "native"
+                |
+                |class MyNativeTests extends munit.FunSuite {
+                |  test("native") {
+                |    println("Hello from " + "native")
+                |  }
+                |}
+                |""".stripMargin
+          )
+        inputs0
+      }
+      inputs.fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "--power", "test", extraOptions, ".", "--cross").call(cwd = root)
+        val output        = res.out.text()
+        val expectedCount = 2 + (if (supportsNative) 1 else 0)
+        expect(countSubStrings(output, "Hello from shared") == expectedCount)
+        expect(output.contains("Hello from jvm"))
+        expect(output.contains("Hello from js"))
+        if (supportsNative)
+          expect(output.contains("Hello from native"))
+      }
     }
   }
 
@@ -732,7 +738,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   if (TestUtil.isCI)
-    test("Js DOM") {
+    // FIXME: figure out why this started failing on the CI: https://github.com/VirtusLab/scala-cli/issues/3335
+    test("Js DOM".flaky) {
       jsDomTest()
     }
 

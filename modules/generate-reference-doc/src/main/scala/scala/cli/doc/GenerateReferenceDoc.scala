@@ -207,7 +207,11 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
               names
                 .tail
                 .sortBy(_.dropWhile(_ == '-'))
-                .map(n => s"`$n`")
+                .map {
+                  case name if arg.deprecatedOptionAliases.contains(name) =>
+                    s"[deprecated] `$name`"
+                  case name => s"`$name`"
+                }
                 .mkString("Aliases: ", ", ", "\n\n")
             )
 

@@ -7,6 +7,7 @@ import java.io.File
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
+/** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */
 trait RunScalacCompatTestDefinitions {
   _: RunTestDefinitions =>
 
@@ -547,5 +548,61 @@ trait RunScalacCompatTestDefinitions {
               .call(cwd = root)
           expect(res.out.trim() == s"version $actualScalaVersion")
         }
+    }
+
+  for {
+    useDirective <- Seq(true, false)
+    if !Properties.isWin
+    optionsSource = if (useDirective) "using directive" else "command line"
+    if actualScalaVersion == Constants.scala3Next || actualScalaVersion == Constants.scala3NextRc
+  }
+    test(s"consecutive -Xmacro-settings:* flags are not ignored (passed via $optionsSource)") {
+      val sourceFileName = "example.scala"
+      val macroFileName  = "macro.scala"
+      val macroSettings @ Seq(macroSetting1, macroSetting2, macroSetting3) =
+        Seq("one", "two", "three")
+      val macroSettingOptions = macroSettings.map(s => s"-Xmacro-settings:$s")
+      val maybeDirectiveString =
+        if (useDirective) s"//> using options ${macroSettingOptions.mkString(" ")}" else ""
+      TestInputs(
+        os.rel / macroFileName ->
+          """package x
+            |import scala.quoted.*
+            |object M:
+            |  inline def settingsContains(inline x:String): Boolean = ${
+            |     settingsContainsImpl('x)
+            |  }
+            |  def settingsContainsImpl(x:Expr[String])(using Quotes): Expr[Boolean] =
+            |     import quotes.reflect.*
+            |     val v = x.valueOrAbort
+            |     val r = CompilationInfo.XmacroSettings.contains(v)
+            |     Expr(r)
+            |""".stripMargin,
+        os.rel / sourceFileName ->
+          s"""$maybeDirectiveString
+             |import x.M
+             |@main def main(): Unit = {
+             |  val output = Seq(
+             |    if M.settingsContains("$macroSetting1") then Seq("$macroSetting1") else Nil,
+             |    if M.settingsContains("$macroSetting2") then Seq("$macroSetting2") else Nil,
+             |    if M.settingsContains("$macroSetting3") then Seq("$macroSetting3") else Nil,
+             |    if M.settingsContains("dummy") then Seq("dummy") else Nil,
+             |  )
+             |  println(output.flatten.mkString(", "))
+             |}
+             |
+             |""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(
+          TestUtil.cli,
+          "run",
+          ".",
+          if (useDirective) Nil else macroSettingOptions,
+          extraOptions,
+          "-experimental"
+        )
+          .call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim() == macroSettings.mkString(", "))
+      }
     }
 }

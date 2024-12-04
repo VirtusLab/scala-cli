@@ -39,10 +39,10 @@ case object ActionableDependencyHandler
       if Version(latestVersion) > Version(currentVersion) &&
       !isLatestSyntaxVersion(currentVersion)
       // filtering out toolkit-test to prevent double-update-diagnostic
-      if !(dependency.userParams.contains(Constants.toolkitName) &&
+      if !(dependency.userParams.exists(_._1 == Constants.toolkitName) &&
       dependency.module.name == Constants.toolkitTestName)
     } yield
-      if dependency.userParams.contains(Constants.toolkitName)
+      if dependency.userParams.exists(_._1 == Constants.toolkitName)
       then
         val toolkitSuggestion =
           if dependency.module.organization == Constants.toolkitOrganization then latestVersion

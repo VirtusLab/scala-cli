@@ -3,7 +3,7 @@ package build
 import $packages._
 
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.13`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.19`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.29`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import build.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
@@ -233,6 +233,7 @@ trait GenerateReferenceDoc extends CrossSbtModule with ScalaCliScalafixModule {
   )
   def repositoriesTask = T.task(super.repositoriesTask() ++ customRepositories)
   def ivyDeps = Agg(
+    Deps.argonautShapeless,
     Deps.caseApp,
     Deps.munit
   )
@@ -276,6 +277,13 @@ object dummy extends Module {
     def scalaVersion = Scala.defaultInternal
     def ivyDeps = Agg(
       Deps.scalaPy
+    )
+  }
+  object scalafix extends ScalaModule with Bloop.Module {
+    def skipBloop    = true
+    def scalaVersion = Scala.defaultInternal
+    def ivyDeps = Agg(
+      Deps.scalafixInterfaces
     )
   }
 }
@@ -494,6 +502,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultScala212Version = "${Scala.scala212}"
          |  def defaultScala213Version = "${Scala.scala213}"
+         |  def scala3NextRcVersion = "${Scala.scala3NextRc}"
+         |  def scala3NextPrefix = "${Scala.scala3NextPrefix}"
          |  def scala3LtsPrefix = "${Scala.scala3LtsPrefix}"
          |
          |  def workspaceDirName = "$workspaceDirName"
@@ -532,6 +542,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def mavenAppArtifactId = "${Deps.Versions.mavenAppArtifactId}"
          |  def mavenAppGroupId = "${Deps.Versions.mavenAppGroupId}"
          |  def mavenAppVersion = "${Deps.Versions.mavenAppVersion}"
+         |
+         |  def scalafixVersion = "${Deps.Versions.scalafix}"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -916,7 +928,8 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.scalaPackager.exclude("com.lihaoyi" -> "os-lib_2.13"),
     Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
-    Deps.sttp
+    Deps.sttp,
+    Deps.scalafixInterfaces
   )
   def compileIvyDeps = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -1820,7 +1833,7 @@ object ci extends Module {
       "--env", "GPG_EMAIL",
       "--env", "KEYGRIP",
       "--privileged",
-      "fedora",
+      "fedora:40",
       "sh", "updateCentOsPackages.sh"
     )
     // format: on

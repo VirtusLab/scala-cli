@@ -11,7 +11,6 @@ import scala.cli.commands.default.LegacyScalaOptions.*
 import scala.cli.commands.package0.Package
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.shared.HelpMessages.PowerString
-import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.tags
 
 /** Options covering backwards compatibility with the old scala runner.
@@ -168,7 +167,7 @@ object LegacyScalaOptions {
   implicit lazy val parser: Parser[LegacyScalaOptions] = Parser.derive
   implicit lazy val help: Help[LegacyScalaOptions]     = Help.derive
 
-  def yScriptRunnerWarning(yScriptRunnerValue: Option[String]): String = {
+  def yScriptRunnerWarning(yScriptRunnerKey: String, yScriptRunnerValue: Option[String]): String = {
     val valueSpecificMsg = yScriptRunnerValue match {
       case Some(v @ "default") =>
         s"scala.tools.nsc.DefaultScriptRunner (the $v script runner) is no longer available."
@@ -185,7 +184,7 @@ object LegacyScalaOptions {
         s"Using $className as the script runner is no longer supported and will not be attempted."
       case _ => ""
     }
-    s"""Deprecated option '$YScriptRunnerOption' is ignored.
+    s"""Deprecated option '$yScriptRunnerKey' is ignored.
        |The script runner can no longer be picked as before.
        |$valueSpecificMsg""".stripMargin
   }

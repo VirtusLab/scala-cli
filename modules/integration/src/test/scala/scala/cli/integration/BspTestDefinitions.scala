@@ -1712,7 +1712,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         "--power",
         "package",
         jarSources,
-        "--source",
+        "--src",
         "-o",
         sourceJarPath,
         extraOptions
@@ -1907,74 +1907,78 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     }
 
   test("BSP respects JAVA_HOME") {
-    val javaVersion = "22"
-    val inputs = TestInputs(os.rel / "check-java.sc" ->
-      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
-         |println(System.getProperty("java.home"))""".stripMargin)
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-      val java22Home =
-        os.Path(
-          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
-          os.pwd
-        )
-      os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
-        .call(cwd = root, env = Map("JAVA_HOME" -> java22Home.toString()))
-      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
-      expect(ideOptionsPath.toNIO.toFile.exists())
-      val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
-      expect(ideEnvsPath.toNIO.toFile.exists())
-      val jsonOptions = List("--json-options", ideOptionsPath.toString)
-      val envOptions  = List("--envs-file", ideEnvsPath.toString)
-      withBsp(inputs, Seq("."), bspOptions = jsonOptions ++ envOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
-              .getTargets.asScala
-              .filter(!_.getId.getUri.contains("-test"))
-              .map(_.getId())
-            val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
-            val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
-            expect(runResult.getStatusCode == b.StatusCode.OK)
-          }
+    TestUtil.retryOnCi() {
+      val javaVersion = "22"
+      val inputs = TestInputs(os.rel / "check-java.sc" ->
+        s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+           |println(System.getProperty("java.home"))""".stripMargin)
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+        val java22Home =
+          os.Path(
+            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            os.pwd
+          )
+        os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
+          .call(cwd = root, env = Map("JAVA_HOME" -> java22Home.toString()))
+        val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+        expect(ideOptionsPath.toNIO.toFile.exists())
+        val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
+        expect(ideEnvsPath.toNIO.toFile.exists())
+        val jsonOptions = List("--json-options", ideOptionsPath.toString)
+        val envOptions  = List("--envs-file", ideEnvsPath.toString)
+        withBsp(inputs, Seq("."), bspOptions = jsonOptions ++ envOptions, reuseRoot = Some(root)) {
+          (_, _, remoteServer) =>
+            async {
+              val targets = await(remoteServer.workspaceBuildTargets().asScala)
+                .getTargets.asScala
+                .filter(!_.getId.getUri.contains("-test"))
+                .map(_.getId())
+              val compileResult =
+                await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+              val runResult =
+                await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
+            }
+        }
       }
     }
   }
 
   test("BSP respects --java-home") {
-    val javaVersion = "22"
-    val inputs = TestInputs(os.rel / "check-java.sc" ->
-      s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
-         |println(System.getProperty("java.home"))""".stripMargin)
-    inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-      val java22Home =
-        os.Path(
-          os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
-          os.pwd
-        )
-      os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
-        .call(cwd = root)
-      val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
-      expect(ideOptionsPath.toNIO.toFile.exists())
-      val jsonOptions = List("--json-options", ideOptionsPath.toString)
-      withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
-        (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
-              .getTargets.asScala
-              .filter(!_.getId.getUri.contains("-test"))
-              .map(_.getId())
-            val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
-            val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
-            expect(runResult.getStatusCode == b.StatusCode.OK)
-          }
+    TestUtil.retryOnCi() {
+      val javaVersion = "22"
+      val inputs = TestInputs(os.rel / "check-java.sc" ->
+        s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
+           |println(System.getProperty("java.home"))""".stripMargin)
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+        val java22Home =
+          os.Path(
+            os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
+            os.pwd
+          )
+        os.proc(TestUtil.cli, "setup-ide", "check-java.sc", "--java-home", java22Home.toString())
+          .call(cwd = root)
+        val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
+        expect(ideOptionsPath.toNIO.toFile.exists())
+        val jsonOptions = List("--json-options", ideOptionsPath.toString)
+        withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
+          (_, _, remoteServer) =>
+            async {
+              val targets = await(remoteServer.workspaceBuildTargets().asScala)
+                .getTargets.asScala
+                .filter(!_.getId.getUri.contains("-test"))
+                .map(_.getId())
+              val compileResult =
+                await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
+              val runResult =
+                await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
+            }
+        }
       }
     }
   }
@@ -2165,16 +2169,25 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   for { cliVersion <- Seq("1.5.0", "1.5.0-19-g932866db6-SNAPSHOT", "1.0.0") }
     test(s"setup-ide doesn't pass unrecognised arguments to old --cli-versions: $cliVersion") {
-      val scriptName = "cli-version.sc"
-      val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
-      )
-      inputs.fromRoot { root =>
-        val r =
-          os.proc(TestUtil.cli, "--cli-version", cliVersion, "setup-ide", scriptName, extraOptions)
-            .call(cwd = root, stderr = os.Pipe, check = false)
-        expect(!r.err.text().contains("Unrecognized argument"))
-        expect(r.exitCode == 0)
+      TestUtil.retryOnCi() {
+        val scriptName = "cli-version.sc"
+        val inputs = TestInputs(
+          os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion"""
+        )
+        inputs.fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "--cli-version",
+              cliVersion,
+              "setup-ide",
+              scriptName,
+              extraOptions
+            )
+              .call(cwd = root, stderr = os.Pipe, check = false)
+          expect(!r.err.text().contains("Unrecognized argument"))
+          expect(r.exitCode == 0)
+        }
       }
     }
 

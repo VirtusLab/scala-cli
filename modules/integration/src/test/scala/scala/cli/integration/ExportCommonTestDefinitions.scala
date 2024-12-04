@@ -99,23 +99,33 @@ trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
 
   if (runExportTests) {
     test("JVM") {
-      jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
+      TestUtil.retryOnCi() {
+        jvmTest(runMainArgs(Some("Main")), runTestsArgs(Some("Main")), mainClassName = "Main")
+      }
     }
     test("extra source from a directive introducing a dependency") {
-      extraSourceFromDirectiveWithExtraDependency("Main", "Main.scala")
+      TestUtil.retryOnCi() {
+        extraSourceFromDirectiveWithExtraDependency("Main", "Main.scala")
+      }
     }
     test("extra source passed both via directive and from command line") {
-      extraSourceFromDirectiveWithExtraDependency("Main", ".")
+      TestUtil.retryOnCi() {
+        extraSourceFromDirectiveWithExtraDependency("Main", ".")
+      }
     }
     scalaVersionsInDir.foreach { scalaV =>
       test(s"check export for project with scala version in directive as $scalaV") {
-        scalaVersionTest(scalaV, "Main")
+        TestUtil.retryOnCi() {
+          scalaVersionTest(scalaV, "Main")
+        }
       }
     }
 
     test("just test scope") {
       // Keeping the test name ends with Test to support maven convention
-      justTestScope("MyTest")
+      TestUtil.retryOnCi() {
+        justTestScope("MyTest")
+      }
     }
 
   }

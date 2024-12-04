@@ -48,7 +48,7 @@ Add dependencies
 
 `//> using test.dep org.scalameta::munit:0.7.29`
 
-`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
+`//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
 
 ### Java options
 
@@ -282,6 +282,8 @@ Add Scala.js options
 `//> using jsModuleSplitStyleStr` _value_
 
 `//> using jsEsVersionStr` _value_
+    
+`//> using jsEmitWasm` _true|false_
 
 `//> using jsEsModuleImportMap` _value_
 
@@ -300,7 +302,7 @@ Set the test framework
 
 ### Toolkit
 
-Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.29
 
 `//> using toolkit` _version_
 

@@ -168,7 +168,9 @@ object Artifacts {
           scalaArtifactsParams.compilerPlugins
             .map { posDep =>
               val posDep0 =
-                posDep.map(dep => dep.copy(userParams = dep.userParams + ("intransitive" -> None)))
+                posDep.map(dep =>
+                  dep.copy(userParams = dep.userParams ++ Seq("intransitive" -> None))
+                )
               artifacts(
                 Seq(posDep0),
                 allExtraRepositories,
@@ -529,7 +531,7 @@ object Artifacts {
       .map(positionedDepTupleSeq =>
         positionedDepTupleSeq.map {
           case Positioned(positions, (dep, csDep)) =>
-            val maybeUrl = dep.userParams.get("url").flatten.map(new URL(_))
+            val maybeUrl = dep.userParams.find(_._1 == "url").flatMap(_._2.map(new URL(_)))
             val fallback = maybeUrl.map(url => (csDep.module -> csDep.version) -> (url -> true))
             Positioned(positions, (csDep, fallback))
         }

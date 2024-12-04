@@ -139,7 +139,7 @@ os.proc(scalaCLILauncher,"--power",  "package", ".", "-o", destPath, "--native-i
 To upload generated native executable applications to artifacts you can use [upload-artifact](https://github.com/actions/upload-artifact) GitHub Actions.
 
 ```yaml
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: launchers
         path: artifacts

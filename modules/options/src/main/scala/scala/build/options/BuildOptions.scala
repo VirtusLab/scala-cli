@@ -317,69 +317,82 @@ final case class BuildOptions(
       scalaOptions.defaultScalaVersion.getOrElse(Constants.defaultScalaVersion)
     )
 
-    val svOpt: Option[String] = scalaOptions.scalaVersion match {
-      case Some(MaybeScalaVersion(None)) =>
-        None
-      // Do not validate Scala version in offline mode
-      case Some(MaybeScalaVersion(Some(svInput))) if internal.offline.getOrElse(false) =>
-        Some(svInput)
-      // Do not validate Scala version if it is a default one
-      case Some(MaybeScalaVersion(Some(svInput))) if defaultVersions.contains(svInput) =>
-        Some(svInput)
-      case Some(MaybeScalaVersion(Some(svInput))) =>
-        val sv = value {
-          svInput match {
-            case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
-              ScalaVersionUtil.validateStable(
-                Constants.scala3LtsPrefix,
-                cache,
-                repositories
-              )
-            case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
-              Left(new ScalaVersionError(
-                s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
-              ))
-            case sv if sv == ScalaVersionUtil.scala3Nightly =>
-              ScalaVersionUtil.GetNightly.scala3(cache)
-            case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
-              ScalaVersionUtil.GetNightly.scala3X(
-                threeSubBinaryNum,
-                cache
-              )
-            case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
-              ScalaVersionUtil.GetNightly.scala2("2.13", cache)
-            case sv if sv == ScalaVersionUtil.scala212Nightly =>
-              ScalaVersionUtil.GetNightly.scala2("2.12", cache)
-            case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
-              ScalaVersionUtil.CheckNightly.scala3(
-                versionString,
-                cache
-              )
-                .map(_ => versionString)
-            case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
-              ScalaVersionUtil.CheckNightly.scala2(
-                versionString,
-                cache
-              )
-                .map(_ => versionString)
-            case versionString if versionString.exists(_.isLetter) =>
-              ScalaVersionUtil.validateNonStable(
-                versionString,
-                cache,
-                repositories
-              )
-            case versionString =>
-              ScalaVersionUtil.validateStable(
-                versionString,
-                cache,
-                repositories
-              )
+    val svOpt: Option[String] =
+      scalaOptions.scalaVersion -> scalaOptions.defaultScalaVersion match {
+        case (Some(MaybeScalaVersion(None)), _) =>
+          None
+        // Do not validate Scala version in offline mode
+        case (Some(MaybeScalaVersion(Some(svInput))), _) if internal.offline.getOrElse(false) =>
+          Some(svInput)
+        // Do not validate Scala version if it is a default one
+        case (Some(MaybeScalaVersion(Some(svInput))), _) if defaultVersions.contains(svInput) =>
+          Some(svInput)
+        case (Some(MaybeScalaVersion(Some(svInput))), Some(predefinedScalaVersion))
+            if predefinedScalaVersion.startsWith(svInput) &&
+            (svInput == "3" || svInput == Constants.scala3NextPrefix ||
+            svInput == "2.13" || svInput == "2.12") =>
+          Some(predefinedScalaVersion)
+        case (Some(MaybeScalaVersion(Some(svInput))), None)
+            if svInput == "3" || svInput == Constants.scala3NextPrefix =>
+          Some(Constants.defaultScalaVersion)
+        case (Some(MaybeScalaVersion(Some(svInput))), None) if svInput == "2.13" =>
+          Some(Constants.defaultScala213Version)
+        case (Some(MaybeScalaVersion(Some(svInput))), None) if svInput == "2.12" =>
+          Some(Constants.defaultScala212Version)
+        case (Some(MaybeScalaVersion(Some(svInput))), _) =>
+          val sv = value {
+            svInput match {
+              case sv if ScalaVersionUtil.scala3Lts.contains(sv) =>
+                ScalaVersionUtil.validateStable(
+                  Constants.scala3LtsPrefix,
+                  cache,
+                  repositories
+                )
+              case sv if ScalaVersionUtil.scala2Lts.contains(sv) =>
+                Left(new ScalaVersionError(
+                  s"Invalid Scala version: $sv. There is no official LTS version for Scala 2."
+                ))
+              case sv if sv == ScalaVersionUtil.scala3Nightly =>
+                ScalaVersionUtil.GetNightly.scala3(cache)
+              case scala3NightlyNicknameRegex(threeSubBinaryNum) =>
+                ScalaVersionUtil.GetNightly.scala3X(
+                  threeSubBinaryNum,
+                  cache
+                )
+              case vs if ScalaVersionUtil.scala213Nightly.contains(vs) =>
+                ScalaVersionUtil.GetNightly.scala2("2.13", cache)
+              case sv if sv == ScalaVersionUtil.scala212Nightly =>
+                ScalaVersionUtil.GetNightly.scala2("2.12", cache)
+              case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
+                ScalaVersionUtil.CheckNightly.scala3(
+                  versionString,
+                  cache
+                )
+                  .map(_ => versionString)
+              case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
+                ScalaVersionUtil.CheckNightly.scala2(
+                  versionString,
+                  cache
+                )
+                  .map(_ => versionString)
+              case versionString if versionString.exists(_.isLetter) =>
+                ScalaVersionUtil.validateNonStable(
+                  versionString,
+                  cache,
+                  repositories
+                )
+              case versionString =>
+                ScalaVersionUtil.validateStable(
+                  versionString,
+                  cache,
+                  repositories
+                )
+            }
           }
-        }
-        Some(sv)
-
-      case None => Some(scalaOptions.defaultScalaVersion.getOrElse(Constants.defaultScalaVersion))
-    }
+          Some(sv)
+        case (None, Some(predefinedScalaVersion)) => Some(predefinedScalaVersion)
+        case _                                    => Some(Constants.defaultScalaVersion)
+      }
 
     svOpt match {
       case Some(scalaVersion) =>

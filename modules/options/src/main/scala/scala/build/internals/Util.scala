@@ -71,13 +71,13 @@ object Util {
             (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
           }
         }
-      for (clOpt <- dep.userParams.get("classifier"); cl <- clOpt)
+      for (clOpt <- dep.userParams.find(_._1 == "classifier").map(_._2); cl <- clOpt)
         dep0 = dep0.withPublication(dep0.publication.withClassifier(coursier.core.Classifier(cl)))
-      for (tpeOpt <- dep.userParams.get("type"); tpe <- tpeOpt)
+      for (tpeOpt <- dep.userParams.find(_._1 == "type").map(_._2); tpe <- tpeOpt)
         dep0 = dep0.withPublication(dep0.publication.withType(coursier.core.Type(tpe)))
-      for (extOpt <- dep.userParams.get("ext"); ext <- extOpt)
+      for (extOpt <- dep.userParams.find(_._1 == "ext").map(_._2); ext <- extOpt)
         dep0 = dep0.withPublication(dep0.publication.withExt(coursier.core.Extension(ext)))
-      for (_ <- dep.userParams.get("intransitive"))
+      for (_ <- dep.userParams.find(_._1 == "intransitive"))
         dep0 = dep0.withTransitive(false)
       dep0
     }

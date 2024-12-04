@@ -846,7 +846,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.5.5 by default).
+Set the Scala Native version (0.5.6 by default).
 
 ### `--native-mode`
 
@@ -1086,7 +1086,7 @@ Aliases: `--toolkit`
 
 `IMPLEMENTATION specific` per Scala Runner specification
 
-Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.27
+Add toolkit to classPath (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.29
 
 ### `--exclude`
 

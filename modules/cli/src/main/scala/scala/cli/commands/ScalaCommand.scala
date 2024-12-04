@@ -21,6 +21,7 @@ import scala.build.input.{ScalaCliInvokeData, SubCommand}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.{EnvVar, FeatureType}
+import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
@@ -175,9 +176,11 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     val logger = options.global.logging.logger
     sharedOptions(options).foreach { so =>
       val scalacOpts = so.scalacOptions.toScalacOptShadowingSeq
-      if scalacOpts.keys.contains(ScalacOpt(YScriptRunnerOption)) then
-        logger.message(
-          LegacyScalaOptions.yScriptRunnerWarning(scalacOpts.getOption(YScriptRunnerOption))
+      scalacOpts.keys
+        .find(_.value.noDashPrefixes == YScriptRunnerOption)
+        .map(_.value)
+        .foreach(k =>
+          logger.message(LegacyScalaOptions.yScriptRunnerWarning(k, scalacOpts.getOption(k)))
         )
     }
   }
@@ -192,7 +195,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       shared <- sharedOptions(options)
       scalacOptions        = shared.scalacOptions
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
-      if updatedScalacOptions.exists(ScalacOptions.ScalacPrintOptions)
+      if updatedScalacOptions.map(_.noDashPrefixes).exists(ScalacOptions.ScalacPrintOptions)
       logger = shared.logger
       fixedBuildOptions = buildOptions.copy(scalaOptions =
         buildOptions.scalaOptions.copy(defaultScalaVersion = Some(ScalaCli.getDefaultScalaVersion))

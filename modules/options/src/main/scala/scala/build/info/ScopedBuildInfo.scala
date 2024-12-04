@@ -8,7 +8,6 @@ import dependency.AnyDependency
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.{BuildOptions, ConfigMonoid}
-import scala.reflect.io.Path
 
 final case class ScopedBuildInfo(
   sources: Seq[String] = Nil,

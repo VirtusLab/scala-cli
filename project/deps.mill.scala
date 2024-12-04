@@ -9,10 +9,11 @@ object Scala {
   def scala213        = "2.13.15"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
-  def scala3Lts  = s"$scala3LtsPrefix.4" // the LTS version currently used in the build
-  def scala3Next = "3.5.2"               // the newest/next version of Scala
-  def scala3NextAnnounced = scala3Next // the newest/next version of Scala that's been announced
-  def scala3NextRc        = "3.6.1"    // the latest RC version of Scala Next
+  def scala3Lts        = s"$scala3LtsPrefix.4"  // the LTS version currently used in the build
+  def scala3NextPrefix = "3.5"
+  def scala3Next       = s"$scala3NextPrefix.2" // the newest/next version of Scala
+  def scala3NextAnnounced = scala3Next  // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.6.2-RC3" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -103,43 +104,47 @@ object Deps {
   object Versions {
     def ammonite             = "3.0.0-2-6342755f"
     def ammoniteForScala3Lts = ammonite
+    def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.14"
+    def coursierDefault                   = "2.1.19"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
     def jmh                               = "1.37"
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
-    def jsoup                             = "1.18.1"
+    def jsoup                             = "1.18.3"
     def scalaMeta                         = "4.9.9"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.5"
+    def scalaNative05                     = "0.5.6"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative04
-    def scalaPackager                     = "0.1.29"
+    def scalaPackager                     = "0.1.31"
     def signingCli                        = "0.2.4"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
-    def javaClassName                     = "0.1.3"
-    def bloop                             = "2.0.3"
-    def sbtVersion                        = "1.10.3"
+    def javaClassName                     = "0.1.4"
+    def bloop                             = "2.0.5"
+    def sbtVersion                        = "1.10.6"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
     def mavenAppArtifactId                = "maven-app"
     def mavenAppGroupId                   = "com.example"
     def mavenAppVersion                   = "0.1-SNAPSHOT"
+    def scalafix                          = "0.13.0"
   }
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
   def ammonite             = ivy"com.lihaoyi:::ammonite:${Versions.ammonite}"
   def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
-  def asm                  = ivy"org.ow2.asm:asm:9.7.1"
+  def argonautShapeless =
+    ivy"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
+  def asm = ivy"org.ow2.asm:asm:9.7.1"
   // Force using of 2.13 - is there a better way?
   def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.1.0"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
@@ -159,15 +164,20 @@ object Deps {
   def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency   = ivy"io.get-coursier::dependency:0.2.4"
+  def dependency   = ivy"io.get-coursier::dependency:0.3.1"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
-  def expecty = ivy"com.eed3si9n.expecty::expecty:0.16.0"
+  def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava   = ivy"com.google.guava:guava:33.3.1-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
+      .exclude(
+        "org.jline" -> "jline-reader",
+        "org.jline" -> "jline-terminal",
+        "org.jline" -> "jline-terminal-jna"
+      )
   def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
   def jimfs                = ivy"com.google.jimfs:jimfs:1.3.0"
   def jmhGeneratorBytecode = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
@@ -241,7 +251,7 @@ object Deps {
   val toolkitVersionForNative05 = toolkitVersion
   def toolkit                   = ivy"org.scala-lang:toolkit:$toolkitVersion"
   def toolkitTest               = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
-  val typelevelToolkitVersion   = "0.1.27"
+  val typelevelToolkitVersion   = "0.1.29"
   def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest      = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.1"
@@ -249,7 +259,8 @@ object Deps {
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
+  def zipInputStream     = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
+  def scalafixInterfaces = ivy"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
 def graalVmVersion     = "22.3.1"

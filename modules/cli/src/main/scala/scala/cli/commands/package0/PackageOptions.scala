@@ -48,11 +48,12 @@ final case class PackageOptions(
     library: Boolean = false,
   @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a source JAR rather than an executable JAR")
+  @Name("sourcesJar")
+  @Name("jarSources")
   @Name("sources")
-  @Name("src")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    source: Boolean = false,
+    src: Boolean = false,
   @Group(HelpGroup.Package.toString)
   @HelpMessage("Generate a scaladoc JAR rather than an executable JAR")
   @ExtraName("scaladoc")
@@ -144,7 +145,7 @@ final case class PackageOptions(
   def packageTypeOpt: Option[PackageType] =
     forcedPackageTypeOpt.orElse {
       if (library) Some(PackageType.LibraryJar)
-      else if (source) Some(PackageType.SourceJar)
+      else if (src) Some(PackageType.SourceJar)
       else if (assembly) Some(
         PackageType.Assembly(
           addPreamble = preamble,
