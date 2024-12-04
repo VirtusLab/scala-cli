@@ -179,20 +179,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val inputs = options.shared.inputs(args.all).orExit(logger)
     CurrentParams.workspaceOpt = Some(inputs.workspace)
     val baseOptions =
-      initialBuildOptions
-        .copy(
-          scalaNativeOptions = initialBuildOptions.scalaNativeOptions.copy(
-            maxDefaultNativeVersions =
-              initialBuildOptions.scalaNativeOptions.maxDefaultNativeVersions ++
-                (if shouldExportToMill && Constants.scalaNativeVersion != Constants.maxScalaNativeForMillExport
-                 then
-                   val warningMsg =
-                     s"Mill export does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.maxScalaNativeForMillExport} should be used instead."
-                   List(Constants.maxScalaNativeForMillExport -> warningMsg)
-                 else Nil)
-          ),
-          mainClass = options.mainClass.mainClass.filter(_.nonEmpty)
-        )
+      initialBuildOptions.copy(mainClass = options.mainClass.mainClass.filter(_.nonEmpty))
 
     val (sourcesMain, optionsMain0) =
       prepareBuild(
