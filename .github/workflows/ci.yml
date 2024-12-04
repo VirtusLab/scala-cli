@@ -33,7 +33,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       if: runner.os == 'Linux'
       with:
-        name: launchers
+        name: jvm-launchers
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
@@ -1586,7 +1586,7 @@ jobs:
     - run: ./mill -i ci.copyVcRedist
     - uses: actions/upload-artifact@v4
       with:
-        name: launchers
+        name: vc-redist-launchers
         path: artifacts/
         if-no-files-found: warn
         retention-days: 2
@@ -1763,7 +1763,12 @@ jobs:
     - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
-        name: launchers
+        name: jvm-launchers
+        path: artifacts/
+    - uses: actions/download-artifact@v4
+      if: env.SHOULD_PUBLISH == 'true'
+      with:
+        name: vc-redist-launchers
         path: artifacts/
     - run: ./mill -i uploadLaunchers artifacts/
       if: env.SHOULD_PUBLISH == 'true'
