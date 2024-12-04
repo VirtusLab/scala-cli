@@ -8,8 +8,8 @@ import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}

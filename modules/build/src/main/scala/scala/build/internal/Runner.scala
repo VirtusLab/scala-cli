@@ -11,7 +11,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors._
+import scala.build.errors.*
 import scala.build.internals.EnvVar
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.util.{Failure, Properties, Success}

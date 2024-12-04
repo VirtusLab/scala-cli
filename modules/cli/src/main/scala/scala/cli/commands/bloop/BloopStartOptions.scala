@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import caseapp.*
 
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 
 // format: off

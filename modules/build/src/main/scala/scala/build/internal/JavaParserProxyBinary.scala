@@ -2,7 +2,7 @@ package scala.build.internal
 
 import coursier.cache.ArchiveCache
 import coursier.util.Task
-import dependency._
+import dependency.*
 
 import java.util.function.Supplier
 

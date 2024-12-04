@@ -1,7 +1,7 @@
 package scala.cli.commands.bloop
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 final case class BloopJson(javaOptions: List[String] = Nil)
 

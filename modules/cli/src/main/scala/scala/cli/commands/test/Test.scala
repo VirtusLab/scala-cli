@@ -5,9 +5,9 @@ import caseapp.core.help.HelpFormat
 
 import java.nio.file.Path
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole

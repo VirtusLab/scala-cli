@@ -13,8 +13,8 @@ import scala.build.errors.{
   MalformedDirectiveError,
   Severity
 }
-import scala.build.input.ElementsUtils.*
 import scala.build.input.*
+import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{

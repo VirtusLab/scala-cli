@@ -1,7 +1,7 @@
 package scala.build.options
 
 import scala.build.internal.Constants
-import scala.build.options.packaging._
+import scala.build.options.packaging.*
 
 final case class PackageOptions(
   standalone: Option[Boolean] = None,

@@ -1,7 +1,7 @@
 package scala.cli.commands.publish
 
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.build.options.PublishOptions as BPublishOptions
 
 /** A check for missing options in [[PublishOptions]]
   */

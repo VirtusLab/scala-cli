@@ -15,7 +15,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
   export GRAALVM_HOME="$JAVA_HOME"
   export PATH="$(pwd)/bin:$PATH"
   echo "PATH=$PATH"
-  ./mill.bat -i "$COMMAND" generate-native-image.bat ""
+  ./mill.bat -i "$COMMAND" --scriptDest generate-native-image.bat --imageDest ""
   ./generate-native-image.bat
 else
   if [ $# == "0" ]; then
@@ -42,7 +42,7 @@ else
     esac
   fi
 
-  ./mill -i "$COMMAND" generate-native-image.sh ""
+  ./mill -i "$COMMAND" --scriptDest generate-native-image.sh --imageDest ""
   bash ./generate-native-image.sh
   "${CLEANUP[@]}"
 fi

@@ -1,6 +1,6 @@
 package scala.cli.commands.pgp
 
-import sttp.client3._
+import sttp.client3.*
 import sttp.model.Uri
 
 object KeyServer {

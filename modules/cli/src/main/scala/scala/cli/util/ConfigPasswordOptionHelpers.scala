@@ -3,7 +3,7 @@ package scala.cli.util
 import scala.build.errors.BuildException
 import scala.build.options.publish.ConfigPasswordOption
 import scala.cli.commands.SpecificationLevel
-import scala.cli.commands.publish.ConfigUtil._
+import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.config.{ConfigDb, Key, PasswordOption}
 import scala.cli.errors.MissingConfigEntryError
 

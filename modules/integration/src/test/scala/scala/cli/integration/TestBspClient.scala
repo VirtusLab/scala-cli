@@ -1,6 +1,6 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import org.eclipse.lsp4j.jsonrpc
 
 import java.io.{InputStream, OutputStream}

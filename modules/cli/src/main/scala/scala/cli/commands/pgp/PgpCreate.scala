@@ -3,7 +3,7 @@ package scala.cli.commands.pgp
 import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
 
-import scala.cli.signing.commands.{PgpCreate => OriginalPgpCreate, PgpCreateOptions}
+import scala.cli.signing.commands.{PgpCreate as OriginalPgpCreate, PgpCreateOptions}
 
 object PgpCreate extends PgpCommand[PgpCreateOptions] {
   override def names = PgpCommandNames.pgpCreate

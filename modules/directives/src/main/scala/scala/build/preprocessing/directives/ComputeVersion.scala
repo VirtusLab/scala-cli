@@ -12,7 +12,7 @@ import scala.build.directives.{
   HasBuildOptions
 }
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, ComputeVersion => cv, SourceGeneratorOptions}
+import scala.build.options.{BuildOptions, ComputeVersion as cv, SourceGeneratorOptions}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compute Version")

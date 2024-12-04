@@ -1,3 +1,5 @@
+package build.project
+
 import Deps.Versions
 import mill._
 import scalalib._
@@ -94,7 +96,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill          = os.read(os.pwd / ".mill-version").trim
+    def mill          = _root_.mill.main.BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
@@ -120,7 +122,6 @@ object Deps {
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
-    def maxScalaNativeForMillExport       = scalaNative04
     def scalaPackager                     = "0.1.31"
     def signingCli                        = "0.2.4"
     def signingCliJvmVersion              = Java.defaultJava
