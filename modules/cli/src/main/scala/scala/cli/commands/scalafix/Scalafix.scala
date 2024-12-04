@@ -6,7 +6,7 @@ import coursier.cache.FileCache
 import dependency.*
 import scalafix.interfaces.ScalafixError.*
 import scalafix.interfaces.{
-  Scalafix => ScalafixInterface,
+  Scalafix as ScalafixInterface,
   ScalafixError,
   ScalafixException,
   ScalafixRule
