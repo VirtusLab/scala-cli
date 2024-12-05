@@ -106,11 +106,11 @@ Using directives are part of the code so similarly, developers should be able to
 Commenting out comment-based directives does not cause any problems. Below, some examples how to do it:
 
 ```scala compile
-// //> using dep "no::lib:123"
+// //> using dep no::lib:123
 ```
 
 ```scala compile
-// // using dep "no::lib:123"
+// // using dep no::lib:123
 ```
 
 ## Directives with a test scope equivalent
@@ -121,20 +121,20 @@ dependencies that are only used in tests outside test-specific sources.
 For example, this way you can declare the dependency to `munit` in `project.scala` like this:
 
 ```scala title=project.scala
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 ```
 
 The dependency will then only be available in test sources.
 It's effectively an equivalent to just `using dep` inside of a test source (except you can define it anywhere):
 
 ```scala title=src/test/scala/Tests.scala
-//> using dep org.scalameta::munit::0.7.29
+//> using dep org.scalameta::munit::1.0.2
 ```
 
 Directives with a test scope equivalent:
 
 ```scala compile
-//> using test.dep org.scalameta::munit::0.7.29
+//> using test.dep org.scalameta::munit::1.0.2
 //> using test.jar path/to/dep.jar
 //> using test.sourceJar path/to/some-sources.jar
 //> using test.javaOpt -Dfoo=bar

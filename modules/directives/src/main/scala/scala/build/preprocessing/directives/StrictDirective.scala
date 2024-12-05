@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{EmptyValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
 
 import scala.build.Position
 
@@ -16,11 +16,11 @@ import scala.build.Position
 
 case class StrictDirective(
   key: String,
-  values: Seq[Value[_]],
+  values: Seq[Value[?]],
   startColumn: Int = 0
 ) {
   override def toString: String = {
-    val suffix = if validValues.isEmpty then "" else s" \"${validValues.mkString("\",  \"")}\""
+    val suffix = if validValues.isEmpty then "" else s" ${validValues.mkString("  ")}"
     s"//> using $key$suffix"
   }
 

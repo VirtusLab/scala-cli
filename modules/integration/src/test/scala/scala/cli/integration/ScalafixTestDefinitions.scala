@@ -233,7 +233,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("external rule") {
     val original: String =
-      """|//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
+      """|//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1
          |
          |object CollectHeadOptionTest {
          |  def x1: Option[String] = List(1, 2, 3).collect { case n if n % 2 == 0 => n.toString }.headOption
@@ -248,7 +248,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       os.rel / "Hello.scala" -> original
     )
     val expectedContent: String = noCrLf {
-      """|//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
+      """|//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1
          |
          |object CollectHeadOptionTest {
          |  def x1: Option[String] = List(1, 2, 3).collectFirst{ case n if n % 2 == 0 => n.toString }

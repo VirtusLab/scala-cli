@@ -33,10 +33,10 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
   test("throw error when exclude found in multiple files") {
     val testInputs = TestInputs(
       os.rel / "Hello.scala" ->
-        """//> using exclude "*.sc"
+        """//> using exclude *.sc
           |""".stripMargin,
       os.rel / "Main.scala" ->
-        """//> using exclude "*/test/*"
+        """//> using exclude */test/*
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -57,10 +57,10 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
   test("throw error when exclude found in non top-level project.scala and file") {
     val testInputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using exclude "*/test/*"
+        """//> using exclude */test/*
           |""".stripMargin,
       os.rel / "src" / "project.scala" ->
-        s"""//> using exclude "*.sc" """
+        s"""//> using exclude *.sc"""
     )
     testInputs.withInputs { (_, inputs) =>
       val crossSources =
@@ -84,7 +84,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
-        s"""//> using exclude "Main.scala" """
+        s"""//> using exclude Main.scala"""
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
@@ -118,7 +118,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
-        s"""//> using exclude "$${.}${File.separator}Main.scala" """
+        s"""//> using exclude $${.}${File.separator}Main.scala"""
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
@@ -152,7 +152,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
-        """//> using exclude "src/*.scala" """
+        """//> using exclude src/*.scala"""
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =
@@ -186,7 +186,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
-        """//> using exclude "src/*.scala" """
+        """//> using exclude src/*.scala"""
     )
     testInputs.withInputs { (root, inputs) =>
       val (crossSources, _) =

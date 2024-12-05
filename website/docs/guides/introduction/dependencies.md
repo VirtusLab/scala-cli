@@ -82,8 +82,8 @@ To exclude a transitive dependency from a Scala CLI project use the `exclude` pa
 It requires passing the organization and module name of the dependency to be excluded. For example, let's say you have
 the following Scala code:
 
-```scala title=Main.scala
-//> using dep com.lihaoyi::pprint:0.8.1
+```scala compile
+//> using dep com.lihaoyi::pprint:0.9.0
 object Main extends App {
   println("Hello")
 }
@@ -92,8 +92,8 @@ object Main extends App {
 If you want to compile it with the `pprint` library but exclude its `sourcecode` dependency, you can use
 the `exclude` parameter as follows:
 
-```scala title=Main.scala
-//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%%sourcecode"
+```scala compile
+//> using dep com.lihaoyi::pprint:0.9.0,exclude=com.lihaoyi%%sourcecode
 object Main extends App {
   println("Hello")
 }
@@ -101,8 +101,8 @@ object Main extends App {
 
 To exclude Scala modules, you can also use a single `%` but with the full name of the module name, like this:
 
-```scala title=Main.scala
-//> using dep "com.lihaoyi::pprint:0.8.1,exclude=com.lihaoyi%sourcecode_3"
+```scala compile
+//> using dep com.lihaoyi::pprint:0.9.0,exclude=com.lihaoyi%sourcecode_3
 object Main extends App {
   println("Hello")
 }
@@ -117,8 +117,8 @@ To specify a classifier of a dependency in a Scala CLI project, use the `classif
 If you want to use the `pytorch` dependency with the classifier `linux-x86_64`, use the `classifier` parameter as
 follows:
 
-```scala title=Main.scala
-//> using dep "org.bytedeco:pytorch:1.12.1-1.5.8,classifier=linux-x86_64"
+```scala compile
+//> using dep org.bytedeco:pytorch:2.5.1-1.5.11,classifier=linux-x86_64
 object Main extends App {
   println("Hello")
 }
@@ -133,9 +133,9 @@ If this is omitted, Scala CLI treats these parameters as dependencies, resulting
 
 It is possible to declare dependencies limited to the test scope with the `using test.dep` directive.
 
-```scala
-//> using test.dep org.scalameta::munit::0.7.29
-`````
+```scala compile
+//> using test.dep org.scalameta::munit::1.0.2
+```
 
 More details can be found in
 the [`using` directives guide](using-directives.md#directives-with-a-test-scope-equivalent).
@@ -195,8 +195,8 @@ scala-cli compile Sample.sc \
 Both can be handled with the appropriate `using` directives, too:
 
 ```scala
-//> using jar "./path/to/custom.jar"
-//> using sourceJar "./path/to/custom-sources.jar"
+//> using jar ./path/to/custom.jar
+//> using sourceJar ./path/to/custom-sources.jar
 ```
 
 :::caution

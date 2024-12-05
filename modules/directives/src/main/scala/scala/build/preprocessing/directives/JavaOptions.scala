@@ -8,7 +8,7 @@ import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Java options")
-@DirectiveExamples("//> using javaOpt -Xmx2g, -Dsomething=a")
+@DirectiveExamples("//> using javaOpt -Xmx2g -Dsomething=a")
 @DirectiveExamples("//> using test.javaOpt -Dsomething=a")
 @DirectiveUsage(
   "//> using javaOpt _options_",

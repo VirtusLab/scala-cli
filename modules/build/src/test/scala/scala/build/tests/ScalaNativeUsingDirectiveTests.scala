@@ -39,7 +39,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-gc with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-gc` 78, 12
+        """//> using native-gc 78 12
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -54,7 +54,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-gc") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-gc` "78"
+        """//> using native-gc 78
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -81,7 +81,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-mode with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-mode` "debug", "release-full"
+        """//> using native-mode debug release-full
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -95,7 +95,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-mode") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-mode` "release-full"
+        """//> using native-mode release-full
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -107,7 +107,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-version with multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0", "0.3.3"
+        """//> using native-version 0.4.0 0.3.3
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -122,7 +122,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-version") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-version` "0.4.0"
+        """//> using native-version 0.4.0
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -135,7 +135,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-compile") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-compile` "compileOption1", "compileOption2"
+        """//> using native-compile compileOption1 compileOption2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -167,7 +167,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-linking") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-linking` "linkingOption1", "linkingOption2"
+        """//> using native-linking linkingOption1 linkingOption2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -184,7 +184,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang` "clang/path"
+        """//> using native-clang clang/path
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -198,7 +198,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang and multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang` "path1", "path2"
+        """//> using native-clang path1 path2
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -212,7 +212,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang-pp") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "clangpp/path"
+        """//> using native-clang-pp clangpp/path
           |def foo() = println("hello foo")
           |""".stripMargin
     )
@@ -226,7 +226,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
   test("ScalaNativeOptions for native-clang-pp and multiple values") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->
-        """//> using `native-clang-pp` "path1", "path2"
+        """//> using native-clang-pp path1 path2
           |def foo() = println("hello foo")
           |""".stripMargin
     )

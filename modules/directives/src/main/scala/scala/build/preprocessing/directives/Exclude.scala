@@ -11,8 +11,8 @@ import scala.util.Try
 
 @DirectiveGroupName("Exclude sources")
 @DirectiveExamples("//> using exclude utils.scala")
-@DirectiveExamples("//> using exclude \"examples/*\" \"*/resources/*\"")
-@DirectiveExamples("//> using exclude \"*.sc\"")
+@DirectiveExamples("//> using exclude examples/* */resources/*")
+@DirectiveExamples("//> using exclude *.sc")
 @DirectiveUsage(
   "`//> using exclude `_pattern_ | `//> using exclude `_pattern_ _pattern_ …",
   """`//> using exclude` _pattern_

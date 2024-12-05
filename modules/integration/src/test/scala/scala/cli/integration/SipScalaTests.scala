@@ -180,10 +180,9 @@ class SipScalaTests extends ScalaCliSuite
   def testExperimentalDirectives(isPowerMode: Boolean, areWarningsSuppressed: Boolean): Unit =
     TestInputs.empty.fromRoot { root =>
       val code =
-        """
-          | //> using publish.name "my-library"
-          | //> using python
-          | class A
+        """//> using publish.name my-library
+          |//> using python
+          |class A
           |""".stripMargin
 
       val source = root / "A.scala"
@@ -210,13 +209,13 @@ class SipScalaTests extends ScalaCliSuite
         case (true, false) =>
           expect(res.exitCode == 0)
           expect(errOutput.containsExperimentalWarningOf(
-            "`//> using publish.name \"my-library\"`"
+            "`//> using publish.name my-library`"
           ))
           expect(errOutput.containsExperimentalWarningOf("`//> using python`"))
         case (true, true) =>
           expect(res.exitCode == 0)
           expect(!errOutput.containsExperimentalWarningOf(
-            "`//> using publish.name \"my-library\"`"
+            "`//> using publish.name my-library`"
           ))
           expect(!errOutput.containsExperimentalWarningOf("`//> using python`"))
       }
@@ -384,7 +383,7 @@ class SipScalaTests extends ScalaCliSuite
   }
   test("test global config suppressing warnings for an experimental directive") {
     testConfigSuppressingExperimentalFeatureWarnings(
-      "`//> using publish.name \"my-library\"` directive"
+      "`//> using publish.name my-library` directive"
     ) {
       (root: os.Path, homeEnv: Map[String, String]) =>
         val quote = TestUtil.argQuotationMark
@@ -425,7 +424,7 @@ class SipScalaTests extends ScalaCliSuite
       os.rel / "Main.scala" ->
         """//> using target.scope main
           |//> using target.platform jvm
-          |//> using publish.name "my-library"
+          |//> using publish.name my-library
           |
           |object Main {
           |  def main(args: Array[String]): Unit = {
@@ -451,9 +450,9 @@ class SipScalaTests extends ScalaCliSuite
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exporting to a sbt project...
            |Some utilized directives are marked as experimental:
-           | - `//> using publish.name "my-library"`
-           | - `//> using target.platform "jvm"`
-           | - `//> using target.scope "main"`
+           | - `//> using publish.name my-library`
+           | - `//> using target.platform jvm`
+           | - `//> using target.scope main`
            |Please bear in mind that non-ideal user experience should be expected.
            |If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
            |Exported to: ${root / "dest"}

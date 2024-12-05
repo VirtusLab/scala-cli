@@ -18,8 +18,8 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
     def testOrg: String  = "test-local-org.sth"
     def testName: String = "my-proj"
     def projFile(message: String): String =
-      s"""//> using scala "$testedPublishedScalaVersion"
-         |//> using dep "com.lihaoyi::os-lib:0.9.1"
+      s"""//> using scala $testedPublishedScalaVersion
+         |//> using dep com.lihaoyi::os-lib:0.9.1
          |
          |object Project {
          |  def message = "$message"

@@ -102,7 +102,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       """//> using scala 2.13
         |//> using platform native
         |//> using nativeVersion 0.4.17
-        |//> using dep "org.typelevel::cats-kernel-laws::2.8.0"
+        |//> using dep org.typelevel::cats-kernel-laws::2.8.0
         |
         |import org.scalacheck._
         |import Prop.forAll
@@ -117,7 +117,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulJunitInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using dep "com.novocode:junit-interface:0.11"
+      """//> using dep com.novocode:junit-interface:0.11
         |import org.junit.Test
         |
         |class MyTests {
@@ -156,7 +156,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   val successfulWeaverInputs: TestInputs = TestInputs(
     os.rel / "MyTests.test.scala" ->
-      """//> using deps "com.disneystreaming::weaver-cats:0.8.2"
+      """//> using deps com.disneystreaming::weaver-cats:0.8.2
         |import weaver._
         |import cats.effect.IO
         |
@@ -640,10 +640,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     TestUtil.retryOnCi() {
       val supportsNative = actualScalaVersion.startsWith("2.")
       val platforms = {
-        var pf = Seq("\"jvm\"", "\"js\"")
+        var pf = Seq("jvm", "js")
         if (supportsNative)
-          pf = pf :+ "\"native\""
-        pf.mkString(", ")
+          pf = pf :+ "native"
+        pf.mkString(" ")
       }
       val inputs = {
         var inputs0 = TestInputs(
@@ -658,7 +658,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |}
                |""".stripMargin,
           os.rel / "MyJvmTests.scala" ->
-            """//> using target.platform "jvm"
+            """//> using target.platform jvm
               |
               |class MyJvmTests extends munit.FunSuite {
               |  test("jvm") {
@@ -667,7 +667,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               |}
               |""".stripMargin,
           os.rel / "MyJsTests.scala" ->
-            """//> using target.platform "js"
+            """//> using target.platform js
               |
               |class MyJsTests extends munit.FunSuite {
               |  test("js") {
@@ -679,7 +679,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         if (supportsNative)
           inputs0 = inputs0.add(
             os.rel / "MyNativeTests.scala" ->
-              """//> using target.platform "native"
+              """//> using target.platform native
                 |
                 |class MyNativeTests extends munit.FunSuite {
                 |  test("native") {
@@ -708,7 +708,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     val inputs = TestInputs(
       os.rel / "JsDom.test.scala" ->
         s"""//> using dep com.lihaoyi::utest::$utestVersion
-           |//> using dep "org.scala-js::scalajs-dom::2.2.0"
+           |//> using dep org.scala-js::scalajs-dom::2.2.0
            |
            |import utest._
            |

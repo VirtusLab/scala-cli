@@ -137,7 +137,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     val message  = "Hello"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""//> using jsModuleKind "es"
+        s"""//> using jsModuleKind es
            |import scala.scalajs.js
            |import scala.scalajs.js.annotation._
            |
@@ -162,7 +162,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     val message = "Hello"
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using platform "scala-js"
+        s"""//> using platform scala-js
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
            |val msg = "$message"
@@ -179,7 +179,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
     val message = "Hello"
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using platform "scala-native"
+        s"""//> using platform scala-native
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
            |val msg = "$message"
@@ -216,7 +216,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   def jsDomTest(): Unit = {
     val inputs = TestInputs(
       os.rel / "JsDom.scala" ->
-        s"""|//> using dep "org.scala-js::scalajs-dom::2.1.0"
+        s"""|//> using dep org.scala-js::scalajs-dom::2.1.0
             |
             |import org.scalajs.dom.document
             |
@@ -279,7 +279,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("set es version to scala-js-cli") {
     val inputs = TestInputs(
       os.rel / "run.sc" ->
-        s"""//> using jsEsVersionStr "es2018"
+        s"""//> using jsEsVersionStr es2018
            |
            |import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -487,7 +487,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
           s"""//> using toolkit default
              |//> using toolkit typelevel:default
              |
-             |//> using platform "scala-js"
+             |//> using platform scala-js
              |
              |import cats.effect._
              |import scala.scalajs.js

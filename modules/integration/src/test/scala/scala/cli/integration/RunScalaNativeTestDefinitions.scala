@@ -54,7 +54,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     val message  = "Hello"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""//> using nativeLto "thin"
+        s"""//> using nativeLto thin
            |println("$message")
            |""".stripMargin
     )
@@ -96,8 +96,8 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       val resourceFileName = "embeddedfile.txt"
       val inputs = TestInputs(
         os.rel / projectDir / "main.scala" ->
-          s"""|//> using platform "scala-native"
-              |//> using resourceDir "resources"
+          s"""|//> using platform scala-native
+              |//> using resourceDir resources
               |
               |import java.nio.charset.StandardCharsets
               |import java.io.{BufferedReader, InputStreamReader}
@@ -132,7 +132,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       val interopMsg      = "Hello C!"
       val inputs = TestInputs(
         os.rel / projectDir / "main.scala" ->
-          s"""|//> using platform "scala-native"
+          s"""|//> using platform scala-native
               |
               |import scala.scalanative.unsafe._
               |

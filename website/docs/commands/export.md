@@ -3,7 +3,7 @@ title: Export ⚡️
 sidebar_position: 27
 ---
 
-In case your project outgrows the cabapilities of Scala CLI (e.g support for modules) it may be beneficial
+In case your project outgrows the capabilities of Scala CLI (e.g support for modules) it may be beneficial
 to switch to a build tool such as SBT or Mill.
 The `export` sub-command allows to do that by converting a Scala CLI project into an SBT or Mill configuration.
 Additionally the sub-command supports the JSON format for custom analysis of projects.

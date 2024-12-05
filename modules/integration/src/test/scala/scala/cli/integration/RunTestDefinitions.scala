@@ -314,8 +314,8 @@ abstract class RunTestDefinitions
   test("compile-time only for jsoniter macros") {
     val inputs = TestInputs(
       os.rel / "hello.sc" ->
-        """|//> using lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2"
-           |//> using compileOnly.lib "com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+        """|//> using dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:2.23.2
+           |//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2
            |
            |import com.github.plokhotnyuk.jsoniter_scala.core._
            |import com.github.plokhotnyuk.jsoniter_scala.macros._
@@ -344,7 +344,7 @@ abstract class RunTestDefinitions
       val directiveName = if (compileOnly) "compileOnly.dep" else "dep"
       TestInputs(
         os.rel / "test.sc" ->
-          s"""//> using $directiveName "com.chuusai::shapeless:2.3.10"
+          s"""//> using $directiveName com.chuusai::shapeless:2.3.10
              |val shapelessFound =
              |  try Thread.currentThread().getContextClassLoader.loadClass("shapeless.HList") != null
              |  catch { case _: ClassNotFoundException => false }
@@ -427,7 +427,7 @@ abstract class RunTestDefinitions
     val message = "Hello"
     val inputs = TestInputs(
       os.rel / "simple.sc" ->
-        s"""//> using javaOpt "-Dtest.message=$message"
+        s"""//> using javaOpt -Dtest.message=$message
            |val msg = sys.props("test.message")
            |println(msg)
            |""".stripMargin
@@ -441,7 +441,7 @@ abstract class RunTestDefinitions
   test("Main class in config file") {
     val inputs = TestInputs(
       os.rel / "simple.scala" ->
-        s"""//> using `main-class` "hello"
+        s"""//> using main-class hello
            |object hello extends App { println("hello") }
            |object world extends App { println("world") }
            |""".stripMargin
@@ -590,7 +590,7 @@ abstract class RunTestDefinitions
   test("resources via directive") {
     val expectedMessage = "hello"
     resourcesInputs(
-      directive = "//> using resourceDirs \"./resources\"",
+      directive = "//> using resourceDirs ./resources",
       resourceContent = expectedMessage
     )
       .fromRoot { root =>
@@ -634,7 +634,7 @@ abstract class RunTestDefinitions
   test("test scope") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using dep "com.lihaoyi::utest:0.7.10"
+        """//> using dep com.lihaoyi::utest:0.7.10
           |
           |object Main {
           |  val err = utest.compileError("pprint.log(2)")
@@ -646,7 +646,7 @@ abstract class RunTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "Tests.test.scala" ->
-        """//> using dep "com.lihaoyi::pprint:0.6.6"
+        """//> using dep com.lihaoyi::pprint:0.6.6
           |
           |import utest._
           |
@@ -699,7 +699,7 @@ abstract class RunTestDefinitions
   test("Runs with JVM 8 with using directive") {
     val inputs =
       TestInputs(os.rel / "run.scala" ->
-        """//> using jvm "8"
+        """//> using jvm 8
           |object Main extends App { println(System.getProperty("java.version"))}""".stripMargin)
     inputs.fromRoot { root =>
       val p = os.proc(TestUtil.cli, "run.scala").call(cwd = root)
@@ -710,7 +710,7 @@ abstract class RunTestDefinitions
   test("workspace dir") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        """|//> using dep "com.lihaoyi::os-lib:0.7.8"
+        """|//> using dep com.lihaoyi::os-lib:0.7.8
            |
            |object Hello extends App {
            |  println(os.pwd)
@@ -757,7 +757,7 @@ abstract class RunTestDefinitions
     val (hello, world) = ("Hello", "World")
     val inputs = TestInputs(
       os.rel / fileName ->
-        """|//> using file "Utils.scala", "helper"
+        """|//> using file Utils.scala helper
            |
            |object Hello extends App {
            |   println(s"${Utils.hello}${helper.Helper.world}")
@@ -782,20 +782,20 @@ abstract class RunTestDefinitions
   test("multiple using directives warning message") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala "3.2.0"
+        s"""//> using scala 3.2.0
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm \"11\""
+      os.rel / "Hello.java" -> "//> using jvm 11"
     )
     inputs.fromRoot { root =>
       val warningMessage =
         """Using directives detected in multiple files:
-          |- Foo.scala:1:1-24
-          |- Hello.java:1:1-19""".stripMargin
+          |- Foo.scala:1:1-22
+          |- Hello.java:1:1-17""".stripMargin
       val output1 = os.proc(TestUtil.cli, ".").call(cwd = root, stderr = os.Pipe).err.trim()
       val output2 = os.proc(TestUtil.cli, "Foo.scala", "Bar.scala").call(
         cwd = root,
@@ -809,14 +809,14 @@ abstract class RunTestDefinitions
   test("suppress multiple using directives warning message") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala "3.2.0"
+        s"""//> using scala 3.2.0
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm \"11\""
+      os.rel / "Hello.java" -> "//> using jvm 11"
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
@@ -832,14 +832,14 @@ abstract class RunTestDefinitions
   test("suppress multiple using directives warning message with global config") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala "3.2.0"
+        s"""//> using scala 3.2.0
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm \"11\""
+      os.rel / "Hello.java" -> "//> using jvm 11"
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
@@ -1175,7 +1175,7 @@ abstract class RunTestDefinitions
     val inputs = TestInputs(
       os.rel / projectDir / fileName ->
         s"""
-           |//> using resourceDir "resources"
+           |//> using resourceDir resources
            |
            |object Main {
            |  def main(args: Array[String]) = {
@@ -1228,7 +1228,7 @@ abstract class RunTestDefinitions
       val exceptionMsg = "Throw exception in Scala"
       val inputs = TestInputs(
         os.rel / "hello.sc" ->
-          s"""//> using scala "3.1.3"
+          s"""//> using scala 3.1.3
              |throw new Exception("$exceptionMsg")""".stripMargin
       )
 
@@ -1391,9 +1391,9 @@ abstract class RunTestDefinitions
     val testFile        = "Tests.test.scala"
     TestInputs(
       os.rel / projectFile ->
-        """//> using dep "com.lihaoyi::os-lib:0.9.1"
-          |//> using test.dep "org.scalameta::munit::0.7.29"
-          |//> using test.dep "com.lihaoyi::pprint:0.8.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
+          |//> using test.dep org.scalameta::munit::0.7.29
+          |//> using test.dep com.lihaoyi::pprint:0.8.1
           |""".stripMargin,
       os.rel / invalidMainFile ->
         """object InvalidMain extends App {
@@ -1442,9 +1442,9 @@ abstract class RunTestDefinitions
       )
     TestInputs(
       os.rel / projectFile ->
-        s"""//> using jar "$mainMessageJar"
-           |//> using test.jar "$testMessageJar"
-           |//> using test.dep "org.scalameta::munit::0.7.29"
+        s"""//> using jar $mainMessageJar
+           |//> using test.jar $testMessageJar
+           |//> using test.dep org.scalameta::munit::0.7.29
            |""".stripMargin,
       os.rel / mainMessageFile ->
         """case class MainMessage(value: String)
@@ -1687,7 +1687,7 @@ abstract class RunTestDefinitions
           |}
           |""".stripMargin,
       os.rel / "hello" / "Hello.scala" ->
-        s"""//> using dep "$testOrg::$testName:$testVersion"
+        s"""//> using dep $testOrg::$testName:$testVersion
            |import messages.Messages
            |object Hello {
            |  def main(args: Array[String]): Unit =
@@ -1829,20 +1829,20 @@ abstract class RunTestDefinitions
   test("warn about transitive `using file` directive") {
     TestInputs(
       os.rel / "Main.scala" ->
-        """//> using file "bar/Bar.scala"
-          |//> using file "abc/Abc.scala"
+        """//> using file bar/Bar.scala
+          |//> using file abc/Abc.scala
           |object Main extends App {
           | println(Bar(42))
           |}
           |""".stripMargin,
       os.rel / "bar" / "Bar.scala" ->
-        """//> using file "xyz/Xyz.scala"
-          |//> using file "xyz/NonExistent.scala"
+        """//> using file xyz/Xyz.scala
+          |//> using file xyz/NonExistent.scala
           |case class Bar(x: Int)
           |""".stripMargin,
       os.rel / "abc" / "Abc.scala" ->
-        """//> using file "xyz/Xyz.scala"
-          |//> using file "xyz/NonExistent.scala"
+        """//> using file xyz/Xyz.scala
+          |//> using file xyz/NonExistent.scala
           |case class Abc(x: Int)
           |""".stripMargin,
       os.rel / "xyz" / "Xyz.scala" ->
@@ -1861,29 +1861,29 @@ abstract class RunTestDefinitions
 
       expect(output.contains(
         """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
-          |[warn] //> using file "xyz/Xyz.scala"
-          |[warn]                 ^^^^^^^^^^^^^
+          |[warn] //> using file xyz/Xyz.scala
+          |[warn]                ^^^^^^^^^^^^^
           |""".stripMargin
       ))
 
       expect(output.contains(
         """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
-          |[warn] //> using file "xyz/NonExistent.scala"
-          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |[warn] //> using file xyz/NonExistent.scala
+          |[warn]                ^^^^^^^^^^^^^^^^^^^^^
           |""".stripMargin
       ))
 
       expect(output.contains(
         """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
-          |[warn] //> using file "xyz/Xyz.scala"
-          |[warn]                 ^^^^^^^^^^^^^
+          |[warn] //> using file xyz/Xyz.scala
+          |[warn]                ^^^^^^^^^^^^^
           |""".stripMargin
       ))
 
       expect(output.contains(
         """[warn] Chaining the 'using file' directive is not supported, the source won't be included in the build.
-          |[warn] //> using file "xyz/NonExistent.scala"
-          |[warn]                 ^^^^^^^^^^^^^^^^^^^^^
+          |[warn] //> using file xyz/NonExistent.scala
+          |[warn]                ^^^^^^^^^^^^^^^^^^^^^
           |""".stripMargin
       ))
     }

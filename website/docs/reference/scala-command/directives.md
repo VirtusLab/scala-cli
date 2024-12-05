@@ -48,7 +48,7 @@ Add dependencies
 
 `//> using test.dep org.scalameta::munit:0.7.29`
 
-`//> using dep "tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"`
+`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
 
 ### Java options
 
@@ -57,7 +57,7 @@ Add Java options which will be passed when running an application.
 `//> using javaOpt` _options_
 
 #### Examples
-`//> using javaOpt -Xmx2g, -Dsomething=a`
+`//> using javaOpt -Xmx2g -Dsomething=a`
 
 `//> using test.javaOpt -Dsomething=a`
 
@@ -71,7 +71,7 @@ Add Java properties
 
 
 #### Examples
-`//> using javaProp foo1=bar, foo2`
+`//> using javaProp foo1=bar foo2`
 
 `//> using test.javaProp foo3=bar foo4`
 
@@ -97,7 +97,7 @@ Set the default Scala version
 
 `//> using scala 2`
 
-`//> using scala 2.13.6, 2.12.16`
+`//> using scala 2.13.6 2.12.16`
 
 ## SHOULD have directives:
 
@@ -145,9 +145,9 @@ Exclude sources from the project
 #### Examples
 `//> using exclude utils.scala`
 
-`//> using exclude "examples/*" "*/resources/*"`
+`//> using exclude examples/* */resources/*`
 
-`//> using exclude "*.sc"`
+`//> using exclude *.sc`
 
 ### JVM version
 

@@ -383,7 +383,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("invalid diagnostics at startup") {
     val inputs = TestInputs(
       os.rel / "A.scala" ->
-        s"""//> using resource "./resources"
+        s"""//> using resource ./resources
            |
            |object A {}
            |""".stripMargin
@@ -402,9 +402,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedMessage = "Unrecognized directive: resource with values: ./resources",
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
-          expectedStartCharacter = 20,
+          expectedStartCharacter = 19,
           expectedEndLine = 0,
-          expectedEndCharacter = 31,
+          expectedEndCharacter = 30,
           strictlyCheckMessage = false
         )
       }
@@ -414,7 +414,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("directive diagnostics") {
     val inputs = TestInputs(
       os.rel / "Test.scala" ->
-        s"""//> using dep "com.lihaoyi::pprint:0.0.0.0.0.1"
+        s"""//> using dep com.lihaoyi::pprint:0.0.0.0.0.1
            |
            |object Test {
            |  val msg = "Hello"
@@ -442,9 +442,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedMessage = expectedMessage,
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
-          expectedStartCharacter = 15,
+          expectedStartCharacter = 14,
           expectedEndLine = 0,
-          expectedEndCharacter = 46,
+          expectedEndCharacter = 45,
           strictlyCheckMessage = false
         )
       }
@@ -454,14 +454,14 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("directives in multiple files diagnostics") {
     val inputs = TestInputs(
       os.rel / "Foo.scala" ->
-        s"""//> using scala "3.3.0"
+        s"""//> using scala 3.3.0
            |
            |object Foo extends App {
            |  println("Foo")
            |}
            |""".stripMargin,
       os.rel / "Bar.scala"  -> "",
-      os.rel / "Hello.java" -> "//> using jvm \"11\""
+      os.rel / "Hello.java" -> "//> using jvm 11"
     )
 
     withBsp(inputs, Seq(".")) { (root, localClient, remoteServer) =>
@@ -516,8 +516,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           )
         }
 
-        checkDirectivesInMultipleFilesWarnings("Foo.scala", 0, 0, 0, 23)
-        checkDirectivesInMultipleFilesWarnings("Hello.java", 0, 0, 0, 18)
+        checkDirectivesInMultipleFilesWarnings("Foo.scala", 0, 0, 0, 21)
+        checkDirectivesInMultipleFilesWarnings("Hello.java", 0, 0, 0, 16)
       }
     }
   }
@@ -581,7 +581,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
         val didChangeParamsFuture = localClient.buildTargetDidChange()
         val updatedContent =
-          """//> using dep "com.lihaoyi::pprint:0.6.6"
+          """//> using dep com.lihaoyi::pprint:0.6.6
             |val msg = "Hello"
             |pprint.log(msg)
             |""".stripMargin
@@ -729,13 +729,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("test workspace update after adding file to main scope") {
     val inputs = TestInputs(
       os.rel / "Messages.scala" ->
-        """//> using dep "com.lihaoyi::os-lib:0.7.8"
+        """//> using dep com.lihaoyi::os-lib:0.7.8
           |object Messages {
           |  def msg = "Hello"
           |}
           |""".stripMargin,
       os.rel / "MyTests.test.scala" ->
-        """//> using dep "com.lihaoyi::utest::0.7.10"
+        """//> using dep com.lihaoyi::utest::0.7.10
           |import utest._
           |
           |object MyTests extends TestSuite {
@@ -950,7 +950,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             val depName    = "os-lib"
             val depVersion = "0.8.1"
             val updatedSourceFile =
-              s"""//> using dep "com.lihaoyi::$depName:$depVersion"
+              s"""//> using dep com.lihaoyi::$depName:$depVersion
                  |
                  |object ReloadTest {
                  |  println(os.pwd)
@@ -1058,7 +1058,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val utilsFileName = "Utils.scala"
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""|//> using file "Utils.scala"
+        s"""|//> using file Utils.scala
             |
             |object Hello extends App {
             |   println("Hello World")
@@ -1350,7 +1350,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val directiveValue = "value"
     val inputs = TestInputs(
       os.rel / sourceFileName ->
-        s"""//> using $directiveKey "$directiveValue"
+        s"""//> using $directiveKey $directiveValue
            |
            |object UnrecognisedUsingDirective extends App {
            |  println("Hello")
@@ -1374,9 +1374,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               s"Unrecognized directive: $directiveKey with values: $directiveValue",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 34,
+            expectedStartCharacter = 33,
             expectedEndLine = 0,
-            expectedEndCharacter = 39
+            expectedEndCharacter = 38
           )
         }
     }
@@ -1385,7 +1385,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("bloop projects are initialised properly for a directive for an unfetchable dependency") {
     val inputs = TestInputs(
       os.rel / "InvalidUsingDirective.scala" ->
-        s"""//> using dep "no::lib:123"
+        s"""//> using dep no::lib:123
            |
            |object InvalidUsingDirective extends App {
            |  println("Hello")
@@ -1408,9 +1408,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expectedMessage = "Error downloading no:lib",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 15,
+            expectedStartCharacter = 14,
             expectedEndLine = 0,
-            expectedEndCharacter = 26,
+            expectedEndCharacter = 25,
             strictlyCheckMessage = false
           )
         }
@@ -1458,7 +1458,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     val fileName = "Hello.scala"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
+        s"""//> using dep com.lihaoyi::os-lib:0.7.8
            |
            |object Hello extends App {
            |  println("Hello")
@@ -1486,9 +1486,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expectedMessage = "os-lib is outdated",
             expectedSeverity = b.DiagnosticSeverity.HINT,
             expectedStartLine = 0,
-            expectedStartCharacter = 15,
+            expectedStartCharacter = 14,
             expectedEndLine = 0,
-            expectedEndCharacter = 40,
+            expectedEndCharacter = 39,
             expectedSource = Some("scala-cli"),
             strictlyCheckMessage = false
           )
@@ -1506,9 +1506,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
           expect(textEdit.getNewText.contains("com.lihaoyi::os-lib:"))
           expect(textEdit.getRange.getStart.getLine == 0)
-          expect(textEdit.getRange.getStart.getCharacter == 15)
+          expect(textEdit.getRange.getStart.getCharacter == 14)
           expect(textEdit.getRange.getEnd.getLine == 0)
-          expect(textEdit.getRange.getEnd.getCharacter == 40)
+          expect(textEdit.getRange.getEnd.getCharacter == 39)
         }
     }
   }
@@ -1586,7 +1586,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
   test("bsp should support jvmRunEnvironment request") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->
-        s"""//> using dep "com.lihaoyi::os-lib:0.7.8"
+        s"""//> using dep com.lihaoyi::os-lib:0.7.8
            |
            |object Hello extends App {
            |  println("Hello")
@@ -1781,7 +1781,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       val inputs = TestInputs(
         os.rel / "test.sc" ->
           """//> using toolkit latest
-            |//> using test.toolkit "typelevel:latest"
+            |//> using test.toolkit typelevel:latest
             |
             |//> using lib org.typelevel::cats-core:2.6.1
             |
@@ -1862,7 +1862,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               expectedStartLine = 1,
               expectedStartCharacter = 10,
               expectedEndLine = 1,
-              expectedEndCharacter = 41
+              expectedEndCharacter = 39
             )
 
             checkScalaAction(
@@ -1873,7 +1873,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               expectedStartLine = 1,
               expectedStartCharacter = 10,
               expectedEndLine = 1,
-              expectedEndCharacter = 41,
+              expectedEndCharacter = 39,
               expectedNewText = "test.toolkit typelevel:default"
             )
           }
