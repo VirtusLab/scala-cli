@@ -15,8 +15,34 @@ if [[ "$OSTYPE" == "msys" ]]; then
   export GRAALVM_HOME="$JAVA_HOME"
   export PATH="$(pwd)/bin:$PATH"
   echo "PATH=$PATH"
-  ./mill.bat -i "$COMMAND" generate-native-image.bat ""
-  ./generate-native-image.bat
+
+  # this part runs into connection problems on Windows, so we retry up to 5 times
+  MAX_RETRIES=5
+  RETRY_COUNT=0
+  while (( RETRY_COUNT < MAX_RETRIES )); do
+      ./mill.bat -i "$COMMAND" generate-native-image.bat ""
+
+      if [[ $? -ne 0 ]]; then
+          echo "Error occurred during 'mill.bat -i $COMMAND generate-native-image.bat' command. Retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+          (( RETRY_COUNT++ ))
+          sleep 2
+      else
+          ./generate-native-image.bat
+          if [[ $? -ne 0 ]]; then
+              echo "Error occurred during 'generate-native-image.bat'. Retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
+              (( RETRY_COUNT++ ))
+              sleep 2
+          else
+              echo "'generate-native-image.bat' succeeded with $RETRY_COUNT retries."
+              break
+          fi
+      fi
+  done
+
+  if (( RETRY_COUNT == MAX_RETRIES )); then
+      echo "Exceeded maximum retry attempts. Exiting with error."
+      exit 1
+  fi
 else
   if [ $# == "0" ]; then
     if [[ "$OSTYPE" == "linux-gnu" ]]; then
