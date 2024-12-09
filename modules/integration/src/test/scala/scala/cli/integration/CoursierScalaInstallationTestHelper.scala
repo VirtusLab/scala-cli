@@ -80,15 +80,17 @@ trait CoursierScalaInstallationTestHelper {
         0,
         underlyingScriptPath.toString().indexOf(scalaVersion) + scalaVersion.length
       ))
-    System.err.println(s"Cleaning up, trying to remove $csPrebuiltBinaryDir")
-    try {
-      os.remove.all(csPrebuiltBinaryDir)
+    if (!Properties.isWin) {
+      System.err.println(s"Cleaning up, trying to remove $csPrebuiltBinaryDir")
+      try {
+        os.remove.all(csPrebuiltBinaryDir)
 
-      System.err.println(s"Cleanup complete. Removed $csPrebuiltBinaryDir")
-    }
-    catch {
-      case ex: java.nio.file.FileSystemException =>
-        System.err.println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+        System.err.println(s"Cleanup complete. Removed $csPrebuiltBinaryDir")
+      }
+      catch {
+        case ex: java.nio.file.FileSystemException =>
+          System.err.println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+      }
     }
   }
 }
