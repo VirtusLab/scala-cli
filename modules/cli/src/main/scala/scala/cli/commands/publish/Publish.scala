@@ -603,7 +603,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         val config =
           if (build.scope == Scope.Main) None
           else Some(Configuration(build.scope.name))
-        (dep0.module.organization, dep0.module.name, dep0.version, config)
+        (dep0.module.organization, dep0.module.name, dep0.version, config, dep0.minimizedExclusions)
       }
     val url = publishOptions.url.map(_.value)
     val license = publishOptions.license.map(_.value).map { l =>
