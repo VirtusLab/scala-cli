@@ -276,6 +276,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
         s"""|rules = [
             |  ExplicitResultTypes
             |]
+            |ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch = true
             |""".stripMargin,
       os.rel / "Hello.scala" -> original
     )
