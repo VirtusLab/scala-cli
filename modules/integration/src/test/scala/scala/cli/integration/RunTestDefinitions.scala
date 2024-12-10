@@ -1069,6 +1069,19 @@ abstract class RunTestDefinitions
     }
   }
 
+  test("UTF-8 characters on the input path & current working directory path") {
+    val expectedMessage = "Hello"
+    val utf8DirPath     = os.rel / "äöü"
+    val inputName       = "Hello.sc"
+    val inputPath       = utf8DirPath / inputName
+    TestInputs(inputPath -> s"""println("$expectedMessage")""")
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", inputName, extraOptions)
+          .call(cwd = root / utf8DirPath)
+        expect(res.out.trim() == expectedMessage)
+      }
+  }
+
   test("return relevant error if multiple .scala main classes are present") {
     TestUtil.retryOnCi() {
       val (scalaFile1, scalaFile2, scriptName) =
