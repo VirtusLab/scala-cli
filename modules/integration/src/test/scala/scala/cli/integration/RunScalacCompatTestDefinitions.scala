@@ -598,7 +598,8 @@ trait RunScalacCompatTestDefinitions {
           "run",
           ".",
           if (useDirective) Nil else macroSettingOptions,
-          extraOptions,
+          "-S",
+          Constants.scala3NextRcAnnounced,
           "-experimental"
         )
           .call(cwd = root, stderr = os.Pipe)
