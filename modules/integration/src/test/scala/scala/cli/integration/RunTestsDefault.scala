@@ -115,14 +115,16 @@ class RunTestsDefault extends RunTestDefinitions
   ) {
     val inputPath = os.rel / "example.sc"
     TestInputs(inputPath ->
-      """//> using options -Werror, -Wconf:cat=deprecation:e
+      """//> using options -Werror, -Wconf:cat=deprecation:e, -Wconf:cat=unused:e
         |println("Deprecation warnings should have been printed")
         |""".stripMargin)
       .fromRoot { root =>
         val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
           .call(cwd = root, stderr = os.Pipe)
-        val err = res.err.trim()
-        expect(err.contains("Use of commas as separators is deprecated"))
+        val err             = res.err.trim()
+        val expectedWarning = "Use of commas as separators is deprecated"
+        expect(err.contains(expectedWarning))
+        expect(err.linesIterator.count(_.contains(expectedWarning)) == 2)
       }
   }
 }
