@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 
 import java.io.File
 import java.net.URI
-import java.nio.file.Paths
+import java.nio.file.{NoSuchFileException, Paths}
 
 import scala.build.errors.Severity
 import scala.build.internal.WrapperParams
@@ -185,12 +185,19 @@ object ConsoleBloopBuildClient {
       for {
         line <- lineOpt
         p    <- path.toOption
-        lines = os.read.lines(p)
-        line <- if (line < lines.length) Some(lines(line)) else None
+        lines =
+          try
+            os.read.lines(p)
+          catch
+            case e: NoSuchFileException =>
+              logger.message(s"File not found: $p")
+              logger.error(e.getMessage)
+              Nil
+        line <- lines.lift(line)
       } yield line
     }
     for (code <- codeOpt)
-      code.linesIterator.map(prefix + _).foreach(logger.error(_))
+      code.linesIterator.map(prefix + _).foreach(logger.error)
     val canPrintUnderline = diag.getRange.getStart.getLine == diag.getRange.getEnd.getLine &&
       diag.getRange.getStart.getCharacter != null &&
       diag.getRange.getEnd.getCharacter != null &&
