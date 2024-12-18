@@ -6,7 +6,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 mkdir -p artifacts
 mkdir -p utils
-cp "$(cs get https://github.com/VirtusLab/coursier-m1/releases/download/v2.1.21/cs-aarch64-pc-linux.gz --archive)" utils/cs
+cp "$(cs get https://github.com/VirtusLab/coursier-m1/releases/download/v2.1.22/cs-aarch64-pc-linux.gz --archive)" utils/cs
 chmod +x utils/cs
 
 cp "$DIR/build-linux-aarch64-from-docker.sh" utils/
