@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import coursier.core.{Configuration, ModuleName, Organization, Type}
+import coursier.core.{Configuration, MinimizedExclusions, ModuleName, Organization, Type}
 import coursier.publish.Pom
 import coursier.publish.Pom.{Developer, License, Scm}
 
@@ -31,7 +31,13 @@ object Ivy {
     url: Option[String] = None,
     name: Option[String] = None,
     // TODO Accept full-fledged coursier.Dependency
-    dependencies: Seq[(Organization, ModuleName, String, Option[Configuration])] = Nil,
+    dependencies: Seq[(
+      Organization,
+      ModuleName,
+      String,
+      Option[Configuration],
+      MinimizedExclusions
+    )] = Nil,
     license: Option[License] = None,
     scm: Option[Scm] = None,
     developers: Seq[Developer] = Nil,
@@ -110,10 +116,16 @@ object Ivy {
 
     nodes += {
       val depNodes = dependencies.map {
-        case (org, name, ver, confOpt) =>
+        case (org, name, ver, confOpt, exclusions) =>
           val conf     = confOpt.map(_.value).getOrElse("compile")
           val confSpec = s"$conf->default(compile)"
-          <dependency org={org.value} name={name.value} rev={ver} conf={confSpec}></dependency>
+          val exclusionNodes =
+            exclusions.data.toSet().map { case (org, module) =>
+              <exclude org={org.value} module={module.value}/>
+            }
+          <dependency org={org.value} name={name.value} rev={ver} conf={confSpec}>
+            {exclusionNodes}
+          </dependency>
       }
       <dependencies>
         {depNodes}
