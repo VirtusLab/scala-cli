@@ -22,7 +22,8 @@ abstract class RunTestDefinitions
     with RunSnippetTestDefinitions
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions
-    with RunJdkTestDefinitions { _: TestScalaVersion =>
+    with RunJdkTestDefinitions
+    with CoursierScalaInstallationTestHelper { _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 

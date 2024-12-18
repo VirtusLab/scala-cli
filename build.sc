@@ -1040,6 +1040,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def scalaSnapshot213           = "${TestDeps.scalaSnapshot213}"
            |  def scala3LtsPrefix            = "${Scala.scala3LtsPrefix}"
            |  def scala3Lts                  = "${Scala.scala3Lts}"
+           |  def scala3NextPrefix           = "${Scala.scala3NextPrefix}"
            |  def scala3NextRc               = "${Scala.scala3NextRc}"
            |  def scala3NextRcAnnounced      = "${Scala.scala3NextRcAnnounced}"
            |  def scala3Next                 = "${Scala.scala3Next}"
