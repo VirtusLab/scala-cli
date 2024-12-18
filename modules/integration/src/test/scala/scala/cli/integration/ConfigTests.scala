@@ -562,4 +562,47 @@ class ConfigTests extends ScalaCliSuite {
     }
   }
 
+  for {
+    offlineSetting <- Seq(true, false)
+    prefillCache   <- if (offlineSetting) Seq(true, false) else Seq(false)
+    caption = s"offline mode: $offlineSetting, " +
+      (offlineSetting -> prefillCache match {
+        case (true, true)  => "build should succeed when cache was pre-filled"
+        case (true, false) => "build should fail when cache is empty"
+        case _             => "dependencies should be downloaded as normal"
+      })
+  }
+    test(caption) {
+      TestInputs(
+        os.rel / "simple.sc" -> "println(dotty.tools.dotc.config.Properties.versionNumberString)"
+      )
+        .fromRoot { root =>
+          val configFile    = os.rel / "config" / "config.json"
+          val localRepoPath = root / "local-repo"
+          val envs = Map(
+            "COURSIER_CACHE"   -> localRepoPath.toString,
+            "SCALA_CLI_CONFIG" -> configFile.toString
+          )
+          os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
+          os.proc(TestUtil.cli, "config", "offline", offlineSetting.toString)
+            .call(cwd = root, env = envs)
+          if (prefillCache) for {
+            artifactName <- Seq(
+              "scala3-compiler_3",
+              "scala3-staging_3",
+              "scala3-tasty-inspector_3",
+              "scala3-sbt-bridge"
+            )
+            artifact = s"org.scala-lang:$artifactName:${Constants.scala3Next}"
+          } os.proc(TestUtil.cs, "fetch", "--cache", localRepoPath, artifact).call(cwd = root)
+          val buildExpectedToSucceed = !offlineSetting || prefillCache
+          val r = os.proc(TestUtil.cli, "run", "simple.sc", "--with-compiler")
+            .call(cwd = root, env = envs, check = buildExpectedToSucceed)
+          if (buildExpectedToSucceed) expect(r.out.trim() == Constants.scala3Next)
+          else expect(r.exitCode == 1)
+          os.proc(TestUtil.cli, "config", "offline", "--unset")
+            .call(cwd = root, env = envs)
+        }
+    }
+
 }
