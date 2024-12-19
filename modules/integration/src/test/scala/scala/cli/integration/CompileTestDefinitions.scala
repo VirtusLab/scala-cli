@@ -3,8 +3,8 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
-
 import scala.cli.integration.util.BloopUtil
+import scala.util.Properties
 
 abstract class CompileTestDefinitions
     extends ScalaCliSuite
@@ -720,4 +720,20 @@ abstract class CompileTestDefinitions
       expect(buildTargetDirs.size == 2)
     }
   }
+
+  if (!Properties.isWin)
+    // TODO: make this work on Windows
+    test(
+      "nested wildcard path source exclusion with a directive and no special character escaping"
+    ) {
+      val excludedFileName = "Foo.scala"
+      val excludedPath     = os.rel / "dir1" / "dir2" / excludedFileName
+      val inputs = TestInputs(
+        os.rel / "project.scala" -> s"//> using exclude */*/$excludedFileName",
+        excludedPath             -> "val foo // invalid code"
+      )
+      inputs.fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
+      }
+    }
 }
