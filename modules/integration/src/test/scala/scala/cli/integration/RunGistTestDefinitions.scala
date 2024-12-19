@@ -46,14 +46,16 @@ trait RunGistTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("Github Gists Script URL") {
-    val url =
-      "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
-    val message = "Hello"
-    emptyInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
-        .call(cwd = root)
-        .out.trim()
-      expect(output == message)
+    TestUtil.retryOnCi() {
+      val url =
+        "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
+      val message = "Hello"
+      emptyInputs.fromRoot { root =>
+        val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+          .call(cwd = root)
+          .out.trim()
+        expect(output == message)
+      }
     }
   }
 }
