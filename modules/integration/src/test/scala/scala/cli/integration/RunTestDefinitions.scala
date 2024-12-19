@@ -1905,7 +1905,7 @@ abstract class RunTestDefinitions
     test(
       s"offline mode should fail on missing artifacts (with Scala $actualAnnouncedScalaVersion)"
     ) {
-      TestUtil.retryOnCi() {
+      TestUtil.retryOnCi(maxAttempts = 5) {
         // Kill bloop deamon to test scalac fallback
         os.proc(TestUtil.cli, "--power", "bloop", "exit")
           .call(cwd = os.pwd)

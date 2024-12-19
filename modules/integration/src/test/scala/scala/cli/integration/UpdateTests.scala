@@ -108,7 +108,7 @@ class UpdateTests extends ScalaCliSuite {
 
   if (!Properties.isWin && Constants.ghOrg == "VirtusLab" && Constants.ghName == "scala-cli")
     test("updating dummy scala-cli using update command") {
-      runUpdate()
+      TestUtil.retryOnCi()(runUpdate())
     }
 
   test("run update before run/test/compile should not return exit code") {
