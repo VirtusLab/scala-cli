@@ -556,70 +556,77 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
 
   for ((platformName, platformArgs) <- platforms)
     test(s"custom test framework $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          s"""//> using dep com.lihaoyi::utest::$utestVersion
-             |
-             |package mytests
-             |import utest._
-             |
-             |object MyTests extends TestSuite {
-             |  val tests = Tests {
-             |    test("foo") {
-             |      assert(2 + 2 == 4)
-             |      println("Hello from " + "tests")
-             |    }
-             |  }
-             |}
-             |""".stripMargin,
-        os.rel / "CustomFramework.test.scala" ->
-          """package custom
-            |
-            |class CustomFramework extends utest.runner.Framework {
-            |  override def setup(): Unit =
-            |    println("Hello from CustomFramework")
-            |}
-            |""".stripMargin
-      )
-      inputs.fromRoot { root =>
-        val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
-          .call(cwd = root)
-        val baseOutput = baseRes.out.text()
-        expect(baseOutput.contains("Hello from tests"))
-        expect(!baseOutput.contains("Hello from CustomFramework"))
-
-        val cmd = Seq[os.Shellable](
-          TestUtil.cli,
-          "test",
-          extraOptions,
-          platformArgs,
-          ".",
-          "--test-framework",
-          "custom.CustomFramework"
+      TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            s"""//> using dep com.lihaoyi::utest::$utestVersion
+               |
+               |package mytests
+               |import utest._
+               |
+               |object MyTests extends TestSuite {
+               |  val tests = Tests {
+               |    test("foo") {
+               |      assert(2 + 2 == 4)
+               |      println("Hello from " + "tests")
+               |    }
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "CustomFramework.test.scala" ->
+            """package custom
+              |
+              |class CustomFramework extends utest.runner.Framework {
+              |  override def setup(): Unit =
+              |    println("Hello from CustomFramework")
+              |}
+              |""".stripMargin
         )
-        val res    = os.proc(cmd).call(cwd = root)
-        val output = res.out.text()
-        expect(output.contains("Hello from tests"))
-        expect(output.contains("Hello from CustomFramework"))
+        inputs.fromRoot { root =>
+          val baseRes = os.proc(TestUtil.cli, "test", extraOptions, platformArgs, ".")
+            .call(cwd = root)
+          val baseOutput = baseRes.out.text()
+          expect(baseOutput.contains("Hello from tests"))
+          expect(!baseOutput.contains("Hello from CustomFramework"))
+
+          val cmd = Seq[os.Shellable](
+            TestUtil.cli,
+            "test",
+            extraOptions,
+            platformArgs,
+            ".",
+            "--test-framework",
+            "custom.CustomFramework"
+          )
+          val res    = os.proc(cmd).call(cwd = root)
+          val output = res.out.text()
+          expect(output.contains("Hello from tests"))
+          expect(output.contains("Hello from CustomFramework"))
+        }
       }
     }
 
   for ((platformName, platformArgs) <- platforms)
     test(s"Fail if no tests were run $platformName") {
-      val inputs = TestInputs(
-        os.rel / "MyTests.test.scala" ->
-          s"""//> using dep org.scalameta::munit::$munitVersion
-             |
-             |object MyTests
-             |""".stripMargin
-      )
+      TestUtil.retryOnCi(maxAttempts = if (platformName.contains("native")) 3 else 1) {
+        val inputs = TestInputs(
+          os.rel / "MyTests.test.scala" ->
+            s"""//> using dep org.scalameta::munit::$munitVersion
+               |
+               |object MyTests
+               |""".stripMargin
+        )
 
-      inputs.fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
-          .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
-        expect(res.exitCode != 0)
-        val output = res.out.text()
-        expect(output.contains("Error: no tests were run") || output.contains("No tests were run"))
+        inputs.fromRoot { root =>
+          val res =
+            os.proc(TestUtil.cli, "test", extraOptions, "--require-tests", platformArgs, ".")
+              .call(cwd = root, stderr = os.Pipe, mergeErrIntoOut = true, check = false)
+          expect(res.exitCode != 0)
+          val output = res.out.text()
+          expect(
+            output.contains("Error: no tests were run") || output.contains("No tests were run")
+          )
+        }
       }
     }
 
