@@ -10,15 +10,16 @@ import scala.util.Properties
 trait CoursierScalaInstallationTestHelper {
   def withScalaRunnerWrapper(
     root: os.Path,
-    localCache: os.Path,
     localBin: os.Path,
-    scalaVersion: String
+    scalaVersion: String,
+    localCache: Option[os.Path] = None,
+    shouldCleanUp: Boolean = true
   )(f: os.Path => Unit): Unit = {
+    val localCacheArgs = localCache.fold(Seq.empty[String])(c => Seq("--cache", c.toString))
     os.proc(
       TestUtil.cs,
       "install",
-      "--cache",
-      localCache,
+      localCacheArgs,
       "--install-dir",
       localBin,
       s"scala:$scalaVersion"
@@ -74,21 +75,23 @@ trait CoursierScalaInstallationTestHelper {
       .call(cwd = root).out.trim()
     expect(wrapperVersion == cliVersion)
     f(launchScalaPath)
-    // clean up cs local binaries
-    val csPrebuiltBinaryDir =
-      os.Path(underlyingScriptPath.toString().substring(
-        0,
-        underlyingScriptPath.toString().indexOf(scalaVersion) + scalaVersion.length
-      ))
-    System.err.println(s"Cleaning up, trying to remove $csPrebuiltBinaryDir")
-    try {
-      os.remove.all(csPrebuiltBinaryDir)
+    if (shouldCleanUp) {
+      // clean up cs local binaries
+      val csPrebuiltBinaryDir =
+        os.Path(underlyingScriptPath.toString().substring(
+          0,
+          underlyingScriptPath.toString().indexOf(scalaVersion) + scalaVersion.length
+        ))
+      System.err.println(s"Cleaning up, trying to remove $csPrebuiltBinaryDir")
+      try {
+        os.remove.all(csPrebuiltBinaryDir)
 
-      System.err.println(s"Cleanup complete. Removed $csPrebuiltBinaryDir")
-    }
-    catch {
-      case ex: java.nio.file.FileSystemException =>
-        System.err.println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+        System.err.println(s"Cleanup complete. Removed $csPrebuiltBinaryDir")
+      }
+      catch {
+        case ex: java.nio.file.FileSystemException =>
+          System.err.println(s"Failed to remove $csPrebuiltBinaryDir: $ex")
+      }
     }
   }
 }

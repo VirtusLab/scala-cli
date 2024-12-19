@@ -80,6 +80,9 @@ object Java {
   def minimumBloopJava    = 17
   def minimumInternalJava = 16
   def defaultJava         = minimumBloopJava
+  def mainJavaVersions    = Seq(8, 11, 17, 21, 23)
+  def allJavaVersions =
+    (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
 }
 
 // Dependencies used in integration test fixtures
