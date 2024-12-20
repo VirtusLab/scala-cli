@@ -737,4 +737,81 @@ abstract class CompileTestDefinitions
         os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
       }
     }
+
+  test("no previous compilation error should be printed") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """|object Main extends App {
+           |  val msg: String = "1"
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result),
+        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiled project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))""".stripMargin
+      )
+
+      os.write.over(
+        root / filename,
+        """|object Main extends App {
+           |    val msg: String = 1
+           |}
+           |""".stripMargin
+      )
+
+      val result2 = os.proc(TestUtil.cli, "compile", ".").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result2),
+        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |[error] ./Main.scala:2:23
+            |[error] Found:    (1 : Int)
+            |[error] Required: String
+            |[error]     val msg: String = 1
+            |[error]                       ^
+            |Error compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compilation failed""".stripMargin
+      )
+
+      os.write.over(
+        root / filename,
+        """|object Main extends App {
+           |    val msg: String = "1"
+           |}
+           |""".stripMargin
+      )
+
+      val result3 = os.proc(TestUtil.cli, "compile", ".").call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result3),
+        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiled project (Scala ${Constants.scala3Next}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))""".stripMargin
+      )
+
+    }
+  }
 }
