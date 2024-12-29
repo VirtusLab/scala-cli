@@ -1022,7 +1022,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
         T.workspace / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
       assert(
         os.exists(mostlyStaticDockerfile),
-        s"Error: ${mostlyStaticDockerfile} not found"
+        s"Error: $mostlyStaticDockerfile not found"
       )
       val code =
         s"""package scala.cli.integration
