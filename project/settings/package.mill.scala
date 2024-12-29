@@ -383,7 +383,7 @@ trait CliLaunchers extends SbtModule { self =>
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
   }
 
-  def transitiveJars: T[Agg[PathRef]] = {
+  def transitiveJarsAgg: T[Agg[PathRef]] = {
 
     def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
       todo match {
@@ -453,7 +453,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def jarClassPath = T {
-    val cp = runClasspath() ++ transitiveJars()
+    val cp = runClasspath() ++ transitiveJarsAgg()
     cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
   }
 
