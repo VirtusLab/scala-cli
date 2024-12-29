@@ -53,7 +53,7 @@ object TestOptions {
        |A source file is treated as a test source if:
        |  - the file name ends with `.test.scala`
        |  - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
-       |  - it contains the `//> using target.scope "test"` directive (Experimental)
+       |  - it contains the `//> using target.scope test` directive (Experimental)
        |
        |${HelpMessages.commandConfigurations(cmdName)}
        |

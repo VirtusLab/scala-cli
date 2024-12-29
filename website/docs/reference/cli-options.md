@@ -1392,15 +1392,15 @@ Set the Scala Native version (0.5.6 by default).
 
 ### `--native-mode`
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 ### `--native-lto`
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 ### `--native-gc`
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 ### `--native-clang`
 
@@ -1561,7 +1561,7 @@ Available in commands:
 
 Aliases: `-S`, `--scala`
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 ### `--scala-binary-version`
 

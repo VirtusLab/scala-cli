@@ -72,7 +72,7 @@ class RunTestsDefault extends RunTestDefinitions
   test("as jar") {
     val inputs = TestInputs(
       os.rel / "CheckCp.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.9.1"
+        """//> using dep com.lihaoyi::os-lib:0.9.1
           |object CheckCp {
           |  def main(args: Array[String]): Unit = {
           |    val cp = sys.props("java.class.path")
@@ -94,5 +94,37 @@ class RunTestsDefault extends RunTestDefinitions
       os.proc(TestUtil.cli, "--power", "run", extraOptions, ".", "--as-jar")
         .call(cwd = root)
     }
+  }
+
+  test("meaningful commas dont have to be escaped in using directive values") {
+    val inputPath = os.rel / "example.scala"
+    TestInputs(inputPath ->
+      """//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar
+        |import tabby.Grid
+        |@main def main = println(Grid("a", "b", "c")(1, 2, 3))
+        |""".stripMargin).fromRoot { root =>
+      val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+        .call(cwd = root)
+    val out = res.out.trim()
+    expect(out.contains("a, b, c"))
+    }
+  }
+
+  test(
+    "using directives using commas with space as separators should produce a deprecation warning."
+  ) {
+    val inputPath = os.rel / "example.sc"
+    TestInputs(inputPath ->
+      """//> using options -Werror, -Wconf:cat=deprecation:e, -Wconf:cat=unused:e
+        |println("Deprecation warnings should have been printed")
+        |""".stripMargin)
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+          .call(cwd = root, stderr = os.Pipe)
+        val err             = res.err.trim()
+        val expectedWarning = "Use of commas as separators is deprecated"
+        expect(err.contains(expectedWarning))
+        expect(err.linesIterator.count(_.contains(expectedWarning)) == 2)
+      }
   }
 }

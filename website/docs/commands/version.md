@@ -14,8 +14,8 @@ scala-cli version
 ```
 
 ```text
-Scala CLI version: 0.1.19
-Scala version (default): 3.2.1
+Scala CLI version: 1.5.4
+Scala version (default): 3.5.2
 ```
 
 </ChainedSnippets>
@@ -30,8 +30,8 @@ scala-cli -version
 ```
 
 ```text
-Scala CLI version: 0.1.19
-Scala version (default): 3.2.1
+Scala CLI version: 1.5.4
+Scala version (default): 3.5.2
 ```
 
 </ChainedSnippets>
@@ -60,7 +60,7 @@ scala-cli version --cli-version
 ```
 
 ```text
-0.1.19
+1.5.4
 ```
 
 </ChainedSnippets>
@@ -95,7 +95,7 @@ scala-cli version --scala-version
 ```
 
 ```text
-3.2.1
+3.5.2
 ```
 
 </ChainedSnippets>

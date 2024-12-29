@@ -40,8 +40,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     test(s"dependencies in .scala - using aliases: $pluralAlias and $singularAlias") {
       val testInputs = TestInputs(
         os.rel / "something.scala" ->
-          s"""//> using $pluralAlias "org1:name1:1.1", "org2::name2:2.2"
-             |//> using $singularAlias "org3:::name3:3.3"
+          s"""//> using $pluralAlias org1:name1:1.1 org2::name2:2.2
+             |//> using $singularAlias org3:::name3:3.3
              |import scala.collection.mutable
              |
              |object Something {
@@ -87,8 +87,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .scala - using witin tests") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
-        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using deps org1:name1:1.1 org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |import scala.collection.mutable
           |
           |object Something {
@@ -127,8 +127,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
-        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using deps org1:name1:1.1 org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |import scala.collection.mutable
           |
           |object Something {
@@ -167,8 +167,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in test/name.scala") {
     val files = Seq(
       os.rel / "test" / "something.scala" ->
-        """//> using deps "org1:name1:1.1", "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using deps org1:name1:1.1 org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |import scala.collection.mutable
           |
           |object Something {
@@ -205,9 +205,9 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .scala - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.scala" ->
-        """//> using dep "org1:name1:1.1"
-          |//> using dep "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using dep org1:name1:1.1
+          |//> using dep org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |import scala.collection.mutable
           |
           |object Something {
@@ -251,9 +251,9 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .java - //> using") {
     val testInputs = TestInputs(
       os.rel / "Something.java" ->
-        """//> using dep "org1:name1:1.1"
-          |//> using dep "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using dep org1:name1:1.1
+          |//> using dep org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |
           |public class Something {
           |  public Int a = 1;
@@ -383,7 +383,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .sc - using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using deps "org1:name1:1.1", "org2::name2:2.2", "org3:::name3:3.3"
+        """//> using deps org1:name1:1.1 org2::name2:2.2 org3:::name3:3.3
           |import scala.collection.mutable
           |
           |def a = 1
@@ -425,9 +425,9 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("dependencies in .sc - //> using") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using dep "org1:name1:1.1"
-          |//> using dep "org2::name2:2.2"
-          |//> using dep "org3:::name3:3.3"
+        """//> using dep org1:name1:1.1
+          |//> using dep org2::name2:2.2
+          |//> using dep org3:::name3:3.3
           |import scala.collection.mutable
           |
           |def a = 1
@@ -469,8 +469,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("java props in using directives") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using javaProp "foo1"
-          |//> using javaProp "foo2=bar2"
+        """//> using javaProp foo1
+          |//> using javaProp foo2=bar2
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
@@ -495,9 +495,9 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(
         javaOpts(0).value.value == "-Dfoo1",
-        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 20), (0, 24))),
+        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 19), (0, 23))),
         javaOpts(1).value.value == "-Dfoo2=bar2",
-        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 20), (1, 29)))
+        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 19), (1, 28)))
       )
     }
   }
@@ -505,10 +505,10 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("js options in using directives") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using jsVersion "1.8.0"
-          |//> using jsMode "mode"
+        """//> using jsVersion 1.8.0
+          |//> using jsMode mode
           |//> using jsNoOpt
-          |//> using jsModuleKind "commonjs"
+          |//> using jsModuleKind commonjs
           |//> using jsCheckIr true
           |//> using jsEmitSourceMaps true
           |//> using jsDom true
@@ -516,8 +516,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           |//> using jsAllowBigIntsForLongs true
           |//> using jsAvoidClasses false
           |//> using jsAvoidLetsAndConsts false
-          |//> using jsModuleSplitStyleStr "smallestmodules"
-          |//> using jsEsVersionStr "es2017"
+          |//> using jsModuleSplitStyleStr smallestmodules
+          |//> using jsEsVersionStr es2017
           |""".stripMargin
     )
     testInputs.withInputs { (root, inputs) =>
@@ -567,7 +567,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("js options in using directives failure - multiple values") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using jsVersion "1.8.0","2.3.4"
+        """//> using jsVersion 1.8.0 2.3.4
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -588,7 +588,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
   test("js options in using directives failure - not a boolean") {
     val testInputs = TestInputs(
       os.rel / "something.sc" ->
-        """//> using jsDom "fasle"
+        """//> using jsDom fasle
           |""".stripMargin
     )
     testInputs.withInputs { (_, inputs) =>
@@ -611,8 +611,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       Seq("project.scala", "Main.scala", "Abc.scala", "Message.scala")
     val testInputs = TestInputs(
       os.rel / project ->
-        """//> using dep "com.lihaoyi::os-lib::0.8.1"
-          |//> using file "Message.scala"
+        """//> using dep com.lihaoyi::os-lib::0.8.1
+          |//> using file Message.scala
           |""".stripMargin,
       os.rel / main ->
         """object Main extends App {

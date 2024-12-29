@@ -78,7 +78,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val message  = "1,2,3"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""|//> using resourceDir "."
+        s"""|//> using resourceDir .
             |import scala.io.Source
             |
             |val inputs = Source.fromResource("input").getLines.toSeq
@@ -107,7 +107,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val resourceFile = "input"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""|//> using resourceDir "."
+        s"""|//> using resourceDir .
             |
             |class MyLibrary {
             |  def message = "Hello"
@@ -140,7 +140,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("Zip with Scala Script containing resource directive") {
     val inputs = TestInputs(
       os.rel / "hello.sc" ->
-        s"""//> using resourceDir "./"
+        s"""//> using resourceDir ./
            |import scala.io.Source
            |
            |val inputs = Source.fromResource("input").getLines.map(_.toInt).toSeq
@@ -240,8 +240,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val message  = "Hello World from JS"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""|//> using jsModuleKind "es"
-            |//> using jsModuleSplitStyleStr "smallestmodules"
+        s"""|//> using jsModuleKind es
+            |//> using jsModuleSplitStyleStr smallestmodules
             |
             |case class Foo(bar: String)
             |
@@ -280,9 +280,9 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val message  = "Hello World from JS"
     val inputs = TestInputs(
       os.rel / fileName ->
-        s"""|//> using jsModuleKind "es"
-            |//> using jsModuleSplitStyleStr "smallmodulesfor"
-            |//> using jsSmallModuleForPackage "test"
+        s"""|//> using jsModuleKind es
+            |//> using jsModuleSplitStyleStr smallmodulesfor
+            |//> using jsSmallModuleForPackage test
             |
             |package test
             |
@@ -327,7 +327,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val inputs = TestInputs(
       os.rel / fileName ->
         s"""|//> using jsHeader "$jsHeaderNewLine"
-            |//> using jsMode "release"
+            |//> using jsMode release
             |
             |object Hello extends App {
             |  println("Hello")
@@ -539,7 +539,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val message  = "Hello"
       val inputs = TestInputs(
         os.rel / fileName ->
-          s"""//> using dep "org.typelevel::cats-kernel:2.6.1"
+          s"""//> using dep org.typelevel::cats-kernel:2.6.1
              |import cats.kernel._
              |val m = Monoid.instance[String]("", (a, b) => a + b)
              |val msgStuff = m.combineAll(List("$message", "", ""))
@@ -1164,7 +1164,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   test("fat jar") {
     val inputs = TestInputs(
-      os.rel / "OsLibFatJar.scala" -> s"""//> using dep "com.lihaoyi::os-lib:0.9.0" """,
+      os.rel / "OsLibFatJar.scala" -> s"""//> using dep com.lihaoyi::os-lib:0.9.0""",
       os.rel / "Hello.scala" ->
         s"""object Main extends App {
            |  println(os.pwd)

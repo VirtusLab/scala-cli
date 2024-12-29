@@ -92,7 +92,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -182,15 +182,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -861,7 +861,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -963,15 +963,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -1450,7 +1450,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -1546,15 +1546,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -2059,7 +2059,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2161,15 +2161,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -2687,7 +2687,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -2789,15 +2789,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -3303,7 +3303,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -3393,15 +3393,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -3898,7 +3898,7 @@ Test sources are compiled separately (after the 'main' sources), and may use dif
 A source file is treated as a test source if:
   - the file name ends with `.test.scala`
   - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
-  - it contains the `//> using target.scope "test"` directive (Experimental)
+  - it contains the `//> using target.scope test` directive (Experimental)
 
 Specific test configurations can be specified with both command line options and using directives defined in sources.
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
@@ -3938,7 +3938,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4034,15 +4034,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -4636,7 +4636,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -4726,15 +4726,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 
@@ -5569,7 +5569,7 @@ Aliases: `-P` ,`--plugin`
 
 **--scala-version**
 
-Set the Scala version (3.5.2 by default)
+Set the Scala version (3.6.2 by default)
 
 Aliases: `-S` ,`--scala`
 
@@ -5659,15 +5659,15 @@ Set the Scala Native version (0.5.6 by default).
 
 **--native-mode**
 
-Set Scala Native compilation mode
+Set Scala Native compilation mode (debug by default): debug, release-fast, release-size, release-full
 
 **--native-lto**
 
-Link-time optimisation mode
+Link-time optimisation mode (none by default): none, full, thin
 
 **--native-gc**
 
-Set the Scala Native garbage collector
+Set the Scala Native garbage collector (immix by default): immix, commix, boehm, none
 
 **--native-linking**
 

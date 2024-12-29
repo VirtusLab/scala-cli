@@ -10,10 +10,10 @@ object Scala {
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts        = s"$scala3LtsPrefix.4"  // the LTS version currently used in the build
-  def scala3NextPrefix = "3.5"
+  def scala3NextPrefix = "3.6"
   def scala3Next       = s"$scala3NextPrefix.2" // the newest/next version of Scala
   def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.6.2-RC3"  // the latest RC version of Scala Next
+  def scala3NextRc          = "3.6.3-RC1"  // the latest RC version of Scala Next
   def scala3NextRcAnnounced = scala3NextRc // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -107,7 +107,7 @@ object Deps {
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.19"
+    def coursierDefault                   = "2.1.22"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
@@ -127,7 +127,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.4"
-    def bloop                             = "2.0.5"
+    def bloop                             = "2.0.6"
     def sbtVersion                        = "1.10.6"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
@@ -146,7 +146,7 @@ object Deps {
     ivy"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
   def asm = ivy"org.ow2.asm:asm:9.7.1"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.1.0"
+  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.2.0"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def bloopRifle       = ivy"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
   def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
@@ -161,16 +161,16 @@ object Deps {
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.1.6"
+  def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.2.0"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency   = ivy"io.get-coursier::dependency:0.3.1"
+  def dependency   = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
   // TODO bump once 0.15.5 is out
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.3.1-jre"
+  def guava   = ivy"com.google.guava:guava:33.4.0-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
@@ -195,7 +195,7 @@ object Deps {
   def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
   def metaconfigTypesafe =
-    ivy"org.scalameta::metaconfig-typesafe-config:0.13.0"
+    ivy"org.scalameta::metaconfig-typesafe-config:0.14.0"
       .exclude(("org.scala-lang", "scala-compiler"))
   def munit                      = ivy"org.scalameta::munit:1.0.3"
   def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
@@ -240,6 +240,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+      .exclude(("io.get-coursier.publish", "publish_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.16"
   def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.10.1"
@@ -254,7 +255,7 @@ object Deps {
   val typelevelToolkitVersion   = "0.1.29"
   def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
   def typelevelToolkitTest      = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
-  def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.1"
+  def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.4"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround

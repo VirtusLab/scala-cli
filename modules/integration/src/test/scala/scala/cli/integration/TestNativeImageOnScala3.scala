@@ -42,7 +42,7 @@ class TestNativeImageOnScala3 extends ScalaCliSuite {
 
   test("lazy vals") {
     runTest("1")("2") {
-      """//> using scala "3.1.1"
+      """//> using scala 3.1.1
         |class A(a: String) { lazy val b = a.toInt + 1 }
         |@main def add1(i: String) = println(A(i).b)
         |""".stripMargin

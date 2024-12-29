@@ -25,7 +25,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
   test("export json") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.7.8"
+        """//> using dep com.lihaoyi::os-lib:0.7.8
           |
           |object Main {
           |  def main(args: Array[String]): Unit =
@@ -79,9 +79,9 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
   test("export json with test scope") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using lib "com.lihaoyi::os-lib:0.7.8"
-          |//> using option "-Xasync"
-          |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        """//> using dep com.lihaoyi::os-lib:0.7.8
+          |//> using option -Xasync
+          |//> using plugin org.wartremover:::wartremover:3.0.9
           |//> using scala 3.2.2
           |
           |object Main {
@@ -90,9 +90,9 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |}
           |""".stripMargin,
       os.rel / "unit.test.scala" ->
-        """//> using repository "sonatype:snapshots"
-          |//> using resourceDir "./resources"
-          |//> using jar "TEST.jar"
+        """//> using repository sonatype:snapshots
+          |//> using resourceDir ./resources
+          |//> using jar TEST.jar
           |""".stripMargin
     )
 
@@ -180,11 +180,11 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
   test("export json with js") {
     val inputs = TestInputs(
       os.rel / "Main.scala" ->
-        """//> using scala "3.1.3"
-          |//> using platform "scala-js"
-          |//> using lib "com.lihaoyi::os-lib:0.7.8"
-          |//> using option "-Xasync"
-          |//> using plugin "org.wartremover:::wartremover:3.0.9"
+        """//> using scala 3.1.3
+          |//> using platform scala-js
+          |//> using lib com.lihaoyi::os-lib:0.7.8
+          |//> using option -Xasync
+          |//> using plugin org.wartremover:::wartremover:3.0.9
           |
           |object Main {
           |  def main(args: Array[String]): Unit =

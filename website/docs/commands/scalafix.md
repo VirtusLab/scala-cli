@@ -41,5 +41,5 @@ Read more about Scalafix:
 
 Adding an [external scalafix rule](https://scalacenter.github.io/scalafix/docs/rules/external-rules.html) to scala-cli might be done by declaring [`scalafix.dep`](./compile.md#compile-only-dependencies):
 ```scala title=externalRule.scala
-//> using scalafix.dep "com.github.xuwei-k::scalafix-rules:0.5.1"
+//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1
 ```

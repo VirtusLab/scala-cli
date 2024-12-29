@@ -17,15 +17,19 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
   private object PublishTestInputs {
     def testOrg: String  = "test-local-org.sth"
     def testName: String = "my-proj"
-    def projFile(message: String): String =
-      s"""//> using scala "$testedPublishedScalaVersion"
-         |//> using dep "com.lihaoyi::os-lib:0.9.1"
+    def projFile(message: String, exclude: Boolean = false): String =
+      s"""//> using scala $testedPublishedScalaVersion
+         |//> using dep com.lihaoyi::os-lib:0.11.3${Some(",exclude=com.lihaoyi%%geny").filter(_ =>
+          exclude
+        ).getOrElse("")}
          |
          |object Project {
          |  def message = "$message"
          |
-         |  def main(args: Array[String]): Unit =
+         |  def main(args: Array[String]): Unit = {
+         |    os.pwd
          |    println(message)
+         |  }
          |}
          |""".stripMargin
 
@@ -39,9 +43,13 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
          |""".stripMargin
     }
 
-    def inputs(message: String = "Hello", includePublishVersion: Boolean = true): TestInputs =
+    def inputs(
+      message: String = "Hello",
+      includePublishVersion: Boolean = true,
+      excludeGeny: Boolean = false
+    ): TestInputs =
       TestInputs(
-        os.rel / "project.scala"      -> projFile(message),
+        os.rel / "project.scala"      -> projFile(message, excludeGeny),
         os.rel / "publish-conf.scala" -> publishConfFile(includePublishVersion)
       )
   }
@@ -214,5 +222,40 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       expect(output() == "Hello")
     }
   }
+
+  if (actualScalaVersion.startsWith("3"))
+    test("publish local excluding a transitive dependency") {
+      PublishTestInputs.inputs(excludeGeny = true).fromRoot { root =>
+        val failPublishAsGenyIsntProvided =
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            extraOptions
+          )
+            .call(cwd = root, check = false)
+        expect(failPublishAsGenyIsntProvided.exitCode == 1)
+        val genyDep = "com.lihaoyi::geny:1.1.1"
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          "local",
+          ".",
+          "--compile-dep",
+          genyDep,
+          extraOptions
+        )
+          .call(cwd = root)
+        val publishedDep =
+          s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+        val failRunAsGenyIsntProvided = os.proc(TestUtil.cli, "run", "--dep", publishedDep)
+          .call(cwd = root, check = false)
+        expect(failRunAsGenyIsntProvided.exitCode == 1)
+        os.proc(TestUtil.cli, "run", "--dep", publishedDep, "--dep", genyDep).call(cwd = root)
+      }
+    }
 
 }

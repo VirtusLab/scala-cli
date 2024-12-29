@@ -598,11 +598,48 @@ trait RunScalacCompatTestDefinitions {
           "run",
           ".",
           if (useDirective) Nil else macroSettingOptions,
-          extraOptions,
+          "-S",
+          Constants.scala3NextRcAnnounced,
           "-experimental"
         )
           .call(cwd = root, stderr = os.Pipe)
         expect(r.out.trim() == macroSettings.mkString(", "))
+      }
+    }
+
+  if (actualScalaVersion.startsWith("3"))
+    test("-Ysafe-init-global doesnt crash the CLI when a dependency produces a warning") {
+      val (org, name, version) = ("hello-world", "test-safe-init-global-works", "0.0.1-SNAPSHOT")
+      val (depDir, mainDir)    = ("dep", "main")
+      val (depPackage, depClass, depMethod) = ("hello", "DepMain", "x")
+      val expectedMessage                   = "Hello, world!"
+      TestInputs(
+        os.rel / depDir / "Main.scala" ->
+          s"""//> using publish.organization $org
+             |//> using publish.name $name
+             |//> using publish.version $version
+             |package $depPackage
+             |
+             |object $depClass {
+             |  val $depMethod: Int = y
+             |  val y: Int = $depMethod
+             |}
+             |""".stripMargin,
+        os.rel / mainDir / "Main.scala" ->
+          s"""//> using option -Ysafe-init-global
+             |//> using dep $org::$name:$version
+             |
+             |import $depPackage.$depClass
+             |
+             |object Main extends App {
+             |  val a = $depClass.$depMethod
+             |  println("$expectedMessage")
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "publish", "local", depDir, extraOptions).call(cwd = root)
+        val res = os.proc(TestUtil.cli, "run", mainDir, extraOptions).call(cwd = root)
+        expect(res.out.trim() == expectedMessage)
       }
     }
 }

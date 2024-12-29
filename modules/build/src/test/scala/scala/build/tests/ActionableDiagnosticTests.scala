@@ -57,7 +57,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     val testInputs = TestInputs(
       os.rel / "Foo.scala" ->
         s"""//> using dep $dependencyOsLib
-           |//> using dep "$dependencyPprintLib"
+           |//> using dep $dependencyPprintLib
            |
            |object Hello extends App {
            |  println("Hello")
@@ -79,7 +79,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
           actionableDiagnostics.find(_.suggestion.startsWith("com.lihaoyi::pprint")).get
 
         expect(osLib.positions == Seq(File(Right(root / "Foo.scala"), (0, 14), (0, 39))))
-        expect(pprintLib.positions == Seq(File(Right(root / "Foo.scala"), (1, 15), (1, 40))))
+        expect(pprintLib.positions == Seq(File(Right(root / "Foo.scala"), (1, 14), (1, 39))))
     }
   }
 

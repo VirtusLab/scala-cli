@@ -381,7 +381,7 @@ class ConfigTests extends ScalaCliSuite {
           |}
           |""".stripMargin,
       os.rel / "hello" / "Hello.scala" ->
-        s"""//> using dep "$testOrg::$testName:$testVersion"
+        s"""//> using dep $testOrg::$testName:$testVersion
            |import messages.Messages
            |object Hello {
            |  def main(args: Array[String]): Unit =

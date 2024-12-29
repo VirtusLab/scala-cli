@@ -9,11 +9,11 @@ Scala CLI lets you run, test, and package Scala code in various environments, in
 To use Scala CLI features in a simple way you can use the GitHub Actions [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup) that installs everything necessary to run your Scala CLI application and more.
 
 For example, here's a simple `ls` application printing the files in a given directory:
-```scala title=Ls.scala
-//> using scala 2.13
-//> using dep com.lihaoyi::os-lib:0.7.8
+```scala compile title=Ls.scala
+//> using scala 3
+//> using dep com.lihaoyi::os-lib:0.11.3
 
-@main def hello(args: String*) =
+@main def hello(args: String*): Unit =
   val path = args.headOption match
     case Some(p) => os.Path(p, os.pwd)
     case _       => os.pwd
@@ -24,8 +24,8 @@ For example, here's a simple `ls` application printing the files in a given dire
 
 and some tests for `ls` application:
 
-```scala title=TestsLs.test.scala
-//> using dep org.scalameta::munit::0.7.27
+```scala compile title=TestsLs.test.scala
+//> using dep org.scalameta::munit::1.0.2
 import scala.util.Properties
 
 class TestsLs extends munit.FunSuite {
@@ -37,7 +37,7 @@ class TestsLs extends munit.FunSuite {
     expectedFiles.foreach(os.write(_, "Hello"))
 
     // check
-    val scalaCLILauncher = if(Properties.isWin) "scala-cli.bat" else "scala-cli"
+    val scalaCLILauncher = if (Properties.isWin) "scala-cli.bat" else "scala-cli"
     val foundFiles =
       os.proc(scalaCLILauncher, "Ls.scala", "--", tempDir).call().out.trim()
 
@@ -105,9 +105,9 @@ Scala CLI allows to build native executable applications using [GraalVM](https:/
 ```
 
 Given this simple Scala Script `package.sc` to package application to every platform:
-```scala title=package.sc
-//> using scala 3.1.2
-//> using dep com.lihaoyi::os-lib:0.8.0
+```scala compile title=package.sc
+//> using scala 3
+//> using dep com.lihaoyi::os-lib:0.11.3
 import scala.util.Properties
 
 val platformSuffix: String = {

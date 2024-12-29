@@ -22,7 +22,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.dep org.scalatest::scalatest:3.2.10")
 @DirectiveExamples("//> using test.dep org.scalameta::munit:0.7.29")
 @DirectiveExamples(
-  "//> using dep \"tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar\""
+  "//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"
 )
 @DirectiveUsage(
   "//> using dep org:name:ver | //> using deps org:name:ver org2:name2:ver2",

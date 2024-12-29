@@ -11,7 +11,7 @@ trait BspTests3Definitions { _: BspTestDefinitions =>
            |main()
            |""".stripMargin,
       os.rel / script2 ->
-        s"""//> using dep "org.scalatest::scalatest:3.2.15"
+        s"""//> using dep org.scalatest::scalatest:3.2.15
            |
            |import org.scalatest.*, flatspec.*, matchers.*
            |

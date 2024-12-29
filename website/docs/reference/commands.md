@@ -405,7 +405,7 @@ Test sources are compiled separately (after the 'main' sources), and may use dif
 A source file is treated as a test source if:
   - the file name ends with `.test.scala`
   - the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a `test` directory
-  - it contains the `//> using target.scope "test"` directive (Experimental)
+  - it contains the `//> using target.scope test` directive (Experimental)
 
 Specific test configurations can be specified with both command line options and using directives defined in sources.
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.

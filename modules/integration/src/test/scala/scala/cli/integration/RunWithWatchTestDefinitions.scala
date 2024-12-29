@@ -175,9 +175,9 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
     test("watch artifacts") {
       val libSourcePath = os.rel / "lib" / "Messages.scala"
       def libSource(hello: String) =
-        s"""//> using publish.organization "test-org"
-           |//> using publish.name "messages"
-           |//> using publish.version "0.1.0"
+        s"""//> using publish.organization test-org
+           |//> using publish.name messages
+           |//> using publish.version 0.1.0
            |
            |package messages
            |
@@ -188,7 +188,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       TestInputs(
         libSourcePath -> libSource("Hello"),
         os.rel / "app" / "TestApp.scala" ->
-          """//> using lib "test-org::messages:0.1.0"
+          """//> using lib test-org::messages:0.1.0
             |
             |package testapp
             |
@@ -243,7 +243,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
     val fileName = "watch.scala"
     TestInputs(
       os.rel / fileName ->
-        """//> using lib "org.scalameta::munit::0.7.29"
+        """//> using dep org.scalameta::munit::0.7.29
           |
           |class MyTests extends munit.FunSuite {
           |    test("is true true") { assert(true) }
@@ -338,4 +338,43 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
         }
       }
   }
+
+  def testRepeatedRerunsWithWatch(): Unit = {
+    def expectedMessage(number: Int) = s"Hello $number"
+
+    def content(number: Int) =
+      s"@main def main(): Unit = println(\"${expectedMessage(number)}\")"
+
+    TestUtil.retryOnCi() {
+      val inputPath = os.rel / "example.scala"
+      TestInputs(inputPath -> content(0)).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "bloop", "exit").call(cwd = root)
+        TestUtil.withProcessWatching(
+          proc = os.proc(TestUtil.cli, ".", "--watch", extraOptions)
+            .spawn(cwd = root, stderr = os.Pipe)
+        ) { (proc, timeout, ec) =>
+          for (num <- 1 to 10) {
+            val output = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output == expectedMessage(num - 1))
+            proc.printStderrUntilRerun(timeout)(ec)
+            Thread.sleep(200L)
+            if (num < 10) {
+              val newContent = content(num)
+              os.write.over(root / inputPath, newContent)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (actualScalaVersion.startsWith("3") && Properties.isMac && TestUtil.isCI)
+    // TODO make this pass reliably on Mac CI (seems to work fine locally)
+    test("watch mode doesnt hang on Bloop when rebuilding repeatedly".flaky) {
+      testRepeatedRerunsWithWatch()
+    }
+  else if (actualScalaVersion.startsWith("3"))
+    test("watch mode doesnt hang on Bloop when rebuilding repeatedly") {
+      testRepeatedRerunsWithWatch()
+    }
 }

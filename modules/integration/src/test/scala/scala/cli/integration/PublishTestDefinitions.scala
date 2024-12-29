@@ -16,12 +16,12 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   private object TestCase {
     val testInputs: TestInputs = TestInputs(
       os.rel / "project" / "foo" / "Hello.scala" ->
-        """//> using publish.organization "org.virtuslab.scalacli.test"
-          |//> using publish.name "simple"
-          |//> using publish.version "0.2.0-SNAPSHOT"
-          |//> using publish.url "https://github.com/VirtusLab/scala-cli"
+        """//> using publish.organization org.virtuslab.scalacli.test
+          |//> using publish.name simple
+          |//> using publish.version 0.2.0-SNAPSHOT
+          |//> using publish.url https://github.com/VirtusLab/scala-cli
           |//> using publish.license "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
-          |//> using publish.developer "someone|Someone||https://github.com/someone"
+          |//> using publish.developer someone|Someone||https://github.com/someone
           |
           |package foo
           |
