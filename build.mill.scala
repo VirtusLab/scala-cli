@@ -341,9 +341,9 @@ trait BuildMacros extends ScalaCliCrossSbtModule
         println(res.out.text())
         val name = testFile.last
         if (res.exitCode != 0) {
-          println(s"Test case $name failed to compile as expected")
+          println(s"Test case $name failed to compile as expected\nObtained:")
           val lines = res.out.lines()
-          println(lines)
+          lines.foreach(println)
           expectedErrors.forall { expected =>
             if (lines.exists(expected.findFirstIn(_).nonEmpty)) false
             else {
@@ -358,7 +358,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
         }
 
       }
-      assert(notPassed.isEmpty)
+      assert(notPassed.isEmpty, s"`$notPassed` should be empty")
     }
   }
 }
