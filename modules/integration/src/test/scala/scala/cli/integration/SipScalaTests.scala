@@ -842,9 +842,9 @@ class SipScalaTests extends ScalaCliSuite
       val scalaVersion = Constants.scala3NextRcAnnounced
       withScalaRunnerWrapper(
         root = root,
-        localCache = localCache,
         localBin = localBin,
-        scalaVersion = scalaVersion
+        scalaVersion = scalaVersion,
+        localCache = Some(localCache)
       ) { launchScalaPath =>
         val r =
           os.proc(

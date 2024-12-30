@@ -1908,19 +1908,19 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP respects JAVA_HOME") {
     TestUtil.retryOnCi() {
-      val javaVersion = "22"
+      val javaVersion = "23"
       val inputs = TestInputs(os.rel / "check-java.sc" ->
         s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
            |println(System.getProperty("java.home"))""".stripMargin)
       inputs.fromRoot { root =>
         os.proc(TestUtil.cli, "bloop", "exit", "--power").call(cwd = root)
-        val java22Home =
+        val java23Home =
           os.Path(
             os.proc(TestUtil.cs, "java-home", "--jvm", s"zulu:$javaVersion").call().out.trim(),
             os.pwd
           )
         os.proc(TestUtil.cli, "setup-ide", "check-java.sc")
-          .call(cwd = root, env = Map("JAVA_HOME" -> java22Home.toString()))
+          .call(cwd = root, env = Map("JAVA_HOME" -> java23Home.toString()))
         val ideOptionsPath = root / Constants.workspaceDirName / "ide-options-v2.json"
         expect(ideOptionsPath.toNIO.toFile.exists())
         val ideEnvsPath = root / Constants.workspaceDirName / "ide-envs.json"
@@ -1948,7 +1948,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
 
   test("BSP respects --java-home") {
     TestUtil.retryOnCi() {
-      val javaVersion = "22"
+      val javaVersion = "23"
       val inputs = TestInputs(os.rel / "check-java.sc" ->
         s"""assert(System.getProperty("java.version").startsWith("$javaVersion"))
            |println(System.getProperty("java.home"))""".stripMargin)
