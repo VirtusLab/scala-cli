@@ -748,7 +748,7 @@ abstract class CompileTestDefinitions
            |""".stripMargin
     )
     inputs.fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "compile", ".").call(
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -756,9 +756,9 @@ abstract class CompileTestDefinitions
 
       assertEquals(
         TestUtil.fullStableOutput(result),
-        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))
-            |Compiled project (Scala ${Constants.scala3Next}, JVM (${Constants
+            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))""".stripMargin
       )
 
@@ -770,22 +770,29 @@ abstract class CompileTestDefinitions
            |""".stripMargin
       )
 
-      val result2 = os.proc(TestUtil.cli, "compile", ".").call(
+      val result2 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
       )
 
+      val expectedError = if (actualScalaVersion.startsWith("2"))
+        """|[error] type mismatch;
+           |[error]  found   : Int(1)
+           |[error]  required: String""".stripMargin
+      else
+        """|[error] Found:    (1 : Int)
+           |[error] Required: String""".stripMargin
+
       assertEquals(
-        TestUtil.fullStableOutput(result2),
-        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+        TestUtil.fullStableOutput(result2).trim,
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))
-            |[error] ./Main.scala:2:23
-            |[error] Found:    (1 : Int)
-            |[error] Required: String
+            |[error] .${File.separatorChar}Main.scala:2:23
+            |$expectedError
             |[error]     val msg: String = 1
             |[error]                       ^
-            |Error compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+            |Error compiling project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))
             |Compilation failed""".stripMargin
       )
@@ -798,7 +805,7 @@ abstract class CompileTestDefinitions
            |""".stripMargin
       )
 
-      val result3 = os.proc(TestUtil.cli, "compile", ".").call(
+      val result3 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
         cwd = root,
         check = false,
         mergeErrIntoOut = true
@@ -806,9 +813,9 @@ abstract class CompileTestDefinitions
 
       assertEquals(
         TestUtil.fullStableOutput(result3),
-        s"""|Compiling project (Scala ${Constants.scala3Next}, JVM (${Constants
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))
-            |Compiled project (Scala ${Constants.scala3Next}, JVM (${Constants
+            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
              .defaultGraalVMJavaVersion}))""".stripMargin
       )
 

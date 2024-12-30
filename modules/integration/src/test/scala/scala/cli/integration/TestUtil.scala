@@ -115,11 +115,12 @@ object TestUtil {
   def removeAnsiColors(str: String) = str.replaceAll("\\e\\[[0-9]+m", "")
 
   def fullStableOutput(result: os.CommandResult) =
-    TestUtil.removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
+    removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
-      val shouldNotContain = Set("Starting compilation server", "hint", "Download", "Result of")
+      val shouldNotContain =
+        Set("Starting compilation server", "hint", "Download", "Result of", "Checking", "Checked")
       shouldNotContain.exists(str.contains)
-    }.mkString("\n")
+    }.mkString(System.lineSeparator())
 
   def retry[T](
     maxAttempts: Int = 3,

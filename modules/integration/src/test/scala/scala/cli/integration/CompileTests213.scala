@@ -1,7 +1,6 @@
 package scala.cli.integration
 
 import scala.util.Properties
-import scala.cli.integration.Constants.defaultGraalVMJavaVersion
 
 class CompileTests213 extends CompileTestDefinitions with Test213 {
 
