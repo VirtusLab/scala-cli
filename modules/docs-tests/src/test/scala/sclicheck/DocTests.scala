@@ -8,7 +8,7 @@ class DocTests extends munit.FunSuite {
   override def munitTimeout = new FiniteDuration(360, TimeUnit.SECONDS)
   case class DocTestEntry(name: String, path: os.Path, depth: Int = Int.MaxValue)
 
-  val docsRootPath: os.Path = os.pwd / "website" / "docs"
+  val docsRootPath: os.Path = os.Path(sys.env("MILL_WORKSPACE_ROOT")) / "website" / "docs"
   val entries: Seq[DocTestEntry] = Seq(
     DocTestEntry("root", docsRootPath, depth = 1),
     DocTestEntry("cookbook", docsRootPath / "cookbooks"),

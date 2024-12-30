@@ -12,9 +12,9 @@ import java.io.{File, IOException}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ModuleFormatError}
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object Bloop {
 

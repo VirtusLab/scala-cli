@@ -3,7 +3,7 @@ package scala.cli.commands.clean
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 
 // format: off
 @HelpMessage(CleanOptions.helpMessage, "", CleanOptions.detailedHelpMessage)

@@ -1,6 +1,6 @@
 package scala.cli.tests
 
-import com.eed3si9n.expecty.Expecty.{assert => expect}
+import com.eed3si9n.expecty.Expecty.assert as expect
 
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer

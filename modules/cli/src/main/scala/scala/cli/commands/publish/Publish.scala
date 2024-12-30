@@ -23,15 +23,15 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{Developer, License, Signer as PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
   ComputeVersion,

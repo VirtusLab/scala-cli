@@ -1,6 +1,8 @@
+package build.project.publish
+
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r`
-import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
+import build.project.settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
@@ -18,7 +20,7 @@ lazy val (ghOrg, ghName) = {
     val repos = {
       var git: Git = null
       try {
-        git = Git.open(os.pwd.toIO)
+        git = Git.open(os.Path(sys.env("MILL_WORKSPACE_ROOT")).toIO)
         git.remoteList().call().asScala.toVector
       }
       finally
@@ -153,7 +155,8 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
 
 def publishSonatype(
   data: Seq[PublishModule.PublishData],
-  log: mill.api.Logger
+  log: mill.api.Logger,
+  workspace: os.Path
 ): Unit = {
 
   val credentials = sys.env("SONATYPE_USERNAME") + ":" + sys.env("SONATYPE_PASSWORD")
@@ -193,7 +196,7 @@ def publishSonatype(
     readTimeout = timeout.toMillis.toInt,
     connectTimeout = timeout.toMillis.toInt,
     log = log,
-    workspace = os.pwd,
+    workspace = workspace,
     env = sys.env,
     awaitTimeout = timeout.toMillis.toInt,
     stagingRelease = isRelease
@@ -222,7 +225,7 @@ def setShouldPublish() = T.command {
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
   os.write.append(
-    os.Path(envFile, os.pwd),
+    os.Path(envFile, T.workspace),
     s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet)
   )
 }

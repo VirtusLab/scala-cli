@@ -1,7 +1,7 @@
 package scala.build.bsp
 
+import ch.epfl.scala.bsp4j as b
 import ch.epfl.scala.bsp4j.{DependencyModulesParams, DependencyModulesResult}
-import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 import java.util.function.BiFunction

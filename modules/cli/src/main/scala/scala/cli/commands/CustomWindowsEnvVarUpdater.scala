@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import coursier.env._
+import coursier.env.*
 
 // Only using this instead of coursier.env.WindowsEnvVarUpdater for the "\u0000" striping thing,
 // that earlier version of the Scala CLI may have left behind.

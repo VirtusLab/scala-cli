@@ -3,7 +3,7 @@ package scala.cli.commands.publish
 import org.eclipse.jgit.api.Git
 
 import scala.build.Logger
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
 
 object GitRepo {

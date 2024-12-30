@@ -1,7 +1,7 @@
 package scala.build.options
 
-import bloop.config.{Config => BloopConfig}
-import dependency._
+import bloop.config.Config as BloopConfig
+import dependency.*
 
 import java.util.Locale
 

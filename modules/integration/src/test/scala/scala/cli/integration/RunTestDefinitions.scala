@@ -462,8 +462,7 @@ abstract class RunTestDefinitions
         s"""val msg = "$message"
            |println(msg)
            |""".stripMargin,
-      os.rel / "Dockerfile" ->
-        os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
+      os.rel / "Dockerfile" -> os.read(os.Path(Constants.mostlyStaticDockerfile))
     )
     inputs.fromRoot { root =>
       os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")

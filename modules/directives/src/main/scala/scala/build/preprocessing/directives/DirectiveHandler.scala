@@ -18,7 +18,7 @@ import scala.build.errors.{
 import scala.build.preprocessing.Scoped
 import scala.cli.commands.SpecificationLevel
 import scala.deriving.*
-import scala.quoted.{_, given}
+import scala.quoted.{*, given}
 
 trait DirectiveHandler[+T] { self =>
   def name: String

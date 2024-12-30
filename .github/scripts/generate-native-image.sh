@@ -20,7 +20,7 @@ if [[ "$OSTYPE" == "msys" ]]; then
   MAX_RETRIES=5
   RETRY_COUNT=0
   while (( RETRY_COUNT < MAX_RETRIES )); do
-      ./mill.bat -i "$COMMAND" generate-native-image.bat ""
+      ./mill.bat -i "$COMMAND" --scriptDest generate-native-image.bat --imageDest ""
 
       if [[ $? -ne 0 ]]; then
           echo "Error occurred during 'mill.bat -i $COMMAND generate-native-image.bat' command. Retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
@@ -68,7 +68,7 @@ else
     esac
   fi
 
-  ./mill -i "$COMMAND" generate-native-image.sh ""
+  ./mill -i "$COMMAND" --scriptDest generate-native-image.sh --imageDest ""
   bash ./generate-native-image.sh
   "${CLEANUP[@]}"
 fi

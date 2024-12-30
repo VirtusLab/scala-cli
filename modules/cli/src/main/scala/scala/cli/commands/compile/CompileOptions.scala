@@ -3,7 +3,7 @@ package scala.cli.commands.compile
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 
 @HelpMessage(CompileOptions.helpMessage, "", CompileOptions.detailedHelpMessage)

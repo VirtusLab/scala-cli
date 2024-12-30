@@ -1,11 +1,11 @@
 package scala.cli.internal
 
 import bloop.rifle.BloopRifleLogger
-import ch.epfl.scala.bsp4j.Location
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.Location
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
-import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
+import org.scalajs.logging.{Level as ScalaJsLevel, Logger as ScalaJsLogger, ScalaConsoleLogger}
 
 import java.io.PrintStream
 

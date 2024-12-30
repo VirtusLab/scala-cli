@@ -3,7 +3,7 @@ package scala.cli.exportCmd
 import java.nio.charset.StandardCharsets
 
 import scala.build.options.ConfigMonoid
-import scala.cli.util.SeqHelpers._
+import scala.cli.util.SeqHelpers.*
 import scala.reflect.NameTransformer
 import scala.util.Properties
 

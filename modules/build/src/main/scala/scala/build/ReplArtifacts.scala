@@ -3,11 +3,11 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.{Repository, Version}
 import coursier.util.Task
-import dependency._
+import dependency.*
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
 
 final case class ReplArtifacts(
   replArtifacts: Seq[(String, os.Path)],
