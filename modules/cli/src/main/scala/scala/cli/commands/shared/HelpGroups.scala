@@ -5,7 +5,7 @@ enum HelpGroup:
     Config, Compilation, CompilationServer,
     Debian, Debug, Default, Dependency, Doc, Docker,
     Entrypoint,
-    Format,
+    Fix, Format,
     Help,
     Install,
     Java,

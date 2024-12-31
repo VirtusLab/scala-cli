@@ -4,12 +4,18 @@ import com.eed3si9n.expecty.Expecty.expect
 
 class FixTests extends ScalaCliSuite {
   override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
+  val projectFileName                         = "project.scala"
+  val extraOptions: Seq[String]               = Seq("--suppress-experimental-feature-warning")
+  def enableRulesOptions(
+    enableScalafix: Boolean = true,
+    enableBuiltIn: Boolean = true
+  ): Seq[String] =
+    Seq(
+      s"--enable-scalafix=${enableScalafix.toString}",
+      s"--enable-built-in-rules=${enableBuiltIn.toString}"
+    )
 
-  val projectFileName = "project.scala"
-
-  val extraOptions = Seq("--suppress-experimental-feature-warning")
-
-  test("fix basic") {
+  test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs = TestInputs(
       os.rel / mainFileName ->
@@ -29,15 +35,26 @@ class FixTests extends ScalaCliSuite {
 
     inputs.fromRoot { root =>
 
-      val fixOutput = os.proc(TestUtil.cli, "--power", "fix", ".", "-v", "-v", extraOptions)
+      val fixOutput = os.proc(
+        TestUtil.cli,
+        "--power",
+        "fix",
+        ".",
+        "-v",
+        "-v",
+        extraOptions,
+        enableRulesOptions(enableScalafix = false)
+      )
         .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
         fixOutput,
-        """Extracting directives from Main.scala
+        """Running built-in rules...
+          |Extracting directives from Main.scala
           |Extracting directives from project.scala
           |Writing project.scala
-          |Removing directives from Main.scala""".stripMargin
+          |Removing directives from Main.scala
+          |Built-in rules completed.""".stripMargin
       )
 
       val projectFileContents = os.read(root / projectFileName)
@@ -72,7 +89,7 @@ class FixTests extends ScalaCliSuite {
     }
   }
 
-  test("fix script with shebang") {
+  test("built-in rules for script with shebang") {
     val mainFileName = "main.sc"
     val inputs = TestInputs(
       os.rel / mainFileName ->
@@ -90,15 +107,27 @@ class FixTests extends ScalaCliSuite {
 
     inputs.fromRoot { root =>
 
-      val fixOutput = os.proc(TestUtil.cli, "--power", "fix", ".", "-v", "-v", extraOptions)
-        .call(cwd = root, mergeErrIntoOut = true).out.trim()
+      val fixOutput =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "fix",
+          ".",
+          "-v",
+          "-v",
+          extraOptions,
+          enableRulesOptions(enableScalafix = false)
+        )
+          .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
         fixOutput,
-        """Extracting directives from project.scala
+        """Running built-in rules...
+          |Extracting directives from project.scala
           |Extracting directives from main.sc
           |Writing project.scala
-          |Removing directives from main.sc""".stripMargin
+          |Removing directives from main.sc
+          |Built-in rules completed.""".stripMargin
       )
 
       val projectFileContents = os.read(root / projectFileName)
@@ -131,7 +160,7 @@ class FixTests extends ScalaCliSuite {
     }
   }
 
-  test("fix with test scope") {
+  test("built-in rules with test scope") {
     val mainSubPath = os.rel / "src" / "Main.scala"
     val testSubPath = os.rel / "test" / "MyTests.scala"
     val inputs = TestInputs(
@@ -167,17 +196,29 @@ class FixTests extends ScalaCliSuite {
 
     inputs.fromRoot { root =>
 
-      val fixOutput = os.proc(TestUtil.cli, "--power", "fix", ".", "-v", "-v", extraOptions)
-        .call(cwd = root, mergeErrIntoOut = true).out.trim()
+      val fixOutput =
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "fix",
+          ".",
+          "-v",
+          "-v",
+          extraOptions,
+          enableRulesOptions(enableScalafix = false)
+        )
+          .call(cwd = root, mergeErrIntoOut = true).out.trim()
 
       assertNoDiff(
         fixOutput,
-        """Extracting directives from project.scala
+        """Running built-in rules...
+          |Extracting directives from project.scala
           |Extracting directives from src/Main.scala
           |Extracting directives from test/MyTests.scala
           |Writing project.scala
           |Removing directives from src/Main.scala
-          |Removing directives from test/MyTests.scala""".stripMargin
+          |Removing directives from test/MyTests.scala
+          |Built-in rules completed.""".stripMargin
       )
 
       val projectFileContents = os.read(root / projectFileName)
@@ -226,7 +267,7 @@ class FixTests extends ScalaCliSuite {
     }
   }
 
-  test("fix complex inputs") {
+  test("built-in rules with complex inputs") {
     val mainSubPath = os.rel / "src" / "Main.scala"
     val testSubPath = os.rel / "test" / "MyTests.scala"
 
@@ -307,12 +348,14 @@ class FixTests extends ScalaCliSuite {
           "//> using toolkit default",
           "-v",
           "-v",
-          extraOptions
+          extraOptions,
+          enableRulesOptions(enableScalafix = false)
         ).call(cwd = root, stderr = os.Pipe)
 
         assertNoDiff(
           res.err.trim(),
-          s"""Extracting directives from project.scala
+          s"""Running built-in rules...
+             |Extracting directives from project.scala
              |Extracting directives from src/Main.scala
              |Extracting directives from src/UsedTarget.scala
              |Extracting directives from ${includeRoot / "Included.scala"}
@@ -322,7 +365,8 @@ class FixTests extends ScalaCliSuite {
              |Removing directives from src/Main.scala
              |Removing directives from test/MyTests.scala
              |  Keeping:
-             |    //> using scala 3.2.2""".stripMargin
+             |    //> using scala 3.2.2
+             |Built-in rules completed.""".stripMargin
         )
 
         val projectFileContents          = os.read(root / projectFileName)

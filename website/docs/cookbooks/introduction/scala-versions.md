@@ -53,10 +53,10 @@ Scala: 3\..*
 When you want to control the Scala version, you can control it from the command line using the `--scala` option (with `-S` and `--scala-version` aliases):
 
 ```bash
-scala-cli -S 2.13.5 ScalaVersion.scala
+scala-cli -S 2.13.15 ScalaVersion.scala
 ```
 <!-- Expected-regex:
-Scala: 2\.13\.5
+Scala: 2\.13\.15
 -->
 
 In many cases you won't care for a precise Scala version and will want "any Scala 2" or "any 2.13 release."
@@ -111,13 +111,13 @@ The output at the time of this writing is "`2.12.18`".
 The Scala CLI philosophy is “command line first,” so any configuration information that’s passed to the command line will override `using` directives. So when you run this command with the `-S` option:
 
 ```bash
-scala-cli -S 2.13.10 ScalaVersion.scala version.scala
+scala-cli -S 2.13.15 ScalaVersion.scala version.scala
 ```
 
-the result is "`2.13.10`" (as opposed to "`2.12.18`" in the previous example).
+the result is "`2.13.15`" (as opposed to "`2.12.18`" in the previous example).
 
 <!-- Expected-regex:
-Scala: 2\.13\.10
+Scala: 2\.13\.15
 -->
 
 :::note

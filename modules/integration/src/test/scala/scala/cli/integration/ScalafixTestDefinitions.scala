@@ -43,7 +43,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("simple") {
     simpleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "scalafix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
@@ -51,7 +51,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("with --check") {
     simpleInputs.fromRoot { root =>
-      val res = os.proc(TestUtil.cli, "scalafix", "--power", "--check", ".", scalaVersionArgs).call(
+      val res = os.proc(TestUtil.cli, "fix", "--power", "--check", ".", scalaVersionArgs).call(
         cwd = root,
         check = false
       )
@@ -82,8 +82,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       os.rel / "Hello.scala" -> unusedValueInputsContent
     )
     val expectedContent: String = noCrLf {
-      s"""//> using options $unusedRuleOption
-         |package foo
+      s"""package foo
          |
          |object Hello {
          |  def main(args: Array[String]): Unit = {
@@ -93,11 +92,19 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
          |}
          |""".stripMargin
     }
+    val expectedProjectContent: String = noCrLf {
+      s"""// Main
+         |//> using options "$unusedRuleOption"
+         |
+         |""".stripMargin
+    }
 
     semanticRuleInputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "scalafix", "--power", ".", scalaVersionArgs).call(cwd = root)
+      os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
+      val projectContent = noCrLf(os.read(root / "project.scala"))
+      expect(projectContent == expectedProjectContent)
     }
   }
 
@@ -125,17 +132,17 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     input.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "scalafix",
+        "fix",
         ".",
-        "--rules",
+        "--scalafix-rules",
         "RedundantSyntax",
         "--power",
         scalaVersionArgs
       ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
+      val projectContent = noCrLf(os.read(root / "project.scala"))
       val expected = noCrLf {
-        s"""|//> using options $unusedRuleOption
-            |package hello
+        s"""|package hello
             |
             |object Hello {
             |  def a = {
@@ -145,8 +152,15 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
             |}
             |""".stripMargin
       }
+      val expectedProjectContent: String = noCrLf {
+        s"""// Main
+           |//> using options "$unusedRuleOption"
+           |
+           |""".stripMargin
+      }
 
       expect(updatedContent == expected)
+      expect(projectContent == expectedProjectContent)
 
     }
   }
@@ -179,7 +193,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "scalafix",
+        "fix",
         ".",
         "--scalafix-arg=--settings.RedundantSyntax.finalObject=false",
         "--power",
@@ -220,7 +234,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     inputs.fromRoot { root =>
       os.proc(
         TestUtil.cli,
-        "scalafix",
+        "fix",
         ".",
         s"--scalafix-conf=$confFileName",
         "--power",
@@ -232,13 +246,14 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
   }
 
   test("external rule") {
+    val directive = s"//> using scalafixDependency \"com.github.xuwei-k::scalafix-rules:0.5.1\""
     val original: String =
-      """|//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1
-         |
-         |object CollectHeadOptionTest {
-         |  def x1: Option[String] = List(1, 2, 3).collect { case n if n % 2 == 0 => n.toString }.headOption
-         |}
-         |""".stripMargin
+      s"""|$directive
+          |
+          |object CollectHeadOptionTest {
+          |  def x1: Option[String] = List(1, 2, 3).collect { case n if n % 2 == 0 => n.toString }.headOption
+          |}
+          |""".stripMargin
     val inputs: TestInputs = TestInputs(
       os.rel / confFileName ->
         s"""|rules = [
@@ -248,18 +263,24 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       os.rel / "Hello.scala" -> original
     )
     val expectedContent: String = noCrLf {
-      """|//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1
-         |
-         |object CollectHeadOptionTest {
+      """|object CollectHeadOptionTest {
          |  def x1: Option[String] = List(1, 2, 3).collectFirst{ case n if n % 2 == 0 => n.toString }
          |}
          |""".stripMargin
     }
+    val expectedProjectContent: String = noCrLf {
+      s"""// Main
+         |$directive
+         |
+         |""".stripMargin
+    }
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "scalafix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
+      val projectContent = noCrLf(os.read(root / "project.scala"))
+      expect(projectContent == expectedProjectContent)
     }
   }
 
@@ -290,7 +311,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     }
 
     inputs.fromRoot { root =>
-      os.proc(TestUtil.cli, "scalafix", ".", "--power", scalaVersionArgs).call(cwd = root)
+      os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
     }
