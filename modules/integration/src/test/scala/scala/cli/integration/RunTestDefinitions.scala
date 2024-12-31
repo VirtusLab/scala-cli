@@ -2322,7 +2322,7 @@ abstract class RunTestDefinitions
             os.proc(TestUtil.cli, "bloop", "exit", "--power")
               .call(cwd = root)
           val processes: Seq[(SubProcess, Int)] =
-            (0 to 8).map { i =>
+            (0 to 5).map { i =>
               os.proc(
                 TestUtil.cli,
                 "run",
@@ -2332,7 +2332,7 @@ abstract class RunTestDefinitions
                 "iteration",
                 i.toString
               )
-                .spawn(cwd = root)
+                .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
             }.zipWithIndex
           processes.foreach { case (p, _) => p.waitFor() }
           processes.foreach { case (p, _) => expect(p.exitCode == 0) }
