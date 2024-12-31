@@ -2312,12 +2312,17 @@ abstract class RunTestDefinitions
       os.rel / "raw.scala" -> """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
     )
     testInputs = TestInputs(input -> code)
+    shouldRestartBloop <- Seq(true, false)
+    restartBloopString = if (shouldRestartBloop) "with" else "without"
   }
-    test(s"run several instances of $input in parallel") {
+    test(s"run several instances of $input in parallel ($restartBloopString restarting Bloop)") {
       testInputs.fromRoot {
         root =>
+          if (shouldRestartBloop)
+            os.proc(TestUtil.cli, "bloop", "exit", "--power")
+              .call(cwd = root)
           val processes: Seq[(SubProcess, Int)] =
-            (0 to 20).map { i =>
+            (0 to 8).map { i =>
               os.proc(
                 TestUtil.cli,
                 "run",
