@@ -52,16 +52,17 @@ object Build {
     output: os.Path,
     diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]],
     generatedSources: Seq[GeneratedSource],
-    isPartial: Boolean
+    isPartial: Boolean,
+    logger: Logger
   ) extends Build {
     def success: Boolean                  = true
     def successfulOpt: Some[this.type]    = Some(this)
     def outputOpt: Some[os.Path]          = Some(output)
     def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
     def fullClassPath: Seq[os.Path]       = Seq(output) ++ dependencyClassPath
-    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output).sorted
+    private lazy val mainClassesFoundInProject: Seq[String] = MainClass.find(output, logger).sorted
     private lazy val mainClassesFoundOnExtraClasspath: Seq[String] =
-      options.classPathOptions.extraClassPath.flatMap(MainClass.find).sorted
+      options.classPathOptions.extraClassPath.flatMap(MainClass.find(_, logger)).sorted
     private lazy val mainClassesFoundInUserExtraDependencies: Seq[String] =
       artifacts.jarsForUserExtraDependencies.flatMap(MainClass.findInDependency).sorted
     def foundMainClasses(): Seq[String] = {
@@ -1166,27 +1167,28 @@ object Build {
 
     if (success)
       Successful(
-        inputs,
-        options,
-        scalaParams,
-        scope,
-        sources,
-        artifacts,
-        project,
-        classesDir0,
-        buildClient.diagnostics,
-        generatedSources,
-        partial
+        inputs = inputs,
+        options = options,
+        scalaParams = scalaParams,
+        scope = scope,
+        sources = sources,
+        artifacts = artifacts,
+        project = project,
+        output = classesDir0,
+        diagnostics = buildClient.diagnostics,
+        generatedSources = generatedSources,
+        isPartial = partial,
+        logger = logger
       )
     else
       Failed(
-        inputs,
-        options,
-        scope,
-        sources,
-        artifacts,
-        project,
-        buildClient.diagnostics
+        inputs = inputs,
+        options = options,
+        scope = scope,
+        sources = sources,
+        artifacts = artifacts,
+        project = project,
+        diagnostics = buildClient.diagnostics
       )
   }
 
