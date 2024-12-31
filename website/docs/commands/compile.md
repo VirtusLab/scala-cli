@@ -71,7 +71,7 @@ of [Supported Scala Versions](../reference/scala-versions)). You can specify the
 with `--scala`:
 
 ```bash
-scala-cli compile --scala 2.13.6 Hello.scala
+scala-cli compile --scala 2.13.15 Hello.scala
 ```
 
 Scala CLI works with all major `2.12.x`, `2.13.x`, and `3.x` Scala versions.
@@ -406,7 +406,7 @@ Deprecated settings:
 Use `--compiler-plugin` to add compiler plugin dependencies:
 
 ```bash
-scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.2 --scala 2.12.14
+scala-cli compile Hello.scala --compiler-plugin org.typelevel:::kind-projector:0.13.3 --scala 2.13.13
 ```
 
 ## Printing a class path
