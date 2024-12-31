@@ -12,9 +12,10 @@ import java.io.{File, IOException}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ModuleFormatError}
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
+import scala.concurrent.ExecutionException
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object Bloop {
 
@@ -37,8 +38,10 @@ object Bloop {
   ): Either[Throwable, Boolean] =
     try {
       logger.debug("Listing BSP build targets")
-      val results = buildServer.workspaceBuildTargets()
-        .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+      val results = retry()(logger) {
+        buildServer.workspaceBuildTargets()
+          .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+      }
       val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
       val buildTarget = buildTargetOpt.getOrElse {
@@ -60,6 +63,11 @@ object Bloop {
     catch {
       case ex @ BrokenPipeInCauses(e) =>
         logger.debug(s"Caught $ex while exchanging with Bloop server, assuming Bloop server exited")
+        Left(ex)
+      case ex: ExecutionException =>
+        logger.debug(
+          s"Caught $ex while exchanging with Bloop server, you may consider restarting the build server"
+        )
         Left(ex)
     }
 
