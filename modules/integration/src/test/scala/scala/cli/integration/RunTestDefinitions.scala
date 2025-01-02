@@ -1,6 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
+import os.SubProcess
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
@@ -2304,4 +2305,39 @@ abstract class RunTestDefinitions
       expect(err.contains(main2))
     }
   }
+
+  for {
+    (input, code) <- Seq(
+      os.rel / "script.sc" -> """println(args.mkString(" "))""",
+      os.rel / "raw.scala" -> """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
+    )
+    testInputs = TestInputs(input -> code)
+    shouldRestartBloop <- Seq(true, false)
+    restartBloopString = if (shouldRestartBloop) "with" else "without"
+  }
+    test(s"run several instances of $input in parallel ($restartBloopString restarting Bloop)") {
+      testInputs.fromRoot {
+        root =>
+          if (shouldRestartBloop)
+            os.proc(TestUtil.cli, "bloop", "exit", "--power")
+              .call(cwd = root)
+          val processes: Seq[(SubProcess, Int)] =
+            (0 to 5).map { i =>
+              os.proc(
+                TestUtil.cli,
+                "run",
+                input.toString(),
+                extraOptions,
+                "--",
+                "iteration",
+                i.toString
+              )
+                .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
+            }.zipWithIndex
+          processes.foreach { case (p, _) => p.waitFor() }
+          processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+          processes.foreach { case (p, i) => expect(p.stdout.trim() == s"iteration $i") }
+      }
+
+    }
 }
