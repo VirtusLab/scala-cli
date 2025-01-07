@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-trait ScalafixTestDefinitions {
+trait FixScalafixRulesTestDefinitions {
   _: FixTestDefinitions =>
   protected val scalafixConfFileName: String = ".scalafix.conf"
   protected def scalafixUnusedRuleOption: String
