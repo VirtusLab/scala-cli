@@ -7,6 +7,7 @@ import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.ScalaCompilerMaker
+import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, Scope}
@@ -26,7 +27,7 @@ object ScalafixRules extends CommandHelpers {
     check: Boolean,
     actionableDiagnostics: Option[Boolean],
     logger: Logger
-  )(using ScalaCliInvokeData): Unit = {
+  )(using ScalaCliInvokeData): Either[BuildException, Int] = {
     val buildOptionsWithSemanticDb = buildOptions.copy(scalaOptions =
       buildOptions.scalaOptions.copy(semanticDbOptions =
         buildOptions.scalaOptions.semanticDbOptions.copy(generateSemanticDbs = Some(true))
@@ -95,7 +96,7 @@ object ScalafixRules extends CommandHelpers {
             allowExecve = true
           )
 
-          sys.exit(proc.waitFor())
+          proc.waitFor()
         }
 
   }

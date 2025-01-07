@@ -2,6 +2,7 @@ package scala.cli.commands.fix
 
 import caseapp.core.RemainingArgs
 
+import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherMap2
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.*
@@ -34,25 +35,30 @@ object Fix extends ScalaCommand[FixOptions] {
         )
         logger.message("Built-in rules completed.")
       }
-      if options.enableScalafix then {
-        logger.message("Running scalafix rules...")
-        val threads            = BuildThreads.create()
-        val compilerMaker      = options.shared.compilerMaker(threads)
-        val workspace: os.Path = if args.all.isEmpty then os.pwd else inputs.workspace
-        val actionableDiagnosticsEnabled = options.shared.logging.verbosityOptions.actions
-          .orElse(configDb.get(Keys.actions).getOrElse(None))
-        ScalafixRules.runRules(
-          buildOptions = buildOptionsOrExit(options),
-          scalafixOptions = options.scalafix,
-          inputs = inputs,
-          check = options.check,
-          compilerMaker = compilerMaker,
-          actionableDiagnostics = actionableDiagnosticsEnabled,
-          workspace = workspace,
-          logger = logger
-        )
-        logger.message("scalafix rules completed.")
-      }
+      if options.enableScalafix then
+        either {
+          logger.message("Running scalafix rules...")
+          val threads            = BuildThreads.create()
+          val compilerMaker      = options.shared.compilerMaker(threads)
+          val workspace: os.Path = if args.all.isEmpty then os.pwd else inputs.workspace
+          val actionableDiagnosticsEnabled = options.shared.logging.verbosityOptions.actions
+            .orElse(configDb.get(Keys.actions).getOrElse(None))
+          val scalafixExitCode: Int = value {
+            ScalafixRules.runRules(
+              buildOptions = buildOptionsOrExit(options),
+              scalafixOptions = options.scalafix,
+              inputs = inputs,
+              check = options.check,
+              compilerMaker = compilerMaker,
+              actionableDiagnostics = actionableDiagnosticsEnabled,
+              workspace = workspace,
+              logger = logger
+            )
+          }
+          if scalafixExitCode != 1 then logger.message("scalafix rules completed.")
+          else logger.error("scalafix rules failed.")
+          sys.exit(scalafixExitCode)
+        }
     }
     else logger.message("No rules were enabled. Did you disable everything intentionally?")
   }
