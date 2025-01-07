@@ -2,10 +2,12 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-class FixTests extends ScalaCliSuite {
-  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
-  val projectFileName                         = "project.scala"
-  val extraOptions: Seq[String]               = Seq("--suppress-experimental-feature-warning")
+abstract class FixTestDefinitions
+    extends ScalaCliSuite
+    with TestScalaVersionArgs { _: TestScalaVersion =>
+  val projectFileName = "project.scala"
+  val extraOptions: Seq[String] =
+    scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
   def enableRulesOptions(
     enableScalafix: Boolean = true,
     enableBuiltIn: Boolean = true
