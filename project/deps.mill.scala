@@ -12,9 +12,9 @@ object Scala {
   def scala3Lts        = s"$scala3LtsPrefix.4"  // the LTS version currently used in the build
   def scala3NextPrefix = "3.6"
   def scala3Next       = s"$scala3NextPrefix.2" // the newest/next version of Scala
-  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.6.3-RC1"  // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = scala3NextRc // the latest RC version of Scala Next
+  def scala3NextAnnounced   = scala3Next  // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.6.3-RC2" // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = "3.6.3-RC1" // the latest RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -110,7 +110,7 @@ object Deps {
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.22"
+    def coursierDefault                   = "2.1.23"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault

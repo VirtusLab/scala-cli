@@ -2290,7 +2290,7 @@ abstract class RunTestDefinitions
     val input          = "example.scala"
     TestInputs(
       os.rel / input ->
-        s"""//> using dep io.get-coursier:coursier_2.13:2.1.22
+        s"""//> using dep io.get-coursier:coursier_2.13:2.1.23
            |@main def $main1() = println("$main1")
            |@main def $main2() = println("$main2")
            |""".stripMargin

@@ -3,7 +3,7 @@ package build
 import $packages._
 
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.22`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.23`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.29`
 import $file.project.deps, deps.{Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import build.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}

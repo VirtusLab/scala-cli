@@ -47,15 +47,17 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
       val result = os.proc(TestUtil.cli, "test", ".").call(
         cwd = root,
         check = false,
-        // stdout = ProcessOutput.Readlines{ str => stringBuffer.append(str)},
         mergeErrIntoOut = true
       )
       val separator = if (Properties.isWin) "\\" else "/"
 
       val expectedOutput =
-        s"""|Compiling project (Scala ${Constants.scala213}, JVM (17))
-            |Compiled project (Scala ${Constants.scala213}, JVM (17))
-            |Compiling project (test, Scala ${Constants.scala213}, JVM (17))
+        s"""|Compiling project (Scala ${Constants.scala213}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiled project (Scala ${Constants.scala213}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiling project (test, Scala ${Constants.scala213}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
             |[info] .${separator}Test.test.scala:6:5
             |[info] scala.Predef.ArrowAssoc[Int](1).->[String]("test")
             |[info] scala.Predef.ArrowAssoc[Int](1).->[String]("test")
@@ -69,16 +71,13 @@ class CompileTests213 extends CompileTestDefinitions with Test213 {
             |[error] example error message
             |[error]     Scala2Example.macroMethod(1 -> "test")
             |[error]     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            |Error compiling project (test, Scala ${Constants.scala213}, JVM (17))
+            |Error compiling project (test, Scala ${Constants.scala213}, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
             |Compilation failed
             |""".stripMargin
 
       assertNoDiff(
-        result.toString.trim().linesIterator.filterNot { str =>
-          // these lines are not stable and can easily change
-          val shouldNotContain = Set("Starting compilation server", "hint", "Download", "Result of")
-          shouldNotContain.exists(str.contains)
-        }.mkString("\n"),
+        TestUtil.fullStableOutput(result),
         expectedOutput
       )
     }

@@ -737,4 +737,88 @@ abstract class CompileTestDefinitions
         os.proc(TestUtil.cli, "compile", extraOptions, ".").call(cwd = root)
       }
     }
+
+  test("no previous compilation error should be printed") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """|object Main extends App {
+           |  val msg: String = "1"
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result),
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))""".stripMargin
+      )
+
+      os.write.over(
+        root / filename,
+        """|object Main extends App {
+           |    val msg: String = 1
+           |}
+           |""".stripMargin
+      )
+
+      val result2 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      val expectedError = if (actualScalaVersion.startsWith("2"))
+        """|[error] type mismatch;
+           |[error]  found   : Int(1)
+           |[error]  required: String""".stripMargin
+      else
+        """|[error] Found:    (1 : Int)
+           |[error] Required: String""".stripMargin
+
+      assertEquals(
+        TestUtil.fullStableOutput(result2).trim,
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |[error] .${File.separatorChar}Main.scala:2:23
+            |$expectedError
+            |[error]     val msg: String = 1
+            |[error]                       ^
+            |Error compiling project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compilation failed""".stripMargin
+      )
+
+      os.write.over(
+        root / filename,
+        """|object Main extends App {
+           |    val msg: String = "1"
+           |}
+           |""".stripMargin
+      )
+
+      val result3 = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result3),
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))
+            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}))""".stripMargin
+      )
+
+    }
+  }
 }
