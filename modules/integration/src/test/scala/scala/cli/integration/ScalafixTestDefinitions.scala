@@ -2,14 +2,10 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
-  override def group: ScalaCliSuite.TestGroup = ScalaCliSuite.TestGroup.First
-
-  protected val confFileName: String = ".scalafix.conf"
-
-  protected val unusedRuleOption: String
-
+trait ScalafixTestDefinitions {
+  _: FixTestDefinitions =>
+  protected val scalafixConfFileName: String = ".scalafix.conf"
+  protected def scalafixUnusedRuleOption: String
   protected def noCrLf(input: String): String =
     input.replaceAll("\r\n", "\n")
 
@@ -23,7 +19,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       |}
       |""".stripMargin
   private val simpleInputs: TestInputs = TestInputs(
-    os.rel / confFileName ->
+    os.rel / scalafixConfFileName ->
       s"""|rules = [
           |  RedundantSyntax
           |]
@@ -63,7 +59,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("semantic rule") {
     val unusedValueInputsContent: String =
-      s"""//> using options $unusedRuleOption
+      s"""//> using options $scalafixUnusedRuleOption
          |package foo
          |
          |object Hello {
@@ -74,7 +70,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
          |}
          |""".stripMargin
     val semanticRuleInputs: TestInputs = TestInputs(
-      os.rel / confFileName ->
+      os.rel / scalafixConfFileName ->
         s"""|rules = [
             |  RemoveUnused
             |]
@@ -94,7 +90,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
     }
     val expectedProjectContent: String = noCrLf {
       s"""// Main
-         |//> using options "$unusedRuleOption"
+         |//> using options "$scalafixUnusedRuleOption"
          |
          |""".stripMargin
     }
@@ -110,14 +106,14 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
 
   test("--rules args") {
     val input = TestInputs(
-      os.rel / confFileName ->
+      os.rel / scalafixConfFileName ->
         s"""|rules = [
             |  RemoveUnused,
             |  RedundantSyntax
             |]
             |""".stripMargin,
       os.rel / "Hello.scala" ->
-        s"""|//> using options $unusedRuleOption
+        s"""|//> using options $scalafixUnusedRuleOption
             |package hello
             |
             |object Hello {
@@ -154,7 +150,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
       }
       val expectedProjectContent: String = noCrLf {
         s"""// Main
-           |//> using options "$unusedRuleOption"
+           |//> using options "$scalafixUnusedRuleOption"
            |
            |""".stripMargin
       }
@@ -174,7 +170,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
          |}
          |""".stripMargin
     val inputs: TestInputs = TestInputs(
-      os.rel / confFileName ->
+      os.rel / scalafixConfFileName ->
         s"""|rules = [
             |  RedundantSyntax
             |]
@@ -255,7 +251,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
           |}
           |""".stripMargin
     val inputs: TestInputs = TestInputs(
-      os.rel / confFileName ->
+      os.rel / scalafixConfFileName ->
         s"""|rules = [
             |  CollectHeadOption
             |]
@@ -293,7 +289,7 @@ abstract class ScalafixTestDefinitions extends ScalaCliSuite with TestScalaVersi
          |}
          |""".stripMargin
     val inputs: TestInputs = TestInputs(
-      os.rel / confFileName ->
+      os.rel / scalafixConfFileName ->
         s"""|rules = [
             |  ExplicitResultTypes
             |]

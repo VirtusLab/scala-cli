@@ -4,7 +4,8 @@ import com.eed3si9n.expecty.Expecty.expect
 
 abstract class FixTestDefinitions
     extends ScalaCliSuite
-    with TestScalaVersionArgs { _: TestScalaVersion =>
+    with TestScalaVersionArgs
+    with ScalafixTestDefinitions { _: TestScalaVersion =>
   val projectFileName = "project.scala"
   val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-feature-warning")
