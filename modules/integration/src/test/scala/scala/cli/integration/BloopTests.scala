@@ -245,7 +245,7 @@ class BloopTests extends ScalaCliSuite {
   {
     val bloopSnapshotVersion = "2.0.6-51-38c118d4-SNAPSHOT"
     test(s"compilation works with a Bloop snapshot version: $bloopSnapshotVersion") {
-      val input                = "script.sc"
+      val input = "script.sc"
       TestInputs(os.rel / input -> """println("Hello")""").fromRoot { root =>
         os.proc(TestUtil.cli, "compile", input, "--bloop-version", bloopSnapshotVersion)
           .call(cwd = root)
