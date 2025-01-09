@@ -39,7 +39,6 @@ class ScalaCliCommands(
     export0.Export,
     fix.Fix,
     fmt.Fmt,
-    scalafix.Scalafix,
     new HelpCmd(help),
     installcompletions.InstallCompletions,
     installhome.InstallHome,

@@ -1588,7 +1588,7 @@ The `fix` sub-command is a new addition to Scala CLI. It allows to scan your pro
 and extract them into the `project.scala` file placed in the project root directory. 
 This allows to easily fix warnings tied to having `using` directives present in multiple files.
 
-```bash
+```bash ignore
 scala-cli fix . --power
 ```
 

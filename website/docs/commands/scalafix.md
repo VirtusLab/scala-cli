@@ -23,13 +23,13 @@ rules = [
 
 Then you can run it:
 ```bash
-scala-cli scalafix . --power
+scala-cli fix . --power
 ```
 
 If you’re setting up a continuous integration (CI) server, Scala CLI also has you covered.
 You can run linter using a `--check` flag:
 ```bash fail
-scala-cli scalafix --check . --power
+scala-cli fix --check . --power
 ```
 
 Read more about Scalafix:
