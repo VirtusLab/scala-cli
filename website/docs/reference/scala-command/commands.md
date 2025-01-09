@@ -66,6 +66,7 @@ Available keys:
   - repositories.credentials                       Repository credentials, syntax: repositoryAddress value:user value:password [realm]
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
+  - suppress-warning.deprecated-features           Globally suppresses warnings about deprecated features.
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.

@@ -25,12 +25,14 @@ object Fix extends ScalaCommand[FixOptions] {
 
   override def runCommand(options: FixOptions, args: RemainingArgs, logger: Logger): Unit = {
     if options.areAnyRulesEnabled then {
-      val inputs   = options.shared.inputs(args.all).orExit(logger)
-      val configDb = ConfigDbUtils.configDb.orExit(logger)
+      val inputs    = options.shared.inputs(args.all).orExit(logger)
+      val buildOpts = buildOptionsOrExit(options)
+      val configDb  = ConfigDbUtils.configDb.orExit(logger)
       if options.enableBuiltInRules then {
         logger.message("Running built-in rules...")
         BuiltInRules.runRules(
           inputs = inputs,
+          buildOptions = buildOpts,
           logger = logger
         )
         logger.message("Built-in rules completed.")
@@ -45,7 +47,7 @@ object Fix extends ScalaCommand[FixOptions] {
             .orElse(configDb.get(Keys.actions).getOrElse(None))
           val scalafixExitCode: Int = value {
             ScalafixRules.runRules(
-              buildOptions = buildOptionsOrExit(options),
+              buildOptions = buildOpts,
               scalafixOptions = options.scalafix,
               inputs = inputs,
               check = options.check,

@@ -120,6 +120,7 @@ case object MarkdownPreprocessor extends Preprocessor {
         codeBlocks,
         reportingPath,
         scopePath,
+        suppressWarningOptions,
         logger,
         maybeRecoverOnError
       ))

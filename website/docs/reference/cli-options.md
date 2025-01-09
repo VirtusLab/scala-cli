@@ -517,6 +517,12 @@ Aliases: `--suppress-experimental-warning`
 
 Suppress warnings about using experimental features
 
+### `--suppress-deprecated-feature-warning`
+
+Aliases: `--suppress-deprecated-feature-warnings`, `--suppress-deprecated-warning`, `--suppress-deprecated-warnings`
+
+Suppress warnings about using deprecated features
+
 ## Help options
 
 Available in commands:

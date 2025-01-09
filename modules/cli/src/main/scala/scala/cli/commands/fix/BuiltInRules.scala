@@ -32,6 +32,7 @@ object BuiltInRules extends CommandHelpers {
 
   def runRules(
     inputs: Inputs,
+    buildOptions: BuildOptions,
     logger: Logger
   )(using ScalaCliInvokeData): Unit = {
     val (mainSources, testSources) = getProjectSources(inputs, logger)
@@ -57,8 +58,9 @@ object BuiltInRules extends CommandHelpers {
 
     // Deal with directives from the Main scope
     val (directivesFromWritableMainInputs, testDirectivesFromMain) = {
-      val originalMainDirectives = getExtractedDirectives(mainSources)
-        .filterNot(hasTargetDirectives)
+      val originalMainDirectives =
+        getExtractedDirectives(mainSources, buildOptions.suppressWarningOptions)
+          .filterNot(hasTargetDirectives)
 
       val transformedMainDirectives = unifyCorrespondingNameAliases(originalMainDirectives)
 
@@ -83,8 +85,9 @@ object BuiltInRules extends CommandHelpers {
       if (
         testSources.paths.nonEmpty || testSources.inMemory.nonEmpty || testDirectivesFromMain.nonEmpty
       ) {
-        val originalTestDirectives = getExtractedDirectives(testSources)
-          .filterNot(hasTargetDirectives)
+        val originalTestDirectives =
+          getExtractedDirectives(testSources, buildOptions.suppressWarningOptions)
+            .filterNot(hasTargetDirectives)
 
         val transformedTestDirectives = unifyCorrespondingNameAliases(originalTestDirectives)
           .pipe(maybeTransformIntoTestEquivalent)
@@ -145,7 +148,10 @@ object BuiltInRules extends CommandHelpers {
     (mainSources, testSources).traverseN
   }
 
-  private def getExtractedDirectives(sources: Sources)(
+  private def getExtractedDirectives(
+    sources: Sources,
+    suppressWarningOptions: SuppressWarningOptions
+  )(
     using loggingUtilities: LoggingUtilities
   ): Seq[ExtractedDirectives] = {
     val logger = loggingUtilities.logger
@@ -153,7 +159,13 @@ object BuiltInRules extends CommandHelpers {
     val fromPaths = sources.paths.map { (path, _) =>
       val (_, content) = SheBang.partitionOnShebangSection(os.read(path))
       logger.debug(s"Extracting directives from ${loggingUtilities.relativePath(path)}")
-      ExtractedDirectives.from(content.toCharArray, Right(path), logger, _ => None).orExit(logger)
+      ExtractedDirectives.from(
+        contentChars = content.toCharArray,
+        path = Right(path),
+        suppressWarningOptions = suppressWarningOptions,
+        logger = logger,
+        maybeRecoverOnError = _ => None
+      ).orExit(logger)
     }
 
     val fromInMemory = sources.inMemory.map { inMem =>
@@ -177,10 +189,11 @@ object BuiltInRules extends CommandHelpers {
       val (_, contentWithNoShebang) = SheBang.partitionOnShebangSection(content)
 
       ExtractedDirectives.from(
-        contentWithNoShebang.toCharArray,
-        originOrPath,
-        logger,
-        _ => None
+        contentChars = contentWithNoShebang.toCharArray,
+        path = originOrPath,
+        suppressWarningOptions = suppressWarningOptions,
+        logger = logger,
+        maybeRecoverOnError = _ => None
       ).orExit(logger)
     }
 

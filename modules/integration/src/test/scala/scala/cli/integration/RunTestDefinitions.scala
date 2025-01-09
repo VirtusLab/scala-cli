@@ -2147,28 +2147,43 @@ abstract class RunTestDefinitions
     }
   }
 
-  test("warning about using toolkit latest in options should be reported") {
-    val inputs = TestInputs(
-      os.rel / "Main.scala" ->
-        """object Main {
-          |  def main(args: Array[String]): Unit = {
-          |    println(os.pwd)
-          |  }
-          |}
-          |""".stripMargin
-    )
-
-    inputs.fromRoot { root =>
-      val resLatest = os.proc(TestUtil.cli, extraOptions, ".", "--toolkit", "latest").call(
-        cwd = root,
-        mergeErrIntoOut = true
-      )
-      val warningText = "Using 'latest' for toolkit is deprecated"
-      expect(resLatest.out.text().contains(warningText))
-      val warningCount = resLatest.out.text().sliding(warningText.length).count(_ == warningText)
-      expect(warningCount == 1)
-    }
+  for {
+    suppressDeprecatedWarnings <- Seq(true, false)
+    useDirective               <- Seq(true, false)
+    toolkitDirective      = if (useDirective) "//> using toolkit latest" else ""
+    toolkitOptions        = if (useDirective) Nil else Seq("--toolkit", "latest")
+    useDirectiveText      = if (useDirective) "with directive" else "with command line option"
+    suppressedWarningText = if (suppressDeprecatedWarnings) "suppressed" else "reported"
   }
+    test(s"warning about using toolkit latest $useDirectiveText should be $suppressedWarningText") {
+      val inputs = TestInputs(
+        os.rel / "Main.scala" ->
+          s"""$toolkitDirective
+             |object Main {
+             |  def main(args: Array[String]): Unit = {
+             |    println(os.pwd)
+             |  }
+             |}
+             |""".stripMargin
+      )
+
+      inputs.fromRoot { root =>
+        val suppressWarningOptions =
+          if (suppressDeprecatedWarnings) Seq("--suppress-deprecated-warnings")
+          else Seq.empty
+        val resLatest =
+          os.proc(TestUtil.cli, extraOptions, ".", toolkitOptions, suppressWarningOptions)
+            .call(cwd = root, mergeErrIntoOut = true)
+        val expectedWarning = "Using 'latest' for toolkit is deprecated"
+        if (suppressDeprecatedWarnings) expect(!resLatest.out.text().contains(expectedWarning))
+        else {
+          expect(resLatest.out.text().contains(expectedWarning))
+          val warningCount =
+            resLatest.out.text().sliding(expectedWarning.length).count(_ == expectedWarning)
+          expect(warningCount == 1)
+        }
+      }
+    }
 
   test("running a .scala file several times doesn't produce Bloop errors") {
     val msg   = "Hello"

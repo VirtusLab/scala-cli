@@ -38,8 +38,14 @@ case class DirectivesPreprocessor(
   using ScalaCliInvokeData
 ) {
   def preprocess(content: String): Either[BuildException, PreprocessedDirectives] = for {
-    directives <- ExtractedDirectives.from(content.toCharArray, path, logger, maybeRecoverOnError)
-    res        <- preprocess(directives)
+    directives <- ExtractedDirectives.from(
+      content.toCharArray,
+      path,
+      suppressWarningOptions,
+      logger,
+      maybeRecoverOnError
+    )
+    res <- preprocess(directives)
   } yield res
 
   def preprocess(extractedDirectives: ExtractedDirectives)

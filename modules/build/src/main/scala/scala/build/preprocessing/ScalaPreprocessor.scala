@@ -190,10 +190,11 @@ case object ScalaPreprocessor extends Preprocessor {
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
     val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
-      contentWithNoShebang.toCharArray,
-      path,
-      logger,
-      maybeRecoverOnError
+      contentChars = contentWithNoShebang.toCharArray,
+      path = path,
+      suppressWarningOptions = suppressWarningOptions,
+      logger = logger,
+      maybeRecoverOnError = maybeRecoverOnError
     ))
     value {
       processSources(
@@ -219,7 +220,12 @@ case object ScalaPreprocessor extends Preprocessor {
     suppressWarningOptions: SuppressWarningOptions,
     maybeRecoverOnError: BuildException => Option[BuildException]
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
-    DeprecatedDirectives.issueWarnings(path, extractedDirectives.directives, logger)
+    DeprecatedDirectives.issueWarnings(
+      path,
+      extractedDirectives.directives,
+      suppressWarningOptions,
+      logger
+    )
 
     val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =

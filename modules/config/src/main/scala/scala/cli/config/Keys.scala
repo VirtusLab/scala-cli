@@ -92,6 +92,13 @@ object Keys {
       specificationLevel = SpecificationLevel.IMPLEMENTATION,
       description = "Globally suppresses warnings about experimental features."
     )
+  val suppressDeprecatedFeatureWarning =
+    new Key.BooleanEntry(
+      prefix = Seq("suppress-warning"),
+      name = "deprecated-features",
+      specificationLevel = SpecificationLevel.IMPLEMENTATION,
+      description = "Globally suppresses warnings about deprecated features."
+    )
 
   val proxyAddress = new Key.StringEntry(
     prefix = Seq("httpProxy"),
@@ -172,6 +179,7 @@ object Keys {
     suppressDirectivesInMultipleFilesWarning,
     suppressOutdatedDependenciessWarning,
     suppressExperimentalFeatureWarning,
+    suppressDeprecatedFeatureWarning,
     pgpPublicKey,
     pgpSecretKey,
     pgpSecretKeyPassword,

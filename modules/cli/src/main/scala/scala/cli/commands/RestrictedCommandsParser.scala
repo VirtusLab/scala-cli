@@ -17,7 +17,8 @@ object RestrictedCommandsParser {
   def apply[T](
     parser: Parser[T],
     logger: Logger,
-    shouldSuppressExperimentalWarnings: Boolean
+    shouldSuppressExperimentalWarnings: Boolean,
+    shouldSuppressDeprecatedWarnings: Boolean
   )(using ScalaCliInvokeData): Parser[T] =
     new Parser[T] {
 
@@ -37,7 +38,8 @@ object RestrictedCommandsParser {
         RestrictedCommandsParser(
           parser.withDefaultOrigin(origin),
           logger,
-          shouldSuppressExperimentalWarnings
+          shouldSuppressExperimentalWarnings,
+          shouldSuppressDeprecatedWarnings
         )
 
       override def step(
@@ -58,7 +60,7 @@ object RestrictedCommandsParser {
             logger.experimentalWarning(passedOption, FeatureType.Option)
             r
           case (r @ Right(Some(_, arg: Arg, _)), passedOption :: _)
-              if arg.isDeprecated =>
+              if arg.isDeprecated && !shouldSuppressDeprecatedWarnings =>
             // TODO implement proper deprecation logic: https://github.com/VirtusLab/scala-cli/issues/3258
             arg.deprecatedOptionAliases.find(_ == passedOption)
               .foreach { deprecatedAlias =>
