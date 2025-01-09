@@ -73,7 +73,10 @@ object Bloop {
       val res = value {
         Artifacts.artifacts(
           Seq(Positioned.none(dep)),
-          Nil,
+          Seq(
+            coursier.Repositories.sonatype("snapshots"),
+            coursier.Repositories.sonatypeS01("snapshots")
+          ),
           Some(params),
           logger,
           cache.withMessage(s"Downloading compilation server ${dep.version}")

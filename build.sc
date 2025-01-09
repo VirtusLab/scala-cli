@@ -368,6 +368,7 @@ trait Core extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def crossScalaVersion = crossValue
+
   def moduleDeps = Seq(
     config(crossScalaVersion)
   )
@@ -377,6 +378,9 @@ trait Core extends ScalaCliCrossSbtModule
   def scalacOptions = T {
     super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
   }
+
+  def repositoriesTask =
+    T.task(super.repositoriesTask() ++ deps.customRepositories)
 
   def ivyDeps = super.ivyDeps() ++ Agg(
     Deps.bloopRifle.exclude(("org.scala-lang.modules", "scala-collection-compat_2.13")),
