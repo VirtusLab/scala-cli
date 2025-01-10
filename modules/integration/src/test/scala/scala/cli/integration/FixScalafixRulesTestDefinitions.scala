@@ -90,7 +90,7 @@ trait FixScalafixRulesTestDefinitions {
     }
     val expectedProjectContent: String = noCrLf {
       s"""// Main
-         |//> using options "$scalafixUnusedRuleOption"
+         |//> using options $scalafixUnusedRuleOption
          |
          |""".stripMargin
     }
@@ -150,7 +150,7 @@ trait FixScalafixRulesTestDefinitions {
       }
       val expectedProjectContent: String = noCrLf {
         s"""// Main
-           |//> using options "$scalafixUnusedRuleOption"
+           |//> using options $scalafixUnusedRuleOption
            |
            |""".stripMargin
       }
@@ -242,7 +242,7 @@ trait FixScalafixRulesTestDefinitions {
   }
 
   test("external rule") {
-    val directive = s"//> using scalafixDependency \"com.github.xuwei-k::scalafix-rules:0.5.1\""
+    val directive = s"//> using scalafixDependency com.github.xuwei-k::scalafix-rules:0.5.1"
     val original: String =
       s"""|$directive
           |

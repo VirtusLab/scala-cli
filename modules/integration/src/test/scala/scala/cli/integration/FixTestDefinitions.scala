@@ -22,13 +22,13 @@ abstract class FixTestDefinitions
   test("built-in + scalafix rules") {
     val mainFileName  = "Main.scala"
     val unusedValName = "unused"
-    val directive1    = "//> using dep \"com.lihaoyi::os-lib:0.11.3\""
-    val directive2    = "//> using dep \"com.lihaoyi::pprint:0.9.0\""
+    val directive1    = "//> using dep com.lihaoyi::os-lib:0.11.3"
+    val directive2    = "//> using dep com.lihaoyi::pprint:0.9.0"
     val mergedDirective1And2 =
-      "using dependency \"com.lihaoyi::os-lib:0.11.3\" \"com.lihaoyi::pprint:0.9.0\""
+      "using dependency com.lihaoyi::os-lib:0.11.3 com.lihaoyi::pprint:0.9.0"
     val directive3 =
-      if (actualScalaVersion.startsWith("2")) "//> using options \"-Xlint:unused\""
-      else "//> using options \"-Wunused:all\""
+      if (actualScalaVersion.startsWith("2")) "//> using options -Xlint:unused"
+      else "//> using options -Wunused:all"
     TestInputs(
       os.rel / "Foo.scala" ->
         s"""$directive1

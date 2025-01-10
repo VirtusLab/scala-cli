@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.util.Properties
+
 trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
@@ -17,7 +19,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
            |}
            |""".stripMargin,
       os.rel / projectFileName ->
-        s"""//> using deps "com.lihaoyi::pprint:0.6.6"
+        s"""//> using deps com.lihaoyi::pprint:0.6.6
            |""".stripMargin
     )
 
@@ -52,11 +54,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |
-          |//> using dependency "com.lihaoyi::os-lib:0.9.1"
-          |//> using dependency "com.lihaoyi::pprint:0.6.6"
-          |//> using dependency "com.lihaoyi::upickle:3.1.2"
-          |
+          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -89,7 +87,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
            |println(os.pwd)
            |""".stripMargin,
       os.rel / projectFileName ->
-        s"""//> using deps "com.lihaoyi::pprint:0.6.6"
+        s"""//> using deps com.lihaoyi::pprint:0.6.6
            |""".stripMargin
     )
 
@@ -125,11 +123,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |
-          |//> using dependency "com.lihaoyi::os-lib:0.9.1"
-          |//> using dependency "com.lihaoyi::pprint:0.6.6"
-          |//> using dependency "com.lihaoyi::upickle:3.1.2"
-          |
+          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6 com.lihaoyi::upickle:3.1.2
           |""".stripMargin
       )
 
@@ -217,11 +211,11 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         projectFileContents,
         """// Main
           |//> using objectWrapper
-          |//> using dependency "com.lihaoyi::os-lib:0.9.1" "com.lihaoyi::pprint:0.6.6"
+          |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
           |
           |// Test
-          |//> using test.options "-Xasync" "-Xfatal-warnings"
-          |//> using test.dependency "org.scalameta::munit::0.7.29" "org.typelevel::cats-core:2.9.0"
+          |//> using test.options -Xasync -Xfatal-warnings
+          |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
           |""".stripMargin
       )
 
@@ -366,23 +360,23 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         assertNoDiff(
           projectFileContents,
           s"""// Main
-             |//> using scala "3.3.0"
-             |//> using platforms "jvm"
-             |//> using jvm "17"
-             |//> using options "-Werror"
-             |//> using files "$includePath"
+             |//> using scala 3.3.0
+             |//> using platforms jvm
+             |//> using jvm 17
+             |//> using options -Werror
+             |//> using files $includePath
              |//> using objectWrapper
-             |//> using toolkit "default"
-             |//> using dependency "com.lihaoyi::os-lib:0.9.1" "com.lihaoyi::pprint:0.6.6"
+             |//> using toolkit default
+             |//> using dependency com.lihaoyi::os-lib:0.9.1 com.lihaoyi::pprint:0.6.6
              |
-             |//> using publish.ci.password "env:PUBLISH_PASSWORD"
-             |//> using publish.ci.secretKey "env:PUBLISH_SECRET_KEY"
-             |//> using publish.ci.secretKeyPassword "env:PUBLISH_SECRET_KEY_PASSWORD"
-             |//> using publish.ci.user "env:PUBLISH_USER"
+             |//> using publish.ci.password env:PUBLISH_PASSWORD
+             |//> using publish.ci.secretKey env:PUBLISH_SECRET_KEY
+             |//> using publish.ci.secretKeyPassword env:PUBLISH_SECRET_KEY_PASSWORD
+             |//> using publish.ci.user env:PUBLISH_USER
              |
              |// Test
-             |//> using test.options "-Xasync" "-Xfatal-warnings"
-             |//> using test.dependency "org.scalameta::munit::0.7.29" "org.typelevel::cats-core:2.9.0"
+             |//> using test.options -Xasync -Xfatal-warnings
+             |//> using test.dependency org.scalameta::munit::0.7.29 org.typelevel::cats-core:2.9.0
              |""".stripMargin
         )
 
@@ -425,4 +419,32 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
       )
     }
   }
+
+  if (!Properties.isWin) // TODO: fix this test for Windows CI
+    test("using directives with boolean values are handled correctly") {
+      val expectedMessage = "Hello, world!"
+      def maybeScalapyPrefix =
+        if (actualScalaVersion.startsWith("2.13.")) ""
+        else "import me.shadaj.scalapy.py" + System.lineSeparator()
+      TestInputs(
+        os.rel / "Messages.scala" ->
+          s"""object Messages {
+             |  def hello: String = "$expectedMessage"
+             |}
+             |""".stripMargin,
+        os.rel / "Main.scala" ->
+          s"""//> using python true
+             |$maybeScalapyPrefix
+             |object Main extends App {
+             |  py.Dynamic.global.print(Messages.hello, flush = true)
+             |}
+             |""".stripMargin
+      ).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        val r = os.proc(TestUtil.cli, "--power", "run", ".", extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(r.out.trim() == expectedMessage)
+      }
+    }
 }
