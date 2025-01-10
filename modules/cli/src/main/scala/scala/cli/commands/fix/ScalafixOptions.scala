@@ -27,6 +27,8 @@ final case class ScalafixOptions(
   @Tag(tags.experimental)
   @HelpMessage("Run scalafix rule(s) explicitly, overriding the configuration file default.")
   @Tag(tags.inShortHelp)
+  @Name("r")
+  @Name("rules")
   scalafixRules: List[String] = Nil
 )
 object ScalafixOptions {

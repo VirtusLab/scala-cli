@@ -1520,6 +1520,8 @@ Pass extra argument(s) to scalafix.
 
 ### `--scalafix-rules`
 
+Aliases: `-r`, `--rules`
+
 Run scalafix rule(s) explicitly, overriding the configuration file default.
 
 ## Scope options
