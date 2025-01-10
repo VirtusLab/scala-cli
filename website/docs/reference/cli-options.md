@@ -1512,6 +1512,8 @@ Available in commands:
 
 ### `--scalafix-conf`
 
+Aliases: `--scalafix-config`
+
 Custom path to the scalafix configuration file.
 
 ### `--scalafix-arg`

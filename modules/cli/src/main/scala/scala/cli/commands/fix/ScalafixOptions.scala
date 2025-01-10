@@ -17,6 +17,7 @@ final case class ScalafixOptions(
   @Tag(tags.experimental)
   @HelpMessage("Custom path to the scalafix configuration file.")
   @Tag(tags.inShortHelp)
+  @Name("scalafixConfig")
   scalafixConf: Option[String] = None,
   @Group(HelpGroup.Fix.toString)
   @Tag(tags.experimental)
