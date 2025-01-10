@@ -30,6 +30,8 @@ final case class SharedPublishOptions(
 
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("Whether to build and publish source JARs")
+  @Name("sourcesJar")
+  @Name("jarSources")
   @Name("sources")
   @Tag(tags.deprecated("sources"))
   @Tag(tags.restricted)

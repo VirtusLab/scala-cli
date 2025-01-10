@@ -1031,7 +1031,7 @@ Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
 
 ### `--with-sources`
 
-Aliases: [deprecated] `--sources`
+Aliases: `--jar-sources`, [deprecated] `--sources`, `--sources-jar`
 
 Whether to build and publish source JARs
 
