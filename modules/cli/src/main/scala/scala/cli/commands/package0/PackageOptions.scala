@@ -51,6 +51,7 @@ final case class PackageOptions(
   @Name("sourcesJar")
   @Name("jarSources")
   @Name("sources")
+  @Tag(tags.deprecated("sources"))
   @Name("src")
   @Tag(tags.deprecated("src"))
   @Tag(tags.restricted)
