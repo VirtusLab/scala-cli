@@ -773,9 +773,9 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
-### `--src`
+### `--with-sources`
 
-Aliases: `--jar-sources`, `--sources`, `--sources-jar`
+Aliases: `--jar-sources`, `--sources`, `--sources-jar`, [deprecated] `--src`
 
 Generate a source JAR rather than an executable JAR
 

@@ -1712,7 +1712,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
         "--power",
         "package",
         jarSources,
-        "--src",
+        "--with-sources",
         "-o",
         sourceJarPath,
         extraOptions
