@@ -1029,7 +1029,9 @@ Scala version suffix to append to the module name, like "_2.13" or "_3"
 [Internal]
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
 
-### `--sources`
+### `--with-sources`
+
+Aliases: [deprecated] `--sources`
 
 Whether to build and publish source JARs
 
