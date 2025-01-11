@@ -38,7 +38,7 @@ trait RunGistTestDefinitions { _: RunTestDefinitions =>
       "https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/2691c01984c9249936a625a42e29a822a357b0f6/Test.java"
     val message = "Hello from Java GitHub Gist"
     emptyInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+      val output = os.proc(TestUtil.cli, extraOptions, "-v", "-v", "-v", escapedUrls(url))
         .call(cwd = root)
         .out.trim()
       expect(output == message)

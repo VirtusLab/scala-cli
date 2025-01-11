@@ -20,7 +20,7 @@ object BloopOutput extends ScalaCommand[BloopOutputOptions] {
   override def runCommand(options: BloopOutputOptions, args: RemainingArgs, logger: Logger): Unit = {
     val bloopRifleConfig = options.compilationServer.bloopRifleConfig(
       logger,
-      CoursierOptions().coursierCache(logger.coursierLogger("Downloading Bloop")), // unused here
+      CoursierOptions().coursierCache(logger, cacheLoggerPrefix = "Downloading Bloop"), // unused here
       options.global.logging.verbosity,
       "unused-java", // unused here
       Directories.directories

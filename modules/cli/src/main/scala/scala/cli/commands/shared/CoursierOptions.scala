@@ -4,9 +4,13 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.{CacheLogger, CachePolicy, FileCache}
+import coursier.util.Task
 
+import scala.build.Logger
 import scala.build.internals.EnvVar
 import scala.cli.commands.tags
+import scala.cli.config.Keys
+import scala.cli.util.ConfigDbUtils
 import scala.concurrent.duration.Duration
 
 // format: off
@@ -39,8 +43,8 @@ final case class CoursierOptions(
   private def validateChecksums =
     coursierValidateChecksums.getOrElse(true)
 
-  def coursierCache(logger: CacheLogger) = {
-    var baseCache = FileCache().withLogger(logger)
+  def coursierCache(logger: Logger, cacheLogger: CacheLogger): FileCache[Task] = {
+    var baseCache = FileCache().withLogger(cacheLogger)
     if (!validateChecksums)
       baseCache = baseCache.withChecksums(Nil)
     val ttlOpt = ttl.map(_.trim).filter(_.nonEmpty).map(Duration(_))
@@ -48,15 +52,19 @@ final case class CoursierOptions(
       baseCache = baseCache.withTtl(ttl0)
     for (loc <- cache.filter(_.trim.nonEmpty))
       baseCache = baseCache.withLocation(loc)
-    for (isOffline <- getOffline() if isOffline)
+    for (isOffline <- getOffline(logger) if isOffline)
       baseCache = baseCache.withCachePolicies(Seq(CachePolicy.LocalOnly))
 
     baseCache
   }
 
-  def getOffline(): Option[Boolean] = offline
+  def coursierCache(logger: Logger, cacheLoggerPrefix: String = ""): FileCache[Task] =
+    coursierCache(logger, logger.coursierLogger(cacheLoggerPrefix))
+
+  def getOffline(logger: Logger): Option[Boolean] = offline
     .orElse(EnvVar.Coursier.coursierMode.valueOpt.map(_ == "offline"))
     .orElse(Option(System.getProperty("coursier.mode")).map(_ == "offline"))
+    .orElse(ConfigDbUtils.getConfigDbOpt(logger).flatMap(_.get(Keys.offline).toOption.flatten))
 }
 
 object CoursierOptions {

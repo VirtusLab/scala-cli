@@ -18,7 +18,7 @@ object BloopExit extends ScalaCommand[BloopExitOptions] {
     import opts.*
     compilationServer.bloopRifleConfig(
       global.logging.logger,
-      coursier.coursierCache(global.logging.logger.coursierLogger("Downloading Bloop")),
+      coursier.coursierCache(global.logging.logger, cacheLoggerPrefix = "Downloading Bloop"),
       global.logging.verbosity,
       "java", // shouldn't be used…
       Directories.directories
