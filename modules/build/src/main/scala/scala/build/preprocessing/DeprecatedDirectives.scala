@@ -4,12 +4,8 @@ import scala.build.Logger
 import scala.build.errors.Diagnostic.TextEdit
 import scala.build.internal.Constants
 import scala.build.internal.util.WarningMessages.{deprecatedToolkitLatest, deprecatedWarning}
-import scala.build.preprocessing.directives.{
-  DirectiveHandler,
-  DirectiveUtil,
-  StrictDirective,
-  Toolkit
-}
+import scala.build.options.SuppressWarningOptions
+import scala.build.preprocessing.directives.{DirectiveHandler, StrictDirective, Toolkit}
 import scala.build.warnings.DeprecatedWarning
 
 object DeprecatedDirectives {
@@ -20,14 +16,14 @@ object DeprecatedDirectives {
     * @param values
     *   representation of deprecated value
     */
-  case class DirectiveTemplate(keys: Seq[String], values: Option[Seq[String]]) {
+  private case class DirectiveTemplate(keys: Seq[String], values: Option[Seq[String]]) {
     def appliesTo(foundKey: String, foundValues: Seq[String]): Boolean =
       (keys.isEmpty || keys.contains(foundKey)) &&
       // FIXME values.contains is not perfect, but is enough for now since we don't look for specific multiple values
       (values.isEmpty || values.contains(foundValues))
   }
 
-  type WarningAndReplacement = (String, DirectiveTemplate)
+  private type WarningAndReplacement = (String, DirectiveTemplate)
 
   private def keyReplacement(replacement: String)(warning: String): WarningAndReplacement =
     (warning, DirectiveTemplate(Seq(replacement), None))
@@ -35,12 +31,12 @@ object DeprecatedDirectives {
   private def valueReplacement(replacements: String*)(warning: String): WarningAndReplacement =
     (warning, DirectiveTemplate(Nil, Some(replacements.toSeq)))
 
-  private def allAliasesOf(key: String, handler: DirectiveHandler[_]): Seq[String] =
+  private def allAliasesOf(key: String, handler: DirectiveHandler[?]): Seq[String] =
     handler.keys.find(_.nameAliases.contains(key))
       .toSeq
       .flatMap(_.nameAliases)
 
-  private def allKeysFrom(handler: DirectiveHandler[_]): Seq[String] =
+  private def allKeysFrom(handler: DirectiveHandler[?]): Seq[String] =
     handler.keys.flatMap(_.nameAliases)
 
   private val deprecatedCombinationsAndReplacements = Map[DirectiveTemplate, WarningAndReplacement](
@@ -73,7 +69,7 @@ object DeprecatedDirectives {
     )
   )
 
-  def warningAndReplacement(directive: StrictDirective): Option[WarningAndReplacement] =
+  private def warningAndReplacement(directive: StrictDirective): Option[WarningAndReplacement] =
     deprecatedCombinationsAndReplacements
       .find(_._1.appliesTo(directive.key, directive.toStringValues))
       .map(_._2) // grab WarningAndReplacement
@@ -81,25 +77,27 @@ object DeprecatedDirectives {
   def issueWarnings(
     path: Either[String, os.Path],
     directives: Seq[StrictDirective],
+    suppressWarningOptions: SuppressWarningOptions,
     logger: Logger
-  ) =
-    directives.map(d => d -> warningAndReplacement(d))
-      .foreach {
-        case (directive, Some(warning, replacement)) =>
-          val newKey    = replacement.keys.headOption.getOrElse(directive.key)
-          val newValues = replacement.values.getOrElse(directive.toStringValues)
-          val newText   = s"$newKey ${newValues.mkString(" ")}"
+  ): Unit =
+    if !suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) then
+      directives.map(d => d -> warningAndReplacement(d))
+        .foreach {
+          case (directive, Some(warning, replacement)) =>
+            val newKey    = replacement.keys.headOption.getOrElse(directive.key)
+            val newValues = replacement.values.getOrElse(directive.toStringValues)
+            val newText   = s"$newKey ${newValues.mkString(" ")}"
 
-          // TODO use key and/or value positions instead of whole directive
-          val position = directive.position(path)
+            // TODO use key and/or value positions instead of whole directive
+            val position = directive.position(path)
 
-          val diagnostic = DeprecatedWarning(
-            warning,
-            Seq(position),
-            Some(TextEdit(s"Change to: $newText", newText))
-          )
-          logger.log(Seq(diagnostic))
-        case _ => ()
-      }
+            val diagnostic = DeprecatedWarning(
+              warning,
+              Seq(position),
+              Some(TextEdit(s"Change to: $newText", newText))
+            )
+            logger.log(Seq(diagnostic))
+          case _ => ()
+        }
 
 }

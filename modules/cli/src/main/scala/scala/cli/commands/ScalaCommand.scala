@@ -352,6 +352,14 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       }
       .getOrElse(false)
 
+  override def shouldSuppressDeprecatedFeatureWarnings: Boolean =
+    globalOptions.globalSuppress.suppressDeprecatedFeatureWarning
+      .orElse {
+        configDb.toOption
+          .flatMap(_.getOpt(Keys.suppressDeprecatedFeatureWarning))
+      }
+      .getOrElse(false)
+
   override def logger: Logger = globalOptions.logging.logger
 
   final override def main(progName: String, args: Array[String]): Unit = {

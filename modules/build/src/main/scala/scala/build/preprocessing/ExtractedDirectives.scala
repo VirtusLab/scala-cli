@@ -8,10 +8,11 @@ import com.virtuslab.using_directives.custom.model.{
   UsingDirectives,
   Value
 }
-import com.virtuslab.using_directives.custom.utils.ast._
+import com.virtuslab.using_directives.custom.utils.ast.*
 
 import scala.annotation.targetName
 import scala.build.errors.*
+import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.UsingDirectivesOps.*
 import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
@@ -34,16 +35,22 @@ object ExtractedDirectives {
   def from(
     contentChars: Array[Char],
     path: Either[String, os.Path],
+    suppressWarningOptions: SuppressWarningOptions,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
     val errors = new mutable.ListBuffer[Diagnostic]
-    val reporter = CustomDirectivesReporter.create(path) { diag =>
-      if (diag.severity == Severity.Warning)
-        logger.log(Seq(diag))
-      else
-        errors += diag
-    }
+    val reporter = CustomDirectivesReporter
+      .create(path) {
+        case diag
+            if diag.severity == Severity.Warning &&
+            diag.message.toLowerCase.contains("deprecated") &&
+            suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) =>
+          () // skip deprecated feature warnings if suppressed
+        case diag if diag.severity == Severity.Warning =>
+          logger.log(Seq(diag))
+        case diag => errors += diag
+      }
     val processor     = new UsingDirectivesProcessor(reporter)
     val allDirectives = processor.extract(contentChars).asScala
     val malformedDirectiveErrors =

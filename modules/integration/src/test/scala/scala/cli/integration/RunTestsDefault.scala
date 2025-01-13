@@ -110,21 +110,42 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
-  test(
-    "using directives using commas with space as separators should produce a deprecation warning."
-  ) {
-    val inputPath = os.rel / "example.sc"
-    TestInputs(inputPath ->
-      """//> using options -Werror, -Wconf:cat=deprecation:e, -Wconf:cat=unused:e
-        |println("Deprecation warnings should have been printed")
-        |""".stripMargin)
-      .fromRoot { root =>
-        val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
-          .call(cwd = root, stderr = os.Pipe)
-        val err             = res.err.trim()
-        val expectedWarning = "Use of commas as separators is deprecated"
-        expect(err.contains(expectedWarning))
-        expect(err.linesIterator.count(_.contains(expectedWarning)) == 2)
+  for {
+    suppressDeprecatedWarnings <- Seq(true, false)
+    suppressByConfig           <- if (suppressDeprecatedWarnings) Seq(true, false) else Seq(false)
+    suppressWarningOptions =
+      if (suppressDeprecatedWarnings && !suppressByConfig) Seq("--suppress-deprecated-warnings")
+      else Seq.empty
+    suppressedWarningText =
+      suppressDeprecatedWarnings -> suppressByConfig match {
+        case (true, true)  => "suppressed (by config)"
+        case (true, false) => "suppressed (by command line option)"
+        case (false, _)    => "reported"
       }
   }
+    test(
+      s"a deprecation warning should be $suppressedWarningText when using commas with space as separators in using directives"
+    ) {
+      val configFile = os.rel / "config" / "config.json"
+      val configEnvs = Map("SCALA_CLI_CONFIG" -> configFile.toString())
+      val inputPath  = os.rel / "example.sc"
+      TestInputs(inputPath ->
+        """//> using options -Werror, -Wconf:cat=deprecation:e, -Wconf:cat=unused:e
+          |println("Deprecation warnings should have been printed")
+          |""".stripMargin)
+        .fromRoot { root =>
+          if (suppressByConfig)
+            os.proc(TestUtil.cli, "config", "suppress-warning.deprecated-features", "true")
+              .call(cwd = root, env = configEnvs)
+          val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath, suppressWarningOptions)
+            .call(cwd = root, stderr = os.Pipe, env = configEnvs)
+          val err             = res.err.trim()
+          val expectedWarning = "Use of commas as separators is deprecated"
+          if (suppressDeprecatedWarnings) expect(!err.contains("deprecated"))
+          else {
+            expect(err.contains("deprecated"))
+            expect(err.linesIterator.count(_.contains(expectedWarning)) == 2)
+          }
+        }
+    }
 }

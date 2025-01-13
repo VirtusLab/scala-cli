@@ -341,8 +341,16 @@ final case class SharedOptions(
               .GRAY}*-sources.jar${Console.RESET} name suffix are assumed to be source jars.
              |The following jars were assumed to be source jars and will be treated as such: $assumedSourceJarsString""".stripMargin
         )
+      val shouldSuppressDeprecatedWarnings = getOptionOrFromConfig(
+        suppress.global.suppressDeprecatedFeatureWarning,
+        Keys.suppressDeprecatedFeatureWarning
+      )
       val (resolvedToolkitDependency, toolkitMaxDefaultScalaNativeVersions) =
-        SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(withToolkit, logger)
+        SharedOptions.resolveToolkitDependencyAndScalaNativeVersionReqs(
+          withToolkit,
+          shouldSuppressDeprecatedWarnings.getOrElse(false),
+          logger
+        )
       val scalapyMaxDefaultScalaNativeVersions =
         if sharedPython.python.contains(true) then
           List(Constants.scalaPyMaxScalaNative -> Python.maxScalaNativeWarningMsg)
@@ -374,7 +382,8 @@ final case class SharedOptions(
             suppressExperimentalFeatureWarning = getOptionOrFromConfig(
               suppress.global.suppressExperimentalFeatureWarning,
               Keys.suppressExperimentalFeatureWarning
-            )
+            ),
+            suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings
           ),
         scalaOptions = bo.ScalaOptions(
           scalaVersion = scalaVersion
@@ -766,9 +775,11 @@ object SharedOptions {
   private val loggedDeprecatedToolkitWarning: AtomicBoolean = AtomicBoolean(false)
   private def resolveToolkitDependencyAndScalaNativeVersionReqs(
     toolkitVersion: Option[String],
+    shouldSuppressDeprecatedWarnings: Boolean,
     logger: Logger
   ): (Seq[Positioned[AnyDependency]], Seq[(String, String)]) = {
     if (
+      !shouldSuppressDeprecatedWarnings &&
       (toolkitVersion.contains("latest")
       || toolkitVersion.contains(Toolkit.typelevel + ":latest")
       || toolkitVersion.contains(

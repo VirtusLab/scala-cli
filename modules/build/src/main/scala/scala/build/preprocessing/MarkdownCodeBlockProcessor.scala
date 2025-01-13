@@ -4,12 +4,14 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.internal.markdown.MarkdownCodeBlock
+import scala.build.options.SuppressWarningOptions
 
 object MarkdownCodeBlockProcessor {
   def process(
     codeBlocks: Seq[MarkdownCodeBlock],
     reportingPath: Either[String, os.Path],
     scopePath: ScopePath,
+    suppressWarningOptions: SuppressWarningOptions,
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, PreprocessedMarkdown] = either {
@@ -23,6 +25,7 @@ object MarkdownCodeBlockProcessor {
             ExtractedDirectives.from(
               contentChars = cb.body.toCharArray,
               path = reportingPath,
+              suppressWarningOptions = suppressWarningOptions,
               logger = logger,
               maybeRecoverOnError = maybeRecoverOnError
             )

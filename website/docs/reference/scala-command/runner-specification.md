@@ -362,6 +362,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -674,6 +680,7 @@ Available keys:
   - repositories.credentials                       Repository credentials, syntax: repositoryAddress value:user value:password [realm]
   - repositories.default                           Default repository, syntax: https://first-repo.company.com https://second-repo.company.com
   - repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=https://repository.company.com/maven
+  - suppress-warning.deprecated-features           Globally suppresses warnings about deprecated features.
   - suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.
   - suppress-warning.experimental-features         Globally suppresses warnings about experimental features.
   - suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.
@@ -785,6 +792,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--ttl**
 
@@ -1124,6 +1137,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -1719,6 +1738,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -2338,6 +2363,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -2967,6 +2998,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -3552,6 +3589,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -4214,6 +4257,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--verbose**
 
 Increase verbosity (can be specified multiple times)
@@ -4571,6 +4620,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--cli-version**
 
 Show plain Scala CLI version only
@@ -4881,6 +4936,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -5243,6 +5304,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--bsp-directory**
 
 Custom BSP configuration location
@@ -5328,6 +5395,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 </details>
 
 ---
@@ -5400,6 +5473,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--format**
 
@@ -5497,6 +5576,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--scala-cli-binary-path**
 
@@ -5814,6 +5899,12 @@ Suppress warnings about outdated dependencies in project
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--verbose**
 
@@ -6176,6 +6267,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 **--bloop-bsp-protocol**
 
 Protocol to use to open a BSP connection with Bloop
@@ -6363,6 +6460,12 @@ Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
 
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
+
 </details>
 
 ---
@@ -6435,6 +6538,12 @@ Use progress bars
 Suppress warnings about using experimental features
 
 Aliases: `--suppress-experimental-warning`
+
+**--suppress-deprecated-feature-warning**
+
+Suppress warnings about using deprecated features
+
+Aliases: `--suppress-deprecated-warning` ,`--suppress-deprecated-warnings` ,`--suppress-deprecated-feature-warnings`
 
 **--binary-name**
 
