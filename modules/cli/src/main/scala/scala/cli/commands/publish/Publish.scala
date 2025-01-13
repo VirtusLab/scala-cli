@@ -104,7 +104,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val contextualOptions = PublishContextualOptions(
       repository = publishRepo.publishRepository.filter(_.trim.nonEmpty),
       repositoryIsIvy2LocalLike = ivy2LocalLike,
-      sourceJar = sharedPublish.sources,
+      sourceJar = sharedPublish.withSources,
       docJar = sharedPublish.doc,
       gpgSignatureId = sharedPublish.gpgKey.map(_.trim).filter(_.nonEmpty),
       gpgOptions = sharedPublish.gpgOption,

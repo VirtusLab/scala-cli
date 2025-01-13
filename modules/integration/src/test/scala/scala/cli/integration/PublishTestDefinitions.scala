@@ -320,7 +320,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         "--power",
         "publish",
         extraOptions,
-        "--sources=false",
+        "--with-sources=false",
         "--doc=false",
         "--checksum",
         "sha-1",

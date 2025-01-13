@@ -779,9 +779,9 @@ Overwrite the destination file, if it exists
 
 Generate a library JAR rather than an executable JAR
 
-### `--src`
+### `--with-sources`
 
-Aliases: `--jar-sources`, `--sources`, `--sources-jar`
+Aliases: `--jar-sources`, [deprecated] `--sources`, `--sources-jar`, [deprecated] `--src`
 
 Generate a source JAR rather than an executable JAR
 
@@ -1035,7 +1035,9 @@ Scala version suffix to append to the module name, like "_2.13" or "_3"
 [Internal]
 Scala platform suffix to append to the module name, like "_sjs1" or "_native0.4"
 
-### `--sources`
+### `--with-sources`
+
+Aliases: `--jar-sources`, [deprecated] `--sources`, `--sources-jar`
 
 Whether to build and publish source JARs
 
