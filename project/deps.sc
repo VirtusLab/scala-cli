@@ -4,7 +4,7 @@ import scalalib._
 
 object Scala {
   def scala212        = "2.12.20"
-  def scala213        = "2.13.15"
+  def scala213        = "2.13.16"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
   def scala3Lts        = s"$scala3LtsPrefix.4"  // the LTS version currently used in the build
