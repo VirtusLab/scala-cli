@@ -46,7 +46,10 @@ case class StrictDirective(
       Seq(usingKeyString)
     else {
       val distinctValuesStrings = validValues
-        .map(v => s"\"${v.toString}\"")
+        .map {
+          case s if s.toString.exists(_.isWhitespace) => s"\"$s\""
+          case s                                      => s.toString
+        }
         .distinct
         .sorted
 
