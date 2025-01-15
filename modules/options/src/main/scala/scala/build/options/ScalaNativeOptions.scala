@@ -81,9 +81,9 @@ final case class ScalaNativeOptions(
 
   private def targetTripleCliOption(): List[String] =
     if (!targetTripleStr.isEmpty)
-      return List("--target-triple", targetTripleStr.get)
+      List("--target-triple", targetTripleStr.get)
     else
-      return Nil
+      Nil
 
   private def mode(): sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
