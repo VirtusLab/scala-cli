@@ -32,6 +32,11 @@ final case class ScalaNativeOptions(
     nativeGc: Option[String] = None,
 
   @Group(HelpGroup.ScalaNative.toString)
+  @HelpMessage("Set a target triple to which Scala Native can cross-compile")
+  @Tag(tags.should)
+    nativeTargetTriple: Option[String] = None,
+
+  @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Path to the Clang command")
   @Tag(tags.implementation)
     nativeClang: Option[String] = None,

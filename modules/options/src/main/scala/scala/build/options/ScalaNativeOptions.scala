@@ -32,6 +32,7 @@ final case class ScalaNativeOptions(
   modeStr: Option[String] = None,
   ltoStr: Option[String] = None,
   gcStr: Option[String] = None,
+  targetTripleStr: Option[String] = None,
   clang: Option[String] = None,
   clangpp: Option[String] = None,
   linkingOptions: List[String] = Nil,
@@ -77,6 +78,13 @@ final case class ScalaNativeOptions(
     }
   private def gcCliOption(): List[String] =
     List("--gc", gc().name)
+
+  private def targetTripleCliOption(): List[String] =
+    if (!targetTripleStr.isEmpty) {
+      return List("--target-triple", targetTripleStr.get)
+    } else {
+      return Nil
+    }
 
   private def mode(): sn.Mode =
     modeStr.map(_.trim).filter(_.nonEmpty) match {
@@ -155,7 +163,7 @@ final case class ScalaNativeOptions(
           BloopConfig.LinkerMode.Release
         else BloopConfig.LinkerMode.Debug,
       gc = gc().name,
-      targetTriple = None,
+      targetTriple = targetTripleStr,
       clang = clangPath(),
       clangpp = clangppPath(),
       toolchain = Nil,
@@ -173,6 +181,7 @@ final case class ScalaNativeOptions(
     gcCliOption() ++
       modeCliOption() ++
       ltoOptions() ++
+      targetTripleCliOption() ++
       clangCliOption() ++
       clangppCliOption() ++
       linkingCliOptions() ++
