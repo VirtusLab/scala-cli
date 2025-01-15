@@ -30,6 +30,8 @@ Files containing (experimental) `using target` directives, e.g. `//> using targe
 The original scope (`main` or `test`) of each extracted directive is respected. `main` scope directives are transformed 
 them into their `test.*` equivalent when needed.
 
+Note: directives won't be extracted for single-file projects.
+
 ## `scalafix` integration
 
 Scala CLI is capable of running [Scalafix](https://scalacenter.github.io/scalafix/) (a refactoring and linting tool for Scala) on your project.

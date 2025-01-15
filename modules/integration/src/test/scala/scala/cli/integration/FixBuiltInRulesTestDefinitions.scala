@@ -447,4 +447,38 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         expect(r.out.trim() == expectedMessage)
       }
     }
+
+  {
+    val directive = "//> using dep com.lihaoyi::os-lib:0.11.3"
+    for {
+      (inputFileName, code) <- Seq(
+        "raw.scala" -> s"""$directive
+                          |object Main extends App {
+                          |  println(os.pwd)
+                          |}
+                          |""".stripMargin,
+        "script.sc" -> s"""$directive
+                          |println(os.pwd)
+                          |""".stripMargin
+      )
+      if !Properties.isWin // TODO: make this run on Windows CI
+      testInputs = TestInputs(os.rel / inputFileName -> code)
+    }
+      test(
+        s"dont extract directives into project.scala for a single-file project: $inputFileName"
+      ) {
+        testInputs.fromRoot { root =>
+          val fixResult = os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+          expect(fixResult.err.trim().contains(
+            "No need to migrate directives for a single source file project"
+          ))
+          expect(!os.exists(root / projectFileName))
+          expect(os.read(root / inputFileName) == code)
+          val runResult = os.proc(TestUtil.cli, "run", ".", extraOptions)
+            .call(cwd = root, stderr = os.Pipe)
+          expect(runResult.out.trim() == root.toString)
+        }
+      }
+  }
 }
