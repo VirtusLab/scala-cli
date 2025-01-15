@@ -349,6 +349,8 @@ Add Scala Native options
 
 `//> using nativeLinking` _value1_ _value2_ …
 
+`//> using nativeTargetTriple` _value_
+
 `//> using nativeClang` _value_
 
 `//> using nativeClangPP` _value_
