@@ -481,4 +481,50 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
         }
       }
   }
+
+  if (!Properties.isWin)
+    test("all test directives get extracted into project.scala") {
+      val osLibDep               = "com.lihaoyi::os-lib:0.11.3"
+      val munitDep               = "org.scalameta::munit:1.0.4"
+      val pprintDep              = "com.lihaoyi::pprint:0.9.0"
+      val osLibDepDirective      = s"//> using dependency $osLibDep"
+      val osLibTestDepDirective  = s"//> using test.dependency $osLibDep"
+      val munitTestDepDirective  = s"//> using test.dependency $munitDep"
+      val pprintTestDepDirective = s"//> using test.dependency $pprintDep"
+      val mainFilePath           = os.rel / "Main.scala"
+      val testFilePath           = os.rel / "MyTests.test.scala"
+      TestInputs(
+        mainFilePath -> s"""$munitTestDepDirective
+                           |object Main extends App {
+                           |  def hello: String = "Hello, world!"
+                           |  println(hello)
+                           |}
+                           |""".stripMargin,
+        testFilePath -> s"""$osLibDepDirective
+                           |$pprintTestDepDirective
+                           |import munit.FunSuite
+                           |
+                           |class MyTests extends FunSuite {
+                           |  test("hello") {
+                           |    pprint.pprintln(os.pwd)
+                           |    assert(Main.hello == "Hello, world!")
+                           |  }
+                           |}
+                           |""".stripMargin
+      ).fromRoot { root =>
+        os.proc(TestUtil.cli, "--power", "fix", ".", extraOptions).call(cwd = root)
+        val expectedProjectFileContents =
+          s"""// Test
+             |$osLibTestDepDirective
+             |$pprintTestDepDirective
+             |$munitTestDepDirective""".stripMargin
+        val projectFileContents = os.read(root / projectFileName)
+        expect(projectFileContents.trim() == expectedProjectFileContents)
+        val mainFileContents = os.read(root / mainFilePath)
+        expect(!mainFileContents.contains("//> using"))
+        val testFileContents = os.read(root / testFilePath)
+        expect(!testFileContents.contains("//> using"))
+        os.proc(TestUtil.cli, "test", ".", extraOptions).call(cwd = root)
+      }
+    }
 }
