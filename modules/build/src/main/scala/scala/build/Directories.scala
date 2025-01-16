@@ -1,9 +1,12 @@
 package scala.build
 
-import coursier.cache.shaded.dirs.{GetWinDirs, ProjectDirectories}
+import coursier.cache.shaded.dirs.ProjectDirectories
+import coursier.cache.shaded.dirs.impl.Windows
+import coursier.cache.shaded.dirs.jni.WindowsJni
+
+import java.util.function.Supplier
 
 import scala.build.errors.ConfigDbException
-import scala.build.internal.JniGetWinDirs
 import scala.build.internals.EnvVar
 import scala.cli.config.ConfigDb
 import scala.util.Properties
@@ -83,13 +86,10 @@ object Directories {
   }
 
   def default(): Directories = {
-    val getWinDirs: GetWinDirs =
-      if (coursier.paths.Util.useJni())
-        new JniGetWinDirs
-      else
-        GetWinDirs.powerShellBased
-
-    OsLocations(ProjectDirectories.from(null, null, "ScalaCli", getWinDirs))
+    val windows: Supplier[Windows] =
+      if coursier.paths.Util.useJni() then WindowsJni.getJdkAwareSupplier
+      else Windows.getDefaultSupplier
+    OsLocations(ProjectDirectories.from(null, null, "ScalaCli", windows))
   }
 
   def under(dir: os.Path): Directories =
