@@ -30,7 +30,9 @@ Files containing (experimental) `using target` directives, e.g. `//> using targe
 The original scope (`main` or `test`) of each extracted directive is respected. `main` scope directives are transformed 
 them into their `test.*` equivalent when needed.
 
-Note: directives won't be extracted for single-file projects.
+Exceptions:
+- directives won't be extracted for single-file projects;
+- directives in test inputs with no test scope equivalents won't be extracted to preserve their initial scope.
 
 ## `scalafix` integration
 

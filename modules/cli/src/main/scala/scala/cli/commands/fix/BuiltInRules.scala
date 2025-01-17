@@ -28,6 +28,15 @@ object BuiltInRules extends CommandHelpers {
     DirectivesPreprocessingUtils.usingDirectiveWithReqsHandlers
       .flatMap(_.keys)
 
+  private lazy val directiveTestPrefix = "test."
+  extension (strictDirective: StrictDirective) {
+    private def hasTestPrefix: Boolean = strictDirective.key.startsWith(directiveTestPrefix)
+    private def existsTestEquivalent: Boolean =
+      !strictDirective.hasTestPrefix &&
+      usingDirectivesWithTestPrefixKeysGrouped
+        .exists(_.nameAliases.contains(directiveTestPrefix + strictDirective.key))
+  }
+
   private val newLine: String = System.lineSeparator()
 
   def runRules(
@@ -114,7 +123,13 @@ object BuiltInRules extends CommandHelpers {
 
         val allDirectives = for {
           directivesWithTestPrefix <- transformedTestDirectives.map(_.withTestPrefix)
-          directive                <- directivesWithTestPrefix ++ testDirectivesFromMain
+          directivesWithNoTestPrefixEquivalents <-
+            transformedTestDirectives.map {
+              _.noTestPrefixAvailable
+                .filter(_.existsTestEquivalent)
+            }
+          directive <-
+            directivesWithTestPrefix ++ directivesWithNoTestPrefixEquivalents ++ testDirectivesFromMain
         } yield directive
 
         createFormattedLinesAndAppend(allDirectives, projectFileContents, isTest = true)
@@ -139,7 +154,12 @@ object BuiltInRules extends CommandHelpers {
       .foreach(d => removeDirectivesFrom(d.position))
     directivesFromWritableTestInputs
       .filterNot(ttd => isProjectFile(ttd.positions))
-      .foreach(ttd => removeDirectivesFrom(ttd.positions, toKeep = ttd.noTestPrefixAvailable))
+      .foreach(ttd =>
+        removeDirectivesFrom(
+          position = ttd.positions,
+          toKeep = ttd.noTestPrefixAvailable.filterNot(_.existsTestEquivalent)
+        )
+      )
   }
 
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
@@ -262,18 +282,15 @@ object BuiltInRules extends CommandHelpers {
       extractedFromSingleElement <- extractedDirectives
       directives = extractedFromSingleElement.directives
     } yield {
-      val (withTestEquivalent, noTestEquivalent) = directives.partition { directive =>
-        usingDirectivesWithTestPrefixKeysGrouped.exists(
-          _.nameAliases.contains("test." + directive.key)
-        )
-      }
-
+      val (withInitialTestPrefix, noInitialTestPrefix) = directives.partition(_.hasTestPrefix)
+      val (withTestEquivalent, noTestEquivalent) =
+        noInitialTestPrefix.partition(_.existsTestEquivalent)
       val transformedToTestEquivalents = withTestEquivalent.map {
         case StrictDirective(key, values, _) => StrictDirective("test." + key, values)
       }
 
       TransformedTestDirectives(
-        withTestPrefix = transformedToTestEquivalents,
+        withTestPrefix = transformedToTestEquivalents ++ withInitialTestPrefix,
         noTestPrefixAvailable = noTestEquivalent,
         positions = extractedFromSingleElement.position
       )
@@ -328,7 +345,9 @@ object BuiltInRules extends CommandHelpers {
           StrictDirective(key, directives.flatMap(_.values))
         }
         // group by key prefixes to create splits between groups
-        .groupBy(dir => (if (isTest) dir.key.stripPrefix("test.") else dir.key).takeWhile(_ != '.'))
+        .groupBy(dir =>
+          (if (isTest) dir.key.stripPrefix(directiveTestPrefix) else dir.key).takeWhile(_ != '.')
+        )
         .map { (_, directives) =>
           directives.flatMap(_.explodeToStringsWithColLimit()).toSeq.sorted
         }
