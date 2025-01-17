@@ -133,11 +133,17 @@ object TestUtil {
       try run
       catch {
         case t: Throwable =>
-          if (count >= maxAttempts)
+          if (count >= maxAttempts) {
+            System.err.println(s"$maxAttempts attempts failed, caught $t. Giving up.")
             throw new Exception(t)
+          }
           else {
-            System.err.println(s"Caught $t, trying again in $waitDuration…")
+            val remainingAttempts = maxAttempts - count
+            System.err.println(
+              s"Caught $t, $remainingAttempts attempts remaining, trying again in $waitDuration…"
+            )
             Thread.sleep(waitDuration.toMillis)
+            System.err.println(s"Trying attempt $count out of $maxAttempts...")
             helper(count + 1)
           }
       }
