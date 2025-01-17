@@ -78,7 +78,8 @@ trait FixScalafixRulesTestDefinitions {
       os.rel / "Hello.scala" -> unusedValueInputsContent
     )
     val expectedContent: String = noCrLf {
-      s"""package foo
+      s"""//> using options $scalafixUnusedRuleOption
+         |package foo
          |
          |object Hello {
          |  def main(args: Array[String]): Unit = {
@@ -88,19 +89,11 @@ trait FixScalafixRulesTestDefinitions {
          |}
          |""".stripMargin
     }
-    val expectedProjectContent: String = noCrLf {
-      s"""// Main
-         |//> using options $scalafixUnusedRuleOption
-         |
-         |""".stripMargin
-    }
 
     semanticRuleInputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", "--power", ".", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
-      val projectContent = noCrLf(os.read(root / "project.scala"))
-      expect(projectContent == expectedProjectContent)
     }
   }
 
@@ -136,9 +129,9 @@ trait FixScalafixRulesTestDefinitions {
         scalaVersionArgs
       ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      val projectContent = noCrLf(os.read(root / "project.scala"))
       val expected = noCrLf {
-        s"""|package hello
+        s"""|//> using options $scalafixUnusedRuleOption
+            |package hello
             |
             |object Hello {
             |  def a = {
@@ -148,15 +141,8 @@ trait FixScalafixRulesTestDefinitions {
             |}
             |""".stripMargin
       }
-      val expectedProjectContent: String = noCrLf {
-        s"""// Main
-           |//> using options $scalafixUnusedRuleOption
-           |
-           |""".stripMargin
-      }
 
       expect(updatedContent == expected)
-      expect(projectContent == expectedProjectContent)
 
     }
   }
@@ -259,24 +245,18 @@ trait FixScalafixRulesTestDefinitions {
       os.rel / "Hello.scala" -> original
     )
     val expectedContent: String = noCrLf {
-      """|object CollectHeadOptionTest {
-         |  def x1: Option[String] = List(1, 2, 3).collectFirst{ case n if n % 2 == 0 => n.toString }
-         |}
-         |""".stripMargin
-    }
-    val expectedProjectContent: String = noCrLf {
-      s"""// Main
-         |$directive
-         |
-         |""".stripMargin
+      s"""|$directive
+          |
+          |object CollectHeadOptionTest {
+          |  def x1: Option[String] = List(1, 2, 3).collectFirst{ case n if n % 2 == 0 => n.toString }
+          |}
+          |""".stripMargin
     }
 
     inputs.fromRoot { root =>
       os.proc(TestUtil.cli, "fix", ".", "--power", scalaVersionArgs).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
       expect(updatedContent == expectedContent)
-      val projectContent = noCrLf(os.read(root / "project.scala"))
-      expect(projectContent == expectedProjectContent)
     }
   }
 

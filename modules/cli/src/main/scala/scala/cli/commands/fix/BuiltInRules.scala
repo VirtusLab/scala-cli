@@ -39,6 +39,26 @@ object BuiltInRules extends CommandHelpers {
       .left.map(CompositeBuildException(_))
       .orExit(logger)
 
+    val sourcesCount =
+      mainSources.paths.length + mainSources.inMemory.length +
+        testSources.paths.length + testSources.inMemory.length
+    sourcesCount match
+      case 0 =>
+        logger.message("No sources to migrate directives from.")
+        logger.message("Nothing to do.")
+      case 1 =>
+        logger.message("No need to migrate directives for a single source file project.")
+        logger.message("Nothing to do.")
+      case _ => migrateDirectives(inputs, buildOptions, mainSources, testSources, logger)
+  }
+
+  private def migrateDirectives(
+    inputs: Inputs,
+    buildOptions: BuildOptions,
+    mainSources: Sources,
+    testSources: Sources,
+    logger: Logger
+  )(using ScalaCliInvokeData): Unit = {
     // Only initial inputs are used, new inputs discovered during processing of
     // CrossSources.forInput may be shared between projects
     val writableInputs: Seq[OnDisk] = inputs.flattened()
@@ -120,8 +140,8 @@ object BuiltInRules extends CommandHelpers {
     directivesFromWritableTestInputs
       .filterNot(ttd => isProjectFile(ttd.positions))
       .foreach(ttd => removeDirectivesFrom(ttd.positions, toKeep = ttd.noTestPrefixAvailable))
-
   }
+
   private def getProjectSources(inputs: Inputs, logger: Logger)(using
     ScalaCliInvokeData
   ): Either[::[BuildException], (Sources, Sources)] = {
