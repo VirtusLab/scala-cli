@@ -108,9 +108,9 @@ final case class ScalaNativeOptions(
     List("--clang-pp", clangppPath().toString())
 
   private def finalLinkingOptions(): List[String] =
-    linkingOptions ++ (if (linkingDefaults.getOrElse(true)) sn.Discover.linkingOptions() else Nil)
+    linkingOptions ++ (if (linkingDefaults.getOrElse(true) && targetTripleStr.isEmpty) sn.Discover.linkingOptions() else Nil)
   private def finalCompileOptions(): List[String] =
-    compileOptions ++ (if (compileDefaults.getOrElse(true)) sn.Discover.compileOptions() else Nil)
+    compileOptions ++ (if (compileDefaults.getOrElse(true) && targetTripleStr.isEmpty) sn.Discover.compileOptions() else Nil)
 
   private def linkingCliOptions(): List[String] =
     finalLinkingOptions().flatMap(option => List("--linking-option", option))
