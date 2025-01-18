@@ -33,7 +33,7 @@ final case class ScalaNativeOptions(
 
   @Group(HelpGroup.ScalaNative.toString)
   @HelpMessage("Set a target triple to which Scala Native can cross-compile")
-  @Tag(tags.should)
+  @Tag(tags.experimental)
     nativeTargetTriple: Option[String] = None,
 
   @Group(HelpGroup.ScalaNative.toString)
