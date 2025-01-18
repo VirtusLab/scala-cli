@@ -1,8 +1,12 @@
 package scala.build.postprocessing
 
 import org.objectweb.asm
+import os.SubProcess.InputStream
 
-import scala.build.{Logger, Os}
+import java.io
+import java.nio.file.NoSuchFileException
+
+import scala.build.{Logger, Os, retry}
 
 object AsmPositionUpdater {
 
@@ -53,15 +57,33 @@ object AsmPositionUpdater {
       .filter(os.isFile(_))
       .filter(_.last.endsWith(".class"))
       .foreach { path =>
-        val is = os.read.inputStream(path)
+        val is: io.InputStream =
+          try retry()(logger)(os.read.inputStream(path))
+          catch {
+            case e: NoSuchFileException =>
+              e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+              logger.message(
+                s"Error while processing ${path.relativeTo(Os.pwd)}: $e, trying to recover..."
+              )
+              io.InputStream.nullInputStream()
+          }
         val updateByteCodeOpt =
-          try {
-            val reader  = new asm.ClassReader(is)
-            val writer  = new asm.ClassWriter(reader, 0)
-            val checker = new LineNumberTableClassVisitor(mappings, writer)
-            reader.accept(checker, 0)
-            if (checker.mappedStuff) Some(writer.toByteArray)
-            else None
+          try
+            retry()(logger) {
+              val reader  = new asm.ClassReader(is)
+              val writer  = new asm.ClassWriter(reader, 0)
+              val checker = new LineNumberTableClassVisitor(mappings, writer)
+              reader.accept(checker, 0)
+              if (checker.mappedStuff) Some(writer.toByteArray)
+              else None
+            }
+          catch {
+            case e: ArrayIndexOutOfBoundsException =>
+              e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+              logger.log(
+                s"Error while processing ${path.relativeTo(Os.pwd)}: $e, trying to recover..."
+              )
+              None
           }
           finally is.close()
         for (b <- updateByteCodeOpt) {
