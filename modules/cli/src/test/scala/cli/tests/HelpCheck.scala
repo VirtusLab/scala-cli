@@ -15,7 +15,9 @@ class HelpCheck extends munit.FunSuite {
     assert(lines <= 80)
   }
 
-  test("version help message should only contain relevant options") { // regression test - https://github.com/VirtusLab/scala-cli/issues/1666
+  test(
+    "version help message should only contain relevant options"
+  ) { // regression test - https://github.com/VirtusLab/scala-cli/issues/1666
     val helpMessage = Version.finalHelp.help(Version.helpFormat)
 
     expect(helpMessage.contains("Version options:"))

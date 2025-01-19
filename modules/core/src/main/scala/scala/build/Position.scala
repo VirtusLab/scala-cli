@@ -115,7 +115,8 @@ object Position {
         File(path, startPos, endPos)
     }
   }
-  final case class CommandLine(arg: String = "") extends Position { // todo the exact arg should be somehow taken from CaseApp
+  final case class CommandLine(arg: String =
+    "") extends Position { // todo the exact arg should be somehow taken from CaseApp
     def render(cwd: os.Path, sep: String): String = "COMMAND_LINE"
   }
 
