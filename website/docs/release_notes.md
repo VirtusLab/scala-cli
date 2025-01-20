@@ -8,6 +8,253 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.6.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.0)
+
+### Fixed commas being treated as `using` directive value separators & deprecated using them with whitespace
+:::warning
+These are breaking changes affecting using directives syntax.
+They're technically fixes + a deprecation, but in a very rare scenario existing builds could break, if they were relying on the erroneous syntax.
+:::
+
+This Scala CLI version fixes commas (`,`) being treated as `using` directive value separators on their own.
+
+Formerly, a directive like:
+
+```scala compile
+//> using options -Wunused:locals,privates
+```
+
+Would be (erroneously) interpreted as the following 2 options for the compiler: `-Wunused:locals` and `privates`.
+As a comma will now no longer be treated as a separator (which it never should have been), it will now be interpreted correctly as
+a single option: `-Wunused:locals,privates`.
+Before this change, the only way to pass this value to the `options` directive key was escaping the comma with double quotes:
+```scala compile
+//> using options "-Wunused:locals,privates"
+```
+The escaping is no longer necessary.
+
+Additionally, using commas along with whitespace as separators is now deprecated for future removal.
+```bash ignore
+scala-cli compile --scala-snippet '//> using options -Wunused:locals, -Wunused:privates'
+# [warn] <snippet>-scala-snippet:1:34
+# [warn] Use of commas as separators is deprecated. Only whitespace is neccessary.
+# Starting compilation server
+# Compiling project (Scala 3.6.3, JVM (23))
+# Compiled project (Scala 3.6.3, JVM (23))
+```
+
+Finally, the use of `/* (..) */` comments in `using` directives is no longer supported.
+```scala fail
+//> using /* some comment */ options -Wunused:locals /* some other comment */ -Wunused:privates
+// this syntax used to be supported, but will now fail.
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3381](https://github.com/VirtusLab/scala-cli/pull/3381) and [#3333](https://github.com/VirtusLab/scala-cli/pull/3333)
+
+### Cap vague Scala versions at defaults
+:::warning
+This is a breaking change regarding how the Scala version is resolved.
+:::
+We have changed how a Scala version is picked when `major` or `major.minor` prefixes are passed, rather than the full version tag:
+- `-S 3` will now point to the [launcher default Scala 3 Next version](https://github.com/VirtusLab/scala-cli/blob/72c23a54ac3ef0d3b09aa2646733225a1ac8426a/project/deps.sc#L11), rather than whatever is the latest stable version that `coursier` can find upstream
+- similarly, `-S 3.<current launcher default minor>` will now point to the [launcher default Scala 3 Next version](https://github.com/VirtusLab/scala-cli/blob/72c23a54ac3ef0d3b09aa2646733225a1ac8426a/project/deps.sc#L11)
+- `-S 2.13` will point to the[ launcher default Scala 2.13 version](https://github.com/VirtusLab/scala-cli/blob/72c23a54ac3ef0d3b09aa2646733225a1ac8426a/project/deps.sc#L7) (which up till now only affected tests and generated docs)
+- similarly, `-S 2.12` will now point to the [launcher default Scala 2.12 version](https://github.com/VirtusLab/scala-cli/blob/72c23a54ac3ef0d3b09aa2646733225a1ac8426a/project/deps.sc#L6)
+- launcher defaults are overridden for a particular Scala series with the `--cli-user-scala-version` to accommodate for Scala CLI installed as `scala`
+
+For example:
+```scala
+//> using 3
+// When compiled with Scala CLI v1.6.0, this snippet will use Scala 3.6.3 (the built-in default), even if a newer version has been released.
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3259](https://github.com/VirtusLab/scala-cli/pull/3259)
+
+### Support for Scala 3.6.3 and 2.13.16
+This Scala CLI version switches the default Scala version to 3.6.3.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.6.0
+# Scala version (default): 3.6.3
+```
+
+It has also been tested with Scala 2.13.16.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3426](https://github.com/VirtusLab/scala-cli/pull/3426) and [#3418](https://github.com/VirtusLab/scala-cli/pull/3418)
+
+### Support for Scala.js 1.18.1
+This Scala CLI version adds support for Scala.js 1.18.1.
+
+```bash
+scala-cli -e 'println("Hello")' --js
+# Compiling project (Scala 3.6.3, Scala.js 1.18.1)
+# Compiled project (Scala 3.6.3, Scala.js 1.18.1)
+# Hello
+```
+
+Added in [#3440](https://github.com/VirtusLab/scala-cli/pull/3440) and [scala-js-cli#113](https://github.com/VirtusLab/scala-js-cli/pull/113)
+
+### (⚡️ experimental) `scalafix` integration
+We now support running `scalafix` rules with the `fix` sub-command.
+```bash ignore
+scala-cli fix . --power
+# The `fix` sub-command is experimental
+# Please bear in mind that non-ideal user experience should be expected.
+# If you encounter any bugs or have feedback to share, make sure to reach out to the maintenance team at https://github.com/VirtusLab/scala-cli
+# Running built-in rules...
+# Writing project.scala
+# Removing directives from Smth.scala
+# Built-in rules completed.
+# Running scalafix rules...
+# Starting compilation server
+# Compiling project (Scala 3.6.3, JVM (23))
+# [warn] ./Main.scala:2:7
+# [warn] unused local definition
+# [warn]   val unused = "unused"
+# [warn]       ^^^^^^
+# Compiled project (Scala 3.6.3, JVM (23))
+# scalafix rules completed.
+```
+
+Former fix functionalities are now referred to in the code as the built-in rules.
+Effectively, fix now runs 2 separate sets of rules (both enabled by default): built-in and scalafix.
+They can be controlled via the `--enable-scalafix` and `--enable-built-in` command line options.
+
+`scalafix` rules are ran according to the configuration in `<project-root>/.scalafix.conf`.
+
+It is possible to run [external scalafix rules](https://scalacenter.github.io/scalafix/docs/rules/external-rules.html) with the (⚡️ experimental) `scalafix.dep` directive:
+```scala compile power
+//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.6.0
+```
+
+Added by [@Vigorge](https://github.com/Vigorge) and [@dos65](https://github.com/dos65) in [#2968](https://github.com/VirtusLab/scala-cli/pull/2968)
+
+### Support for running snapshot versions of the build server (Bloop)
+It is now possible to pass a snapshot version to the `--bloop-version` command line option.
+
+```bash
+scala-cli compile . --bloop-version 2.0.7-8-fe3f53d9-SNAPSHOT
+# Starting compilation server
+# Compiling project (Scala 3.6.3, JVM (23))
+# Compiled project (Scala 3.6.3, JVM (23))
+scala-cli --power bloop about
+# bloop v2.0.7-8-fe3f53d9-SNAPSHOT
+# 
+# Using Scala v2.12.20 and Zinc v1.10.7
+# Running on Java JDK v23.0.1 (~/Library/Caches/Coursier/arc/https/github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.1%252B11/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.1_11.tar.gz/jdk-23.0.1+11/Contents/Home)
+#   -> Supports debugging user code, Java Debug Interface (JDI) is available.
+# Maintained by the Scala Center and the community.
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3405](https://github.com/VirtusLab/scala-cli/pull/3405)
+
+### Support for suppressing deprecation warnings
+It is now possible to suppress deprecation warnings with the `--suppress-deprecated-warnings` command line option.
+
+```bash ignore
+scala-cli project-with-deprecated-stuff --suppress-deprecated-warnings
+````
+
+You can also suppress deprecation warnings globally by setting the `suppress-warning.deprecated-features` configuration key.
+```bash ignore
+scala-cli config suppress-warning.deprecated-features true
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3406](https://github.com/VirtusLab/scala-cli/pull/3406)
+
+### Features
+* Scalafix command for scala-cli with basic options and tests by [@Vigorge](https://github.com/Vigorge) and [@dos65](https://github.com/dos65) in [#2968](https://github.com/VirtusLab/scala-cli/pull/2968)
+* Ensure vague Scala versions are capped at defaults by [@Gedochao](https://github.com/Gedochao) in [#3259](https://github.com/VirtusLab/scala-cli/pull/3259)
+* Merge `scalafix` into `fix` by [@Gedochao](https://github.com/Gedochao) in [#3400](https://github.com/VirtusLab/scala-cli/pull/3400)
+* Allow to use Bloop snapshot versions by [@Gedochao](https://github.com/Gedochao) in [#3405](https://github.com/VirtusLab/scala-cli/pull/3405)
+* Add ways to suppress deprecation warnings by [@Gedochao](https://github.com/Gedochao) in [#3406](https://github.com/VirtusLab/scala-cli/pull/3406)
+
+### Fixes
+* Misc improvements in compiler options handling by [@Gedochao](https://github.com/Gedochao) in [#3253](https://github.com/VirtusLab/scala-cli/pull/3253)
+* Allow shading of single-choice compiler options from the command line regardless of `-`/`--` prefix by [@Gedochao](https://github.com/Gedochao) in [#3279](https://github.com/VirtusLab/scala-cli/pull/3279)
+* Fix dependency main class detection throwing an NPE when JAR manifest doesn't list the main class correctly by [@Gedochao](https://github.com/Gedochao) in [#3319](https://github.com/VirtusLab/scala-cli/pull/3319)
+* Fix commas being treated as `using` directives value separators & deprecate using them with whitespace by [@Gedochao](https://github.com/Gedochao) in [#3333](https://github.com/VirtusLab/scala-cli/pull/3333)
+* Retain Bloop connection when restarting a build with `--watch` by [@Gedochao](https://github.com/Gedochao) in [#3351](https://github.com/VirtusLab/scala-cli/pull/3351)
+* Improve deprecation warnings for commas with whitespace used as using directive value separators by [@Gedochao](https://github.com/Gedochao) in [#3366](https://github.com/VirtusLab/scala-cli/pull/3366)
+* Recover from invalid paths returned from Bloop diagnostics by [@Gedochao](https://github.com/Gedochao) in [#3372](https://github.com/VirtusLab/scala-cli/pull/3372)
+* Add missing support for excluding transient dependencies when publishing by [@Gedochao](https://github.com/Gedochao) in [#3357](https://github.com/VirtusLab/scala-cli/pull/3357)
+* Fix using directives crashing on `*/` by removing `/* (..) */` comments support in `using_directives` by [@Gedochao](https://github.com/Gedochao) in [#3381](https://github.com/VirtusLab/scala-cli/pull/3381)
+* `fix` built-in rules: don't wrap directive values in double quotes if not necessary by [@Gedochao](https://github.com/Gedochao) in [#3414](https://github.com/VirtusLab/scala-cli/pull/3414)
+* Don't migrate directives with `fix` for single-file projects by [@Gedochao](https://github.com/Gedochao) in [#3422](https://github.com/VirtusLab/scala-cli/pull/3422)
+* Temporarily disable built-in rules of `fix` when `--check` is enabled, until fully supported by [@Gedochao](https://github.com/Gedochao) in [#3427](https://github.com/VirtusLab/scala-cli/pull/3427)
+* Ensure test source directives with test scope equivalents are migrated by `fix` to `project.scala` by [@Gedochao](https://github.com/Gedochao) in [#3425](https://github.com/VirtusLab/scala-cli/pull/3425)
+
+### Internal and build changes
+* Retry some of the occasionally flaky tests when failing on the CI by [@Gedochao](https://github.com/Gedochao) in [#3320](https://github.com/VirtusLab/scala-cli/pull/3320)
+* Retry more occasionally flaky tests on the CI by [@Gedochao](https://github.com/Gedochao) in [#3331](https://github.com/VirtusLab/scala-cli/pull/3331)
+* Tag `scalajs-dom` tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3336](https://github.com/VirtusLab/scala-cli/pull/3336)
+* Tag native packager tests as flaky by [@Gedochao](https://github.com/Gedochao) in [#3344](https://github.com/VirtusLab/scala-cli/pull/3344)
+* Make `generate-junit-reports.sc` script recover from test failures containing no trace data by [@Gedochao](https://github.com/Gedochao) in [#3341](https://github.com/VirtusLab/scala-cli/pull/3341)
+* Support `coursier`-downloaded `scala` wrapper tests on Windows by [@Gedochao](https://github.com/Gedochao) in [#3325](https://github.com/VirtusLab/scala-cli/pull/3325)
+* Get rid of duplicate names for uploaded/downloaded artifacts on the CI by [@Gedochao](https://github.com/Gedochao) in [#3342](https://github.com/VirtusLab/scala-cli/pull/3342)
+* Retry generating the Windows launcher up to 5 times by [@Gedochao](https://github.com/Gedochao) in [#3349](https://github.com/VirtusLab/scala-cli/pull/3349)
+* Retry generating Windows launchers in the `generate-native-image.sh` script directly, rather than the entire CI step by [@Gedochao](https://github.com/Gedochao) in [#3350](https://github.com/VirtusLab/scala-cli/pull/3350)
+* Fix integration tests when run with a Scala 3 LTS RC version by [@Gedochao](https://github.com/Gedochao) in [#3362](https://github.com/VirtusLab/scala-cli/pull/3362)
+* Retry some more flaky tests on the CI by [@Gedochao](https://github.com/Gedochao) in [#3382](https://github.com/VirtusLab/scala-cli/pull/3382)
+* Run extra tests for main supported JVM versions by [@Gedochao](https://github.com/Gedochao) in [#3375](https://github.com/VirtusLab/scala-cli/pull/3375)
+* tests: Add tests for issue with rereporting errors by [@tgodzik](https://github.com/tgodzik) in [#3390](https://github.com/VirtusLab/scala-cli/pull/3390)
+* Add extra logs when retrying flaky tests by [@Gedochao](https://github.com/Gedochao) in [#3433](https://github.com/VirtusLab/scala-cli/pull/3433)
+
+### Deprecations
+* Deprecate `--src` and `--sources` to disambiguate with `--source` compiler option by [@Gedochao](https://github.com/Gedochao) in [#3412](https://github.com/VirtusLab/scala-cli/pull/3412)
+
+### Documentation changes
+* docs: document Scala Native flag options by [@scarf005](https://github.com/scarf005) in [#3386](https://github.com/VirtusLab/scala-cli/pull/3386)
+* docs: document Scala Native flag options by [@scarf005](https://github.com/scarf005) in [#3416](https://github.com/VirtusLab/scala-cli/pull/3416)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3419](https://github.com/VirtusLab/scala-cli/pull/3419)
+* Merge `scalafix` doc into `fix` by [@Gedochao](https://github.com/Gedochao) in [#3420](https://github.com/VirtusLab/scala-cli/pull/3420)
+
+### Updates
+* Update Scala 3 Next RC to 3.6.2-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3305](https://github.com/VirtusLab/scala-cli/pull/3305)
+* Update scala-cli.sh launcher for 1.5.4 by [@github-actions](https://github.com/github-actions) in [#3308](https://github.com/VirtusLab/scala-cli/pull/3308)
+* Update `coursier` to 2.1.18 by [@Gedochao](https://github.com/Gedochao) in [#3312](https://github.com/VirtusLab/scala-cli/pull/3312)
+* Update `scala-packager` to 0.1.31 by [@Gedochao](https://github.com/Gedochao) in [#3311](https://github.com/VirtusLab/scala-cli/pull/3311)
+* Update jsoup to 1.18.2 by [@scala-steward](https://github.com/scala-steward) in [#3323](https://github.com/VirtusLab/scala-cli/pull/3323)
+* Update Scala 3 Next RC to 3.6.2-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3321](https://github.com/VirtusLab/scala-cli/pull/3321)
+* Bump `coursier` to 2.1.19 by [@Gedochao](https://github.com/Gedochao) in [#3326](https://github.com/VirtusLab/scala-cli/pull/3326)
+* Bump Typelevel toolkit to 0.1.29 by [@Gedochao](https://github.com/Gedochao) in [#3332](https://github.com/VirtusLab/scala-cli/pull/3332)
+* Bump Scala 3 Next RC to 3.6.2-RC3 by [@Gedochao](https://github.com/Gedochao) in [#3334](https://github.com/VirtusLab/scala-cli/pull/3334)
+* Update jsoup to 1.18.3 by [@scala-steward](https://github.com/scala-steward) in [#3338](https://github.com/VirtusLab/scala-cli/pull/3338)
+* Update sbt, scripted-plugin to 1.10.6 by [@scala-steward](https://github.com/scala-steward) in [#3339](https://github.com/VirtusLab/scala-cli/pull/3339)
+* Bump actions/upload-artifact & actions/download-artifact from 3 to 4 by [@Gedochao](https://github.com/Gedochao) in [#2701](https://github.com/VirtusLab/scala-cli/pull/2701)
+* Update munit to 1.0.3 by [@scala-steward](https://github.com/scala-steward) in [#3346](https://github.com/VirtusLab/scala-cli/pull/3346)
+* Update dependency to 0.3.2 by [@scala-steward](https://github.com/scala-steward) in [#3353](https://github.com/VirtusLab/scala-cli/pull/3353)
+* Update `coursier` to 2.1.20 by [@Gedochao](https://github.com/Gedochao) in [#3356](https://github.com/VirtusLab/scala-cli/pull/3356)
+* Bump Scala Next to 3.6.2 by [@Gedochao](https://github.com/Gedochao) in [#3358](https://github.com/VirtusLab/scala-cli/pull/3358)
+* Bump Scala Next RC to 3.6.3-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3360](https://github.com/VirtusLab/scala-cli/pull/3360)
+* Update metaconfig-typesafe-config to 0.14.0 by [@scala-steward](https://github.com/scala-steward) in [#3364](https://github.com/VirtusLab/scala-cli/pull/3364)
+* Update coursier-jvm_2.13, ... to 2.1.21 by [@scala-steward](https://github.com/scala-steward) in [#3363](https://github.com/VirtusLab/scala-cli/pull/3363)
+* Set Scala 3.6.2 as the latest Next announced version by [@Gedochao](https://github.com/Gedochao) in [#3365](https://github.com/VirtusLab/scala-cli/pull/3365)
+* Update bloop-rifle_2.13 to 2.0.6 by [@scala-steward](https://github.com/scala-steward) in [#3368](https://github.com/VirtusLab/scala-cli/pull/3368)
+* Update guava to 33.4.0-jre by [@scala-steward](https://github.com/scala-steward) in [#3376](https://github.com/VirtusLab/scala-cli/pull/3376)
+* Update `coursier` to 2.1.22 by [@scala-steward](https://github.com/scala-steward) in [#3378](https://github.com/VirtusLab/scala-cli/pull/3378)
+* Bump the announced Scala 3 Next RC version to 3.6.3-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3380](https://github.com/VirtusLab/scala-cli/pull/3380)
+* Update bloop-config_2.13 to 2.2.0 by [@scala-steward](https://github.com/scala-steward) in [#3392](https://github.com/VirtusLab/scala-cli/pull/3392)
+* Update `coursier` to 2.1.23 by [@scala-steward](https://github.com/scala-steward) in [#3395](https://github.com/VirtusLab/scala-cli/pull/3395)
+* Update Scala 3 Next RC to 3.6.3-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3398](https://github.com/VirtusLab/scala-cli/pull/3398)
+* Set Scala 3.6.3-RC2 as the latest announced RC version by [@Gedochao](https://github.com/Gedochao) in [#3407](https://github.com/VirtusLab/scala-cli/pull/3407)
+* Update Scala 2.13 series to 2.13.16 by [@Gedochao](https://github.com/Gedochao) in [#3418](https://github.com/VirtusLab/scala-cli/pull/3418)
+* Update `coursier` to 2.1.24 by [@Gedochao](https://github.com/Gedochao) in [#3429](https://github.com/VirtusLab/scala-cli/pull/3429)
+* Update Scala Next to 3.6.3 by [@Gedochao](https://github.com/Gedochao) in [#3426](https://github.com/VirtusLab/scala-cli/pull/3426)
+* Update Scala Next RC to 3.6.4-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3431](https://github.com/VirtusLab/scala-cli/pull/3431)
+* Update bloop-config_2.13 to 2.3.1 by [@scala-steward](https://github.com/scala-steward) in [#3435](https://github.com/VirtusLab/scala-cli/pull/3435)
+* Update core_2.13 to 3.10.2 by [@scala-steward](https://github.com/scala-steward) in [#3439](https://github.com/VirtusLab/scala-cli/pull/3439)
+* Update scalafix-interfaces to 0.14.0 by [@scala-steward](https://github.com/scala-steward) in [#3437](https://github.com/VirtusLab/scala-cli/pull/3437)
+* Update munit to 1.0.4 by [@scala-steward](https://github.com/scala-steward) in [#3441](https://github.com/VirtusLab/scala-cli/pull/3441)
+* Update Scala.js to 1.18.1 by [@scala-steward](https://github.com/scala-steward) in [#3440](https://github.com/VirtusLab/scala-cli/pull/3440)
+
+### New Contributors
+* [@Vigorge](https://github.com/Vigorge) made their first contribution in [#2968](https://github.com/VirtusLab/scala-cli/pull/2968)
+* [@scarf005](https://github.com/scarf005) made their first contribution in [#3386](https://github.com/VirtusLab/scala-cli/pull/3386)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.5.4...v1.6.0
+
 ## [v1.5.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.5.4)
 
 ### Hotfix release
