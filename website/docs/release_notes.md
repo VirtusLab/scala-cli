@@ -8,6 +8,41 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.6.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.1)
+
+## Pass `--repl-init-script` directly to the Scala REPL
+Passing an initialization script to the REPL with `--repl-init-script` is now allowed directly, rather than after `--` or with `-O`.
+The `--repl-init-script` is a REPL option introduced in Scala 3.6.4, so it's not available for earlier Scala versions.
+```bash ignore
+scala-cli repl -S 3.6.4-RC1 --repl-init-script 'println("Hello")'
+# Hello
+# Welcome to Scala 3.6.4-RC1 (23.0.1, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#                                                                                                                  
+# scala> 
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3447](https://github.com/VirtusLab/scala-cli/pull/3447)
+
+### Hotfix release
+Although Scala CLI 1.6.1 includes a few updates and improvements, it is primarily a hotfix release for version 1.6.0, which due to technical limitations wasn't available on some of our distribution channels.
+
+For extra context refer to:
+* [Scala CLI 1.6.0 release notes](#v160)
+
+## Features
+- Enable direct usage of --repl-init-script with Scala REPL >= 3.6.4-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3447](https://github.com/VirtusLab/scala-cli/pull/3447)
+
+## Internal and build changes
+* Fix `update-packages` step of the release job on the CI by [@Gedochao](https://github.com/Gedochao) in [#3446](https://github.com/VirtusLab/scala-cli/pull/3446)
+
+## Updates
+* Bump Scala CLI launchers to v1.6.0 by [@Gedochao](https://github.com/Gedochao) in [#3450](https://github.com/VirtusLab/scala-cli/pull/3450)
+* chore: Update Bloop to 2.0.8 by [@tgodzik](https://github.com/tgodzik) in [#3449](https://github.com/VirtusLab/scala-cli/pull/3449)
+* Update scalafmt to 3.8.5 by [@scala-steward](https://github.com/scala-steward) in [#3442](https://github.com/VirtusLab/scala-cli/pull/3442)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.6.0...v1.6.1
+
 ## [v1.6.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.0)
 
 ### Fixed commas being treated as `using` directive value separators & deprecated using them with whitespace
