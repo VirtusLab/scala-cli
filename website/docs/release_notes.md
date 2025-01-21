@@ -45,6 +45,21 @@ For extra context refer to:
 
 ## [v1.6.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.0)
 
+### Scala CLI 1.6.0 will not be available on all distribution channels
+Due to technical difficulties with our release pipeline, Scala CLI 1.6.0 release distribution channels were limited to:
+- its [GitHub release page](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.0), where launchers for all platforms are available as normal
+- Maven Central
+- WinGet
+- Chocolatey
+
+While it can be used as such, we followed it up with [a hotfix 1.6.1 release](#v161), which should be available through all standard distribution channels.
+
+```bash
+scala-cli --cli-version 1.6.0 --version
+# Scala CLI version: 1.6.0
+# Scala version (default): 3.6.3
+```
+
 ### Fixed commas being treated as `using` directive value separators & deprecated using them with whitespace
 :::warning
 These are breaking changes affecting using directives syntax.
