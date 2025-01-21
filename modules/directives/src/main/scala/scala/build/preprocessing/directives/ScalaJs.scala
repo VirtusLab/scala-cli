@@ -112,8 +112,7 @@ final case class ScalaJs(
       case Some(importmap) =>
         BuildOptions(
           scalaJsOptions = scalaJsOptions.copy(remapEsModuleImportMap = Some(importmap))
-        )
-    )
+        ))
 }
 
 class ImportMapNotFound(message: String, cause: Throwable)

@@ -199,8 +199,7 @@ class BspClient(
       }
         .groupBy(_.positions.headOption match
           case Some(File(Right(path), _, _, _)) => Some(path)
-          case _                                => None
-        )
+          case _                                => None)
         .filter(_._1.isDefined)
         .values
         .toSeq

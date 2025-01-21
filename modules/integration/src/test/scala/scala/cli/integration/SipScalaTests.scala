@@ -262,7 +262,9 @@ class SipScalaTests extends ScalaCliSuite
     }
 
   if (TestUtil.isNativeCli)
-    test(s"usage instruction should point to scala when installing by cs") { // https://github.com/VirtusLab/scala-cli/issues/1662
+    test(
+      s"usage instruction should point to scala when installing by cs"
+    ) { // https://github.com/VirtusLab/scala-cli/issues/1662
       TestInputs.empty.fromRoot {
         root => // cs installs binaries under .app-name.aux and scala-cli should drop .aux from progName
           val binary       = "scala".prepareBinary(root)

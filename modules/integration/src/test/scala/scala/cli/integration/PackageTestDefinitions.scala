@@ -869,7 +869,16 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("source JAR") {
     val dest = os.rel / "sources.jar"
     simpleInputWithScalaAndSc.fromRoot { root =>
-      os.proc(TestUtil.cli, "--power", "package", extraOptions, ".", "-o", dest, "--with-sources").call(
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        extraOptions,
+        ".",
+        "-o",
+        dest,
+        "--with-sources"
+      ).call(
         cwd = root,
         stdin = os.Inherit,
         stdout = os.Inherit
