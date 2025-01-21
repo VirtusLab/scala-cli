@@ -1820,7 +1820,7 @@ jobs:
           path: artifacts/
       - uses: actions/download-artifact@v4
         with:
-          name: launchers
+          name: jvm-launchers
           path: artifacts/
       - name: Display structure of downloaded files
         run: ls -R
