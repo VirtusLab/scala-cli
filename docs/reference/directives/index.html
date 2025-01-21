@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.1">
 <title data-rh="true">Directives | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/directives"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Directives | Scala CLI"><meta data-rh="true" name="description" content="using directives"><meta data-rh="true" property="og:description" content="using directives"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/directives"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/directives" hreflang="x-default"><script data-rh="true">!function(e,t,a,n,g){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var m=t.getElementsByTagName(a)[0],r=t.createElement(a);r.async=!0,r.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",m.parentNode.insertBefore(r,m)}(window,document,"script","dataLayer")</script><link rel="stylesheet" href="/assets/css/styles.49de7bd3.css">
-<script src="/assets/js/runtime~main.2502d196.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.b7e4cb40.js" defer="defer"></script>
 <script src="/assets/js/main.3e8fc617.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -63,15 +63,15 @@
 <p><code>//&gt; using dep com.lihaoyi::os-lib:0.9.1</code></p>
 <p><code>//&gt; using test.dep org.scalatest::scalatest:3.2.10</code></p>
 <p><code>//&gt; using test.dep org.scalameta::munit:0.7.29</code></p>
-<p><code>//&gt; using dep &quot;tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar&quot;</code></p>
+<p><code>//&gt; using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="exclude-sources">Exclude sources<a href="#exclude-sources" class="hash-link" aria-label="Direct link to Exclude sources" title="Direct link to Exclude sources">​</a></h3>
 <p>Exclude sources from the project</p>
 <p><code>//&gt; using exclude</code> <em>pattern</em></p>
 <p><code>//&gt; using exclude</code> <em>pattern1</em> <em>pattern2</em> …</p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-8">Examples<a href="#examples-8" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
 <p><code>//&gt; using exclude utils.scala</code></p>
-<p><code>//&gt; using exclude &quot;examples/*&quot; &quot;*/resources/*&quot;</code></p>
-<p><code>//&gt; using exclude &quot;*.sc&quot;</code></p>
+<p><code>//&gt; using exclude examples/* */resources/*</code></p>
+<p><code>//&gt; using exclude *.sc</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="jvm-version">JVM version<a href="#jvm-version" class="hash-link" aria-label="Direct link to JVM version" title="Direct link to JVM version">​</a></h3>
 <p>Use a specific JVM, such as <code>14</code>, <code>adopt:11</code>, or <code>graalvm:21</code>, or <code>system</code>. scala-cli uses <a href="https://get-coursier.io/" target="_blank" rel="noopener noreferrer">coursier</a> to fetch JVMs, so you can use <code>cs java --available</code> to list the available JVMs.</p>
 <p><code>//&gt; using jvm</code> <em>value</em></p>
@@ -88,14 +88,14 @@
 <p>Add Java options which will be passed when running an application.</p>
 <p><code>//&gt; using javaOpt</code> <em>options</em></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-11">Examples<a href="#examples-11" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
-<p><code>//&gt; using javaOpt -Xmx2g, -Dsomething=a</code></p>
+<p><code>//&gt; using javaOpt -Xmx2g -Dsomething=a</code></p>
 <p><code>//&gt; using test.javaOpt -Dsomething=a</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="java-properties">Java properties<a href="#java-properties" class="hash-link" aria-label="Direct link to Java properties" title="Direct link to Java properties">​</a></h3>
 <p>Add Java properties</p>
 <p><code>//&gt; using javaProp</code> <em>key=value</em></p>
 <p><code>//&gt; using javaProp</code> <em>key</em></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-12">Examples<a href="#examples-12" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
-<p><code>//&gt; using javaProp foo1=bar, foo2</code></p>
+<p><code>//&gt; using javaProp foo1=bar foo2</code></p>
 <p><code>//&gt; using test.javaProp foo3=bar foo4</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="javac-options">Javac options<a href="#javac-options" class="hash-link" aria-label="Direct link to Javac options" title="Direct link to Javac options">​</a></h3>
 <p>Add Javac options which will be passed when compiling sources.</p>
@@ -111,7 +111,7 @@
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="objectwrapper">ObjectWrapper<a href="#objectwrapper" class="hash-link" aria-label="Direct link to ObjectWrapper" title="Direct link to ObjectWrapper">​</a></h3>
 <p>Set the default code wrapper for scripts to object wrapper</p>
 <p><code>//&gt; using objectWrapper</code></p>
-<h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-15">Examples<a href="#examples-15" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples"> ​</a></h4>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-15">Examples<a href="#examples-15" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
 <p><code>//&gt; using objectWrapper</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="packaging">Packaging<a href="#packaging" class="hash-link" aria-label="Direct link to Packaging" title="Direct link to Packaging">​</a></h3>
 <p>Set parameters for packaging</p>
@@ -200,7 +200,7 @@
 <p><code>//&gt; using scala 3.0.2</code></p>
 <p><code>//&gt; using scala 2.13</code></p>
 <p><code>//&gt; using scala 2</code></p>
-<p><code>//&gt; using scala 2.13.6, 2.12.16</code></p>
+<p><code>//&gt; using scala 2.13.6 2.12.16</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="scalajs-options">Scala.js options<a href="#scalajs-options" class="hash-link" aria-label="Direct link to Scala.js options" title="Direct link to Scala.js options">​</a></h3>
 <p>Add Scala.js options</p>
 <p><code>//&gt; using jsVersion</code> <em>value</em></p>
@@ -227,7 +227,7 @@
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-27">Examples<a href="#examples-27" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
 <p><code>//&gt; using testFramework utest.runner.Framework</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="toolkit">Toolkit<a href="#toolkit" class="hash-link" aria-label="Direct link to Toolkit" title="Direct link to Toolkit">​</a></h3>
-<p>Use a toolkit as dependency (not supported in Scala 2.12), &#x27;default&#x27; version for Scala toolkit: 0.5.0, &#x27;default&#x27; version for typelevel toolkit: 0.1.27</p>
+<p>Use a toolkit as dependency (not supported in Scala 2.12), &#x27;default&#x27; version for Scala toolkit: 0.5.0, &#x27;default&#x27; version for typelevel toolkit: 0.1.29</p>
 <p><code>//&gt; using toolkit</code> <em>version</em></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-28">Examples<a href="#examples-28" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
 <p><code>//&gt; using toolkit 0.1.0</code></p>
@@ -239,7 +239,7 @@
 <p><code>//&gt; using target.platform</code> <em>platform</em></p>
 <h4 class="anchor anchorWithStickyNavbar_LWe7" id="examples-29">Examples<a href="#examples-29" class="hash-link" aria-label="Direct link to Examples" title="Direct link to Examples">​</a></h4>
 <p><code>//&gt; using target.platform scala-js</code></p>
-<p><code>//&gt; using target.platform scala-js, scala-native</code></p>
+<p><code>//&gt; using target.platform scala-js scala-native</code></p>
 <p><code>//&gt; using target.platform jvm</code></p>
 <h3 class="anchor anchorWithStickyNavbar_LWe7" id="scala-version-1">Scala version<a href="#scala-version-1" class="hash-link" aria-label="Direct link to Scala version" title="Direct link to Scala version">​</a></h3>
 <p>Require a Scala version for the current file</p>

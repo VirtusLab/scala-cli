@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.0.1">
 <title data-rh="true">Commands | Scala CLI</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" name="twitter:image" content="https://scala-cli.virtuslab.org/img/logo.png"><meta data-rh="true" property="og:url" content="https://scala-cli.virtuslab.org/docs/reference/scala-command/commands"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Commands | Scala CLI"><meta data-rh="true" name="description" content="This document describes as scala-cli behaves if run as scala command. See more information in SIP-46"><meta data-rh="true" property="og:description" content="This document describes as scala-cli behaves if run as scala command. See more information in SIP-46"><link data-rh="true" rel="icon" href="/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/commands"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/commands" hreflang="en"><link data-rh="true" rel="alternate" href="https://scala-cli.virtuslab.org/docs/reference/scala-command/commands" hreflang="x-default"><script data-rh="true">!function(e,t,a,n,g){e[n]=e[n]||[],e[n].push({"gtm.start":(new Date).getTime(),event:"gtm.js"});var m=t.getElementsByTagName(a)[0],r=t.createElement(a);r.async=!0,r.src="https://www.googletagmanager.com/gtm.js?id=GTM-5TZTCGF",m.parentNode.insertBefore(r,m)}(window,document,"script","dataLayer")</script><link rel="stylesheet" href="/assets/css/styles.49de7bd3.css">
-<script src="/assets/js/runtime~main.2502d196.js" defer="defer"></script>
+<script src="/assets/js/runtime~main.b7e4cb40.js" defer="defer"></script>
 <script src="/assets/js/main.3e8fc617.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
@@ -54,6 +54,7 @@ All supported types of inputs can be mixed with each other.</p>
 <li>repositories.credentials                       Repository credentials, syntax: repositoryAddress value<!-- -->:user<!-- --> value<!-- -->:password<!-- --> [realm]</li>
 <li>repositories.default                           Default repository, syntax: <a href="https://first-repo.company.com" target="_blank" rel="noopener noreferrer">https://first-repo.company.com</a> <a href="https://second-repo.company.com" target="_blank" rel="noopener noreferrer">https://second-repo.company.com</a></li>
 <li>repositories.mirrors                           Repository mirrors, syntax: repositories.mirrors maven:*=<a href="https://repository.company.com/maven" target="_blank" rel="noopener noreferrer">https://repository.company.com/maven</a></li>
+<li>suppress-warning.deprecated-features           Globally suppresses warnings about deprecated features.</li>
 <li>suppress-warning.directives-in-multiple-files  Globally suppresses warnings about directives declared in multiple source files.</li>
 <li>suppress-warning.experimental-features         Globally suppresses warnings about experimental features.</li>
 <li>suppress-warning.outdated-dependencies-files   Globally suppresses warnings about outdated dependencies.</li>
@@ -132,7 +133,7 @@ A source file is treated as a test source if:</p>
 <ul>
 <li>the file name ends with <code>.test.scala</code></li>
 <li>the file comes from a directory that is provided as input, and the relative path from that file to its original directory contains a <code>test</code> directory</li>
-<li>it contains the <code>//&gt; using target.scope &quot;test&quot;</code> directive (Experimental)</li>
+<li>it contains the <code>//&gt; using target.scope test</code> directive (Experimental)</li>
 </ul>
 <p>Specific test configurations can be specified with both command line options and using directives defined in sources.
 Command line options always take priority over using directives when a clash occurs, allowing to override configurations defined in sources.
