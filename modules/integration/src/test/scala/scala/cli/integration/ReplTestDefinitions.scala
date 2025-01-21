@@ -86,4 +86,26 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(res.exitCode == 0)
     }
   }
+
+  test("--repl-init-script dry run") {
+    TestInputs.empty.fromRoot { root =>
+      val r = os.proc(
+        TestUtil.cli,
+        "repl",
+        extraOptions,
+        "--repl-init-script",
+        "println(\"Hello\")",
+        "--repl-dry-run"
+      )
+        .call(cwd = root, stderr = os.Pipe, check = false)
+      val warningText =
+        "The '--repl-init-script option' is only supported starting with Scala 3.6.4 and onwards."
+      val coursierScalaVersion = actualScalaVersion.coursierVersion
+      val shouldPrintWarning = coursierScalaVersion < "3.6.4".coursierVersion &&
+        coursierScalaVersion < "3.6.4-RC1".coursierVersion &&
+        coursierScalaVersion < "3.6.4-RC1-bin-20250109-a50a1e4-NIGHTLY".coursierVersion
+      if (shouldPrintWarning) expect(r.err.trim().contains(warningText))
+      else expect(!r.err.trim().contains(warningText))
+    }
+  }
 }

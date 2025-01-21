@@ -4,6 +4,7 @@ import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
+import coursier.core.Version
 import coursier.error.{FetchError, ResolutionError}
 import dependency.*
 
@@ -20,6 +21,7 @@ import scala.build.errors.{
 }
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
+import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.{
@@ -28,14 +30,14 @@ import scala.cli.commands.run.Run.{
   pythonPathEnv
 }
 import scala.cli.commands.run.RunMode
-import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
+import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
-import scala.cli.{CurrentParams, ScalaCli}
+import scala.cli.{CurrentParams, ScalaCli, coursierVersion}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -390,11 +392,24 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       replArgs: Seq[String],
       extraEnv: Map[String, String] = Map.empty,
       extraProps: Map[String, String] = Map.empty
-    ): Unit =
-      if (dryRun)
-        logger.message("Dry run, not running REPL.")
+    ): Unit = {
+      val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
+      if replArgs.exists(_.noDashPrefixes == ScalacOptions.replInitScript) then
+        scalaParams.scalaVersion match
+          case _ if isAmmonite =>
+            logger.message(
+              "The '--repl-init-script' option is not supported with Ammonite. Did you mean to use '--ammonite-arg'?"
+            )
+          case s
+              if s.coursierVersion < "3.6.4-RC1".coursierVersion &&
+              s.coursierVersion < "3.6.4".coursierVersion &&
+              s.coursierVersion < "3.6.4-RC1-bin-20250109-a50a1e4-NIGHTLY".coursierVersion =>
+            logger.message(
+              "The '--repl-init-script option' is only supported starting with Scala 3.6.4 and onwards."
+            )
+          case _ => ()
+      if dryRun then logger.message("Dry run, not running REPL.")
       else {
-        val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
         val depClassPathArgs: Seq[String] =
           if replArtifacts.depsClassPath.nonEmpty && !isAmmonite then
             Seq(
@@ -422,6 +437,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         if (retCode != 0)
           value(Left(new ReplError(retCode)))
       }
+    }
 
     def defaultArtifacts(): Either[BuildException, ReplArtifacts] = either {
       value {

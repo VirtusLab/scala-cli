@@ -48,6 +48,8 @@ object ScalacOptions {
   val YScriptRunnerOption               = "Yscriptrunner"
   private val scalacOptionsPurePrefixes = Set("V", "W", "X", "Y")
   private val scalacOptionsPrefixes     = Set("P") ++ scalacOptionsPurePrefixes
+  val replInitScript                    = "repl-init-script"
+  private val replAliasedOptions        = Set(replInitScript)
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set(
       "coverage-exclude-classlikes",
@@ -61,7 +63,7 @@ object ScalacOptions {
       "target",
       "source",
       YScriptRunnerOption
-    )
+    ) ++ replAliasedOptions
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
       "experimental",
