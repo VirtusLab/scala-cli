@@ -80,6 +80,63 @@ scala> :quit
 
 </ChainedSnippets>
 
+## Passing REPL options
+It is also possible to manually pass REPL-specific options.
+It can be done in a couple ways:
+- after the `--` separator, as the REPL itself is the launched app, so its options are app arguments
+
+<ChainedSnippets>
+
+```bash ignore
+scala repl -S 3.6.4-RC1 -- --repl-init-script 'println("Hello")'
+```
+
+```
+Hello
+Welcome to Scala 3.6.4-RC1 (23.0.1, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                                                 
+scala> 
+```
+</ChainedSnippets>
+
+
+- with the `-O`, effectively passing them as compiler options:
+
+<ChainedSnippets>
+
+```bash ignore
+scala repl -S 3.6.4-RC1 -O --repl-init-script -O 'println("Hello")'
+```
+
+```
+Hello
+Welcome to Scala 3.6.4-RC1 (23.0.1, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                                                 
+scala> 
+```
+
+</ChainedSnippets>
+
+- directly, as a Scala CLI option (do note that newly added options from an RC version or a snapshot may not be supported this way just yet):
+
+<ChainedSnippets>
+
+```bash ignore
+scala repl -S 3.6.4-RC1 --repl-init-script 'println("Hello")'
+```
+
+```
+Hello
+Welcome to Scala 3.6.4-RC1 (23.0.1, Java OpenJDK 64-Bit Server VM).
+Type in expressions for evaluation. Or try :help.
+                                                                                                                 
+scala> 
+```
+
+</ChainedSnippets>
+
 ## Using Toolkit in REPL
 It is also possible to start the scala-cli REPL with [toolkit](https://scala-cli.virtuslab.org/docs/guides/introduction/toolkit/) enabled
 
