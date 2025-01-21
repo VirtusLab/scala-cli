@@ -2191,28 +2191,27 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
       }
     }
 
-  // TODO: test for the most recent CLI version as well when 1.5.1 is out
-  for { cliVersion <- Seq("1.5.0-34-g31a88e428-SNAPSHOT") }
+  for { cliVersion <- Seq("1.5.0-34-g31a88e428-SNAPSHOT", "1.6.0") }
     test(
       s"setup-ide prepares a valid BSP configuration with --cli-version $cliVersion"
     ) {
-      val scriptName = "cli-version.sc"
-      val inputs = TestInputs(
-        os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")"""
-      )
-      inputs.fromRoot { root =>
-        val cliVersionArgs = List("--cli-version", cliVersion)
-        os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd =
-          root
-        )
-        val expectedIdeLauncherFile =
-          root / Constants.workspaceDirName / "ide-launcher-options.json"
-        expect(expectedIdeLauncherFile.toNIO.toFile.exists())
-        expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
-        val bspConfig = readBspConfig(root)
-        expect(bspConfig.argv.head == TestUtil.cliPath)
-        expect(bspConfig.argv.containsSlice(cliVersionArgs))
-        expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+      TestUtil.retryOnCi() {
+        val scriptName = "cli-version.sc"
+        TestInputs(os.rel / scriptName -> s"""println("Hello from launcher v$cliVersion")""")
+          .fromRoot { root =>
+            val cliVersionArgs = List("--cli-version", cliVersion)
+            os.proc(TestUtil.cli, cliVersionArgs, "setup-ide", scriptName, extraOptions).call(cwd =
+              root
+            )
+            val expectedIdeLauncherFile =
+              root / Constants.workspaceDirName / "ide-launcher-options.json"
+            expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+            expect(os.read(expectedIdeLauncherFile).contains(cliVersion))
+            val bspConfig = readBspConfig(root)
+            expect(bspConfig.argv.head == TestUtil.cliPath)
+            expect(bspConfig.argv.containsSlice(cliVersionArgs))
+            expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+          }
       }
     }
 
