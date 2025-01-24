@@ -7,7 +7,7 @@ coursier_version="2.1.24"
 # https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux/17072017#17072017
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   if [ "$(uname -m)" == "aarch64" ]; then
-    cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-aarch64-pc-linux.gz"
+    cs_url="https://github.com/VirtusLab/coursier-m1/releases/download/v$coursier_version/cs-aarch64-pc-linux.gz"
   else
     cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-x86_64-pc-linux.gz"
   fi
