@@ -371,8 +371,7 @@ jobs:
           path: test-report.xml
 
   generate-linux-arm64-native-launcher:
-    runs-on: "macOS-m1"
-    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
         with:
@@ -380,15 +379,12 @@ jobs:
           submodules: true
       - uses: VirtusLab/scala-cli-setup@v1
         with:
-          apps: ""
-      - name: Generate native launcher and generate os packages
-        run: .github/scripts/build-linux-aarch64.sh
-        env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          jvm: "temurin:17"
+      - name: Generate native launcher
+        run: .github/scripts/generate-native-image.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-aarch64-launchers
+          name: linux-arm64-launchers
           path: artifacts/
           if-no-files-found: error
           retention-days: 2
@@ -1733,7 +1729,7 @@ jobs:
     - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
       with:
-        name: linux-aarch64-launchers
+        name: linux-arm64-launchers
         path: artifacts/
     - uses: actions/download-artifact@v4
       if: env.SHOULD_PUBLISH == 'true'
@@ -1796,7 +1792,7 @@ jobs:
           path: artifacts/
       - uses: actions/download-artifact@v4
         with:
-          name: linux-aarch64-launchers
+          name: linux-arm64-launchers
           path: artifacts/
       - uses: actions/download-artifact@v4
         with:
