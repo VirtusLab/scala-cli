@@ -801,7 +801,7 @@ jobs:
 
   generate-windows-launcher:
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
     - uses: actions/checkout@v4
       with:
@@ -833,7 +833,7 @@ jobs:
   native-windows-tests-1:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
     - uses: actions/checkout@v4
       with:
@@ -874,7 +874,7 @@ jobs:
   native-windows-tests-2:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
     - uses: actions/checkout@v4
       with:
@@ -915,7 +915,7 @@ jobs:
   native-windows-tests-3:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
     - uses: actions/checkout@v4
       with:
@@ -956,7 +956,7 @@ jobs:
   native-windows-tests-4:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -997,7 +997,7 @@ jobs:
   native-windows-tests-5:
     needs: generate-windows-launcher
     timeout-minutes: 120
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1575,7 +1575,7 @@ jobs:
 
   vc-redist:
     timeout-minutes: 15
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == 'Virtuslab/scala-cli'
     steps:
     - uses: actions/checkout@v4
@@ -1874,7 +1874,7 @@ jobs:
     needs:
       - launchers
       - publish
-    runs-on: "windows-2019"
+    runs-on: "windows-2025"
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
     - uses: actions/checkout@v4
