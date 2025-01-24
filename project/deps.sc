@@ -276,6 +276,8 @@ def csDockerVersion = Deps.Versions.coursierCli
 def buildCsVersion   = Deps.Versions.coursierCli
 def buildCsM1Version = Deps.Versions.coursierM1Cli
 
+def ubuntuDockerVersion = "24.04"
+
 // Native library used to encrypt GitHub secrets
 def libsodiumVersion = "1.0.18"
 // Using the libsodium static library from this Alpine version (in the static launcher)
@@ -286,7 +288,7 @@ object Docker {
   def muslBuilder =
     s"$customMuslBuilderImageName:latest"
 
-  def testImage = "ubuntu:18.04"
+  def testImage = s"ubuntu:$ubuntuDockerVersion"
   def alpineTestImage =
     "alpine@sha256:4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454"
   def authProxyTestImage =
