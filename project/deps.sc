@@ -30,7 +30,7 @@ object Scala {
   val runnerScalaVersions = runnerScala3 +: allScala2
   val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
 
-  def scalaJs    = "1.18.1"
+  def scalaJs    = "1.18.2"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
 
   def listAll: Seq[String] = {
