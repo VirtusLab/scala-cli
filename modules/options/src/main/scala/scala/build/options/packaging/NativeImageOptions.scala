@@ -12,9 +12,8 @@ final case class NativeImageOptions(
 ) {
   lazy val jvmId: String =
     graalvmJvmId.getOrElse {
-      val javaVersion = graalvmJavaVersion.getOrElse(Constants.defaultGraalVMJavaVersion)
-      val version     = graalvmVersion.getOrElse(Constants.defaultGraalVMVersion)
-      s"graalvm-java$javaVersion:$version"
+      val version = graalvmVersion.getOrElse(Constants.defaultGraalVMVersion)
+      s"graalvm-community:$version"
     }
 }
 
