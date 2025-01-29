@@ -21,6 +21,10 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
           Constants.maxAmmoniteScala213Version.coursierVersion < s.coursierVersion =>
         Constants.maxAmmoniteScala213Version
       case s
+          if s.startsWith(Constants.scala3LtsPrefix) &&
+          Constants.maxAmmoniteScala3LtsVersion.coursierVersion < s.coursierVersion =>
+        Constants.maxAmmoniteScala3LtsVersion
+      case s
           if s.startsWith("3") &&
           Constants.maxAmmoniteScala3Version.coursierVersion < s.coursierVersion =>
         Constants.maxAmmoniteScala3Version
@@ -28,7 +32,10 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
     }
 
   def actualMaxAmmoniteScalaVersion: String =
-    if (actualScalaVersion.startsWith("3")) Constants.maxAmmoniteScala3Version
+    if (actualScalaVersion.startsWith(Constants.scala3LtsPrefix))
+      Constants.maxAmmoniteScala3LtsVersion
+    else if (actualScalaVersion.startsWith(Constants.scala3NextPrefix))
+      Constants.maxAmmoniteScala3Version
     else if (actualScalaVersion.startsWith("2.13")) Constants.maxAmmoniteScala213Version
     else Constants.maxAmmoniteScala212Version
 

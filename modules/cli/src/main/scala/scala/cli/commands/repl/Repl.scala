@@ -22,7 +22,7 @@ import scala.build.errors.{
 import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.noDashPrefixes
-import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
 import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.{
   maybePrintSimpleScalacOutput,
@@ -54,10 +54,15 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   override def sharedOptions(options: ReplOptions): Option[SharedOptions] = Some(options.shared)
 
   override def buildOptions(ops: ReplOptions): Some[BuildOptions] =
-    Some(buildOptions0(ops, scala.cli.internal.Constants.maxAmmoniteScala3Version))
+    Some(buildOptions0(
+      ops,
+      scala.cli.internal.Constants.maxAmmoniteScala3Version,
+      scala.cli.internal.Constants.maxAmmoniteScala3LtsVersion
+    ))
   private[commands] def buildOptions0(
     ops: ReplOptions,
-    maxAmmoniteScalaVer: String
+    maxAmmoniteScalaVer: String,
+    maxAmmoniteScalaLtsVer: String
   ): BuildOptions = {
     import ops.*
     import ops.sharedRepl.*
@@ -66,29 +71,36 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
     val ammoniteVersionOpt = ammoniteVersion.map(_.trim).filter(_.nonEmpty)
     val baseOptions        = shared.buildOptions().orExit(logger)
+
+    val maybeDowngradedScalaVersion = {
+      val isDefaultAmmonite = ammonite.contains(true) && ammoniteVersionOpt.isEmpty
+      extension (s: MaybeScalaVersion)
+        private def isLts: Boolean = s.versionOpt
+          .exists(v =>
+            v.startsWith(Constants.scala3LtsPrefix) ||
+            ScalaVersionUtil.scala3Lts.contains(v.toLowerCase)
+          )
+      baseOptions.scalaOptions.scalaVersion match
+        case Some(s)
+            if isDefaultAmmonite && s.isLts && s.versionOpt
+              .exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) =>
+          logger.message(
+            s"Scala ${s.versionOpt.getOrElse(Constants.scala3Lts)} is not yet supported with this version of Ammonite"
+          )
+          logger.message(s"Defaulting to Scala $maxAmmoniteScalaLtsVer")
+          Some(MaybeScalaVersion(maxAmmoniteScalaLtsVer))
+        case None
+            if isDefaultAmmonite && maxAmmoniteScalaVer.coursierVersion < defaultScalaVersion.coursierVersion =>
+          logger.message(
+            s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
+          )
+          logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
+          Some(MaybeScalaVersion(maxAmmoniteScalaVer))
+        case s => s
+    }
+
     baseOptions.copy(
-      scalaOptions = baseOptions.scalaOptions.copy(
-        scalaVersion = baseOptions.scalaOptions.scalaVersion
-          .orElse {
-            val shouldDowngrade = {
-              def needsDowngradeForAmmonite = {
-                import coursier.core.Version
-                Version(maxAmmoniteScalaVer) < Version(defaultScalaVersion)
-              }
-              ammonite.contains(true) &&
-              ammoniteVersionOpt.isEmpty &&
-              needsDowngradeForAmmonite
-            }
-            if (shouldDowngrade) {
-              logger.message(
-                s"Scala $defaultScalaVersion is not yet supported with this version of Ammonite"
-              )
-              logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
-              Some(MaybeScalaVersion(maxAmmoniteScalaVer))
-            }
-            else None
-          }
-      ),
+      scalaOptions = baseOptions.scalaOptions.copy(scalaVersion = maybeDowngradedScalaVersion),
       javaOptions = baseOptions.javaOptions.copy(
         javaOpts =
           baseOptions.javaOptions.javaOpts ++

@@ -155,21 +155,12 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(scalacRes.exitCode == cliRes.exitCode)
         val scalacResErr = scalacRes.err.trim()
-        if (sv != Constants.scala3Lts) {
-          // TODO run this check for LTS when -Wconf gets fixed there
-          val cliResErr =
-            cliRes.err.trim().linesIterator.toList
-              // skip potentially irrelevant logs
-              .dropWhile(_.contains("Check"))
-              .mkString(System.lineSeparator())
-          expect(cliResErr == scalacResErr)
-        }
-        else expect(
-          TestUtil.removeAnsiColors(cliRes.err.trim())
-            .contains(
-              "method oldMethod in object WConfExample is deprecated since 1.0.0: This method will be removed"
-            )
-        )
+        val cliResErr =
+          cliRes.err.trim().linesIterator.toList
+            // skip potentially irrelevant logs
+            .dropWhile(_.contains("Check"))
+            .mkString(System.lineSeparator())
+        expect(cliResErr == scalacResErr)
       }
     }
 

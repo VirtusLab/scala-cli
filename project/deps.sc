@@ -7,7 +7,7 @@ object Scala {
   def scala213        = "2.13.16"
   def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
   def scala3LtsPrefix = "3.3"   // used for the LTS version tags
-  def scala3Lts        = s"$scala3LtsPrefix.4"  // the LTS version currently used in the build
+  def scala3Lts        = s"$scala3LtsPrefix.5"  // the LTS version currently used in the build
   def scala3NextPrefix = "3.6"
   def scala3Next       = s"$scala3NextPrefix.3" // the newest/next version of Scala
   def scala3NextAnnounced =
@@ -54,9 +54,10 @@ object Scala {
       (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
   }
 
-  def maxAmmoniteScala212Version = scala212
-  def maxAmmoniteScala213Version = "2.13.14"
-  def maxAmmoniteScala3Version   = "3.5.1"
+  def maxAmmoniteScala212Version  = scala212
+  def maxAmmoniteScala213Version  = "2.13.14"
+  def maxAmmoniteScala3Version    = "3.5.1"
+  def maxAmmoniteScala3LtsVersion = "3.3.4"
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
