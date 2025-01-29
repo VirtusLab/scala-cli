@@ -1,7 +1,8 @@
 package scala.cli.commands.tests
 
-import com.eed3si9n.expecty.Expecty.{assert => expect}
+import com.eed3si9n.expecty.Expecty.assert as expect
 
+import scala.build.internal.Constants
 import scala.cli.commands.repl.{Repl, ReplOptions, SharedReplOptions}
 import scala.cli.commands.shared.{SharedOptions, SharedPythonOptions}
 
@@ -26,8 +27,9 @@ class ReplOptionsTests extends munit.FunSuite {
         ammonite = Some(true)
       )
     )
-    val maxVersion   = "3.1.3"
-    val buildOptions = Repl.buildOptions0(replOptions, maxVersion)
+    val maxVersion    = "3.1.3"
+    val maxLtsVersion = Constants.scala3Lts
+    val buildOptions  = Repl.buildOptions0(replOptions, maxVersion, maxLtsVersion)
     expect(buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt).contains(maxVersion))
   }
 
