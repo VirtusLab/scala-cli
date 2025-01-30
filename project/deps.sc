@@ -55,9 +55,9 @@ object Scala {
   }
 
   def maxAmmoniteScala212Version  = scala212
-  def maxAmmoniteScala213Version  = "2.13.14"
-  def maxAmmoniteScala3Version    = "3.5.1"
-  def maxAmmoniteScala3LtsVersion = "3.3.4"
+  def maxAmmoniteScala213Version  = scala213
+  def maxAmmoniteScala3Version    = scala3NextAnnounced
+  def maxAmmoniteScala3LtsVersion = scala3Lts
   lazy val listMaxAmmoniteScalaVersion =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite = {
@@ -106,7 +106,7 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.0-2-6342755f"
+    def ammonite             = "3.0.1"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
