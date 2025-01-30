@@ -11,27 +11,19 @@ trait RunJdkTestDefinitions { _: RunTestDefinitions =>
       s"zulu:$javaVersion"
     else javaVersion.toString
 
-  def canUseScalaInstallationWrapper: Boolean =
-    actualScalaVersion.startsWith("3") && actualScalaVersion.split('.').drop(1).head.toInt >= 5
-
   for {
     javaVersion <- Constants.allJavaVersions
     index = javaIndex(javaVersion)
     useScalaInstallationWrapper <-
       if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)
     launcherString = if (useScalaInstallationWrapper) "coursier scala installation" else "Scala CLI"
-    scalaRunnerWrapperVersion = actualScalaVersion match {
-      case v if v == Constants.scala3NextRc => Constants.scala3NextRcAnnounced
-      case v if v == Constants.scala3Next   => Constants.scala3NextAnnounced
-      case v                                => v
-    }
     withLauncher = (root: os.Path) =>
       (f: Seq[os.Shellable] => Unit) =>
         if (useScalaInstallationWrapper)
           withScalaRunnerWrapper(
             root = root,
             localBin = root / "local-bin",
-            scalaVersion = scalaRunnerWrapperVersion,
+            scalaVersion = actualScalaRunnerWrapperVersion,
             shouldCleanUp = false
           )(launcher => f(Seq(launcher)))
         else
