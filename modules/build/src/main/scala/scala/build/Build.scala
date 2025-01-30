@@ -14,11 +14,9 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.compiler.{ScalaCompiler, ScalaCompilerMaker}
 import scala.build.errors.*
-import scala.build.input.VirtualScript.VirtualScriptNameRegex
 import scala.build.input.*
 import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, MainClass, Name, Util}
-import scala.build.options.ScalaVersionUtil.asVersion
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
@@ -598,9 +596,19 @@ object Build {
       logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
-    val classesDir0             = classesRootDir(inputs.workspace, inputs.projectName)
-    val (crossSources, inputs0) = value(allInputs(inputs, options, logger))
-    val buildOptions            = crossSources.sharedOptions(options)
+    val classesDir0                           = classesRootDir(inputs.workspace, inputs.projectName)
+    val (crossSources: CrossSources, inputs0) = value(allInputs(inputs, options, logger))
+    val buildOptions                          = crossSources.sharedOptions(options)
+    if !buildOptions.suppressWarningOptions.suppressDeprecatedFeatureWarning.getOrElse(false) &&
+      buildOptions.scalaParams.exists(_.exists(_.scalaVersion == "2.12.4") &&
+      !buildOptions.useBuildServer.contains(false))
+    then
+      logger.message(
+        s"""[${Console.YELLOW}warn${Console.RESET}] Scala 2.12.4 has been deprecated for use with Bloop.
+           |[${Console.YELLOW}warn${Console.RESET}] It may lead to infinite compilation.
+           |[${Console.YELLOW}warn${Console.RESET}] To disable the build server, pass ${Console.BOLD}--server=false${Console.RESET}.
+           |[${Console.YELLOW}warn${Console.RESET}] Refer to https://github.com/VirtusLab/scala-cli/issues/1382 and https://github.com/sbt/zinc/issues/1010""".stripMargin
+      )
     value {
       compilerMaker.withCompiler(
         inputs0.workspace / Constants.workspaceDirName,
