@@ -4,11 +4,13 @@ import org.objectweb.asm
 import org.objectweb.asm.ClassReader
 
 import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.file.NoSuchFileException
 import java.util.jar.{Attributes, JarFile, JarInputStream, Manifest}
 import java.util.zip.ZipEntry
 
 import scala.build.input.Element
 import scala.build.internal.zip.WrappedZipInputStream
+import scala.build.{Logger, retry}
 
 object MainClass {
 
@@ -44,29 +46,54 @@ object MainClass {
       if (foundMainClass) nameOpt else None
   }
 
-  def findInClass(path: os.Path): Iterator[String] =
-    findInClass(os.read.inputStream(path))
-  def findInClass(is: InputStream): Iterator[String] =
+  private def findInClass(path: os.Path, logger: Logger): Iterator[String] =
     try {
-      val reader  = new ClassReader(is)
-      val checker = new MainMethodChecker
-      reader.accept(checker, 0)
-      checker.mainClassOpt.iterator
+      val is = retry()(logger)(os.read.inputStream(path))
+      findInClass(is, logger)
+    }
+    catch {
+      case e: NoSuchFileException =>
+        e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+        logger.log(s"Class file $path not found: $e")
+        logger.log("Are you trying to run too many builds at once? Trying to recover...")
+        Iterator.empty
+    }
+  private def findInClass(is: InputStream, logger: Logger): Iterator[String] =
+    try retry()(logger) {
+        val reader  = new ClassReader(is)
+        val checker = new MainMethodChecker
+        reader.accept(checker, 0)
+        checker.mainClassOpt.iterator
+      }
+    catch {
+      case e: ArrayIndexOutOfBoundsException =>
+        e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+        logger.log(s"Class input stream could not be created: $e")
+        logger.log("Are you trying to run too many builds at once? Trying to recover...")
+        Iterator.empty
     }
     finally is.close()
 
-  def findInJar(path: os.Path): Iterator[String] = {
-    val content        = os.read.bytes(path)
-    val jarInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
-    jarInputStream.entries().flatMap(ent =>
-      if !ent.isDirectory && ent.getName.endsWith(".class") then {
-        val content     = jarInputStream.readAllBytes()
-        val inputStream = new ByteArrayInputStream(content)
-        findInClass(inputStream)
+  private def findInJar(path: os.Path, logger: Logger): Iterator[String] =
+    try retry()(logger) {
+        val content        = os.read.bytes(path)
+        val jarInputStream = WrappedZipInputStream.create(new ByteArrayInputStream(content))
+        jarInputStream.entries().flatMap(ent =>
+          if !ent.isDirectory && ent.getName.endsWith(".class") then {
+            val content     = jarInputStream.readAllBytes()
+            val inputStream = new ByteArrayInputStream(content)
+            findInClass(inputStream, logger)
+          }
+          else Iterator.empty
+        )
       }
-      else Iterator.empty
-    )
-  }
+    catch {
+      case e: NoSuchFileException =>
+        logger.debugStackTrace(e)
+        logger.log(s"JAR file $path not found: $e, trying to recover...")
+        logger.log("Are you trying to run too many builds at once? Trying to recover...")
+        Iterator.empty
+    }
 
   def findInDependency(jar: os.Path): Option[String] =
     jar match {
@@ -79,19 +106,19 @@ object MainClass {
       case _ => None
     }
 
-  def find(output: os.Path): Seq[String] =
+  def find(output: os.Path, logger: Logger): Seq[String] =
     output match {
       case o if os.isFile(o) && o.last.endsWith(".class") =>
-        findInClass(o).toVector
+        findInClass(o, logger).toVector
       case o if os.isFile(o) && o.last.endsWith(".jar") =>
-        findInJar(o).toVector
+        findInJar(o, logger).toVector
       case o if os.isDir(o) =>
         os.walk(o)
           .iterator
           .filter(os.isFile)
           .flatMap {
             case classFilePath if classFilePath.last.endsWith(".class") =>
-              findInClass(classFilePath)
+              findInClass(classFilePath, logger)
             case _ => Iterator.empty
           }
           .toVector

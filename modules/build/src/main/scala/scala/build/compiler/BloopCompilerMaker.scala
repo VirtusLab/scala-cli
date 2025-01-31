@@ -3,11 +3,11 @@ package scala.build.compiler
 import bloop.rifle.{BloopRifleConfig, BloopServer, BloopThreads}
 import ch.epfl.scala.bsp4j.BuildClient
 
-import scala.build.Logger
 import scala.build.errors.{BuildException, FetchingDependenciesError, Severity}
 import scala.build.internal.Constants
 import scala.build.internal.util.WarningMessages
 import scala.build.options.BuildOptions
+import scala.build.{Logger, retry}
 import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
@@ -37,16 +37,25 @@ final class BloopCompilerMaker(
       case Right(config) =>
         val createBuildServer =
           () =>
-            BloopServer.buildServer(
-              config,
-              "scala-cli",
-              Constants.version,
-              workspace.toNIO,
-              classesDir.toNIO,
-              buildClient,
-              threads,
-              logger.bloopRifleLogger
-            )
+            // retrying here in case a number of Scala CLI processes are started at the same time
+            // and they all try to connect to the server / spawn a new server
+            // otherwise, users may run into one of:
+            //   - libdaemonjvm.client.ConnectError$ZombieFound
+            //   - Caught java.lang.RuntimeException: Fatal error, could not spawn Bloop: not running
+            //   - java.lang.RuntimeException: Bloop BSP connection in (...) was unexpectedly closed or bloop didn't start.
+            // if a sufficiently large number of processes was started, this may happen anyway, of course
+            retry(if offline then 1 else 3)(logger) {
+              BloopServer.buildServer(
+                config,
+                "scala-cli",
+                Constants.version,
+                workspace.toNIO,
+                classesDir.toNIO,
+                buildClient,
+                threads,
+                logger.bloopRifleLogger
+              )
+            }
 
         val res = Try(new BloopCompiler(createBuildServer, 20.seconds, strictBloopJsonCheck))
           .toEither

@@ -12,9 +12,10 @@ import java.io.{File, IOException}
 import scala.annotation.tailrec
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, ModuleFormatError}
-import scala.build.internal.CsLoggerUtil._
+import scala.build.internal.CsLoggerUtil.*
+import scala.concurrent.ExecutionException
 import scala.concurrent.duration.FiniteDuration
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object Bloop {
 
@@ -35,31 +36,36 @@ object Bloop {
     logger: Logger,
     buildTargetsTimeout: FiniteDuration
   ): Either[Throwable, Boolean] =
-    try {
-      logger.debug("Listing BSP build targets")
-      val results = buildServer.workspaceBuildTargets()
-        .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
-      val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
+    try retry()(logger) {
+        logger.debug("Listing BSP build targets")
+        val results = buildServer.workspaceBuildTargets()
+          .get(buildTargetsTimeout.length, buildTargetsTimeout.unit)
+        val buildTargetOpt = results.getTargets.asScala.find(_.getDisplayName == projectName)
 
-      val buildTarget = buildTargetOpt.getOrElse {
-        throw new Exception(
-          s"Expected to find project '$projectName' in build targets (only got ${results.getTargets
-              .asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
-        )
+        val buildTarget = buildTargetOpt.getOrElse {
+          throw new Exception(
+            s"Expected to find project '$projectName' in build targets (only got ${results.getTargets
+                .asScala.map("'" + _.getDisplayName + "'").mkString(", ")})"
+          )
+        }
+
+        logger.debug(s"Compiling $projectName with Bloop")
+        val compileRes = buildServer.buildTargetCompile(
+          new bsp4j.CompileParams(List(buildTarget.getId).asJava)
+        ).get()
+
+        val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
+        logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
+        Right(success)
       }
-
-      logger.debug(s"Compiling $projectName with Bloop")
-      val compileRes = buildServer.buildTargetCompile(
-        new bsp4j.CompileParams(List(buildTarget.getId).asJava)
-      ).get()
-
-      val success = compileRes.getStatusCode == bsp4j.StatusCode.OK
-      logger.debug(if (success) "Compilation succeeded" else "Compilation failed")
-      Right(success)
-    }
     catch {
       case ex @ BrokenPipeInCauses(e) =>
         logger.debug(s"Caught $ex while exchanging with Bloop server, assuming Bloop server exited")
+        Left(ex)
+      case ex: ExecutionException =>
+        logger.debug(
+          s"Caught $ex while exchanging with Bloop server, you may consider restarting the build server"
+        )
         Left(ex)
     }
 

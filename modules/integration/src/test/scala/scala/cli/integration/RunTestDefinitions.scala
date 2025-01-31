@@ -2010,9 +2010,7 @@ abstract class RunTestDefinitions
             customExtraOptions,
             "--offline",
             "--cache",
-            cachePath.toString,
-            "-v",
-            "-v"
+            cachePath.toString
           )
             .call(cwd = root, mergeErrIntoOut = true)
           expect(scalaAndJvmRes.exitCode == 0)
@@ -2319,4 +2317,49 @@ abstract class RunTestDefinitions
       expect(err.contains(main2))
     }
   }
+
+  for {
+    (input, code) <- Seq(
+      os.rel / "script.sc" -> """println(args.mkString(" "))""",
+      os.rel / "raw.scala" -> """object Main { def main(args: Array[String]) = println(args.mkString(" ")) }"""
+    )
+    testInputs = TestInputs(input -> code)
+    shouldRestartBloop <- Seq(true, false)
+    restartBloopString = if (shouldRestartBloop) "with" else "without"
+    parallelInstancesCount <-
+      TestUtil.isCI -> shouldRestartBloop match {
+        case (true, false) => Seq(2, 5)
+        case (true, true)  => Seq(2)
+        case _             => Seq(5, 10, 20)
+      }
+  }
+    test(
+      s"run $parallelInstancesCount instances of $input in parallel ($restartBloopString restarting Bloop)"
+    ) {
+      TestUtil.retryOnCi() {
+        testInputs.fromRoot {
+          root =>
+            if (shouldRestartBloop)
+              os.proc(TestUtil.cli, "bloop", "exit", "--power")
+                .call(cwd = root)
+            val processes: Seq[(os.SubProcess, Int)] =
+              (0 until parallelInstancesCount).map { i =>
+                os.proc(
+                  TestUtil.cli,
+                  "run",
+                  input.toString(),
+                  extraOptions,
+                  "--",
+                  "iteration",
+                  i.toString
+                )
+                  .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
+              }.zipWithIndex
+            processes.foreach { case (p, _) => p.waitFor() }
+            processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+            processes.foreach { case (p, i) => expect(p.stdout.trim() == s"iteration $i") }
+        }
+      }
+
+    }
 }
