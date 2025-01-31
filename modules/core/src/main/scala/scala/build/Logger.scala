@@ -17,6 +17,8 @@ trait Logger {
   def log(s: => String, debug: => String): Unit
   def debug(s: => String): Unit
 
+  def debugStackTrace(t: => Throwable): Unit = t.getStackTrace.foreach(ste => debug(ste.toString))
+
   def log(diagnostics: Seq[Diagnostic]): Unit
 
   def diagnostic(
