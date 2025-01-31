@@ -10,8 +10,7 @@ object Scala {
   def scala3Lts        = s"$scala3LtsPrefix.5"  // the LTS version currently used in the build
   def scala3NextPrefix = "3.6"
   def scala3Next       = s"$scala3NextPrefix.3" // the newest/next version of Scala
-  def scala3NextAnnounced =
-    s"$scala3NextPrefix.2" // the newest/next version of Scala that's been announced
+  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
   def scala3NextRc          = "3.6.4-RC1"  // the latest RC version of Scala Next
   def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
