@@ -1,9 +1,11 @@
 package scala.build.postprocessing
 
+import java.nio.file.{FileAlreadyExistsException, NoSuchFileException}
+
 import scala.build.internal.Constants
 import scala.build.options.BuildOptions
 import scala.build.tastylib.{TastyData, TastyVersions}
-import scala.build.{GeneratedSource, Logger}
+import scala.build.{GeneratedSource, Logger, retry}
 
 case object TastyPostProcessor extends PostProcessor {
 
@@ -51,28 +53,36 @@ case object TastyPostProcessor extends PostProcessor {
     updatedPaths: Map[String, String]
   )(f: os.Path): Unit = {
     logger.debug(s"Reading TASTy file $f")
-    val content = os.read.bytes(f)
-    TastyData.read(content) match {
-      case Left(ex) => logger.debug(s"Ignoring exception during TASty postprocessing: $ex")
-      case Right(data) =>
-        logger.debug(s"Parsed TASTy file $f")
-        var updatedOne = false
-        val updatedData = data.mapNames { n =>
-          updatedPaths.get(n) match {
-            case Some(newName) =>
-              updatedOne = true
-              newName
-            case None =>
-              n
-          }
+    try retry()(logger) {
+        val content = os.read.bytes(f)
+        TastyData.read(content) match {
+          case Left(ex) => logger.debug(s"Ignoring exception during TASty postprocessing: $ex")
+          case Right(data) =>
+            logger.debug(s"Parsed TASTy file $f")
+            var updatedOne = false
+            val updatedData = data.mapNames { n =>
+              updatedPaths.get(n) match {
+                case Some(newName) =>
+                  updatedOne = true
+                  newName
+                case None =>
+                  n
+              }
+            }
+            if updatedOne then {
+              logger.debug(
+                s"Overwriting ${if f.startsWith(os.pwd) then f.relativeTo(os.pwd) else f}"
+              )
+              val updatedContent = TastyData.write(updatedData)
+              os.write.over(f, updatedContent)
+            }
         }
-        if (updatedOne) {
-          logger.debug(
-            s"Overwriting ${if (f.startsWith(os.pwd)) f.relativeTo(os.pwd) else f}"
-          )
-          val updatedContent = TastyData.write(updatedData)
-          os.write.over(f, updatedContent)
-        }
+      }
+    catch {
+      case e: (NoSuchFileException | FileAlreadyExistsException | ArrayIndexOutOfBoundsException) =>
+        logger.debugStackTrace(e)
+        logger.log(s"Tasty file $f not found: $e. Are you trying to run too many builds at once")
+        logger.log("Are you trying to run too many builds at once? Trying to recover...")
     }
   }
 }
