@@ -160,6 +160,7 @@ object Deps {
   def coursierCli = ivy"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
   def coursierJvm = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+    .exclude("io.get-coursier" -> "dependency_2.13")
   def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
