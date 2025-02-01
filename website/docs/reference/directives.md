@@ -427,7 +427,7 @@ Set the test framework
 
 ### Toolkit
 
-Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.5.0, 'default' version for typelevel toolkit: 0.1.29
+Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.6.0, 'default' version for typelevel toolkit: 0.1.29
 
 `//> using toolkit` _version_
 
