@@ -134,7 +134,7 @@ case object ScriptPreprocessor extends Preprocessor {
     (codeWrapper: CodeWrapper) =>
       if (containsMainAnnot) logger.diagnostic(
         codeWrapper match {
-          case _: AppCodeWrapper.type =>
+          case _: AppCodeWrapper =>
             WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ true)
           case _ => WarningMessages.mainAnnotationNotSupported( /* annotationIgnored */ false)
         }
@@ -165,16 +165,16 @@ case object ScriptPreprocessor extends Preprocessor {
 
     def objectCodeWrapperForScalaVersion =
       // AppObjectWrapper only introduces the 'main.sc' restriction when used in Scala 3, there's no gain in using it with Scala 3
-      if effectiveScalaVersion.startsWith("2") then AppCodeWrapper
-      else ObjectCodeWrapper
+      if effectiveScalaVersion.startsWith("2") then AppCodeWrapper(effectiveScalaVersion)
+      else ObjectCodeWrapper(effectiveScalaVersion)
 
     buildOptions.scriptOptions.forceObjectWrapper match {
       case Some(true) => objectCodeWrapperForScalaVersion
       case _ =>
         buildOptions.scalaOptions.platform.map(_.value) match {
           case Some(_: Platform.JS.type)                  => objectCodeWrapperForScalaVersion
-          case _ if effectiveScalaVersion.startsWith("2") => AppCodeWrapper
-          case _                                          => ClassCodeWrapper
+          case _ if effectiveScalaVersion.startsWith("2") => AppCodeWrapper(effectiveScalaVersion)
+          case _                                          => ClassCodeWrapper(effectiveScalaVersion)
         }
     }
   }

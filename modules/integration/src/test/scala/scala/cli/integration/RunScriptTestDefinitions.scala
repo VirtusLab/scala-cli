@@ -69,6 +69,42 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("main.sc has object") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("main.sc has object with object wrapper") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
   if (actualScalaVersion.startsWith("3"))
     test("use method from main.sc file") {
       val message = "Hello"
