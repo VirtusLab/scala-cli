@@ -117,7 +117,7 @@ object Deps {
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.18.3"
-    def scalaMeta                         = "4.9.9"
+    def scalaMeta                         = "4.12.7"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.6"
     def scalaNative                       = scalaNative05
@@ -227,7 +227,7 @@ object Deps {
   def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
   def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def scalametaSemanticDbShared =
-    ivy"org.scalameta:semanticdb-shared_${Scala.scala213}:${Versions.scalaMeta}"
+    ivy"org.scalameta:semanticdb-shared_2.13:${Versions.scalaMeta}"
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
       .exclude("com.lihaoyi" -> "sourcecode_2.13")
       .exclude("org.scala-lang.modules" -> "scala-collection-compat_2.13")

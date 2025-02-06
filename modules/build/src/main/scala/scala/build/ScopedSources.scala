@@ -69,7 +69,7 @@ final case class ScopedSources(
       .map(_.wrap(codeWrapper))
 
     codeWrapper match {
-      case _: AppCodeWrapper.type if wrappedScripts.size > 1 =>
+      case _: AppCodeWrapper if wrappedScripts.size > 1 =>
         wrappedScripts.find(_.originalPath.exists(_._1.toString == "main.sc"))
           .foreach(_ => logger.diagnostic(WarningMessages.mainScriptNameClashesWithAppWrapper))
       case _ => ()

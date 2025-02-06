@@ -1,11 +1,13 @@
 package scala.build.internal
 
+// import scala.meta.parsers.Parsed
+
 /** Script code wrapper that solves problem of deadlocks when using threads. The code is placed in a
   * class instance constructor, the created object is kept in 'mainObjectCode'.script to support
   * running interconnected scripts using Scala CLI <br> <br> Incompatible with Scala 2 - it uses
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
-case object ClassCodeWrapper extends CodeWrapper {
+case class ClassCodeWrapper(scalaVersion: String) extends CodeWrapper {
 
   override def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
@@ -16,8 +18,15 @@ case object ClassCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
+
+    val mainObject = WrapperUtils.mainObjectInScript(scalaVersion, code)
+
+    val mainInvocation = mainObject match
+      case None       => s"val _ = script.hashCode()"
+      case Some(name) => s"script.$name.main(args)"
+
     val name             = mainClassObject(indexedWrapperName).backticked
-    val wrapperClassName = Name(indexedWrapperName.raw ++ "$_").backticked
+    val wrapperClassName = scala.build.internal.Name(indexedWrapperName.raw ++ "$_").backticked
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
                                     |  private var args$$opt0 = Option.empty[Array[String]]
@@ -33,7 +42,7 @@ case object ClassCodeWrapper extends CodeWrapper {
                                     |
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    val _ = script.hashCode() // hashCode to clear scalac warning about pure expression in statement position
+                                    |    $mainInvocation // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |
