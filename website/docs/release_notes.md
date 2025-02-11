@@ -8,6 +8,61 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.6.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.2)
+
+### Support for Scala.js 1.18.2
+This Scala CLI version adds support for Scala.js 1.18.2.
+
+```bash
+scala-cli -e 'println("Hello")' --js
+# Compiling project (Scala 3.6.3, Scala.js 1.18.2)
+# Compiled project (Scala 3.6.3, Scala.js 1.18.2)
+# Hello
+```
+
+Added in [#3454](https://github.com/VirtusLab/scala-cli/pull/3454)
+
+### Support for Scala 3.3.5
+The Scala CLI internals are now built with Scala 3.3.5.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3466](https://github.com/VirtusLab/scala-cli/pull/3466)
+
+### Deprecations
+* Add a deprecation warning for using Scala 2.12.4 with Bloop by [@Gedochao](https://github.com/Gedochao) in [#3470](https://github.com/VirtusLab/scala-cli/pull/3470)
+
+### Fixes
+* Remove conflicting Scala 2.13 `io.get-coursier:dependency` dependency & add a CI check by [@Gedochao](https://github.com/Gedochao) in [#3472](https://github.com/VirtusLab/scala-cli/pull/3472)
+
+### Internal and build changes
+* Fix Scala Steward post-update hook by [@fthomas](https://github.com/fthomas) in [#3465](https://github.com/VirtusLab/scala-cli/pull/3465)
+* Bump Windows runners to windows-2025 on the CI by [@Gedochao](https://github.com/Gedochao) in [#3489](https://github.com/VirtusLab/scala-cli/pull/3489)
+
+### Documentation changes
+* Add warning about test files in publish docs by [@majk-p](https://github.com/majk-p) in [#3486](https://github.com/VirtusLab/scala-cli/pull/3486)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3487](https://github.com/VirtusLab/scala-cli/pull/3487)
+
+## Updates
+* Update scala-cli.sh launcher for 1.6.1 by [@github-actions](https://github.com/github-actions) in [#3452](https://github.com/VirtusLab/scala-cli/pull/3452)
+* Update munit to 1.1.0 by [@scala-steward](https://github.com/scala-steward) in [#3455](https://github.com/VirtusLab/scala-cli/pull/3455)
+* Update latest announced Scala 3 Next RC to 3.6.4-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3458](https://github.com/VirtusLab/scala-cli/pull/3458)
+* Update scalajs-sbt-test-adapter_2.13 to 1.18.2 by [@scala-steward](https://github.com/scala-steward) in [#3454](https://github.com/VirtusLab/scala-cli/pull/3454)
+* Update Scala 3 LTS to 3.3.5 by [@Gedochao](https://github.com/Gedochao) in [#3466](https://github.com/VirtusLab/scala-cli/pull/3466)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.8.6 by [@scala-steward](https://github.com/scala-steward) in [#3462](https://github.com/VirtusLab/scala-cli/pull/3462)
+* Update sbt, scripted-plugin to 1.10.7 by [@scala-steward](https://github.com/scala-steward) in [#3461](https://github.com/VirtusLab/scala-cli/pull/3461)
+* Bump Scala 3 Next announced version to 3.6.3 by [@Gedochao](https://github.com/Gedochao) in [#3469](https://github.com/VirtusLab/scala-cli/pull/3469)
+* Bump `ammonite` to 3.0.1 by [@Gedochao](https://github.com/Gedochao) in [#3468](https://github.com/VirtusLab/scala-cli/pull/3468)
+* Update core_2.13 to 3.10.3 by [@scala-steward](https://github.com/scala-steward) in [#3476](https://github.com/VirtusLab/scala-cli/pull/3476)
+* Update scala-collection-compat to 2.13.0 by [@scala-steward](https://github.com/scala-steward) in [#3478](https://github.com/VirtusLab/scala-cli/pull/3478)
+* Update case-app to 2.1.0-M30 by [@scala-steward](https://github.com/scala-steward) in [#3485](https://github.com/VirtusLab/scala-cli/pull/3485)
+* Bump Scala toolkit to 0.6.0 by [@Gedochao](https://github.com/Gedochao) in [#3471](https://github.com/VirtusLab/scala-cli/pull/3471)
+* Update Scala Toolkit to 0.7.0 by [@Gedochao](https://github.com/Gedochao) in [#3488](https://github.com/VirtusLab/scala-cli/pull/3488)
+
+## New Contributors
+* [@fthomas](https://github.com/fthomas) made their first contribution in [#3465](https://github.com/VirtusLab/scala-cli/pull/3465)
+* [@majk-p](https://github.com/majk-p) made their first contribution in [#3486](https://github.com/VirtusLab/scala-cli/pull/3486)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.6.1...v1.6.2
+
 ## [v1.6.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.6.1)
 
 ## Pass `--repl-init-script` directly to the Scala REPL
