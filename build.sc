@@ -513,7 +513,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def maxScalacArgumentsCount = 5000
          |
          |  def defaultGraalVMJavaVersion = ${deps.graalVmJavaVersion}
-         |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
+         |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |
          |  def scalaCliSigningOrganization = "${Deps.signingCli.dep.module.organization.value}"
          |  def scalaCliSigningName = "${Deps.signingCli.dep.module.name.value}"
@@ -865,7 +865,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |  def ammoniteVersionForScala3Lts = "${Deps.Versions.ammoniteForScala3Lts}"
          |  def defaultScalafmtVersion = "${Deps.scalafmtCli.dep.version}"
          |  def defaultGraalVMJavaVersion = "${deps.graalVmJavaVersion}"
-         |  def defaultGraalVMVersion = "${deps.graalVmVersion}"
+         |  def defaultGraalVMVersion = "${deps.graalVmCommunityVersion}"
          |  def scalaPyVersion = "${Deps.scalaPy.dep.version}"
          |  def signingCliJvmVersion = ${Deps.Versions.signingCliJvmVersion}
          |}
@@ -1065,7 +1065,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def semanticDbJavacPluginVersion = "${Deps.semanticDbJavac.dep.version}"
            |  def ammoniteVersion              = "${Deps.ammonite.dep.version}"
            |  def defaultGraalVMJavaVersion    = "${deps.graalVmJavaVersion}"
-           |  def defaultGraalVMVersion        = "${deps.graalVmVersion}"
+           |  def defaultGraalVMVersion        = "${deps.graalVmCommunityVersion}"
            |  def scalaPyVersion               = "${Deps.scalaPy.dep.version}"
            |  def scalaPyMaxScalaNative        = "${Deps.Versions.maxScalaNativeForScalaPy}"
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.version}"
