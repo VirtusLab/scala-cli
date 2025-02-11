@@ -68,7 +68,7 @@ path (`test/scala/b.scala`) contains a directory named `test`.
 Conversely, `scala-cli example/src/test` results in no test sources, since the relative path to `b.scala` does not
 contain `test` (the fact that the directory provided as input is named `test` does not make its content a test source).
 
-Directives take precedence over file or path names, so `using target main` can be used to force `test/a.scala`
+Directives take precedence over file or path names, so `using target.scope main` can be used to force `test/a.scala`
 or `a.test.scala` to not be treated as tests.
 
 As a rule of thumb, we recommend naming all of your test files with the `.test.scala` suffix.
