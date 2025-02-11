@@ -44,6 +44,13 @@ Publishing io.github.scala-cli:hello-scala-cli_3:0.1.0-SNAPSHOT
   ~/.ivy2/local/io.github.scala-cli/hello-scala-cli_3/0.1.0-SNAPSHOT/
 ```
 
+:::caution
+The `publish local` sub-command does not currently support publishing of the test scope.
+This includes any file that is placed in `test` directory or with the `.test.scala` suffix.
+
+Read more about test sources in [testing documentation](../test.md#test-sources).
+:::
+
 </ChainedSnippets>
 
 ## Required settings
