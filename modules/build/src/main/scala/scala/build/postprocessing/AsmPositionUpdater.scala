@@ -2,7 +2,10 @@ package scala.build.postprocessing
 
 import org.objectweb.asm
 
-import scala.build.{Logger, Os}
+import java.io
+import java.nio.file.{FileAlreadyExistsException, NoSuchFileException}
+
+import scala.build.{Logger, Os, retry}
 
 object AsmPositionUpdater {
 
@@ -53,20 +56,34 @@ object AsmPositionUpdater {
       .filter(os.isFile(_))
       .filter(_.last.endsWith(".class"))
       .foreach { path =>
-        val is = os.read.inputStream(path)
-        val updateByteCodeOpt =
-          try {
-            val reader  = new asm.ClassReader(is)
-            val writer  = new asm.ClassWriter(reader, 0)
-            val checker = new LineNumberTableClassVisitor(mappings, writer)
-            reader.accept(checker, 0)
-            if (checker.mappedStuff) Some(writer.toByteArray)
-            else None
+        try retry()(logger) {
+            val is = os.read.inputStream(path)
+            val updateByteCodeOpt =
+              try retry()(logger) {
+                  val reader  = new asm.ClassReader(is)
+                  val writer  = new asm.ClassWriter(reader, 0)
+                  val checker = new LineNumberTableClassVisitor(mappings, writer)
+                  reader.accept(checker, 0)
+                  if checker.mappedStuff then Some(writer.toByteArray) else None
+                }
+              catch {
+                case e: ArrayIndexOutOfBoundsException =>
+                  e.getStackTrace.foreach(ste => logger.debug(ste.toString))
+                  logger.log(s"Error while processing ${path.relativeTo(Os.pwd)}: $e.")
+                  logger.log("Are you trying to run too many builds at once? Trying to recover...")
+                  None
+              }
+              finally is.close()
+            for (b <- updateByteCodeOpt) {
+              logger.debug(s"Overwriting ${path.relativeTo(Os.pwd)}")
+              os.write.over(path, b)
+            }
           }
-          finally is.close()
-        for (b <- updateByteCodeOpt) {
-          logger.debug(s"Overwriting ${path.relativeTo(Os.pwd)}")
-          os.write.over(path, b)
+        catch {
+          case e: (NoSuchFileException | FileAlreadyExistsException | ArrayIndexOutOfBoundsException) =>
+            logger.debugStackTrace(e)
+            logger.log(s"Error while processing ${path.relativeTo(Os.pwd)}: $e")
+            logger.log("Are you trying to run too many builds at once? Trying to recover...")
         }
       }
   }
