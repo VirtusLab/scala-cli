@@ -329,23 +329,23 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     val allScalaVersions = ScalaVersionUtil.allMatchingVersions(None, cache, repositories)
     for {
       (prefix, defaultMatchingVersion, predefinedDefaultScalaVersion) <- {
-        val scala2Nightlies  = allScalaVersions.filter(ScalaVersionUtil.isScala2Nightly)
-        val latest212Nightly = scala2Nightlies.filter(_.startsWith("2.12")).maxBy(Version(_))
-        val latest213Nightly = scala2Nightlies.filter(_.startsWith("2.13")).maxBy(Version(_))
-        val latestScala3NextNightly =
-          allScalaVersions
-            .filter(ScalaVersionUtil.isScala3Nightly)
-            .filter(_.startsWith(scala3NextPrefix))
-            .maxBy(Version(_))
+        extension (nightlies: Seq[String])
+          private def latestNightly: Option[String] =
+            if nightlies.nonEmpty then Some(nightlies.maxBy(Version(_))) else None
+        val scala2Nightlies     = allScalaVersions.filter(ScalaVersionUtil.isScala2Nightly)
+        val scala212Nightlies   = scala2Nightlies.filter(_.startsWith("2.12"))
+        val scala213Nightlies   = scala2Nightlies.filter(_.startsWith("2.13"))
+        val scala3Nightlies     = allScalaVersions.filter(ScalaVersionUtil.isScala3Nightly)
+        val scala3NextNightlies = scala3Nightlies.filter(_.startsWith(scala3NextPrefix))
         Seq(
           ("2.12", defaultScala212Version, None),
-          ("2.12", defaultScala212Version, Some(latest212Nightly)),
+          ("2.12", defaultScala212Version, scala212Nightlies.latestNightly),
           ("2.13", defaultScala213Version, None),
-          ("2.13", defaultScala213Version, Some(latest213Nightly)),
+          ("2.13", defaultScala213Version, scala213Nightlies.latestNightly),
           ("3", defaultScalaVersion, None),
           (scala3NextPrefix, defaultScalaVersion, None),
-          (scala3NextPrefix, defaultScalaVersion, Some(latestScala3NextNightly))
-        )
+          (scala3NextPrefix, defaultScalaVersion, scala3NextNightlies.latestNightly)
+        ).distinct
       }
       options = BuildOptions(
         scalaOptions = ScalaOptions(
