@@ -145,7 +145,37 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val err    = result.err.trim()
       expect(output == "")
       expect(err.contains(
-        "Only single main is allowed within scripts and multiple main classes were found in the script: Main, AnotherMain"
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+    }
+  }
+  test("main.sc has multiple main methods and top-level definitions") {
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("1")
+            |}
+            |object AnotherMain {
+            |  def main(args: Array[String]): Unit = println("2")
+            |}
+            |
+            |println("3")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == "3")
+      expect(err.contains(
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+      expect(err.contains(
+        "Script contains objects with main methods and top-level statements, only the latter will be run."
       ))
     }
   }

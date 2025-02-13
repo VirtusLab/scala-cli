@@ -8,16 +8,22 @@ object WrapperUtils {
     case Exists(name: String)
     case Multiple(names: Seq[String])
     case ToplevelStatsPresent
+    case ToplevelStatsWithMultiple(names: Seq[String])
     case NoMain
 
-    def warningMessage: Option[String] =
+    def warningMessage: List[String] =
       this match
         case ScriptMainMethod.Multiple(names) =>
-          Some(WarningMessages.multipleMainObjectsInScript(names))
-        case ScriptMainMethod.ToplevelStatsPresent => Some(
+          List(WarningMessages.multipleMainObjectsInScript(names))
+        case ScriptMainMethod.ToplevelStatsPresent => List(
             WarningMessages.mixedToplvelAndObjectInScript
           )
-        case _ => None
+        case ToplevelStatsWithMultiple(names) =>
+          List(
+            WarningMessages.multipleMainObjectsInScript(names),
+            WarningMessages.mixedToplvelAndObjectInScript
+          )
+        case _ => Nil
 
   def mainObjectInScript(scalaVersion: String, code: String): ScriptMainMethod =
     import scala.meta.*
@@ -74,7 +80,9 @@ object WrapperUtils {
       case head :: Nil =>
         ScriptMainMethod.ToplevelStatsPresent
       case Nil => ScriptMainMethod.NoMain
-      case seq =>
+      case seq if noToplevelStatements =>
         ScriptMainMethod.Multiple(seq)
+      case seq =>
+        ScriptMainMethod.ToplevelStatsWithMultiple(seq)
 
 }
