@@ -62,14 +62,14 @@ final case class ScopedSources(
   ): Either[BuildException, Sources] = either {
     val combinedOptions = combinedBuildOptions(scope, baseOptions)
 
-    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions)
+    val codeWrapper = ScriptPreprocessor.getScriptWrapper(combinedOptions, logger)
 
     val wrappedScripts = unwrappedScripts
       .flatMap(_.valueFor(scope).toSeq)
       .map(_.wrap(codeWrapper))
 
     codeWrapper match {
-      case _: AppCodeWrapper.type if wrappedScripts.size > 1 =>
+      case _: AppCodeWrapper if wrappedScripts.size > 1 =>
         wrappedScripts.find(_.originalPath.exists(_._1.toString == "main.sc"))
           .foreach(_ => logger.diagnostic(WarningMessages.mainScriptNameClashesWithAppWrapper))
       case _ => ()

@@ -5,7 +5,7 @@ package scala.build.internal
   * running interconnected scripts using Scala CLI <br> <br> Incompatible with Scala 2 - it uses
   * Scala 3 feature 'export'<br> Incompatible with native JS members - the wrapper is a class
   */
-case object ClassCodeWrapper extends CodeWrapper {
+case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends CodeWrapper {
 
   override def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
@@ -16,8 +16,16 @@ case object ClassCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
+
+    val mainObject = WrapperUtils.mainObjectInScript(scalaVersion, code)
+    val mainInvocation = mainObject match
+      case WrapperUtils.ScriptMainMethod.Exists(name) => s"script.$name.main(args)"
+      case otherwise =>
+        otherwise.warningMessage.foreach(log)
+        s"val _ = script.hashCode()"
+
     val name             = mainClassObject(indexedWrapperName).backticked
-    val wrapperClassName = Name(indexedWrapperName.raw ++ "$_").backticked
+    val wrapperClassName = scala.build.internal.Name(indexedWrapperName.raw ++ "$_").backticked
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
                                     |  private var args$$opt0 = Option.empty[Array[String]]
@@ -33,7 +41,7 @@ case object ClassCodeWrapper extends CodeWrapper {
                                     |
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    val _ = script.hashCode() // hashCode to clear scalac warning about pure expression in statement position
+                                    |    $mainInvocation // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |

@@ -69,6 +69,163 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
+  test("main.sc has an object with a main method") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+  test("main.sc has an object that extends App") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|
+            |object Main extends App{
+            |   println("$message")
+            |}
+            |
+            |object Other {}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("main.sc has an object with a main method and an object wrapper") {
+    val message = "Hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(cwd =
+        root
+      ).out.trim()
+      expect(output == message)
+    }
+  }
+
+  test("main.sc has multiple main methods") {
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("1")
+            |}
+            |object AnotherMain {
+            |  def main(args: Array[String]): Unit = println("2")
+            |}
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == "")
+      expect(err.contains(
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+    }
+  }
+  test("main.sc has multiple main methods and top-level definitions") {
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("1")
+            |}
+            |object AnotherMain {
+            |  def main(args: Array[String]): Unit = println("2")
+            |}
+            |
+            |println("3")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == "3")
+      expect(err.contains(
+        "Only a single main is allowed within scripts. Multiple main classes were found in the script: Main, AnotherMain"
+      ))
+      expect(err.contains(
+        "Script contains objects with main methods and top-level statements, only the latter will be run."
+      ))
+    }
+  }
+
+  test("main.sc has both an object with a main method as well as top-level definitions") {
+    val message1 = "Hello"
+    val message2 = "Another hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|object Main {
+            |  def main(args: Array[String]): Unit = println("$message1")
+            |}
+            |println("$message2")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, extraOptions, "main.sc").call(
+        cwd = root,
+        stderr = os.Pipe
+      )
+      val output = result.out.trim()
+      val err    = result.err.trim()
+      expect(output == message2)
+      expect(err.contains(
+        "Script contains objects with main methods and top-level statements, only the latter will be run."
+      ))
+      expect(output == message2)
+    }
+  }
+
+  test(
+    "main.sc has both an object with a main method and an object wrapper as well as top-level calls"
+  ) {
+    val message1 = "Hello"
+    val message2 = "Another hello"
+    val inputs = TestInputs(
+      os.rel / "main.sc" ->
+        s"""|//> using objectWrapper
+            |object Main {
+            |  def main(args: Array[String]): Unit = println("$message1")
+            |}
+            |println("$message2")
+            |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, extraOptions, "--power", "main.sc")
+        .call(cwd = root).out.trim()
+      expect(output == message2)
+    }
+  }
   if (actualScalaVersion.startsWith("3"))
     test("use method from main.sc file") {
       val message = "Hello"
