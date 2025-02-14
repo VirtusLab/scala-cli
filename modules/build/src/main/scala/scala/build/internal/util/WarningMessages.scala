@@ -105,6 +105,12 @@ object WarningMessages {
   val offlineModeBloopJvmNotFound =
     "Offline mode is ON and a JVM for Bloop could not be fetched from the local cache, using scalac as fallback"
 
+  def multipleMainObjectsInScript(names: Seq[String]) =
+    s"Only a single main is allowed within scripts. Multiple main classes were found in the script: ${names.mkString(", ")}"
+
+  def mixedToplvelAndObjectInScript =
+    "Script contains objects with main methods and top-level statements, only the latter will be run."
+
   def directivesInMultipleFilesWarning(
     projectFilePath: String,
     pathsToReport: Iterable[String] = Nil

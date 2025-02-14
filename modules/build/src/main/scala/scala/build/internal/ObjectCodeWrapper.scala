@@ -4,7 +4,7 @@ package scala.build.internal
   * or/and not using JS native prefer [[ClassCodeWrapper]], since it prevents deadlocks when running
   * threads from script
   */
-case object ObjectCodeWrapper extends CodeWrapper {
+case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends CodeWrapper {
 
   override def mainClassObject(className: Name): Name =
     Name(className.raw ++ "_sc")
@@ -15,12 +15,19 @@ case object ObjectCodeWrapper extends CodeWrapper {
     extraCode: String,
     scriptPath: String
   ) = {
+    val mainObject         = WrapperUtils.mainObjectInScript(scalaVersion, code)
     val name               = mainClassObject(indexedWrapperName).backticked
     val aliasedWrapperName = name + "$$alias"
-    val funHashCodeMethod =
+    val realScript =
       if (name == "main_sc")
-        s"$aliasedWrapperName.alias.hashCode()" // https://github.com/VirtusLab/scala-cli/issues/314
-      else s"${indexedWrapperName.backticked}.hashCode()"
+        s"$aliasedWrapperName.alias" // https://github.com/VirtusLab/scala-cli/issues/314
+      else s"${indexedWrapperName.backticked}"
+
+    val funHashCodeMethod = mainObject match
+      case WrapperUtils.ScriptMainMethod.Exists(name) => s"$realScript.$name.main(args)"
+      case otherwise =>
+        otherwise.warningMessage.foreach(log)
+        s"val _ = $realScript.hashCode()"
     // We need to call hashCode (or any other method so compiler does not report a warning)
     val mainObjectCode =
       AmmUtil.normalizeNewlines(s"""|object $name {
@@ -34,7 +41,7 @@ case object ObjectCodeWrapper extends CodeWrapper {
                                     |  }
                                     |  def main(args: Array[String]): Unit = {
                                     |    args$$set(args)
-                                    |    val _ = $funHashCodeMethod // hashCode to clear scalac warning about pure expression in statement position
+                                    |    $funHashCodeMethod // hashCode to clear scalac warning about pure expression in statement position
                                     |  }
                                     |}
                                     |""".stripMargin)
