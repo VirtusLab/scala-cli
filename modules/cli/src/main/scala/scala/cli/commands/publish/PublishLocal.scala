@@ -51,8 +51,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
     ).orExit(logger)
     val threads = BuildThreads.create()
 
-    val compilerMaker    = options.shared.compilerMaker(threads)
-    val docCompilerMaker = options.shared.compilerMaker(threads, scaladoc = true)
+    val compilerMaker       = options.shared.compilerMaker(threads)
+    val docCompilerMakerOpt = options.sharedPublish.docCompilerMakerOpt
 
     val cross = options.compileCross.cross.getOrElse(false)
 
@@ -75,7 +75,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       logger,
       initialBuildOptions,
       compilerMaker,
-      docCompilerMaker,
+      docCompilerMakerOpt,
       cross,
       workingDir,
       ivy2HomeOpt,
