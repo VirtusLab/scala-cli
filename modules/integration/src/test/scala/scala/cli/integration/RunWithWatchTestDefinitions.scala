@@ -89,29 +89,50 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       }
   }
 
-  test(s"--watch --test") {
-    val expectedMessage1 = "Hello from the test scope 1"
-    val expectedMessage2 = "Hello from the test scope 2"
-    val inputPath        = os.rel / "example.test.scala"
-    def code(expectedMessage: String) =
-      s"""object Main extends App { println("$expectedMessage") }"""
-    TestInputs(
-      inputPath -> code(expectedMessage1)
-    ).fromRoot { root =>
-      TestUtil.withProcessWatching(
-        proc = os.proc(TestUtil.cli, "run", inputPath.toString(), "--watch", "--test", extraOptions)
-          .spawn(cwd = root, stderr = os.Pipe),
-        timeout = 120.seconds
-      ) { (proc, timeout, ec) =>
-        val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
-        expect(output1 == expectedMessage1)
-        proc.printStderrUntilRerun(timeout)(ec)
-        os.write.over(root / inputPath, code(expectedMessage2))
-        val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
-        expect(output2 == expectedMessage2)
+  for {
+    (platformDescription, platformOpts) <- Seq(
+      "JVM"    -> Nil,
+      "JS"     -> Seq("--js"),
+      "Native" -> Seq("--native")
+    )
+    if !Properties.isMac || !TestUtil.isCI // TODO make this pass reliably on Mac CI
+  }
+    test(s"--watch --test ($platformDescription)") {
+      TestUtil.retryOnCi() {
+        val expectedMessage1 = "Hello from the test scope 1"
+        val expectedMessage2 = "Hello from the test scope 2"
+        val inputPath        = os.rel / "example.test.scala"
+
+        def code(expectedMessage: String) =
+          s"""object Main extends App { println("$expectedMessage") }"""
+
+        TestInputs(
+          inputPath -> code(expectedMessage1)
+        ).fromRoot { root =>
+          TestUtil.withProcessWatching(
+            proc =
+              os.proc(
+                TestUtil.cli,
+                "run",
+                inputPath.toString(),
+                "--watch",
+                "--test",
+                extraOptions,
+                platformOpts
+              )
+                .spawn(cwd = root, stderr = os.Pipe),
+            timeout = 300.seconds
+          ) { (proc, timeout, ec) =>
+            val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output1 == expectedMessage1)
+            proc.printStderrUntilRerun(timeout)(ec)
+            os.write.over(root / inputPath, code(expectedMessage2))
+            val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
+            expect(output2 == expectedMessage2)
+          }
+        }
       }
     }
-  }
 
   test("watch with interactive, with multiple main classes") {
     val fileName = "watch.scala"

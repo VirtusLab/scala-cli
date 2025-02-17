@@ -190,7 +190,7 @@ object NativeImage {
       options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs.map(_.value)
 
     val cacheData = CachedBinary.getCacheData(
-      build,
+      Seq(build),
       s"--java-home=${javaHome.javaHome.toString}" :: "--" :: extraOptions.toList ++ nativeImageArgs,
       dest,
       nativeImageWorkDir

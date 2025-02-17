@@ -20,7 +20,7 @@ object Library {
     val dest    = workDir / "library.jar"
     val cacheData =
       CachedBinary.getCacheData(
-        build,
+        Seq(build),
         mainClassOpt.toList.flatMap(c => List("--main-class", c)),
         dest,
         workDir

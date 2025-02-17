@@ -225,7 +225,7 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.Native =>
         value {
           Run.withNativeLauncher(
-            build,
+            Seq(build),
             "scala.scalanative.testinterface.TestMain",
             logger
           ) { launcher =>

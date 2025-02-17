@@ -543,7 +543,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
         val extraEnv = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
         val maybeResult = withNativeLauncher(
-          builds.head, // TODO: support multiple builds
+          builds,
           mainClass,
           logger
         ) { launcher =>
@@ -686,12 +686,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   def withNativeLauncher[T](
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClass: String,
     logger: Logger
   )(f: os.Path => T): Either[BuildException, T] =
     Package.buildNative(
-      build = build,
+      builds = builds,
       mainClass = Some(mainClass),
       targetType = PackageType.Native.Application,
       destPath = None,
