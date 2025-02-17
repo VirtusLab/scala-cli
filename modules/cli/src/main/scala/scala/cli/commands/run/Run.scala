@@ -10,13 +10,14 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 
 import scala.build.EitherCps.{either, value}
+import scala.build.Ops.*
 import scala.build.*
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.EnvVar
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
 import scala.cli.commands.publish.ConfigUtil.*
@@ -152,13 +153,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     val compilerMaker = options.shared.compilerMaker(threads)
 
     def maybeRun(
-      build: Build.Successful,
+      builds: Seq[Build.Successful],
       allowTerminate: Boolean,
       runMode: RunMode,
       showCommand: Boolean,
       scratchDirOpt: Option[os.Path]
     ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
-      val potentialMainClasses = build.foundMainClasses()
+      val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
       if (options.sharedRun.mainClass.mainClassLs.contains(true))
         value {
           options.sharedRun.mainClass
@@ -168,11 +169,11 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       else {
         val processOrCommand = value {
           maybeRunOnce(
-            build,
+            builds,
             programArgs,
             logger,
             allowExecve = allowTerminate,
-            jvmRunner = build.artifacts.hasJvmRunner,
+            jvmRunner = builds.exists(_.artifacts.hasJvmRunner),
             potentialMainClasses,
             runMode,
             showCommand,
@@ -256,7 +257,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         docCompilerMakerOpt = None,
         logger = logger,
         crossBuilds = cross,
-        buildTests = false,
+        buildTests = options.sharedRun.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () =>
@@ -267,15 +268,16 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           onExitProcess.cancel(true)
           ProcUtil.interruptProcess(process, logger)
         }
-        res.orReport(logger).map(_.main).foreach {
-          case s: Build.Successful =>
+        res.orReport(logger).map(_.builds).foreach {
+          case b if b.forall(_.success) =>
+            val successfulBuilds = b.collect { case s: Build.Successful => s }
             for ((proc, _) <- processOpt.get() if proc.isAlive)
               // If the process doesn't exit, send SIGKILL
               ProcUtil.forceKillProcess(proc, logger)
             shouldReadInput.set(false)
             mainThreadOpt.get().foreach(_.interrupt())
             val maybeProcess = maybeRun(
-              s,
+              successfulBuilds,
               allowTerminate = false,
               runMode = runMode(options),
               showCommand = options.sharedRun.command,
@@ -292,7 +294,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                     }
                   (proc, onExit)
               }
-            s.copyOutput(options.shared)
+            successfulBuilds.foreach(_.copyOutput(options.shared))
             if options.sharedRun.watch.restart then processOpt.set(maybeProcess)
             else {
               for ((proc, onExit) <- maybeProcess)
@@ -300,8 +302,9 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               shouldReadInput.set(true)
               mainThreadOpt.get().foreach(_.interrupt())
             }
-          case _: Build.Failed =>
+          case b if b.exists(bb => !bb.success && !bb.cancelled) =>
             System.err.println("Compilation failed")
+          case _ => ()
         }
       }
       mainThreadOpt.set(Some(Thread.currentThread()))
@@ -319,25 +322,25 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         watcher.dispose()
       }
     }
-    else {
-      val builds =
-        Build.build(
-          inputs,
-          initialBuildOptions,
-          compilerMaker,
-          None,
-          logger,
-          crossBuilds = cross,
-          buildTests = false,
-          partial = None,
-          actionableDiagnostics = actionableDiagnostics
-        )
-          .orExit(logger)
-      builds.main match {
-        case s: Build.Successful =>
-          s.copyOutput(options.shared)
+    else
+      Build.build(
+        inputs,
+        initialBuildOptions,
+        compilerMaker,
+        None,
+        logger,
+        crossBuilds = cross,
+        buildTests = options.sharedRun.scope.test,
+        partial = None,
+        actionableDiagnostics = actionableDiagnostics
+      )
+        .orExit(logger)
+        .builds match {
+        case b if b.forall(_.success) =>
+          val successfulBuilds = b.collect { case s: Build.Successful => s }
+          successfulBuilds.foreach(_.copyOutput(options.shared))
           val res = maybeRun(
-            s,
+            successfulBuilds,
             allowTerminate = true,
             runMode = runMode(options),
             showCommand = options.sharedRun.command,
@@ -346,15 +349,15 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             .orExit(logger)
           for ((process, onExit) <- res)
             ProcUtil.waitForProcess(process, onExit)
-        case _: Build.Failed =>
+        case b if b.exists(bb => !bb.success && !bb.cancelled) =>
           System.err.println("Compilation failed")
           sys.exit(1)
+        case _ => ()
       }
-    }
   }
 
   private def maybeRunOnce(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     args: Seq[String],
     logger: Logger,
     allowExecve: Boolean,
@@ -366,23 +369,42 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     asJar: Boolean
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
-    val mainClassOpt = build.options.mainClass.filter(_.nonEmpty) // trim it too?
+    val mainClassOpt = builds.head.options.mainClass.filter(_.nonEmpty) // trim it too?
       .orElse {
-        if build.options.jmhOptions.enableJmh.contains(true) && !build.options.jmhOptions.canRunJmh
+        if builds.head.options.jmhOptions.enableJmh.contains(
+            true
+          ) && !builds.head.options.jmhOptions.canRunJmh
         then Some("org.openjdk.jmh.Main")
         else None
       }
-    val mainClass = mainClassOpt match {
+    val mainClass: String = mainClassOpt match {
       case Some(cls) => cls
-      case None      => value(build.retainedMainClass(logger, mainClasses = potentialMainClasses))
+      case None =>
+        val retainedMainClassesByScope: Map[Scope, String] = value {
+          builds
+            .map { build =>
+              build.retainedMainClass(logger, mainClasses = potentialMainClasses)
+                .map(mainClass => build.scope -> mainClass)
+            }
+            .sequence
+            .left
+            .map(CompositeBuildException(_))
+            .map(_.toMap)
+        }
+        if retainedMainClassesByScope.size == 1 then retainedMainClassesByScope.head._2
+        else
+          retainedMainClassesByScope
+            .get(Scope.Main)
+            .orElse(retainedMainClassesByScope.get(Scope.Test))
+            .get
     }
-    val verbosity = build.options.internal.verbosity.getOrElse(0).toString
+    val verbosity = builds.head.options.internal.verbosity.getOrElse(0).toString
 
     val (finalMainClass, finalArgs) =
       if (jvmRunner) (Constants.runnerMainClass, mainClass +: verbosity +: args)
       else (mainClass, args)
     val res = runOnce(
-      build,
+      builds,
       finalMainClass,
       finalArgs,
       logger,
@@ -417,7 +439,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   private def runOnce(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClass: String,
     args: Seq[String],
     logger: Logger,
@@ -427,13 +449,12 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     scratchDirOpt: Option[os.Path],
     asJar: Boolean
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
-
-    build.options.platform.value match {
+    builds.head.options.platform.value match {
       case Platform.JS =>
         val esModule =
-          build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
+          builds.head.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
 
-        val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
+        val linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
         val jsDest = {
           val delete = scratchDirOpt.isEmpty
           scratchDirOpt.foreach(os.makeDir.all(_))
@@ -446,17 +467,17 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
         val res =
           Package.linkJs(
-            build,
+            builds,
             jsDest,
             Some(mainClass),
             addTestInitializer = false,
             linkerConfig,
-            value(build.options.scalaJsOptions.fullOpt),
-            build.options.scalaJsOptions.noOpt.getOrElse(false),
+            value(builds.head.options.scalaJsOptions.fullOpt),
+            builds.head.options.scalaJsOptions.noOpt.getOrElse(false),
             logger,
             scratchDirOpt
           ).map { outputPath =>
-            val jsDom = build.options.scalaJsOptions.dom.getOrElse(false)
+            val jsDom = builds.head.options.scalaJsOptions.dom.getOrElse(false)
             if (showCommand)
               Left(Runner.jsCommand(outputPath.toIO, args, jsDom = jsDom))
             else {
@@ -467,7 +488,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   logger,
                   allowExecve = allowExecve,
                   jsDom = jsDom,
-                  sourceMap = build.options.scalaJsOptions.emitSourceMaps,
+                  sourceMap = builds.head.options.scalaJsOptions.emitSourceMaps,
                   esModule = esModule
                 )
               }
@@ -477,7 +498,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           }
         value(res)
       case Platform.Native =>
-        val setupPython = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+        val setupPython = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
         val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
           if (setupPython) {
             val (exec, libPaths) = value {
@@ -492,7 +513,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
             // Putting the workspace in PYTHONPATH, see
             // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
             // for context.
-            (exec, libPaths, pythonPathEnv(build.inputs.workspace))
+            (exec, libPaths, pythonPathEnv(builds.head.inputs.workspace))
           }
           else
             (None, Nil, Map())
@@ -522,7 +543,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
         val extraEnv = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
         val maybeResult = withNativeLauncher(
-          build,
+          builds.head, // TODO: support multiple builds
           mainClass,
           logger
         ) { launcher =>
@@ -547,8 +568,8 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       case Platform.JVM =>
         runMode match {
           case RunMode.Default =>
-            val baseJavaProps = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
-            val setupPython   = build.options.notForBloopOptions.doSetupPython.getOrElse(false)
+            val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+            val setupPython = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
             val (pythonJavaProps, pythonExtraEnv) =
               if (setupPython) {
                 val scalapyProps = value {
@@ -563,35 +584,35 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 // Putting the workspace in PYTHONPATH, see
                 // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
                 // for context.
-                (props, pythonPathEnv(build.inputs.workspace))
+                (props, pythonPathEnv(builds.head.inputs.workspace))
               }
               else
                 (Nil, Map.empty[String, String])
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
             if (showCommand) {
               val command = Runner.jvmCommand(
-                build.options.javaHome().value.javaCommand,
+                builds.head.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPathMaybeAsJar(asJar),
+                builds.head.fullClassPathMaybeAsJar(asJar), // TODO: handle multiple builds
                 mainClass,
                 args,
                 extraEnv = pythonExtraEnv,
-                useManifest = build.options.notForBloopOptions.runWithManifest,
+                useManifest = builds.head.options.notForBloopOptions.runWithManifest,
                 scratchDirOpt = scratchDirOpt
               )
               Left(command)
             }
             else {
               val proc = Runner.runJvm(
-                build.options.javaHome().value.javaCommand,
+                builds.head.options.javaHome().value.javaCommand,
                 allJavaOpts,
-                build.fullClassPathMaybeAsJar(asJar),
+                builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
                 mainClass,
                 args,
                 logger,
                 allowExecve = allowExecve,
                 extraEnv = pythonExtraEnv,
-                useManifest = build.options.notForBloopOptions.runWithManifest,
+                useManifest = builds.head.options.notForBloopOptions.runWithManifest,
                 scratchDirOpt = scratchDirOpt
               )
               Right((proc, None))
@@ -599,7 +620,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case mode: RunMode.SparkSubmit =>
             value {
               RunSpark.run(
-                build,
+                builds.head, // TODO: handle multiple builds
                 mainClass,
                 args,
                 mode.submitArgs,
@@ -612,7 +633,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case mode: RunMode.StandaloneSparkSubmit =>
             value {
               RunSpark.runStandalone(
-                build,
+                builds.head, // TODO: handle multiple builds
                 mainClass,
                 args,
                 mode.submitArgs,
@@ -625,7 +646,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case RunMode.HadoopJar =>
             value {
               RunHadoop.run(
-                build,
+                builds.head, // TODO: handle multiple builds
                 mainClass,
                 args,
                 logger,
@@ -639,7 +660,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   }
 
   def withLinkedJs[T](
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
     config: ScalaJsLinkerConfig,
@@ -650,7 +671,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
   )(f: os.Path => T): Either[BuildException, T] = {
     val dest = os.temp(prefix = "main", suffix = if (esModule) ".mjs" else ".js")
     try Package.linkJs(
-        build,
+        builds,
         dest,
         mainClassOpt,
         addTestInitializer,

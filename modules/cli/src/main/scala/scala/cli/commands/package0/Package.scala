@@ -697,7 +697,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     isFullOpt <- build.options.scalaJsOptions.fullOpt
     linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
     linkResult <- linkJs(
-      build,
+      Seq(build),
       destPath,
       mainClass,
       addTestInitializer = false,
@@ -947,7 +947,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   }
 
   def linkJs(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     dest: os.Path,
     mainClassOpt: Option[String],
     addTestInitializer: Boolean,
@@ -957,19 +957,19 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger,
     scratchDirOpt: Option[os.Path] = None
   ): Either[BuildException, os.Path] = {
-    val mainJar   = Library.libraryJar(build)
-    val classPath = mainJar +: build.artifacts.classPath
+    val jars      = builds.map(Library.libraryJar(_))
+    val classPath = jars ++ builds.flatMap(_.artifacts.classPath)
     val input = ScalaJsLinker.LinkJSInput(
-      options = build.options.notForBloopOptions.scalaJsLinkerOptions,
+      options = builds.head.options.notForBloopOptions.scalaJsLinkerOptions,
       javaCommand =
-        build.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
+        builds.head.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
       classPath = classPath,
       mainClassOrNull = mainClassOpt.orNull,
       addTestInitializer = addTestInitializer,
       config = config,
       fullOpt = fullOpt,
       noOpt = noOpt,
-      scalaJsVersion = build.options.scalaJsOptions.finalVersion
+      scalaJsVersion = builds.head.options.scalaJsOptions.finalVersion
     )
 
     val linkingDir = LinkingDir.getOrCreate(input, scratchDirOpt)
@@ -980,8 +980,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           input,
           linkingDir,
           logger,
-          build.options.finalCache,
-          build.options.archiveCache
+          builds.head.options.finalCache,
+          builds.head.options.archiveCache
         )
       }
       val relMainJs      = os.rel / "main.js"
@@ -1012,9 +1012,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
         else {
           os.copy(mainJs, dest, replaceExisting = true)
-          if (build.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
+          if (builds.head.options.scalaJsOptions.emitSourceMaps && os.exists(sourceMapJs)) {
             val sourceMapDest =
-              build.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
+              builds.head.options.scalaJsOptions.sourceMapsDest.getOrElse(os.Path(s"$dest.map"))
             val updatedMainJs = ScalaJsLinker.updateSourceMappingURL(dest)
             os.write.over(dest, updatedMainJs)
             os.copy(sourceMapJs, sourceMapDest, replaceExisting = true)

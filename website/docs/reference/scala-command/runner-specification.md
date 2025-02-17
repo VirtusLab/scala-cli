@@ -2326,6 +2326,12 @@ Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
 
 Print the command that would have been run (one argument per line), rather than running it
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 <details><summary>
 
 ### Implementantation specific options
@@ -2959,6 +2965,12 @@ Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
 **--command**
 
 Print the command that would have been run (one argument per line), rather than running it
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 

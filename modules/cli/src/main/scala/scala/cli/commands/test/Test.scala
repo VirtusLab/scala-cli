@@ -201,7 +201,7 @@ object Test extends ScalaCommand[TestOptions] {
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
         value {
           Run.withLinkedJs(
-            build,
+            Seq(build),
             None,
             addTestInitializer = true,
             linkerConfig,
