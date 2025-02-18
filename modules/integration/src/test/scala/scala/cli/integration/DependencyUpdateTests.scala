@@ -25,7 +25,8 @@ class DependencyUpdateTests extends ScalaCliSuite {
         )
       expect(p.out.trim().contains("Updated dependency"))
       expect( // check if dependency update command modify file
-        os.read(root / fileName) != fileContent)
+        os.read(root / fileName) != fileContent
+      )
 
       // after updating dependencies app should run
       val out = os.proc(TestUtil.cli, fileName).call(cwd = root).out.trim()

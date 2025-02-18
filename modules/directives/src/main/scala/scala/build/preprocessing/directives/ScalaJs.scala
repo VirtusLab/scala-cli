@@ -43,7 +43,7 @@ import scala.util.Try
     |`//> using jsModuleSplitStyleStr` _value_
     |
     |`//> using jsEsVersionStr` _value_
-    |    
+    |
     |`//> using jsEmitWasm` _true|false_
     |
     |`//> using jsEsModuleImportMap` _value_

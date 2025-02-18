@@ -162,7 +162,7 @@ object Export extends ScalaCommand[ExportOptions] {
     val exportOptionsString = exportOptions.mkString(", ")
     if exportOptions.length > 1 then {
       logger.error(
-        s"""Error: Cannot export to more than one tool at once (currently chosen: $exportOptionsString). 
+        s"""Error: Cannot export to more than one tool at once (currently chosen: $exportOptionsString).
            |Pick one build tool to export to.""".stripMargin
       )
       sys.exit(1)

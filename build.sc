@@ -533,7 +533,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def giter8Organization = "${Deps.giter8.dep.module.organization.value}"
          |  def giter8Name = "${Deps.giter8.dep.module.name.value}"
          |  def giter8Version = "${Deps.giter8.dep.version}"
-         |  
+         |
          |  def sbtVersion = "${Deps.Versions.sbtVersion}"
          |
          |  def mavenVersion = "${Deps.Versions.mavenVersion}"
@@ -1082,7 +1082,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def workspaceDirName             = "$workspaceDirName"
            |  def libsodiumVersion             = "${deps.libsodiumVersion}"
            |  def dockerArchLinuxImage         = "${TestDeps.archLinuxImage}"
-           |  
+           |
            |  def toolkitVersion                 = "${Deps.toolkitVersion}"
            |  def toolkitVersionForNative04      = "${Deps.toolkitVersionForNative04}"
            |  def toolkitVersionForNative05      = "${Deps.toolkitVersionForNative05}"

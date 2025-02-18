@@ -127,7 +127,7 @@ object ConfigOptions {
        |  ${Console.BOLD}$progName $cmdName key value${Console.RESET}
        |For example, to globally set the interactive mode:
        |  ${Console.BOLD}$progName $cmdName interactive true${Console.RESET}
-       |  
+       |
        |Available keys:
        |  ${configKeyMessages(includeHidden = true).mkString(s"${System.lineSeparator}  ")}
        |

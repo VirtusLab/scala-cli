@@ -1587,7 +1587,7 @@ abstract class RunTestDefinitions
            |  assert(BuildInfo.Main.resolvers.size == 3)
            |  assert(BuildInfo.Main.resourceDirs.size == 1)
            |  assert(BuildInfo.Main.customJarsDecls.size == 2)
-           |   
+           |
            |  assert(BuildInfo.Test.sources.head.endsWith("Test.scala"))
            |  assert(BuildInfo.Test.scalacOptions == Seq("-Xasync"))
            |  assert(BuildInfo.Test.scalaCompilerPlugins.size == 0)
