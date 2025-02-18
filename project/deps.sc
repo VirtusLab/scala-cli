@@ -105,7 +105,7 @@ object InternalDeps {
 
 object Deps {
   object Versions {
-    def ammonite             = "3.0.1"
+    def ammonite             = "3.0.2"
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
