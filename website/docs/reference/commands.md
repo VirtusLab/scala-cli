@@ -46,7 +46,7 @@ For example, to globally set the interactive mode:
 ```sh
   scala-cli config interactive true
 ```
-  
+
 Available keys:
   - actions                                        Globally enables actionable diagnostics. Enabled by default.
   - github.token                                   GitHub token.
