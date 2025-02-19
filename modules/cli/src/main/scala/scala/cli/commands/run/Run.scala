@@ -589,19 +589,19 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               else
                 (Nil, Map.empty[String, String])
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
-            if (showCommand) {
-              val command = Runner.jvmCommand(
-                builds.head.options.javaHome().value.javaCommand,
-                allJavaOpts,
-                builds.head.fullClassPathMaybeAsJar(asJar), // TODO: handle multiple builds
-                mainClass,
-                args,
-                extraEnv = pythonExtraEnv,
-                useManifest = builds.head.options.notForBloopOptions.runWithManifest,
-                scratchDirOpt = scratchDirOpt
-              )
-              Left(command)
-            }
+            if showCommand then
+              Left {
+                Runner.jvmCommand(
+                  builds.head.options.javaHome().value.javaCommand,
+                  allJavaOpts,
+                  builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
+                  mainClass,
+                  args,
+                  extraEnv = pythonExtraEnv,
+                  useManifest = builds.head.options.notForBloopOptions.runWithManifest,
+                  scratchDirOpt = scratchDirOpt
+                )
+              }
             else {
               val proc = Runner.runJvm(
                 builds.head.options.javaHome().value.javaCommand,

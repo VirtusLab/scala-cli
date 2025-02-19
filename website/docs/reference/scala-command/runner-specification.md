@@ -2320,7 +2320,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 
@@ -2960,7 +2960,7 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 

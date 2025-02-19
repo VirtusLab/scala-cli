@@ -658,7 +658,7 @@ Specify which main class to run
 
 ### `--main-class-ls`
 
-Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
+Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--list-main-methods`, `--main-class-list`, `--main-method-list`, `--main-method-ls`
 
 `SHOULD have` per Scala Runner specification
 
