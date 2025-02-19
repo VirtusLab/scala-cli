@@ -258,4 +258,52 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       }
     }
 
+    test("publish local without docs") {
+      val expectedFiles = {
+        val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base    = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val baseFiles = Seq(
+          base / "jars" / s"$modName.jar",
+          base / "srcs" / s"$modName-sources.jar",
+          base / "poms" / s"$modName.pom",
+          base / "ivys" / "ivy.xml"
+        )
+        baseFiles
+          .flatMap { f =>
+            val md5  = f / os.up / s"${f.last}.md5"
+            val sha1 = f / os.up / s"${f.last}.sha1"
+            Seq(f, md5, sha1)
+          }
+          .toSet
+      }
+
+      PublishTestInputs.inputs()
+        .fromRoot { root =>
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "publish",
+            "local",
+            ".",
+            "--ivy2-home",
+            os.rel / "ivy2",
+            extraOptions,
+            "--doc=false"
+          )
+            .call(cwd = root)
+          val ivy2Local = root / "ivy2" / "local"
+          val foundFiles = os.walk(ivy2Local)
+            .filter(os.isFile(_))
+            .map(_.relativeTo(ivy2Local))
+            .toSet
+          val missingFiles    = expectedFiles -- foundFiles
+          val unexpectedFiles = foundFiles -- expectedFiles
+          if (missingFiles.nonEmpty)
+            pprint.err.log(missingFiles)
+          if (unexpectedFiles.nonEmpty)
+            pprint.err.log(unexpectedFiles)
+          expect(missingFiles.isEmpty)
+          expect(unexpectedFiles.isEmpty)
+        }
+    }
 }
