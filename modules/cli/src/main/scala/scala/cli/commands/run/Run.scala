@@ -158,7 +158,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       runMode: RunMode,
       showCommand: Boolean,
       scratchDirOpt: Option[os.Path]
-    ): Either[BuildException, Option[(Process, CompletableFuture[_])]] = either {
+    ): Either[BuildException, Option[(Process, CompletableFuture[?])]] = either {
       val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
       if (options.sharedRun.mainClass.mainClassLs.contains(true))
         value {
@@ -620,7 +620,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case mode: RunMode.SparkSubmit =>
             value {
               RunSpark.run(
-                builds.head, // TODO: handle multiple builds
+                builds,
                 mainClass,
                 args,
                 mode.submitArgs,
@@ -633,7 +633,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case mode: RunMode.StandaloneSparkSubmit =>
             value {
               RunSpark.runStandalone(
-                builds.head, // TODO: handle multiple builds
+                builds,
                 mainClass,
                 args,
                 mode.submitArgs,

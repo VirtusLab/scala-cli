@@ -316,7 +316,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           value(bootstrap(build, destPath, value(mainClass), () => alreadyExistsCheck(), logger))
           destPath
         case PackageType.LibraryJar =>
-          val libraryJar = Library.libraryJar(build)
+          val libraryJar = Library.libraryJar(Seq(build))
           value(alreadyExistsCheck())
           if (force) os.copy.over(libraryJar, destPath, createFolders = true)
           else os.copy(libraryJar, destPath, createFolders = true)
@@ -550,7 +550,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         outputStream = os.write.outputStream(dest, createFolders = true)
         Library.writeLibraryJarTo(
           outputStream,
-          build,
+          Seq(build),
           hasActualManifest = false,
           contentDirOverride = Some(contentDir)
         )
@@ -807,38 +807,34 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     * the whole dependency graph.
     */
   def providedFiles(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     provided: Seq[dependency.AnyModule],
     logger: Logger
   ): Either[BuildException, Seq[os.Path]] = either {
 
     logger.debug(s"${provided.length} provided dependencies")
-    val res = build.artifacts.resolution.getOrElse {
+    val res = builds.map(_.artifacts.resolution.getOrElse {
       sys.error("Internal error: expected resolution to have been kept")
-    }
-    val modules = value {
+    })
+    val modules: Seq[coursier.Module] = value {
       provided
-        .map(_.toCs(build.scalaParams))
+        .map(_.toCs(builds.head.scalaParams)) // Scala params should be the same for all scopes
         .sequence
         .left.map(CompositeBuildException(_))
     }
     val modulesSet = modules.toSet
     val providedDeps = res
-      .dependencyArtifacts
-      .map(_._1)
+      .flatMap(_.dependencyArtifacts.map(_._1))
       .filter(dep => modulesSet.contains(dep.module))
-    val providedRes = res.subset(providedDeps)
-    val fileMap = build.artifacts.detailedRuntimeArtifacts
-      .map {
-        case (_, _, artifact, path) =>
-          artifact -> path
-      }
+    val providedRes = res.map(_.subset(providedDeps))
+    val fileMap = builds.flatMap(_.artifacts.detailedRuntimeArtifacts).distinct
+      .map { case (_, _, artifact, path) => artifact -> path }
       .toMap
-    val providedFiles = coursier.Artifacts.artifacts(providedRes, Set.empty, None, None, true)
+    val providedFiles = providedRes
+      .flatMap(r => coursier.Artifacts.artifacts(r, Set.empty, None, None, true))
+      .distinct
       .map(_._3)
-      .map { a =>
-        fileMap.getOrElse(a, sys.error(s"should not happen (missing: $a)"))
-      }
+      .map(a => fileMap.getOrElse(a, sys.error(s"should not happen (missing: $a)")))
     logger.debug {
       val it = Iterator(s"${providedFiles.size} provided JAR(s)") ++
         providedFiles.toVector.map(_.toString).sorted.iterator.map(f => s"  $f")
@@ -857,9 +853,9 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger
   ): Either[BuildException, Unit] = either {
     val compiledClasses = os.walk(build.output).filter(os.isFile(_))
-    val (extraClasseFolders, extraJars) =
+    val (extraClassesFolders, extraJars) =
       build.options.classPathOptions.extraClassPath.partition(os.isDir(_))
-    val extraClasses = extraClasseFolders.flatMap(os.walk(_)).filter(os.isFile(_))
+    val extraClasses = extraClassesFolders.flatMap(os.walk(_)).filter(os.isFile(_))
 
     val byteCodeZipEntries = (compiledClasses ++ extraClasses).map { path =>
       val name         = path.relativeTo(build.output).toString
@@ -876,7 +872,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val jars =
       if (provided.isEmpty) allJars
       else {
-        val providedFilesSet = value(providedFiles(build, provided, logger)).toSet
+        val providedFilesSet = value(providedFiles(Seq(build), provided, logger)).toSet
         allJars.filterNot(providedFilesSet.contains)
       }
 
@@ -957,8 +953,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     logger: Logger,
     scratchDirOpt: Option[os.Path] = None
   ): Either[BuildException, os.Path] = {
-    val jars      = builds.map(Library.libraryJar(_))
-    val classPath = jars ++ builds.flatMap(_.artifacts.classPath)
+    val jar       = Library.libraryJar(builds)
+    val classPath = Seq(jar) ++ builds.flatMap(_.artifacts.classPath)
     val input = ScalaJsLinker.LinkJSInput(
       options = builds.head.options.notForBloopOptions.scalaJsLinkerOptions,
       javaCommand =
@@ -1090,8 +1086,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     if (cacheData.changed) {
       builds.foreach(build => NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir))
-      val jars      = builds.map(Library.libraryJar(_))
-      val classpath = (jars ++ builds.flatMap(_.artifacts.classPath)).map(_.toString).distinct
+      val jar       = Library.libraryJar(builds)
+      val classpath = (Seq(jar) ++ builds.flatMap(_.artifacts.classPath)).map(_.toString).distinct
       val args =
         allCliOptions ++
           logger.scalaNativeCliInternalLoggerOptions ++

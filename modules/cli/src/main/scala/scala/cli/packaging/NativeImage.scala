@@ -197,7 +197,7 @@ object NativeImage {
     )
 
     if (cacheData.changed) {
-      val mainJar           = Library.libraryJar(build)
+      val mainJar           = Library.libraryJar(Seq(build))
       val originalClassPath = mainJar +: build.dependencyClassPath
 
       ManifestJar.maybeWithManifestClassPath(

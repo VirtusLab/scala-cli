@@ -176,7 +176,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         buildOptions = builds.head.options,
         allArtifacts = builds.map(_.artifacts),
         mainJarsOrClassDirs =
-          if (asJar) builds.map(Library.libraryJar(_)) else builds.map(_.output),
+          if asJar then Seq(Library.libraryJar(builds)) else builds.map(_.output),
         allowExit = allowExit,
         runMode = runMode,
         successfulBuilds = builds

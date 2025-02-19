@@ -14,7 +14,7 @@ import scala.util.Properties
 object RunSpark {
 
   def run(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClass: String,
     args: Seq[String],
     submitArgs: Seq[String],
@@ -27,11 +27,11 @@ object RunSpark {
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules
     val providedFiles =
-      value(PackageCmd.providedFiles(build, providedModules, logger)).toSet
-    val depCp        = build.dependencyClassPath.filterNot(providedFiles)
-    val javaHomeInfo = build.options.javaHome().value
-    val javaOpts     = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
-    val ext          = if (Properties.isWin) ".cmd" else ""
+      value(PackageCmd.providedFiles(builds, providedModules, logger)).toSet
+    val depCp        = builds.flatMap(_.dependencyClassPath).distinct.filterNot(providedFiles)
+    val javaHomeInfo = builds.head.options.javaHome().value
+    val javaOpts     = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val ext          = if Properties.isWin then ".cmd" else ""
     val submitCommand: String =
       EnvVar.Spark.sparkHome.valueOpt
         .map(os.Path(_, os.pwd))
@@ -44,7 +44,7 @@ object RunSpark {
       else Seq("--jars", depCp.mkString(","))
 
     scratchDirOpt.foreach(os.makeDir.all(_))
-    val library = Library.libraryJar(build)
+    val library = Library.libraryJar(builds)
 
     val finalCommand =
       Seq(submitCommand, "--class", mainClass) ++
@@ -54,24 +54,23 @@ object RunSpark {
         Seq(library.toString) ++
         args
     val envUpdates = javaHomeInfo.envUpdates(sys.env)
-    if (showCommand)
-      Left(Runner.envCommand(envUpdates) ++ finalCommand)
+    if showCommand then Left(Runner.envCommand(envUpdates) ++ finalCommand)
     else {
       val proc =
-        if (allowExecve)
+        if allowExecve then
           Runner.maybeExec("spark-submit", finalCommand, logger, extraEnv = envUpdates)
-        else
-          Runner.run(finalCommand, logger, extraEnv = envUpdates)
+        else Runner.run(finalCommand, logger, extraEnv = envUpdates)
       Right((
         proc,
-        if (scratchDirOpt.isEmpty) Some(() => os.remove(library, checkExists = true))
+        if scratchDirOpt.isEmpty then
+          Some(() => os.remove(library, checkExists = true))
         else None
       ))
     }
   }
 
   def runStandalone(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClass: String,
     args: Seq[String],
     submitArgs: Seq[String],
@@ -83,18 +82,20 @@ object RunSpark {
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules
-    val sparkClassPath  = value(PackageCmd.providedFiles(build, providedModules, logger))
+    val sparkClassPath: Seq[os.Path] = value(PackageCmd.providedFiles(
+      builds,
+      providedModules,
+      logger
+    ))
 
     scratchDirOpt.foreach(os.makeDir.all(_))
-    val library = Library.libraryJar(build)
+    val library = Library.libraryJar(builds)
 
     val finalMainClass = "org.apache.spark.deploy.SparkSubmit"
-    val depCp          = build.dependencyClassPath.filterNot(sparkClassPath.toSet)
-    val javaHomeInfo   = build.options.javaHome().value
-    val javaOpts       = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
-    val jarsArgs =
-      if (depCp.isEmpty) Nil
-      else Seq("--jars", depCp.mkString(","))
+    val depCp = builds.flatMap(_.dependencyClassPath).distinct.filterNot(sparkClassPath.toSet)
+    val javaHomeInfo = builds.head.options.javaHome().value
+    val javaOpts     = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val jarsArgs     = if depCp.isEmpty then Nil else Seq("--jars", depCp.mkString(","))
     val finalArgs =
       Seq("--class", mainClass) ++
         jarsArgs ++
@@ -103,19 +104,19 @@ object RunSpark {
         Seq(library.toString) ++
         args
     val envUpdates = javaHomeInfo.envUpdates(sys.env)
-    if (showCommand) {
-      val command = Runner.jvmCommand(
-        javaHomeInfo.javaCommand,
-        javaOpts,
-        sparkClassPath,
-        finalMainClass,
-        finalArgs,
-        extraEnv = envUpdates,
-        useManifest = build.options.notForBloopOptions.runWithManifest,
-        scratchDirOpt = scratchDirOpt
-      )
-      Left(command)
-    }
+    if showCommand then
+      Left {
+        Runner.jvmCommand(
+          javaHomeInfo.javaCommand,
+          javaOpts,
+          sparkClassPath,
+          finalMainClass,
+          finalArgs,
+          extraEnv = envUpdates,
+          useManifest = builds.head.options.notForBloopOptions.runWithManifest,
+          scratchDirOpt = scratchDirOpt
+        )
+      }
     else {
       val proc = Runner.runJvm(
         javaHomeInfo.javaCommand,
@@ -126,13 +127,12 @@ object RunSpark {
         logger,
         allowExecve = allowExecve,
         extraEnv = envUpdates,
-        useManifest = build.options.notForBloopOptions.runWithManifest,
+        useManifest = builds.head.options.notForBloopOptions.runWithManifest,
         scratchDirOpt = scratchDirOpt
       )
       Right((
         proc,
-        if (scratchDirOpt.isEmpty) Some(() => os.remove(library, checkExists = true))
-        else None
+        if scratchDirOpt.isEmpty then Some(() => os.remove(library, checkExists = true)) else None
       ))
     }
   }
