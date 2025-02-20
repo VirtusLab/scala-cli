@@ -5,6 +5,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.launcher.*
 import dependency.*
+import os.Path
 import packager.config.*
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
@@ -337,7 +338,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         case a: PackageType.Assembly =>
           value {
             assembly(
-              build,
+              Seq(build),
               destPath,
               a.mainClassInManifest match {
                 case None =>
@@ -367,7 +368,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         case PackageType.Spark =>
           value {
             assembly(
-              build,
+              Seq(build),
               destPath,
               mainClassOpt,
               // The Spark modules are assumed to be already on the class path,
@@ -844,7 +845,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   }
 
   def assembly(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     destPath: os.Path,
     mainClassOpt: Option[String],
     extraProvided: Seq[dependency.AnyModule],
@@ -852,39 +853,44 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     alreadyExistsCheck: () => Either[BuildException, Unit],
     logger: Logger
   ): Either[BuildException, Unit] = either {
-    val compiledClasses = os.walk(build.output).filter(os.isFile(_))
+    val compiledClassesByOutputDir: Seq[(Path, Path)] =
+      builds.flatMap(build =>
+        os.walk(build.output).filter(os.isFile(_)).map(build.output -> _)
+      ).distinct
     val (extraClassesFolders, extraJars) =
-      build.options.classPathOptions.extraClassPath.partition(os.isDir(_))
-    val extraClasses = extraClassesFolders.flatMap(os.walk(_)).filter(os.isFile(_))
+      builds.flatMap(_.options.classPathOptions.extraClassPath).partition(os.isDir(_))
+    val extraClassesByDefaultOutputDir =
+      extraClassesFolders.flatMap(os.walk(_)).filter(os.isFile(_)).map(builds.head.output -> _)
 
-    val byteCodeZipEntries = (compiledClasses ++ extraClasses).map { path =>
-      val name         = path.relativeTo(build.output).toString
-      val content      = os.read.bytes(path)
-      val lastModified = os.mtime(path)
-      val ent          = new ZipEntry(name)
-      ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
-      ent.setSize(content.length)
-      (ent, content)
-    }
+    val byteCodeZipEntries =
+      (compiledClassesByOutputDir ++ extraClassesByDefaultOutputDir).map { (outputDir, path) =>
+        val name         = path.relativeTo(outputDir).toString
+        val content      = os.read.bytes(path)
+        val lastModified = os.mtime(path)
+        val ent          = new ZipEntry(name)
+        ent.setLastModifiedTime(FileTime.fromMillis(lastModified))
+        ent.setSize(content.length)
+        (ent, content)
+      }
 
-    val provided = build.options.notForBloopOptions.packageOptions.provided ++ extraProvided
-    val allJars  = build.artifacts.runtimeArtifacts.map(_._2) ++ extraJars.filter(os.exists(_))
+    val provided = builds.head.options.notForBloopOptions.packageOptions.provided ++ extraProvided
+    val allJars =
+      builds.flatMap(_.artifacts.runtimeArtifacts.map(_._2)) ++ extraJars.filter(os.exists(_))
     val jars =
       if (provided.isEmpty) allJars
       else {
-        val providedFilesSet = value(providedFiles(Seq(build), provided, logger)).toSet
+        val providedFilesSet = value(providedFiles(builds, provided, logger)).toSet
         allJars.filterNot(providedFilesSet.contains)
       }
 
     val preambleOpt =
-      if (withPreamble)
+      if withPreamble then
         Some {
           Preamble()
             .withOsKind(Properties.isWin)
             .callsItself(Properties.isWin)
         }
-      else
-        None
+      else None
     val params = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
       .withFiles(jars.map(_.toIO))

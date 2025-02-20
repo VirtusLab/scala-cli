@@ -646,7 +646,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           case RunMode.HadoopJar =>
             value {
               RunHadoop.run(
-                builds.head, // TODO: handle multiple builds
+                builds,
                 mainClass,
                 args,
                 logger,
