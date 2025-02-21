@@ -32,6 +32,7 @@ trait Build {
   def scope: Scope
   def outputOpt: Option[os.Path]
   def success: Boolean
+  def cancelled: Boolean
   def diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
 
   def successfulOpt: Option[Build.Successful]
@@ -54,6 +55,7 @@ object Build {
     logger: Logger
   ) extends Build {
     def success: Boolean                  = true
+    def cancelled: Boolean                = false
     def successfulOpt: Some[this.type]    = Some(this)
     def outputOpt: Some[os.Path]          = Some(output)
     def dependencyClassPath: Seq[os.Path] = sources.resourceDirs ++ artifacts.classPath
@@ -215,9 +217,11 @@ object Build {
     project: Project,
     diagnostics: Option[Seq[(Either[String, os.Path], bsp4j.Diagnostic)]]
   ) extends Build {
-    def success: Boolean         = false
-    def successfulOpt: None.type = None
-    def outputOpt: None.type     = None
+    def success: Boolean = false
+
+    override def cancelled: Boolean = false
+    def successfulOpt: None.type    = None
+    def outputOpt: None.type        = None
   }
 
   final case class Cancelled(
@@ -227,6 +231,7 @@ object Build {
     reason: String
   ) extends Build {
     def success: Boolean         = false
+    def cancelled: Boolean       = true
     def successfulOpt: None.type = None
     def outputOpt: None.type     = None
     def diagnostics: None.type   = None

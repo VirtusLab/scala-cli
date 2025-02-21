@@ -201,7 +201,7 @@ object Test extends ScalaCommand[TestOptions] {
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
         value {
           Run.withLinkedJs(
-            build,
+            Seq(build),
             None,
             addTestInitializer = true,
             linkerConfig,
@@ -225,7 +225,7 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.Native =>
         value {
           Run.withNativeLauncher(
-            build,
+            Seq(build),
             "scala.scalanative.testinterface.TestMain",
             logger
           ) { launcher =>

@@ -2320,11 +2320,17 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 
 Print the command that would have been run (one argument per line), rather than running it
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -2954,11 +2960,17 @@ Aliases: `--revolver`
 
 List main classes available in the current context
 
-Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes`
+Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--list-main-methods` ,`--list-main-method` ,`--main-method-list` ,`--main-method-ls`
 
 **--command**
 
 Print the command that would have been run (one argument per line), rather than running it
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 

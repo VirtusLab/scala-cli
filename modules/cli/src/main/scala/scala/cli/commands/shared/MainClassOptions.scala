@@ -19,6 +19,10 @@ final case class MainClassOptions(
   @Name("mainClassList")
   @Name("listMainClass")
   @Name("listMainClasses")
+  @Name("listMainMethods")
+  @Name("listMainMethod")
+  @Name("mainMethodList")
+  @Name("mainMethodLs")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
     mainClassLs: Option[Boolean] = None
