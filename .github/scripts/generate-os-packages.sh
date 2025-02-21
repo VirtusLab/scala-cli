@@ -127,7 +127,7 @@ generate_sdk() {
       sdkDirectory="scala-cli-x86_64-apple-darwin-sdk"
     fi
     binName="scala-cli"
-  elif [[ "$OSTYPE" == "msys" ]]; then
+  elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     sdkDirectory="scala-cli-x86_64-pc-win32-sdk"
     binName="scala-cli.exe"
   else
@@ -138,7 +138,7 @@ generate_sdk() {
   mkdir -p "$sdkDirectory"/bin
   cp "$(launcher)" "$sdkDirectory"/bin/"$binName"
 
-  if [[ "$OSTYPE" == "msys" ]]; then
+  if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     7z a "$sdkDirectory".zip "$sdkDirectory"
   else
     zip -r "$sdkDirectory".zip "$sdkDirectory"
@@ -160,7 +160,7 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
     generate_pkg "x86_64"
   fi
   generate_sdk
-elif [[ "$OSTYPE" == "msys" ]]; then
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
   generate_msi
   generate_sdk
 else
