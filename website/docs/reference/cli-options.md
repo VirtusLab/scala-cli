@@ -737,7 +737,7 @@ Specify which main class to run
 
 ### `--main-class-ls`
 
-Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
+Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--list-main-methods`, `--main-class-list`, `--main-method-list`, `--main-method-ls`
 
 List main classes available in the current context
 
@@ -1534,7 +1534,7 @@ Run scalafix rule(s) explicitly, overriding the configuration file default.
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 

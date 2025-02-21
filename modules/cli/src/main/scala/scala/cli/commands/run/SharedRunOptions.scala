@@ -51,7 +51,9 @@ final case class SharedRunOptions(
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Run Java commands using a manifest-based class path (shortens command length)")
-    useManifest: Option[Boolean] = None
+    useManifest: Option[Boolean] = None,
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 )
 // format: on
 

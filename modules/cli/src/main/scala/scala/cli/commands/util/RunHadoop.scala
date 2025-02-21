@@ -10,7 +10,7 @@ import scala.cli.commands.packaging.Spark
 object RunHadoop {
 
   def run(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     mainClass: String,
     args: Seq[String],
     logger: Logger,
@@ -18,7 +18,6 @@ object RunHadoop {
     showCommand: Boolean,
     scratchDirOpt: Option[os.Path]
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
-
     // FIXME Get Spark.hadoopModules via provided settings?
     val providedModules = Spark.hadoopModules
     scratchDirOpt.foreach(os.makeDir.all(_))
@@ -30,7 +29,7 @@ object RunHadoop {
     )
     value {
       PackageCmd.assembly(
-        build,
+        builds,
         assembly,
         // "hadoop jar" doesn't accept a main class as second argument if the jar as first argument has a main class in its manifest…
         None,
@@ -41,9 +40,9 @@ object RunHadoop {
       )
     }
 
-    val javaOpts = build.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+    val javaOpts = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val extraEnv =
-      if (javaOpts.isEmpty) Map[String, String]()
+      if javaOpts.isEmpty then Map[String, String]()
       else
         Map(
           "HADOOP_CLIENT_OPTS" -> javaOpts.mkString(" ") // no escaping…
@@ -51,17 +50,14 @@ object RunHadoop {
     val hadoopJarCommand = Seq("hadoop", "jar")
     val finalCommand =
       hadoopJarCommand ++ Seq(assembly.toString, mainClass) ++ args
-    if (showCommand)
-      Left(Runner.envCommand(extraEnv) ++ finalCommand)
+    if showCommand then Left(Runner.envCommand(extraEnv) ++ finalCommand)
     else {
       val proc =
-        if (allowExecve)
-          Runner.maybeExec("hadoop", finalCommand, logger, extraEnv = extraEnv)
-        else
-          Runner.run(finalCommand, logger, extraEnv = extraEnv)
+        if allowExecve then Runner.maybeExec("hadoop", finalCommand, logger, extraEnv = extraEnv)
+        else Runner.run(finalCommand, logger, extraEnv = extraEnv)
       Right((
         proc,
-        if (scratchDirOpt.isEmpty) Some(() => os.remove(assembly, checkExists = true))
+        if scratchDirOpt.isEmpty then Some(() => os.remove(assembly, checkExists = true))
         else None
       ))
     }

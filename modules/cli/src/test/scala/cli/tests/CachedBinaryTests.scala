@@ -1,22 +1,24 @@
 package scala.cli.tests
 
-import com.eed3si9n.expecty.Expecty.{assert => expect}
+import bloop.rifle.BloopRifleConfig
+import com.eed3si9n.expecty.Expecty.assert as expect
+import os.Path
 
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
-import scala.build.{BuildThreads, Directories, LocalRepo}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo}
 import scala.cli.internal.CachedBinary
 import scala.util.{Properties, Random}
 
 class CachedBinaryTests extends munit.FunSuite {
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = BloopServer.bloopConfig
+  val buildThreads: BuildThreads    = BuildThreads.create()
+  def bloopConfig: BloopRifleConfig = BloopServer.bloopConfig
 
   val helloFileName = "Hello.scala"
 
-  val inputs = TestInputs(
+  val inputs: TestInputs = TestInputs(
     os.rel / helloFileName ->
       s"""object Hello extends App {
          |  println("Hello")
@@ -29,21 +31,55 @@ class CachedBinaryTests extends munit.FunSuite {
          |""".stripMargin
   )
 
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: Path    = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
-  val defaultOptions = BuildOptions(
+  val defaultOptions: BuildOptions = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
 
-  private def helperTests(fromDirectory: Boolean) = {
-    val additionalMessage =
-      if (fromDirectory) "built from a directory" else "built from a set of files"
+  for {
+    fromDirectory <- List(false, true)
+    additionalMessage = if (fromDirectory) "built from a directory" else "built from a set of files"
+  } {
+    test(s"should build native app with added test scope at first time ($additionalMessage)") {
+      TestInputs(
+        os.rel / "main" / "Main.scala" ->
+          s"""object Main extends App {
+             |  println("Hello")
+             |}
+             |""".stripMargin,
+        os.rel / "test" / "TestScope.scala" ->
+          s"""object TestScope extends App {
+             |  println("Hello from the test scope")
+             |}
+             |""".stripMargin
+      ).withLoadedBuilds(
+        defaultOptions,
+        buildThreads,
+        Some(bloopConfig),
+        fromDirectory
+      ) {
+        (_, _, builds) =>
+          expect(builds.builds.forall(_.success))
+
+          val config =
+            builds.main.options.scalaNativeOptions.configCliOptions(resourcesExist = false)
+          val nativeWorkDir = builds.main.inputs.nativeWorkDir
+          val destPath      = nativeWorkDir / s"main${if (Properties.isWin) ".exe" else ""}"
+          // generate dummy output
+          os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
+
+          val successfulBuilds = builds.builds.map { case s: Build.Successful => s }
+          val cacheData =
+            CachedBinary.getCacheData(successfulBuilds, config, destPath, nativeWorkDir)
+          expect(cacheData.changed)
+      }
+    }
 
     test(s"should build native app at first time ($additionalMessage)") {
-
       inputs.withLoadedBuild(defaultOptions, buildThreads, Some(bloopConfig), fromDirectory) {
         (_, _, maybeBuild) =>
           val build = maybeBuild.successfulOpt.get
@@ -55,7 +91,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           expect(cacheData.changed)
       }
     }
@@ -72,7 +108,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
@@ -81,7 +117,7 @@ class CachedBinaryTests extends munit.FunSuite {
           expect(cacheData.changed)
 
           val sameBuildCache =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           expect(!sameBuildCache.changed)
       }
     }
@@ -98,7 +134,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
@@ -108,7 +144,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
           os.remove(destPath)
           val afterDeleteCache =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           expect(afterDeleteCache.changed)
       }
     }
@@ -125,7 +161,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
@@ -135,7 +171,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
           os.write.over(destPath, Random.alphanumeric.take(10).mkString(""))
           val cacheAfterFileUpdate =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           expect(cacheAfterFileUpdate.changed)
       }
     }
@@ -151,7 +187,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
@@ -161,7 +197,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
           os.write.append(root / helloFileName, Random.alphanumeric.take(10).mkString(""))
           val cacheAfterFileUpdate =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           expect(cacheAfterFileUpdate.changed)
       }
     }
@@ -177,7 +213,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val cacheData =
-            CachedBinary.getCacheData(build, config, destPath, nativeWorkDir)
+            CachedBinary.getCacheData(Seq(build), config, destPath, nativeWorkDir)
           CachedBinary.updateProjectAndOutputSha(
             destPath,
             nativeWorkDir,
@@ -197,7 +233,7 @@ class CachedBinaryTests extends munit.FunSuite {
 
           val cacheAfterConfigUpdate =
             CachedBinary.getCacheData(
-              updatedBuild,
+              Seq(updatedBuild),
               updatedConfig,
               destPath,
               nativeWorkDir
@@ -206,8 +242,4 @@ class CachedBinaryTests extends munit.FunSuite {
       }
     }
   }
-
-  helperTests(fromDirectory = false)
-  helperTests(fromDirectory = true)
-
 }

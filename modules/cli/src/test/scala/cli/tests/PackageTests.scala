@@ -44,7 +44,7 @@ class PackageTests extends munit.FunSuite {
       inputs.withBuild(defaultOptions, buildThreads, Some(bloopConfig)) {
         (_, _, maybeFirstBuild) =>
           val firstBuild      = maybeFirstBuild.orThrow.successfulOpt.get
-          val firstLibraryJar = Library.libraryJar(firstBuild)
+          val firstLibraryJar = Library.libraryJar(Seq(firstBuild))
           expect(os.exists(firstLibraryJar)) // should create library jar
 
           // change Hello.scala and recompile
@@ -66,7 +66,7 @@ class PackageTests extends munit.FunSuite {
           ) {
             (_, _, maybeSecondBuild) =>
               val secondBuild = maybeSecondBuild.orThrow.successfulOpt.get
-              val libraryJar  = Library.libraryJar(secondBuild)
+              val libraryJar  = Library.libraryJar(Seq(secondBuild))
               val fs = // should not throw "invalid CEN header (bad signature)" ZipException
                 FileSystems.newFileSystem(libraryJar.toNIO, null: ClassLoader)
               expect(fs.isOpen)

@@ -58,13 +58,13 @@ object CachedBinary {
       .map(_.getBytes(StandardCharsets.UTF_8))
   }
 
-  private def projectSha(build: Build.Successful, config: List[String]) = {
+  private def projectSha(builds: Seq[Build.Successful], config: List[String]): String = {
     val md      = MessageDigest.getInstance("SHA-1")
     val charset = StandardCharsets.UTF_8
-    md.update(build.inputs.sourceHash().getBytes(charset))
+    md.update(builds.map(_.inputs.sourceHash()).reduce(_ + _).getBytes(charset))
     md.update("<resources>".getBytes())
     // Resource changes for SN require relinking, so they should also be hashed
-    hashResources(build).foreach(md.update)
+    builds.foreach(build => hashResources(build).foreach(md.update))
     md.update("</resources>".getBytes())
     md.update(0: Byte)
     md.update("<config>".getBytes(charset))
@@ -75,7 +75,7 @@ object CachedBinary {
     md.update("</config>".getBytes(charset))
     md.update(Constants.version.getBytes)
     md.update(0: Byte)
-    for (h <- build.options.hash) {
+    for (h <- builds.map(_.options).reduce(_ orElse _).hash) {
       md.update(h.getBytes(charset))
       md.update(0: Byte)
     }
@@ -99,7 +99,7 @@ object CachedBinary {
   }
 
   def getCacheData(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     config: List[String],
     dest: os.Path,
     workDir: os.Path
@@ -107,11 +107,12 @@ object CachedBinary {
     val projectShaPath = resolveProjectShaPath(workDir)
     val outputShaPath  = resolveOutputShaPath(workDir)
 
-    val currentProjectSha = projectSha(build, config)
-    val currentOutputSha  = if (os.exists(dest)) Some(fileSha(dest)) else None
+    val currentProjectSha = projectSha(builds, config)
+    val currentOutputSha  = if os.exists(dest) then Some(fileSha(dest)) else None
 
-    val previousProjectSha = if (os.exists(projectShaPath)) Some(os.read(projectShaPath)) else None
-    val previousOutputSha  = if (os.exists(outputShaPath)) Some(os.read(outputShaPath)) else None
+    val previousProjectSha =
+      if os.exists(projectShaPath) then Some(os.read(projectShaPath)) else None
+    val previousOutputSha = if os.exists(outputShaPath) then Some(os.read(outputShaPath)) else None
 
     val changed =
       !previousProjectSha.contains(currentProjectSha) ||

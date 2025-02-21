@@ -658,7 +658,7 @@ Specify which main class to run
 
 ### `--main-class-ls`
 
-Aliases: `--list-main-class`, `--list-main-classes`, `--main-class-list`
+Aliases: `--list-main-class`, `--list-main-classes`, `--list-main-method`, `--list-main-methods`, `--main-class-list`, `--main-method-list`, `--main-method-ls`
 
 `SHOULD have` per Scala Runner specification
 
@@ -978,7 +978,7 @@ Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl)
+[`compile`](./commands.md#compile), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 

@@ -58,8 +58,8 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   protected def defaultMaster = "local[4]"
-  protected def simpleJobInputs(spark: Spark) = TestInputs(
-    os.rel / "SparkJob.scala" ->
+  protected def simpleJobInputs(spark: Spark, withTestScope: Boolean): TestInputs = TestInputs(
+    os.rel / (if (withTestScope) "SparkJob.test.scala" else "SparkJob.scala") ->
       s"""//> using dep org.apache.spark::spark-sql:${spark.sparkVersion}
          |//> using dep com.chuusai::shapeless:2.3.10
          |//> using dep com.lihaoyi::pprint:0.7.3
@@ -128,13 +128,23 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
   def simpleRunStandaloneSparkJobTest(
     scalaVersion: String,
     sparkVersion: String,
-    needsWinUtils: Boolean = false
+    needsWinUtils: Boolean = false,
+    withTestScope: Boolean
   ): Unit =
-    simpleJobInputs(new Spark(sparkVersion, scalaVersion)).fromRoot { root =>
+    simpleJobInputs(new Spark(sparkVersion, scalaVersion), withTestScope).fromRoot { root =>
       val extraEnv =
         if (needsWinUtils) maybeHadoopHomeForWinutils(root / "hadoop-home")
         else Map.empty[String, String]
-      val res = os.proc(TestUtil.cli, "--power", "run", extraOptions, "--spark-standalone", ".")
+      val scopeOptions = if (withTestScope) Seq("--test") else Nil
+      val res = os.proc(
+        TestUtil.cli,
+        "--power",
+        "run",
+        extraOptions,
+        "--spark-standalone",
+        ".",
+        scopeOptions
+      )
         .call(cwd = root, env = extraEnv)
 
       val expectedOutput = "Result: 55"
@@ -144,8 +154,16 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
       expect(output.contains(expectedOutput))
     }
 
-  test("run spark 3.3 standalone") {
-    simpleRunStandaloneSparkJobTest(actualScalaVersion, "3.3.0", needsWinUtils = true)
+  for {
+    withTestScope <- Seq(true, false)
+    scopeDescription = if (withTestScope) "test scope" else "main scope"
+  } test(s"run spark 3.3 standalone ($scopeDescription)") {
+    simpleRunStandaloneSparkJobTest(
+      actualScalaVersion,
+      "3.3.0",
+      needsWinUtils = true,
+      withTestScope = withTestScope
+    )
   }
 
   test("run spark spark-submit args") {
