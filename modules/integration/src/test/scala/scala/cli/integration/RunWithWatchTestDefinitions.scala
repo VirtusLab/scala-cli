@@ -95,7 +95,8 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
       "JS"     -> Seq("--js"),
       "Native" -> Seq("--native")
     )
-    if !Properties.isMac || !TestUtil.isCI // TODO make this pass reliably on Mac CI
+    // TODO make this pass reliably on Mac CI https://github.com/VirtusLab/scala-cli/issues/2517
+    if !Properties.isMac || !TestUtil.isCI
   }
     test(s"--watch --test ($platformDescription)") {
       TestUtil.retryOnCi() {
