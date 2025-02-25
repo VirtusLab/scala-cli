@@ -114,7 +114,7 @@ object Doc extends ScalaCommand[DocOptions] {
 
     value(alreadyExistsCheck())
 
-    val docJarPath = value(generateScaladocDirPath(build, logger, extraArgs))
+    val docJarPath = value(generateScaladocDirPath(Seq(build), logger, extraArgs))
     value(alreadyExistsCheck())
     if (force) os.copy.over(docJarPath, destPath)
     else os.copy(docJarPath, destPath)
@@ -136,84 +136,77 @@ object Doc extends ScalaCommand[DocOptions] {
   )
 
   def generateScaladocDirPath(
-    build: Build.Successful,
+    builds: Seq[Build.Successful],
     logger: Logger,
     extraArgs: Seq[String]
   ): Either[BuildException, os.Path] = either {
-    val docContentDir = build.scalaParams match {
+    val docContentDir = builds.head.scalaParams match {
       case Some(scalaParams) if scalaParams.scalaVersion.startsWith("2.") =>
-        build.project.scaladocDir
+        builds.head.project.scaladocDir
       case Some(scalaParams) =>
         val res = value {
           Artifacts.fetchAnyDependencies(
             Seq(Positioned.none(dep"org.scala-lang::scaladoc:${scalaParams.scalaVersion}")),
-            value(build.options.finalRepositories),
+            value(builds.head.options.finalRepositories),
             Some(scalaParams),
             logger,
-            build.options.finalCache,
+            builds.head.options.finalCache,
             None
           )
         }
-        val destDir = build.project.scaladocDir
+        val destDir = builds.head.project.scaladocDir
         os.makeDir.all(destDir)
-        val ext = if (Properties.isWin) ".exe" else ""
+        val ext = if Properties.isWin then ".exe" else ""
         val baseArgs = Seq(
           "-classpath",
-          build.fullClassPath.map(_.toString).mkString(File.pathSeparator),
+          builds.flatMap(_.fullClassPath).distinct.map(_.toString).mkString(File.pathSeparator),
           "-d",
           destDir.toString
         )
         val defaultArgs =
-          if (
-            build.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions.getOrElse(
-              true
-            )
-          )
-            defaultScaladocArgs
-          else
-            Nil
+          if builds.head.options.notForBloopOptions.packageOptions.useDefaultScaladocOptions
+              .getOrElse(true)
+          then defaultScaladocArgs
+          else Nil
         val args = baseArgs ++
-          build.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
+          builds.head.project.scalaCompiler.map(_.scalacOptions).getOrElse(Nil) ++
           extraArgs ++
           defaultArgs ++
-          Seq(build.output.toString)
+          builds.map(_.output.toString)
         val retCode = Runner.runJvm(
-          (build.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
+          (builds.head.options.javaHomeLocation().value / "bin" / s"java$ext").toString,
           Nil, // FIXME Allow to customize that?
           res.files.map(os.Path(_, os.pwd)),
           "dotty.tools.scaladoc.Main",
           args,
           logger,
-          cwd = Some(build.inputs.workspace)
+          cwd = Some(builds.head.inputs.workspace)
         ).waitFor()
-        if (retCode == 0)
-          destDir
-        else
-          value(Left(new ScaladocGenerationFailedError(retCode)))
+        if retCode == 0 then destDir
+        else value(Left(new ScaladocGenerationFailedError(retCode)))
       case None =>
-        val destDir = build.project.scaladocDir
+        val destDir = builds.head.project.scaladocDir
         os.makeDir.all(destDir)
         val ext = if (Properties.isWin) ".exe" else ""
         val javaSources =
-          (build.sources.paths.map(_._1) ++ build.generatedSources.map(_.generated))
+          builds
+            .flatMap(b => b.sources.paths.map(_._1) ++ b.generatedSources.map(_.generated))
+            .distinct
             .filter(_.last.endsWith(".java"))
         val command = Seq(
-          (build.options.javaHomeLocation().value / "bin" / s"javadoc$ext").toString,
+          (builds.head.options.javaHomeLocation().value / "bin" / s"javadoc$ext").toString,
           "-d",
           destDir.toString,
           "-classpath",
-          build.fullClassPath.map(_.toString).mkString(File.pathSeparator)
-        ) ++
-          javaSources.map(_.toString)
+          builds.flatMap(_.fullClassPath).distinct.map(_.toString).mkString(File.pathSeparator)
+        ) ++ javaSources.map(_.toString)
         val retCode = Runner.run(
           command,
           logger,
-          cwd = Some(build.inputs.workspace)
+          cwd = Some(builds.head.inputs.workspace)
         ).waitFor()
-        if (retCode == 0)
-          destDir
-        else
-          value(Left(new ScaladocGenerationFailedError(retCode)))
+        if retCode == 0 then destDir
+        else value(Left(new ScaladocGenerationFailedError(retCode)))
     }
     docContentDir
   }
