@@ -53,6 +53,11 @@ elif [[ "$cache_dest" == *.zip ]]; then
   fi
 fi
 
+# If cs is not a valid file, fall back to the `cs` command in PATH
+if [ ! -f "$cs" ]; then
+  cs="$(command -v cs)"
+fi
+
 function to_bash_syntax {
   local S
   for S in "$@" ; do
