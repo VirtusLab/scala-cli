@@ -17,7 +17,8 @@ import scala.build.Position
 case class StrictDirective(
   key: String,
   values: Seq[Value[?]],
-  startColumn: Int = 0
+  startColumn: Int = 0,
+  startLine: Int = 0
 ) {
   override def toString: String = {
     val suffix = if validValues.isEmpty then "" else s" ${validValues.mkString("  ")}"

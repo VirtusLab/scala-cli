@@ -38,18 +38,10 @@ object DirectiveUtil {
 
   def concatAllValues(
     scopedDirective: ScopedDirective
-  ): Seq[Positioned[String]] =
-    scopedDirective.directive.values.map {
-      case v: StringValue =>
-        val pos = position(v, scopedDirective.maybePath)
-        Positioned(pos, v.get)
-      case v: BooleanValue =>
-        val pos = position(v, scopedDirective.maybePath)
-        Positioned(pos, v.get.toString)
-      case v: EmptyValue =>
-        val pos = position(v, scopedDirective.maybePath)
-        Positioned(pos, v.get)
-    }
+  ): Seq[String] =
+    scopedDirective.directive.values.collect:
+      case v: StringValue  => v.get
+      case v: BooleanValue => v.get.toString
 
   def positions(
     values: Seq[Value[_]],

@@ -77,11 +77,13 @@ object ExtractedDirectives {
           case sl: StringLiteral  => Seq(StringValue(sl.getValue(), sl))
           case bl: BooleanLiteral => Seq(BooleanValue(bl.getValue(), bl))
         }
-        def toStrictDirective(ud: UsingDef) = StrictDirective(
-          ud.getKey(),
-          toStrictValue(ud.getValue()),
-          ud.getPosition().getColumn()
-        )
+        def toStrictDirective(ud: UsingDef) =
+          StrictDirective(
+            ud.getKey(),
+            toStrictValue(ud.getValue()),
+            ud.getPosition().getColumn(),
+            ud.getPosition().getLine()
+          )
 
         directives.getAst match
           case uds: UsingDefs => uds.getUsingDefs.asScala.toSeq.map(toStrictDirective)

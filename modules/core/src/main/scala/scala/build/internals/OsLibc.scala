@@ -1,7 +1,7 @@
 package scala.build.internal
 
 import bloop.rifle.VersionUtil.parseJavaVersion
-import coursier.jvm.{JavaHome, JvmChannel}
+import coursier.jvm.{JavaHome, JvmChannel, JvmIndex}
 
 import java.io.IOException
 import java.nio.charset.Charset
@@ -56,7 +56,7 @@ object OsLibc {
   // FIXME These values should be the default ones in coursier-jvm
 
   lazy val jvmIndexOs: String = {
-    val default = JvmChannel.defaultOs
+    val default = JvmIndex.defaultOs
     if (default == "linux" && isMusl.getOrElse(false)) "linux-musl"
     else default
   }

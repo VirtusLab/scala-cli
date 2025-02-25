@@ -821,4 +821,52 @@ abstract class CompileTestDefinitions
 
     }
   }
+
+  test("i3389") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """//> using optionsdeprecation
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      assertEquals(
+        TestUtil.fullStableOutput(result).trim(),
+        s"""|[error] .${File.separatorChar}Main.scala:1:11
+            |[error] Unrecognized directive: optionsdeprecation
+            |[error] //> using optionsdeprecation
+            |[error]           ^^^^^^^^^^^^^^^^^^""".stripMargin
+      )
+    }
+  }
+
+  test("i3389-2") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """//> using unrecognised.directive value1 value2
+          |""".stripMargin
+    )
+
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+      assertEquals(
+        TestUtil.fullStableOutput(result).trim(),
+        s"""|[error] .${File.separatorChar}Main.scala:1:11
+            |[error] Unrecognized directive: unrecognised.directive with values: value1, value2
+            |[error] //> using unrecognised.directive value1 value2
+            |[error]           ^^^^^^^^^^^^^^^^^^^^^^""".stripMargin
+      )
+    }
+  }
 }
