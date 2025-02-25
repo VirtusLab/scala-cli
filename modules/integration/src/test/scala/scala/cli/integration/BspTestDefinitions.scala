@@ -402,9 +402,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           expectedMessage = "Unrecognized directive: resource with values: ./resources",
           expectedSeverity = b.DiagnosticSeverity.ERROR,
           expectedStartLine = 0,
-          expectedStartCharacter = 19,
+          expectedStartCharacter = 10,
           expectedEndLine = 0,
-          expectedEndCharacter = 30,
+          expectedEndCharacter = 18,
           strictlyCheckMessage = false
         )
       }
@@ -1374,9 +1374,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
               s"Unrecognized directive: $directiveKey with values: $directiveValue",
             expectedSeverity = b.DiagnosticSeverity.ERROR,
             expectedStartLine = 0,
-            expectedStartCharacter = 33,
+            expectedStartCharacter = 10,
             expectedEndLine = 0,
-            expectedEndCharacter = 38
+            expectedEndCharacter = 32
           )
         }
     }

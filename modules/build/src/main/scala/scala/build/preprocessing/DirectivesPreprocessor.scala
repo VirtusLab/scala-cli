@@ -147,7 +147,7 @@ case class DirectivesPreprocessor(
     val res = directives
       .iterator
       .flatMap {
-        case d @ StrictDirective(k, _, _) =>
+        case d @ StrictDirective(k, _, _, _) =>
           handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
       }
       .toVector
