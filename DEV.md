@@ -192,8 +192,6 @@ Here's some of the more important external projects used by Scala CLI:
   [libsodium](https://github.com/jedisct1/libsodium), that is used by Scala CLI to encrypt secrets
   uploaded as GitHub repository secrets in the `publish setup` sub-command
 - [scala-cli-setup](https://github.com/VirtusLab/scala-cli-setup): a GitHub Action to install Scala CLI.
-- [scalafmt-native-image](https://github.com/VirtusLab/scalafmt-native-image): GraalVM native-image launchers
-  for `scalafmt`.
 - [bloop-core](https://github.com/scala-cli/bloop-core): a fork of [bloop](https://github.com/scalacenter/bloop)
   stripped up of its benchmark infrastructure and build integrations.
 - [no-crc32-zip-input-stream](https://github.com/VirtusLab/no-crc32-zip-input-stream): A copy of `ZipInputStream` 
@@ -202,6 +200,10 @@ Here's some of the more important external projects used by Scala CLI:
   to make Spark distributions more lightweight.
 - [java-class-name](https://github.com/VirtusLab/java-class-name): a small library to extract class names
   from Java sources.
+
+Legacy projects:
+- [scalafmt-native-image](https://github.com/VirtusLab/scalafmt-native-image): GraalVM native-image launchers
+  for `scalafmt` (used for `scalafmt` versions < 3.9.1, no longer maintained)
 
 The use of external binaries allows to make the Scala CLI binary slimmer and faster
 to generate, but also allow to lower memory requirements to generate it (allowing to

@@ -10,6 +10,7 @@ import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
 import scala.cli.commands.update.Update.Release
 
 class ScalafmtTests extends munit.FunSuite {
+  private lazy val defaultScalafmtVersion = Constants.defaultScalafmtVersion
 
   test("readVersionFromFile with non-default scalafmt version") {
     val confFile = """runner.dialect = scala213
@@ -34,27 +35,25 @@ class ScalafmtTests extends munit.FunSuite {
     }
   }
 
-  test("check native launcher availability for scalafmt") {
+  test(s"check native launcher availability for scalafmt $defaultScalafmtVersion") {
     final case class Asset(name: String)
     final case class Release(tag_name: String, assets: List[Asset])
     lazy val releaseCodec: JsonValueCodec[Release] = JsonCodecMaker.make
-
-    val scalaFmtVersion = Constants.defaultScalafmtVersion
     val url =
-      s"https://api.github.com/repos/virtuslab/scalafmt-native-image/releases/tags/v$scalaFmtVersion"
+      s"https://api.github.com/repos/scalameta/scalafmt/releases/tags/v$defaultScalafmtVersion"
 
     val expectedAssets = Seq(
-      "scalafmt-x86_64-apple-darwin.gz",
-      "scalafmt-x86_64-pc-linux-mostly-static.gz",
-      "scalafmt-x86_64-pc-linux-static.gz",
-      "scalafmt-x86_64-pc-linux.gz",
-      "scalafmt-x86_64-pc-win32.zip"
+      "scalafmt-x86_64-apple-darwin.zip",
+      "scalafmt-x86_64-pc-linux.zip",
+      "scalafmt-x86_64-pc-win32.zip",
+      "scalafmt-aarch64-apple-darwin.zip",
+      "scalafmt-aarch64-pc-linux.zip"
     )
     val errorMsg =
-      s"""scalafmt native images missing for v$scalaFmtVersion, make a release at https://github.com/VirtusLab/scalafmt-native-image
+      s"""scalafmt native images missing for v$defaultScalafmtVersion at https://github.com/scalameta/scalafmt
          |Ensure that all expected assets are available in the release:
          |  ${expectedAssets.mkString(", ")}
-         |for scalafmt-native-image under tag v$scalaFmtVersion.""".stripMargin
+         |under tag v$defaultScalafmtVersion.""".stripMargin
     try {
       val resp    = TestUtil.downloadFile(url).orThrow
       val release = readFromArray(resp)(releaseCodec)
@@ -68,7 +67,7 @@ class ScalafmtTests extends munit.FunSuite {
     catch {
       case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
       case e: Throwable => throw new Exception(
-          s"""Failed to check for the ScalaFmt native launcher assets: ${e.getMessage}
+          s"""Failed to check for the ScalaFmt $defaultScalafmtVersion native launcher assets: ${e.getMessage}
              |
              |$errorMsg
              |""".stripMargin,

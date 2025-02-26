@@ -95,11 +95,8 @@ class FmtTests extends ScalaCliSuite {
 
   test("filter correctly with --check") {
     simpleInputsWithFilter.fromRoot { root =>
-      val out      = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.trim()
-      val outLines = out.linesIterator.toSeq
-      expect(outLines.length == 2)
-      expect(outLines.head == "Looking for unformatted files...")
-      expect(outLines.last == "All files are formatted with scalafmt :)")
+      val out = os.proc(TestUtil.cli, "fmt", ".", "--check").call(cwd = root).out.trim()
+      expect(out == "All files are formatted with scalafmt :)")
     }
   }
 
