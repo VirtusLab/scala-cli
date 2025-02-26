@@ -286,7 +286,7 @@ object BuiltInRules extends CommandHelpers {
       val (withTestEquivalent, noTestEquivalent) =
         noInitialTestPrefix.partition(_.existsTestEquivalent)
       val transformedToTestEquivalents = withTestEquivalent.map {
-        case StrictDirective(key, values, _) => StrictDirective("test." + key, values)
+        case StrictDirective(key, values, _, _) => StrictDirective("test." + key, values)
       }
 
       TransformedTestDirectives(
