@@ -572,27 +572,25 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val sourceJarOpt =
-      if (publishOptions.contextual(isCi).sourceJar.getOrElse(true)) {
-        val content   = PackageCmd.sourceJar(build, now.toEpochMilli)
+      if publishOptions.contextual(isCi).sourceJar.getOrElse(true) then {
+        val content   = PackageCmd.sourceJar(Seq(build), now.toEpochMilli)
         val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
         os.write.over(sourceJar, content, createFolders = true)
         Some(sourceJar)
       }
-      else
-        None
+      else None
 
     val docJarOpt =
-      if (publishOptions.contextual(isCi).docJar.getOrElse(true))
+      if publishOptions.contextual(isCi).docJar.getOrElse(true) then
         docBuildOpt match {
           case None => None
           case Some(docBuild) =>
-            val docJarPath = value(PackageCmd.docJar(docBuild, logger, Nil))
+            val docJarPath = value(PackageCmd.docJar(Seq(docBuild), logger, Nil))
             val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.copy.over(docJarPath, docJar, createFolders = true)
             Some(docJar)
         }
-      else
-        None
+      else None
 
     val dependencies = build.artifacts.userDependencies
       .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))

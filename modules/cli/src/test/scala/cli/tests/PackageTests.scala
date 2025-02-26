@@ -91,7 +91,7 @@ class PackageTests extends munit.FunSuite {
       (_, _, maybeFirstBuild) =>
         val build = maybeFirstBuild.orThrow.successfulOpt.get
 
-        val packageType = Package.resolvePackageType(build, None).orThrow
+        val packageType = Package.resolvePackageType(Seq(build), None).orThrow
         expect(packageType == PackageType.Native.Application)
     }
   }

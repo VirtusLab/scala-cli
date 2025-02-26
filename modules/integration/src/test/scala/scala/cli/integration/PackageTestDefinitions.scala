@@ -15,6 +15,7 @@ import scala.util.{Properties, Using}
 abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  protected lazy val node: String              = TestUtil.fromPath("node").getOrElse("node")
 
   test("simple script") {
     val fileName = "simple.sc"
@@ -190,7 +191,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val launcher = root / destName
       expect(os.isFile(launcher))
 
-      val nodePath = TestUtil.fromPath("node").getOrElse("node")
+      val nodePath = node
       val output   = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
     }
@@ -268,7 +269,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
 
       val launcher = root / destDir / "main.js"
-      val nodePath = TestUtil.fromPath("node").getOrElse("node")
+      val nodePath = node
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
       val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
@@ -313,7 +314,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
 
       val launcher = root / destDir / "main.js"
-      val nodePath = TestUtil.fromPath("node").getOrElse("node")
+      val nodePath = node
       os.write(root / "package.json", "{\n\n  \"type\": \"module\"\n\n}") // enable es module
       val output = os.proc(nodePath, launcher.toString).call(cwd = root).out.trim()
       expect(output == message)
@@ -392,7 +393,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
 
       val runHelloWorld = root / "runHello.js"
-      val nodePath      = TestUtil.fromPath("node").getOrElse("node")
+      val nodePath      = node
       val output        = os.proc(nodePath, runHelloWorld.toString).call(cwd = root).out.trim()
       expect(output == msg)
     }
@@ -1336,5 +1337,56 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         ).call(cwd = root)
       expect(res.out.trim() == child)
     }
+  }
+
+  {
+    val libraryArg = "--library"
+    val jsArg      = "--js"
+    for {
+      (packageOpts, extension) <- Seq(
+        Seq("--native") -> (if (Properties.isWin) ".exe" else ""),
+        Nil             -> (if (Properties.isWin) ".bat" else ""),
+        Seq(libraryArg) -> ".jar"
+      ) ++ (if (!TestUtil.isNativeCli || !Properties.isWin) Seq(
+              Seq("--assembly")     -> ".jar",
+              Seq("--native-image") -> (if (Properties.isWin) ".exe" else ""),
+              Seq(jsArg)            -> ".js"
+            )
+            else Nil)
+      packageDescription = packageOpts.headOption.getOrElse("bootstrap")
+    }
+      test(s"package with main method in test scope ($packageDescription)") {
+        val mainClass         = "TestScopeMain"
+        val testScopeFileName = s"$mainClass.test.scala"
+        val message           = "Hello"
+        val outputFile        = mainClass + extension
+        TestInputs(
+          os.rel / "Messages.scala" -> s"""object Messages { val msg = "$message" }""",
+          os.rel / testScopeFileName -> s"""object $mainClass extends App { println(Messages.msg) }"""
+        ).fromRoot { root =>
+          os.proc(
+            TestUtil.cli,
+            "--power",
+            "package",
+            "--test",
+            extraOptions,
+            ".",
+            packageOpts
+          )
+            .call(cwd = root)
+          val outputFilePath = root / outputFile
+          expect(os.isFile(outputFilePath))
+          val output =
+            if (packageDescription == libraryArg)
+              os.proc(TestUtil.cli, "run", outputFilePath).call(cwd = root).out.trim()
+            else if (packageDescription == jsArg)
+              os.proc(node, outputFilePath).call(cwd = root).out.trim()
+            else {
+              expect(Files.isExecutable(outputFilePath.toNIO))
+              TestUtil.maybeUseBash(outputFilePath)(cwd = root).out.trim()
+            }
+          expect(output == message)
+        }
+      }
   }
 }
