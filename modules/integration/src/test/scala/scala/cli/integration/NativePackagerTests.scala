@@ -196,7 +196,7 @@ class NativePackagerTests extends ScalaCliSuite {
             "/workdir",
             "-v",
             s"${root / destDir}:/workdir",
-            "openjdk:17-slim",
+            "eclipse-temurin:17-jdk",
             "./run.sh"
           ).call(
             cwd = root,
