@@ -1420,7 +1420,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 ### `--native-version`
 
-Set the Scala Native version (0.5.6 by default).
+Set the Scala Native version (0.5.7 by default).
 
 ### `--native-mode`
 
