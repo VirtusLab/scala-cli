@@ -15,7 +15,7 @@ concurrency:
 jobs:
   unit-tests:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -53,7 +53,7 @@ jobs:
 
   jvm-tests-1:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -81,7 +81,7 @@ jobs:
 
   jvm-tests-2:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -106,7 +106,7 @@ jobs:
 
   jvm-tests-3:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -131,7 +131,7 @@ jobs:
 
   jvm-tests-4:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -156,7 +156,7 @@ jobs:
 
   jvm-tests-5:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -181,7 +181,7 @@ jobs:
 
   generate-linux-launcher:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -208,7 +208,7 @@ jobs:
   native-linux-tests-1:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -241,7 +241,7 @@ jobs:
   native-linux-tests-2:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -274,7 +274,7 @@ jobs:
   native-linux-tests-3:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -307,7 +307,7 @@ jobs:
   native-linux-tests-4:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -340,7 +340,7 @@ jobs:
   native-linux-tests-5:
     needs: generate-linux-launcher
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1037,7 +1037,7 @@ jobs:
 
   generate-mostly-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1061,7 +1061,7 @@ jobs:
   native-mostly-static-tests-1:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1108,7 +1108,7 @@ jobs:
   native-mostly-static-tests-2:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1141,7 +1141,7 @@ jobs:
   native-mostly-static-tests-3:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1174,7 +1174,7 @@ jobs:
   native-mostly-static-tests-4:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1207,7 +1207,7 @@ jobs:
   native-mostly-static-tests-5:
     needs: generate-mostly-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1240,7 +1240,7 @@ jobs:
 
   generate-static-launcher:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1264,7 +1264,7 @@ jobs:
   native-static-tests-1:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1311,7 +1311,7 @@ jobs:
   native-static-tests-2:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1346,7 +1346,7 @@ jobs:
   native-static-tests-3:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1381,7 +1381,7 @@ jobs:
   native-static-tests-4:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1416,7 +1416,7 @@ jobs:
   native-static-tests-5:
     needs: generate-static-launcher
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
@@ -1450,7 +1450,7 @@ jobs:
 
   docs-tests:
     # for now, let's run those tests only on ubuntu
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1478,7 +1478,7 @@ jobs:
 
   checks:
     timeout-minutes: 30
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1505,7 +1505,7 @@ jobs:
 
   format:
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1519,7 +1519,7 @@ jobs:
 
   reference-doc:
     timeout-minutes: 15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1539,7 +1539,7 @@ jobs:
 
   bloop-memory-footprint:
     timeout-minutes: 120
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1561,7 +1561,7 @@ jobs:
 
   test-hypothetical-sbt-export:
     timeout-minutes: 120
-    runs-on: "ubuntu-20.04"
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1637,7 +1637,7 @@ jobs:
       - reference-doc
       - docs-tests
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1717,7 +1717,7 @@ jobs:
       - generate-linux-arm64-native-launcher
       - publish
     if: github.event_name == 'push'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
       with:
@@ -1782,7 +1782,7 @@ jobs:
     needs:
       - launchers
       - publish
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/v') && github.repository == 'VirtusLab/scala-cli'
     steps:
       - uses: actions/checkout@v4
