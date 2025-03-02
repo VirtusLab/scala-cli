@@ -118,6 +118,7 @@ object Deps {
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.18.3"
     def scalaMeta                         = "4.13.2"
+    def scalafmt                          = "3.9.1"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.7"
     def scalaNative                       = scalaNative05
@@ -211,7 +212,7 @@ object Deps {
   def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:3.8.6"
+  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

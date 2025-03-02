@@ -10,6 +10,7 @@ import scala.build.options.BuildOptions
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
 import scala.cli.commands.{Constants, tags}
+import scala.cli.coursierVersion
 import scala.util.Properties
 
 // format: off
@@ -96,12 +97,18 @@ final case class FmtOptions(
       .getOrElse(FetchExternalBinary.platformSuffix())
     val tag0 = scalafmtTag.getOrElse("v" + version)
     val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse {
-      if (Version(version) < Version("3.5.9"))
-        "scala-cli/scalafmt-native-image"
-      else // from version 3.5.9 scalafmt-native-image repository was moved to VirtusLab organisation
-        "virtuslab/scalafmt-native-image"
+      version.coursierVersion match {
+        case v if v < "3.5.9".coursierVersion => "scala-cli/scalafmt-native-image"
+        // since version 3.5.9 scalafmt-native-image repository was moved to VirtusLab organisation
+        case v if v < "3.9.1".coursierVersion => "virtuslab/scalafmt-native-image"
+        // since version 3.9.1 native images for all platforms are provided by ScalaMeta
+        case _ => "scalameta/scalafmt"
+      }
     }
-    val extension0 = if (Properties.isWin) ".zip" else ".gz"
+    val extension0 = version match {
+      case v if v.coursierVersion >= "3.9.1".coursierVersion || Properties.isWin => ".zip"
+      case _                                                                     => ".gz"
+    }
     val url =
       s"https://github.com/$gitHubOrgName0/releases/download/$tag0/scalafmt-$osArchSuffix0$extension0"
     (url, !tag0.startsWith("v"))
