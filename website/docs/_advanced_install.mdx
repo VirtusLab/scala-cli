@@ -412,7 +412,7 @@ Any features relying on third-party JVMs (such as ```--jvm``` and ```package --n
 
 <div className="row"><div className="col col--9 col--offset-1 padding--lg advanced_install_methods">
 
-Script to automatically download and cache standalone `scala-cli` launcher.
+Script to automatically download and cache standalone Scala CLI launcher.
 
 <Tabs groupId="specific-standalone-launcher"
       defaultValue="macOS/Linux"
@@ -422,10 +422,29 @@ Script to automatically download and cache standalone `scala-cli` launcher.
         ]}>
 <TabItem value="macOS/Linux">
 
+Download the Scala CLI launcher in your project directory:
+```bash
+curl https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.sh > scala && chmod +x scala
+```
+We also recommend downloading the corresponding launcher for Windows users:
+```bash
+curl https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.bat > scala.bat
+```
+
 <DownloadButton desc= 'Scala CLI launcher for macOS/Linux' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.sh' width = '250px' ></DownloadButton>
 
 </TabItem>
 <TabItem value="windows">
+
+Download the Scala CLI launcher in your project directory:
+```bash
+Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.bat" -OutFile "scala.bat”
+```
+We also recommend downloading the corresponding launcher for macOS and Linux users:
+```bash
+Invoke-WebRequest "https://raw.githubusercontent.com/VirtusLab/scala-cli/refs/heads/main/scala-cli.sh" > scala
+git update-index --chmod=+x scala
+```
 
 <DownloadButton desc= 'Scala CLI launcher for Windows' href='https://github.com/VirtusLab/scala-cli/blob/main/scala-cli.bat' width = '250px' ></DownloadButton>
 
