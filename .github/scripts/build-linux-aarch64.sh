@@ -16,5 +16,5 @@ docker run $(if test -t 1; then echo "-it"; fi) --rm \
   -w /data \
   -e "CI=$CI" \
   -e "JAVA_OPTS=-Djdk.lang.Process.launchMechanism=vfork" \
-  ubuntu:20.04 \
+  ubuntu:24.04 \
     /data/utils/build-linux-aarch64-from-docker.sh
