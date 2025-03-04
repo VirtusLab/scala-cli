@@ -18,6 +18,9 @@ final case class ScalaOptions(
   extraPlatforms: Map[Platform, Positioned[Unit]] = Map.empty,
   defaultScalaVersion: Option[String] = None
 ) {
+  def orElse(other: ScalaOptions): ScalaOptions =
+    ScalaOptions.monoid.orElse(this, other)
+
   def normalize: ScalaOptions = {
     var opt = this
     for (sv <- opt.scalaVersion.map(_.asString) if opt.extraScalaVersions.contains(sv))

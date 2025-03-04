@@ -12,7 +12,6 @@ import scala.cli.config.ConfigDb
 import scala.cli.util.ArgHelpers.*
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
-
   override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
   override def helpFormat: HelpFormat =
@@ -71,22 +70,23 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       .map(os.Path(_, os.pwd))
 
     Publish.doRun(
-      inputs,
-      logger,
-      initialBuildOptions,
-      compilerMaker,
-      docCompilerMakerOpt,
-      cross,
-      workingDir,
-      ivy2HomeOpt,
+      inputs = inputs,
+      logger = logger,
+      initialBuildOptions = initialBuildOptions,
+      compilerMaker = compilerMaker,
+      docCompilerMaker = docCompilerMakerOpt,
+      cross = cross,
+      workingDir = workingDir,
+      ivy2HomeOpt = ivy2HomeOpt,
       publishLocal = true,
       forceSigningExternally = options.scalaSigning.forceSigningExternally.getOrElse(false),
       parallelUpload = Some(true),
-      options.watch.watch,
+      watch = options.watch.watch,
       isCi = options.publishParams.isCi,
-      () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
-      options.mainClass,
-      dummy = options.sharedPublish.dummy
+      configDb = () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
+      mainClassOptions = options.mainClass,
+      dummy = options.sharedPublish.dummy,
+      buildTests = options.sharedPublish.scope.test
     )
   }
 }
