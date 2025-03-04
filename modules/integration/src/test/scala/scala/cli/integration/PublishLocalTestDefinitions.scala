@@ -154,14 +154,19 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
           .out.trim()
 
+      val expectedMessage1 = "Hello"
+      val expectedMessage2 = "olleH"
       publishLocal()
       val output1 = output()
-      expect(output1 == "Hello")
+      expect(output1 == expectedMessage1)
 
-      os.write.over(root / PublishTestInputs.projectFilePath, PublishTestInputs.projFile("olleH"))
+      os.write.over(
+        root / PublishTestInputs.projectFilePath,
+        PublishTestInputs.projFile(expectedMessage2)
+      )
       publishLocal()
       val output2 = output()
-      expect(output2 == "olleH")
+      expect(output2 == expectedMessage2)
     }
   }
 
@@ -318,4 +323,24 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           expect(unexpectedFiles.isEmpty)
         }
     }
+
+  test("publish local with test scope") {
+    val expectedMessage = "Hello"
+    PublishTestInputs.inputs(message = expectedMessage, useTestScope = true).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "local",
+        ".",
+        "--test",
+        extraOptions
+      )
+        .call(cwd = root)
+      val publishedDep =
+        s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+      val r = os.proc(TestUtil.cli, "run", "--dep", publishedDep, extraOptions).call(cwd = root)
+      expect(r.out.trim() == expectedMessage)
+    }
+  }
 }
