@@ -86,7 +86,8 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       isCi = options.publishParams.isCi,
       () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
       options.mainClass,
-      dummy = options.sharedPublish.dummy
+      dummy = options.sharedPublish.dummy,
+      buildTests = options.sharedPublish.scope.test
     )
   }
 }
