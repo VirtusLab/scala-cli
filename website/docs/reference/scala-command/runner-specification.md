@@ -1100,6 +1100,12 @@ Control if Scala CLI should use default options for scaladoc, true by default. U
 
 Aliases: `--default-scaladoc-opts`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 <details><summary>
 
 ### Implementantation specific options

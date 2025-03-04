@@ -87,7 +87,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    if (options.watch.watchMode) {
+    val withTestScope = options.scope.test
+    if options.watch.watchMode then {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(
         inputs,
@@ -96,7 +97,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         docCompilerMakerOpt,
         logger,
         crossBuilds = cross,
-        buildTests = options.scope.test,
+        buildTests = withTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
@@ -114,7 +115,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
               extraArgs = args.unparsed,
               expectedModifyEpochSecondOpt = expectedModifyEpochSecondOpt,
               allowTerminate = !options.watch.watchMode,
-              mainClassOptions = options.mainClass
+              mainClassOptions = options.mainClass,
+              withTestScope = withTestScope
             )
               .orReport(logger)
             for (valueOpt <- mtimeDestPath)
@@ -135,7 +137,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         docCompilerMakerOpt,
         logger,
         crossBuilds = cross,
-        buildTests = options.scope.test,
+        buildTests = withTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics
       )
@@ -153,7 +155,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             extraArgs = args.unparsed,
             expectedModifyEpochSecondOpt = None,
             allowTerminate = !options.watch.watchMode,
-            mainClassOptions = options.mainClass
+            mainClassOptions = options.mainClass,
+            withTestScope = withTestScope
           )
           res0.orExit(logger)
         case b if b.exists(bb => !bb.success && !bb.cancelled) =>
@@ -189,7 +192,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     extraArgs: Seq[String],
     expectedModifyEpochSecondOpt: Option[Long],
     allowTerminate: Boolean,
-    mainClassOptions: MainClassOptions
+    mainClassOptions: MainClassOptions,
+    withTestScope: Boolean
   ): Either[BuildException, Option[Long]] = either {
     if mainClassOptions.mainClassLs.contains(true) then
       value {
@@ -349,7 +353,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           else os.write(destPath, content, createFolders = true)
           destPath
         case PackageType.DocJar =>
-          val docJarPath = value(docJar(builds, logger, extraArgs))
+          val docJarPath = value(docJar(builds, logger, extraArgs, withTestScope))
           value(alreadyExistsCheck())
           if force then os.copy.over(docJarPath, destPath, createFolders = true)
           else os.copy(docJarPath, destPath, createFolders = true)
@@ -547,7 +551,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   def docJar(
     builds: Seq[Build.Successful],
     logger: Logger,
-    extraArgs: Seq[String]
+    extraArgs: Seq[String],
+    withTestScope: Boolean
   ): Either[BuildException, os.Path] = either {
 
     val workDir = builds.head.inputs.docJarWorkDir
@@ -562,7 +567,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     if cacheData.changed then {
 
-      val contentDir = value(Doc.generateScaladocDirPath(builds, logger, extraArgs))
+      val contentDir = value(Doc.generateScaladocDirPath(builds, logger, extraArgs, withTestScope))
 
       var outputStream: OutputStream = null
       try {

@@ -385,9 +385,14 @@ object Build {
                       )
                     )
                     val testOptions0 = extraTestOptions.orElse(testOptions)
+                    val isScala2 =
+                      value(testOptions0.scalaParams).exists(_.scalaVersion.startsWith("2."))
+                    val finalSources = if doc && isScala2 then
+                      testSources.withExtraSources(mainSources)
+                    else testSources
                     doBuildScope(
                       testOptions0,
-                      testSources,
+                      finalSources,
                       Scope.Test,
                       actualCompiler = actualCompiler
                     )

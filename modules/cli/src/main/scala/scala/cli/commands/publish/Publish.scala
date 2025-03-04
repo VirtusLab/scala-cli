@@ -585,8 +585,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         docBuildOpt match {
           case None => None
           case Some(docBuild) =>
-            val docJarPath = value(PackageCmd.docJar(Seq(docBuild), logger, Nil))
-            val docJar     = workingDir / org / s"$moduleName-$ver-javadoc.jar"
+            val docJarPath = value(PackageCmd.docJar(
+              builds = Seq(docBuild),
+              logger = logger,
+              extraArgs = Nil,
+              withTestScope = false
+            ))
+            val docJar = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.copy.over(docJarPath, docJar, createFolders = true)
             Some(docJar)
         }
