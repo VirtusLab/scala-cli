@@ -1534,7 +1534,7 @@ Run scalafix rule(s) explicitly, overriding the configuration file default.
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`package`](./commands.md#package), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
+[`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`package`](./commands.md#package), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
