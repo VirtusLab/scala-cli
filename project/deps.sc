@@ -238,6 +238,7 @@ object Deps {
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-macros_3"))
+      .exclude(("com.lihaoyi", "os-lib_3"))
   def signingCli =
     ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
@@ -247,6 +248,7 @@ object Deps {
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
       .exclude(("io.get-coursier.publish", "publish_2.13"))
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
+      .exclude(("com.lihaoyi", "os-lib_3"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.17"
   def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.10.3"
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
