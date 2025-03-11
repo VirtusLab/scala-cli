@@ -1,0 +1,105 @@
+package scala.cli.signing.integration
+
+import java.io.{FileOutputStream, IOException}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.security.SecureRandom
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.{ZipEntry, ZipOutputStream}
+
+import scala.cli.signing.integration.TestInputs.compress
+import scala.util.control.NonFatal
+
+// based on https://github.com/VirtusLab/scala-cli/blob/main/modules/integration/src/main/scala/scala/cli/integration/TestInputs.scala
+final case class TestInputs(maybeCharset: Option[Charset], files: (os.RelPath, String)*) {
+  private lazy val charset = maybeCharset.getOrElse(StandardCharsets.UTF_8)
+  def add(extraFiles: (os.RelPath, String)*): TestInputs = TestInputs((files ++ extraFiles) *)
+
+  private def writeIn(dir: os.Path): Unit =
+    for ((relPath, content) <- files) {
+      val path = dir / relPath
+      os.write(path, content.getBytes(charset), createFolders = true)
+    }
+  def root(): os.Path = {
+    val tmpDir = TestInputs.tmpDir
+    writeIn(tmpDir)
+    tmpDir
+  }
+  def asZip[T](f: (os.Path, os.Path) => T): T =
+    TestInputs.withTmpDir { tmpDir =>
+      val zipArchivePath = tmpDir / s"${tmpDir.last}.zip"
+      compress(zipArchivePath, files.map { case (relPath, content) => (relPath, content, charset) })
+      f(tmpDir, zipArchivePath)
+    }
+  def fromRoot[T](f: os.Path => T): T =
+    TestInputs.withTmpDir { tmpDir =>
+      writeIn(tmpDir)
+      f(tmpDir)
+    }
+  def fileNames: Seq[String] = files.flatMap(_._1.lastOpt)
+}
+
+object TestInputs {
+  def apply(files: (os.RelPath, String)*): TestInputs = new TestInputs(None, files *)
+
+  def apply(charsetName: String, files: (os.RelPath, String)*): TestInputs = {
+    val charset: Charset = Charset.forName(charsetName)
+    new TestInputs(Some(charset), files *)
+  }
+
+  def empty: TestInputs = TestInputs()
+
+  def compress(zipFilepath: os.Path, files: Seq[(os.RelPath, String, Charset)]): Unit = {
+    val zip = new ZipOutputStream(new FileOutputStream(zipFilepath.toString()))
+    try for ((relPath, content, charset) <- files) {
+        zip.putNextEntry(new ZipEntry(relPath.toString))
+        val in: Array[Byte] = content.getBytes(charset)
+        zip.write(in)
+        zip.closeEntry()
+      }
+    finally zip.close()
+  }
+
+  private lazy val baseTmpDir = {
+    Option(System.getenv("SIGNING_CLI_TMP")).getOrElse {
+      sys.error("SIGNING_CLI_TMP not set")
+    }
+    val base = os.Path(System.getenv("SIGNING_CLI_TMP"), os.pwd)
+    val rng  = new SecureRandom
+    val d    = base / s"run-${math.abs(rng.nextInt().toLong)}"
+    os.makeDir.all(d)
+    Runtime.getRuntime.addShutdownHook(
+      new Thread("scala-cli-signing-its-clean-up-tmp-dir") {
+        setDaemon(true)
+        override def run(): Unit =
+          try os.remove.all(d)
+          catch {
+            case NonFatal(_) =>
+              System.err.println(s"Could not remove $d, ignoring it.")
+          }
+      }
+    )
+    d
+  }
+
+  private val tmpCount = new AtomicInteger
+
+  private def withTmpDir[T](f: os.Path => T): T = {
+    val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
+    os.makeDir.all(tmpDir)
+    val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
+    def removeAll(): Unit =
+      try os.remove.all(tmpDir0)
+      catch {
+        case ex: IOException =>
+          System.err.println(s"Ignoring $ex while removing $tmpDir0")
+      }
+    try f(tmpDir0)
+    finally removeAll()
+  }
+
+  private def tmpDir: os.Path = {
+    val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
+    os.makeDir.all(tmpDir)
+    os.Path(tmpDir.toIO.getCanonicalFile)
+  }
+}
