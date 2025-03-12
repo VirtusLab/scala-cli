@@ -286,13 +286,14 @@ def buildCsM1Version = Deps.Versions.coursierM1Cli
 def libsodiumVersion = "1.0.18"
 // Using the libsodium static library from this Alpine version (in the static launcher)
 def alpineVersion = "3.15"
+def ubuntuVersion = "24.04"
 
 object Docker {
   def customMuslBuilderImageName = "scala-cli-base-musl"
   def muslBuilder =
     s"$customMuslBuilderImageName:latest"
 
-  def testImage = "ubuntu:18.04"
+  def testImage = s"ubuntu:$ubuntuVersion"
   def alpineTestImage =
     "alpine@sha256:4edbd2beb5f78b1014028f4fbb99f3237d9561100b6881aabbf5acce2c4f9454"
   def authProxyTestImage =
