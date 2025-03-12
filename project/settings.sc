@@ -1,8 +1,15 @@
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.29`
 
-import $file.deps,
-  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+import $file.deps, deps.{
+  Deps,
+  Docker,
+  alpineVersion,
+  buildCsVersion,
+  buildCsM1Version,
+  libsodiumVersion,
+  ubuntuVersion
+}
 import $file.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -305,7 +312,7 @@ trait CliLaunchers extends SbtModule { self =>
     def launcherKind = `base-image`.launcherKind
     def nativeImageDockerParams = Some(
       NativeImage.DockerParams(
-        imageName = "ubuntu:18.04",
+        imageName = s"ubuntu:$ubuntuVersion",
         prepareCommand =
           maybePassNativeImageJpmsOption +
             """apt-get update -q -y &&\
@@ -366,7 +373,7 @@ trait CliLaunchers extends SbtModule { self =>
     def launcherKind = "mostly-static"
     def nativeImageDockerParams = T {
       val baseDockerParams = NativeImage.linuxMostlyStaticParams(
-        "ubuntu:18.04", // TODO Pin that
+        s"ubuntu:$ubuntuVersion",
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
       )
       val dockerParams = setupLocaleAndOptions(baseDockerParams)
