@@ -19,6 +19,13 @@ final case class Sources(
   buildOptions: BuildOptions
 ) {
 
+  def withExtraSources(other: Sources): Sources =
+    copy(
+      paths = paths ++ other.paths,
+      inMemory = inMemory ++ other.inMemory,
+      resourceDirs = resourceDirs ++ other.resourceDirs
+    )
+
   def withVirtualDir(inputs: Inputs, scope: Scope, options: BuildOptions): Sources = {
 
     val srcRootPath = inputs.generatedSrcRoot(scope)

@@ -4,7 +4,13 @@ import caseapp.*
 import caseapp.core.help.Help
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  HasSharedOptions,
+  HelpGroup,
+  HelpMessages,
+  ScopeOptions,
+  SharedOptions
+}
 import scala.cli.commands.tags
 
 // format: off
@@ -27,6 +33,8 @@ final case class DocOptions(
   @Tag(tags.should)
   @ExtraName("defaultScaladocOpts")
     defaultScaladocOptions: Option[Boolean] = None,
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 ) extends HasSharedOptions
 // format: on
 
