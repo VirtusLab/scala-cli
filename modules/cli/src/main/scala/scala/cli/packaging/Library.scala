@@ -65,7 +65,7 @@ object Library {
       } manifest.getMainAttributes.put(JarAttributes.Name.MAIN_CLASS, mainClass)
 
     var zos: ZipOutputStream = null
-    val contentDirs          = builds.map(b => contentDirOverride.getOrElse(b.output))
+    val contentDirs          = builds.map(b => contentDirOverride.getOrElse(b.output)).distinct
 
     try {
       zos = new JarOutputStream(outputStream, manifest)
