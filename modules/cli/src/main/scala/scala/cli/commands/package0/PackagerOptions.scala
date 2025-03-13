@@ -144,6 +144,7 @@ final case class PackagerOptions(
   @ValueDescription("java-major-version")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
+  @Tag(tags.deprecated("graalvmJavaVersion"))
     graalvmJavaVersion: Option[Int] = None,
   @Group(HelpGroup.NativeImage.toString)
   @HelpMessage(s"GraalVM version to use to build GraalVM native images (${Constants.defaultGraalVMVersion} by default)")
