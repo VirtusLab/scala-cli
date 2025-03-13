@@ -227,11 +227,11 @@ Manually add a resource directory to the class path
 
 Add Scala Native options
 
-`//> using nativeGc` _value_
+`//> using nativeGc` **immix**_|commix|boehm|none_
 
-`//> using nativeMode` _value_
+`//> using nativeMode` **debug**_|release-fast|release-size|release-full_
 
-`//> using nativeLto` _value_
+`//> using nativeLto` **none**_|full|thin_
 
 `//> using nativeVersion` _value_
 
