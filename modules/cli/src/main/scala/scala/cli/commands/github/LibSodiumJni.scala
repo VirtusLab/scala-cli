@@ -40,13 +40,14 @@ object LibSodiumJni {
 
   private def libsodiumVersion    = Constants.libsodiumVersion
   private def libsodiumjniVersion = Constants.libsodiumjniVersion
+  private def alpineVersion       = Constants.alpineVersion
 
   private def archiveUrlAndPath() =
     if (Properties.isLinux && launcherKindOpt.contains("static"))
       // Should actually be unused, as we statically link libsodium from the static launcher
       // Keeping it just-in-case. This could be useful from a musl-based JVM.
       (
-        s"https://dl-cdn.alpinelinux.org/alpine/v3.15/main/x86_64/libsodium-$libsodiumVersion-r0.apk",
+        s"https://dl-cdn.alpinelinux.org/alpine/v$alpineVersion/main/x86_64/libsodium-$libsodiumVersion-r0.apk",
         os.rel / "usr" / "lib" / "libsodium.so.23.3.0" // FIXME Could this change?
       )
     else {

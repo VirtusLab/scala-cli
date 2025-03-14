@@ -171,7 +171,7 @@ class GifTests extends munit.FunSuite {
             ttyOpts,
             "-v",
             s"$out:/out",
-            "alpine:3.16.2",
+            s"alpine:${Constants.alpineVersion}",
             "sh",
             "-c",
             "rm -rf /out/* || true; rm -rf /out/.* || true"

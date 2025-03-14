@@ -18,7 +18,7 @@ import $file.project.settings, settings.{
   projectFileName,
   jvmPropertiesFileName
 }
-import $file.project.deps, deps.customRepositories
+import $file.project.deps, deps.customRepositories, deps.alpineVersion
 import $file.project.website
 
 import java.io.File
@@ -184,6 +184,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests
          |  def coursierCliModule = "${Deps.coursierCli.dep.module.name.value}"
          |  def coursierCliVersion = "${Deps.Versions.coursierCli}"
          |  def defaultScalaVersion = "${Scala.defaultUser}"
+         |  def alpineVersion = "$alpineVersion"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
@@ -544,6 +545,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def mavenAppVersion = "${Deps.Versions.mavenAppVersion}"
          |
          |  def scalafixVersion = "${Deps.Versions.scalafix}"
+         |  
+         |  def alpineVersion = "$alpineVersion"
          |}
          |""".stripMargin
     if (!os.isFile(dest) || os.read(dest) != code)
