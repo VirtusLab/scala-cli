@@ -242,7 +242,7 @@ trait CliLaunchers extends SbtModule { self =>
         cs,
         "get",
         "--archive",
-        "https://download.libsodium.org/libsodium/releases/libsodium-1.0.18-stable-msvc.zip"
+        s"https://download.libsodium.org/libsodium/releases/libsodium-$libsodiumVersion-stable-msvc.zip"
       ).call()
       val dir = os.Path(dirRes.out.trim(), os.pwd)
       os.copy.over(
