@@ -8,6 +8,51 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.7.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.7.1)
+
+### Support for Scala 3.6.4
+This Scala CLI version switches the default Scala version to 3.6.4.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.7.1
+# Scala version (default): 3.6.4
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3544](https://github.com/VirtusLab/scala-cli/pull/3544)
+
+### Support the `--test` command line option for `doc`
+
+It is now possible to generate docs from the test scope with the `--test` flag.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3539](https://github.com/VirtusLab/scala-cli/pull/3539)
+
+### Features
+* Support the `--test` flag with the `doc` sub-command by [@Gedochao](https://github.com/Gedochao) in [#3539](https://github.com/VirtusLab/scala-cli/pull/3539)
+
+### Internal and build changes
+* Adjust `dependabot` configuration for the docs website by [@Gedochao](https://github.com/Gedochao) in [#3555](https://github.com/VirtusLab/scala-cli/pull/3555)
+
+### Documentation changes
+* docs: document Scala Native flag options by [@scarf005](https://github.com/scarf005) in [#3557](https://github.com/VirtusLab/scala-cli/pull/3557)
+
+### Updates
+* Update jsoup to 1.19.1 by [@scala-steward](https://github.com/scala-steward) in [#3542](https://github.com/VirtusLab/scala-cli/pull/3542)
+* Update scala-cli.sh launcher for 1.7.0 by [@github-actions](https://github.com/github-actions) in [#3543](https://github.com/VirtusLab/scala-cli/pull/3543)
+* Bump Scala 3 Next to 3.6.4 by [@Gedochao](https://github.com/Gedochao) in [#3544](https://github.com/VirtusLab/scala-cli/pull/3544)
+* Bump SBT to 1.10.10 by [@Gedochao](https://github.com/Gedochao) in [#3545](https://github.com/VirtusLab/scala-cli/pull/3545)
+* Update semanticdb-shared_2.13 to 4.13.3 by [@scala-steward](https://github.com/scala-steward) in [#3549](https://github.com/VirtusLab/scala-cli/pull/3549)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.9.3 by [@scala-steward](https://github.com/scala-steward) in [#3548](https://github.com/VirtusLab/scala-cli/pull/3548)
+* Bump `scala-cli-signing` to 0.2.6 by [@Gedochao](https://github.com/Gedochao) in [#3552](https://github.com/VirtusLab/scala-cli/pull/3552)
+* Bump react-player from 2.11.2 to 2.16.0 in /website by [@dependabot](https://github.com/dependabot) in [#3561](https://github.com/VirtusLab/scala-cli/pull/3561)
+* Bump dorny/test-reporter from 1 to 2 by [@dependabot](https://github.com/dependabot) in [#3559](https://github.com/VirtusLab/scala-cli/pull/3559)
+* Bump docusaurus-plugin-sass from 0.2.5 to 0.2.6 in /website by [@dependabot](https://github.com/dependabot) in [#3563](https://github.com/VirtusLab/scala-cli/pull/3563)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3565](https://github.com/VirtusLab/scala-cli/pull/3565)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.9.4 by [@scala-steward](https://github.com/scala-steward) in [#3567](https://github.com/VirtusLab/scala-cli/pull/3567)
+* Bump @easyops-cn/docusaurus-search-local from 0.38.1 to 0.49.1 in /website by [@dependabot](https://github.com/dependabot) in [#3562](https://github.com/VirtusLab/scala-cli/pull/3562)
+* Update announced Scala 3 Next to 3.6.4 by [@Gedochao](https://github.com/Gedochao) in [#3569](https://github.com/VirtusLab/scala-cli/pull/3569)
+* Update semanticdb-shared_2.13 to 4.13.4 by [@scala-steward](https://github.com/scala-steward) in [#3568](https://github.com/VirtusLab/scala-cli/pull/3568)
+
 ## [v1.7.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.7.0)
 
 ### Switch to `scalameta/scalafmt` images of `scalafmt` 3.9.1+
