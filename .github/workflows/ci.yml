@@ -37,8 +37,8 @@ jobs:
         path: artifacts/
         if-no-files-found: error
         retention-days: 2
-    - name: Compile everything
-      run: ./mill -i __.compile
+    - name: Cross compile everything
+      run: ./mill -i '__[_].compile'
     - name: Unit tests
       run: ./mill -i unitTests
     - name: Convert Mill test reports to JUnit XML format
