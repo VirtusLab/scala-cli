@@ -109,7 +109,7 @@ object Deps {
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.24"
+    def coursierDefault                   = "2.1.25-M3"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
@@ -279,8 +279,7 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 
-def buildCsVersion   = Deps.Versions.coursierCli
-def buildCsM1Version = Deps.Versions.coursierM1Cli
+def buildCsVersion = Deps.Versions.coursierCli
 
 // Native library used to encrypt GitHub secrets
 def libsodiumVersion = "1.0.18"

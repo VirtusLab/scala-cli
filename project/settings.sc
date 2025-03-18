@@ -1,8 +1,7 @@
 import $ivy.`com.goyeau::mill-scalafix::0.3.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.29`
 
-import $file.deps,
-  deps.{Deps, Docker, alpineVersion, buildCsVersion, buildCsM1Version, libsodiumVersion}
+import $file.deps, deps.{Deps, Docker, alpineVersion, buildCsVersion, libsodiumVersion}
 import $file.utils, utils.isArmArchitecture
 
 import com.goyeau.mill.scalafix.ScalafixModule
@@ -53,7 +52,7 @@ def cs: T[String] = T.persistent {
 
   val arch      = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
   val ext       = if (Properties.isWin) ".exe" else ""
-  val csVersion = if (arch == "aarch64" && Properties.isMac) buildCsM1Version else buildCsVersion
+  val csVersion = buildCsVersion
   val dest      = T.dest / s"cs-$csVersion$ext"
 
   def downloadOpt(): Option[String] = {
@@ -75,11 +74,11 @@ def cs: T[String] = T.persistent {
       case "aarch64" =>
         if (Properties.isLinux)
           Some(
-            s"https://github.com/VirtusLab/coursier-m1/releases/download/v$csVersion/cs-aarch64-pc-linux.gz"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-aarch64-pc-linux.gz"
           )
         else if (Properties.isMac)
           Some(
-            s"https://github.com/VirtusLab/coursier-m1/releases/download/v$csVersion/cs-aarch64-apple-darwin.gz"
+            s"https://github.com/coursier/coursier/releases/download/v$csVersion/cs-aarch64-apple-darwin.gz"
           )
         else None
       case _ =>
