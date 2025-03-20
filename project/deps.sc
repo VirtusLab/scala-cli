@@ -131,7 +131,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.4"
-    def bloop                             = "2.0.8"
+    def bloop                             = "2.0.9"
     def sbtVersion                        = "1.10.11"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
@@ -175,7 +175,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.4.0-jre"
+  def guava   = ivy"com.google.guava:guava:33.4.5-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
