@@ -31,6 +31,7 @@ object DirectivesPreprocessingUtils {
       directives.ScalaJs.handler,
       directives.ScalaNative.handler,
       directives.ScalaVersion.handler,
+      directives.SourceGenerator.handler,
       directives.Sources.handler,
       directives.Tests.handler
     ).map(_.mapE(_.buildOptions))
