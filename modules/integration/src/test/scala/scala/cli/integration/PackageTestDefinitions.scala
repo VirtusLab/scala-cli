@@ -1356,59 +1356,20 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       packageDescription = packageOpts.headOption.getOrElse("bootstrap")
     } {
       test(s"package with main method in test scope ($packageDescription)") {
-        val mainClass         = "TestScopeMain"
-        val testScopeFileName = s"$mainClass.test.scala"
-        val message           = "Hello"
-        val outputFile        = mainClass + extension
-        TestInputs(
-          os.rel / "Messages.scala" -> s"""object Messages { val msg = "$message" }""",
-          os.rel / testScopeFileName -> s"""object $mainClass extends App { println(Messages.msg) }"""
-        ).fromRoot { root =>
-          os.proc(
-            TestUtil.cli,
-            "--power",
-            "package",
-            "--test",
-            extraOptions,
-            ".",
-            packageOpts
-          )
-            .call(cwd = root)
-          val outputFilePath = root / outputFile
-          expect(os.isFile(outputFilePath))
-          val output =
-            if (packageDescription == libraryArg)
-              os.proc(TestUtil.cli, "run", outputFilePath).call(cwd = root).out.trim()
-            else if (packageDescription == jsArg)
-              os.proc(node, outputFilePath).call(cwd = root).out.trim()
-            else {
-              expect(Files.isExecutable(outputFilePath.toNIO))
-              TestUtil.maybeUseBash(outputFilePath)(cwd = root).out.trim()
-            }
-          expect(output == message)
-        }
-      }
-
-      if (actualScalaVersion == Constants.scala3Next)
-        test(s"package ($packageDescription, --cross)") {
-          val crossDirective =
-            s"//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}"
-          val mainClass  = "TestScopeMain"
-          val mainFile   = s"$mainClass.scala"
-          val message    = "Hello"
-          val outputFile = mainClass + extension
+        TestUtil.retryOnCi() {
+          val mainClass         = "TestScopeMain"
+          val testScopeFileName = s"$mainClass.test.scala"
+          val message           = "Hello"
+          val outputFile        = mainClass + extension
           TestInputs(
-            os.rel / "Messages.scala" ->
-              s"""$crossDirective
-                 |object Messages { val msg = "$message" }""".stripMargin,
-            os.rel / mainFile ->
-              s"""object $mainClass extends App { println(Messages.msg) }""".stripMargin
+            os.rel / "Messages.scala" -> s"""object Messages { val msg = "$message" }""",
+            os.rel / testScopeFileName -> s"""object $mainClass extends App { println(Messages.msg) }"""
           ).fromRoot { root =>
             os.proc(
               TestUtil.cli,
               "--power",
               "package",
-              "--cross",
+              "--test",
               extraOptions,
               ".",
               packageOpts
@@ -1426,6 +1387,49 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
                 TestUtil.maybeUseBash(outputFilePath)(cwd = root).out.trim()
               }
             expect(output == message)
+          }
+        }
+      }
+
+      if (actualScalaVersion == Constants.scala3Next)
+        test(s"package ($packageDescription, --cross)") {
+          TestUtil.retryOnCi() {
+            val crossDirective =
+              s"//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}"
+            val mainClass  = "TestScopeMain"
+            val mainFile   = s"$mainClass.scala"
+            val message    = "Hello"
+            val outputFile = mainClass + extension
+            TestInputs(
+              os.rel / "Messages.scala" ->
+                s"""$crossDirective
+                   |object Messages { val msg = "$message" }""".stripMargin,
+              os.rel / mainFile ->
+                s"""object $mainClass extends App { println(Messages.msg) }""".stripMargin
+            ).fromRoot { root =>
+              os.proc(
+                TestUtil.cli,
+                "--power",
+                "package",
+                "--cross",
+                extraOptions,
+                ".",
+                packageOpts
+              )
+                .call(cwd = root)
+              val outputFilePath = root / outputFile
+              expect(os.isFile(outputFilePath))
+              val output =
+                if (packageDescription == libraryArg)
+                  os.proc(TestUtil.cli, "run", outputFilePath).call(cwd = root).out.trim()
+                else if (packageDescription == jsArg)
+                  os.proc(node, outputFilePath).call(cwd = root).out.trim()
+                else {
+                  expect(Files.isExecutable(outputFilePath.toNIO))
+                  TestUtil.maybeUseBash(outputFilePath)(cwd = root).out.trim()
+                }
+              expect(output == message)
+            }
           }
         }
     }

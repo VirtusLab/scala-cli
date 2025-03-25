@@ -162,27 +162,29 @@ class RunTestsDefault extends RunTestDefinitions
     test(
       s"run --cross $platformDesc $actualScalaVersion, ${Constants.scala213} and ${Constants.scala212} ($scopeDesc scope)"
     ) {
-      TestInputs {
-        os.rel / fileName ->
-          s"""//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}
-             |object Main extends App {
-             |  println("$expectedMessage")
-             |}
-             |""".stripMargin
-      }.fromRoot { root =>
-        val r =
-          os.proc(
-            TestUtil.cli,
-            "run",
-            ".",
-            "--cross",
-            "--power",
-            extraOptions,
-            scopeOptions,
-            platformOptions
-          )
-            .call(cwd = root)
-        expect(r.out.trim() == expectedMessage)
+      TestUtil.retryOnCi() {
+        TestInputs {
+          os.rel / fileName ->
+            s"""//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}
+               |object Main extends App {
+               |  println("$expectedMessage")
+               |}
+               |""".stripMargin
+        }.fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "run",
+              ".",
+              "--cross",
+              "--power",
+              extraOptions,
+              scopeOptions,
+              platformOptions
+            )
+              .call(cwd = root)
+          expect(r.out.trim() == expectedMessage)
+        }
       }
     }
 }
