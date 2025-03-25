@@ -12,7 +12,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
     else Nil
   protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
-  private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
+  protected lazy val extraOptions: Seq[String]     = scalaVersionArgs ++ baseExtraOptions
 
   private val utestVersion = "0.8.3"
 
