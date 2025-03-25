@@ -149,4 +149,40 @@ class RunTestsDefault extends RunTestDefinitions
           }
         }
     }
+
+  for {
+    useTestScope <- Seq(true, false)
+    fileName        = if (useTestScope) "example.test.scala" else "example.scala"
+    scopeOptions    = if (useTestScope) Seq("--test") else Seq.empty
+    scopeDesc       = if (useTestScope) "test" else "main"
+    expectedMessage = "Hello, World!"
+    platformOptions <- Seq(Seq("--native"), Seq("--js"), Nil)
+    platformDesc = platformOptions.headOption.getOrElse("JVM").stripPrefix("--")
+  }
+    test(
+      s"run --cross $platformDesc $actualScalaVersion, ${Constants.scala213} and ${Constants.scala212} ($scopeDesc scope)"
+    ) {
+      TestInputs {
+        os.rel / fileName ->
+          s"""//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}
+             |object Main extends App {
+             |  println("$expectedMessage")
+             |}
+             |""".stripMargin
+      }.fromRoot { root =>
+        val r =
+          os.proc(
+            TestUtil.cli,
+            "run",
+            ".",
+            "--cross",
+            "--power",
+            extraOptions,
+            scopeOptions,
+            platformOptions
+          )
+            .call(cwd = root)
+        expect(r.out.trim() == expectedMessage)
+      }
+    }
 }
