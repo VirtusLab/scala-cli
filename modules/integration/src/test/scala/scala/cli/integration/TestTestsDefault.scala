@@ -32,11 +32,11 @@ class TestTestsDefault extends TestTestDefinitions with TestDefault {
     )
 
     inputs.fromRoot { root =>
-      val compileRes = os.proc(TestUtil.cli, "compile", "--print-class-path", baseExtraOptions, ".")
+      val compileRes = os.proc(TestUtil.cli, "compile", "--print-class-path", extraOptions, ".")
         .call(cwd = root)
       val cp = compileRes.out.trim().split(File.pathSeparator)
       expect(cp.length == 1) // only class dir, no scala JARs
-      os.proc(TestUtil.cli, "test", baseExtraOptions, ".")
+      os.proc(TestUtil.cli, "test", extraOptions, ".")
         .call(cwd = root, stdout = os.Inherit)
     }
   }

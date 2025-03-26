@@ -7,14 +7,8 @@ import scala.cli.integration.Constants.munitVersion
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
   _: TestScalaVersion =>
-  protected val jvmOptions: Seq[String] =
-    // seems munit requires this with Scala 3
-    if (actualScalaVersion.startsWith("3.")) Seq("--jvm", "11")
-    else Nil
-  protected lazy val baseExtraOptions: Seq[String] = TestUtil.extraOptions ++ jvmOptions
-  private lazy val extraOptions: Seq[String]       = scalaVersionArgs ++ baseExtraOptions
-
-  private val utestVersion = "0.8.3"
+  protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
+  private val utestVersion                     = "0.8.3"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
