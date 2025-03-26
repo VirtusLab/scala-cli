@@ -14,11 +14,19 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
 
   def testPublishVersion: String = "1.5.6"
 
-  private object PublishTestInputs {
+  protected object PublishTestInputs {
     def testOrg: String  = "test-local-org.sth"
     def testName: String = "my-proj"
-    def projFile(message: String, exclude: Boolean = false): String =
-      s"""//> using scala $testedPublishedScalaVersion
+    def projFile(
+      message: String,
+      exclude: Boolean = false,
+      useTestScope: Boolean = false,
+      crossVersions: Option[Seq[String]] = None
+    ): String =
+      s"""//> using scala ${crossVersions.map(
+          _.mkString(" ")
+        ).getOrElse(testedPublishedScalaVersion)}
+         |${if (useTestScope) "//> using target.scope test" else ""}
          |//> using dep com.lihaoyi::os-lib:0.11.3${Some(",exclude=com.lihaoyi%%geny").filter(_ =>
           exclude
         ).getOrElse("")}
@@ -43,14 +51,18 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
          |""".stripMargin
     }
 
+    lazy val projectFilePath: os.RelPath = os.rel / "src" / "project.scala"
+    lazy val projectConfPath: os.RelPath = os.rel / "src" / "publish-conf.scala"
     def inputs(
       message: String = "Hello",
       includePublishVersion: Boolean = true,
-      excludeGeny: Boolean = false
+      excludeGeny: Boolean = false,
+      useTestScope: Boolean = false,
+      crossVersions: Option[Seq[String]] = None
     ): TestInputs =
       TestInputs(
-        os.rel / "project.scala"      -> projFile(message, excludeGeny),
-        os.rel / "publish-conf.scala" -> publishConfFile(includePublishVersion)
+        projectFilePath -> projFile(message, excludeGeny, useTestScope, crossVersions),
+        projectConfPath -> publishConfFile(includePublishVersion)
       )
   }
 
@@ -142,14 +154,19 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           .call(cwd = root)
           .out.trim()
 
+      val expectedMessage1 = "Hello"
+      val expectedMessage2 = "olleH"
       publishLocal()
       val output1 = output()
-      expect(output1 == "Hello")
+      expect(output1 == expectedMessage1)
 
-      os.write.over(root / "project.scala", PublishTestInputs.projFile("olleH"))
+      os.write.over(
+        root / PublishTestInputs.projectFilePath,
+        PublishTestInputs.projFile(expectedMessage2)
+      )
       publishLocal()
       val output2 = output()
-      expect(output2 == "olleH")
+      expect(output2 == expectedMessage2)
     }
   }
 
@@ -306,4 +323,24 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
           expect(unexpectedFiles.isEmpty)
         }
     }
+
+  test("publish local with test scope") {
+    val expectedMessage = "Hello"
+    PublishTestInputs.inputs(message = expectedMessage, useTestScope = true).fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "publish",
+        "local",
+        ".",
+        "--test",
+        extraOptions
+      )
+        .call(cwd = root)
+      val publishedDep =
+        s"${PublishTestInputs.testOrg}:${PublishTestInputs.testName}_$testedPublishedScalaVersion:$testPublishVersion"
+      val r = os.proc(TestUtil.cli, "run", "--dep", publishedDep, extraOptions).call(cwd = root)
+      expect(r.out.trim() == expectedMessage)
+    }
+  }
 }
