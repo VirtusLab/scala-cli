@@ -127,8 +127,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       },
       checksums = {
         val input = sharedPublish.checksum.flatMap(_.split(",")).map(_.trim).filter(_.nonEmpty)
-        if (input.isEmpty) None
-        else Some(input)
+        if input.isEmpty then None else Some(input)
       },
       connectionTimeoutRetries = publishConnection.connectionTimeoutRetries,
       connectionTimeoutSeconds = publishConnection.connectionTimeoutSeconds,
@@ -177,12 +176,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           scalaPlatformSuffix = sharedPublish.scalaPlatformSuffix.map(_.trim),
           local = ConfigMonoid.sum(Seq(
             baseOptions.notForBloopOptions.publishOptions.local,
-            if (publishParams.isCi) PublishContextualOptions() else contextualOptions
+            if publishParams.isCi then PublishContextualOptions() else contextualOptions
           )),
           ci = ConfigMonoid.sum(Seq(
             baseOptions.notForBloopOptions.publishOptions.ci,
-            if (publishParams.isCi) contextualOptions
-            else PublishContextualOptions()
+            if publishParams.isCi then contextualOptions else PublishContextualOptions()
           )),
           signingCli = ScalaSigningCliOptions(
             signingCliVersion = scalaSigning.signingCliVersion,
@@ -196,14 +194,14 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   }
 
   def maybePrintLicensesAndExit(params: PublishParamsOptions): Unit =
-    if (params.license.contains("list")) {
+    if params.license.contains("list") then {
       for (l <- scala.build.internal.Licenses.list)
         println(s"${l.id}: ${l.name} (${l.url})")
       sys.exit(0)
     }
 
   def maybePrintChecksumsAndExit(options: SharedPublishOptions): Unit =
-    if (options.checksum.contains("list")) {
+    if options.checksum.contains("list") then {
       for (t <- ChecksumType.all)
         println(t.name)
       sys.exit(0)
@@ -267,7 +265,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       isCi = options.publishParams.isCi,
       () => configDb,
       options.mainClass,
-      dummy = options.sharedPublish.dummy
+      dummy = options.sharedPublish.dummy,
+      buildTests = options.sharedPublish.scope.test
     )
   }
 
@@ -289,12 +288,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     isCi: Boolean,
     configDb: () => ConfigDb,
     mainClassOptions: MainClassOptions,
-    dummy: Boolean
+    dummy: Boolean,
+    buildTests: Boolean
   ): Unit = {
 
     val actionableDiagnostics = configDb().get(Keys.actions).getOrElse(None)
 
-    if (watch) {
+    if watch then {
       val watcher = Build.watch(
         inputs,
         initialBuildOptions,
@@ -302,25 +302,26 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         docCompilerMaker,
         logger,
         crossBuilds = cross,
-        buildTests = false,
+        buildTests = buildTests,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
-      ) { res =>
-        res.orReport(logger).foreach { builds =>
+      ) {
+        _.orReport(logger).foreach { builds =>
           maybePublish(
-            builds,
-            workingDir,
-            ivy2HomeOpt,
-            publishLocal,
-            logger,
+            builds = builds,
+            workingDir = workingDir,
+            ivy2HomeOpt = ivy2HomeOpt,
+            publishLocal = publishLocal,
+            logger = logger,
             allowExit = false,
             forceSigningExternally = forceSigningExternally,
             parallelUpload = parallelUpload,
             isCi = isCi,
-            configDb,
-            mainClassOptions,
-            dummy
+            configDb = configDb,
+            mainClassOptions = mainClassOptions,
+            withTestScope = buildTests,
+            dummy = dummy
           )
         }
       }
@@ -330,29 +331,30 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     else {
       val builds =
         Build.build(
-          inputs,
-          initialBuildOptions,
-          compilerMaker,
-          docCompilerMaker,
-          logger,
+          inputs = inputs,
+          options = initialBuildOptions,
+          compilerMaker = compilerMaker,
+          docCompilerMakerOpt = docCompilerMaker,
+          logger = logger,
           crossBuilds = cross,
-          buildTests = false,
+          buildTests = buildTests,
           partial = None,
           actionableDiagnostics = actionableDiagnostics
         ).orExit(logger)
       maybePublish(
-        builds,
-        workingDir,
-        ivy2HomeOpt,
-        publishLocal,
-        logger,
+        builds = builds,
+        workingDir = workingDir,
+        ivy2HomeOpt = ivy2HomeOpt,
+        publishLocal = publishLocal,
+        logger = logger,
         allowExit = true,
         forceSigningExternally = forceSigningExternally,
         parallelUpload = parallelUpload,
         isCi = isCi,
-        configDb,
-        mainClassOptions,
-        dummy
+        configDb = configDb,
+        mainClassOptions = mainClassOptions,
+        withTestScope = buildTests,
+        dummy = dummy
       )
     }
   }
@@ -384,14 +386,14 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     name
   }
 
-  def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
-    if (mayDefaultToGitTag) Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
+  private def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
+    if mayDefaultToGitTag then Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
     else None
 
-  def defaultVersionError =
+  private def defaultVersionError =
     new MissingPublishOptionError("version", "--project-version", "publish.version")
 
-  def defaultVersion: Either[BuildException, String] =
+  private def defaultVersion: Either[BuildException, String] =
     Left(defaultVersionError)
 
   /** Check if all builds are successful and proceed with preparing files to be uploaded OR print
@@ -409,6 +411,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     isCi: Boolean,
     configDb: () => ConfigDb,
     mainClassOptions: MainClassOptions,
+    withTestScope: Boolean,
     dummy: Boolean
   ): Unit = {
 
@@ -422,7 +425,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case _: Build.Cancelled  => true
       case _: Build.Failed     => false
     }
-    if (allOk && allDocsOk) {
+    if allOk && allDocsOk then {
       val builds0 = builds.all.collect {
         case s: Build.Successful => s
       }
@@ -430,33 +433,33 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         case s: Build.Successful => s
       }
       val res: Either[BuildException, Unit] =
-        builds.main match {
-          case s: Build.Successful if mainClassOptions.mainClassLs.contains(true) =>
-            mainClassOptions.maybePrintMainClasses(s.foundMainClasses(), shouldExit = allowExit)
+        builds.builds match {
+          case b if b.forall(_.success) && mainClassOptions.mainClassLs.contains(true) =>
+            mainClassOptions.maybePrintMainClasses(
+              builds0.flatMap(_.foundMainClasses()).distinct,
+              shouldExit = allowExit
+            )
           case _ => prepareFilesAndUpload(
-              builds0,
-              docBuilds0,
-              workingDir,
-              ivy2HomeOpt,
-              publishLocal,
-              logger,
-              forceSigningExternally,
-              parallelUpload,
-              isCi,
-              configDb,
-              dummy
+              builds = builds0,
+              docBuilds = docBuilds0,
+              workingDir = workingDir,
+              ivy2HomeOpt = ivy2HomeOpt,
+              publishLocal = publishLocal,
+              logger = logger,
+              forceSigningExternally = forceSigningExternally,
+              parallelUpload = parallelUpload,
+              withTestScope = withTestScope,
+              isCi = isCi,
+              configDb = configDb,
+              dummy = dummy
             )
         }
-      if (allowExit)
-        res.orExit(logger)
-      else
-        res.orReport(logger)
+      if allowExit then res.orExit(logger) else res.orReport(logger)
     }
     else {
-      val msg = if (allOk) "Scaladoc generation failed" else "Compilation failed"
+      val msg = if allOk then "Scaladoc generation failed" else "Compilation failed"
       System.err.println(msg)
-      if (allowExit)
-        sys.exit(1)
+      if allowExit then sys.exit(1)
     }
   }
 
@@ -507,7 +510,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
 
           val default = defaultComputeVersion(!isCi && isGitRepo)
-          if (default.isDefined)
+          if default.isDefined then
             logger.message(
               s"Using directive ${defaultVersionError.directiveName} not set, assuming git:tag as publish.computeVersion"
             )
@@ -529,26 +532,27 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
   }
 
   private def buildFileSet(
-    build: Build.Successful,
-    docBuildOpt: Option[Build.Successful],
+    builds: Seq[Build.Successful],
+    docBuilds: Seq[Build.Successful],
     workingDir: os.Path,
     now: Instant,
     isIvy2LocalLike: Boolean,
     isCi: Boolean,
     isSonatype: Boolean,
+    withTestScope: Boolean,
     logger: Logger
   ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
 
-    logger.debug(s"Preparing project ${build.project.projectName}")
+    logger.debug(s"Preparing project ${builds.head.project.projectName}")
 
-    val publishOptions = build.options.notForBloopOptions.publishOptions
+    val publishOptions = builds.head.options.notForBloopOptions.publishOptions
 
     val (org, moduleName, ver) = value {
       orgNameVersion(
         publishOptions,
-        build.inputs.workspace,
+        builds.head.inputs.workspace,
         logger,
-        build.artifacts.scalaOpt,
+        builds.head.artifacts.scalaOpt,
         isCi
       )
     }
@@ -556,16 +560,31 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     logger.message(s"Publishing $org:$moduleName:$ver")
 
     val mainJar = {
-      val mainClassOpt = build.options.mainClass.orElse {
-        build.retainedMainClass(logger) match {
-          case Left(_: NoMainClassFoundError) => None
-          case Left(err) =>
-            logger.debug(s"Error while looking for main class: $err")
-            None
-          case Right(cls) => Some(cls)
-        }
-      }
-      val libraryJar = Library.libraryJar(Seq(build), mainClassOpt)
+      val mainClassOpt: Option[String] =
+        (builds.head.options.mainClass.filter(_.nonEmpty) match {
+          case Some(cls) => Right(cls)
+          case None =>
+            val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
+            builds
+              .map { build =>
+                build.retainedMainClass(logger, potentialMainClasses)
+                  .map(mainClass => build.scope -> mainClass)
+              }
+              .sequence
+              .left
+              .map(CompositeBuildException(_))
+              .map(_.toMap)
+              .map { retainedMainClassesByScope =>
+                if retainedMainClassesByScope.size == 1 then retainedMainClassesByScope.head._2
+                else
+                  retainedMainClassesByScope
+                    .get(Scope.Main)
+                    .orElse(retainedMainClassesByScope.get(Scope.Test))
+                    .get
+              }
+
+        }).toOption
+      val libraryJar = Library.libraryJar(builds, mainClassOpt)
       val dest       = workingDir / org / s"$moduleName-$ver.jar"
       os.copy.over(libraryJar, dest, createFolders = true)
       dest
@@ -573,7 +592,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val sourceJarOpt =
       if publishOptions.contextual(isCi).sourceJar.getOrElse(true) then {
-        val content   = PackageCmd.sourceJar(Seq(build), now.toEpochMilli)
+        val content   = PackageCmd.sourceJar(builds, now.toEpochMilli)
         val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
         os.write.over(sourceJar, content, createFolders = true)
         Some(sourceJar)
@@ -582,14 +601,14 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val docJarOpt =
       if publishOptions.contextual(isCi).docJar.getOrElse(true) then
-        docBuildOpt match {
-          case None => None
-          case Some(docBuild) =>
+        docBuilds match {
+          case Nil => None
+          case docBuilds =>
             val docJarPath = value(PackageCmd.docJar(
-              builds = Seq(docBuild),
+              builds = docBuilds,
               logger = logger,
               extraArgs = Nil,
-              withTestScope = false
+              withTestScope = withTestScope
             ))
             val docJar = workingDir / org / s"$moduleName-$ver-javadoc.jar"
             os.copy.over(docJarPath, docJar, createFolders = true)
@@ -597,15 +616,17 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
       else None
 
-    val dependencies = build.artifacts.userDependencies
-      .map(_.toCs(build.artifacts.scalaOpt.map(_.params)))
+    val dependencies = builds.flatMap(_.artifacts.userDependencies)
+      .map(_.toCs(builds.head.artifacts.scalaOpt.map(_.params)))
       .sequence
       .left.map(CompositeBuildException(_))
       .orExit(logger)
       .map { dep0 =>
         val config =
-          if (build.scope == Scope.Main) None
-          else Some(Configuration(build.scope.name))
+          builds -> builds.length match {
+            case (b, 1) if b.head.scope != Scope.Main => Some(Configuration(b.head.scope.name))
+            case _                                    => None
+          }
         (dep0.module.organization, dep0.module.name, dep0.version, config, dep0.minimizedExclusions)
       }
     val url = publishOptions.url.map(_.value)
@@ -634,20 +655,20 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       developers = developers
     )
 
-    if (isSonatype) {
-      if (url.isEmpty)
+    if isSonatype then {
+      if url.isEmpty then
         logger.diagnostic(
           "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
         )
-      if (license.isEmpty)
+      if license.isEmpty then
         logger.diagnostic(
           "Publishing to Sonatype, but license is empty (set it with the '//> using publish.license' directive)."
         )
-      if (scm.isEmpty)
+      if scm.isEmpty then
         logger.diagnostic(
           "Publishing to Sonatype, but SCM details are empty (set them with the '//> using publish.scm' directive)."
         )
-      if (developers.isEmpty)
+      if developers.isEmpty then
         logger.diagnostic(
           "Publishing to Sonatype, but developer details are empty (set them with the '//> using publish.developer' directive)."
         )
@@ -729,8 +750,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
     }
 
-    val fileSet =
-      if (isIvy2LocalLike) ivy2LocalLikeFileSet else mavenFileSet
+    val fileSet = if isIvy2LocalLike then ivy2LocalLikeFileSet else mavenFileSet
 
     val mod = coursier.core.Module(
       coursier.core.Organization(org),
@@ -752,6 +772,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     logger: Logger,
     forceSigningExternally: Boolean,
     parallelUpload: Option[Boolean],
+    withTestScope: Boolean,
     isCi: Boolean,
     configDb: () => ConfigDb,
     dummy: Boolean
@@ -759,10 +780,19 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
 
-    val it = builds.iterator.zip {
-      if (docBuilds.isEmpty) Iterator.continually(None)
-      else docBuilds.iterator.map(Some(_))
+    extension (b: Seq[Build.Successful]) {
+      private def groupedByCrossParams =
+        b.groupBy(b =>
+          b.options.scalaOptions.scalaVersion.map(_.asString).toString ->
+            b.options.platform.toString
+        )
     }
+    val groupedBuilds    = builds.groupedByCrossParams
+    val groupedDocBuilds = docBuilds.groupedByCrossParams
+    val it: Iterator[(Seq[Build.Successful], Seq[Build.Successful])] =
+      groupedBuilds.keysIterator.map { key =>
+        (groupedBuilds(key), groupedDocBuilds.getOrElse(key, Seq.empty))
+      }
 
     val publishOptions = ConfigMonoid.sum(
       builds.map(_.options.notForBloopOptions.publishOptions)
@@ -805,8 +835,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                 value(maybeCredentials)
                   .flatMap(_.realm)
                   .orElse {
-                    if (isSonatype) Some("Sonatype Nexus Repository Manager")
-                    else None
+                    if isSonatype then Some("Sonatype Nexus Repository Manager") else None
                   }
               case other => other
             }
@@ -820,8 +849,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       lazy val es =
         Executors.newSingleThreadScheduledExecutor(Util.daemonThreadFactory("publish-retry"))
 
-      if (publishLocal)
-        RepoParams.ivy2Local(ivy2HomeOpt)
+      if publishLocal then RepoParams.ivy2Local(ivy2HomeOpt)
       else
         value {
           publishOptions.contextual(isCi).repository match {
@@ -859,18 +887,17 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val now = Instant.now()
     val (fileSet0, modVersionOpt) = value {
       it
-        // TODO Allow to add test JARs to the main build artifacts
-        .filter(_._1.scope != Scope.Test)
         .map {
-          case (build, docBuildOpt) =>
+          case (builds, docBuilds) =>
             buildFileSet(
-              build,
-              docBuildOpt,
+              builds,
+              docBuilds,
               workingDir,
               now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
               isSonatype,
+              withTestScope,
               logger
             )
         }
@@ -912,18 +939,15 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val signerKind: PSigner = publishOptions.contextual(isCi).signer.getOrElse {
-      if (!repoParams.supportsSig)
-        PSigner.Nop
-      else if (publishOptions.contextual(isCi).gpgSignatureId.isDefined)
-        PSigner.Gpg
-      else if (repoParams.shouldSign || publishOptions.contextual(isCi).secretKey.isDefined)
+      if !repoParams.supportsSig then PSigner.Nop
+      else if publishOptions.contextual(isCi).gpgSignatureId.isDefined then PSigner.Gpg
+      else if repoParams.shouldSign || publishOptions.contextual(isCi).secretKey.isDefined then
         PSigner.BouncyCastle
-      else
-        PSigner.Nop
+      else PSigner.Nop
     }
 
     def getSecretKeyPasswordOpt: Option[PasswordOption] = {
-      val maybeSecretKeyPass = if (publishOptions.contextual(isCi).secretKeyPassword.isDefined)
+      val maybeSecretKeyPass = if publishOptions.contextual(isCi).secretKeyPassword.isDefined then
         for {
           secretKeyPassConfigOpt <- publishOptions.contextual(isCi).secretKeyPassword
           secretKeyPass          <- secretKeyPassConfigOpt.get(configDb()).toOption
@@ -964,7 +988,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       // --secret-key-password is possibly specified (not mandatory)
       case PSigner.BouncyCastle =>
         val shouldSignMsg =
-          if (repoParams.shouldSign) "signing is required for chosen repository" else ""
+          if repoParams.shouldSign then "signing is required for chosen repository" else ""
         for {
           secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException
           secretKey <- secretKeyOpt.toRight(
@@ -978,7 +1002,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           )
         } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
       case _ =>
-        if (!publishOptions.contextual(isCi).signer.contains(PSigner.Nop))
+        if !publishOptions.contextual(isCi).signer.contains(PSigner.Nop) then
           logger.message(
             " \ud83d\udd13 Artifacts NOT signed as it's not required nor has it been specified"
           )
@@ -1013,7 +1037,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       new InteractiveChecksumLogger(new OutputStreamWriter(System.err), verbosity = 1)
     val checksumTypes = publishOptions.contextual(isCi).checksums match {
       case None =>
-        if (repoParams.acceptsChecksums) Seq(ChecksumType.MD5, ChecksumType.SHA1)
+        if repoParams.acceptsChecksums then Seq(ChecksumType.MD5, ChecksumType.SHA1)
         else Nil
       case Some(Seq("none")) => Nil
       case Some(inputs) =>
@@ -1034,7 +1058,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val fileSet2 = fileSet1 ++ checksums
 
     val finalFileSet =
-      if (repoParams.isIvy2LocalLike) fileSet2
+      if repoParams.isIvy2LocalLike then fileSet2
       else fileSet2.order(ec).unsafeRun()(ec)
 
     val isSnapshot0       = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
@@ -1043,7 +1067,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val usernameOnlyAscii = authOpt0.exists(auth => asciiRegex.matches(auth.user))
     val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(pass => asciiRegex.matches(pass)))
 
-    if (repoParams.shouldAuthenticate && authOpt0.isEmpty)
+    if repoParams.shouldAuthenticate && authOpt0.isEmpty then
       logger.diagnostic(
         "Publishing to a repository that needs authentication, but no credentials are available.",
         Severity.Warning
@@ -1079,7 +1103,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val baseUpload =
-      if (retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://"))
+      if retainedRepo.root.startsWith("http://") || retainedRepo.root.startsWith("https://") then
         HttpURLConnectionUpload.create(
           publishOptions.contextual(isCi)
             .connectionTimeoutSeconds.map(_.seconds.toMillis.toInt),
@@ -1089,9 +1113,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else
         FileUpload(Paths.get(new URI(retainedRepo.root)))
 
-    val upload =
-      if (dummy) DummyUpload(baseUpload)
-      else baseUpload
+    val upload = if dummy then DummyUpload(baseUpload) else baseUpload
 
     val isLocal      = true
     val uploadLogger = InteractiveUploadLogger.create(System.err, dummy = dummy, isLocal = isLocal)
@@ -1102,7 +1124,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           retainedRepo,
           finalFileSet,
           uploadLogger,
-          if (parallelUpload.getOrElse(repoParams.defaultParallelUpload)) Some(ec) else None
+          if parallelUpload.getOrElse(repoParams.defaultParallelUpload) then Some(ec) else None
         ).unsafeRun()(ec)
       catch {
         case NonFatal(e) =>
@@ -1156,36 +1178,30 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           val checkRepo = repoParams0.repo.checkResultsRepo(isSnapshot0)
           val relPath = {
             val elems =
-              if (repoParams.isIvy2LocalLike)
+              if repoParams.isIvy2LocalLike then
                 Seq(mod.organization.value, mod.name.value, version)
-              else
-                mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
+              else mod.organization.value.split('.').toSeq ++ Seq(mod.name.value, version)
             elems.mkString("/", "/", "/")
           }
           val path = {
             val url = checkRepo.root.stripSuffix("/") + relPath
-            if (url.startsWith("file:")) {
+            if url.startsWith("file:") then {
               val path = os.Path(Paths.get(new URI(url)), os.pwd)
-              if (path.startsWith(os.pwd))
+              if path.startsWith(os.pwd) then
                 path.relativeTo(os.pwd).segments.map(_ + File.separator).mkString
-              else if (path.startsWith(os.home))
+              else if path.startsWith(os.home) then
                 ("~" +: path.relativeTo(os.home).segments).map(_ + File.separator).mkString
-              else
-                path.toString
+              else path.toString
             }
             else url
           }
-          if (dummy)
-            println("\n \ud83d\udc40 You could have checked results at")
-          else
-            println("\n \ud83d\udc40 Check results at")
+          if dummy then println("\n \ud83d\udc40 You could have checked results at")
+          else println("\n \ud83d\udc40 Check results at")
           println(s"  $path")
           for (targetRepo <- repoParams.targetRepoOpt if !isSnapshot0) {
             val url = targetRepo.stripSuffix("/") + relPath
-            if (dummy)
-              println("before they would have landed at")
-            else
-              println("before they land at")
+            if dummy then println("before they would have landed at")
+            else println("before they land at")
             println(s"  $url")
           }
         }
