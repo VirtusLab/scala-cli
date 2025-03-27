@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
 
-import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
+import scala.build.options.{ScalacOpt, Scope, ShadowingSeq, SourceGeneratorConfig}
 
 final case class Project(
   workspace: os.Path,
@@ -28,7 +28,8 @@ final case class Project(
   resourceDirs: Seq[os.Path],
   javaHomeOpt: Option[os.Path],
   scope: Scope,
-  javacOptions: List[String]
+  javacOptions: List[String],
+  generators: Option[List[SourceGeneratorConfig]]
 ) {
 
   import Project._
@@ -50,6 +51,10 @@ final case class Project(
         bridgeJars = scalaCompiler0.bridgeJarsOpt.map(_.map(_.toNIO).toList)
       )
     }
+
+    val sourceGenerators: Option[List[BloopConfig.SourceGenerator]] =
+      generators.map(_.map(bloopSourceGenerator(_, workspace)))
+
     baseBloopProject(
       projectName,
       directory.toNIO,
@@ -65,7 +70,8 @@ final case class Project(
         platform = Some(platform),
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
-        resolution = resolution
+        resolution = resolution,
+        sourceGenerators = sourceGenerators
       )
   }
 
@@ -231,4 +237,24 @@ object Project {
       setup = None,
       bridgeJars = None
     )
+
+  private def bloopSourceGenerator(
+    config: SourceGeneratorConfig,
+    currentDir: os.Path
+  ): BloopConfig.SourceGenerator = {
+    val sourcesGlobs =
+      BloopConfig.SourcesGlobs(
+        directory = config.inputDir.getOrElse(currentDir).toNIO,
+        walkDepth = None, // TODO: should this be added to config?
+        includes = config.glob.map(g => s"glob:$g"),
+        excludes = Nil // TODO: should this be added to config?
+      )
+
+    BloopConfig.SourceGenerator(
+      sourcesGlobs = List(sourcesGlobs),
+      outputDirectory = config.outputDir.getOrElse(currentDir).toNIO,
+      command = config.command,
+      unmanagedInputs = config.unmanaged.map(_.toNIO)
+    )
+  }
 }

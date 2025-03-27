@@ -4,7 +4,6 @@ import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
 
 import java.util.Locale
 
-import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.directives.*
 import scala.build.errors.{
@@ -16,6 +15,7 @@ import scala.build.errors.{
   UsingDirectiveWrongValueTypeError
 }
 import scala.build.preprocessing.Scoped
+import scala.build.{Logger, Named}
 import scala.cli.commands.SpecificationLevel
 import scala.deriving.*
 import scala.quoted.{_, given}
@@ -105,8 +105,11 @@ object DirectiveHandler {
         w.init.mkString :: pascalCaseSplit(w.last :: tail)
     }
 
+  private def excludeNamed(s: String): String =
+    Named.fromKey(s).value
+
   def normalizeName(s: String): String = {
-    val elems = s.split('-')
+    val elems = excludeNamed(s).split('-')
     (elems.head +: elems.tail.map(_.capitalize)).mkString
   }
 
