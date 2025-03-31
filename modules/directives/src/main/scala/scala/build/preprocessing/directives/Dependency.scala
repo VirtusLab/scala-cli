@@ -21,6 +21,9 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using test.dep org.scalatest::scalatest:3.2.10")
 @DirectiveExamples("//> using test.dep org.scalameta::munit:0.7.29")
 @DirectiveExamples(
+  "//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2"
+)
+@DirectiveExamples(
   "//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar"
 )
 @DirectiveUsage(
