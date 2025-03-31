@@ -107,6 +107,8 @@ Add dependencies
 
 `//> using test.dep org.scalameta::munit:0.7.29`
 
+`//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2`
+
 `//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
 
 ### Exclude sources
