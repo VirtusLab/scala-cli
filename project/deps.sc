@@ -175,7 +175,7 @@ object Deps {
   def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
   def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
   def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.4.5-jre"
+  def guava   = ivy"com.google.guava:guava:33.4.6-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
