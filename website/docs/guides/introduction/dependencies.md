@@ -140,6 +140,17 @@ It is possible to declare dependencies limited to the test scope with the `using
 More details can be found in
 the [`using` directives guide](using-directives.md#directives-with-a-test-scope-equivalent).
 
+### Compile-Only dependencies
+
+It is possible to declare dependencies that are only used during the compilation phase with the `using compileOnly.dep` directive.
+
+```scala compile
+//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2
+```
+
+More details can be found in
+the [`compile` command guide](../../commands/compile.md#compile-only-dependencies).
+
 ## Specifying dependencies from the command line
 
 You can add dependencies on the command line, with the `--dependency` option:
