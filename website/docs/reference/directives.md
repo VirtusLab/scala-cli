@@ -243,7 +243,26 @@ Set parameters for publishing
 
 `//> using publish.name` value
 
+`//> using publish.moduleName` value
+
 `//> using publish.version` value
+
+`//> using publish.url` value
+
+`//> using publish.license` value
+
+`//> using publish.vcs` value
+`//> using publish.scm` value
+`//> using publish.versionControl` value
+
+`//> using publish.description` value
+
+`//> using publish.developer` value
+`//> using publish.developers` value1 value2
+
+`//> using publish.scalaVersionSuffix` value
+
+`//> using publish.scalaPlatformSuffix` value
 
 
 
@@ -252,7 +271,31 @@ Set parameters for publishing
 
 `//> using publish.name my-library`
 
+`//> using publish.moduleName scala-cli_3`
+
 `//> using publish.version 0.1.1`
+
+`//> using publish.url https://github.com/VirtusLab/scala-cli`
+
+`//> using publish.license MIT`
+
+`//> using publish.vcs https://github.com/VirtusLab/scala-cli.git`
+
+`//> using publish.vcs github:VirtusLab/scala-cli`
+
+`//> using publish.description "Lorem ipsum dolor sit amet"`
+
+`//> using publish.developer alexme|Alex Me|https://alex.me`
+
+`//> using publish.developers alexme|Alex Me|https://alex.me Gedochao|Gedo Chao|https://github.com/Gedochao`
+
+`//> using publish.scalaVersionSuffix _2.13`
+
+`//> using publish.scalaVersionSuffix _3`
+
+`//> using publish.scalaPlatformSuffix _sjs1`
+
+`//> using publish.scalaPlatformSuffix _native0.4`
 
 ### Publish (CI)
 
