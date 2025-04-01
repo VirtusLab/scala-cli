@@ -99,9 +99,26 @@ Manually add sources to the project. Does not support chaining, sources are adde
 Add dependencies
 
 `//> using dep` _org_`:`name`:`ver
+`//> using deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using test.dep` _org_`:`name`:`ver
+`//> using test.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using test.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using compileOnly.dep` _org_`:`name`:`ver
+`//> using compileOnly.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using compileOnly.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using scalafix.dep` _org_`:`name`:`ver
+`//> using scalafix.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using scalafix.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
 
 #### Examples
 `//> using dep com.lihaoyi::os-lib:0.9.1`
+
+`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
 
 `//> using test.dep org.scalatest::scalatest:3.2.10`
 
@@ -109,7 +126,7 @@ Add dependencies
 
 `//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2`
 
-`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
+`//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1`
 
 ### Exclude sources
 
