@@ -67,8 +67,16 @@ Method used to compute the version for BuildInfo
 Manually add JAR(s) to the class path
 
 `//> using jar` _path_
-
 `//> using jars` _path1_ _path2_ …
+
+`//> using test.jar` _path_
+`//> using test.jars` _path1_ _path2_ …
+
+`//> using source.jar` _path_
+`//> using source.jars` _path1_ _path2_ …
+
+`//> using test.source.jar` _path_
+`//> using test.source.jars` _path1_ _path2_ …
 
 
 #### Examples
