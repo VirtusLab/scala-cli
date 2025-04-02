@@ -179,6 +179,11 @@ Sets Java home used to run your application or tests
 Add Java options which will be passed when running an application.
 
 `//> using javaOpt` _options_
+`//> using javaOptions` _options_`
+
+`//> using test.javaOpt` _options_
+`//> using test.javaOptions` _options_`
+
 
 #### Examples
 `//> using javaOpt -Xmx2g -Dsomething=a`
