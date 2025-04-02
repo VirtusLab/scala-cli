@@ -203,6 +203,11 @@ Sets Java home used to run your application or tests
 Add Javac options which will be passed when compiling sources.
 
 `//> using javacOpt` _options_
+`//> using javacOptions` _options_
+
+`//> using test.javacOpt` _options_
+`//> using test.javacOptions` _options_
+
 
 #### Examples
 `//> using javacOpt -source 1.8 -target 1.8`
