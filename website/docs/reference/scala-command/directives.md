@@ -90,8 +90,10 @@ Add Java options which will be passed when running an application.
 Add Java properties
 
 `//> using javaProp` _key=value_
-
 `//> using javaProp` _key_
+
+`//> using test.javaProp` _key=value_
+`//> using test.javaProp` _key_
 
 
 #### Examples
