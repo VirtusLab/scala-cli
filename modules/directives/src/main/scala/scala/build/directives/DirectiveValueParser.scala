@@ -3,17 +3,11 @@ package scala.build.directives
 import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
 
 import scala.build.Positioned.apply
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  MalformedDirectiveError,
-  ToolkitDirectiveMissingVersionError,
-  UsingDirectiveValueNumError,
-  UsingDirectiveWrongValueTypeError
-}
+import scala.build.errors.*
 import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.DirectiveUtil
-import scala.build.{Position, Positioned}
+import scala.build.{Named, Position, Positioned}
+import scala.util.NotGiven
 
 abstract class DirectiveValueParser[+T] {
   def parse(
@@ -191,4 +185,16 @@ object DirectiveValueParser {
       else Left(CompositeBuildException(errors))
   }
 
+  given [T](using
+    underlying: DirectiveValueParser[T],
+    // TODO: nested named directives are currently not supported
+    notNested: NotGiven[T <:< Named[_]]
+  ): DirectiveValueParser[Named[T]] = {
+    (key, values, scopePath, path) =>
+      for {
+        named <- Right(Named.fromKey(key))
+        name  <- named.name.toRight(UnnamedKeyError(key))
+        res   <- underlying.parse(named.value, values.filter(!_.isEmpty), scopePath, path)
+      } yield Named(name, res)
+  }
 }

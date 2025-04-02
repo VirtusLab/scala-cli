@@ -1,6 +1,5 @@
 package scala.build.preprocessing
 import scala.build.EitherCps.{either, value}
-import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.directives.{
   HasBuildOptions,
@@ -26,6 +25,7 @@ import scala.build.options.{
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
 import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
 import scala.build.preprocessing.directives.*
+import scala.build.{Logger, Named}
 
 case class DirectivesPreprocessor(
   path: Either[String, os.Path],
@@ -136,19 +136,22 @@ case class DirectivesPreprocessor(
           logger.experimentalWarning(scopedDirective.directive.toString, FeatureType.Directive)
         handler.handleValues(scopedDirective, logger)
 
+    def excludeNamed(key: String): String =
+      Named.fromKey(key).value
+
     val handlersMap = handlers
       .flatMap { handler =>
         handler.keys.flatMap(_.nameAliases).map(k => k -> handleValues(handler))
       }
       .toMap
 
-    val unused = directives.filter(d => !handlersMap.contains(d.key))
+    val unused = directives.filter(d => !handlersMap.contains(excludeNamed(d.key)))
 
     val res = directives
       .iterator
       .flatMap {
         case d @ StrictDirective(k, _, _, _) =>
-          handlersMap.get(k).iterator.map(_(ScopedDirective(d, path, cwd), logger))
+          handlersMap.get(excludeNamed(k)).iterator.map(_(ScopedDirective(d, path, cwd), logger))
       }
       .toVector
       .flatMap {

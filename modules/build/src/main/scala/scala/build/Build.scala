@@ -922,6 +922,9 @@ object Build {
     val semanticDbSourceRoot =
       options.scalaOptions.semanticDbOptions.semanticDbSourceRoot.getOrElse(inputs.workspace)
 
+    val sourceGenerators =
+      options.sourceGeneratorOptions.configs.values.toList.filter(_.command.nonEmpty)
+
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
         val params = value(options.scalaParams).getOrElse {
@@ -1059,7 +1062,8 @@ object Build {
       resourceDirs = sources.resourceDirs,
       scope = scope,
       javaHomeOpt = Option(options.javaHomeLocation().value),
-      javacOptions = javacOptions.toList
+      javacOptions = javacOptions.toList,
+      generators = Some(sourceGenerators).filter(_.nonEmpty)
     )
     project
   }

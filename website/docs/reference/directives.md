@@ -418,6 +418,37 @@ Add Scala.js options
 #### Examples
 `//> using jsModuleKind common`
 
+### Source generators
+
+Configure source generators
+
+`//> using sourceGenerator.[`_name_`].input` _directory_
+
+`//> using sourceGenerator.[`_name_`].output` _directory_
+
+`//> using sourceGenerator.[`_name_`].glob` _glob_
+
+`//> using sourceGenerator.[`_name_`].globs` _glob1_ _glob2_ …
+
+`//> using sourceGenerator.[`_name_`].command` _command_
+
+`//> using sourceGenerator.[`_name_`].unmanaged` _file_
+
+`//> using sourceGenerator.[`_name_`].unmanaged` _file1_ _file2_ …
+
+
+
+#### Examples
+`//> using sourceGenerator.[hello].input ${.}/in`
+
+`//> using sourceGenerator.[hello].output ${.}/out`
+
+`//> using sourceGenerator.[hello].glob *.txt`
+
+`//> using sourceGenerator.[hello].command python ${.}/gen/hello.py`
+
+`//> using sourceGenerator.[hello].unmanaged ${.}/gen/hello.py`
+
 ### Test framework
 
 Set the test framework

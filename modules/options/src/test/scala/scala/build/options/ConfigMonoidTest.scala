@@ -3,7 +3,8 @@ package scala.build.options
 case class Inner(
   foo: Boolean = false,
   bar: Seq[String] = Nil,
-  baz: Set[Double] = Set()
+  baz: Set[Double] = Set(),
+  qux: Map[String, Boolean] = Map()
 )
 
 object Inner {
@@ -53,5 +54,17 @@ class ConfigMonoidTest extends munit.FunSuite {
     assertEquals(Outer.monoid.orElse(outer1, outer2).name, Some("o1"))
     assertEquals(Outer.monoid.orElse(outer2, outer1).name, Some("o2"))
 
+  }
+
+  test("Merging maps") {
+    val inner1 = Inner(qux = Map("k1" -> false, "k3" -> true))
+    val inner2 = Inner(qux = Map("k2" -> true, "k3" -> false))
+
+    assertEquals(Map("k1" -> false, "k3" -> true), Inner.monoid.orElse(inner1, Inner()).qux)
+    assertEquals(Map("k2" -> true, "k3" -> false), Inner.monoid.orElse(inner2, Inner()).qux)
+    assertEquals(
+      Map("k1" -> false, "k2" -> true, "k3" -> true),
+      Inner.monoid.orElse(inner1, inner2).qux
+    )
   }
 }
