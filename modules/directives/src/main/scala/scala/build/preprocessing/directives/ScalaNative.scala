@@ -51,7 +51,6 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Add Scala Native options")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class ScalaNative(
   nativeGc: Option[String] = None,
   nativeMode: Option[String] = None,
@@ -61,12 +60,11 @@ final case class ScalaNative(
   nativeLinking: List[String] = Nil,
   nativeClang: Option[String] = None,
   @DirectiveName("nativeClangPp")
-    nativeClangPP: Option[String] = None,
+  nativeClangPP: Option[String] = None,
   nativeEmbedResources: Option[Boolean] = None,
   nativeTarget: Option[String] = None,
   nativeMultithreading: Option[Boolean] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
     val nativeOptions = ScalaNativeOptions(
       gcStr = nativeGc,

@@ -75,7 +75,6 @@ import scala.util.Try
 )
 @DirectiveDescription("Add Scala.js options")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class ScalaJs(
   jsVersion: Option[String] = None,
   jsMode: Option[String] = None,
@@ -94,7 +93,6 @@ final case class ScalaJs(
   jsEsVersionStr: Option[String] = None,
   jsEmitWasm: Option[Boolean] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] =
     val scalaJsOptions = ScalaJsOptions(
       version = jsVersion,

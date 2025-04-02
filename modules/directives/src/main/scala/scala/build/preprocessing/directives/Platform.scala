@@ -30,12 +30,10 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Set the default platform to Scala.js or Scala Native")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class Platform(
   @DirectiveName("platform")
-    platforms: List[Positioned[String]] = Nil
+  platforms: List[Positioned[String]] = Nil
 ) extends HasBuildOptions {
-  // format: on
 
   private def split(input: String): (String, Option[String]) = {
     val idx = input.indexOf(':')

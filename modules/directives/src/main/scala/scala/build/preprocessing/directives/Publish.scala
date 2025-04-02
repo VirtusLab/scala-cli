@@ -59,7 +59,6 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Set parameters for publishing")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
-// format: off
 final case class Publish(
   organization: Option[Positioned[String]] = None,
   name: Option[Positioned[String]] = None,
@@ -69,14 +68,13 @@ final case class Publish(
   license: Option[Positioned[String]] = None,
   @DirectiveName("scm")
   @DirectiveName("versionControl")
-    vcs: Option[Positioned[String]] = None,
+  vcs: Option[Positioned[String]] = None,
   description: Option[String] = None,
   @DirectiveName("developer")
-    developers: List[Positioned[String]] = Nil,
+  developers: List[Positioned[String]] = Nil,
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
 
     val maybeLicense = license

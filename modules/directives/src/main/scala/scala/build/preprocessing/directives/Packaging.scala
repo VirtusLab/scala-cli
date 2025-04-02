@@ -61,7 +61,6 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Set parameters for packaging")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
-// format: off
 final case class Packaging(
   packageType: Option[Positioned[String]] = None,
   output: Option[String] = None,
@@ -73,7 +72,6 @@ final case class Packaging(
   dockerImageRepository: Option[String] = None,
   dockerCmd: Option[String] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val maybePackageTypeOpt = packageType
       .map { input =>

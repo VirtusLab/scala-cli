@@ -22,11 +22,7 @@ import scala.util.Try
 )
 @DirectiveDescription("Exclude sources from the project")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
-final case class Exclude(
-  exclude: List[Positioned[String]] = Nil
-) extends HasBuildOptions {
-// format: on
+final case class Exclude(exclude: List[Positioned[String]] = Nil) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
     BuildOptions(
       internal = InternalOptions(
