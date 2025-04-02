@@ -14,47 +14,66 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private object TestCase {
-    val testInputs: TestInputs = TestInputs(
-      os.rel / "project" / "foo" / "Hello.scala" ->
-        """//> using publish.organization org.virtuslab.scalacli.test
-          |//> using publish.name simple
-          |//> using publish.version 0.2.0-SNAPSHOT
-          |//> using publish.url https://github.com/VirtusLab/scala-cli
-          |//> using publish.license "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
-          |//> using publish.developer someone|Someone||https://github.com/someone
-          |
-          |package foo
-          |
-          |object Hello {
-          |  def main(args: Array[String]): Unit =
-          |    println(Messages.hello)
-          |}
-          |""".stripMargin,
-      os.rel / "project" / "foo" / "Messages.scala" ->
-        """package foo
-          |
-          |object Messages {
-          |  def hello = "Hello"
-          |}
-          |""".stripMargin
-    )
+    val expectedMessage    = "Hello"
+    val org                = "org.virtuslab.scalacli.test"
+    val name               = "simple"
+    val version            = "0.2.0-SNAPSHOT"
+    val url                = "https://github.com/VirtusLab/scala-cli"
+    val license            = "Apache 2.0:http://opensource.org/licenses/Apache-2.0"
+    val developer          = "someone|Someone||https://github.com/someone"
+    val testScopeMainClass = "HelloFromTestScope"
+    def testInputs(useTestScope: Boolean = false): TestInputs = {
+      val inputs = TestInputs(
+        os.rel / "project" / "foo" / "Hello.scala" ->
+          s"""//> using publish.organization $org
+             |//> using publish.name $name
+             |//> using publish.version $version
+             |//> using publish.url $url
+             |//> using publish.license "$license"
+             |//> using publish.developer $developer
+             |
+             |package foo
+             |
+             |object Hello {
+             |  def main(args: Array[String]): Unit =
+             |    println(Messages.hello)
+             |}
+             |""".stripMargin,
+        os.rel / "project" / "foo" / "Messages.scala" ->
+          s"""package foo
+             |
+             |object Messages {
+             |  def hello = "$expectedMessage"
+             |}
+             |""".stripMargin
+      )
+      if (useTestScope)
+        inputs.add(os.rel / "project" / "foo" / "test" / s"$testScopeMainClass.scala" ->
+          s"""object $testScopeMainClass {
+             |  def main(args: Array[String]): Unit =
+             |    println(foo.Messages.hello)
+             |}
+             |""".stripMargin)
+      else inputs
+    }
     val scalaSuffix: String =
       if (actualScalaVersion.startsWith("3.")) "_3"
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
+    val dependency = s"$org:$name$scalaSuffix:$version"
     val expectedArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
     val expectedJsArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple_sjs1$scalaSuffix" / "0.2.0-SNAPSHOT"
   }
 
-  val baseExpectedArtifacts = Set(
+  val baseExpectedArtifacts: Set[String] = Set(
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.pom",
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT.jar",
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-javadoc.jar",
     s"simple${TestCase.scalaSuffix}-0.2.0-SNAPSHOT-sources.jar"
   )
 
-  val expectedArtifacts = baseExpectedArtifacts
+  val expectedArtifacts: Set[os.RelPath] = baseExpectedArtifacts
     .flatMap { n =>
       Seq(n, n + ".asc")
     }
@@ -63,94 +82,112 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
     .map(os.rel / _)
 
-  val expectedSourceEntries = Set(
+  def expectedSourceEntries(withTestScope: Boolean = false): Set[String] = Set(
     "foo/Hello.scala",
     "foo/Messages.scala"
-  )
+  ) ++ (if (withTestScope) Set("foo/test/HelloFromTestScope.scala") else Set.empty)
 
-  test("simple") {
-    val publicKey = {
-      val uri = Thread.currentThread().getContextClassLoader
-        .getResource("test-keys/key.asc")
-        .toURI
-      os.Path(Paths.get(uri))
-    }
-    val secretKey = {
-      val uri = Thread.currentThread().getContextClassLoader
-        .getResource("test-keys/key.skr")
-        .toURI
-      os.Path(Paths.get(uri))
-    }
-
-    val signingOptions = Seq(
-      "--secret-key",
-      s"file:$secretKey",
-      "--secret-key-password",
-      "value:1234",
-      "--signer",
-      "bc"
-    )
-
-    TestCase.testInputs.fromRoot { root =>
-      os.proc(
-        TestUtil.cli,
-        "--power",
-        "publish",
-        extraOptions,
-        signingOptions,
-        "project",
-        "-R",
-        "test-repo"
-      ).call(
-        cwd = root,
-        stdin = os.Inherit,
-        stdout = os.Inherit
-      )
-
-      val files = os.walk(root / "test-repo")
-        .filter(os.isFile(_))
-        .map(_.relativeTo(root / "test-repo"))
-      val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
-      expect(notInDir.isEmpty)
-
-      val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
-
-      expect((files0 -- expectedArtifacts).isEmpty)
-      expect((expectedArtifacts -- files0).isEmpty)
-      expect(files0 == expectedArtifacts) // just in case…
-
-      val repoArgs =
-        Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
-      val dep    = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
-      val res    = os.proc(TestUtil.cs, "launch", repoArgs, dep).call(cwd = root)
-      val output = res.out.trim()
-      expect(output == "Hello")
-
-      val sourceJarViaCsStr =
-        os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
-          .call(cwd = root)
-          .out.trim()
-      val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
-      val zf             = new ZipFile(sourceJarViaCs.toIO)
-      val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-      expect(entries == expectedSourceEntries)
-
-      val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
-      assert(signatures.nonEmpty)
-      val verifyProc = os.proc(
-        TestUtil.cli,
-        "--power",
-        "pgp",
-        "verify",
-        "--key",
-        publicKey,
-        signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
-      )
-        .call(cwd = root, mergeErrIntoOut = true)
-
-      expect(!verifyProc.out.text().contains(s"invalid signature"))
-    }
+  for {
+    useTestScope <- Seq(true, false)
+    scopeOpts        = if (useTestScope) Seq("--test") else Nil
+    scopeDescription = scopeOpts.headOption.getOrElse("main")
   }
+    test(s"simple ($scopeDescription)") {
+      val publicKey = {
+        val uri = Thread.currentThread().getContextClassLoader
+          .getResource("test-keys/key.asc")
+          .toURI
+        os.Path(Paths.get(uri))
+      }
+      val secretKey = {
+        val uri = Thread.currentThread().getContextClassLoader
+          .getResource("test-keys/key.skr")
+          .toURI
+        os.Path(Paths.get(uri))
+      }
+
+      val signingOptions = Seq(
+        "--secret-key",
+        s"file:$secretKey",
+        "--secret-key-password",
+        "value:1234",
+        "--signer",
+        "bc"
+      )
+
+      TestCase.testInputs(useTestScope).fromRoot { root =>
+        os.proc(
+          TestUtil.cli,
+          "--power",
+          "publish",
+          extraOptions,
+          signingOptions,
+          "project",
+          "-R",
+          "test-repo",
+          scopeOpts
+        ).call(
+          cwd = root,
+          stdin = os.Inherit,
+          stdout = os.Inherit
+        )
+
+        val files = os.walk(root / "test-repo")
+          .filter(os.isFile(_))
+          .map(_.relativeTo(root / "test-repo"))
+        val notInDir = files.filter(!_.startsWith(TestCase.expectedArtifactsDir))
+        expect(notInDir.isEmpty)
+
+        val files0 = files.map(_.relativeTo(TestCase.expectedArtifactsDir)).toSet
+
+        expect((files0 -- expectedArtifacts).isEmpty)
+        expect((expectedArtifacts -- files0).isEmpty)
+        expect(files0 == expectedArtifacts) // just in case…
+
+        val repoArgs =
+          Seq[os.Shellable]("-r", "!central", "-r", (root / "test-repo").toNIO.toUri.toASCIIString)
+        val mainClassOptions =
+          if (useTestScope) Seq("-M", TestCase.testScopeMainClass) else Nil
+        val dep = s"org.virtuslab.scalacli.test:simple${TestCase.scalaSuffix}:0.2.0-SNAPSHOT"
+        val res = os.proc(TestUtil.cs, "launch", repoArgs, dep, mainClassOptions).call(cwd = root)
+        val output = res.out.trim()
+        expect(output == TestCase.expectedMessage)
+
+        val sourceJarViaCsStr =
+          os.proc(TestUtil.cs, "fetch", repoArgs, "--sources", "--intransitive", dep)
+            .call(cwd = root)
+            .out.trim()
+        val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
+        val zf             = new ZipFile(sourceJarViaCs.toIO)
+        val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
+        expect(entries == expectedSourceEntries(useTestScope))
+
+        val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
+        assert(signatures.nonEmpty)
+        val verifyProc = os.proc(
+          TestUtil.cli,
+          "--power",
+          "pgp",
+          "verify",
+          "--key",
+          publicKey,
+          signatures.map(os.rel / "test-repo" / TestCase.expectedArtifactsDir / _)
+        )
+          .call(cwd = root, mergeErrIntoOut = true)
+        expect(!verifyProc.out.text().contains(s"invalid signature"))
+
+        val r = os.proc(
+          TestUtil.cli,
+          "run",
+          "--dep",
+          TestCase.dependency,
+          "-r",
+          (root / "test-repo").toNIO.toUri.toASCIIString,
+          mainClassOptions
+        ).call(cwd = root)
+        expect(r.out.trim() == TestCase.expectedMessage)
+      }
+    }
 
   test("simple sign with external JVM process, java version too low") {
     TestUtil.retryOnCi() {
@@ -186,7 +223,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         "PATH"      -> ((java8Home / "bin").toString + File.pathSeparator + System.getenv("PATH"))
       )
 
-      TestCase.testInputs.fromRoot { root =>
+      TestCase.testInputs().fromRoot { root =>
         val publishRes = os.proc(
           TestUtil.cli,
           "--power",
@@ -239,7 +276,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
         val zf             = new ZipFile(sourceJarViaCs.toIO)
         val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-        expect(entries == expectedSourceEntries)
+        expect(entries == expectedSourceEntries())
 
         val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
         assert(signatures.nonEmpty)
@@ -273,7 +310,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       .map(os.rel / _)
       .toSet
 
-    TestCase.testInputs.fromRoot { root =>
+    TestCase.testInputs().fromRoot { root =>
       os.proc(
         TestUtil.cli,
         "--power",
@@ -314,7 +351,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       .map(os.rel / _)
       .toSet
 
-    TestCase.testInputs.fromRoot { root =>
+    TestCase.testInputs().fromRoot { root =>
       os.proc(
         TestUtil.cli,
         "--power",
@@ -397,7 +434,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       "bc"
     )
 
-    TestCase.testInputs.fromRoot { root =>
+    TestCase.testInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
 
@@ -456,7 +493,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
       val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
       val zf             = new ZipFile(sourceJarViaCs.toIO)
       val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-      expect(entries == expectedSourceEntries)
+      expect(entries == expectedSourceEntries())
 
       val signatures = expectedArtifacts.filter(_.last.endsWith(".asc"))
       assert(signatures.nonEmpty)
@@ -477,7 +514,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   if (!Properties.isWin) // TODO: fix intermittent failures on Windows
     test("secret keys in config") {
 
-      TestCase.testInputs.fromRoot { root =>
+      TestCase.testInputs().fromRoot { root =>
         val confDir  = root / "config"
         val confFile = confDir / "test-config.json"
 
@@ -558,7 +595,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         val sourceJarViaCs = os.Path(sourceJarViaCsStr, os.pwd)
         val zf             = new ZipFile(sourceJarViaCs.toIO)
         val entries        = zf.entries().asScala.toVector.map(_.getName).toSet
-        expect(entries == expectedSourceEntries)
+        expect(entries == expectedSourceEntries())
 
         val publicKey = os.proc(
           TestUtil.cli,
@@ -590,7 +627,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   test("signer=none overrides other options") {
 
-    TestCase.testInputs.fromRoot { root =>
+    TestCase.testInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
 
@@ -649,7 +686,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   test("incorrect or missing secret key password") {
 
-    TestCase.testInputs.fromRoot { root =>
+    TestCase.testInputs().fromRoot { root =>
       val confDir  = root / "config"
       val confFile = confDir / "test-config.json"
 

@@ -318,13 +318,13 @@ object Build {
 
       val baseOptions = overrideOptions.orElse(sharedOptions)
 
-      val scopedSources = value(crossSources.scopedSources(baseOptions))
+      val scopedSources: ScopedSources = value(crossSources.scopedSources(baseOptions))
 
-      val mainSources =
+      val mainSources: Sources =
         value(scopedSources.sources(Scope.Main, baseOptions, inputs.workspace, logger))
       val mainOptions = mainSources.buildOptions
 
-      val testSources =
+      val testSources: Sources =
         value(scopedSources.sources(Scope.Test, baseOptions, inputs.workspace, logger))
       val testOptions = testSources.buildOptions
 
@@ -370,9 +370,7 @@ object Build {
 
       def testBuildOpt(doc: Boolean = false): Either[BuildException, Option[Build]] = either {
         if (buildTests) {
-          val actualCompilerOpt =
-            if (doc) docCompilerOpt
-            else Some(compiler)
+          val actualCompilerOpt = if doc then docCompilerOpt else Some(compiler)
           actualCompilerOpt match {
             case None => None
             case Some(actualCompiler) =>
@@ -384,7 +382,14 @@ object Build {
                         extraClassPath = Seq(s.output)
                       )
                     )
-                    val testOptions0 = extraTestOptions.orElse(testOptions)
+                    val testOptions0 = {
+                      val testOrExtra = extraTestOptions.orElse(testOptions)
+                      testOrExtra
+                        .copy(scalaOptions =
+                          // Scala options between scopes need to be compatible
+                          mainOptions.scalaOptions.orElse(testOrExtra.scalaOptions)
+                        )
+                    }
                     val isScala2 =
                       value(testOptions0.scalaParams).exists(_.scalaVersion.startsWith("2."))
                     val finalSources = if doc && isScala2 then
@@ -676,10 +681,8 @@ object Build {
   ): Either[BuildException, Unit] = {
     val (errors, otherDiagnostics) = options.validate.partition(_.severity == Severity.Error)
     logger.log(otherDiagnostics)
-    if (errors.nonEmpty)
-      Left(CompositeBuildException(errors.map(new ValidationException(_))))
-    else
-      Right(())
+    if errors.nonEmpty then Left(CompositeBuildException(errors.map(new ValidationException(_))))
+    else Right(())
   }
 
   def watch(
