@@ -2,12 +2,25 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
+import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala Native options")
-@DirectiveExamples("//> using nativeVersion 0.4.0")
+@DirectiveExamples(s"//> using nativeGc immix")
+@DirectiveExamples(s"//> using nativeMode debug")
+@DirectiveExamples(s"//> using nativeLto full")
+@DirectiveExamples(s"//> using nativeVersion ${Constants.scalaNativeVersion}")
+@DirectiveExamples(s"//> using nativeCompile -flto=thin")
+@DirectiveExamples(s"//> using nativeLinking -flto=thin")
+@DirectiveExamples(s"//> using nativeClang ./clang")
+@DirectiveExamples(s"//> using nativeClangPP ./clang++")
+@DirectiveExamples(s"//> using nativeEmbedResources")
+@DirectiveExamples(s"//> using nativeEmbedResources true")
+@DirectiveExamples(s"//> using nativeTarget library-dynamic")
+@DirectiveExamples(s"//> using nativeMultithreading")
+@DirectiveExamples(s"//> using nativeMultithreading false")
 @DirectiveUsage(
   "//> using nativeGc _value_ | using native-version _value_",
   """`//> using nativeGc` **immix**_|commix|boehm|none_
@@ -25,10 +38,15 @@ import scala.cli.commands.SpecificationLevel
     |`//> using nativeClang` _value_
     |
     |`//> using nativeClangPP` _value_
+    |`//> using nativeClangPp` _value_
     |
     |`//> using nativeEmbedResources` _true|false_
+    |`//> using nativeEmbedResources`
     |
     |`//> using nativeTarget` _application|library-dynamic|library-static_
+    |
+    |`//> using nativeMultithreading` _true|false_
+    |`//> using nativeMultithreading`
     """.stripMargin.trim
 )
 @DirectiveDescription("Add Scala Native options")
