@@ -297,13 +297,42 @@ Add Scala Native options
 `//> using nativeClang` _value_
 
 `//> using nativeClangPP` _value_
+`//> using nativeClangPp` _value_
 
 `//> using nativeEmbedResources` _true|false_
+`//> using nativeEmbedResources`
 
 `//> using nativeTarget` _application|library-dynamic|library-static_
 
+`//> using nativeMultithreading` _true|false_
+`//> using nativeMultithreading`
+
 #### Examples
-`//> using nativeVersion 0.4.0`
+`//> using nativeGc immix`
+
+`//> using nativeMode debug`
+
+`//> using nativeLto full`
+
+`//> using nativeVersion 0.5.7`
+
+`//> using nativeCompile -flto=thin`
+
+`//> using nativeLinking -flto=thin`
+
+`//> using nativeClang ./clang`
+
+`//> using nativeClangPP ./clang++`
+
+`//> using nativeEmbedResources`
+
+`//> using nativeEmbedResources true`
+
+`//> using nativeTarget library-dynamic`
+
+`//> using nativeMultithreading`
+
+`//> using nativeMultithreading false`
 
 ### Scala.js options
 
@@ -400,8 +429,11 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using toolkit` _version_
 
+//> using test.toolkit` _version_
+
+
 #### Examples
-`//> using toolkit 0.1.0`
+`//> using toolkit 0.7.0`
 
 `//> using toolkit default`
 
