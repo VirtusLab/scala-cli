@@ -290,11 +290,13 @@ Set parameters for packaging
 Set the default platform to Scala.js or Scala Native
 
 `//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+`//> using platforms` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+
 
 #### Examples
 `//> using platform scala-js`
 
-`//> using platform jvm scala-native`
+`//> using platforms jvm scala-native`
 
 ### Publish
 
