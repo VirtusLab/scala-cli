@@ -29,16 +29,26 @@ Generate BuildInfo for project
 
 Add Scala compiler options
 
+`//> using scalacOption` _option_
 `//> using option` _option_
-
+`//> using scalacOptions` _option1_ _option2_ …
 `//> using options` _option1_ _option2_ …
+
+`//> using test.scalacOption` _option_
+`//> using test.option` _option_
+`//> using test.scalacOptions` _option1_ _option2_ …
+`//> using test.options` _option1_ _option2_ …
+
+
 
 #### Examples
 `//> using option -Xasync`
 
+`//> using options -Xasync -Xfatal-warnings`
+
 `//> using test.option -Xasync`
 
-`//> using options -Xasync -Xfatal-warnings`
+`//> using test.options -Xasync -Xfatal-warnings`
 
 ### Compiler plugins
 
