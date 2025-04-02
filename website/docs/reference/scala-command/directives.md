@@ -256,8 +256,12 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 Manually add a resource directory to the class path
 
 `//> using resourceDir` _path_
-
 `//> using resourceDirs` _path1_ _path2_ …
+
+`//> using test.resourceDir` _path_
+`//> using test.resourceDirs` _path1_ _path2_ …
+
+
 
 #### Examples
 `//> using resourceDir ./resources`
