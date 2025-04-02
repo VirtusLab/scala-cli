@@ -16,6 +16,8 @@ import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Benchmarking options")
+@DirectiveExamples(s"//> using jmh")
+@DirectiveExamples(s"//> using jmh true")
 @DirectiveExamples(s"//> using jmhVersion ${Constants.jmhVersion}")
 @DirectiveUsage(
   "//> using jmh _value_ | using jmhVersion _value_",

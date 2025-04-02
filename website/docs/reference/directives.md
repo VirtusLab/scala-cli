@@ -14,6 +14,10 @@ Add benchmarking options
 `//> using jmhVersion` _value_
 
 #### Examples
+`//> using jmh`
+
+`//> using jmh true`
+
 `//> using jmhVersion 1.37`
 
 ### BuildInfo
