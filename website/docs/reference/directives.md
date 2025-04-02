@@ -248,6 +248,20 @@ Set parameters for packaging
 
 `//> using packaging.output` _destination-path_
 
+`//> using packaging.provided` _module_
+
+`//> using packaging.graalvmArgs` _args_
+
+`//> using packaging.dockerFrom` _base-docker-image_
+
+`//> using packaging.dockerImageTag` _image-tag_
+
+`//> using packaging.dockerImageRegistry` _image-registry_
+
+`//> using packaging.dockerImageRepository` _image-repository_
+
+`//> using packaging.dockerCmd` _docker-command_
+
 
 
 #### Examples
@@ -257,9 +271,19 @@ Set parameters for packaging
 
 `//> using packaging.provided org.apache.spark::spark-sql`
 
+`//> using packaging.graalvmArgs --no-fallback`
+
 `//> using packaging.dockerFrom openjdk:11`
 
-`//> using packaging.graalvmArgs --no-fallback`
+`//> using packaging.dockerImageTag 1.0.0`
+
+`//> using packaging.dockerImageRegistry virtuslab`
+
+`//> using packaging.dockerImageRepository scala-cli`
+
+`//> using packaging.dockerCmd sh`
+
+`//> using packaging.dockerCmd node`
 
 ### Platform
 
