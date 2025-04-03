@@ -22,13 +22,19 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage(
   "using option _option_ | using options _option1_ _option2_ …",
   """`//> using scalacOption` _option_
+    |
     |`//> using option` _option_
+    |
     |`//> using scalacOptions` _option1_ _option2_ …
+    |
     |`//> using options` _option1_ _option2_ …
     |
     |`//> using test.scalacOption` _option_
+    |
     |`//> using test.option` _option_
+    |
     |`//> using test.scalacOptions` _option1_ _option2_ …
+    |
     |`//> using test.options` _option1_ _option2_ …
     |
     |""".stripMargin

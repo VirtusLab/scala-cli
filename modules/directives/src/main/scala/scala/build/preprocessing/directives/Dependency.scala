@@ -33,19 +33,27 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage(
   "//> using dep org:name:ver | //> using deps org:name:ver org2:name2:ver2",
   """`//> using dep` _org_`:`name`:`ver
+    |
     |`//> using deps` _org_`:`name`:`ver _org_`:`name`:`ver
+    |
     |`//> using dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
     |
     |`//> using test.dep` _org_`:`name`:`ver
+    |
     |`//> using test.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+    |
     |`//> using test.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
     |
     |`//> using compileOnly.dep` _org_`:`name`:`ver
+    |
     |`//> using compileOnly.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+    |
     |`//> using compileOnly.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
     |
     |`//> using scalafix.dep` _org_`:`name`:`ver
+    |
     |`//> using scalafix.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+    |
     |`//> using scalafix.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
     |""".stripMargin
 )

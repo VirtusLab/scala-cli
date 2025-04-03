@@ -25,6 +25,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage(
   "//> using platform (jvm|scala-js|js|scala-native|native)+",
   """`//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+    |
     |`//> using platforms` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
     |""".stripMargin
 )

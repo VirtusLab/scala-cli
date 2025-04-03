@@ -26,15 +26,19 @@ import scala.util.{Failure, Success, Try}
 @DirectiveUsage(
   "`//> using jar `_path_ | `//> using jars `_path1_ _path2_ …",
   """`//> using jar` _path_
+    |
     |`//> using jars` _path1_ _path2_ …
     |
     |`//> using test.jar` _path_
+    |
     |`//> using test.jars` _path1_ _path2_ …
     |
     |`//> using source.jar` _path_
+    |
     |`//> using source.jars` _path1_ _path2_ …
     |
     |`//> using test.source.jar` _path_
+    |
     |`//> using test.source.jars` _path1_ _path2_ …
     |""".stripMargin
 )

@@ -34,13 +34,19 @@ Generate BuildInfo for project
 Add Scala compiler options
 
 `//> using scalacOption` _option_
+
 `//> using option` _option_
+
 `//> using scalacOptions` _option1_ _option2_ …
+
 `//> using options` _option1_ _option2_ …
 
 `//> using test.scalacOption` _option_
+
 `//> using test.option` _option_
+
 `//> using test.scalacOptions` _option1_ _option2_ …
+
 `//> using test.options` _option1_ _option2_ …
 
 
@@ -81,15 +87,19 @@ Method used to compute the version for BuildInfo
 Manually add JAR(s) to the class path
 
 `//> using jar` _path_
+
 `//> using jars` _path1_ _path2_ …
 
 `//> using test.jar` _path_
+
 `//> using test.jars` _path1_ _path2_ …
 
 `//> using source.jar` _path_
+
 `//> using source.jars` _path1_ _path2_ …
 
 `//> using test.source.jar` _path_
+
 `//> using test.source.jars` _path1_ _path2_ …
 
 
@@ -121,19 +131,27 @@ Manually add sources to the project. Does not support chaining, sources are adde
 Add dependencies
 
 `//> using dep` _org_`:`name`:`ver
+
 `//> using deps` _org_`:`name`:`ver _org_`:`name`:`ver
+
 `//> using dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
 
 `//> using test.dep` _org_`:`name`:`ver
+
 `//> using test.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+
 `//> using test.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
 
 `//> using compileOnly.dep` _org_`:`name`:`ver
+
 `//> using compileOnly.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+
 `//> using compileOnly.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
 
 `//> using scalafix.dep` _org_`:`name`:`ver
+
 `//> using scalafix.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+
 `//> using scalafix.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
 
 
@@ -209,9 +227,11 @@ Add Java options which will be passed when running an application.
 Add Java properties
 
 `//> using javaProp` _key=value_
+
 `//> using javaProp` _key_
 
 `//> using test.javaProp` _key=value_
+
 `//> using test.javaProp` _key_
 
 
@@ -225,9 +245,11 @@ Add Java properties
 Add Javac options which will be passed when compiling sources.
 
 `//> using javacOpt` _options_
+
 `//> using javacOptions` _options_
 
 `//> using test.javacOpt` _options_
+
 `//> using test.javacOptions` _options_
 
 
@@ -304,6 +326,7 @@ Set parameters for packaging
 Set the default platform to Scala.js or Scala Native
 
 `//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+
 `//> using platforms` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
 
 
@@ -329,12 +352,15 @@ Set parameters for publishing
 `//> using publish.license` value
 
 `//> using publish.vcs` value
+
 `//> using publish.scm` value
+
 `//> using publish.versionControl` value
 
 `//> using publish.description` value
 
 `//> using publish.developer` value
+
 `//> using publish.developers` value1 value2
 
 `//> using publish.scalaVersionSuffix` value
@@ -447,9 +473,11 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 Manually add a resource directory to the class path
 
 `//> using resourceDir` _path_
+
 `//> using resourceDirs` _path1_ _path2_ …
 
 `//> using test.resourceDir` _path_
+
 `//> using test.resourceDirs` _path1_ _path2_ …
 
 
@@ -478,14 +506,17 @@ Add Scala Native options
 `//> using nativeClang` _value_
 
 `//> using nativeClangPP` _value_
+
 `//> using nativeClangPp` _value_
 
 `//> using nativeEmbedResources` _true|false_
+
 `//> using nativeEmbedResources`
 
 `//> using nativeTarget` _application|library-dynamic|library-static_
 
 `//> using nativeMultithreading` _true|false_
+
 `//> using nativeMultithreading`
 
 #### Examples
@@ -540,14 +571,17 @@ Add Scala.js options
 `//> using jsMode` _value_
 
 `//> using jsNoOpt` _true|false_
+
 `//> using jsNoOpt`
 
 `//> using jsModuleKind` _value_
 
 `//> using jsCheckIr` _true|false_
+
 `//> using jsCheckIr`
 
 `//> using jsEmitSourceMaps` _true|false_
+
 `//> using jsEmitSourceMaps`
 
 `//> using jsEsModuleImportMap` _value_
@@ -555,17 +589,21 @@ Add Scala.js options
 `//> using jsSmallModuleForPackage` _value1_ _value2_ …
 
 `//> using jsDom` _true|false_
+
 `//> using jsDom`
 
 `//> using jsHeader` _value_
 
 `//> using jsAllowBigIntsForLongs` _true|false_
+
 `//> using jsAllowBigIntsForLongs`
 
 `//> using jsAvoidClasses` _true|false_
+
 `//> using jsAvoidClasses`
 
 `//> using jsAvoidLetsAndConsts` _true|false_
+
 `//> using jsAvoidLetsAndConsts`
 
 `//> using jsModuleSplitStyleStr` _value_
@@ -573,6 +611,7 @@ Add Scala.js options
 `//> using jsEsVersionStr` _value_
     
 `//> using jsEmitWasm` _true|false_
+
 `//> using jsEmitWasm`
 
 
