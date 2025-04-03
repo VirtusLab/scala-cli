@@ -22,10 +22,7 @@ final case class CompileOptions(
   @HelpMessage("Print the resulting class path")
   @Tag(tags.should)
   @Tag(tags.inShortHelp)
-    printClassPath: Boolean = false,
-
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    printClassPath: Boolean = false
 ) extends HasSharedOptions
   // format: on
 

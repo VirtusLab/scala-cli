@@ -49,10 +49,7 @@ final case class SharedReplOptions(
   @Hidden
   @Tag(tags.implementation)
   @HelpMessage("Don't actually run the REPL, just fetch it")
-    replDryRun: Boolean = false,
-  
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    replDryRun: Boolean = false
 )
 // format: on
 

@@ -136,7 +136,7 @@ object Export extends ScalaCommand[ExportOptions] {
   override def sharedOptions(opts: ExportOptions): Option[SharedOptions] = Some(opts.shared)
 
   override def runCommand(options: ExportOptions, args: RemainingArgs, logger: Logger): Unit = {
-    if options.scope.test then {
+    if options.shared.scope.test then {
       logger.error(
         s"""Including the test scope sources together with the main scope is currently not supported.
            |Note that test scope sources will still be exported as per the output build tool tests definition demands.""".stripMargin

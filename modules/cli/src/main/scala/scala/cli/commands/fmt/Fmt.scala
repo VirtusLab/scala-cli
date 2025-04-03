@@ -43,7 +43,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
   override def runCommand(options: FmtOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
 
-    if options.scope.test then
+    if options.shared.scope.test then
       logger.message(
         s"""$warnPrefix Including the test scope does not change the behaviour of this command. 
            |$warnPrefix Test scope inputs are formatted, regardless.""".stripMargin
