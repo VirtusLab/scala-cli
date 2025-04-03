@@ -85,9 +85,6 @@ final case class ExportOptions(
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
     output: Option[String] = None,
-
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
 ) extends HasSharedOptions
 // format: on
 object ExportOptions {
