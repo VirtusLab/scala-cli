@@ -14,12 +14,10 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Set the test framework")
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class Tests(
   @DirectiveName("test.framework")
   testFramework: Option[String] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
     val buildOpt = BuildOptions(
       testOptions = TestOptions(
