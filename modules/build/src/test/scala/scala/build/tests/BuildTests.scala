@@ -778,6 +778,25 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("use scalac preset options") {
+    val inputs = TestInputs(
+      os.rel / "foo.scala" ->
+        """//> using scala 2.13
+          |//> using options.preset suggested
+          |
+          |def foo = "bar"
+          |""".stripMargin
+    )
+
+    inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
+      val expectedOptions =
+        Seq("-Xfatal-warnings", "-deprecation", "-unchecked")
+      val scalacOptions =
+        maybeBuild.toOption.get.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+      expect(scalacOptions == expectedOptions)
+    }
+  }
+
   test("multiple times scalac options with -Xplugin prefix") {
     val inputs = TestInputs(
       os.rel / "foo.scala" ->
