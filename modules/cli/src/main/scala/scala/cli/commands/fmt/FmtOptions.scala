@@ -8,7 +8,13 @@ import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  HasSharedOptions,
+  HelpGroup,
+  HelpMessages,
+  ScopeOptions,
+  SharedOptions
+}
 import scala.cli.commands.{Constants, tags}
 import scala.cli.coursierVersion
 import scala.util.Properties
@@ -88,7 +94,9 @@ final case class FmtOptions(
   @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
   @Tag(tags.inShortHelp)
-    scalafmtVersion: Option[String] = None
+    scalafmtVersion: Option[String] = None,
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 ) extends HasSharedOptions {
   // format: on
 
