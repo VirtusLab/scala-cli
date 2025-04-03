@@ -18,12 +18,10 @@ import scala.cli.commands.SpecificationLevel
   "`//> using target.platform` _platform_"
 )
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
-// format: off
 final case class RequirePlatform(
   @DirectiveName("platform")
-    platforms: List[Positioned[String]] = Nil
+  platforms: List[Positioned[String]] = Nil
 ) extends HasBuildRequirements {
-  // format: on
   def buildRequirements: Either[BuildException, BuildRequirements] = either {
     val platformSet = value {
       Platform.parseSpec(platforms.map(_.value).map(options.Platform.normalize)).toRight {
