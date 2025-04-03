@@ -14,17 +14,9 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Specify default main class")
 @DirectiveLevel(SpecificationLevel.MUST)
-// format: off
-final case class MainClass(
-  mainClass: Option[String] = None
-) extends HasBuildOptions {
-  // format: on
-  def buildOptions: Either[BuildException, BuildOptions] = {
-    val buildOpt = BuildOptions(
-      mainClass = mainClass
-    )
-    Right(buildOpt)
-  }
+final case class MainClass(mainClass: Option[String] = None) extends HasBuildOptions {
+  def buildOptions: Either[BuildException, BuildOptions] =
+    Right(BuildOptions(mainClass = mainClass))
 }
 
 object MainClass {

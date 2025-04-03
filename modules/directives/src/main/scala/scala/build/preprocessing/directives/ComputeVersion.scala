@@ -22,11 +22,8 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage("//> using computeVersion git:tag", "`//> using computeVersion` _method_")
 @DirectiveDescription("Method used to compute the version for BuildInfo")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
-// format: off
-final case class ComputeVersion(
-    computeVersion: Option[Positioned[String]] = None
-) extends HasBuildOptions {
-  // format: on
+final case class ComputeVersion(computeVersion: Option[Positioned[String]] = None)
+    extends HasBuildOptions {
 
   def buildOptions: Either[BuildException, BuildOptions] = either {
     BuildOptions(

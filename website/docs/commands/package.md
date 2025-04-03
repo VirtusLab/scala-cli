@@ -525,3 +525,12 @@ The using directive allows you to define the image repository.
 ```scala compile power
 //> using packaging.dockerImageRepository scala-cli
 ```
+
+#### packaging.dockerCmd
+
+The using directive allows you to override the executable used to run the application in docker, 
+otherwise it defaults to `sh` for the JVM platform and `node` for the JS platform
+
+```scala compile power
+//> using packaging.dockerCmd node
+```

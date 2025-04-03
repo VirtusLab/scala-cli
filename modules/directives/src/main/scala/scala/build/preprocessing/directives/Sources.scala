@@ -22,13 +22,11 @@ import scala.util.Try
   "Manually add sources to the project. Does not support chaining, sources are added only once, not recursively."
 )
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class Sources(
   @DirectiveName("file")
-    files: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
-      DirectiveValueParser.WithScopePath.empty(Nil)
+  files: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
 
     val paths = files

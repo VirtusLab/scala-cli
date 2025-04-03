@@ -19,12 +19,10 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription(Repository.usageMsg)
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
 final case class Repository(
   @DirectiveName("repository")
-    repositories: List[String] = Nil
+  repositories: List[String] = Nil
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = {
     val buildOpt = BuildOptions(
       classPathOptions = ClassPathOptions(

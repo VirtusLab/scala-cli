@@ -17,11 +17,9 @@ import scala.cli.commands.SpecificationLevel
 )
 @DirectiveDescription("Set the default Scala version")
 @DirectiveLevel(SpecificationLevel.MUST)
-// format: off
 final case class ScalaVersion(
   scala: List[DirectiveValueParser.MaybeNumericalString] = Nil
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] =
     scala match {
       case Nil => Right(BuildOptions())

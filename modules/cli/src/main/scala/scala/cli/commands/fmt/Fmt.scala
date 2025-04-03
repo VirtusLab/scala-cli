@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 
-import scala.build.input.{Inputs, Script, SourceScalaFile}
+import scala.build.input.{Inputs, ProjectScalaFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.options.BuildOptions
 import scala.build.{Logger, Sources}
@@ -44,14 +44,11 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, _) =
-      if (args.all.isEmpty)
-        (Seq(os.pwd), os.pwd, None)
+      if args.all.isEmpty then (Seq(os.pwd), os.pwd, None)
       else {
         val i = options.shared.inputs(args.all).orExit(logger)
-        val s = i.sourceFiles().collect {
-          case sc: Script          => sc.path
-          case sc: SourceScalaFile => sc.path
-        }
+        type FormattableSourceFile = Script | SourceScalaFile | ProjectScalaFile
+        val s = i.sourceFiles().collect { case sc: FormattableSourceFile => sc.path }
         (s, i.workspace, Some(i))
       }
     CurrentParams.workspaceOpt = Some(workspace)
