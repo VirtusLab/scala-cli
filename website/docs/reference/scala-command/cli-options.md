@@ -640,6 +640,12 @@ Decrease logging verbosity
 
 Use progress bars
 
+### `--log-cli-version`
+
+`IMPLEMENTATION specific` per Scala Runner specification
+
+Logs scala-cli version on project build
+
 ## Main class options
 
 Available in commands:

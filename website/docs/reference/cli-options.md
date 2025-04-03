@@ -721,6 +721,10 @@ Decrease logging verbosity
 
 Use progress bars
 
+### `--log-cli-version`
+
+Logs scala-cli version on project build
+
 ## Main class options
 
 Available in commands:
