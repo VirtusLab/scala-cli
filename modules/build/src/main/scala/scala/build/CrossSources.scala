@@ -190,9 +190,14 @@ object CrossSources {
 
     val flattenedInputs = inputs.flattened()
     val allExclude = { // supports only one exclude directive in one source file, which should be the project file.
-      val projectScalaFileOpt = flattenedInputs.collectFirst {
+      val projectScalaFileCandidates = flattenedInputs.collect {
         case f: ProjectScalaFile => f
       }
+
+      // this relies upon the inferred workspace root being the outermost directory.
+      // which is the common case when you pass a single directory.
+      val projectScalaFileOpt =
+        projectScalaFileCandidates.sortBy(_.subPath.segments.size).headOption
       val excludeFromProjectFile =
         value(preprocessSources(projectScalaFileOpt.toSeq))
           .flatMap(_.options).flatMap(_.internal.exclude)
