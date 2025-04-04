@@ -21,8 +21,13 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using packaging.packageType assembly")
 @DirectiveExamples("//> using packaging.output foo")
 @DirectiveExamples("//> using packaging.provided org.apache.spark::spark-sql")
-@DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
 @DirectiveExamples("//> using packaging.graalvmArgs --no-fallback")
+@DirectiveExamples("//> using packaging.dockerFrom openjdk:11")
+@DirectiveExamples("//> using packaging.dockerImageTag 1.0.0")
+@DirectiveExamples("//> using packaging.dockerImageRegistry virtuslab")
+@DirectiveExamples("//> using packaging.dockerImageRepository scala-cli")
+@DirectiveExamples("//> using packaging.dockerCmd sh")
+@DirectiveExamples("//> using packaging.dockerCmd node")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
@@ -32,16 +37,30 @@ import scala.cli.commands.SpecificationLevel
     |using packaging.dockerImageTag [image tag]
     |using packaging.dockerImageRegistry [image registry]
     |using packaging.dockerImageRepository [image repository]
+    |using packaging.dockerCmd [docker command]
     |""".stripMargin,
   """`//> using packaging.packageType` _package-type_
     |
     |`//> using packaging.output` _destination-path_
     |
+    |`//> using packaging.provided` _module_
+    |
+    |`//> using packaging.graalvmArgs` _args_
+    |
+    |`//> using packaging.dockerFrom` _base-docker-image_
+    |
+    |`//> using packaging.dockerImageTag` _image-tag_
+    |
+    |`//> using packaging.dockerImageRegistry` _image-registry_
+    |
+    |`//> using packaging.dockerImageRepository` _image-repository_
+    |
+    |`//> using packaging.dockerCmd` _docker-command_
+    |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for packaging")
 @DirectiveLevel(SpecificationLevel.RESTRICTED)
-// format: off
 final case class Packaging(
   packageType: Option[Positioned[String]] = None,
   output: Option[String] = None,
@@ -53,7 +72,6 @@ final case class Packaging(
   dockerImageRepository: Option[String] = None,
   dockerCmd: Option[String] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val maybePackageTypeOpt = packageType
       .map { input =>

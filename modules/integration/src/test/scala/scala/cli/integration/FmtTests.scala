@@ -216,4 +216,20 @@ class FmtTests extends ScalaCliSuite {
       expect(fmtVersionHelp.contains(s"(${Constants.defaultScalafmtVersion} by default)"))
     }
   }
+
+  test("project.scala gets formatted correctly, as any other input") {
+    val projectFileName = "project.scala"
+    TestInputs(
+      os.rel / projectFileName -> simpleInputsUnformattedContent,
+      os.rel / confFileName ->
+        s"""|version = "${Constants.defaultScalafmtVersion}"
+            |runner.dialect = scala3
+            |""".stripMargin
+    )
+      .fromRoot { root =>
+        os.proc(TestUtil.cli, "fmt", ".").call(cwd = root)
+        val updatedContent = noCrLf(os.read(root / projectFileName))
+        expect(updatedContent == expectedSimpleInputsFormattedContent)
+      }
+  }
 }

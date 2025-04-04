@@ -15,16 +15,26 @@ Documentation is split into sections in the spirit of RFC keywords (`MUST`, `SHO
 
 Add Scala compiler options
 
+`//> using scalacOption` _option_
 `//> using option` _option_
-
+`//> using scalacOptions` _option1_ _option2_ …
 `//> using options` _option1_ _option2_ …
+
+`//> using test.scalacOption` _option_
+`//> using test.option` _option_
+`//> using test.scalacOptions` _option1_ _option2_ …
+`//> using test.options` _option1_ _option2_ …
+
+
 
 #### Examples
 `//> using option -Xasync`
 
+`//> using options -Xasync -Xfatal-warnings`
+
 `//> using test.option -Xasync`
 
-`//> using options -Xasync -Xfatal-warnings`
+`//> using test.options -Xasync -Xfatal-warnings`
 
 ### Compiler plugins
 
@@ -40,9 +50,26 @@ Adds compiler plugins
 Add dependencies
 
 `//> using dep` _org_`:`name`:`ver
+`//> using deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using test.dep` _org_`:`name`:`ver
+`//> using test.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using test.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using compileOnly.dep` _org_`:`name`:`ver
+`//> using compileOnly.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using compileOnly.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
+`//> using scalafix.dep` _org_`:`name`:`ver
+`//> using scalafix.deps` _org_`:`name`:`ver _org_`:`name`:`ver
+`//> using scalafix.dependencies` _org_`:`name`:`ver _org_`:`name`:`ver
+
 
 #### Examples
 `//> using dep com.lihaoyi::os-lib:0.9.1`
+
+`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
 
 `//> using test.dep org.scalatest::scalatest:3.2.10`
 
@@ -50,13 +77,18 @@ Add dependencies
 
 `//> using compileOnly.dep com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:2.23.2`
 
-`//> using dep tabby:tabby:0.2.3,url=https://github.com/bjornregnell/tabby/releases/download/v0.2.3/tabby_3-0.2.3.jar`
+`//> using scalafix.dep com.github.xuwei-k::scalafix-rules:0.5.1`
 
 ### Java options
 
 Add Java options which will be passed when running an application.
 
 `//> using javaOpt` _options_
+`//> using javaOptions` _options_`
+
+`//> using test.javaOpt` _options_
+`//> using test.javaOptions` _options_`
+
 
 #### Examples
 `//> using javaOpt -Xmx2g -Dsomething=a`
@@ -68,8 +100,10 @@ Add Java options which will be passed when running an application.
 Add Java properties
 
 `//> using javaProp` _key=value_
-
 `//> using javaProp` _key_
+
+`//> using test.javaProp` _key=value_
+`//> using test.javaProp` _key_
 
 
 #### Examples
@@ -108,8 +142,16 @@ Set the default Scala version
 Manually add JAR(s) to the class path
 
 `//> using jar` _path_
-
 `//> using jars` _path1_ _path2_ …
+
+`//> using test.jar` _path_
+`//> using test.jars` _path1_ _path2_ …
+
+`//> using source.jar` _path_
+`//> using source.jars` _path1_ _path2_ …
+
+`//> using test.source.jar` _path_
+`//> using test.source.jars` _path1_ _path2_ …
 
 
 #### Examples
@@ -178,6 +220,11 @@ Sets Java home used to run your application or tests
 Add Javac options which will be passed when compiling sources.
 
 `//> using javacOpt` _options_
+`//> using javacOptions` _options_
+
+`//> using test.javacOpt` _options_
+`//> using test.javacOptions` _options_
+
 
 #### Examples
 `//> using javacOpt -source 1.8 -target 1.8`
@@ -189,11 +236,13 @@ Add Javac options which will be passed when compiling sources.
 Set the default platform to Scala.js or Scala Native
 
 `//> using platform` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+`//> using platforms` (`jvm`|`scala-js`|`js`|`scala-native`|`native`)+
+
 
 #### Examples
 `//> using platform scala-js`
 
-`//> using platform jvm scala-native`
+`//> using platforms jvm scala-native`
 
 ### Repository
 
@@ -217,8 +266,12 @@ Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`
 Manually add a resource directory to the class path
 
 `//> using resourceDir` _path_
-
 `//> using resourceDirs` _path1_ _path2_ …
+
+`//> using test.resourceDir` _path_
+`//> using test.resourceDirs` _path1_ _path2_ …
+
+
 
 #### Examples
 `//> using resourceDir ./resources`
@@ -244,13 +297,42 @@ Add Scala Native options
 `//> using nativeClang` _value_
 
 `//> using nativeClangPP` _value_
+`//> using nativeClangPp` _value_
 
 `//> using nativeEmbedResources` _true|false_
+`//> using nativeEmbedResources`
 
 `//> using nativeTarget` _application|library-dynamic|library-static_
 
+`//> using nativeMultithreading` _true|false_
+`//> using nativeMultithreading`
+
 #### Examples
-`//> using nativeVersion 0.4.0`
+`//> using nativeGc immix`
+
+`//> using nativeMode debug`
+
+`//> using nativeLto full`
+
+`//> using nativeVersion 0.5.7`
+
+`//> using nativeCompile -flto=thin`
+
+`//> using nativeLinking -flto=thin`
+
+`//> using nativeClang ./clang`
+
+`//> using nativeClangPP ./clang++`
+
+`//> using nativeEmbedResources`
+
+`//> using nativeEmbedResources true`
+
+`//> using nativeTarget library-dynamic`
+
+`//> using nativeMultithreading`
+
+`//> using nativeMultithreading false`
 
 ### Scala.js options
 
@@ -262,36 +344,75 @@ Add Scala.js options
 `//> using jsMode` _value_
 
 `//> using jsNoOpt` _true|false_
+`//> using jsNoOpt`
 
 `//> using jsModuleKind` _value_
 
-`//> using jsSmallModuleForPackage` _value1_ _value2_ …
-
 `//> using jsCheckIr` _true|false_
+`//> using jsCheckIr`
 
 `//> using jsEmitSourceMaps` _true|false_
+`//> using jsEmitSourceMaps`
+
+`//> using jsEsModuleImportMap` _value_
+
+`//> using jsSmallModuleForPackage` _value1_ _value2_ …
 
 `//> using jsDom` _true|false_
+`//> using jsDom`
 
 `//> using jsHeader` _value_
 
 `//> using jsAllowBigIntsForLongs` _true|false_
+`//> using jsAllowBigIntsForLongs`
 
 `//> using jsAvoidClasses` _true|false_
+`//> using jsAvoidClasses`
 
 `//> using jsAvoidLetsAndConsts` _true|false_
+`//> using jsAvoidLetsAndConsts`
 
 `//> using jsModuleSplitStyleStr` _value_
 
 `//> using jsEsVersionStr` _value_
     
 `//> using jsEmitWasm` _true|false_
-
-`//> using jsEsModuleImportMap` _value_
+`//> using jsEmitWasm`
 
 
 #### Examples
+`//> using jsVersion 1.18.2`
+
+`//> using jsMode mode`
+
+`//> using jsNoOpt`
+
 `//> using jsModuleKind common`
+
+`//> using jsCheckIr`
+
+`//> using jsEmitSourceMaps`
+
+`//> using jsEsModuleImportMap importmap.json`
+
+`//> using jsSmallModuleForPackage test`
+
+`//> using jsDom`
+
+`//> using jsHeader "#!/usr/bin/env node
+"`
+
+`//> using jsAllowBigIntsForLongs`
+
+`//> using jsAvoidClasses`
+
+`//> using jsAvoidLetsAndConsts`
+
+`//> using jsModuleSplitStyleStr smallestmodules`
+
+`//> using jsEsVersionStr es2017`
+
+`//> using jsEmitWasm`
 
 ### Test framework
 
@@ -308,8 +429,11 @@ Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for
 
 `//> using toolkit` _version_
 
+//> using test.toolkit` _version_
+
+
 #### Examples
-`//> using toolkit 0.1.0`
+`//> using toolkit 0.7.0`
 
 `//> using toolkit default`
 
