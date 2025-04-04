@@ -63,4 +63,10 @@ object ScalacOpt {
     def filterScalacOptionKeys(f: String => Boolean): ShadowingSeq[ScalacOpt] =
       opts.filterKeys(_.key.exists(f))
   }
+
+  enum PresetOptions(val preset: String):
+    case Suggested extends PresetOptions("suggested")
+    case CI        extends PresetOptions("ci")
+    case Strict    extends PresetOptions("strict")
+
 }
