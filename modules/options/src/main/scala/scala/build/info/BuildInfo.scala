@@ -15,7 +15,8 @@ final case class BuildInfo(
   jsEsVersion: Option[String] = None,
   scalaNativeVersion: Option[String] = None,
   mainClass: Option[String] = None,
-  scopes: Map[String, ScopedBuildInfo] = Map.empty
+  scopes: Map[String, ScopedBuildInfo] = Map.empty,
+  scalaCliVersion: Option[String] = None
 ) {
   def +(other: BuildInfo): BuildInfo =
     BuildInfo.monoid.orElse(this, other)
@@ -64,7 +65,11 @@ final case class BuildInfo(
       Seq(
         "/** Project version */",
         "val projectVersion ="
-      ) -> projectVersion
+      ) -> projectVersion,
+      Seq(
+        "/** Scala CLI version used for the compilation */",
+        "val scalaCliVersion ="
+      ) -> scalaCliVersion
     ).flatMap { case (Seq(scaladoc, prefix), opt) =>
       Seq(
         scaladoc,
@@ -113,7 +118,8 @@ object BuildInfo {
         )
       ),
       scalaVersionSettings(options),
-      platformSettings(options)
+      platformSettings(options),
+      scalaCliSettings(options)
     )
       .reduceLeft(_ + _)
   }.left.map {
@@ -157,6 +163,9 @@ object BuildInfo {
       jvmVersion = options.javaOptions.jvmIdOpt.map(_.value)
         .orElse(Some(options.javaHome().value.version.toString))
     )
+
+  private def scalaCliSettings(options: BuildOptions): BuildInfo =
+    BuildInfo(scalaCliVersion = Some(Constants.version))
 
   private def platformSettings(options: BuildOptions): BuildInfo =
     options.scalaOptions.platform.map(_.value) match {
