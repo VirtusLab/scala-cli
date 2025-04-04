@@ -43,21 +43,21 @@ E.g:
 This command runs the unit tests from the `build-module` module.
 
 ```bash
-./mill 'build-module.test'
+./mill 'build-module[].test'
 ```
 
 If you want to run unit tests for another module, set `module_name` to the name of the module from which you want to run
 the unit tests:
 
 ```bash
-./mill 'module_name.test'
+./mill 'module_name[].test'
 ```
 
 To can filter unit test suites:
 
 ```bash
-./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.*'
-./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.simple'
+./mill 'build-module[].test' 'scala.build.tests.BuildTestsScalac.*'
+./mill 'build-module[].test' 'scala.build.tests.BuildTestsScalac.simple'
 ```
 
 #### Run integration tests with the JVM launcher
