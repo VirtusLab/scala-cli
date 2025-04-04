@@ -16,11 +16,20 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compiler options")
 @DirectiveExamples("//> using option -Xasync")
-@DirectiveExamples("//> using test.option -Xasync")
 @DirectiveExamples("//> using options -Xasync -Xfatal-warnings")
+@DirectiveExamples("//> using test.option -Xasync")
+@DirectiveExamples("//> using test.options -Xasync -Xfatal-warnings")
 @DirectiveUsage(
   "using option _option_ | using options _option1_ _option2_ …",
-  """`//> using option` _option_
+  """`//> using scalacOption` _option_
+    |`//> using option` _option_
+    |`//> using scalacOptions` _option1_ _option2_ …
+    |`//> using options` _option1_ _option2_ …
+    |
+    |`//> using test.scalacOption` _option_
+    |`//> using test.option` _option_
+    |`//> using test.scalacOptions` _option1_ _option2_ …
+    |`//> using test.options` _option1_ _option2_ …
     |
     |`//> using options` _option1_ _option2_ …
     |
@@ -31,9 +40,12 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveLevel(SpecificationLevel.MUST)
 final case class ScalacOptions(
   @DirectiveName("option")
+  @DirectiveName("scalacOption")
+  @DirectiveName("scalacOptions")
   options: List[Positioned[String]] = Nil,
   @DirectiveName("test.option")
   @DirectiveName("test.options")
+  @DirectiveName("test.scalacOption")
   @DirectiveName("test.scalacOptions")
   testOptions: List[Positioned[String]] = Nil,
   @DirectiveName("option.preset")

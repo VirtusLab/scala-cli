@@ -19,11 +19,7 @@ import scala.cli.commands.SpecificationLevel
     "scala-cli uses [coursier](https://get-coursier.io/) to fetch JVMs, so you can use `cs java --available` to list the available JVMs."
 )
 @DirectiveLevel(SpecificationLevel.SHOULD)
-// format: off
-final case class Jvm(
-  jvm: Option[Positioned[String]] = None
-) extends HasBuildOptions {
-  // format: on
+final case class Jvm(jvm: Option[Positioned[String]] = None) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = {
     val buildOpt = BuildOptions(
       javaOptions = options.JavaOptions(

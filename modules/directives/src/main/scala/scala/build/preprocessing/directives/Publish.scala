@@ -13,20 +13,52 @@ import scala.cli.commands.SpecificationLevel
 @DirectivePrefix("publish.")
 @DirectiveExamples("//> using publish.organization io.github.myself")
 @DirectiveExamples("//> using publish.name my-library")
+@DirectiveExamples("//> using publish.moduleName scala-cli_3")
 @DirectiveExamples("//> using publish.version 0.1.1")
+@DirectiveExamples("//> using publish.url https://github.com/VirtusLab/scala-cli")
+@DirectiveExamples("//> using publish.license MIT")
+@DirectiveExamples("//> using publish.vcs https://github.com/VirtusLab/scala-cli.git")
+@DirectiveExamples("//> using publish.vcs github:VirtusLab/scala-cli")
+@DirectiveExamples("//> using publish.description \"Lorem ipsum dolor sit amet\"")
+@DirectiveExamples("//> using publish.developer alexme|Alex Me|https://alex.me")
+@DirectiveExamples(
+  "//> using publish.developers alexme|Alex Me|https://alex.me Gedochao|Gedo Chao|https://github.com/Gedochao"
+)
+@DirectiveExamples("//> using publish.scalaVersionSuffix _2.13")
+@DirectiveExamples("//> using publish.scalaVersionSuffix _3")
+@DirectiveExamples("//> using publish.scalaPlatformSuffix _sjs1")
+@DirectiveExamples("//> using publish.scalaPlatformSuffix _native0.4")
 @DirectiveUsage(
-  "//> using publish.(organization|name|version) [value]",
+  "//> using publish.[key] [value]",
   """`//> using publish.organization` value
     |
     |`//> using publish.name` value
     |
+    |`//> using publish.moduleName` value
+    |
     |`//> using publish.version` value
+    |
+    |`//> using publish.url` value
+    |
+    |`//> using publish.license` value
+    |
+    |`//> using publish.vcs` value
+    |`//> using publish.scm` value
+    |`//> using publish.versionControl` value
+    |
+    |`//> using publish.description` value
+    |
+    |`//> using publish.developer` value
+    |`//> using publish.developers` value1 value2
+    |
+    |`//> using publish.scalaVersionSuffix` value
+    |
+    |`//> using publish.scalaPlatformSuffix` value
     |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for publishing")
 @DirectiveLevel(SpecificationLevel.EXPERIMENTAL)
-// format: off
 final case class Publish(
   organization: Option[Positioned[String]] = None,
   name: Option[Positioned[String]] = None,
@@ -36,14 +68,13 @@ final case class Publish(
   license: Option[Positioned[String]] = None,
   @DirectiveName("scm")
   @DirectiveName("versionControl")
-    vcs: Option[Positioned[String]] = None,
+  vcs: Option[Positioned[String]] = None,
   description: Option[String] = None,
   @DirectiveName("developer")
-    developers: List[Positioned[String]] = Nil,
+  developers: List[Positioned[String]] = Nil,
   scalaVersionSuffix: Option[String] = None,
   scalaPlatformSuffix: Option[String] = None
 ) extends HasBuildOptions {
-  // format: on
   def buildOptions: Either[BuildException, BuildOptions] = either {
 
     val maybeLicense = license
