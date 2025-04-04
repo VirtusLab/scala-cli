@@ -43,12 +43,15 @@ import scala.cli.commands.SpecificationLevel
     |`//> using publish.license` value
     |
     |`//> using publish.vcs` value
+    |
     |`//> using publish.scm` value
+    |
     |`//> using publish.versionControl` value
     |
     |`//> using publish.description` value
     |
     |`//> using publish.developer` value
+    |
     |`//> using publish.developers` value1 value2
     |
     |`//> using publish.scalaVersionSuffix` value

@@ -37,14 +37,17 @@ import scala.util.Try
     |`//> using jsMode` _value_
     |
     |`//> using jsNoOpt` _true|false_
+    |
     |`//> using jsNoOpt`
     |
     |`//> using jsModuleKind` _value_
     |
     |`//> using jsCheckIr` _true|false_
+    |
     |`//> using jsCheckIr`
     |
     |`//> using jsEmitSourceMaps` _true|false_
+    |
     |`//> using jsEmitSourceMaps`
     |
     |`//> using jsEsModuleImportMap` _value_
@@ -52,17 +55,21 @@ import scala.util.Try
     |`//> using jsSmallModuleForPackage` _value1_ _value2_ …
     |
     |`//> using jsDom` _true|false_
+    |
     |`//> using jsDom`
     |
     |`//> using jsHeader` _value_
     |
     |`//> using jsAllowBigIntsForLongs` _true|false_
+    |
     |`//> using jsAllowBigIntsForLongs`
     |
     |`//> using jsAvoidClasses` _true|false_
+    |
     |`//> using jsAvoidClasses`
     |
     |`//> using jsAvoidLetsAndConsts` _true|false_
+    |
     |`//> using jsAvoidLetsAndConsts`
     |
     |`//> using jsModuleSplitStyleStr` _value_
@@ -70,6 +77,7 @@ import scala.util.Try
     |`//> using jsEsVersionStr` _value_
     |    
     |`//> using jsEmitWasm` _true|false_
+    |
     |`//> using jsEmitWasm`
     |""".stripMargin
 )

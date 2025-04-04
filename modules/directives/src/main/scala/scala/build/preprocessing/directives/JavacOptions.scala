@@ -13,9 +13,11 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage(
   "//> using javacOpt _options_",
   """`//> using javacOpt` _options_
+    |
     |`//> using javacOptions` _options_
     |
     |`//> using test.javacOpt` _options_
+    |
     |`//> using test.javacOptions` _options_
     |""".stripMargin
 )
