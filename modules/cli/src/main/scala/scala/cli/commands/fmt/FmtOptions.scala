@@ -8,7 +8,13 @@ import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
+import scala.cli.commands.shared.{
+  HasSharedOptions,
+  HelpGroup,
+  HelpMessages,
+  ScopeOptions,
+  SharedOptions
+}
 import scala.cli.commands.{Constants, tags}
 import scala.cli.coursierVersion
 import scala.util.Properties

@@ -3,7 +3,7 @@ package scala.cli.commands.dependencyupdate
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, ScopeOptions, SharedOptions}
 import scala.cli.commands.tags
 
 // format: off
@@ -15,7 +15,7 @@ final case class DependencyUpdateOptions(
   @HelpMessage("Update all dependencies if a newer version was released")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    all: Boolean = false,
+    all: Boolean = false
 ) extends HasSharedOptions
   // format: on
 
