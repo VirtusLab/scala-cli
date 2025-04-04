@@ -394,6 +394,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--js-no-opt**
 
 Disable optimalisation for Scala.js, overrides `--js-mode`
@@ -787,6 +791,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -1175,6 +1183,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--js-no-opt**
 
@@ -1776,6 +1788,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--js-no-opt**
 
@@ -2407,6 +2423,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--js-no-opt**
 
@@ -3048,6 +3068,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--js-no-opt**
 
 Disable optimalisation for Scala.js, overrides `--js-mode`
@@ -3639,6 +3663,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--js-no-opt**
 
@@ -4307,6 +4335,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--js-no-opt**
 
 Disable optimalisation for Scala.js, overrides `--js-mode`
@@ -4631,6 +4663,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--suppress-experimental-feature-warning**
 
@@ -4987,6 +5023,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--js-no-opt**
 
 Disable optimalisation for Scala.js, overrides `--js-mode`
@@ -5316,6 +5356,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -5407,6 +5451,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -5485,6 +5533,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--suppress-experimental-feature-warning**
 
@@ -5588,6 +5640,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--suppress-experimental-feature-warning**
 
@@ -5950,6 +6006,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--js-no-opt**
 
 Disable optimalisation for Scala.js, overrides `--js-mode`
@@ -6279,6 +6339,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -6472,6 +6536,10 @@ Aliases: `-q`
 
 Use progress bars
 
+**--log-cli-version**
+
+Logs scala-cli version on project build
+
 **--suppress-experimental-feature-warning**
 
 Suppress warnings about using experimental features
@@ -6550,6 +6618,10 @@ Aliases: `-q`
 **--progress**
 
 Use progress bars
+
+**--log-cli-version**
+
+Logs scala-cli version on project build
 
 **--suppress-experimental-feature-warning**
 

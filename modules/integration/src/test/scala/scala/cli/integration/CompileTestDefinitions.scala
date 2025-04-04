@@ -822,6 +822,33 @@ abstract class CompileTestDefinitions
     }
   }
 
+  test("logs the scala-cli version when the --log-cli-version option is used") {
+    val filename = "Main.scala"
+    val inputs = TestInputs(
+      os.rel / filename ->
+        """|object Main extends App {
+           |  val msg: String = "1"
+           |}
+           |""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val result = os.proc(TestUtil.cli, "compile", ".", "--log-cli-version", extraOptions).call(
+        cwd = root,
+        check = false,
+        mergeErrIntoOut = true
+      )
+
+      assertEquals(
+        TestUtil.fullStableOutput(result),
+        s"""|Compiling project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}), scala-cli ${Constants.scalaCliVersion})
+            |Compiled project (Scala $actualScalaVersion, JVM (${Constants
+             .defaultGraalVMJavaVersion}), scala-cli ${Constants.scalaCliVersion})""".stripMargin
+      )
+
+    }
+  }
+
   test("i3389") {
     val filename = "Main.scala"
     val inputs = TestInputs(
