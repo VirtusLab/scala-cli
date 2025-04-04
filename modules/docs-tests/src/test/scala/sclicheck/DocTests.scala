@@ -38,7 +38,7 @@ class DocTests extends munit.FunSuite {
     md <- inputs
   }
     test(s"$tpe ${md.toString.stripSuffix(".md")}") {
-      checkFile(dir / md, options)
+      TestUtil.retryOnCi()(checkFile(dir / md, options))
     }
 
 }
