@@ -67,7 +67,7 @@ final case class BuildInfo(
         "val projectVersion ="
       ) -> projectVersion,
       Seq(
-        "/** Scala-cli version used for the compilation */",
+        "/** Scala CLI version used for the compilation */",
         "val scalaCliVersion ="
       ) -> scalaCliVersion
     ).flatMap { case (Seq(scaladoc, prefix), opt) =>
