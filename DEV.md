@@ -56,8 +56,8 @@ the unit tests:
 To can filter unit test suites:
 
 ```bash
-./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.*'
-./mill 'build-module.test' 'scala.build.tests.BuildTestsScalac.simple'
+./mill 'build-module[].test' 'scala.build.tests.BuildTestsScalac.*'
+./mill 'build-module[].test' 'scala.build.tests.BuildTestsScalac.simple'
 ```
 
 #### Run integration tests with the JVM launcher
