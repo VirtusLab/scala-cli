@@ -14,9 +14,11 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveUsage(
   "//> using javaProp _key=val_",
   """`//> using javaProp` _key=value_
+    |
     |`//> using javaProp` _key_
     |
     |`//> using test.javaProp` _key=value_
+    |
     |`//> using test.javaProp` _key_
     |""".stripMargin
 )

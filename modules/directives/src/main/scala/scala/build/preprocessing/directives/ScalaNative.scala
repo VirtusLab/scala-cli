@@ -38,14 +38,17 @@ import scala.cli.commands.SpecificationLevel
     |`//> using nativeClang` _value_
     |
     |`//> using nativeClangPP` _value_
+    |
     |`//> using nativeClangPp` _value_
     |
     |`//> using nativeEmbedResources` _true|false_
+    |
     |`//> using nativeEmbedResources`
     |
     |`//> using nativeTarget` _application|library-dynamic|library-static_
     |
     |`//> using nativeMultithreading` _true|false_
+    |
     |`//> using nativeMultithreading`
     """.stripMargin.trim
 )
