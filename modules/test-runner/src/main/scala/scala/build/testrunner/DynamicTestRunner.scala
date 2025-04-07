@@ -89,13 +89,11 @@ object DynamicTestRunner {
   def listClasses(classPath: Seq[Path], keepJars: Boolean): Iterator[String] =
     classPath.iterator.flatMap(listClasses(_, keepJars))
 
-  def findFrameworkService(loader: ClassLoader): Option[Framework] =
+  def findFrameworkServices(loader: ClassLoader): Seq[Framework] =
     ServiceLoader.load(classOf[Framework], loader)
       .iterator()
       .asScala
-      .take(1)
-      .toList
-      .headOption
+      .toSeq
 
   def loadFramework(
     loader: ClassLoader,
@@ -106,11 +104,11 @@ object DynamicTestRunner {
     constructor.newInstance().asInstanceOf[Framework]
   }
 
-  def findFramework(
+  def findFrameworks(
     classPath: Seq[Path],
     loader: ClassLoader,
     preferredClasses: Seq[String]
-  ): Option[Framework] = {
+  ): Seq[Framework] = {
     val frameworkCls = classOf[Framework]
     (preferredClasses.iterator ++ listClasses(classPath, true))
       .flatMap { name =>
@@ -144,9 +142,7 @@ object DynamicTestRunner {
           case _: NoSuchMethodException => Iterator.empty
         }
       }
-      .take(1)
-      .toList
-      .headOption
+      .toSeq
   }
 
   /** Based on junit-interface [GlobFilter.
@@ -220,15 +216,83 @@ object DynamicTestRunner {
 
     val classLoader = Thread.currentThread().getContextClassLoader
     val classPath0  = TestRunner.classPath(classLoader)
-    val framework = testFrameworkOpt.map(loadFramework(classLoader, _))
-      .orElse(findFrameworkService(classLoader))
-      .orElse(findFramework(classPath0, classLoader, TestRunner.commonTestFrameworks))
+    val frameworks = testFrameworkOpt
+      .map(loadFramework(classLoader, _))
+      .map(Seq(_))
       .getOrElse {
-        if (verbosity >= 2)
-          sys.error("No test framework found")
-        else {
-          System.err.println("No test framework found")
-          sys.exit(1)
+        // needed for Scala 2.12
+        def distinctBy[A, B](seq: Seq[A])(f: A => B): Seq[A] = {
+          @annotation.tailrec
+          def loop(remaining: Seq[A], seen: Set[B], acc: Vector[A]): Vector[A] =
+            if (remaining.isEmpty) acc
+            else {
+              val head = remaining.head
+              val tail = remaining.tail
+              val key  = f(head)
+              if (seen(key)) loop(tail, seen, acc)
+              else loop(tail, seen + key, acc :+ head)
+            }
+          loop(seq, Set.empty, Vector.empty)
+        }
+
+        def getFrameworkDescription(f: Framework): String =
+          s"${f.name()} (${Option(f.getClass.getCanonicalName).getOrElse(f.toString)})"
+
+        val foundFrameworkServices = findFrameworkServices(classLoader)
+        if (verbosity >= 2 && foundFrameworkServices.nonEmpty)
+          System.err.println(
+            s"""Found test framework services:
+               |  - ${foundFrameworkServices.map(getFrameworkDescription).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        val foundFrameworks =
+          findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks)
+        if (verbosity >= 2 && foundFrameworks.nonEmpty)
+          System.err.println(
+            s"""Found test frameworks:
+               |  - ${foundFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        val distinctFrameworks = distinctBy(foundFrameworkServices ++ foundFrameworks)(_.name())
+        if (verbosity >= 2 && distinctFrameworks.nonEmpty)
+          System.err.println(
+            s"""Distinct test frameworks found (by framework name):
+               |  - ${distinctFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        val finalFrameworks =
+          distinctFrameworks
+            .filter(f1 =>
+              !distinctFrameworks
+                .filter(_ != f1)
+                .exists(f2 =>
+                  f1.getClass.isAssignableFrom(f2.getClass)
+                )
+            )
+        if (verbosity >= 1 && finalFrameworks.nonEmpty)
+          System.err.println(
+            s"""Final list of test frameworks found:
+               |  - ${finalFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        val skippedInheritedFrameworks = distinctFrameworks.diff(finalFrameworks)
+        if (verbosity >= 1 && skippedInheritedFrameworks.nonEmpty)
+          System.err.println(
+            s"""The following test frameworks have been filtered out, as they're being inherited from by others:
+               |  - ${skippedInheritedFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        finalFrameworks match {
+          case f if f.nonEmpty     => f
+          case _ if verbosity >= 2 => sys.error("No test framework found")
+          case _ =>
+            System.err.println("No test framework found")
+            sys.exit(1)
         }
       }
     def classes = {
@@ -237,41 +301,55 @@ object DynamicTestRunner {
     }
     val out = System.out
 
-    val fingerprints = framework.fingerprints()
-    val runner       = framework.runner(args0.toArray, Array(), classLoader)
-    def clsFingerprints = classes.flatMap { cls =>
-      matchFingerprints(classLoader, cls, fingerprints)
-        .map((cls, _))
-        .iterator
-    }
-    val taskDefs = clsFingerprints
-      .filter {
-        case (cls, _) =>
-          testOnly.forall(pattern =>
-            globPattern(pattern).matcher(cls.getName.stripSuffix("$")).matches()
-          )
-      }
-      .map {
-        case (cls, fp) =>
-          new TaskDef(cls.getName.stripSuffix("$"), fp, false, Array(new SuiteSelector))
-      }
-      .toVector
-    val initialTasks = runner.tasks(taskDefs.toArray)
-    val events       = TestRunner.runTasks(initialTasks, out)
-    val failed = events.exists { ev =>
-      ev.status == Status.Error ||
-      ev.status == Status.Failure ||
-      ev.status == Status.Canceled
-    }
-    val doneMsg = runner.done()
-    if (doneMsg.nonEmpty)
-      out.println(doneMsg)
-    if (requireTests && events.isEmpty) {
-      System.err.println("Error: no tests were run.")
-      sys.exit(1)
-    }
-    if (failed)
-      sys.exit(1)
+    val exitCodes =
+      frameworks
+        .map { framework =>
+          if (verbosity >= 1) System.err.println(s"Running test framework: ${framework.name}")
+          val fingerprints = framework.fingerprints()
+          val runner       = framework.runner(args0.toArray, Array(), classLoader)
+
+          def clsFingerprints = classes.flatMap { cls =>
+            matchFingerprints(classLoader, cls, fingerprints)
+              .map((cls, _))
+              .iterator
+          }
+
+          val taskDefs = clsFingerprints
+            .filter {
+              case (cls, _) =>
+                testOnly.forall(pattern =>
+                  globPattern(pattern).matcher(cls.getName.stripSuffix("$")).matches()
+                )
+            }
+            .map {
+              case (cls, fp) =>
+                new TaskDef(cls.getName.stripSuffix("$"), fp, false, Array(new SuiteSelector))
+            }
+            .toVector
+          val initialTasks = runner.tasks(taskDefs.toArray)
+          val events       = TestRunner.runTasks(initialTasks, out)
+          val failed = events.exists { ev =>
+            ev.status == Status.Error ||
+            ev.status == Status.Failure ||
+            ev.status == Status.Canceled
+          }
+          val doneMsg = runner.done()
+          if (doneMsg.nonEmpty) out.println(doneMsg)
+          if (requireTests && events.isEmpty) {
+            System.err.println(s"Error: no tests were run for ${framework.name()}.")
+            1
+          }
+          else if (failed) {
+            System.err.println(s"Error: ${framework.name()} tests failed.")
+            1
+          }
+          else {
+            if (verbosity >= 1) System.err.println(s"${framework.name()} tests ran successfully.")
+            0
+          }
+        }
+    if (exitCodes.contains(1)) sys.exit(1)
+    else sys.exit(0)
   }
 }
 

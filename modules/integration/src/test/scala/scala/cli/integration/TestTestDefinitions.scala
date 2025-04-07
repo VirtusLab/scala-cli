@@ -810,4 +810,43 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       expect(res.out.text().contains(expectedMessage))
     }
   }
+
+  test("multiple test frameworks") {
+    val scalatestMessage = "Hello from ScalaTest"
+    val munitMessage     = "Hello from Munit"
+    TestInputs(
+      os.rel / "project.scala" ->
+        s"""//> using test.dep org.scalatest::scalatest::3.2.19
+           |//> using test.dep org.scalameta::munit::$munitVersion
+           |""".stripMargin,
+      os.rel / "scalatest.test.scala" ->
+        s"""import org.scalatest.flatspec.AnyFlatSpec
+           |
+           |class ScalaTestSpec extends AnyFlatSpec {
+           |    "example" should "work" in {
+           |      assertResult(1)(1)
+           |      println("$scalatestMessage")
+           |    }
+           |}
+           |""".stripMargin,
+      os.rel / "munit.test.scala" ->
+        s"""import munit.FunSuite
+           |
+           |class Munit extends FunSuite {
+           |  test("foo") {
+           |    assert(2 + 2 == 4)
+           |    println("$munitMessage")
+           |  }
+           |}
+           |""".stripMargin
+    ).fromRoot { root =>
+      val r      = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root)
+      val output = r.out.trim()
+      expect(output.nonEmpty)
+      expect(output.contains(scalatestMessage))
+      expect(countSubStrings(output, scalatestMessage) == 1)
+      expect(output.contains(munitMessage))
+      expect(countSubStrings(output, munitMessage) == 1)
+    }
+  }
 }
