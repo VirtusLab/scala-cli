@@ -1,6 +1,6 @@
 package scala.build.testrunner
 
-import sbt.testing._
+import sbt.testing.{Logger => SbtTestLogger, _}
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
@@ -214,6 +214,8 @@ object DynamicTestRunner {
       parse(None, Nil, false, 0, None, args.toList)
     }
 
+    val logger = Logger(verbosity)
+
     val classLoader = Thread.currentThread().getContextClassLoader
     val classPath0  = TestRunner.classPath(classLoader)
     val frameworks = testFrameworkOpt
@@ -239,8 +241,8 @@ object DynamicTestRunner {
           s"${f.name()} (${Option(f.getClass.getCanonicalName).getOrElse(f.toString)})"
 
         val foundFrameworkServices = findFrameworkServices(classLoader)
-        if (verbosity >= 2 && foundFrameworkServices.nonEmpty)
-          System.err.println(
+        if (foundFrameworkServices.nonEmpty)
+          logger.debug(
             s"""Found test framework services:
                |  - ${foundFrameworkServices.map(getFrameworkDescription).mkString("\n  - ")}
                |""".stripMargin
@@ -248,16 +250,16 @@ object DynamicTestRunner {
 
         val foundFrameworks =
           findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks)
-        if (verbosity >= 2 && foundFrameworks.nonEmpty)
-          System.err.println(
+        if (foundFrameworks.nonEmpty)
+          logger.debug(
             s"""Found test frameworks:
                |  - ${foundFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
                |""".stripMargin
           )
 
         val distinctFrameworks = distinctBy(foundFrameworkServices ++ foundFrameworks)(_.name())
-        if (verbosity >= 2 && distinctFrameworks.nonEmpty)
-          System.err.println(
+        if (distinctFrameworks.nonEmpty)
+          logger.debug(
             s"""Distinct test frameworks found (by framework name):
                |  - ${distinctFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
                |""".stripMargin
@@ -272,16 +274,16 @@ object DynamicTestRunner {
                   f1.getClass.isAssignableFrom(f2.getClass)
                 )
             )
-        if (verbosity >= 1 && finalFrameworks.nonEmpty)
-          System.err.println(
+        if (finalFrameworks.nonEmpty)
+          logger.log(
             s"""Final list of test frameworks found:
                |  - ${finalFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
                |""".stripMargin
           )
 
         val skippedInheritedFrameworks = distinctFrameworks.diff(finalFrameworks)
-        if (verbosity >= 1 && skippedInheritedFrameworks.nonEmpty)
-          System.err.println(
+        if (skippedInheritedFrameworks.nonEmpty)
+          logger.log(
             s"""The following test frameworks have been filtered out, as they're being inherited from by others:
                |  - ${skippedInheritedFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
                |""".stripMargin
@@ -304,7 +306,7 @@ object DynamicTestRunner {
     val exitCodes =
       frameworks
         .map { framework =>
-          if (verbosity >= 1) System.err.println(s"Running test framework: ${framework.name}")
+          logger.log(s"Running test framework: ${framework.name}")
           val fingerprints = framework.fingerprints()
           val runner       = framework.runner(args0.toArray, Array(), classLoader)
 
@@ -336,15 +338,15 @@ object DynamicTestRunner {
           val doneMsg = runner.done()
           if (doneMsg.nonEmpty) out.println(doneMsg)
           if (requireTests && events.isEmpty) {
-            System.err.println(s"Error: no tests were run for ${framework.name()}.")
+            logger.error(s"Error: no tests were run for ${framework.name()}.")
             1
           }
           else if (failed) {
-            System.err.println(s"Error: ${framework.name()} tests failed.")
+            logger.error(s"Error: ${framework.name()} tests failed.")
             1
           }
           else {
-            if (verbosity >= 1) System.err.println(s"${framework.name()} tests ran successfully.")
+            logger.log(s"${framework.name()} tests ran successfully.")
             0
           }
         }

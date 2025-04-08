@@ -1,6 +1,6 @@
 package scala.build.testrunner
 
-import sbt.testing._
+import sbt.testing.{Logger => SbtTestLogger, _}
 
 import java.io.{File, PrintStream}
 import java.nio.file.{Path, Paths}
@@ -49,8 +49,8 @@ object TestRunner {
 
     val events = mutable.Buffer.empty[Event]
 
-    val logger: Logger =
-      new Logger {
+    val logger: SbtTestLogger =
+      new SbtTestLogger {
         def error(msg: String)   = out.println(msg)
         def warn(msg: String)    = out.println(msg)
         def info(msg: String)    = out.println(msg)
