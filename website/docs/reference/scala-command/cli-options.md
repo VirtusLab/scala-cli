@@ -978,7 +978,7 @@ Turn verbosity on for scalac. This is an alias for --scalac-option -verbose
 
 Available in commands:
 
-[`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
+[`compile`](./commands.md#compile), [`doc`](./commands.md#doc), [`fmt` , `format` , `scalafmt`](./commands.md#fmt), [`repl` , `console`](./commands.md#repl), [`run`](./commands.md#run), [`shebang`](./commands.md#shebang)
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 

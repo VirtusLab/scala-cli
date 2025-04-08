@@ -3570,6 +3570,12 @@ Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
 Check if sources are well formatted
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 <details><summary>
 
 ### Implementantation specific options
