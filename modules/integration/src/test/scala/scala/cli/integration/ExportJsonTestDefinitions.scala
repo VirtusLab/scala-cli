@@ -71,6 +71,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ]
           | }
           |]]
+          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -172,6 +173,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
           | }
           |]]
+          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -248,7 +250,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |]]
+          |]],"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
 
