@@ -1,6 +1,6 @@
 package scala.build.testrunner
 
-import sbt.testing.{Logger => SbtTestLogger, _}
+import sbt.testing.{Logger => _, _}
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier

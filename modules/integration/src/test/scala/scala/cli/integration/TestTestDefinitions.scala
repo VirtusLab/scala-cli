@@ -513,7 +513,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               Seq("--native-version", "0.4.17")
             else Nil
           val baseRes =
-            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".", "-v")
+            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
               .call(cwd = root, check = false)
           if (baseRes.exitCode != 0) {
             println(baseRes.out.text())
@@ -814,8 +814,8 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   for {
     platformOptions <- Seq(
       Nil, // JVM
-      Seq("--native")
-      // TODO: Seq("--js")
+      Seq("--native"),
+      Seq("--js")
     )
     platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
   }

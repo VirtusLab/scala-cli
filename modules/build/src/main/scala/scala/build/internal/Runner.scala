@@ -4,6 +4,7 @@ import coursier.jvm.Execve
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 import org.scalajs.jsenv.{Input, RunConfig}
+import org.scalajs.testing.adapter.TestAdapter as ScalaJsTestAdapter
 import sbt.testing.{Framework, Status}
 
 import java.io.File
@@ -16,6 +17,7 @@ import scala.build.errors.*
 import scala.build.internals.EnvVar
 import scala.build.testrunner.FrameworkUtils.*
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
+import scala.scalanative.testinterface.adapter.TestAdapter as ScalaNativeTestAdapter
 import scala.util.{Failure, Properties, Success}
 
 object Runner {
@@ -240,22 +242,20 @@ object Runner {
     sourceMap: Boolean = false,
     esModule: Boolean = false
   ): Either[BuildException, Process] = either {
-
-    import logger.{log, debug}
-
-    val nodePath = value(findInPath("node").map(_.toString).toRight(NodeNotFoundError()))
-
-    if (!jsDom && allowExecve && Execve.available()) {
-
+    val nodePath: String =
+      value(findInPath("node")
+        .map(_.toString)
+        .toRight(NodeNotFoundError()))
+    if !jsDom && allowExecve && Execve.available() then {
       val command = Seq(nodePath, entrypoint.getAbsolutePath) ++ args
 
-      log(
+      logger.log(
         s"Running ${command.mkString(" ")}",
         "  Running" + System.lineSeparator() +
           command.iterator.map(_ + System.lineSeparator()).mkString
       )
 
-      debug("execve available")
+      logger.debug("execve available")
       Execve.execve(
         command.head,
         "node" +: command.tail.toArray,
@@ -264,40 +264,36 @@ object Runner {
       sys.error("should not happen")
     }
     else {
-
       val nodeArgs =
         // Scala.js runs apps by piping JS to node.
         // If we need to pass arguments, we must first make the piped input explicit
         // with "-", and we pass the user's arguments after that.
-        if (args.isEmpty) Nil
-        else "-" :: args.toList
+        if args.isEmpty then Nil else "-" :: args.toList
       val envJs =
-        if (jsDom)
+        if jsDom then
           new JSDOMNodeJSEnv(
             JSDOMNodeJSEnv.Config()
               .withExecutable(nodePath)
               .withArgs(nodeArgs)
               .withEnv(Map.empty)
           )
-        else new NodeJSEnv(
-          NodeJSEnv.Config()
-            .withExecutable(nodePath)
-            .withArgs(nodeArgs)
-            .withEnv(Map.empty)
-            .withSourceMap(sourceMap)
-        )
+        else
+          new NodeJSEnv(
+            NodeJSEnv.Config()
+              .withExecutable(nodePath)
+              .withArgs(nodeArgs)
+              .withEnv(Map.empty)
+              .withSourceMap(sourceMap)
+          )
 
-      val inputs = Seq(
-        if (esModule) Input.ESModule(entrypoint.toPath)
-        else Input.Script(entrypoint.toPath)
-      )
+      val inputs =
+        Seq(if esModule then Input.ESModule(entrypoint.toPath) else Input.Script(entrypoint.toPath))
 
       val config    = RunConfig().withLogger(logger.scalaJsLogger)
       val processJs = envJs.start(inputs, config)
 
       processJs.future.value.foreach {
-        case Failure(t) =>
-          throw new Exception(t)
+        case Failure(t) => throw new Exception(t)
         case Success(_) =>
       }
 
@@ -405,57 +401,65 @@ object Runner {
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
-    import org.scalajs.testing.adapter.TestAdapter
     val nodePath = findInPath("node").fold("node")(_.toString)
     val jsEnv =
-      if (jsDom)
+      if jsDom then
         new JSDOMNodeJSEnv(
           JSDOMNodeJSEnv.Config()
             .withExecutable(nodePath)
             .withArgs(Nil)
             .withEnv(Map.empty)
         )
-      else new NodeJSEnv(
-        NodeJSEnv.Config()
-          .withExecutable(nodePath)
-          .withArgs(Nil)
-          .withEnv(Map.empty)
-          .withSourceMap(NodeJSEnv.SourceMap.Disable)
-      )
-    val adapterConfig = TestAdapter.Config().withLogger(logger.scalaJsLogger)
-    val inputs = Seq(
-      if (esModule) Input.ESModule(entrypoint.toPath)
-      else Input.Script(entrypoint.toPath)
-    )
-    var adapter: TestAdapter = null
+      else
+        new NodeJSEnv(
+          NodeJSEnv.Config()
+            .withExecutable(nodePath)
+            .withArgs(Nil)
+            .withEnv(Map.empty)
+            .withSourceMap(NodeJSEnv.SourceMap.Disable)
+        )
+    val adapterConfig = ScalaJsTestAdapter.Config().withLogger(logger.scalaJsLogger)
+    val inputs =
+      Seq(if esModule then Input.ESModule(entrypoint.toPath) else Input.Script(entrypoint.toPath))
+    var adapter: ScalaJsTestAdapter = null
 
     logger.debug(s"JS tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0: String = testFrameworkOpt match {
-      case Some(fw) => fw
-      case None     => value(frameworkNames(classPath, parentInspector)).head
+    val foundFrameworkNames: List[String] = testFrameworkOpt match {
+      case some @ Some(_) => some.toList
+      case None           => value(frameworkNames(classPath, parentInspector)).toList
     }
 
     val res =
       try {
-        adapter = new TestAdapter(jsEnv, inputs, adapterConfig)
+        adapter = new ScalaJsTestAdapter(jsEnv, inputs, adapterConfig)
 
-        val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
+        val loadedFrameworks =
+          adapter
+            .loadFrameworks(foundFrameworkNames.map(List(_)))
+            .flatten
+            .distinctBy(_.name())
 
-        if (frameworks.isEmpty)
-          Left(new NoFrameworkFoundByBridgeError)
-        else if (frameworks.length > 1)
-          Left(new TooManyFrameworksFoundByBridgeError)
-        else {
-          val framework = frameworks.head
-          runTests(classPath, Seq(framework), requireTests, args, parentInspector)
-        }
+        val finalTestFrameworks =
+          loadedFrameworks
+            .filter(
+              !_.name().toLowerCase.contains("junit") ||
+              !loadedFrameworks.exists(_.name().toLowerCase.contains("munit"))
+            )
+        if finalTestFrameworks.nonEmpty then
+          logger.log(
+            s"""Final list of test frameworks found:
+               |  - ${finalTestFrameworks.map(_.description).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByBridgeError)
+        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector)
       }
-      finally if (adapter != null) adapter.close()
+      finally if adapter != null then adapter.close()
 
-    if (value(res)) 0
-    else 1
+    if value(res) then 0 else 1
   }
 
   def testNative(
@@ -466,9 +470,6 @@ object Runner {
     args: Seq[String],
     logger: Logger
   ): Either[TestError, Int] = either {
-
-    import scala.scalanative.testinterface.adapter.TestAdapter
-
     logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
@@ -477,16 +478,16 @@ object Runner {
       case None     => value(frameworkNames(classPath, parentInspector)).toList
     }
 
-    val config = TestAdapter.Config()
+    val config = ScalaNativeTestAdapter.Config()
       .withBinaryFile(launcher)
-      .withEnvVars(sys.env.toMap)
+      .withEnvVars(sys.env)
       .withLogger(logger.scalaNativeTestLogger)
 
-    var adapter: TestAdapter = null
+    var adapter: ScalaNativeTestAdapter = null
 
     val res =
       try {
-        adapter = new TestAdapter(config)
+        adapter = new ScalaNativeTestAdapter(config)
 
         val loadedFrameworks =
           adapter
