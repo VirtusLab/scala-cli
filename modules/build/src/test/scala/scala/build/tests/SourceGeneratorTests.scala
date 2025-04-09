@@ -49,7 +49,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
       .replaceAll(
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
-      ).linesWithSeparators
+      )
+      .replaceAll(
+        "val scalaCliVersion = Some(\"[^\"]*\")",
+        "val scalaCliVersion = Some(\"1.1.1-SNAPSHOT\")"
+      )
+      .linesWithSeparators
       .filterNot(_.stripLeading().startsWith("/**"))
       .mkString
 
