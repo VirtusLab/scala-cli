@@ -85,10 +85,7 @@ final case class SharedPublishOptions(
   @Group(HelpGroup.Publishing.toString)
   @HelpMessage("Proceed as if publishing, but do not upload / write artifacts to the remote repository")
   @Tag(tags.implementation)
-    dummy: Boolean = false,
-
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    dummy: Boolean = false
 ){
   // format: on
 

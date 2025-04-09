@@ -94,9 +94,7 @@ final case class FmtOptions(
   @HelpMessage(s"Pass scalafmt version before running it (${Constants.defaultScalafmtVersion} by default). If passed, this overrides whatever value is configured in the .scalafmt.conf file.")
   @Name("fmtVersion")
   @Tag(tags.inShortHelp)
-    scalafmtVersion: Option[String] = None,
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    scalafmtVersion: Option[String] = None
 ) extends HasSharedOptions {
   // format: on
 

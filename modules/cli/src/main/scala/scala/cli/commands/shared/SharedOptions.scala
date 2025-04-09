@@ -226,6 +226,8 @@ final case class SharedOptions(
   @HelpMessage("Force object wrapper for scripts")
   @Tag(tags.experimental)
     objectWrapper: Option[Boolean] = None,
+  @Recurse
+    scope: ScopeOptions = ScopeOptions()
 ) extends HasGlobalOptions {
   // format: on
 

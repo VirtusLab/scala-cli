@@ -300,6 +300,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -317,12 +323,6 @@ Aliases: `--revolver`
 Print the resulting class path
 
 Aliases: `-p` ,`--print-classpath`
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -1094,17 +1094,17 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
-**--default-scaladoc-options**
-
-Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
-
-Aliases: `--default-scaladoc-opts`
-
 **--test**
 
 Include test scope
 
 Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
+**--default-scaladoc-options**
+
+Control if Scala CLI should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.
+
+Aliases: `--default-scaladoc-opts`
 
 <details><summary>
 
@@ -1689,6 +1689,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -1700,12 +1706,6 @@ Aliases: `-w`
 Run the application in the background, automatically kill the process and restart if sources have been changed
 
 Aliases: `--revolver`
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -2310,6 +2310,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2331,12 +2337,6 @@ Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--lis
 **--command**
 
 Print the command that would have been run (one argument per line), rather than running it
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -2950,6 +2950,12 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
 **--watch**
 
 Run the application in the background, automatically wake the thread and re-run if sources have been changed
@@ -2971,12 +2977,6 @@ Aliases: `--main-class-list` ,`--list-main-class` ,`--list-main-classes` ,`--lis
 **--command**
 
 Print the command that would have been run (one argument per line), rather than running it
-
-**--test**
-
-Include test scope
-
-Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -3566,15 +3566,15 @@ SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
 
-**--check**
-
-Check if sources are well formatted
-
 **--test**
 
 Include test scope
 
 Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
+
+**--check**
+
+Check if sources are well formatted
 
 <details><summary>
 
@@ -4218,6 +4218,12 @@ Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 **--watch**
 
@@ -4922,6 +4928,12 @@ Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 
@@ -5885,6 +5897,12 @@ Aliases: `--semanticdb-target-root` ,`--semanticdb-targetroot`
 SemanticDB source root (default to the project root directory)
 
 Aliases: `--semanticdb-source-root` ,`--semanticdb-sourceroot`
+
+**--test**
+
+Include test scope
+
+Aliases: `--test-scope` ,`--with-test-scope` ,`--with-test`
 
 <details><summary>
 

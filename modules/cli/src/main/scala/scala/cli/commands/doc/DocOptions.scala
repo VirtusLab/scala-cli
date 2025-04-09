@@ -32,9 +32,7 @@ final case class DocOptions(
   @HelpMessage(s"Control if $fullRunnerName should use default options for scaladoc, true by default. Use `--default-scaladoc-opts:false` to not include default options.")
   @Tag(tags.should)
   @ExtraName("defaultScaladocOpts")
-    defaultScaladocOptions: Option[Boolean] = None,
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    defaultScaladocOptions: Option[Boolean] = None
 ) extends HasSharedOptions
 // format: on
 

@@ -257,7 +257,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         docCompilerMakerOpt = None,
         logger = logger,
         crossBuilds = cross,
-        buildTests = options.sharedRun.scope.test,
+        buildTests = options.shared.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () =>
@@ -330,7 +330,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.sharedRun.scope.test,
+        buildTests = options.shared.scope.test,
         partial = None,
         actionableDiagnostics = actionableDiagnostics
       )

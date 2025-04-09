@@ -86,7 +86,7 @@ object PublishLocal extends ScalaCommand[PublishLocalOptions] {
       configDb = () => ConfigDb.empty, // shouldn't be used, no need of repo credentials here
       mainClassOptions = options.mainClass,
       dummy = options.sharedPublish.dummy,
-      buildTests = options.sharedPublish.scope.test
+      buildTests = options.shared.scope.test
     )
   }
 }
