@@ -6,6 +6,7 @@ import dependency.*
 
 import scala.build.input.{Inputs, ProjectScalaFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.BuildOptions
 import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
@@ -41,6 +42,12 @@ object Fmt extends ScalaCommand[FmtOptions] {
 
   override def runCommand(options: FmtOptions, args: RemainingArgs, logger: Logger): Unit = {
     val buildOptions = buildOptionsOrExit(options)
+
+    if options.shared.scope.test then
+      logger.message(
+        s"""$warnPrefix Including the test scope does not change the behaviour of this command. 
+           |$warnPrefix Test scope inputs are formatted, regardless.""".stripMargin
+      )
 
     // TODO If no input is given, just pass '.' to scalafmt?
     val (sourceFiles, workspace, _) =

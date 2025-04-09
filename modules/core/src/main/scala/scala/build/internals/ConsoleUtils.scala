@@ -4,7 +4,8 @@ object ConsoleUtils {
   import Console.*
 
   object ScalaCliConsole {
-    val GRAY: String = "\u001b[90m"
+    lazy val warnPrefix = s"[${YELLOW}warn$RESET]"
+    val GRAY: String    = "\u001b[90m"
   }
 
   val ansiFormattingKeys: Set[String] = Set(RESET, BOLD, UNDERLINED, REVERSED, INVISIBLE)

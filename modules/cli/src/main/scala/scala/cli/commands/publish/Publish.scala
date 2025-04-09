@@ -266,7 +266,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       () => configDb,
       options.mainClass,
       dummy = options.sharedPublish.dummy,
-      buildTests = options.sharedPublish.scope.test
+      buildTests = options.shared.scope.test
     )
   }
 

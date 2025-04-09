@@ -8,6 +8,7 @@ import scala.cli.commands.shared.{
   HelpGroup,
   HelpMessages,
   MainClassOptions,
+  ScopeOptions,
   SharedOptions
 }
 import scala.cli.commands.tags
@@ -83,7 +84,7 @@ final case class ExportOptions(
   @Name("o")
   @Group(HelpGroup.BuildToolExport.toString)
   @Tag(tags.restricted)
-    output: Option[String] = None
+    output: Option[String] = None,
 ) extends HasSharedOptions
 // format: on
 object ExportOptions {

@@ -141,10 +141,7 @@ final case class PackageOptions(
   @ExtraName("graal")
   @Tag(tags.restricted)
   @Tag(tags.inShortHelp)
-    nativeImage: Boolean = false,
-  
-  @Recurse
-    scope: ScopeOptions = ScopeOptions()
+    nativeImage: Boolean = false
 ) extends HasSharedOptions {
   // format: on
 

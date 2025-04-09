@@ -5,6 +5,7 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
@@ -24,6 +25,11 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
+    if options.shared.scope.test then
+      logger.message(
+        s"""$warnPrefix Including the test scope does not change the behaviour of this command. 
+           |$warnPrefix Test dependencies are updated regardless.""".stripMargin
+      )
     val verbosity    = options.shared.logging.verbosity
     val buildOptions = buildOptionsOrExit(options)
 
