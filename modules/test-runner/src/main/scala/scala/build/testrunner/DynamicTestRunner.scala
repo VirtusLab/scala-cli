@@ -9,6 +9,7 @@ import java.util.ServiceLoader
 import java.util.regex.Pattern
 
 import scala.annotation.tailrec
+import scala.build.testrunner.FrameworkUtils._
 import scala.jdk.CollectionConverters._
 
 object DynamicTestRunner {
@@ -237,14 +238,11 @@ object DynamicTestRunner {
           loop(seq, Set.empty, Vector.empty)
         }
 
-        def getFrameworkDescription(f: Framework): String =
-          s"${f.name()} (${Option(f.getClass.getCanonicalName).getOrElse(f.toString)})"
-
         val foundFrameworkServices = findFrameworkServices(classLoader)
         if (foundFrameworkServices.nonEmpty)
           logger.debug(
             s"""Found test framework services:
-               |  - ${foundFrameworkServices.map(getFrameworkDescription).mkString("\n  - ")}
+               |  - ${foundFrameworkServices.map(_.description).mkString("\n  - ")}
                |""".stripMargin
           )
 
@@ -253,7 +251,7 @@ object DynamicTestRunner {
         if (foundFrameworks.nonEmpty)
           logger.debug(
             s"""Found test frameworks:
-               |  - ${foundFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |  - ${foundFrameworks.map(_.description).mkString("\n  - ")}
                |""".stripMargin
           )
 
@@ -261,7 +259,7 @@ object DynamicTestRunner {
         if (distinctFrameworks.nonEmpty)
           logger.debug(
             s"""Distinct test frameworks found (by framework name):
-               |  - ${distinctFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |  - ${distinctFrameworks.map(_.description).mkString("\n  - ")}
                |""".stripMargin
           )
 
@@ -277,7 +275,7 @@ object DynamicTestRunner {
         if (finalFrameworks.nonEmpty)
           logger.log(
             s"""Final list of test frameworks found:
-               |  - ${finalFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |  - ${finalFrameworks.map(_.description).mkString("\n  - ")}
                |""".stripMargin
           )
 
@@ -285,7 +283,7 @@ object DynamicTestRunner {
         if (skippedInheritedFrameworks.nonEmpty)
           logger.log(
             s"""The following test frameworks have been filtered out, as they're being inherited from by others:
-               |  - ${skippedInheritedFrameworks.map(getFrameworkDescription).mkString("\n  - ")}
+               |  - ${skippedInheritedFrameworks.map(_.description).mkString("\n  - ")}
                |""".stripMargin
           )
 

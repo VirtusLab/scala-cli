@@ -513,7 +513,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
               Seq("--native-version", "0.4.17")
             else Nil
           val baseRes =
-            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".")
+            os.proc(TestUtil.cli, "test", extraOptions, platformArgs, scalaTestExtraArgs, ".", "-v")
               .call(cwd = root, check = false)
           if (baseRes.exitCode != 0) {
             println(baseRes.out.text())
@@ -811,42 +811,66 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  test("multiple test frameworks") {
-    val scalatestMessage = "Hello from ScalaTest"
-    val munitMessage     = "Hello from Munit"
-    TestInputs(
-      os.rel / "project.scala" ->
-        s"""//> using test.dep org.scalatest::scalatest::3.2.19
-           |//> using test.dep org.scalameta::munit::$munitVersion
-           |""".stripMargin,
-      os.rel / "scalatest.test.scala" ->
-        s"""import org.scalatest.flatspec.AnyFlatSpec
-           |
-           |class ScalaTestSpec extends AnyFlatSpec {
-           |    "example" should "work" in {
-           |      assertResult(1)(1)
-           |      println("$scalatestMessage")
-           |    }
-           |}
-           |""".stripMargin,
-      os.rel / "munit.test.scala" ->
-        s"""import munit.FunSuite
-           |
-           |class Munit extends FunSuite {
-           |  test("foo") {
-           |    assert(2 + 2 == 4)
-           |    println("$munitMessage")
-           |  }
-           |}
-           |""".stripMargin
-    ).fromRoot { root =>
-      val r      = os.proc(TestUtil.cli, "test", extraOptions, ".").call(cwd = root)
-      val output = r.out.trim()
-      expect(output.nonEmpty)
-      expect(output.contains(scalatestMessage))
-      expect(countSubStrings(output, scalatestMessage) == 1)
-      expect(output.contains(munitMessage))
-      expect(countSubStrings(output, munitMessage) == 1)
-    }
+  for {
+    platformOptions <- Seq(
+      Nil, // JVM
+      Seq("--native")
+      // TODO: Seq("--js")
+    )
+    platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
   }
+    test(s"multiple test frameworks$platformDescription") {
+      val scalatestMessage = "Hello from ScalaTest"
+      val munitMessage     = "Hello from Munit"
+      val utestMessage     = "Hello from utest"
+      TestInputs(
+        os.rel / "project.scala" ->
+          s"""//> using test.dep org.scalatest::scalatest::3.2.19
+             |//> using test.dep org.scalameta::munit::$munitVersion
+             |//> using dep com.lihaoyi::utest::$utestVersion
+             |""".stripMargin,
+        os.rel / "scalatest.test.scala" ->
+          s"""import org.scalatest.flatspec.AnyFlatSpec
+             |
+             |class ScalaTestSpec extends AnyFlatSpec {
+             |    "example" should "work" in {
+             |      assertResult(1)(1)
+             |      println("$scalatestMessage")
+             |    }
+             |}
+             |""".stripMargin,
+        os.rel / "munit.test.scala" ->
+          s"""import munit.FunSuite
+             |
+             |class Munit extends FunSuite {
+             |  test("foo") {
+             |    assert(2 + 2 == 4)
+             |    println("$munitMessage")
+             |  }
+             |}
+             |""".stripMargin,
+        os.rel / "utest.test.scala" ->
+          s"""import utest._
+             |
+             |object MyTests extends TestSuite {
+             |  val tests = Tests {
+             |    test("foo") {
+             |      assert(2 + 2 == 4)
+             |      println("$utestMessage")
+             |    }
+             |  }
+             |}""".stripMargin
+      ).fromRoot { root =>
+        val r = os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions).call(cwd = root)
+        val output = r.out.trim()
+        expect(output.nonEmpty)
+        expect(output.contains(scalatestMessage))
+        expect(countSubStrings(output, scalatestMessage) == 1)
+        expect(output.contains(munitMessage))
+        expect(countSubStrings(output, munitMessage) == 1)
+        expect(output.contains(utestMessage))
+        expect(countSubStrings(output, utestMessage) == 1)
+        println(output)
+      }
+    }
 }

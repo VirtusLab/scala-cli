@@ -11,8 +11,10 @@ import java.nio.file.{Files, Path, Paths}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.errors._
+import scala.build.Ops.EitherSeqOps
+import scala.build.errors.*
 import scala.build.internals.EnvVar
+import scala.build.testrunner.FrameworkUtils.*
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
 import scala.util.{Failure, Properties, Success}
 
@@ -346,32 +348,30 @@ object Runner {
 
   private def runTests(
     classPath: Seq[Path],
-    framework: Framework,
+    frameworks: Seq[Framework],
     requireTests: Boolean,
     args: Seq[String],
     parentInspector: AsmTestRunner.ParentInspector
-  ): Either[NoTestsRun, Boolean] = {
+  ): Either[NoTestsRun, Boolean] = frameworks
+    .flatMap { framework =>
+      val taskDefs =
+        AsmTestRunner.taskDefs(
+          classPath,
+          keepJars = false,
+          framework.fingerprints().toIndexedSeq,
+          parentInspector
+        ).toArray
 
-    val taskDefs =
-      AsmTestRunner.taskDefs(
-        classPath,
-        keepJars = false,
-        framework.fingerprints().toIndexedSeq,
-        parentInspector
-      ).toArray
+      val runner       = framework.runner(args.toArray, Array(), null)
+      val initialTasks = runner.tasks(taskDefs)
+      val events       = TestRunner.runTasks(initialTasks.toIndexedSeq, System.out)
 
-    val runner       = framework.runner(args.toArray, Array(), null)
-    val initialTasks = runner.tasks(taskDefs)
-    val events       = TestRunner.runTasks(initialTasks.toIndexedSeq, System.out)
-
-    val doneMsg = runner.done()
-    if (doneMsg.nonEmpty)
-      System.out.println(doneMsg)
-
-    if (requireTests && events.isEmpty)
-      Left(new NoTestsRun)
-    else
-      Right {
+      val doneMsg = runner.done()
+      if doneMsg.nonEmpty then System.out.println(doneMsg)
+      events
+    } match {
+    case events if requireTests && events.isEmpty => Left(new NoTestsRun)
+    case events => Right {
         !events.exists { ev =>
           ev.status == Status.Error ||
           ev.status == Status.Failure ||
@@ -380,22 +380,17 @@ object Runner {
       }
   }
 
-  def frameworkName(
+  def frameworkNames(
     classPath: Seq[Path],
     parentInspector: AsmTestRunner.ParentInspector
-  ): Either[NoTestFrameworkFoundError, String] = {
-    val fwOpt = AsmTestRunner.findFrameworkService(classPath)
-      .orElse {
-        AsmTestRunner.findFramework(
-          classPath,
-          TestRunner.commonTestFrameworks,
-          parentInspector
-        )
-      }
-    fwOpt match {
-      case Some(fw) => Right(fw.replace('/', '.').replace('\\', '.'))
-      case None     => Left(new NoTestFrameworkFoundError)
-    }
+  ): Either[NoTestFrameworkFoundError, Seq[String]] = {
+    val foundFrameworkServices = AsmTestRunner.findFrameworkServices(classPath)
+    val foundFrameworks =
+      AsmTestRunner.findFrameworks(classPath, TestRunner.commonTestFrameworks, parentInspector)
+    val frameworks: Seq[String] =
+      (foundFrameworkServices ++ foundFrameworks)
+        .map(_.replace('/', '.').replace('\\', '.'))
+    if frameworks.nonEmpty then Right(frameworks) else Left(new NoTestFrameworkFoundError)
   }
 
   def testJs(
@@ -437,9 +432,9 @@ object Runner {
     logger.debug(s"JS tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = testFrameworkOpt match {
+    val frameworkName0: String = testFrameworkOpt match {
       case Some(fw) => fw
-      case None     => value(frameworkName(classPath, parentInspector))
+      case None     => value(frameworkNames(classPath, parentInspector)).head
     }
 
     val res =
@@ -454,7 +449,7 @@ object Runner {
           Left(new TooManyFrameworksFoundByBridgeError)
         else {
           val framework = frameworks.head
-          runTests(classPath, framework, requireTests, args, parentInspector)
+          runTests(classPath, Seq(framework), requireTests, args, parentInspector)
         }
       }
       finally if (adapter != null) adapter.close()
@@ -477,9 +472,9 @@ object Runner {
     logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val frameworkName0 = frameworkNameOpt match {
-      case Some(fw) => fw
-      case None     => value(frameworkName(classPath, parentInspector))
+    val foundFrameworkNames: List[String] = frameworkNameOpt match {
+      case Some(fw) => List(fw)
+      case None     => value(frameworkNames(classPath, parentInspector)).toList
     }
 
     val config = TestAdapter.Config()
@@ -493,20 +488,41 @@ object Runner {
       try {
         adapter = new TestAdapter(config)
 
-        val frameworks = adapter.loadFrameworks(List(List(frameworkName0))).flatten
+        val loadedFrameworks =
+          adapter
+            .loadFrameworks(foundFrameworkNames.map(List(_)))
+            .flatten
+            .distinctBy(_.name())
 
-        if (frameworks.isEmpty)
-          Left(new NoFrameworkFoundByBridgeError)
-        else if (frameworks.length > 1)
-          Left(new TooManyFrameworksFoundByBridgeError)
-        else {
-          val framework = frameworks.head
-          runTests(classPath, framework, requireTests, args, parentInspector)
-        }
+        val finalTestFrameworks =
+          loadedFrameworks
+            // .filter(
+            //  _.name() != "Scala Native JUnit test framework" ||
+            //    !loadedFrameworks.exists(_.name() == "munit")
+            // )
+            // TODO: add support for JUnit and then only hardcode filtering it out when passed with munit
+            // https://github.com/VirtusLab/scala-cli/issues/3627
+            .filter(_.name() != "Scala Native JUnit test framework")
+        if finalTestFrameworks.nonEmpty then
+          logger.log(
+            s"""Final list of test frameworks found:
+               |  - ${finalTestFrameworks.map(_.description).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        val skippedFrameworks = loadedFrameworks.diff(finalTestFrameworks)
+        if skippedFrameworks.nonEmpty then
+          logger.log(
+            s"""The following test frameworks have been filtered out:
+               |  - ${skippedFrameworks.map(_.description).mkString("\n  - ")}
+               |""".stripMargin
+          )
+
+        if finalTestFrameworks.isEmpty then Left(new NoFrameworkFoundByBridgeError)
+        else runTests(classPath, finalTestFrameworks, requireTests, args, parentInspector)
       }
-      finally if (adapter != null) adapter.close()
+      finally if adapter != null then adapter.close()
 
-    if (value(res)) 0
-    else 1
+    if value(res) then 0 else 1
   }
 }

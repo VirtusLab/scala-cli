@@ -10,7 +10,7 @@ import java.nio.file.Path
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
+import scala.build.internal.Runner.frameworkNames
 import scala.build.options.{
   BuildOptions,
   Platform,
@@ -262,7 +262,8 @@ final case class SbtProjectDescriptor(
 
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
     val frameworkName0 = options.testOptions.frameworkOpt.orElse {
-      frameworkName(testClassPath, parentInspector).toOption
+      frameworkNames(testClassPath, parentInspector).toOption
+        .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }
 
     val testFrameworkSettings = frameworkName0 match {

@@ -10,7 +10,7 @@ import java.nio.file.Path
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
+import scala.build.internal.Runner.frameworkNames
 import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
