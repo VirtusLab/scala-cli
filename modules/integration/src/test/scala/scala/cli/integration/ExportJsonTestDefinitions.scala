@@ -18,6 +18,10 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
       )
+      .replaceAll(
+        "val scalaCliVersion = Some(\"[^\"]*\")",
+        "val scalaCliVersion = Some(\"1.1.1-SNAPSHOT\")"
+      )
 
   private def withEscapedBackslashes(s: os.Path): String =
     s.toString.replaceAll("\\\\", "\\\\\\\\")
