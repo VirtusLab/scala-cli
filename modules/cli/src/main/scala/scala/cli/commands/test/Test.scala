@@ -248,7 +248,7 @@ object Test extends ScalaCommand[TestOptions] {
         val testOnly = build.options.testOptions.testOnly
 
         val extraArgs =
-          (if (requireTests) Seq("--require-tests") else Nil) ++
+          (if requireTests then Seq("--require-tests") else Nil) ++
             build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
             testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
             testOnly.map(to => s"--test-only=$to").toSeq ++

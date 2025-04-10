@@ -9,6 +9,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
+  private val zioTestVersion                   = "2.1.17"
 
   def successfulTestInputs(directivesString: String =
     s"//> using dep org.scalameta::munit::$munitVersion"): TestInputs = TestInputs(
@@ -811,6 +812,35 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
+  test(s"zio-test warning when zio-test-sbt was not passed") {
+    TestUtil.retryOnCi() {
+      val expectedMessage = "Hello from zio"
+      TestInputs(os.rel / "Zio.test.scala" ->
+        s"""//> using test.dep dev.zio::zio-test::$zioTestVersion
+           |import zio._
+           |import zio.test._
+           |
+           |object SimpleSpec extends ZIOSpecDefault {
+           |  override def spec: Spec[TestEnvironment with Scope, Any] =
+           |    suite("SimpleSpec")(
+           |      test("print hello and assert true") {
+           |        for {
+           |          _ <- Console.printLine("$expectedMessage")
+           |        } yield assertTrue(true)
+           |      }
+           |    )
+           |}
+           |""".stripMargin).fromRoot { root =>
+        val r = os.proc(TestUtil.cli, "test", ".", extraOptions)
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(r.exitCode == 1)
+        val expectedWarning =
+          "zio-test found in the class path, zio-test-sbt should be added to run zio tests"
+        expect(r.err.trim().contains(expectedWarning))
+      }
+    }
+  }
+
   for {
     platformOptions <- Seq(
       Nil, // JVM
@@ -818,59 +848,103 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       Seq("--js")
     )
     platformDescription = platformOptions.headOption.map(o => s" ($o)").getOrElse(" (JVM)")
-  }
-    test(s"multiple test frameworks$platformDescription") {
-      val scalatestMessage = "Hello from ScalaTest"
-      val munitMessage     = "Hello from Munit"
-      val utestMessage     = "Hello from utest"
-      TestInputs(
-        os.rel / "project.scala" ->
-          s"""//> using test.dep org.scalatest::scalatest::3.2.19
-             |//> using test.dep org.scalameta::munit::$munitVersion
-             |//> using dep com.lihaoyi::utest::$utestVersion
-             |""".stripMargin,
-        os.rel / "scalatest.test.scala" ->
-          s"""import org.scalatest.flatspec.AnyFlatSpec
+  } {
+    test(s"zio-test$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessage = "Hello from zio"
+        TestInputs(os.rel / "Zio.test.scala" ->
+          s"""//> using test.dep dev.zio::zio-test::$zioTestVersion
+             |//> using test.dep dev.zio::zio-test-sbt::$zioTestVersion
+             |import zio._
+             |import zio.test._
              |
-             |class ScalaTestSpec extends AnyFlatSpec {
-             |    "example" should "work" in {
-             |      assertResult(1)(1)
-             |      println("$scalatestMessage")
-             |    }
+             |object SimpleSpec extends ZIOSpecDefault {
+             |  override def spec: Spec[TestEnvironment with Scope, Any] =
+             |    suite("SimpleSpec")(
+             |      test("print hello and assert true") {
+             |        for {
+             |          _ <- Console.printLine("$expectedMessage")
+             |        } yield assertTrue(true)
+             |      }
+             |    )
              |}
-             |""".stripMargin,
-        os.rel / "munit.test.scala" ->
-          s"""import munit.FunSuite
-             |
-             |class Munit extends FunSuite {
-             |  test("foo") {
-             |    assert(2 + 2 == 4)
-             |    println("$munitMessage")
-             |  }
-             |}
-             |""".stripMargin,
-        os.rel / "utest.test.scala" ->
-          s"""import utest._
-             |
-             |object MyTests extends TestSuite {
-             |  val tests = Tests {
-             |    test("foo") {
-             |      assert(2 + 2 == 4)
-             |      println("$utestMessage")
-             |    }
-             |  }
-             |}""".stripMargin
-      ).fromRoot { root =>
-        val r = os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions).call(cwd = root)
-        val output = r.out.trim()
-        expect(output.nonEmpty)
-        expect(output.contains(scalatestMessage))
-        expect(countSubStrings(output, scalatestMessage) == 1)
-        expect(output.contains(munitMessage))
-        expect(countSubStrings(output, munitMessage) == 1)
-        expect(output.contains(utestMessage))
-        expect(countSubStrings(output, utestMessage) == 1)
-        println(output)
+             |""".stripMargin).fromRoot { root =>
+          val r = os.proc(TestUtil.cli, "test", ".", extraOptions, platformOptions).call(cwd = root)
+          val output = r.out.trim()
+          expect(output.contains(expectedMessage))
+          expect(countSubStrings(output, expectedMessage) == 1)
+        }
       }
     }
+
+    test(s"multiple test frameworks$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessages @ Seq(scalatestMessage, munitMessage, utestMessage, zioMessage) =
+          Seq("Hello from ScalaTest", "Hello from Munit", "Hello from utest", "Hello from zio")
+        TestInputs(
+          os.rel / "project.scala" ->
+            s"""//> using test.dep org.scalatest::scalatest::3.2.19
+               |//> using test.dep org.scalameta::munit::$munitVersion
+               |//> using dep com.lihaoyi::utest::$utestVersion
+               |//> using test.dep dev.zio::zio-test::$zioTestVersion
+               |//> using test.dep dev.zio::zio-test-sbt::$zioTestVersion
+               |""".stripMargin,
+          os.rel / "scalatest.test.scala" ->
+            s"""import org.scalatest.flatspec.AnyFlatSpec
+               |
+               |class ScalaTestSpec extends AnyFlatSpec {
+               |    "example" should "work" in {
+               |      assertResult(1)(1)
+               |      println("$scalatestMessage")
+               |    }
+               |}
+               |""".stripMargin,
+          os.rel / "munit.test.scala" ->
+            s"""import munit.FunSuite
+               |
+               |class Munit extends FunSuite {
+               |  test("foo") {
+               |    assert(2 + 2 == 4)
+               |    println("$munitMessage")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "utest.test.scala" ->
+            s"""import utest._
+               |
+               |object MyTests extends TestSuite {
+               |  val tests = Tests {
+               |    test("foo") {
+               |      assert(2 + 2 == 4)
+               |      println("$utestMessage")
+               |    }
+               |  }
+               |}""".stripMargin,
+          os.rel / "Zio.test.scala" ->
+            s"""import zio._
+               |import zio.test._
+               |
+               |object SimpleSpec extends ZIOSpecDefault {
+               |  override def spec: Spec[TestEnvironment with Scope, Any] =
+               |    suite("SimpleSpec")(
+               |      test("print hello and assert true") {
+               |        for {
+               |          _ <- Console.printLine("$zioMessage")
+               |        } yield assertTrue(true)
+               |      }
+               |    )
+               |}
+               |""".stripMargin
+        ).fromRoot { root =>
+          val r = os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions).call(cwd = root)
+          val output = r.out.trim()
+          expect(output.nonEmpty)
+          expectedMessages.foreach { expectedMessage =>
+            expect(output.contains(expectedMessage))
+            expect(countSubStrings(output, expectedMessage) == 1)
+          }
+        }
+      }
+    }
+  }
 }
