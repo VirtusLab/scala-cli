@@ -64,9 +64,19 @@ object ScalacOpt {
       opts.filterKeys(_.key.exists(f))
   }
 
-  enum PresetOptions(val preset: String):
-    case Suggested extends PresetOptions("suggested")
-    case CI        extends PresetOptions("ci")
-    case Strict    extends PresetOptions("strict")
+  /*  enum PresetOption(val preset: String):
+    case Suggested extends PresetOption("suggested")
+    case CI        extends PresetOption("ci")
+    case Strict    extends PresetOption("strict")*/
 
+  sealed abstract class PresetOption(val preset: String) extends Product with Serializable
+  object PresetOption {
+    case object Suggested extends PresetOption("suggested")
+    case object CI        extends PresetOption("ci")
+    case object Strict    extends PresetOption("strict")
+
+    implicit val hashedType: HashedType[PresetOption] = {
+      opt => opt.preset
+    }
+  }
 }

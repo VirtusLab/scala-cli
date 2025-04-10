@@ -139,4 +139,7 @@ object WarningMessages {
     else
       s"""Using 'latest' for toolkit is deprecated, use 'default' to get more stable behaviour:
          | $updatedValue""".stripMargin
+
+  def conflictingScalacOptions(preset: String, scalacOptions: Seq[String]) =
+    s"The scalacPreset $preset is used, but explicit scalac options ${scalacOptions.mkString(",")} are provided. Preset option is ignored."
 }

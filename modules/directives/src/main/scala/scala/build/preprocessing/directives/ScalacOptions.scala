@@ -72,19 +72,19 @@ final case class ScalacOptions(
 
     presetOptions match {
       case None => explicitScalacOptions
-      case Some(ScalacOpt.PresetOptions.Suggested.preset) =>
+      case Some(ScalacOpt.PresetOption.Suggested.preset) =>
         val presetOptions =
           ScalacOptions.buildOptions(
             ScalacOptions.presetOptionsSuggested(scalaVersion).map(Positioned.none)
           )
         explicitScalacOptions :+ presetOptions.map(_.withEmptyRequirements)
-      case Some(ScalacOpt.PresetOptions.CI.preset) =>
+      case Some(ScalacOpt.PresetOption.CI.preset) =>
         val presetOptions =
           ScalacOptions.buildOptions(
             ScalacOptions.presetOptionsCI(scalaVersion).map(Positioned.none)
           )
         explicitScalacOptions :+ presetOptions.map(_.withEmptyRequirements)
-      case Some(ScalacOpt.PresetOptions.Strict.preset) =>
+      case Some(ScalacOpt.PresetOption.Strict.preset) =>
         val presetOptions =
           ScalacOptions.buildOptions(
             ScalacOptions.presetOptionsStrict(scalaVersion).map(Positioned.none)
@@ -93,7 +93,7 @@ final case class ScalacOptions(
       case Some(other) =>
         List(Left(
           InputsException(
-            s"Unknown preset options: $other. Available options are: ${ScalacOpt.PresetOptions.values.map(_.preset).mkString(", ")}"
+            s"Unknown preset options: $other. Available options are: ${ScalacOpt.PresetOption.values.map(_.preset).mkString(", ")}"
           )
         ))
     }
@@ -109,93 +109,5 @@ object ScalacOptions {
           scalacOptions = ShadowingSeq.from(options.map(_.map(ScalacOpt(_))))
         )
       )
-    }
-
-  // todo: Is this might not be the correct location to handle this?
-  private def presetOptionsSuggested(scalaVersion: String) =
-    scalaVersion match {
-      case v if v.startsWith("2.12") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-      case v if v.startsWith("2.13") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-
-      case v if v.startsWith("3.0") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-    }
-
-  private def presetOptionsCI(scalaVersion: String) =
-    scalaVersion match {
-      case v if v.startsWith("2.12") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-      case v if v.startsWith("2.13") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-
-      case v if v.startsWith("3.0") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-    }
-
-  private def presetOptionsStrict(scalaVersion: String) =
-    scalaVersion match {
-      case v if v.startsWith("2.12") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-      case v if v.startsWith("2.13") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
-
-      case v if v.startsWith("3.0") =>
-        List(
-          "-encoding",
-          "utf8",
-          "-deprecation",
-          "-feature",
-          "-unchecked"
-        )
     }
 }
