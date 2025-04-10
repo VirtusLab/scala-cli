@@ -52,7 +52,7 @@ object BuildInfo {
   /** Project version */
   val projectVersion = None
   /** Scala CLI version used for the compilation */
-  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
+  val scalaCliVersion = Some("1.7.0")
 
   /** Information about the Main scope */
   object Main {

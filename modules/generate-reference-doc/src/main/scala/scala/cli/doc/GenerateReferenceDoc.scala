@@ -575,7 +575,8 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       jsEsVersion = None,
       scalaNativeVersion = None,
       mainClass = Some("Main"),
-      projectVersion = None
+      projectVersion = None,
+      scalaCliVersion = Some("1.7.0")
     )
       .withScope("main", mainScopedBuildInfo)
       .withScope("test", testScopedBuildInfo)
