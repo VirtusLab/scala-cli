@@ -18,6 +18,10 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
       )
+      .replaceAll(
+        "\"scalaCliVersion\":(\"[^\"]*\")",
+        "\"scalaCliVersion\":\"1.1.1-SNAPSHOT\""
+      )
 
   private def withEscapedBackslashes(s: os.Path): String =
     s.toString.replaceAll("\\\\", "\\\\\\\\")
@@ -71,6 +75,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ]
           | }
           |]]
+          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -172,6 +177,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
           | }
           |]]
+          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
     }
@@ -248,7 +254,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |]]
+          |]],"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
 

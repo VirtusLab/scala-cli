@@ -49,7 +49,12 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
       .replaceAll(
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
         "ivy:file:.../.ivy2/local/"
-      ).linesWithSeparators
+      )
+      .replaceAll(
+        "val scalaCliVersion = Some\\(\"[^\"]*\"\\)",
+        "val scalaCliVersion = Some\\(\"1.1.1-SNAPSHOT\"\\)"
+      )
+      .linesWithSeparators
       .filterNot(_.stripLeading().startsWith("/**"))
       .mkString
 
@@ -126,6 +131,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
                  |  val scalaNativeVersion = None
                  |  val mainClass = Some("Main")
                  |  val projectVersion = Some("1.0.0")
+                 |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
                  |
                  |  object Main {
                  |    val sources = Seq("${root / "main.scala"}")
@@ -204,6 +210,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = Some("0.4.6")
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -281,6 +288,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
@@ -355,6 +363,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
              |  val scalaNativeVersion = None
              |  val mainClass = Some("Main")
              |  val projectVersion = None
+             |  val scalaCliVersion = Some("1.1.1-SNAPSHOT")
              |
              |  object Main {
              |    val sources = Seq("${root / "main.scala"}")
