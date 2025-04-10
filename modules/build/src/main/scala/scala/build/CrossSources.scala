@@ -21,6 +21,7 @@ import scala.build.options.{
   BuildOptions,
   BuildRequirements,
   MaybeScalaVersion,
+  ScalacOpt,
   Scope,
   ShadowingSeq,
   SuppressWarningOptions,
@@ -277,7 +278,7 @@ object CrossSources {
     def resolveScalacOptionsForPreset(
       mayBeScalaVersion: Option[MaybeScalaVersion],
       presetOption: PresetOption
-    ): Seq[Positioned[String]] = {
+    ): Seq[Positioned[ScalacOpt]] = {
       // todo: I don't think this is the right approach
       val scalaVersion = mayBeScalaVersion.flatMap(_.versionOpt) match {
         case Some(version) => version
@@ -285,13 +286,13 @@ object CrossSources {
       }
 
       presetOption match {
-        case ScalacOpt.PresetOption.Suggested.preset =>
+        case PresetOption.Suggested =>
           presetOptionsSuggested(scalaVersion).map(Positioned.none)
 
-        case ScalacOpt.PresetOption.CI.preset =>
+        case PresetOption.CI =>
           presetOptionsCI(scalaVersion).map(Positioned.none)
 
-        case ScalacOpt.PresetOption.Strict.preset =>
+        case PresetOption.Strict =>
           presetOptionsStrict(scalaVersion).map(Positioned.none)
 
       }
@@ -302,28 +303,24 @@ object CrossSources {
       val scalaVersion    = opts.scalaOptions.scalaVersion
       val scalacOpts      = opts.scalaOptions.scalacOptions
       val scalacPresetOpt = opts.scalaOptions.scalacPresetOption
-      if (
-        scalacPresetOpt.isDefined && scalacOpts.map(
-          _.value
-        ).nonEmpty
-      ) {
+      if (scalacPresetOpt.isDefined && scalacOpts.keys.nonEmpty) {
         val scalacMsg = WarningMessages.conflictingScalacOptions(
           scalacPresetOpt.map(
             _.preset
           ).get, // safe to do get here since we have check before
-          scalacOpts.map(_.value)
+          scalacOpts.keys.map(_.value.value)
         )
         logger.diagnostic(
           scalacMsg,
           Severity.Warning,
-          scalacOpts.map(_.positions).getOrElse(Nil)
+          Nil // todo: fix this
         )
         opts
       }
-      else if (scalacPresetOpt.isDefined && scalacOpts.isEmpty)
+      else if (scalacPresetOpt.isDefined && scalacOpts.keys.isEmpty)
         // resolve the preset options and set into BuildOptions
         val resolvedOpts =
-          resolveScalacOptionsForPreset(opts.scalaOptions.scalaVersion, scalacPresetOpt)
+          resolveScalacOptionsForPreset(opts.scalaOptions.scalaVersion, scalacPresetOpt.get)
         opts.copy(
           scalaOptions = opts.scalaOptions.copy(scalacOptions = ShadowingSeq.from(resolvedOpts))
         )
@@ -566,7 +563,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
       case v if v.startsWith("2.13") =>
         List(
           "-encoding",
@@ -574,7 +571,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
 
       case v if v.startsWith("3.0") =>
         List(
@@ -583,7 +580,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
     }
 
   private def presetOptionsCI(scalaVersion: String) =
@@ -595,7 +592,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
       case v if v.startsWith("2.13") =>
         List(
           "-encoding",
@@ -603,7 +600,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
 
       case v if v.startsWith("3.0") =>
         List(
@@ -612,7 +609,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
     }
 
   private def presetOptionsStrict(scalaVersion: String) =
@@ -624,7 +621,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
       case v if v.startsWith("2.13") =>
         List(
           "-encoding",
@@ -632,7 +629,7 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
 
       case v if v.startsWith("3.0") =>
         List(
@@ -641,6 +638,6 @@ object CrossSources {
           "-deprecation",
           "-feature",
           "-unchecked"
-        )
+        ).map(ScalacOpt.apply)
     }
 }

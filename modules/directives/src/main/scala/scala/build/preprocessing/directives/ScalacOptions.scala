@@ -59,45 +59,11 @@ final case class ScalacOptions(
   @DirectiveName("options.preset")
   presetOptions: Option[String] = None
 ) extends HasBuildOptionsWithRequirements {
-  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = {
-    val explicitScalacOptions = List(
+  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
+    List(
       ScalacOptions.buildOptions(options).map(_.withEmptyRequirements),
       ScalacOptions.buildOptions(testOptions).map(_.withScopeRequirement(Scope.Test))
     )
-
-    // todo: fix: How to get this correctly?
-    val scalaVersion = "3.3.4"
-    
-    //todo: how to get the command line preset option. If it is there in the command line use it, else use from the directive.
-
-    presetOptions match {
-      case None => explicitScalacOptions
-      case Some(ScalacOpt.PresetOption.Suggested.preset) =>
-        val presetOptions =
-          ScalacOptions.buildOptions(
-            ScalacOptions.presetOptionsSuggested(scalaVersion).map(Positioned.none)
-          )
-        explicitScalacOptions :+ presetOptions.map(_.withEmptyRequirements)
-      case Some(ScalacOpt.PresetOption.CI.preset) =>
-        val presetOptions =
-          ScalacOptions.buildOptions(
-            ScalacOptions.presetOptionsCI(scalaVersion).map(Positioned.none)
-          )
-        explicitScalacOptions :+ presetOptions.map(_.withEmptyRequirements)
-      case Some(ScalacOpt.PresetOption.Strict.preset) =>
-        val presetOptions =
-          ScalacOptions.buildOptions(
-            ScalacOptions.presetOptionsStrict(scalaVersion).map(Positioned.none)
-          )
-        explicitScalacOptions :+ presetOptions.map(_.withEmptyRequirements)
-      case Some(other) =>
-        List(Left(
-          InputsException(
-            s"Unknown preset options: $other. Available options are: ${ScalacOpt.PresetOption.values.map(_.preset).mkString(", ")}"
-          )
-        ))
-    }
-  }
 }
 
 object ScalacOptions {
