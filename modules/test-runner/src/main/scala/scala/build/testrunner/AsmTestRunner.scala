@@ -200,18 +200,6 @@ object AsmTestRunner {
       .map(b => new String(b, StandardCharsets.UTF_8))
       .toSeq
 
-  def findFramework(
-    classPath: Seq[Path],
-    preferredClasses: Seq[String]
-  ): Option[String] = {
-    val parentInspector = new ParentInspector(classPath)
-    findFrameworks(
-      classPath,
-      preferredClasses,
-      parentInspector
-    ).headOption // TODO: handle multiple frameworks
-  }
-
   def findFrameworks(
     classPath: Seq[Path],
     preferredClasses: Seq[String],
@@ -224,7 +212,7 @@ object AsmTestRunner {
         findInClassPath(classPath, name + ".class")
           .map { b =>
             def openStream() = new ByteArrayInputStream(b)
-            (name, openStream _)
+            (name, () => openStream())
           }
       }
     (preferredClassesByteCode ++ listClassesByteCode(classPath, true))
@@ -254,18 +242,11 @@ object AsmTestRunner {
     private var isInterfaceOpt          = Option.empty[Boolean]
     private var isAbstractOpt           = Option.empty[Boolean]
     private var implements0             = List.empty[String]
-    def canBeTestSuite: Boolean = {
-      val isModule = nameOpt.exists(_.endsWith("$"))
-      !isAbstractOpt.contains(true) &&
-      !isInterfaceOpt.contains(true) &&
-      publicConstructorCount0 <= 1 &&
-      isModule != (publicConstructorCount0 == 1)
-    }
-    def name                   = nameOpt.getOrElse(sys.error("Class not visited"))
-    def publicConstructorCount = publicConstructorCount0
-    def implements             = implements0
-    def isAbstract             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
-    def isInterface            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
+    def name: String                    = nameOpt.getOrElse(sys.error("Class not visited"))
+    def publicConstructorCount: Int     = publicConstructorCount0
+    def implements: Seq[String]         = implements0
+    def isAbstract: Boolean             = isAbstractOpt.getOrElse(sys.error("Class not visited"))
+    def isInterface: Boolean            = isInterfaceOpt.getOrElse(sys.error("Class not visited"))
     override def visit(
       version: Int,
       access: Int,

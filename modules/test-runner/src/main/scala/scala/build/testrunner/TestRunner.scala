@@ -9,7 +9,7 @@ import scala.collection.mutable
 
 object TestRunner {
 
-  def commonTestFrameworks = Seq(
+  def commonTestFrameworks: Seq[String] = Seq(
     "munit.Framework",
     "utest.runner.Framework",
     "org.scalacheck.ScalaCheckFramework"
@@ -51,19 +51,15 @@ object TestRunner {
 
     val logger: SbtTestLogger =
       new SbtTestLogger {
-        def error(msg: String)   = out.println(msg)
-        def warn(msg: String)    = out.println(msg)
-        def info(msg: String)    = out.println(msg)
-        def debug(msg: String)   = out.println(msg)
-        def trace(t: Throwable)  = t.printStackTrace(out)
-        def ansiCodesSupported() = true
+        def error(msg: String): Unit      = out.println(msg)
+        def warn(msg: String): Unit       = out.println(msg)
+        def info(msg: String): Unit       = out.println(msg)
+        def debug(msg: String): Unit      = out.println(msg)
+        def trace(t: Throwable): Unit     = t.printStackTrace(out)
+        def ansiCodesSupported(): Boolean = true
       }
 
-    val eventHandler: EventHandler =
-      new EventHandler {
-        def handle(event: Event) =
-          events.append(event)
-      }
+    val eventHandler: EventHandler = (event: Event) => events.append(event)
 
     while (tasks.nonEmpty) {
       val task     = tasks.dequeue()
