@@ -20,7 +20,11 @@ final case class LoggingOptions(
   @Group(HelpGroup.Logging.toString)
   @Tag(tags.implementation)
   @HelpMessage("Use progress bars")
-    progress: Option[Boolean] = None
+    progress: Option[Boolean] = None,
+  @Group(HelpGroup.Logging.toString)
+  @Tag(tags.implementation)
+  @HelpMessage("Logs scala-cli version on project build")
+    logCliVersion: Boolean = false
 ) {
   // format: on
 

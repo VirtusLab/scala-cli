@@ -1090,13 +1090,18 @@ object Build {
           )
         else
           options
+
       val params = value(options0.scalaParams)
 
       val scopeParams =
         if (scope == Scope.Main) Nil
         else Seq(scope.name)
 
-      buildClient.setProjectParams(scopeParams ++ value(options0.projectParams))
+      val scalaCliVersionLog =
+        if options0.internal.logCliVersion then Seq(s"scala-cli ${Constants.version}") else Nil
+      buildClient.setProjectParams(
+        scopeParams ++ value(options0.projectParams) ++ scalaCliVersionLog
+      )
 
       val classesDir0 = classesDir(inputs.workspace, inputs.projectName, scope)
 
