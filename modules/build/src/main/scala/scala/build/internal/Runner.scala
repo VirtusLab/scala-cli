@@ -3,7 +3,7 @@ package scala.build.internal
 import coursier.jvm.Execve
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv.nodejs.NodeJSEnv
-import org.scalajs.jsenv.{Input, RunConfig}
+import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.testing.adapter.TestAdapter as ScalaJsTestAdapter
 import sbt.testing.{Framework, Status}
 
@@ -378,14 +378,27 @@ object Runner {
 
   def frameworkNames(
     classPath: Seq[Path],
-    parentInspector: AsmTestRunner.ParentInspector
+    parentInspector: AsmTestRunner.ParentInspector,
+    logger: Logger
   ): Either[NoTestFrameworkFoundError, Seq[String]] = {
-    val foundFrameworkServices = AsmTestRunner.findFrameworkServices(classPath)
+    logger.debug("Looking for test framework services on the classpath...")
+    val foundFrameworkServices =
+      AsmTestRunner.findFrameworkServices(classPath)
+        .map(_.replace('/', '.').replace('\\', '.'))
+    logger.debug(s"Found ${foundFrameworkServices.length} test framework services.")
+    if foundFrameworkServices.nonEmpty then
+      logger.debug(s"  - ${foundFrameworkServices.mkString("\n  - ")}")
+    logger.debug("Looking for more test frameworks on the classpath...")
     val foundFrameworks =
       AsmTestRunner.findFrameworks(classPath, TestRunner.commonTestFrameworks, parentInspector)
-    val frameworks: Seq[String] =
-      (foundFrameworkServices ++ foundFrameworks)
         .map(_.replace('/', '.').replace('\\', '.'))
+    logger.debug(s"Found ${foundFrameworks.length} additional test frameworks")
+    if foundFrameworks.nonEmpty then
+      logger.debug(s"  - ${foundFrameworks.mkString("\n  - ")}")
+    val frameworks: Seq[String] = foundFrameworkServices ++ foundFrameworks
+    logger.log(s"Found ${frameworks.length} test frameworks in total")
+    if frameworks.nonEmpty then
+      logger.debug(s"  - ${frameworks.mkString("\n  - ")}")
     if frameworks.nonEmpty then Right(frameworks) else Left(new NoTestFrameworkFoundError)
   }
 
@@ -401,16 +414,22 @@ object Runner {
   ): Either[TestError, Int] = either {
     import org.scalajs.jsenv.Input
     import org.scalajs.jsenv.nodejs.NodeJSEnv
+    logger.debug("Preparing to run tests with Scala.js...")
+    logger.debug(s"Scala.js tests class path: $classPath")
     val nodePath = findInPath("node").fold("node")(_.toString)
-    val jsEnv =
-      if jsDom then
+    logger.debug(s"Node found at $nodePath")
+    val jsEnv: JSEnv =
+      if jsDom then {
+        logger.log("Loading JS environment with JS DOM...")
         new JSDOMNodeJSEnv(
           JSDOMNodeJSEnv.Config()
             .withExecutable(nodePath)
             .withArgs(Nil)
             .withEnv(Map.empty)
         )
-      else
+      }
+      else {
+        logger.log("Loading JS environment with Node...")
         new NodeJSEnv(
           NodeJSEnv.Config()
             .withExecutable(nodePath)
@@ -418,6 +437,7 @@ object Runner {
             .withEnv(Map.empty)
             .withSourceMap(NodeJSEnv.SourceMap.Disable)
         )
+      }
     val adapterConfig = ScalaJsTestAdapter.Config().withLogger(logger.scalaJsLogger)
     val inputs =
       Seq(if esModule then Input.ESModule(entrypoint.toPath) else Input.Script(entrypoint.toPath))
@@ -428,7 +448,7 @@ object Runner {
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val foundFrameworkNames: List[String] = testFrameworkOpt match {
       case some @ Some(_) => some.toList
-      case None           => value(frameworkNames(classPath, parentInspector)).toList
+      case None           => value(frameworkNames(classPath, parentInspector, logger)).toList
     }
 
     val res =
@@ -470,12 +490,13 @@ object Runner {
     args: Seq[String],
     logger: Logger
   ): Either[TestError, Int] = either {
+    logger.debug("Preparing to run tests with Scala Native...")
     logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
     val foundFrameworkNames: List[String] = frameworkNameOpt match {
       case Some(fw) => List(fw)
-      case None     => value(frameworkNames(classPath, parentInspector)).toList
+      case None     => value(frameworkNames(classPath, parentInspector, logger)).toList
     }
 
     val config = ScalaNativeTestAdapter.Config()

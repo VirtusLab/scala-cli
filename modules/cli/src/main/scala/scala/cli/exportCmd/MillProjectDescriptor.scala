@@ -149,7 +149,7 @@ final case class MillProjectDescriptor(
     }
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
     val frameworkName0 = options.testOptions.frameworkOpt.orElse {
-      frameworkNames(testClassPath, parentInspector).toOption
+      frameworkNames(testClassPath, parentInspector, logger).toOption
         .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }
 

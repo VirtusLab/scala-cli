@@ -273,7 +273,7 @@ object Test extends ScalaCommand[TestOptions] {
     if classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
     then {
       val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-      Runner.frameworkNames(classPath, parentInspector) match {
+      Runner.frameworkNames(classPath, parentInspector, logger) match {
         case Right(f) => f.headOption
         case Left(_) =>
           logger.message(

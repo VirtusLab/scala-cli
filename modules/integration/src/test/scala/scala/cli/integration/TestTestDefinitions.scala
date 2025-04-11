@@ -936,7 +936,10 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
                |}
                |""".stripMargin
         ).fromRoot { root =>
-          val r = os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions).call(cwd = root)
+          val r =
+            os.proc(TestUtil.cli, "test", extraOptions, ".", platformOptions, "-v", "-v").call(cwd =
+              root
+            )
           val output = r.out.trim()
           expect(output.nonEmpty)
           expectedMessages.foreach { expectedMessage =>
