@@ -252,7 +252,7 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.17"
-  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.10.3"
+  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.11.0"
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
