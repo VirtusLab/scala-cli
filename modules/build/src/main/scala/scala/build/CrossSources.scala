@@ -263,18 +263,6 @@ object CrossSources {
       else fromDirectives
     }
 
-    val buildOptions: Seq[WithBuildRequirements[BuildOptions]] = (for {
-      preprocessedSource <- preprocessedSources
-      opts               <- preprocessedSource.options.toSeq
-      if opts != BuildOptions() || preprocessedSource.optionsWithTargetRequirements.nonEmpty
-    } yield {
-      val baseReqs0 = baseReqs(preprocessedSource.scopePath)
-      preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
-        preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-        opts
-      )
-    }).flatten
-
     def resolveScalacOptionsForPreset(
       mayBeScalaVersion: Option[MaybeScalaVersion],
       presetOption: PresetOption
@@ -299,7 +287,7 @@ object CrossSources {
 
     }
 
-    def buildOptionWithPreset(opts: BuildOptions) = {
+    def buildOptionWithPreset(opts: BuildOptions): BuildOptions = {
       val scalaVersion    = opts.scalaOptions.scalaVersion
       val scalacOpts      = opts.scalaOptions.scalacOptions
       val scalacPresetOpt = opts.scalaOptions.scalacPresetOption
@@ -328,6 +316,19 @@ object CrossSources {
         opts
 
     }
+
+    val buildOptions: Seq[WithBuildRequirements[BuildOptions]] = (for {
+      preprocessedSource <- preprocessedSources
+      opts               <- preprocessedSource.options.toSeq
+      optsWithPreset = buildOptionWithPreset(opts)
+      if optsWithPreset != BuildOptions() || preprocessedSource.optionsWithTargetRequirements.nonEmpty
+    } yield {
+      val baseReqs0 = baseReqs(preprocessedSource.scopePath)
+      preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
+        preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+        optsWithPreset
+      )
+    }).flatten
 
     val resourceDirectoriesFromDirectives = {
       val resourceDirsFromCli =
