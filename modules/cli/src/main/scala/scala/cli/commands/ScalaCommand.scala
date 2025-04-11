@@ -381,6 +381,10 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
     */
   final override def run(options: T, remainingArgs: RemainingArgs): Unit = {
     CurrentParams.verbosity = options.global.logging.verbosity
+    if (options.global.logging.verbosity > 0)
+      logger.message(
+        s"Using Scala Runner Version: ${Constants.version}"
+      )
     if shouldExcludeInSip then
       logger.error(WarningMessages.powerCommandUsedInSip(
         actualCommandName,
