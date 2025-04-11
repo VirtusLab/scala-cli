@@ -13,7 +13,6 @@ import java.nio.file.Path
 import scala.build.errors.BuildException
 import scala.build.info.{BuildInfo, ScopedBuildInfo}
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkName
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
