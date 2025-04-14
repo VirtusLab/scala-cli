@@ -1,7 +1,7 @@
 package scala.build.testrunner
 
 import org.objectweb.asm
-import sbt.testing._
+import sbt.testing.{Logger => _, _}
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
 import java.nio.charset.StandardCharsets
@@ -206,7 +206,6 @@ object AsmTestRunner {
     parentInspector: ParentInspector
   ): List[String] = {
     val preferredClassesByteCode = preferredClasses
-      .iterator
       .map(_.replace('.', '/'))
       .flatMap { name =>
         findInClassPath(classPath, name + ".class")
@@ -215,7 +214,7 @@ object AsmTestRunner {
             (name, () => openStream())
           }
       }
-    (preferredClassesByteCode ++ listClassesByteCode(classPath, true))
+    (preferredClassesByteCode.iterator ++ listClassesByteCode(classPath, true))
       .flatMap {
         case (moduleInfo, _) if moduleInfo.contains("module-info") => Iterator.empty
         case (name, is) =>
@@ -233,6 +232,7 @@ object AsmTestRunner {
           else
             Iterator.empty
       }
+      .take(math.max(preferredClassesByteCode.length, 1))
       .toList
   }
 
