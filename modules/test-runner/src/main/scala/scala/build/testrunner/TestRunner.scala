@@ -12,7 +12,12 @@ object TestRunner {
   def commonTestFrameworks: Seq[String] = Seq(
     "munit.Framework",
     "utest.runner.Framework",
-    "org.scalacheck.ScalaCheckFramework"
+    "org.scalacheck.ScalaCheckFramework",
+    "zio.test.sbt.ZTestFramework",
+    "org.scalatest.tools.Framework",
+    "com.novocode.junit.JUnitFramework",
+    "org.scalajs.junit.JUnitFramework",
+    "weaver.framework.CatsEffect"
   )
 
   def classPath(loader: ClassLoader): Seq[Path] = {
