@@ -292,4 +292,38 @@ trait FixScalafixRulesTestDefinitions {
       expect(updatedContent == expectedContent)
     }
   }
+
+  test("scalafix rules requiring SemanticDB run correctly with test scope sources") {
+    val compilerOptions =
+      if (actualScalaVersion.startsWith("2.12")) Seq("-Ywarn-unused-import")
+      else Seq("-Wunused:imports")
+    TestInputs(
+      os.rel / scalafixConfFileName ->
+        """rules = [
+          |  DisableSyntax,
+          |  LeakingImplicitClassVal,
+          |  NoValInForComprehension,
+          |  ExplicitResultTypes,
+          |  OrganizeImports
+          |]
+          |ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch = true
+          |""".stripMargin,
+      os.rel / projectFileName ->
+        s"""//> using test.dep org.scalameta::munit::${Constants.munitVersion}
+           |//> using options ${compilerOptions.mkString(" ")}
+           |""".stripMargin,
+      os.rel / "example.test.scala" ->
+        """import munit.FunSuite
+          |
+          |class Munit extends FunSuite {
+          |  test("foo") {
+          |    assert(2 + 2 == 4)
+          |    println("Hello from Munit")
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      os.proc(TestUtil.cli, "fix", ".", "--power", extraOptions).call(cwd = root)
+    }
+  }
 }

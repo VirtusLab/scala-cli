@@ -11,9 +11,12 @@ import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, Logger, ScalafixArtifacts}
+import scala.build.{Build, Logger, Os, ScalafixArtifacts}
 import scala.cli.commands.fix.ScalafixOptions
+import scala.cli.commands.shared.SharedOptions
+import scala.cli.commands.util.BuildCommandHelpers.copyOutput
 import scala.cli.commands.util.CommandHelpers
+import scala.cli.commands.util.ScalacOptionsUtil.*
 import scala.jdk.CollectionConverters.*
 import scala.jdk.OptionConverters.*
 
@@ -21,6 +24,7 @@ object ScalafixRules extends CommandHelpers {
   def runRules(
     buildOptions: BuildOptions,
     scalafixOptions: ScalafixOptions,
+    sharedOptions: SharedOptions,
     inputs: Inputs,
     compilerMaker: ScalaCompilerMaker,
     workspace: os.Path,
@@ -45,24 +49,28 @@ object ScalafixRules extends CommandHelpers {
       None,
       logger,
       crossBuilds = false,
-      buildTests = false,
+      buildTests = true,
       partial = None,
       actionableDiagnostics = actionableDiagnostics
     )
     val builds = res.orExit(logger)
 
-    builds.get(Scope.Main).flatMap(_.successfulOpt) match
-      case None => sys.exit(1)
-      case Some(build) =>
-        val classPaths    = build.fullClassPath
-        val scalacOptions = build.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
+    builds.builds match
+      case b if b.forall(_.success) =>
+        val successfulBuilds = b.collect { case s: Build.Successful => s }
+        successfulBuilds.foreach(_.copyOutput(sharedOptions))
+        val classPaths = successfulBuilds.flatMap(_.fullClassPath).distinct
+        val scalacOptions =
+          successfulBuilds.headOption.toSeq
+            .flatMap(_.options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
 
         either {
           val artifacts =
             value(
               ScalafixArtifacts.artifacts(
                 scalaVersion,
-                build.options.classPathOptions.scalafixDependencies.values.flatten,
+                successfulBuilds.headOption.toSeq
+                  .flatMap(_.options.classPathOptions.scalafixDependencies.values.flatten),
                 value(buildOptions.finalRepositories),
                 logger,
                 buildOptions.internal.cache.getOrElse(FileCache())
@@ -76,10 +84,10 @@ object ScalafixRules extends CommandHelpers {
               Seq("--sourceroot", workspace.toString) ++
               Seq("--classpath", classPaths.mkString(java.io.File.pathSeparator)) ++
               Seq("--scala-version", scalaVersion) ++
-              (if (check) Seq("--test") else Nil) ++
-              (if (scalacOptions.nonEmpty) scalacOptions.flatMap(Seq("--scalac-options", _))
+              (if check then Seq("--test") else Nil) ++
+              (if scalacOptions.nonEmpty then scalacOptions.flatMap(Seq("--scalac-options", _))
                else Nil) ++
-              (if (artifacts.toolsJars.nonEmpty)
+              (if artifacts.toolsJars.nonEmpty then
                  Seq("--tool-classpath", artifacts.toolsJars.mkString(java.io.File.pathSeparator))
                else Nil) ++
               scalafixOptions.scalafixRules.flatMap(Seq("-r", _))
