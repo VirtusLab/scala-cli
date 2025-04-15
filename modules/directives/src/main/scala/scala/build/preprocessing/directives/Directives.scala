@@ -54,4 +54,11 @@ object Directives {
       directives.RequireScalaVersionBounds.handler,
       directives.RequireScope.handler
     ).map(_.mapE(_.buildRequirements))
+
+  def allDirectiveHandlers: Seq[DirectiveHandler[BuildRequirements | BuildOptions]] =
+    usingDirectiveHandlers ++ requireDirectiveHandlers
+
+  def getDirectiveHandler(key: String): Option[DirectiveHandler[BuildRequirements | BuildOptions]] =
+    allDirectiveHandlers.find(_.keys.exists(_.nameAliases.contains(key)))
+
 }
