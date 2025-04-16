@@ -13,6 +13,7 @@ import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar

@@ -54,6 +54,7 @@ object Fix extends ScalaCommand[FixOptions] {
             ScalafixRules.runRules(
               buildOptions = buildOpts,
               scalafixOptions = options.scalafix,
+              sharedOptions = options.shared,
               inputs = inputs,
               check = options.check,
               compilerMaker = compilerMaker,

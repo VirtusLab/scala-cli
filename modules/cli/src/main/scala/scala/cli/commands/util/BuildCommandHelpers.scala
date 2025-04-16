@@ -6,7 +6,7 @@ import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
 
-trait BuildCommandHelpers { self: ScalaCommand[_] =>
+trait BuildCommandHelpers { self: ScalaCommand[?] =>
   extension (successfulBuild: Build.Successful) {
     def retainedMainClass(
       logger: Logger,
@@ -17,6 +17,23 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
         self.argvOpt.map(_.mkString(" ")).getOrElse(actualFullCommand),
         logger
       )
+  }
+
+  extension (builds: Builds) {
+    def anyBuildCancelled: Boolean = builds.all.exists {
+      case _: Build.Cancelled => true
+      case _                  => false
+    }
+
+    def anyBuildFailed: Boolean = builds.all.exists {
+      case _: Build.Failed => true
+      case _               => false
+    }
+  }
+}
+
+object BuildCommandHelpers {
+  extension (successfulBuild: Build.Successful) {
 
     /** -O -d defaults to --compile-output; if both are defined, --compile-output takes precedence
       */
@@ -33,17 +50,5 @@ trait BuildCommandHelpers { self: ScalaCommand[_] =>
             replaceExisting = true
           )
         }
-  }
-
-  extension (builds: Builds) {
-    def anyBuildCancelled: Boolean = builds.all.exists {
-      case _: Build.Cancelled => true
-      case _                  => false
-    }
-
-    def anyBuildFailed: Boolean = builds.all.exists {
-      case _: Build.Failed => true
-      case _               => false
-    }
   }
 }

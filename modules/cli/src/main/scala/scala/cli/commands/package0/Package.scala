@@ -37,6 +37,7 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.orPythonDetectionError
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
+import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
