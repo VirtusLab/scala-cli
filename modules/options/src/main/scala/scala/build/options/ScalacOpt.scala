@@ -63,4 +63,11 @@ object ScalacOpt {
     def filterScalacOptionKeys(f: String => Boolean): ShadowingSeq[ScalacOpt] =
       opts.filterKeys(_.key.exists(f))
   }
+
+  sealed abstract class PresetOption(val preset: String) extends Product with Serializable
+  object PresetOption {
+    case object Suggested extends PresetOption("suggested")
+    case object CI        extends PresetOption("ci")
+    case object Strict    extends PresetOption("strict")
+  }
 }

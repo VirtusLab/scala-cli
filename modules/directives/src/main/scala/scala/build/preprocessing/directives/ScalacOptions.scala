@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.Positioned
 import scala.build.directives.*
-import scala.build.errors.BuildException
+import scala.build.errors.{BuildException, DirectiveErrors, InputsException}
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{
   BuildOptions,
@@ -19,6 +19,7 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using options -Xasync -Xfatal-warnings")
 @DirectiveExamples("//> using test.option -Xasync")
 @DirectiveExamples("//> using test.options -Xasync -Xfatal-warnings")
+@DirectiveExamples("//> using options.preset suggested")
 @DirectiveUsage(
   "using option _option_ | using options _option1_ _option2_ …",
   """`//> using scalacOption` _option_
@@ -37,6 +38,9 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using test.options` _option1_ _option2_ …
     |
+    |`//> using options` _option1_ _option2_ …
+    |
+    |`//> using options.preset` _suggested_ | _ci_ | _strict_
     |""".stripMargin
 )
 @DirectiveDescription("Add Scala compiler options")
@@ -50,12 +54,16 @@ final case class ScalacOptions(
   @DirectiveName("test.options")
   @DirectiveName("test.scalacOption")
   @DirectiveName("test.scalacOptions")
-  testOptions: List[Positioned[String]] = Nil
+  testOptions: List[Positioned[String]] = Nil,
+  @DirectiveName("option.preset")
+  @DirectiveName("options.preset")
+  presetOptions: Option[String] = None
 ) extends HasBuildOptionsWithRequirements {
-  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] = List(
-    ScalacOptions.buildOptions(options).map(_.withEmptyRequirements),
-    ScalacOptions.buildOptions(testOptions).map(_.withScopeRequirement(Scope.Test))
-  )
+  def buildOptionsList: List[Either[BuildException, WithBuildRequirements[BuildOptions]]] =
+    List(
+      ScalacOptions.buildOptions(options).map(_.withEmptyRequirements),
+      ScalacOptions.buildOptions(testOptions).map(_.withScopeRequirement(Scope.Test))
+    )
 }
 
 object ScalacOptions {
