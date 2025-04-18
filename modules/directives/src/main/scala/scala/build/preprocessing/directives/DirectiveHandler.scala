@@ -46,35 +46,41 @@ trait DirectiveHandler[+T] { self =>
 
   def map[U](f: T => U): DirectiveHandler[U] =
     new DirectiveHandler[U] {
-      def name                   = self.name
-      def usage                  = self.usage
-      override def usageMd       = self.usageMd
-      def description            = self.description
-      override def descriptionMd = self.descriptionMd
-      override def examples      = self.examples
+      def name: String                   = self.name
+      def usage: String                  = self.usage
+      override def usageMd: String       = self.usageMd
+      def description: String            = self.description
+      override def descriptionMd: String = self.descriptionMd
+      override def examples: Seq[String] = self.examples
 
-      def scalaSpecificationLevel = self.scalaSpecificationLevel
+      def scalaSpecificationLevel: SpecificationLevel = self.scalaSpecificationLevel
 
-      def keys = self.keys
+      def keys: Seq[Key] = self.keys
 
-      def handleValues(scopedDirective: ScopedDirective, logger: Logger) =
+      def handleValues(
+        scopedDirective: ScopedDirective,
+        logger: Logger
+      ): Either[BuildException, ProcessedDirective[U]] =
         self.handleValues(scopedDirective, logger)
           .map(_.map(f))
     }
   def mapE[U](f: T => Either[BuildException, U]): DirectiveHandler[U] =
     new DirectiveHandler[U] {
-      def name                   = self.name
-      def usage                  = self.usage
-      override def usageMd       = self.usageMd
-      def description            = self.description
-      override def descriptionMd = self.descriptionMd
-      override def examples      = self.examples
+      def name: String                   = self.name
+      def usage: String                  = self.usage
+      override def usageMd: String       = self.usageMd
+      def description: String            = self.description
+      override def descriptionMd: String = self.descriptionMd
+      override def examples: Seq[String] = self.examples
 
-      def scalaSpecificationLevel = self.scalaSpecificationLevel
+      def scalaSpecificationLevel: SpecificationLevel = self.scalaSpecificationLevel
 
-      def keys = self.keys
+      def keys: Seq[Key] = self.keys
 
-      def handleValues(scopedDirective: ScopedDirective, logger: Logger) =
+      def handleValues(
+        scopedDirective: ScopedDirective,
+        logger: Logger
+      ): Either[BuildException, ProcessedDirective[U]] =
         self.handleValues(scopedDirective, logger).flatMap(_.mapE(f))
     }
 
