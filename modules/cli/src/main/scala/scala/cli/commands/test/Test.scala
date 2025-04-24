@@ -248,7 +248,7 @@ object Test extends ScalaCommand[TestOptions] {
         val testOnly = build.options.testOptions.testOnly
 
         val extraArgs =
-          (if (requireTests) Seq("--require-tests") else Nil) ++
+          (if requireTests then Seq("--require-tests") else Nil) ++
             build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
             testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
             testOnly.map(to => s"--test-only=$to").toSeq ++
@@ -266,16 +266,15 @@ object Test extends ScalaCommand[TestOptions] {
     }
   }
 
-  def findTestFramework(classPath: Seq[Path], logger: Logger): Option[String] = {
+  private def findTestFramework(classPath: Seq[Path], logger: Logger): Option[String] = {
     val classPath0 = classPath.map(_.toString)
 
     // https://github.com/VirtusLab/scala-cli/issues/426
-    if (
-      classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
-    ) {
+    if classPath0.exists(_.contains("zio-test")) && !classPath0.exists(_.contains("zio-test-sbt"))
+    then {
       val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-      Runner.frameworkName(classPath, parentInspector) match {
-        case Right(f) => Some(f)
+      Runner.frameworkNames(classPath, parentInspector, logger) match {
+        case Right(f) => f.headOption
         case Left(_) =>
           logger.message(
             s"zio-test found in the class path, zio-test-sbt should be added to run zio tests with $fullRunnerName."
@@ -283,8 +282,7 @@ object Test extends ScalaCommand[TestOptions] {
           None
       }
     }
-    else
-      None
+    else None
   }
 
 }

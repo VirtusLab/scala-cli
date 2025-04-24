@@ -556,6 +556,8 @@ trait HasTests extends SbtModule {
 
     def repositoriesTask =
       T.task(super.repositoriesTask() ++ deps.customRepositories)
+
+    override def testFramework: T[String] = super.testFramework
   }
 }
 
