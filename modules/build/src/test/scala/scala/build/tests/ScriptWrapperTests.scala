@@ -117,12 +117,35 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
         )
         expect(projectDir.size == 1)
         expectClassWrapper(
-          "script1",
+          "script1_scalacli_wrapper",
           projectDir.head / "src_generated" / "main" / "script1.scala"
         )
         expectClassWrapper(
-          "script2",
+          "script2_scalacli_wrapper",
           projectDir.head / "src_generated" / "main" / "script2.scala"
+        )
+    }
+  }
+
+  test(s"run script file properly when file name equals a library name") {
+    val inputs = TestInputs(
+      os.rel / "script1.sc" ->
+        s"""//> using dep "dev.zio::zio:2.1.16"
+           |
+           |import zio.ZIO
+           |""".stripMargin
+    )
+
+    inputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
+      (root, _, maybeBuild) =>
+        expect(maybeBuild.orThrow.success)
+        val projectDir = os.list(root / ".scala-build").filter(
+          _.baseName.startsWith(root.baseName + "_")
+        )
+        expect(projectDir.size == 1)
+        expectClassWrapper(
+          "script1_scalacli_wrapper",
+          projectDir.head / "src_generated" / "main" / "script1.scala"
         )
     }
   }
@@ -160,11 +183,11 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
           )
           expect(projectDir.size == 1)
           expectObjectWrapper(
-            "script1",
+            "script1_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
           expectObjectWrapper(
-            "script2",
+            "script2_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )
       }
@@ -203,11 +226,11 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
           )
           expect(projectDir.size == 1)
           expectAppWrapper(
-            "script1",
+            "script1_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
           expectAppWrapper(
-            "script2",
+            "script2_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )
       }
@@ -249,11 +272,11 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
           expect(projectDir.size == 1)
 
           expectObjectWrapper(
-            "script1",
+            "script1_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script1.scala"
           )
           expectObjectWrapper(
-            "script2",
+            "script2_scalacli_wrapper",
             projectDir.head / "src_generated" / "main" / "script2.scala"
           )
       }
