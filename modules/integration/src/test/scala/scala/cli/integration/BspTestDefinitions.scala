@@ -844,7 +844,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
           |}
           |""".stripMargin
     )
-    withBsp(inputs, Seq(".")) { (root, _, remoteServer) =>
+    withBspInitResults(inputs, Seq(".")) { (root, _, remoteServer, buildInitRes) =>
+      val serverCapabilities: b.BuildServerCapabilities = buildInitRes.getCapabilities
+      expect(serverCapabilities.getOutputPathsProvider)
       async {
         val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
         val target = {
