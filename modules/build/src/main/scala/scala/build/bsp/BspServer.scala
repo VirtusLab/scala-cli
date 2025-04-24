@@ -173,6 +173,7 @@ class BspServer(
     capabilities.setJvmTestEnvironmentProvider(true)
     capabilities.setCanReload(true)
     capabilities.setDependencyModulesProvider(true)
+    capabilities.setOutputPathsProvider(true)
     capabilities
   }
 
