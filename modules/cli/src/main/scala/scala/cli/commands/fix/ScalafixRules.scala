@@ -56,10 +56,6 @@ object ScalafixRules extends CommandHelpers {
         )
       else buildOptions
 
-    val scalaVersion =
-      buildOptions.scalaParams.orExit(logger).map(_.scalaVersion)
-        .getOrElse(Constants.defaultScalaVersion)
-
     val shouldBuildTestScope = sharedOptions.scope.test.getOrElse(true)
     if !shouldBuildTestScope then
       logger.message(
@@ -88,6 +84,13 @@ object ScalafixRules extends CommandHelpers {
         val scalacOptions =
           successfulBuilds.headOption.toSeq
             .flatMap(_.options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
+
+        val scalaVersion = {
+          for {
+            b           <- successfulBuilds.headOption
+            scalaParams <- b.scalaParams
+          } yield scalaParams.scalaVersion
+        }.getOrElse(Constants.defaultScalaVersion)
 
         either {
           val artifacts =
