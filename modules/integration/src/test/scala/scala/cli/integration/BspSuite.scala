@@ -81,6 +81,35 @@ trait BspSuite { _: ScalaCliSuite =>
       TestBspClient,
       b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer
     ) => Future[T]
+  ): T = withBspInitResults(
+    inputs,
+    args,
+    attempts,
+    pauseDuration,
+    bspOptions,
+    bspEnvs,
+    reuseRoot,
+    stdErrOpt,
+    extraOptionsOverride
+  )((root, client, server, _: b.InitializeBuildResult) => f(root, client, server))
+
+  def withBspInitResults[T](
+    inputs: TestInputs,
+    args: Seq[String],
+    attempts: Int = if (TestUtil.isCI) 3 else 1,
+    pauseDuration: FiniteDuration = 5.seconds,
+    bspOptions: List[String] = List.empty,
+    bspEnvs: Map[String, String] = Map.empty,
+    reuseRoot: Option[os.Path] = None,
+    stdErrOpt: Option[os.RelPath] = None,
+    extraOptionsOverride: Seq[String] = extraOptions
+  )(
+    f: (
+      os.Path,
+      TestBspClient,
+      b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer,
+      b.InitializeBuildResult
+    ) => Future[T]
   ): T = {
 
     def attempt(): Try[T] = Try {
@@ -118,11 +147,14 @@ trait BspSuite { _: ScalaCliSuite =>
         val (localClient, remoteServer0, _) =
           TestBspClient.connect(proc.stdout, proc.stdin, pool)
         remoteServer = remoteServer0
-        Await.result(
+        val initRes: b.InitializeBuildResult = Await.result(
           whileBspServerIsRunning(remoteServer.buildInitialize(initParams(root)).asScala),
           Duration.Inf
         )
-        Await.result(whileBspServerIsRunning(f(root, localClient, remoteServer)), Duration.Inf)
+        Await.result(
+          whileBspServerIsRunning(f(root, localClient, remoteServer, initRes)),
+          Duration.Inf
+        )
       }
       finally {
         if (remoteServer != null)
