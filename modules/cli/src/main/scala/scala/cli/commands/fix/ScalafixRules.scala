@@ -60,6 +60,13 @@ object ScalafixRules extends CommandHelpers {
       buildOptions.scalaParams.orExit(logger).map(_.scalaVersion)
         .getOrElse(Constants.defaultScalaVersion)
 
+    val shouldBuildTestScope = sharedOptions.scope.test.getOrElse(true)
+    if !shouldBuildTestScope then
+      logger.message(
+        s"""$warnPrefix Building test scope was explicitly disabled.
+           |$warnPrefix Some scalafix rules may not work correctly with test scope inputs."""
+          .stripMargin
+      )
     val res = Build.build(
       inputs,
       buildOptionsWithSemanticDb,
@@ -67,7 +74,7 @@ object ScalafixRules extends CommandHelpers {
       None,
       logger,
       crossBuilds = false,
-      buildTests = true,
+      buildTests = shouldBuildTestScope,
       partial = None,
       actionableDiagnostics = actionableDiagnostics
     )
