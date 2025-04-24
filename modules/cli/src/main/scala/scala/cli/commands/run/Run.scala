@@ -233,6 +233,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if options.sharedRun.watch.watchMode then {
 
       /** A handle to the Runner process, used to kill the process if it's still alive when a change
@@ -258,7 +259,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         docCompilerMakerOpt = None,
         logger = logger,
         crossBuilds = cross,
-        buildTests = options.shared.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () =>
@@ -331,7 +332,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.shared.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics
       )

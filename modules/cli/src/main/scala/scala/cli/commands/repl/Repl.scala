@@ -190,10 +190,11 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
+    val shouldBuildTestScope = options.shared.scope.test.getOrElse(false)
     if (inputs.isEmpty) {
       val allArtifacts =
         Seq(initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)) ++
-          (if options.shared.scope.test
+          (if shouldBuildTestScope
            then Seq(initialBuildOptions.artifacts(logger, Scope.Test).orExit(logger))
            else Nil)
       // synchronizing, so that multiple presses to enter (handled by WatchUtil.waitForCtrlC)
@@ -224,7 +225,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         None,
         logger,
         crossBuilds = cross,
-        buildTests = options.shared.scope.test,
+        buildTests = shouldBuildTestScope,
         partial = None,
         actionableDiagnostics = actionableDiagnostics,
         postAction = () => WatchUtil.printWatchMessage()
@@ -252,7 +253,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           None,
           logger,
           crossBuilds = cross,
-          buildTests = options.shared.scope.test,
+          buildTests = shouldBuildTestScope,
           partial = None,
           actionableDiagnostics = actionableDiagnostics
         )
