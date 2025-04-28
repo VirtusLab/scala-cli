@@ -3,11 +3,11 @@ import mill._
 import scalalib._
 
 object Scala {
-  def scala212        = "2.12.20"
-  def scala213        = "2.13.16"
-  def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3LtsPrefix = "3.3"   // used for the LTS version tags
+  def scala212         = "2.12.20"
+  def scala213         = "2.13.16"
+  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
   def scala3Lts        = s"$scala3LtsPrefix.5"  // the LTS version currently used in the build
+  def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.7"
   def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
   def scala3NextAnnounced   = "3.6.4"      // the newest/next version of Scala that's been announced
@@ -27,7 +27,7 @@ object Scala {
   val scala3MainVersions  = (defaults ++ allScala3).distinct
   val mainVersions        = (Seq(scala213) ++ scala3MainVersions).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
-  val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
+  val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
 
   def scalaJs    = "1.19.0"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
