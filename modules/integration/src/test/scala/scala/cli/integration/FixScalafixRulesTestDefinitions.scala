@@ -2,6 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.util.Properties
+
 trait FixScalafixRulesTestDefinitions {
   _: FixTestDefinitions =>
   protected val scalafixConfFileName: String = ".scalafix.conf"
@@ -293,37 +295,58 @@ trait FixScalafixRulesTestDefinitions {
     }
   }
 
-  test("scalafix rules requiring SemanticDB run correctly with test scope sources") {
-    val compilerOptions =
-      if (actualScalaVersion.startsWith("2.12")) Seq("-Ywarn-unused-import")
-      else Seq("-Wunused:imports")
-    TestInputs(
-      os.rel / scalafixConfFileName ->
-        """rules = [
-          |  DisableSyntax,
-          |  LeakingImplicitClassVal,
-          |  NoValInForComprehension,
-          |  ExplicitResultTypes,
-          |  OrganizeImports
-          |]
-          |ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch = true
-          |""".stripMargin,
-      os.rel / projectFileName ->
-        s"""//> using test.dep org.scalameta::munit::${Constants.munitVersion}
-           |//> using options ${compilerOptions.mkString(" ")}
-           |""".stripMargin,
-      os.rel / "example.test.scala" ->
-        """import munit.FunSuite
-          |
-          |class Munit extends FunSuite {
-          |  test("foo") {
-          |    assert(2 + 2 == 4)
-          |    println("Hello from Munit")
-          |  }
-          |}
-          |""".stripMargin
-    ).fromRoot { root =>
-      os.proc(TestUtil.cli, "fix", ".", "--power", extraOptions).call(cwd = root)
-    }
+  for {
+    (semanticDbOptions, expectedSuccess) <- Seq(
+      Nil -> true, // .semanticdb files should be implicitly generated when Scalafix is run
+      Seq("--semanticdb")       -> true,
+      Seq("--semanticdb=false") -> false
+    )
+    semanticDbOptionsDescription =
+      if (semanticDbOptions.nonEmpty) s" (${semanticDbOptions.mkString(" ")})"
+      else ""
+    verb = if (expectedSuccess) "run" else "fail"
+    if !Properties.isWin || expectedSuccess
   }
+    test(
+      s"scalafix rules requiring SemanticDB $verb correctly with test scope sources$semanticDbOptionsDescription"
+    ) {
+      val compilerOptions =
+        if (actualScalaVersion.startsWith("2.12")) Seq("-Ywarn-unused-import")
+        else Seq("-Wunused:imports")
+      TestInputs(
+        os.rel / scalafixConfFileName ->
+          """rules = [
+            |  DisableSyntax,
+            |  LeakingImplicitClassVal,
+            |  NoValInForComprehension,
+            |  ExplicitResultTypes,
+            |  OrganizeImports
+            |]
+            |ExplicitResultTypes.fetchScala3CompilerArtifactsOnVersionMismatch = true
+            |""".stripMargin,
+        os.rel / projectFileName ->
+          s"""//> using test.dep org.scalameta::munit::${Constants.munitVersion}
+             |//> using options ${compilerOptions.mkString(" ")}
+             |""".stripMargin,
+        os.rel / "example.test.scala" ->
+          """import munit.FunSuite
+            |
+            |class Munit extends FunSuite {
+            |  test("foo") {
+            |    assert(2 + 2 == 4)
+            |    println("Hello from Munit")
+            |  }
+            |}
+            |""".stripMargin
+      ).fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "fix", ".", "--power", semanticDbOptions, extraOptions)
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        val successful = res.exitCode == 0
+        expect(successful == expectedSuccess)
+        if (!expectedSuccess)
+          expect(
+            res.err.trim().contains("SemanticDB files' generation was explicitly set to false")
+          )
+      }
+    }
 }

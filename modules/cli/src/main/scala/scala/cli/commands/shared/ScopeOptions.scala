@@ -12,7 +12,7 @@ case class ScopeOptions(
   @Name("testScope")
   @Name("withTestScope")
   @Name("withTest")
-  test: Boolean = false
+  test: Option[Boolean] = None
 )
 object ScopeOptions {
   implicit lazy val parser: Parser[ScopeOptions] = Parser.derive

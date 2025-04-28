@@ -10,6 +10,7 @@ import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.options.{BuildOptions, Scope}
 import scala.build.{Build, Logger, Os, ScalafixArtifacts}
 import scala.cli.commands.fix.ScalafixOptions
@@ -32,16 +33,36 @@ object ScalafixRules extends CommandHelpers {
     actionableDiagnostics: Option[Boolean],
     logger: Logger
   )(using ScalaCliInvokeData): Either[BuildException, Int] = {
-    val buildOptionsWithSemanticDb = buildOptions.copy(scalaOptions =
-      buildOptions.scalaOptions.copy(semanticDbOptions =
-        buildOptions.scalaOptions.semanticDbOptions.copy(generateSemanticDbs = Some(true))
+    sharedOptions.semanticDbOptions.semanticDb match {
+      case Some(false) =>
+        logger.message(
+          s"""$warnPrefix SemanticDB files' generation was explicitly set to false.
+             |$warnPrefix Some scalafix rules require .semanticdb files and may not work properly."""
+            .stripMargin
+        )
+      case Some(true) =>
+        logger.debug("SemanticDB files' generation enabled.")
+      case None =>
+        logger.debug("Defaulting SemanticDB files' generation to true, to satisfy scalafix needs.")
+    }
+    val buildOptionsWithSemanticDb =
+      if buildOptions.scalaOptions.semanticDbOptions.generateSemanticDbs.isEmpty then
+        buildOptions.copy(scalaOptions =
+          buildOptions.scalaOptions.copy(semanticDbOptions =
+            buildOptions.scalaOptions.semanticDbOptions.copy(generateSemanticDbs =
+              Some(true)
+            )
+          )
+        )
+      else buildOptions
+
+    val shouldBuildTestScope = sharedOptions.scope.test.getOrElse(true)
+    if !shouldBuildTestScope then
+      logger.message(
+        s"""$warnPrefix Building test scope was explicitly disabled.
+           |$warnPrefix Some scalafix rules may not work correctly with test scope inputs."""
+          .stripMargin
       )
-    )
-
-    val scalaVersion =
-      buildOptions.scalaParams.orExit(logger).map(_.scalaVersion)
-        .getOrElse(Constants.defaultScalaVersion)
-
     val res = Build.build(
       inputs,
       buildOptionsWithSemanticDb,
@@ -49,7 +70,7 @@ object ScalafixRules extends CommandHelpers {
       None,
       logger,
       crossBuilds = false,
-      buildTests = true,
+      buildTests = shouldBuildTestScope,
       partial = None,
       actionableDiagnostics = actionableDiagnostics
     )
@@ -63,6 +84,13 @@ object ScalafixRules extends CommandHelpers {
         val scalacOptions =
           successfulBuilds.headOption.toSeq
             .flatMap(_.options.scalaOptions.scalacOptions.toSeq.map(_.value.value))
+
+        val scalaVersion = {
+          for {
+            b           <- successfulBuilds.headOption
+            scalaParams <- b.scalaParams
+          } yield scalaParams.scalaVersion
+        }.getOrElse(Constants.defaultScalaVersion)
 
         either {
           val artifacts =

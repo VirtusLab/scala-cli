@@ -88,7 +88,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    val withTestScope = options.shared.scope.test
+    val withTestScope = options.shared.scope.test.getOrElse(false)
     if options.watch.watchMode then {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
       val watcher = Build.watch(

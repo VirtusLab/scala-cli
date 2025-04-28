@@ -52,7 +52,7 @@ object Doc extends ScalaCommand[DocOptions] {
         configDb.get(Keys.actions).getOrElse(None)
       )
 
-    val withTestScope = options.shared.scope.test
+    val withTestScope = options.shared.scope.test.getOrElse(false)
     Build.build(
       inputs,
       initialBuildOptions,
