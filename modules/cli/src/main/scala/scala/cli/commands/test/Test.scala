@@ -46,7 +46,7 @@ object Test extends ScalaCommand[TestOptions] {
             sharedJava.allJavaOpts.map(JavaOpt(_)).map(Positioned.commandLine)
       ),
       testOptions = baseOptions.testOptions.copy(
-        frameworkOpt = testFramework.map(_.trim).filter(_.nonEmpty),
+        frameworks = testFrameworks.map(_.trim).filter(_.nonEmpty).map(Positioned.commandLine),
         testOnly = testOnly.map(_.trim).filter(_.nonEmpty)
       ),
       internalDependencies = baseOptions.internalDependencies.copy(
@@ -192,7 +192,7 @@ object Test extends ScalaCommand[TestOptions] {
     allowExecve: Boolean
   ): Either[BuildException, Int] = either {
 
-    val testFrameworkOpt = build.options.testOptions.frameworkOpt
+    val predefinedTestFrameworks = build.options.testOptions.frameworks
 
     build.options.platform.value match {
       case Platform.JS =>
@@ -215,7 +215,7 @@ object Test extends ScalaCommand[TestOptions] {
               js.toIO,
               requireTests,
               args,
-              testFrameworkOpt,
+              predefinedTestFrameworks.map(_.value),
               logger,
               build.options.scalaJsOptions.dom.getOrElse(false),
               esModule
@@ -232,7 +232,7 @@ object Test extends ScalaCommand[TestOptions] {
             Runner.testNative(
               build.fullClassPath.map(_.toNIO),
               launcher.toIO,
-              testFrameworkOpt,
+              predefinedTestFrameworks.map(_.value),
               requireTests,
               args,
               logger
@@ -242,15 +242,18 @@ object Test extends ScalaCommand[TestOptions] {
       case Platform.JVM =>
         val classPath = build.fullClassPathMaybeAsJar(asJar)
 
-        val testFrameworkOpt0 = testFrameworkOpt.orElse {
-          findTestFramework(classPath.map(_.toNIO), logger)
-        }
+        val predefinedTestFrameworks0 =
+          predefinedTestFrameworks match {
+            case f if f.nonEmpty => f
+            case Nil =>
+              findTestFramework(classPath.map(_.toNIO), logger).map(Positioned.none).toList
+          }
         val testOnly = build.options.testOptions.testOnly
 
         val extraArgs =
           (if requireTests then Seq("--require-tests") else Nil) ++
             build.options.internal.verbosity.map(v => s"--verbosity=$v") ++
-            testFrameworkOpt0.map(fw => s"--test-framework=$fw").toSeq ++
+            predefinedTestFrameworks0.map(_.value).map(fw => s"--test-framework=$fw") ++
             testOnly.map(to => s"--test-only=$to").toSeq ++
             Seq("--") ++ args
 

@@ -8,20 +8,29 @@ import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Test framework")
 @DirectiveExamples("//> using testFramework utest.runner.Framework")
+@DirectiveExamples("//> using test.frameworks utest.runner.Framework munit.Framework")
 @DirectiveUsage(
-  "using testFramework _class_name_",
+  """using testFramework _class_name_
+    |
+    |using testFrameworks _class_name_ _another_class_name_
+    |
+    |using test.framework _class_name_
+    |
+    |using test.frameworks _class_name_ _another_class_name_""".stripMargin,
   "`//> using testFramework`  _class-name_"
 )
 @DirectiveDescription("Set the test framework")
 @DirectiveLevel(SpecificationLevel.SHOULD)
 final case class Tests(
+  @DirectiveName("testFramework")
   @DirectiveName("test.framework")
-  testFramework: Option[String] = None
+  @DirectiveName("test.frameworks")
+  testFrameworks: Seq[Positioned[String]] = Nil
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = {
     val buildOpt = BuildOptions(
       testOptions = TestOptions(
-        frameworkOpt = testFramework
+        frameworks = testFrameworks
       )
     )
     Right(buildOpt)

@@ -407,7 +407,7 @@ object Runner {
     entrypoint: File,
     requireTests: Boolean,
     args: Seq[String],
-    testFrameworkOpt: Option[String],
+    predefinedTestFrameworks: Seq[String],
     logger: Logger,
     jsDom: Boolean,
     esModule: Boolean
@@ -446,9 +446,9 @@ object Runner {
     logger.debug(s"JS tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val foundFrameworkNames: List[String] = testFrameworkOpt match {
-      case some @ Some(_) => some.toList
-      case None           => value(frameworkNames(classPath, parentInspector, logger)).toList
+    val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
+      case f if f.nonEmpty => f.toList
+      case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
     }
 
     val res =
@@ -485,7 +485,7 @@ object Runner {
   def testNative(
     classPath: Seq[Path],
     launcher: File,
-    frameworkNameOpt: Option[String],
+    predefinedTestFrameworks: Seq[String],
     requireTests: Boolean,
     args: Seq[String],
     logger: Logger
@@ -494,9 +494,9 @@ object Runner {
     logger.debug(s"Native tests class path: $classPath")
 
     val parentInspector = new AsmTestRunner.ParentInspector(classPath)
-    val foundFrameworkNames: List[String] = frameworkNameOpt match {
-      case Some(fw) => List(fw)
-      case None     => value(frameworkNames(classPath, parentInspector, logger)).toList
+    val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
+      case f if f.nonEmpty => f.toList
+      case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
     }
 
     val config = ScalaNativeTestAdapter.Config()

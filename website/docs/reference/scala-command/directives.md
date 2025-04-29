@@ -459,6 +459,8 @@ Set the test framework
 #### Examples
 `//> using testFramework utest.runner.Framework`
 
+`//> using test.frameworks utest.runner.Framework munit.Framework`
+
 ### Toolkit
 
 Use a toolkit as dependency (not supported in Scala 2.12), 'default' version for Scala toolkit: 0.7.0, 'default' version for typelevel toolkit: 0.1.29
