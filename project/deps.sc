@@ -42,7 +42,8 @@ object Scala {
     val max32  = 2
     val max33  = patchVer(scala3Lts)
     val max34  = 3
-    val max35  = patchVer(scala3Next)
+    val max35  = 2
+    val max36  = patchVer(scala3Next)
     (8 until max212).map(i => s"2.12.$i") ++ Seq(scala212) ++
       (0 until max213).map(i => s"2.13.$i") ++ Seq(scala213) ++
       (0 to max30).map(i => s"3.0.$i") ++
@@ -50,7 +51,8 @@ object Scala {
       (0 to max32).map(i => s"3.2.$i") ++
       (0 to max33).map(i => s"3.3.$i") ++
       (0 to max34).map(i => s"3.4.$i") ++
-      (0 until max35).map(i => s"3.5.$i") ++ Seq(scala3Next)
+      (0 to max35).map(i => s"3.5.$i") ++
+      (0 until max36).map(i => s"3.6.$i") ++ Seq(scala3Next)
   }
 
   def maxAmmoniteScala212Version  = scala212
