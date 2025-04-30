@@ -4237,9 +4237,12 @@ Run the application in the background, automatically kill the process and restar
 
 Aliases: `--revolver`
 
-**--test-framework**
+**--test-frameworks**
 
-Name of the test framework's runner class to use while running tests
+Names of the test frameworks' runner classes to use while running tests.
+Skips framework lookup and only runs passed frameworks.
+
+Aliases: `--test-framework`
 
 **--require-tests**
 

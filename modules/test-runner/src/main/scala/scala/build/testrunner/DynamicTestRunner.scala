@@ -28,23 +28,23 @@ object DynamicTestRunner {
 
   def main(args: Array[String]): Unit = {
 
-    val (testFrameworkOpt, requireTests, verbosity, testOnly, args0) = {
+    val (testFrameworks, requireTests, verbosity, testOnly, args0) = {
       @tailrec
       def parse(
-        testFrameworkOpt: Option[String],
+        testFrameworks: List[String],
         reverseTestArgs: List[String],
         requireTests: Boolean,
         verbosity: Int,
         testOnly: Option[String],
         args: List[String]
-      ): (Option[String], Boolean, Int, Option[String], List[String]) =
+      ): (List[String], Boolean, Int, Option[String], List[String]) =
         args match {
-          case Nil => (testFrameworkOpt, requireTests, verbosity, testOnly, reverseTestArgs.reverse)
+          case Nil => (testFrameworks, requireTests, verbosity, testOnly, reverseTestArgs.reverse)
           case "--" :: t =>
-            (testFrameworkOpt, requireTests, verbosity, testOnly, reverseTestArgs.reverse ::: t)
+            (testFrameworks, requireTests, verbosity, testOnly, reverseTestArgs.reverse ::: t)
           case h :: t if h.startsWith("--test-framework=") =>
             parse(
-              Some(h.stripPrefix("--test-framework=")),
+              testFrameworks ++ List(h.stripPrefix("--test-framework=")),
               reverseTestArgs,
               requireTests,
               verbosity,
@@ -53,7 +53,7 @@ object DynamicTestRunner {
             )
           case h :: t if h.startsWith("--test-only=") =>
             parse(
-              testFrameworkOpt,
+              testFrameworks,
               reverseTestArgs,
               requireTests,
               verbosity,
@@ -62,7 +62,7 @@ object DynamicTestRunner {
             )
           case h :: t if h.startsWith("--verbosity=") =>
             parse(
-              testFrameworkOpt,
+              testFrameworks,
               reverseTestArgs,
               requireTests,
               h.stripPrefix("--verbosity=").toInt,
@@ -70,33 +70,39 @@ object DynamicTestRunner {
               t
             )
           case "--require-tests" :: t =>
-            parse(testFrameworkOpt, reverseTestArgs, true, verbosity, testOnly, t)
+            parse(testFrameworks, reverseTestArgs, true, verbosity, testOnly, t)
           case h :: t =>
-            parse(testFrameworkOpt, h :: reverseTestArgs, requireTests, verbosity, testOnly, t)
+            parse(testFrameworks, h :: reverseTestArgs, requireTests, verbosity, testOnly, t)
         }
 
-      parse(None, Nil, false, 0, None, args.toList)
+      parse(Nil, Nil, false, 0, None, args.toList)
     }
 
     val logger = Logger(verbosity)
 
+    if (testFrameworks.nonEmpty) logger.debug(
+      s"""Directly passed ${testFrameworks.length} test frameworks:
+         |  - ${testFrameworks.mkString("\n  - ")}""".stripMargin
+    )
+
     val classLoader = Thread.currentThread().getContextClassLoader
     val classPath0  = TestRunner.classPath(classLoader)
-    val frameworks = testFrameworkOpt
-      .map(loadFramework(classLoader, _))
-      .map(Seq(_))
-      .getOrElse {
-        getFrameworksToRun(
-          frameworkServices = findFrameworkServices(classLoader),
-          frameworks = findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks)
-        )(logger) match {
-          case f if f.nonEmpty     => f
-          case _ if verbosity >= 2 => sys.error("No test framework found")
-          case _ =>
-            System.err.println("No test framework found")
-            sys.exit(1)
+    val frameworks =
+      Option(testFrameworks)
+        .filter(_.nonEmpty)
+        .map(_.map(loadFramework(classLoader, _)).toSeq)
+        .getOrElse {
+          getFrameworksToRun(
+            frameworkServices = findFrameworkServices(classLoader),
+            frameworks = findFrameworks(classPath0, classLoader, TestRunner.commonTestFrameworks)
+          )(logger) match {
+            case f if f.nonEmpty     => f
+            case _ if verbosity >= 2 => sys.error("No test framework found")
+            case _ =>
+              System.err.println("No test framework found")
+              sys.exit(1)
+          }
         }
-      }
     def classes = {
       val keepJars = false // look into dependencies, much slower
       listClasses(classPath0, keepJars).map(name => classLoader.loadClass(name))

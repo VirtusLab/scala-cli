@@ -1762,9 +1762,12 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--test-framework`
+### `--test-frameworks`
 
-Name of the test framework's runner class to use while running tests
+Aliases: `--test-framework`
+
+Names of the test frameworks' runner classes to use while running tests.
+Skips framework lookup and only runs passed frameworks.
 
 ### `--require-tests`
 

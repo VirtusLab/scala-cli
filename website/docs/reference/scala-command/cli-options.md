@@ -1178,11 +1178,14 @@ Available in commands:
 
 <!-- Automatically generated, DO NOT EDIT MANUALLY -->
 
-### `--test-framework`
+### `--test-frameworks`
+
+Aliases: `--test-framework`
 
 `SHOULD have` per Scala Runner specification
 
-Name of the test framework's runner class to use while running tests
+Names of the test frameworks' runner classes to use while running tests.
+Skips framework lookup and only runs passed frameworks.
 
 ### `--require-tests`
 

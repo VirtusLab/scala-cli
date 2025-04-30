@@ -949,5 +949,62 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
         }
       }
     }
+
+    test(s"multiple explicitly preconfigured test frameworks$platformDescription") {
+      TestUtil.retryOnCi() {
+        val expectedMessages @ Seq(scalatestMessage, munitMessage, customMessage) =
+          Seq("Hello from scalatest", "Hello from Munit", "Hello from custom framework")
+        TestInputs(
+          os.rel / "project.scala" ->
+            s"""//> using test.dep org.scalatest::scalatest::3.2.19
+               |//> using dep com.lihaoyi::utest::$utestVersion
+               |//> using test.dep org.scalameta::munit::$munitVersion
+               |//> using test.frameworks org.scalatest.tools.Framework munit.Framework custom.CustomFramework
+               |""".stripMargin,
+          os.rel / "scalatest.test.scala" ->
+            s"""import org.scalatest.flatspec.AnyFlatSpec
+               |
+               |class ScalaTestSpec extends AnyFlatSpec {
+               |    "example" should "work" in {
+               |      assertResult(1)(1)
+               |      println("$scalatestMessage")
+               |    }
+               |}
+               |""".stripMargin,
+          os.rel / "munit.test.scala" ->
+            s"""import munit.FunSuite
+               |
+               |class Munit extends FunSuite {
+               |  test("foo") {
+               |    assert(2 + 2 == 4)
+               |    println("$munitMessage")
+               |  }
+               |}
+               |""".stripMargin,
+          os.rel / "custom.test.scala" ->
+            s"""package custom
+               |
+               |class CustomFramework extends utest.runner.Framework {
+               |  override def setup(): Unit =
+               |    println("$customMessage")
+               |}""".stripMargin
+        ).fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "test",
+              extraOptions,
+              ".",
+              platformOptions
+            ).call(cwd = root)
+          val output = r.out.trim()
+          expect(output.nonEmpty)
+          expectedMessages.foreach { expectedMessage =>
+            expect(output.contains(expectedMessage))
+            expect(countSubStrings(output, expectedMessage) == 1)
+          }
+        }
+      }
+    }
   }
 }
