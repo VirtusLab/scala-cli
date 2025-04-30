@@ -187,4 +187,23 @@ class RunTestsDefault extends RunTestDefinitions
         }
       }
     }
+
+  for {
+    scalaVersion <-
+      Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
+    expectedMessage = "Hello, world!"
+    expectedWarning =
+      s"Defaulting to a legacy runner module version: ${Constants.runnerLegacyVersion}"
+  }
+    test(
+      s"run a simple hello world with the runner module on the classpath and Scala $scalaVersion (legacy)"
+    ) {
+      TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""").fromRoot { root =>
+        val res =
+          os.proc(TestUtil.cli, "run", ".", "-S", scalaVersion, TestUtil.extraOptions, "--runner")
+            .call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == expectedMessage)
+        expect(res.err.trim().contains(expectedWarning))
+      }
+    }
 }
