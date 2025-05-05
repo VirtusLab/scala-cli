@@ -189,8 +189,7 @@ class RunTestsDefault extends RunTestDefinitions
     }
 
   for {
-    scalaVersion <-
-      Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
+    scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor
     expectedMessage = "Hello, world!"
     expectedWarning =
       s"Defaulting to a legacy runner module version: ${Constants.runnerLegacyVersion}"

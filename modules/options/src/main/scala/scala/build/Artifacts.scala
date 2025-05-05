@@ -130,11 +130,32 @@ object Artifacts {
   ): Either[BuildException, Artifacts] = either {
     val dependencies = defaultDependencies ++ extraDependencies
 
+    val scalaVersion = (for {
+      scalaArtifactsParams <- scalaArtifactsParamsOpt
+      scalaParams  = scalaArtifactsParams.params
+      scalaVersion = scalaParams.scalaVersion
+    } yield scalaVersion).getOrElse(defaultScalaVersion)
+
+    val shouldUseLegacyRunners =
+      scalaVersion.startsWith("3") &&
+      scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
+
     val jvmTestRunnerDependencies =
-      if (addJvmTestRunner)
-        Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
-      else
-        Nil
+      if addJvmTestRunner then {
+        val testRunnerVersion0 =
+          if shouldUseLegacyRunners then {
+            logger.message(
+              s"""$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module.
+                 |$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion.
+                 |$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."""
+                .stripMargin
+            )
+            runnerLegacyVersion
+          }
+          else testRunnerVersion
+        Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion0")
+      }
+      else Nil
 
     val jmhDependencies = addJmhDependencies.toSeq
       .map(version => dep"${Constants.jmhOrg}:${Constants.jmhGeneratorBytecodeModule}:$version")
@@ -408,15 +429,8 @@ object Artifacts {
               if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(coursier.Repositories.sonatype("snapshots"))
               else Nil
-            val scalaVersion = (for {
-              scalaArtifactsParams <- scalaArtifactsParamsOpt
-              scalaParams  = scalaArtifactsParams.params
-              scalaVersion = scalaParams.scalaVersion
-            } yield scalaVersion).getOrElse(defaultScalaVersion)
             val runnerVersion0 =
-              if scalaVersion.startsWith("3") &&
-                scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
-              then {
+              if shouldUseLegacyRunners then {
                 logger.message(
                   s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
                      |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.
