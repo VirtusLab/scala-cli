@@ -1512,10 +1512,7 @@ jobs:
         fetch-depth: 0
         submodules: true
     - uses: VirtusLab/scala-cli-setup@v1
-      with:
-        jvm: "temurin:17"
-        apps: scalafmt:3.0.0
-    - run: scalafmt --check
+    - run: scala-cli fmt . --check
 
   reference-doc:
     timeout-minutes: 15
