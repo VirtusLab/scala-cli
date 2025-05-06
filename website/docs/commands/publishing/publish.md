@@ -45,7 +45,7 @@ This table lists settings allowing to specify those. See the sub-sections right 
 | Name | `publish.name` | `--name` | `scala-cli` | |
 | Module Name | `publish.moduleName` | `--module-name` | `scala-cli_3` | Module Name includes the Scala prefix, such as `_2.13` or `_3`. Specifying Name should be favored over Module Name |
 | Compute Version | `publish.computeVersion` | `--compute-version` | `git:tag` | |
-| Version | `publish.version` | `--version` | `0.1.0`, `0.1.1-SNAPSHOT` | As much as possible, Compute Version (describing how to compute the version) should be favored over Version |
+| Version | `publish.version` | `--project-version` | `0.1.0`, `0.1.1-SNAPSHOT` | As much as possible, Compute Version (describing how to compute the version) should be favored over Version |
 
 ### Organization
 
