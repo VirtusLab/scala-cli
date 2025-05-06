@@ -407,20 +407,15 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       extraProps: Map[String, String] = Map.empty
     ): Unit = {
       val isAmmonite = replArtifacts.replMainClass.startsWith("ammonite")
-      if replArgs.exists(_.noDashPrefixes == ScalacOptions.replInitScript) then
-        scalaParams.scalaVersion match
-          case _ if isAmmonite =>
+      if isAmmonite then
+        replArgs
+          .map(_.noDashPrefixes)
+          .filter(ScalacOptions.replExecuteScriptOptions.contains)
+          .foreach(arg =>
             logger.message(
-              "The '--repl-init-script' option is not supported with Ammonite. Did you mean to use '--ammonite-arg'?"
+              s"The '--$arg' option is not supported with Ammonite. Did you mean to use '--ammonite-arg -c' to execute a script?"
             )
-          case s
-              if s.coursierVersion < "3.6.4-RC1".coursierVersion &&
-              s.coursierVersion < "3.6.4".coursierVersion &&
-              s.coursierVersion < "3.6.4-RC1-bin-20250109-a50a1e4-NIGHTLY".coursierVersion =>
-            logger.message(
-              "The '--repl-init-script option' is only supported starting with Scala 3.6.4 and onwards."
-            )
-          case _ => ()
+          )
       if dryRun then logger.message("Dry run, not running REPL.")
       else {
         val depClassPathArgs: Seq[String] =

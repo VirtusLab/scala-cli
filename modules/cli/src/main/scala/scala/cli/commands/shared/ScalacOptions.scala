@@ -48,8 +48,10 @@ object ScalacOptions {
   val YScriptRunnerOption               = "Yscriptrunner"
   private val scalacOptionsPurePrefixes = Set("V", "W", "X", "Y")
   private val scalacOptionsPrefixes     = Set("P") ++ scalacOptionsPurePrefixes
-  val replInitScript                    = "repl-init-script"
-  private val replAliasedOptions        = Set(replInitScript)
+  val replExecuteScriptOptions @ Seq(replInitScript, replQuitAfterInit) =
+    Seq("repl-init-script", "repl-quit-after-init")
+  private val replAliasedOptions      = Set(replInitScript)
+  private val replNoArgAliasedOptions = Set(replQuitAfterInit)
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set(
       "bootclasspath",
@@ -104,7 +106,7 @@ object ScalacOptions {
       "preview",
       "uniqid",
       "unique-id"
-    )
+    ) ++ replNoArgAliasedOptions
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
     * message instead.
