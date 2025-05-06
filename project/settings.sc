@@ -1,4 +1,4 @@
-import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`com.goyeau::mill-scalafix::0.4.2`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.29`
 
 import $file.deps, deps.{
@@ -820,6 +820,8 @@ trait ScalaCliScalafixModule extends ScalafixModule {
     val warnUnusedOptions =
       if (!parentOptions.contains("-Ywarn-unused") && scalaVersion().startsWith("2."))
         Seq("-Ywarn-unused")
+      else if (!parentOptions.contains("-Wunused:all") && scalaVersion().startsWith("3."))
+        Seq("-Wunused:all")
       else Nil
     parentOptions ++ semDbOptions ++ warnUnusedOptions
   }
