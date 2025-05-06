@@ -12,7 +12,7 @@ import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.Scope
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 class ConsoleBloopBuildClient(
   logger: Logger,

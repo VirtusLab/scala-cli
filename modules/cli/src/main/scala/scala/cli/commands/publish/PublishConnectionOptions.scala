@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared.{HelpGroup, SharedVersionOptions}
 import scala.cli.commands.tags

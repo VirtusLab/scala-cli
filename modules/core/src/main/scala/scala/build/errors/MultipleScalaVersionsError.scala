@@ -1,6 +1,5 @@
-package scala.build.errors
-
-import scala.build.Position
+package scala.build.errorsimport
+scala.build.Position
 
 final class MultipleScalaVersionsError(scalaVersions: Seq[String])
     extends BuildException(

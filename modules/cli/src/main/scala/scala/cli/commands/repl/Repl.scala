@@ -1,18 +1,18 @@
 package scala.cli.commands.repl
 
 import ai.kien.python.Python
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
 import coursier.core.Version
 import coursier.error.{FetchError, ResolutionError}
-import dependency.*
+import dependency._
 
 import java.io.File
 import java.util.zip.ZipFile
 
 import scala.build.EitherCps.{either, value}
-import scala.build.*
+import scala.build._
 import scala.build.errors.{
   BuildException,
   CantDownloadAmmoniteError,
@@ -23,7 +23,7 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.Run.{
   maybePrintSimpleScalacOutput,
   orPythonDetectionError,
@@ -35,10 +35,10 @@ import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.util.ConfigDbUtils
 import scala.cli.{CurrentParams, ScalaCli}
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {

@@ -2,11 +2,11 @@ package scala.cli.commands.shared
 
 import bloop.rifle.internal.BuildInfo
 import bloop.rifle.{BloopRifleConfig, BloopVersion, BspConnectionAddress}
-import caseapp.*
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.cache.FileCache
-import coursier.core.Version as Ver
+import coursier.core.{Version => Ver}
 import coursier.util.Task
 
 import java.io.File
@@ -17,7 +17,7 @@ import scala.build.internal.Util
 import scala.build.{Bloop, Logger, Os}
 import scala.cli.commands.Constants
 import scala.cli.commands.bloop.BloopJson
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.internal.Pid
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Properties

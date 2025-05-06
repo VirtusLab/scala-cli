@@ -4,7 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, BuildInfoGenerationError}
 import scala.build.info.BuildInfo.escapeBackslashes
 import scala.build.internal.Constants
-import scala.build.options.*
+import scala.build.options._
 
 final case class BuildInfo(
   projectVersion: Option[String] = None,

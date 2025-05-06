@@ -1,6 +1,6 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.cli.commands.shared.{HelpGroup, ScopeOptions}

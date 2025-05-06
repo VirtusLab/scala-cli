@@ -1,6 +1,6 @@
 package scala.cli.commands.version
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 
 import scala.build.Logger
@@ -9,7 +9,7 @@ import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.config.PasswordOption
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.{CurrentParams, ScalaCli}
 
 object Version extends ScalaCommand[VersionOptions] {

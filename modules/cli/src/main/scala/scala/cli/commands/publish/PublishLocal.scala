@@ -9,7 +9,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.config.ConfigDb
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object PublishLocal extends ScalaCommand[PublishLocalOptions] {
   override def group: String           = HelpCommandGroup.Main.toString

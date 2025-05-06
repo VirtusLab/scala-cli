@@ -8,7 +8,7 @@ import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error, RemainingArgs}
 import caseapp.{HelpMessage, Name}
 import coursier.core.{Repository, Version}
-import dependency.*
+import dependency._
 import org.codehaus.plexus.classworlds.launcher.Launcher
 
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
@@ -25,13 +25,13 @@ import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, ScalacOpt, Scope}
 import scala.build.{Artifacts, Directories, Logger, Positioned, ReplArtifacts}
 import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.commands.util.ScalacOptionsUtil._
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.internal.ProcUtil
 import scala.cli.launcher.LauncherOptions
-import scala.cli.util.ConfigDbUtils.*
+import scala.cli.util.ConfigDbUtils._
 import scala.cli.{CurrentParams, ScalaCli}
 import scala.util.{Properties, Try}
 

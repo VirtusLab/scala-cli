@@ -11,7 +11,7 @@ import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.{ConsoleUtils, FeatureType}
 import scala.cli.ScalaCli
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object RestrictedCommandsParser {
   def apply[T](

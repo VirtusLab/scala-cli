@@ -5,7 +5,7 @@ import caseapp.core.help.{Help, HelpFormat, RuntimeCommandsHelp}
 
 import java.nio.file.InvalidPathException
 
-import scala.cli.commands.*
+import scala.cli.commands._
 import scala.cli.commands.shared.ScalaCliHelp
 
 class ScalaCliCommands(

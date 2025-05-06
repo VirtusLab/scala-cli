@@ -1,6 +1,6 @@
 package scala.cli.commands.shared
 
-import caseapp.*
+import caseapp._
 
 // format: off
 @HelpMessage("Print help message")

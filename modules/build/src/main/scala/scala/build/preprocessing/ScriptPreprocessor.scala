@@ -6,7 +6,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData, Script, SingleElement, VirtualScript}
-import scala.build.internal.*
+import scala.build.internal._
 import scala.build.internal.util.WarningMessages
 import scala.build.options.{BuildOptions, BuildRequirements, Platform, SuppressWarningOptions}
 import scala.build.preprocessing.PreprocessedSource
@@ -106,8 +106,8 @@ case object ScriptPreprocessor extends Preprocessor {
         inputArgPath.getOrElse(subPath.toString)
       )
 
-      val className = (pkg :+ wrapper).map(_.raw).mkString(".")
-      val relPath   = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
+      (pkg :+ wrapper).map(_.raw).mkString(".")
+      val relPath = os.rel / (subPath / os.up) / s"${subPath.last.stripSuffix(".sc")}.scala"
 
       val file = PreprocessedSource.UnwrappedScript(
         originalPath = reportingPath.map((subPath, _)),

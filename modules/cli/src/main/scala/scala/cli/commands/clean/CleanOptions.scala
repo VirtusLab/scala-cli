@@ -1,6 +1,6 @@
 package scala.cli.commands.clean
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared._

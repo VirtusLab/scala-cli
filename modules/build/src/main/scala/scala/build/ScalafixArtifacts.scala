@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{Repository, Version}
 import coursier.error.{CoursierError, ResolutionError}
 import coursier.util.Task
-import dependency.*
+import dependency._
 import org.apache.commons.compress.archivers.zip.ZipFile
 import os.Path
 
@@ -14,7 +14,7 @@ import java.util.Properties
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, FetchingDependenciesError}
 import scala.build.internal.Constants
-import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.CsLoggerUtil._
 
 final case class ScalafixArtifacts(
   scalafixJars: Seq[os.Path],

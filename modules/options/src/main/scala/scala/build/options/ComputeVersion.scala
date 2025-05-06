@@ -1,14 +1,14 @@
 package scala.build.options
 
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Constants, Ref}
 
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.build.{Position, Positioned}
 import scala.io.Codec
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.{Success, Try, Using}
 
 sealed abstract class ComputeVersion extends Product with Serializable {
@@ -133,8 +133,7 @@ object ComputeVersion {
         extends BuildException(message, positions)
   }
 
-  private lazy val commandCodec: JsonValueCodec[List[String]] =
-    JsonCodecMaker.make
+  JsonCodecMaker.make
 
   def parse(input: Positioned[String]): Either[BuildException, ComputeVersion] =
     if (input.value == "git" || input.value == "git:tag")

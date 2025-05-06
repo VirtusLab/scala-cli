@@ -1,5 +1,4 @@
 package scala.cli.commands.publish.checks
-
 import java.net.URI
 
 import scala.build.EitherCps.{either, value}

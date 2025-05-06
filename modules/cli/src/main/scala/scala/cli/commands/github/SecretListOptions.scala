@@ -1,6 +1,6 @@
 package scala.cli.commands.github
 
-import caseapp.*
+import caseapp._
 
 // format: off
 @HelpMessage("Lists secrets for a given GitHub repository.")

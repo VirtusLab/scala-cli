@@ -1,7 +1,7 @@
 package scala.cli.commands.util
 
 import sttp.capabilities.Effect
-import sttp.client3.*
+import sttp.client3._
 import sttp.monad.MonadError
 
 import scala.build.Logger

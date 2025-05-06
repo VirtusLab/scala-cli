@@ -1,12 +1,12 @@
 package scala.cli.commands.shared
 
 import bloop.rifle.BloopRifleConfig
-import caseapp.*
+import caseapp._
 import caseapp.core.Arg
 import caseapp.core.help.Help
 import caseapp.core.util.Formatter
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.cache.FileCache
 import coursier.core.Version
 import coursier.util.{Artifact, Task}
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
-import scala.build.*
+import scala.build._
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.directives.DirectiveDescription
 import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
@@ -31,12 +31,12 @@ import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
-import scala.build.preprocessing.directives.ClasspathUtils.*
+import scala.build.preprocessing.directives.ClasspathUtils._
 import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
 import scala.build.preprocessing.directives.{Python, Toolkit}
-import scala.build.options as bo
+import scala.build.{options => bo}
 import scala.cli.ScalaCli
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.shared.{
   HasGlobalOptions,
   ScalaJsOptions,
@@ -47,13 +47,13 @@ import scala.cli.commands.shared.{
 }
 import scala.cli.commands.tags
 import scala.cli.commands.util.JvmUtils
-import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.commands.util.ScalacOptionsUtil._
 import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.launcher.PowerOptions
 import scala.cli.util.ConfigDbUtils
 import scala.concurrent.ExecutionContextExecutorService
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
 
@@ -670,7 +670,6 @@ final case class SharedOptions(
 }
 
 object SharedOptions {
-  import ArgFileOption.parser
   implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
   implicit lazy val help: Help[SharedOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make

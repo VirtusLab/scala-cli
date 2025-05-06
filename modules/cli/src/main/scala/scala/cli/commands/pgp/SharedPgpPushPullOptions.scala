@@ -1,6 +1,6 @@
 package scala.cli.commands.pgp
 
-import caseapp.*
+import caseapp._
 import sttp.model.Uri
 
 import scala.build.Logger

@@ -4,7 +4,7 @@ import scala.annotation.tailrec
 import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 /** Representation for a (closed) code block contained in Markdown
   *

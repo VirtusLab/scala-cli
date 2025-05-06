@@ -1,9 +1,9 @@
 package scala.cli.commands.pgp
 
-import caseapp.*
+import caseapp._
 
 import scala.build.internal.Constants
-import scala.build.options as bo
+import scala.build.{options => bo}
 import scala.cli.commands.shared.{CoursierOptions, HelpGroup, LoggingOptions, SharedJvmOptions}
 import scala.cli.commands.tags
 

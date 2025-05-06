@@ -4,7 +4,7 @@ import scala.build.errors.BuildException
 import scala.build.{Build, Builds, Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.commands.util.ScalacOptionsUtil.*
+import scala.cli.commands.util.ScalacOptionsUtil._
 
 trait BuildCommandHelpers { self: ScalaCommand[?] =>
   extension (successfulBuild: Build.Successful) {

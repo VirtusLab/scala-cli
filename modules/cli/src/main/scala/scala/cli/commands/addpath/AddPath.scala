@@ -1,6 +1,6 @@
 package scala.cli.commands.addpath
 
-import caseapp.*
+import caseapp._
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
 import java.io.File

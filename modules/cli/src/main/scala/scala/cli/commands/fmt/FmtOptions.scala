@@ -1,6 +1,6 @@
 package scala.cli.commands.fmt
 
-import caseapp.*
+import caseapp._
 import coursier.core.Version
 
 import scala.build.EitherCps.{either, value}

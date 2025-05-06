@@ -14,7 +14,7 @@ import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeO
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.ScalaCli
-import scala.cli.util.SeqHelpers.*
+import scala.cli.util.SeqHelpers._
 
 final case class MillProjectDescriptor(
   millVersion: String,

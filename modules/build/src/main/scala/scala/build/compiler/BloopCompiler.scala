@@ -1,5 +1,4 @@
 package scala.build.compiler
-
 import ch.epfl.scala.bsp4j
 
 import scala.annotation.tailrec

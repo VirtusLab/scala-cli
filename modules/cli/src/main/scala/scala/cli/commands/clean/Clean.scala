@@ -1,6 +1,6 @@
 package scala.cli.commands.clean
 
-import caseapp.*
+import caseapp._
 
 import scala.build.input.Inputs
 import scala.build.internal.Constants

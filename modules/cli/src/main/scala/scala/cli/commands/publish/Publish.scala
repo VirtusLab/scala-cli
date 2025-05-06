@@ -24,8 +24,8 @@ import java.util.concurrent.Executors
 import java.util.function.Supplier
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
-import scala.build.*
+import scala.build.Ops._
+import scala.build._
 import scala.build.compiler.ScalaCompilerMaker
 import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
 import scala.build.input.Inputs
@@ -41,9 +41,9 @@ import scala.build.options.{
   Scope
 }
 import scala.cli.CurrentParams
-import scala.cli.commands.package0.Package as PackageCmd
+import scala.cli.commands.package0.{Package => PackageCmd}
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.shared.{
   HelpCommandGroup,
@@ -66,9 +66,9 @@ import scala.cli.errors.{
 }
 import scala.cli.packaging.Library
 import scala.cli.publish.BouncycastleSignerMaker
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.util.ConfigDbUtils
-import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.cli.util.ConfigPasswordOptionHelpers._
 import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
 

@@ -1,8 +1,8 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
-import scala.build.directives.*
+import scala.build.Ops._
+import scala.build.directives._
 import scala.build.errors.{BuildException, CompositeBuildException, WrongSourcePathError}
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.{Positioned, options}

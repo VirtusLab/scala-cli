@@ -1,5 +1,4 @@
 package scala.build.actionable
-
 import dependency._
 
 import scala.build.Position

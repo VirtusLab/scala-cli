@@ -2,7 +2,7 @@ package scala.cli.internal
 
 import bloop.rifle.BloopRifleLogger
 import ch.epfl.scala.bsp4j.Location
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
 import org.scalajs.logging.{Level => ScalaJsLevel, Logger => ScalaJsLogger, ScalaConsoleLogger}
@@ -16,8 +16,8 @@ import scala.build.internal.util.WarningMessages
 import scala.build.internals.FeatureType
 import scala.build.{ConsoleBloopBuildClient, Logger, Position}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
-import scala.scalanative.build as sn
+import scala.jdk.CollectionConverters._
+import scala.scalanative.{build => sn}
 
 class CliLogger(
   val verbosity: Int,

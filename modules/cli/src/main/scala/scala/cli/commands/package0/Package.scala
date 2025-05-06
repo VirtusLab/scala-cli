@@ -1,12 +1,12 @@
 package scala.cli.commands.package0
 
 import ai.kien.python.Python
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
-import coursier.launcher.*
-import dependency.*
+import coursier.launcher._
+import dependency._
 import os.{BasePathImpl, FilePath, Path, SegmentedPath}
-import packager.config.*
+import packager.config._
 import packager.deb.DebianPackage
 import packager.docker.DockerPackage
 import packager.mac.dmg.DmgPackage
@@ -20,30 +20,30 @@ import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
-import scala.build.*
-import scala.build.errors.*
+import scala.build.Ops._
+import scala.build._
+import scala.build.errors._
 import scala.build.interactive.InteractiveFileOps
-import scala.build.internal.Util.*
+import scala.build.internal.Util._
 import scala.build.internal.resource.NativeResourceMapper
 import scala.build.internal.{Runner, ScalaJsLinkerConfig}
 import scala.build.options.PackageType.Native
 import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalaNativeTarget, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.OptionsHelper.*
+import scala.cli.commands.OptionsHelper._
 import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.Run.orPythonDetectionError
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
-import scala.cli.commands.util.BuildCommandHelpers.*
+import scala.cli.commands.util.BuildCommandHelpers._
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, Constants, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.util.ConfigDbUtils
 import scala.util.Properties
 
@@ -1082,8 +1082,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           Seq("--linking-option", linkerOption)
         }
       }.toSeq.flatten
-
-    import PackageType.Native.*
 
     val allCliOptions = pythonCliOptions ++
       cliOptions ++

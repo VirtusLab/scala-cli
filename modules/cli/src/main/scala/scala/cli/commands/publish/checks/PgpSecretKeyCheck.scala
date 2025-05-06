@@ -2,26 +2,26 @@ package scala.cli.commands.publish.checks
 
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
-import sttp.client3.*
+import sttp.client3._
 import sttp.model.Uri
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.build.internal.util.WarningMessages
 import scala.build.options.publish.ConfigPasswordOption
-import scala.build.options.publish.ConfigPasswordOption.*
-import scala.build.options.PublishOptions as BPublishOptions
+import scala.build.options.publish.ConfigPasswordOption._
+import scala.build.options.{PublishOptions => BPublishOptions}
 import scala.cli.commands.config.ThrowawayPgpSecret
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions, SetSecret}
 import scala.cli.commands.util.JvmUtils
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.errors.MissingPublishOptionError
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.util.ConfigPasswordOptionHelpers.*
+import scala.cli.util.ConfigPasswordOptionHelpers._
 
 /** Checks if:
   *   - keys for signing files are present in using directives (either PGP or GPG)

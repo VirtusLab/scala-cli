@@ -1,15 +1,15 @@
 package scala.build.options
 
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
-import coursier.core.{Module, Repository, Version, Versions as CoreVersions}
+import coursier.core.{Module, Repository, Version, Versions => CoreVersions}
 import coursier.util.{Artifact, Task}
 
 import java.io.File
 
-import scala.build.CoursierUtils.*
+import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{
   BuildException,

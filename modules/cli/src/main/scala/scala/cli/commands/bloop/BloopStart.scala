@@ -2,7 +2,7 @@ package scala.cli.commands.bloop
 
 import bloop.rifle.internal.BuildInfo
 import bloop.rifle.{BloopRifle, BloopRifleConfig, BloopThreads}
-import caseapp.*
+import caseapp._
 
 import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.{Directories, Logger, Os}

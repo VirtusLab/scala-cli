@@ -1,6 +1,6 @@
 package scala.cli.commands.installhome
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}

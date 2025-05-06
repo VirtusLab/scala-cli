@@ -1,6 +1,6 @@
 package scala.cli.commands.uninstall
 
-import caseapp.*
+import caseapp._
 
 import java.nio.file.Path
 

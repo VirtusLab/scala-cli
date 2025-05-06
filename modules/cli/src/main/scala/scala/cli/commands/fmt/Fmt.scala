@@ -1,8 +1,8 @@
 package scala.cli.commands.fmt
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
-import dependency.*
+import dependency._
 
 import scala.build.input.{Inputs, ProjectScalaFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
@@ -11,9 +11,9 @@ import scala.build.options.BuildOptions
 import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.fmt.FmtUtil.*
+import scala.cli.commands.fmt.FmtUtil._
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object Fmt extends ScalaCommand[FmtOptions] {
   override def group: String = HelpCommandGroup.Main.toString

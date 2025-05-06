@@ -1,9 +1,9 @@
 package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.Positioned
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.{BuildException, DirectiveErrors}
 import scala.build.options.{BuildRequirements, Scope}
 import scala.cli.commands.SpecificationLevel

@@ -1,6 +1,6 @@
 package scala.cli.launcher
 
-import caseapp.*
+import caseapp._
 import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 

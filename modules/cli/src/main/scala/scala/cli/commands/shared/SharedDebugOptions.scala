@@ -1,6 +1,6 @@
 package scala.cli.commands.shared
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.Help
 
 import scala.cli.commands.tags

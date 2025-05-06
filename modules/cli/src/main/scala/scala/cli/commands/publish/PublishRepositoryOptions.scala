@@ -1,11 +1,11 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers.*
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 final case class PublishRepositoryOptions(

@@ -1,7 +1,7 @@
 package scala.build.errors
 
 import scala.build.Position
-import scala.build.internal.Constants.*
+import scala.build.internal.Constants._
 
 class ScalaVersionError(message: String, positions: Seq[Position] = Nil, cause: Throwable = null)
     extends BuildException(

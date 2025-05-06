@@ -1,12 +1,12 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test213 {
   List(".sc", ".scala").foreach { filetype =>

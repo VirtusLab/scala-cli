@@ -1,5 +1,4 @@
 package scala.build.preprocessing
-
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}

@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScriptOptions}
 import scala.cli.commands.SpecificationLevel

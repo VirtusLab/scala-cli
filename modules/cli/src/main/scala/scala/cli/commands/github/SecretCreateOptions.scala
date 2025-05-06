@@ -1,6 +1,6 @@
 package scala.cli.commands.github
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.progName
 import scala.cli.commands.shared.{CoursierOptions, HelpGroup, HelpMessages}

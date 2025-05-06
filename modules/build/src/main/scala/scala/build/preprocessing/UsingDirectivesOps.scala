@@ -1,11 +1,11 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.custom.model.UsingDirectives
-import com.virtuslab.using_directives.custom.utils.ast.*
+import com.virtuslab.using_directives.custom.utils.ast._
 
 import scala.annotation.tailrec
 import scala.build.Position
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 object UsingDirectivesOps {
   extension (ud: UsingDirectives) {

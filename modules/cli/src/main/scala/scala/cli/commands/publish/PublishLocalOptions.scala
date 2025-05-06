@@ -1,10 +1,10 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
 import scala.cli.commands.publish.PublishSetupOptions.{cmdName, docWebsiteSuffix, helpHeader}
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 
 // format: off
 @HelpMessage(PublishLocalOptions.helpMessage, "", PublishLocalOptions.detailedHelpMessage)

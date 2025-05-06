@@ -1,7 +1,7 @@
 package scala.build.options
 
-import scala.compiletime.*
-import scala.deriving.*
+import scala.compiletime._
+import scala.deriving._
 
 trait ConfigMonoid[T]:
   def zero: T

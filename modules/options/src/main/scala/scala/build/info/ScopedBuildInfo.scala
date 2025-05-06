@@ -113,7 +113,7 @@ object ScopedBuildInfo {
     )
   }
 
-  private val charSet = StandardCharsets.UTF_8
+  StandardCharsets.UTF_8
 
   implicit val monoid: ConfigMonoid[ScopedBuildInfo] = ConfigMonoid.derive
 }

@@ -1,10 +1,10 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.baseRunnerName
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 // format: off

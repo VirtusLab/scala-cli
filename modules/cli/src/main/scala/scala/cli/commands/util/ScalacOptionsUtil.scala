@@ -1,5 +1,4 @@
 package scala.cli.commands.util
-
 import scala.build.Logger
 import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{ScalacOpt, ShadowingSeq}

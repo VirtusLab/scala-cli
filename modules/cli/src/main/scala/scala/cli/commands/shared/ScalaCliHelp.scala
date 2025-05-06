@@ -3,7 +3,7 @@ package scala.cli.commands.shared
 import caseapp.core.Arg
 import caseapp.core.help.HelpFormat
 
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.util.{Properties, Try}
 
 object ScalaCliHelp {

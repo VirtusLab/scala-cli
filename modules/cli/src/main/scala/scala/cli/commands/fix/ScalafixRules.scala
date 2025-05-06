@@ -1,7 +1,7 @@
 package scala.cli.commands.fix
 
 import coursier.cache.FileCache
-import scalafix.interfaces.ScalafixError.*
+import scalafix.interfaces.ScalafixError._
 
 import java.io.File
 
@@ -17,9 +17,9 @@ import scala.cli.commands.fix.ScalafixOptions
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.BuildCommandHelpers.copyOutput
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.commands.util.ScalacOptionsUtil.*
-import scala.jdk.CollectionConverters.*
-import scala.jdk.OptionConverters.*
+import scala.cli.commands.util.ScalacOptionsUtil._
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 
 object ScalafixRules extends CommandHelpers {
   def runRules(

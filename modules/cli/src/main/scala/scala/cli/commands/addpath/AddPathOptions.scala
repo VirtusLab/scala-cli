@@ -1,6 +1,6 @@
 package scala.cli.commands.addpath
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions}
 import scala.cli.commands.tags

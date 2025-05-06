@@ -1,6 +1,6 @@
 package scala.cli.commands.doc
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.Help
 
 import scala.cli.ScalaCli.fullRunnerName

@@ -1,7 +1,7 @@
 package scala.build
 
 import coursier.cache.{ConnectionBuilder, FileCache}
-import coursier.core.*
+import coursier.core._
 import coursier.util.{Artifact, EitherT, Monad}
 
 import java.io.{File, FileNotFoundException, IOException}

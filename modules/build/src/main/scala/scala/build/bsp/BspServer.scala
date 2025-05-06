@@ -1,18 +1,18 @@
 package scala.build.bsp
 
 import ch.epfl.scala.bsp4j.{BuildClient, LogMessageParams, MessageType}
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 
 import java.io.{File, PrintWriter, StringWriter}
 import java.net.URI
 import java.util.concurrent.{CompletableFuture, TimeUnit}
-import java.util as ju
+import java.{util => ju}
 
 import scala.build.Logger
 import scala.build.internal.Constants
 import scala.build.options.Scope
 import scala.concurrent.{Future, Promise}
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Random
 
 class BspServer(

@@ -1,8 +1,8 @@
 package scala.build.preprocessing.directives
 
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.BuildException
-import scala.build.options.WithBuildRequirements.*
+import scala.build.options.WithBuildRequirements._
 import scala.build.options.{BuildOptions, JavaOpt, Scope, ShadowingSeq, WithBuildRequirements}
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel

@@ -1,6 +1,6 @@
 package scala.cli.commands.bloop
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared._
 import scala.cli.commands.tags

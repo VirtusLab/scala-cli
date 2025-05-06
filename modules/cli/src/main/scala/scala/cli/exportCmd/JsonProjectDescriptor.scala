@@ -1,5 +1,4 @@
 package scala.cli.exportCmd
-
 import com.github.plokhotnyuk.jsoniter_scala.core.WriterConfig
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
@@ -17,7 +16,7 @@ import scala.build.options.{BuildOptions, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.util.SeqHelpers.*
+import scala.cli.util.SeqHelpers._
 
 final case class JsonProjectDescriptor(
   projectName: Option[String] = None,

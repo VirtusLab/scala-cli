@@ -1,12 +1,12 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.pgp.{PgpScalaSigningOptions, SharedPgpPushPullOptions}
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers.*
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 @HelpMessage(PublishSetupOptions.helpMessage, "", PublishSetupOptions.detailedHelpMessage)

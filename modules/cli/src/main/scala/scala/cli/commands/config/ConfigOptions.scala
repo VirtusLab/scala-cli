@@ -1,11 +1,11 @@
 package scala.cli.commands.config
 
-import caseapp.*
+import caseapp._
 
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{allowRestrictedFeatures, fullRunnerName, progName}
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 import scala.cli.config.{Key, Keys}
 

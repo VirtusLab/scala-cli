@@ -4,10 +4,10 @@ import dependency.AnyDependency
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, ScalaOptions}
-import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.preprocessing.directives.DirectiveUtil._
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Compiler plugins")

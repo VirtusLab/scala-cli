@@ -1,6 +1,6 @@
 package scala.cli.commands.installhome
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 import coursier.env.{EnvironmentUpdate, ProfileUpdater}
 
@@ -13,7 +13,7 @@ import scala.cli.commands.{
   ScalaCommand,
   SpecificationLevel
 }
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.io.StdIn.readLine
 import scala.util.Properties
 

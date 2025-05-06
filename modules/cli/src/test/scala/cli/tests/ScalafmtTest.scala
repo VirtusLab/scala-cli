@@ -1,9 +1,9 @@
 package cli.tests
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.internal.Constants
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}

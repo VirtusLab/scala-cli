@@ -1,5 +1,4 @@
 package scala.cli.exportCmd
-
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
@@ -16,7 +15,7 @@ import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.export0.ExportOptions
-import scala.cli.exportCmd.POMBuilderHelper.*
+import scala.cli.exportCmd.POMBuilderHelper._
 import scala.xml.{Elem, XML}
 
 object POMBuilderHelper {
@@ -41,8 +40,8 @@ final case class MavenProjectDescriptor(
   mavenAppVersion: String,
   logger: Logger
 ) extends ProjectDescriptor {
-  private val q  = "\""
-  private val nl = System.lineSeparator()
+
+  System.lineSeparator()
 
   private def sources(sourcesMain: Sources, sourcesTest: Sources): MavenProject = {
     val mainSources = ProjectDescriptor.sources(sourcesMain)
@@ -134,7 +133,7 @@ final case class MavenProjectDescriptor(
         testDeps: ShadowingSeq[Positioned[AnyDependency]],
         isCompileOnly: Boolean
       ): Seq[MavenLibraryDependency] = {
-        val scopePriorities       = List()
+        List()
         val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
         val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
         val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
@@ -186,7 +185,7 @@ final case class MavenProjectDescriptor(
 
     val javacOptions = javacOptionsSettings(options)
 
-    val javaOptions = javaOptionsSettings(options)
+    javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
     val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
@@ -206,8 +205,8 @@ final case class MavenProjectDescriptor(
     scalaVersion: String
   ): MavenPlugin = {
 
-    val scalaVersionNode = buildNode("scalaVersion", scalaVersion)
-    val javacOptionsElem = {
+    buildNode("scalaVersion", scalaVersion)
+    locally {
       val opts = javacOptions.map { opt =>
         buildNode("javacArg", opt)
       }

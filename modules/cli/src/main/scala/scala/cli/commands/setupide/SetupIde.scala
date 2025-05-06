@@ -1,15 +1,15 @@
 package scala.cli.commands.setupide
 
-import caseapp.*
+import caseapp._
 import ch.epfl.scala.bsp4j.BspConnectionDetails
-import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.*
+import scala.build._
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
@@ -21,7 +21,7 @@ import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.errors.FoundVirtualInputsError
 import scala.cli.launcher.LauncherOptions
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 object SetupIde extends ScalaCommand[SetupIdeOptions] {
 
@@ -47,7 +47,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         )
       }
 
-      val sharedOptions = crossSources.sharedOptions(options)
+      crossSources.sharedOptions(options)
 
       val scopedSources = value(crossSources.scopedSources(options))
       val mainSources = value(scopedSources.sources(

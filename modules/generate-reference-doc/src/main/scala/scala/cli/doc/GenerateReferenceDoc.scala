@@ -1,8 +1,8 @@
 package scala.cli.doc
 
-import caseapp.*
+import caseapp._
 import caseapp.core.Arg
-import caseapp.core.Scala3Helpers.*
+import caseapp.core.Scala3Helpers._
 import caseapp.core.util.Formatter
 import dotty.tools.dotc.ScalacCommand
 import munit.diff.Diff
@@ -16,10 +16,10 @@ import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
-import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
+import scala.build.preprocessing.directives.DirectivesPreprocessingUtils._
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
-import scala.cli.doc.ReferenceDocUtils.*
-import scala.cli.util.ArgHelpers.*
+import scala.cli.doc.ReferenceDocUtils._
+import scala.cli.util.ArgHelpers._
 import scala.cli.{ScalaCli, ScalaCliCommands}
 object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 

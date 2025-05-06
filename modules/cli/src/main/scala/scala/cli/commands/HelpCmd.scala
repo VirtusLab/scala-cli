@@ -1,6 +1,6 @@
 package scala.cli.commands
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.RuntimeCommandsHelp
 
 import scala.build.Logger

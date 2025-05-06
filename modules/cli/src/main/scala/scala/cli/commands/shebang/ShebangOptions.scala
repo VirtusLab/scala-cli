@@ -1,6 +1,6 @@
 package scala.cli.commands.shebang
 
-import caseapp.*
+import caseapp._
 
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName, progName}

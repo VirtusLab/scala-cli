@@ -1,6 +1,6 @@
 package scala.cli.commands.repl
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasSharedOptions, HelpMessages, SharedOptions}

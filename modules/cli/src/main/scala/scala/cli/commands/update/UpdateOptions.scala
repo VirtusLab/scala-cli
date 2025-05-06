@@ -1,12 +1,12 @@
 package scala.cli.commands.update
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers.*
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 @HelpMessage(UpdateOptions.helpMessage, "", UpdateOptions.detailedHelpMessage)

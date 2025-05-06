@@ -4,7 +4,7 @@ import coursier.Repositories
 import coursier.cache.FileCache
 import coursier.core.Version
 import coursier.util.{Artifact, Task}
-import dependency.*
+import dependency._
 
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
 import scala.build.internal.{Constants, OsLibc, Runner}
@@ -13,7 +13,7 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.util.control.NonFatal
 
 object LauncherCli {

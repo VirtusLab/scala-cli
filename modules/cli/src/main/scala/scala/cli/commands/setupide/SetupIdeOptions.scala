@@ -1,6 +1,6 @@
 package scala.cli.commands.setupide
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.{baseRunnerName, fullRunnerName}
 import scala.cli.commands.shared.{

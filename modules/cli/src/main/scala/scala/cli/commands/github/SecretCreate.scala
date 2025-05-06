@@ -2,22 +2,22 @@ package scala.cli.commands.github
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import coursier.cache.ArchiveCache
-import sttp.client3.*
+import sttp.client3._
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.{PasswordOption, Secret}
 import scala.cli.errors.GitHubApiError
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 

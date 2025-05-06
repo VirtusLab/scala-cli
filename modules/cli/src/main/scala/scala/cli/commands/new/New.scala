@@ -1,7 +1,7 @@
 package scala.cli.commands.`new`
 
 import caseapp.core.RemainingArgs
-import dependency.*
+import dependency._
 
 import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}

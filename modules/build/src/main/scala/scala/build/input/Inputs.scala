@@ -8,7 +8,7 @@ import java.security.MessageDigest
 import scala.annotation.tailrec
 import scala.build.Directories
 import scala.build.errors.{BuildException, InputsException, WorkspaceError}
-import scala.build.input.ElementsUtils.*
+import scala.build.input.ElementsUtils._
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.options.Scope

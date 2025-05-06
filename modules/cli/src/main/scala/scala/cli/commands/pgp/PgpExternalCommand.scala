@@ -4,12 +4,12 @@ import coursier.Repositories
 import coursier.cache.{ArchiveCache, Cache, FileCache}
 import coursier.core.Version
 import coursier.util.Task
-import dependency.*
+import dependency._
 
 import java.io.File
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{
@@ -22,7 +22,7 @@ import scala.build.internal.{
 }
 import scala.build.options.BuildOptions
 import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned, options as bo}
+import scala.build.{Logger, Positioned, options => bo}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.commands.util.JvmUtils

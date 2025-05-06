@@ -1,6 +1,6 @@
 package scala.cli.launcher
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags

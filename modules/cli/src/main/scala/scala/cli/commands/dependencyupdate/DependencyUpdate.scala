@@ -1,6 +1,6 @@
 package scala.cli.commands.dependencyupdate
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 
 import scala.build.actionable.ActionableDependencyHandler
@@ -11,7 +11,7 @@ import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group: String                               = HelpCommandGroup.Main.toString

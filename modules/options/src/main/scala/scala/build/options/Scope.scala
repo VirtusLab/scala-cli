@@ -1,5 +1,4 @@
 package scala.build.options
-
 import scala.build.options.BuildRequirements
 
 sealed abstract class Scope(val name: String, private val index: Int) extends Product

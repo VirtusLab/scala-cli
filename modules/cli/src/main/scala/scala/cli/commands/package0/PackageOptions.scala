@@ -1,17 +1,17 @@
 package scala.cli.commands.package0
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.Help
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormatError}
-import scala.build.options.*
-import scala.build.options.packaging.*
+import scala.build.options._
+import scala.build.options.packaging._
 import scala.build.{BuildThreads, Positioned}
 import scala.cli.commands.package0.PackageOptions
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 import scala.cli.commands.tags
 
 @HelpMessage(PackageOptions.helpMessage, "", PackageOptions.detailedHelpMessage)

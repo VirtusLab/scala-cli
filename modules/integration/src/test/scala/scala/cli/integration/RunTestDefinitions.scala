@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class RunTestDefinitions

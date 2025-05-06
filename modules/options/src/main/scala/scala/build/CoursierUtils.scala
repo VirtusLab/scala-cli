@@ -5,7 +5,7 @@ import coursier.parse.{DependencyParser, ModuleParser}
 import dependency.{DependencyLike, NameAttributes}
 
 import scala.build.internal.Constants
-import scala.quoted.*
+import scala.quoted._
 
 def noArgs(args: Expr[Seq[Any]])(using Quotes): Unit = {} // TODO
 

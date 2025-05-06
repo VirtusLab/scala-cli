@@ -4,9 +4,9 @@ import dependency.AnyDependency
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Positioned
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.BuildException
-import scala.build.options.WithBuildRequirements.*
+import scala.build.options.WithBuildRequirements._
 import scala.build.options.{
   BuildOptions,
   ClassPathOptions,
@@ -15,7 +15,7 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.directives.Dependency.DependencyType
-import scala.build.preprocessing.directives.DirectiveUtil.*
+import scala.build.preprocessing.directives.DirectiveUtil._
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveExamples("//> using dep com.lihaoyi::os-lib:0.9.1")

@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.FileSystems
 
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.options.{BuildOptions, InternalOptions, PackageType}
 import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}

@@ -9,7 +9,7 @@ import java.util
 import java.util.zip.ZipFile
 
 import scala.cli.integration.TestUtil.removeAnsiColors
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.{Properties, Using}
 
 abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {

@@ -1,15 +1,14 @@
 package scala.build.actionable
-
 import coursier.Versions
 import coursier.core.{Latest, Version}
 import coursier.parse.RepositoryParser
-import dependency.*
+import dependency._
 
 import scala.build.EitherCps.{either, value}
-import scala.build.actionable.ActionableDiagnostic.*
+import scala.build.actionable.ActionableDiagnostic._
 import scala.build.errors.{BuildException, RepositoryFormatError, Severity}
 import scala.build.internal.Constants
-import scala.build.internal.Util.*
+import scala.build.internal.Util._
 import scala.build.options.BuildOptions
 import scala.build.options.ScalaVersionUtil.versions
 import scala.build.{Logger, Positioned}

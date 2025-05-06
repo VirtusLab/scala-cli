@@ -1,9 +1,9 @@
 package scala.cli.commands.update
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import coursier.core
 
 import java.net.{HttpURLConnection, URL, URLConnection}
@@ -11,12 +11,12 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Logger
 import scala.build.errors.CheckScalaCliVersionError
-import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
+import scala.build.internal.Constants.{ghName, ghOrg, version => scalaCliVersion}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.signing.shared.Secret
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.util.control.NonFatal
 import scala.util.{Properties, Try}
 

@@ -1,5 +1,4 @@
 package scala.build
-
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
 import coursier.paths.Util

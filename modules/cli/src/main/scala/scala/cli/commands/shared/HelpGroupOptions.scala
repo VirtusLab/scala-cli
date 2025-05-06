@@ -1,10 +1,10 @@
 package scala.cli.commands.shared
 
-import caseapp.*
-import caseapp.core.Scala3Helpers.*
+import caseapp._
+import caseapp.core.Scala3Helpers._
 import caseapp.core.help.{Help, HelpFormat}
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
 import scala.cli.commands.tags
 

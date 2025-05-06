@@ -1,21 +1,20 @@
 package scala.build.preprocessing
-
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.directives.{
   HasBuildOptions,
   HasBuildOptionsWithRequirements,
   HasBuildRequirements
 }
-import scala.build.errors.*
+import scala.build.errors._
 import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.internal.Util
-import scala.build.options.*
+import scala.build.options._
 import scala.build.preprocessing.directives.{
   DirectiveHandler,
   DirectiveUtil,

@@ -1,10 +1,10 @@
 package scala.cli.commands.shared
 
-import caseapp.*
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 
-import scala.build.interactive.Interactive.*
+import scala.build.interactive.Interactive._
 import scala.cli.commands.tags
 
 // format: off

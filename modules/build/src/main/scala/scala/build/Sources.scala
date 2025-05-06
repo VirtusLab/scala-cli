@@ -9,7 +9,7 @@ import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.preprocessing.*
+import scala.build.preprocessing._
 
 final case class Sources(
   paths: Seq[(os.Path, os.RelPath)],

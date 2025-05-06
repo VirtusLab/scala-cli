@@ -1,13 +1,13 @@
 package scala.cli.commands.default
 
-import caseapp.*
+import caseapp._
 import caseapp.core.Indexed
 
 import scala.build.Logger
 import scala.cli.ScalaCli
 import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.bloop.BloopExit
-import scala.cli.commands.default.LegacyScalaOptions.*
+import scala.cli.commands.default.LegacyScalaOptions._
 import scala.cli.commands.package0.Package
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.shared.HelpMessages.PowerString

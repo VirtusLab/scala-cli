@@ -1,5 +1,4 @@
 package scala.cli.commands.shared
-
 import caseapp.core.Arg
 
 import scala.build.input.ScalaCliInvokeData
@@ -7,7 +6,7 @@ import scala.build.internal.util.WarningMessages
 import scala.cli.ScalaCli
 import scala.cli.commands.{SpecificationLevel, tags}
 import scala.cli.config.Key
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object HelpMessages {
   lazy val PowerString: String = if ScalaCli.allowRestrictedFeatures then "" else "--power "

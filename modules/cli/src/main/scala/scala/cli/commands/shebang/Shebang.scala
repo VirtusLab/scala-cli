@@ -10,7 +10,7 @@ import scala.cli.CurrentParams
 import scala.cli.commands.run.Run
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object Shebang extends ScalaCommand[ShebangOptions] {
   override def stopAtFirstUnrecognized: Boolean = true

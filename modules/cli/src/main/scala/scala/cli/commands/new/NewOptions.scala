@@ -1,8 +1,8 @@
 package scala.cli.commands.`new`
 
-import caseapp.*
+import caseapp._
 
-import scala.cli.commands.shared.*
+import scala.cli.commands.shared._
 
 @HelpMessage(NewOptions.newMessage, "", NewOptions.detailedNewMessage)
 final case class NewOptions(

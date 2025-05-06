@@ -8,16 +8,16 @@ import com.virtuslab.using_directives.custom.model.{
   UsingDirectives,
   Value
 }
-import com.virtuslab.using_directives.custom.utils.ast.*
+import com.virtuslab.using_directives.custom.utils.ast._
 
 import scala.annotation.targetName
-import scala.build.errors.*
+import scala.build.errors._
 import scala.build.options.SuppressWarningOptions
-import scala.build.preprocessing.UsingDirectivesOps.*
+import scala.build.preprocessing.UsingDirectivesOps._
 import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
 import scala.build.{Logger, Position}
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 case class ExtractedDirectives(
   directives: Seq[StrictDirective],

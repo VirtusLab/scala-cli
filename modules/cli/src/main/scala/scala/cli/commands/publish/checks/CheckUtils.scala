@@ -3,7 +3,7 @@ package scala.cli.commands.publish.checks
 import java.net.URI
 
 import scala.build.Logger
-import scala.build.options.PublishOptions as BPublishOptions
+import scala.build.options.{PublishOptions => BPublishOptions}
 import scala.cli.commands.publish.{PublishSetupOptions, RepoParams}
 
 object CheckUtils {

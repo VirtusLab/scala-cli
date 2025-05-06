@@ -4,7 +4,7 @@ import coursier.jvm.Execve
 import org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv
 import org.scalajs.jsenv.nodejs.NodeJSEnv
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
-import org.scalajs.testing.adapter.TestAdapter as ScalaJsTestAdapter
+import org.scalajs.testing.adapter.{TestAdapter => ScalaJsTestAdapter}
 import sbt.testing.{Framework, Status}
 
 import java.io.File
@@ -13,11 +13,11 @@ import java.nio.file.{Files, Path, Paths}
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops.EitherSeqOps
-import scala.build.errors.*
+import scala.build.errors._
 import scala.build.internals.EnvVar
-import scala.build.testrunner.FrameworkUtils.*
+import scala.build.testrunner.FrameworkUtils._
 import scala.build.testrunner.{AsmTestRunner, TestRunner}
-import scala.scalanative.testinterface.adapter.TestAdapter as ScalaNativeTestAdapter
+import scala.scalanative.testinterface.adapter.{TestAdapter => ScalaNativeTestAdapter}
 import scala.util.{Failure, Properties, Success}
 
 object Runner {

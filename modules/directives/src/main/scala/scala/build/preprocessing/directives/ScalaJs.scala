@@ -4,7 +4,7 @@ import os.Path
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
-import scala.build.directives.*
+import scala.build.directives._
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaJsMode, ScalaJsOptions}

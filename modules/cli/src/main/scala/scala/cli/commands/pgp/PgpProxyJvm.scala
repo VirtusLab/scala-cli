@@ -7,7 +7,7 @@ import coursier.util.Task
 import java.nio.charset.StandardCharsets
 
 import scala.build.errors.BuildException
-import scala.build.{Logger, options as bo}
+import scala.build.{Logger, options => bo}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.cli.signing.commands.{PgpCreate, PgpCreateOptions, PgpKeyId}

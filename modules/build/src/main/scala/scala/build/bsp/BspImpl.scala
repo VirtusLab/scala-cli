@@ -1,7 +1,7 @@
 package scala.build.bsp
 
 import bloop.rifle.{BloopRifleConfig, BloopServer}
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
 import dependency.ScalaParameters
 import org.eclipse.lsp4j.jsonrpc
@@ -12,7 +12,7 @@ import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
 
 import scala.build.EitherCps.{either, value}
-import scala.build.*
+import scala.build._
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{
   BuildException,
@@ -26,7 +26,7 @@ import scala.build.options.{BuildOptions, Scope}
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.{Failure, Success}
 
 /** The implementation for [[Bsp]] command.

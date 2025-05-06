@@ -2,18 +2,18 @@ package scala.cli.commands.github
 
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import sttp.client3.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import sttp.client3._
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.config.Secret
 import scala.cli.errors.GitHubApiError
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object SecretList extends ScalaCommand[SecretListOptions] {
 

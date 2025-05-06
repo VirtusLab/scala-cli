@@ -1,5 +1,4 @@
 package scala.cli.commands.pgp
-
 import caseapp.core.app.Command
 
 class PgpCommands {

@@ -1,18 +1,18 @@
 package scala.cli.commands.bsp
 
-import caseapp.*
-import com.github.plokhotnyuk.jsoniter_scala.core.*
+import caseapp._
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 import scala.build.EitherCps.{either, value}
-import scala.build.*
+import scala.build._
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.launcher.LauncherOptions
@@ -152,10 +152,10 @@ object Bsp extends ScalaCommand[BspOptions] {
     }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
-      val sharedOptions    = getSharedOptions()
-      val launcherOptions  = getLauncherOptions()
-      val envs             = getEnvsFromFile()
-      val bloopRifleConfig = sharedOptions.bloopRifleConfig()
+      val sharedOptions   = getSharedOptions()
+      val launcherOptions = getLauncherOptions()
+      val envs            = getEnvsFromFile()
+      sharedOptions.bloopRifleConfig()
 
       refreshPowerMode(launcherOptions, sharedOptions, envs)
 

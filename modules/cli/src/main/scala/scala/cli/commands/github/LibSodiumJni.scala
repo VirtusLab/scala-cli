@@ -13,7 +13,7 @@ import scala.build.Logger
 import scala.build.errors.BuildException
 import scala.build.internal.{Constants, FetchExternalBinary}
 import scala.build.internals.EnvVar
-import scala.cli.internal.Constants as CliConstants
+import scala.cli.internal.{Constants => CliConstants}
 import scala.util.Properties
 import scala.util.control.NonFatal
 

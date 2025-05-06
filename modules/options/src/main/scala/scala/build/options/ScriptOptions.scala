@@ -1,5 +1,4 @@
 package scala.build.options
-
 import scala.build.internal.CodeWrapper
 
 final case class ScriptOptions(

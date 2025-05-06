@@ -11,7 +11,7 @@ import scala.cli.commands.shared.{
   HelpGroupOptions,
   ScalaCliHelp
 }
-import scala.cli.commands.util.HelpUtils.*
+import scala.cli.commands.util.HelpUtils._
 import scala.cli.launcher.LauncherOptions
 
 abstract class ScalaCommandWithCustomHelp[T <: HasGlobalOptions](

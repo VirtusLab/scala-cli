@@ -1,6 +1,6 @@
 package scala.cli.commands.directories
 
-import caseapp.*
+import caseapp._
 
 import scala.build.Logger
 import scala.cli.CurrentParams

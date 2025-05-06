@@ -25,7 +25,7 @@ final case class MavenProject(
 
   def writeTo(dir: os.Path): Unit = {
 
-    val nl      = System.lineSeparator()
+    System.lineSeparator()
     val charset = StandardCharsets.UTF_8
 
     val buildMavenContent = MavenModel(

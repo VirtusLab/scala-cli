@@ -1,6 +1,6 @@
 package scala.cli.commands.uninstallcompletions
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 
 import java.nio.charset.Charset
@@ -12,7 +12,7 @@ import scala.cli.commands.installcompletions.InstallCompletions
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.internal.ProfileFileUpdater
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 
 object UninstallCompletions extends ScalaCommand[UninstallCompletionsOptions] {
 

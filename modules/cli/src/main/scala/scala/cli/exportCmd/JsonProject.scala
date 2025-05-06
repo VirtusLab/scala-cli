@@ -11,7 +11,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.info.{BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
 import scala.build.options.ConfigMonoid
-import scala.cli.util.SeqHelpers.*
+import scala.cli.util.SeqHelpers._
 import scala.reflect.NameTransformer
 import scala.util.{Properties, Using}
 

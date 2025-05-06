@@ -1,10 +1,9 @@
 package scala.build
-
 import java.io.File
 
-import scala.build.CollectionOps.*
+import scala.build.CollectionOps._
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.Positioned
 import scala.build.errors.{
   BuildException,
@@ -13,8 +12,8 @@ import scala.build.errors.{
   MalformedDirectiveError,
   Severity
 }
-import scala.build.input.ElementsUtils.*
-import scala.build.input.*
+import scala.build.input.ElementsUtils._
+import scala.build.input._
 import scala.build.internal.Constants
 import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{
@@ -25,10 +24,10 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
-import scala.build.preprocessing.*
+import scala.build.preprocessing._
 import scala.build.testrunner.DynamicTestRunner.globPattern
 import scala.util.Try
-import scala.util.chaining.*
+import scala.util.chaining._
 
 /** Information gathered from preprocessing command inputs - sources (including unwrapped scripts)
   * and build options from using directives

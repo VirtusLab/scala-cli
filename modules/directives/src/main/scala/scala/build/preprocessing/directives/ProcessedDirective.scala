@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.preprocessing.Scoped
 

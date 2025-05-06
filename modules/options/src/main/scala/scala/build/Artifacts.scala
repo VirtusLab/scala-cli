@@ -5,13 +5,13 @@ import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, 
 import coursier.error.ResolutionError
 import coursier.util.Task
 import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
-import dependency.*
+import dependency._
 
 import java.net.URL
 
-import scala.build.CoursierUtils.*
+import scala.build.CoursierUtils._
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
+import scala.build.Ops._
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -20,8 +20,8 @@ import scala.build.errors.{
   ToolkitVersionError
 }
 import scala.build.internal.Constants
-import scala.build.internal.Constants.*
-import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.Constants._
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.Util.{PositionedScalaDependencyOps, ScalaModuleOps}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.collection.mutable

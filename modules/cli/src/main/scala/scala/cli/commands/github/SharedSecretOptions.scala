@@ -1,11 +1,11 @@
 package scala.cli.commands.github
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.{PasswordOption, Secret}
-import scala.cli.signing.util.ArgParsers.*
+import scala.cli.signing.util.ArgParsers._
 
 // format: off
 final case class SharedSecretOptions(

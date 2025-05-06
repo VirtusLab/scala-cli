@@ -1,13 +1,13 @@
 package scala.cli.commands.publish
 
-import caseapp.*
+import caseapp._
 
 import scala.build.internals.EnvVar
 import scala.cli.commands.shared.{HelpGroup, SharedVersionOptions}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers.*
-import scala.cli.util.ArgParsers.*
+import scala.cli.signing.util.ArgParsers._
+import scala.cli.util.ArgParsers._
 import scala.cli.util.MaybeConfigPasswordOption
 
 // format: off

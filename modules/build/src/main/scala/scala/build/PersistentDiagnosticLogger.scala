@@ -1,13 +1,13 @@
 package scala.build
 
 import bloop.rifle.BloopRifleLogger
-import org.scalajs.logging.Logger as ScalaJsLogger
+import org.scalajs.logging.{Logger => ScalaJsLogger}
 
 import java.io.PrintStream
 
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
-import scala.scalanative.build as sn
+import scala.scalanative.{build => sn}
 
 /** Used to collect and send diagnostics to the build client when operating as a BSP */
 class PersistentDiagnosticLogger(parent: Logger) extends Logger {

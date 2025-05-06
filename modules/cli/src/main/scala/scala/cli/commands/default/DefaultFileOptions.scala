@@ -1,6 +1,6 @@
 package scala.cli.commands.default
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}

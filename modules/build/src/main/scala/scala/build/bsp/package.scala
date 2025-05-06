@@ -1,11 +1,11 @@
 package scala.build
 
 import ch.epfl.scala.bsp4j.SourcesItem
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 
 import java.util.concurrent.CompletableFuture
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 package object bsp {
 

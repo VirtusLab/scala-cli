@@ -5,10 +5,10 @@ import caseapp.core.RemainingArgs
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherMap2
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.*
+import scala.build.input._
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
-import scala.build.preprocessing.directives.*
+import scala.build.preprocessing.directives._
 import scala.build.preprocessing.{ExtractedDirectives, SheBang}
 import scala.build.{BuildThreads, CrossSources, Logger, Position, Sources}
 import scala.cli.commands.shared.SharedOptions

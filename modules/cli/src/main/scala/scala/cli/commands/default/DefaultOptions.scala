@@ -1,6 +1,6 @@
 package scala.cli.commands.default
 
-import caseapp.*
+import caseapp._
 
 import scala.cli.commands.repl.SharedReplOptions
 import scala.cli.commands.run.SharedRunOptions

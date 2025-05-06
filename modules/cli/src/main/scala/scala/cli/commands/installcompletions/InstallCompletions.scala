@@ -1,6 +1,6 @@
 package scala.cli.commands.installcompletions
 
-import caseapp.*
+import caseapp._
 import caseapp.core.complete.{Bash, Fish, Zsh}
 import caseapp.core.help.HelpFormat
 
@@ -14,7 +14,7 @@ import scala.build.{Directories, Logger}
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.internal.{Argv0, ProfileFileUpdater}
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.{CurrentParams, ScalaCli}
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(

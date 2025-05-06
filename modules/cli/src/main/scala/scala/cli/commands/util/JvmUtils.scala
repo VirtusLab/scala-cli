@@ -5,11 +5,11 @@ import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.{BuildException, JvmDownloadError, UnrecognizedDebugModeError}
-import scala.build.internal.CsLoggerUtil.*
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.OsLibc
 import scala.build.options.BuildOptions.JavaHomeInfo
 import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
-import scala.build.{Os, Position, Positioned, options as bo}
+import scala.build.{Os, Position, Positioned, options => bo}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions, SharedOptions}
 import scala.concurrent.ExecutionContextExecutorService
 import scala.util.control.NonFatal
@@ -72,7 +72,7 @@ object JvmUtils {
     implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
     val javaHomeManager = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
-    val logger = javaHomeManager.cache
+    javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)
       .getOrElse(_root_.coursier.cache.CacheLogger.nop)
 

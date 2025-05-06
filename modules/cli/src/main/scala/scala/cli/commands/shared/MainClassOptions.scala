@@ -1,6 +1,6 @@
 package scala.cli.commands.shared
 
-import caseapp.*
+import caseapp._
 
 import scala.build.errors.{MainClassError, NoMainClassFoundError}
 import scala.cli.commands.tags

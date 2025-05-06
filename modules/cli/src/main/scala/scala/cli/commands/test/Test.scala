@@ -1,20 +1,20 @@
 package scala.cli.commands.test
 
-import caseapp.*
+import caseapp._
 import caseapp.core.help.HelpFormat
 
 import java.nio.file.Path
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
-import scala.build.*
+import scala.build.Ops._
+import scala.build._
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.options.{BuildOptions, JavaOpt, Platform, Scope}
 import scala.build.testrunner.AsmTestRunner
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil.*
+import scala.cli.commands.publish.ConfigUtil._
 import scala.cli.commands.run.Run
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
@@ -22,7 +22,7 @@ import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar
-import scala.cli.util.ArgHelpers.*
+import scala.cli.util.ArgHelpers._
 import scala.cli.util.ConfigDbUtils
 
 object Test extends ScalaCommand[TestOptions] {

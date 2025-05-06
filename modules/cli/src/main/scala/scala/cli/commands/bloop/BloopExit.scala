@@ -1,7 +1,7 @@
 package scala.cli.commands.bloop
 
 import bloop.rifle.{BloopRifle, BloopRifleConfig}
-import caseapp.*
+import caseapp._
 
 import scala.build.{Directories, Logger, Os}
 import scala.cli.CurrentParams

@@ -1,11 +1,10 @@
 package scala.build.options
-
-import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import coursier.cache.{ArchiveCache, FileCache, UnArchiver}
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
-import dependency.*
+import dependency._
 
 import java.io.File
 import java.math.BigInteger
@@ -14,11 +13,11 @@ import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
 import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
-import scala.build.errors.*
+import scala.build.errors._
 import scala.build.interactive.Interactive
-import scala.build.interactive.Interactive.*
-import scala.build.internal.Constants.*
-import scala.build.internal.CsLoggerUtil.*
+import scala.build.interactive.Interactive._
+import scala.build.internal.Constants._
+import scala.build.internal.CsLoggerUtil._
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, StableScalaVersion, Util}
 import scala.build.internals.EnvVar
@@ -27,7 +26,7 @@ import scala.build.options.validation.BuildOptionsRule
 import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.util.Properties
 import scala.util.control.NonFatal
 

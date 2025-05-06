@@ -7,7 +7,7 @@ import java.security.SecureRandom
 
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
-import scala.build.{Logger, options as bo}
+import scala.build.{Logger, options => bo}
 import scala.cli.commands.pgp.PgpProxyMaker
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
