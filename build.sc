@@ -1,7 +1,7 @@
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.24`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.29`
-import $file.project.deps, deps.{Deps, Docker, InternalDeps, Java, Scala, TestDeps}
+import $file.project.deps, deps.{Cli, Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import $file.project.publish, publish.{ghOrg, ghName, ScalaCliPublishModule, organization}
 import $file.project.settings, settings.{
   CliLaunchers,
@@ -454,6 +454,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def runnerOrganization = "${runner(Scala.runnerScala3).pomSettings().organization}"
          |  def runnerModuleName = "${runner(Scala.runnerScala3).artifactName()}"
          |  def runnerVersion = "${runner(Scala.runnerScala3).publishVersion()}"
+         |  def runnerLegacyVersion = "${Cli.runnerLegacyVersion}"
          |  def runnerMainClass = "$runnerMainClass"
          |
          |  def semanticDbPluginOrganization = "${Deps.semanticDbScalac.dep.module.organization
@@ -1060,6 +1061,9 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def maxAmmoniteScala213Version   = "${Scala.maxAmmoniteScala213Version}"
            |  def maxAmmoniteScala3Version     = "${Scala.maxAmmoniteScala3Version}"
            |  def maxAmmoniteScala3LtsVersion  = "${Scala.maxAmmoniteScala3LtsVersion}"
+           |  def legacyScala3Versions         = Seq(${Scala.legacyScala3Versions.map(p =>
+            s"\"$p\""
+          ).mkString(", ")})
            |  def scalaJsVersion               = "${Scala.scalaJs}"
            |  def scalaJsCliVersion            = "${Scala.scalaJsCli}"
            |  def scalaNativeVersion           = "${Deps.Versions.scalaNative}"
@@ -1069,6 +1073,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def ammoniteVersion              = "${Deps.ammonite.dep.version}"
            |  def defaultGraalVMJavaVersion    = "${deps.graalVmJavaVersion}"
            |  def defaultGraalVMVersion        = "${deps.graalVmVersion}"
+           |  def runnerLegacyVersion          = "${Cli.runnerLegacyVersion}"
            |  def scalaPyVersion               = "${Deps.scalaPy.dep.version}"
            |  def scalaPyMaxScalaNative        = "${Deps.Versions.maxScalaNativeForScalaPy}"
            |  def bloopVersion                 = "${Deps.bloopRifle.dep.version}"

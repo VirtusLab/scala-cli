@@ -4,6 +4,7 @@ import caseapp.*
 import coursier.core.Version
 
 import scala.build.EitherCps.{either, value}
+import scala.build.coursierVersion
 import scala.build.errors.BuildException
 import scala.build.internal.FetchExternalBinary
 import scala.build.options.BuildOptions
@@ -16,7 +17,6 @@ import scala.cli.commands.shared.{
   SharedOptions
 }
 import scala.cli.commands.{Constants, tags}
-import scala.cli.coursierVersion
 import scala.util.Properties
 
 // format: off

@@ -2400,4 +2400,18 @@ abstract class RunTestDefinitions
       expect(res.out.trim() == expectedOutput)
     }
   }
+
+  test(
+    s"run a simple hello world with the runner module on the classpath and Scala $actualScalaVersion"
+  ) {
+    val expectedMessage     = "Hello, world!"
+    val legacyRunnerWarning = "Defaulting to a legacy runner module version"
+    TestInputs(os.rel / "script.sc" -> s"""println("$expectedMessage")""")
+      .fromRoot { root =>
+        val res = os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions)
+          .call(cwd = root, stderr = os.Pipe)
+        expect(res.out.trim() == expectedMessage)
+        expect(!res.err.trim().contains(legacyRunnerWarning))
+      }
+  }
 }

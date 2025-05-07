@@ -2,12 +2,16 @@ import Deps.Versions
 import mill._
 import scalalib._
 
+object Cli {
+  def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
+}
+
 object Scala {
-  def scala212        = "2.12.20"
-  def scala213        = "2.13.16"
-  def runnerScala3    = "3.0.2" // the newest version that is compatible with all Scala 3.x versions
-  def scala3LtsPrefix = "3.3"   // used for the LTS version tags
+  def scala212         = "2.12.20"
+  def scala213         = "2.13.16"
+  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
   def scala3Lts        = s"$scala3LtsPrefix.5"  // the LTS version currently used in the build
+  def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.7"
   def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
   def scala3NextAnnounced   = "3.6.4"     // the newest/next version of Scala that's been announced
@@ -27,14 +31,18 @@ object Scala {
   val scala3MainVersions  = (defaults ++ allScala3).distinct
   val mainVersions        = (Seq(scala213) ++ scala3MainVersions).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
-  val testRunnerScalaVersions = runnerScalaVersions ++ allScala3
+  val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
 
   def scalaJs    = "1.19.0"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
 
+  private def patchVer(sv: String): Int =
+    sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
+
+  private def minorVer(sv: String): Int =
+    sv.split('.').drop(1).head.takeWhile(_.isDigit).toInt
+
   def listAll: Seq[String] = {
-    def patchVer(sv: String): Int =
-      sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
     val max212 = patchVer(scala212)
     val max213 = patchVer(scala213)
     val max30  = 2
@@ -56,6 +64,12 @@ object Scala {
       (0 to max36).map(i => s"3.6.$i") ++
       (0 until max37).map(i => s"3.7.$i") ++ Seq(scala3Next)
   }
+
+  def legacyScala3Versions =
+    listAll
+      .filter(_.startsWith("3"))
+      .distinct
+      .filter(minorVer(_) < minorVer(scala3Lts))
 
   def maxAmmoniteScala212Version  = scala212
   def maxAmmoniteScala213Version  = scala213

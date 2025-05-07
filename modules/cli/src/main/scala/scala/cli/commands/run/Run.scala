@@ -16,6 +16,7 @@ import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt, Scope}
 import scala.cli.CurrentParams
@@ -103,6 +104,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         addRunnerDependencyOpt = baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse {
           runMode(options) match {
             case _: RunMode.Spark | RunMode.HadoopJar =>
+              logger.debug(s"$warnPrefix Skipping the runner dependency when running Spark/Hadoop.")
               Some(false)
             case RunMode.Default => None
           }

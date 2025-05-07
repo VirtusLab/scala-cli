@@ -27,6 +27,9 @@ object TestUtil {
   val cli: Seq[String]             = cliCommand(cliPath)
   val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
 
+  lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
+    Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
+
   def cliCommand(cliPath: String): Seq[String] =
     if (isNativeCli)
       Seq(cliPath)
@@ -367,4 +370,10 @@ object TestUtil {
         Thread.sleep(200L)
         if (proc.isAlive()) proc.destroyForcibly()
       }
+
+  implicit class StringOps(a: String) {
+    def countOccurrences(b: String): Int =
+      if (b.isEmpty) 0 // Avoid infinite splitting
+      else a.sliding(b.length).count(_ == b)
+  }
 }

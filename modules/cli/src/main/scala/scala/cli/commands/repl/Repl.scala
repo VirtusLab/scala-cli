@@ -37,7 +37,7 @@ import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
-import scala.cli.{CurrentParams, ScalaCli, coursierVersion}
+import scala.cli.{CurrentParams, ScalaCli}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 

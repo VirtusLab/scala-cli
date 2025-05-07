@@ -23,6 +23,7 @@ import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Util.{PositionedScalaDependencyOps, ScalaModuleOps}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.collection.mutable
 
 final case class Artifacts(
@@ -129,11 +130,32 @@ object Artifacts {
   ): Either[BuildException, Artifacts] = either {
     val dependencies = defaultDependencies ++ extraDependencies
 
+    val scalaVersion = (for {
+      scalaArtifactsParams <- scalaArtifactsParamsOpt
+      scalaParams  = scalaArtifactsParams.params
+      scalaVersion = scalaParams.scalaVersion
+    } yield scalaVersion).getOrElse(defaultScalaVersion)
+
+    val shouldUseLegacyRunners =
+      scalaVersion.startsWith("3") &&
+      scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
+
     val jvmTestRunnerDependencies =
-      if (addJvmTestRunner)
-        Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion")
-      else
-        Nil
+      if addJvmTestRunner then {
+        val testRunnerVersion0 =
+          if shouldUseLegacyRunners then {
+            logger.message(
+              s"""$warnPrefix Scala $scalaVersion is no longer supported by the test-runner module.
+                 |$warnPrefix Defaulting to a legacy test-runner module version: $runnerLegacyVersion.
+                 |$warnPrefix To use the latest test-runner, upgrade Scala to at least $scala3LtsPrefix."""
+                .stripMargin
+            )
+            runnerLegacyVersion
+          }
+          else testRunnerVersion
+        Seq(dep"$testRunnerOrganization::$testRunnerModuleName:$testRunnerVersion0")
+      }
+      else Nil
 
     val jmhDependencies = addJmhDependencies.toSeq
       .map(version => dep"${Constants.jmhOrg}:${Constants.jmhGeneratorBytecodeModule}:$version")
@@ -399,18 +421,29 @@ object Artifacts {
     }
 
     val (hasRunner, extraRunnerJars) =
-      if (scalaOpt.nonEmpty) {
+      if scalaOpt.nonEmpty then {
         val addJvmRunner0 = addJvmRunner.getOrElse(false)
         val runnerJars =
-          if (addJvmRunner0) {
+          if addJvmRunner0 then {
             val maybeSnapshotRepo =
-              if (runnerVersion.endsWith("SNAPSHOT"))
+              if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(coursier.Repositories.sonatype("snapshots"))
               else Nil
+            val runnerVersion0 =
+              if shouldUseLegacyRunners then {
+                logger.message(
+                  s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
+                     |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.
+                     |$warnPrefix To use the latest runner, upgrade Scala to at least $scala3LtsPrefix."""
+                    .stripMargin
+                )
+                runnerLegacyVersion
+              }
+              else runnerVersion
             value {
               artifacts(
                 Seq(Positioned.none(
-                  dep"$runnerOrganization::$runnerModuleName:$runnerVersion,intransitive"
+                  dep"$runnerOrganization::$runnerModuleName:$runnerVersion0,intransitive"
                 )),
                 extraRepositories ++ maybeSnapshotRepo,
                 scalaArtifactsParamsOpt.map(_.params),
