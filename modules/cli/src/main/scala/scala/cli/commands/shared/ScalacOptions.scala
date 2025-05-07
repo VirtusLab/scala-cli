@@ -52,31 +52,58 @@ object ScalacOptions {
   private val replAliasedOptions        = Set(replInitScript)
   private val scalacAliasedOptions = // these options don't require being passed after -O and accept an arg
     Set(
+      "bootclasspath",
+      "boot-class-path",
       "coverage-exclude-classlikes",
       "coverage-exclude-files",
       "encoding",
+      "extdirs",
+      "extension-directories",
+      "javabootclasspath",
+      "java-boot-class-path",
+      "javaextdirs",
+      "java-extension-directories",
+      "java-output-version",
       "release",
       "color",
       "g",
       "language",
       "opt",
+      "pagewidth",
+      "page-width",
       "target",
+      "scalajs-mapSourceURI",
+      "scalajs-genStaticForwardersForNonTopLevelObjects",
       "source",
+      "sourcepath",
+      "source-path",
+      "sourceroot",
       YScriptRunnerOption
     ) ++ replAliasedOptions
   private val scalacNoArgAliasedOptions = // these options don't require being passed after -O and don't accept an arg
     Set(
       "experimental",
       "explain",
+      "explaintypes",
+      "explain-types",
+      "explain-cyclic",
+      "from-tasty",
       "unchecked",
       "nowarn",
+      "no-warnings",
       "feature",
       "deprecation",
       "rewrite",
+      "scalajs",
       "old-syntax",
+      "print-tasty",
+      "print-lines",
       "new-syntax",
       "indent",
-      "no-indent"
+      "no-indent",
+      "preview",
+      "uniqid",
+      "unique-id"
     )
 
   /** This includes all the scalac options which disregard inputs and print a help and/or context
@@ -97,8 +124,9 @@ object ScalacOptions {
   /** This includes all the scalac options which are redirected to native Scala CLI options. */
   val ScalaCliRedirectedOptions: Set[String] = Set(
     "classpath",
-    "cp", // redirected to --extra-jars
-    "d"   // redirected to --compilation-output
+    "cp",         // redirected to --extra-jars
+    "class-path", // redirected to --extra-jars
+    "d"           // redirected to --compilation-output
   )
   val ScalacDeprecatedOptions: Set[String] = Set(
     YScriptRunnerOption // old 'scala' runner specific, no longer supported
