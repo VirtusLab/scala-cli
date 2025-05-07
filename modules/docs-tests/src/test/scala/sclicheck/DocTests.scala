@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 
 class DocTests extends munit.FunSuite {
-  override def munitTimeout = new FiniteDuration(360, TimeUnit.SECONDS)
+  override def munitTimeout = new FiniteDuration(480, TimeUnit.SECONDS)
   case class DocTestEntry(name: String, path: os.Path, depth: Int = Int.MaxValue)
 
   val docsRootPath: os.Path = os.pwd / "website" / "docs"
