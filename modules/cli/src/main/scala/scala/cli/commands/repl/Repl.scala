@@ -75,18 +75,18 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     val maybeDowngradedScalaVersion = {
       val isDefaultAmmonite = ammonite.contains(true) && ammoniteVersionOpt.isEmpty
       extension (s: MaybeScalaVersion)
-        private def isLts: Boolean = s.versionOpt
-          .exists(v =>
-            v.startsWith(Constants.scala3LtsPrefix) ||
-            ScalaVersionUtil.scala3Lts.contains(v.toLowerCase)
-          )
+        private def isLtsAlias: Boolean =
+          s.versionOpt.exists(v => ScalaVersionUtil.scala3Lts.contains(v.toLowerCase))
+        private def isLts: Boolean =
+          s.versionOpt.exists(_.startsWith(Constants.scala3LtsPrefix)) || isLtsAlias
       baseOptions.scalaOptions.scalaVersion match
         case Some(s)
-            if isDefaultAmmonite && s.isLts && s.versionOpt
-              .exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) =>
-          logger.message(
-            s"Scala ${s.versionOpt.getOrElse(Constants.scala3Lts)} is not yet supported with this version of Ammonite"
-          )
+            if isDefaultAmmonite && s.isLts &&
+            (s.versionOpt
+              .exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) ||
+            s.isLtsAlias) =>
+          val versionString = s.versionOpt.filter(_ => !s.isLtsAlias).getOrElse(Constants.scala3Lts)
+          logger.message(s"Scala $versionString is not yet supported with this version of Ammonite")
           logger.message(s"Defaulting to Scala $maxAmmoniteScalaLtsVer")
           Some(MaybeScalaVersion(maxAmmoniteScalaLtsVer))
         case None
