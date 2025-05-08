@@ -381,6 +381,13 @@ object CrossSources {
       buildOptions,
       unwrappedScripts
     )
+
+    val scalaV = buildOptions.map(_.value.scalaParams)
+//    val asd    = buildOptions.map(v => value(v.value.scalaParams))
+    val asd = buildOptions.map(v => crossSources.sharedOptions(v.value))
+
+    // val s = crossSources.sharedOptions(buildOptions)
+    println("details = " + asd)
     crossSources -> finalInputs
   }
 
