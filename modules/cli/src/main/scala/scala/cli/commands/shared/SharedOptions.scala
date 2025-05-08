@@ -284,6 +284,7 @@ final case class SharedOptions(
       modeStr = nativeMode,
       ltoStr = nativeLto,
       gcStr = nativeGc,
+      targetTripleStr = nativeTargetTriple,
       clang = nativeClang,
       clangpp = nativeClangpp,
       linkingOptions = nativeLinking,
