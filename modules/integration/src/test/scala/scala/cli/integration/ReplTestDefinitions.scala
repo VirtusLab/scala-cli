@@ -87,25 +87,26 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
     }
   }
 
-  test("--repl-init-script dry run") {
-    TestInputs.empty.fromRoot { root =>
-      val r = os.proc(
-        TestUtil.cli,
-        "repl",
-        extraOptions,
-        "--repl-init-script",
-        "println(\"Hello\")",
-        "--repl-dry-run"
-      )
-        .call(cwd = root, stderr = os.Pipe, check = false)
-      val warningText =
-        "The '--repl-init-script option' is only supported starting with Scala 3.6.4 and onwards."
-      val coursierScalaVersion = actualScalaVersion.coursierVersion
-      val shouldPrintWarning = coursierScalaVersion < "3.6.4".coursierVersion &&
-        coursierScalaVersion < "3.6.4-RC1".coursierVersion &&
-        coursierScalaVersion < "3.6.4-RC1-bin-20250109-a50a1e4-NIGHTLY".coursierVersion
-      if (shouldPrintWarning) expect(r.err.trim().contains(warningText))
-      else expect(!r.err.trim().contains(warningText))
+  if (
+    (actualScalaVersion.startsWith("3.3") &&
+    actualScalaVersion.coursierVersion >= "3.3.7".coursierVersion) ||
+    actualScalaVersion.startsWith("3.7") ||
+    actualScalaVersion.coursierVersion >= "3.7.0-RC1".coursierVersion
+  )
+    test("run hello world from the REPL") {
+      TestInputs.empty.fromRoot { root =>
+        val expectedMessage = "1337"
+        val code            = s"""println($expectedMessage)"""
+        val r = os.proc(
+          TestUtil.cli,
+          "repl",
+          "--repl-quit-after-init",
+          "--repl-init-script",
+          code,
+          extraOptions
+        )
+          .call(cwd = root)
+        expect(r.out.trim() == expectedMessage)
+      }
     }
-  }
 }
