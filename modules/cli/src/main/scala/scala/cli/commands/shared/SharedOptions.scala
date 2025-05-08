@@ -443,7 +443,8 @@ final case class SharedOptions(
           strictBloopJsonCheck = strictBloopJsonCheck,
           interactive = Some(() => interactive),
           exclude = exclude.map(Positioned.commandLine),
-          offline = coursier.getOffline()
+          offline = coursier.getOffline(),
+          logCliVersion = logging.logCliVersion
         ),
         notForBloopOptions = bo.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js),
