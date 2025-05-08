@@ -1,15 +1,16 @@
 package scala.build
 
-import _root_.bloop.config.{Config => BloopConfig, ConfigCodecs => BloopCodecs}
-import _root_.coursier.{Dependency => CsDependency, core => csCore, util => csUtil}
-import com.github.plokhotnyuk.jsoniter_scala.core.{writeToArray => writeAsJsonToArray}
+import _root_.bloop.config.{Config as BloopConfig, ConfigCodecs as BloopCodecs}
+import _root_.coursier.{Dependency as CsDependency, core as csCore, util as csUtil}
+import bloop.config.Config.{SourceGenerator, SourcesGlobs}
+import bloop.config.PlatformFiles
+import com.github.plokhotnyuk.jsoniter_scala.core.writeToArray as writeAsJsonToArray
 import coursier.core.Classifier
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import java.util.Arrays
-
 import scala.build.options.{ScalacOpt, Scope, ShadowingSeq}
 
 final case class Project(
@@ -65,7 +66,12 @@ final case class Project(
         platform = Some(platform),
         `scala` = scalaConfigOpt,
         java = Some(BloopConfig.Java(javacOptions)),
-        resolution = resolution
+        resolution = resolution,
+        sourceGenerators = Some(List(SourceGenerator(
+          List(SourcesGlobs(PlatformFiles.getPath(workspace.toString), None, "glob:*.proto" :: Nil, Nil)),
+          PlatformFiles.getPath(workspace.toString),
+          List("scala-cli", "{some_path}/scala-cli-sandbox/gen.scala", "--server=false", "--")
+        )))
       )
   }
 
