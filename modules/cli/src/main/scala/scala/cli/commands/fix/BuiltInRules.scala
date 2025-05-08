@@ -20,12 +20,12 @@ import scala.collection.immutable.HashMap
 import scala.util.chaining.scalaUtilChainingOps
 
 object BuiltInRules extends CommandHelpers {
-  private lazy val targetDirectivesKeysSet = DirectivesPreprocessingUtils.requireDirectiveHandlers
+  private lazy val targetDirectivesKeysSet = Directives.requireDirectiveHandlers
     .flatMap(_.keys.flatMap(_.nameAliases)).toSet
-  private lazy val usingDirectivesKeysGrouped = DirectivesPreprocessingUtils.usingDirectiveHandlers
+  private lazy val usingDirectivesKeysGrouped = Directives.usingDirectiveHandlers
     .flatMap(_.keys)
   private lazy val usingDirectivesWithTestPrefixKeysGrouped =
-    DirectivesPreprocessingUtils.usingDirectiveWithReqsHandlers
+    Directives.usingDirectiveWithReqsHandlers
       .flatMap(_.keys)
 
   private lazy val directiveTestPrefix = "test."
