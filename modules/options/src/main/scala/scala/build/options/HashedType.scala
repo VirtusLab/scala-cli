@@ -47,6 +47,10 @@ object HashedType {
     pf => pf.repr
   }
 
+  implicit val presetOption: HashedType[ScalacOpt.PresetOption] = {
+    opt => opt.preset
+  }
+
   implicit val unit: HashedType[Unit] = {
     _ => ""
   }

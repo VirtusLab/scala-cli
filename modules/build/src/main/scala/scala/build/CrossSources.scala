@@ -1,7 +1,6 @@
 package scala.build
 
 import java.io.File
-
 import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -17,11 +16,14 @@ import scala.build.input.ElementsUtils.*
 import scala.build.input.*
 import scala.build.internal.Constants
 import scala.build.internal.util.{RegexUtils, WarningMessages}
+import scala.build.options.ScalacOpt.PresetOption
 import scala.build.options.{
   BuildOptions,
   BuildRequirements,
   MaybeScalaVersion,
+  ScalacOpt,
   Scope,
+  ShadowingSeq,
   SuppressWarningOptions,
   WithBuildRequirements
 }
@@ -261,15 +263,70 @@ object CrossSources {
       else fromDirectives
     }
 
+    def resolveScalacOptionsForPreset(
+      mayBeScalaVersion: Option[MaybeScalaVersion],
+      presetOption: PresetOption
+    ): Seq[Positioned[ScalacOpt]] = {
+      // todo: I don't think this is the right approach
+      val scalaVersion = mayBeScalaVersion.flatMap(_.versionOpt) match {
+        case Some(version) => version
+        case None          => Constants.defaultScalaVersion
+      }
+
+      presetOption match {
+        case PresetOption.Suggested =>
+          presetOptionsSuggested(scalaVersion).map(Positioned.none)
+
+        case PresetOption.CI =>
+          presetOptionsCI(scalaVersion).map(Positioned.none)
+
+        case PresetOption.Strict =>
+          presetOptionsStrict(scalaVersion).map(Positioned.none)
+
+      }
+
+    }
+
+    def buildOptionWithPreset(opts: BuildOptions): BuildOptions = {
+      val scalaVersion    = opts.scalaOptions.scalaVersion
+      val scalacOpts      = opts.scalaOptions.scalacOptions
+      val scalacPresetOpt = opts.scalaOptions.scalacPresetOption
+      if (scalacPresetOpt.isDefined && scalacOpts.keys.nonEmpty) {
+        val scalacMsg = WarningMessages.conflictingScalacOptions(
+          scalacPresetOpt.map(
+            _.preset
+          ).get, // safe to do get here since we have check before
+          scalacOpts.keys.map(_.value.value)
+        )
+        logger.diagnostic(
+          scalacMsg,
+          Severity.Warning,
+          Nil // todo: fix this
+        )
+        opts
+      }
+      else if (scalacPresetOpt.isDefined && scalacOpts.keys.isEmpty)
+        // resolve the preset options and set into BuildOptions
+        val resolvedOpts =
+          resolveScalacOptionsForPreset(opts.scalaOptions.scalaVersion, scalacPresetOpt.get)
+        opts.copy(
+          scalaOptions = opts.scalaOptions.copy(scalacOptions = ShadowingSeq.from(resolvedOpts))
+        )
+      else
+        opts
+
+    }
+
     val buildOptions: Seq[WithBuildRequirements[BuildOptions]] = (for {
       preprocessedSource <- preprocessedSources
       opts               <- preprocessedSource.options.toSeq
-      if opts != BuildOptions() || preprocessedSource.optionsWithTargetRequirements.nonEmpty
+      optsWithPreset = buildOptionWithPreset(opts)
+      if optsWithPreset != BuildOptions() || preprocessedSource.optionsWithTargetRequirements.nonEmpty
     } yield {
       val baseReqs0 = baseReqs(preprocessedSource.scopePath)
       preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
         preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-        opts
+        optsWithPreset
       )
     }).flatten
 
@@ -497,4 +554,91 @@ object CrossSources {
       Severity.Warning,
       transitiveAdditionalSource.positions
     )
+
+  private def presetOptionsSuggested(scalaVersion: String) =
+    scalaVersion match {
+      case v if v.startsWith("2.12") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+      case v if v.startsWith("2.13") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+
+      case v if v.startsWith("3.0") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+    }
+
+  private def presetOptionsCI(scalaVersion: String) =
+    scalaVersion match {
+      case v if v.startsWith("2.12") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+      case v if v.startsWith("2.13") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+
+      case v if v.startsWith("3.0") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+    }
+
+  private def presetOptionsStrict(scalaVersion: String) =
+    scalaVersion match {
+      case v if v.startsWith("2.12") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+      case v if v.startsWith("2.13") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+
+      case v if v.startsWith("3.0") =>
+        List(
+          "-encoding",
+          "utf8",
+          "-deprecation",
+          "-feature",
+          "-unchecked"
+        ).map(ScalacOpt.apply)
+    }
 }

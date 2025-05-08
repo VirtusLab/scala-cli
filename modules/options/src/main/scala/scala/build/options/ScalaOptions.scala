@@ -4,6 +4,7 @@ import dependency.AnyDependency
 
 import scala.build.Positioned
 import scala.build.internal.Constants
+import scala.build.options.ScalacOpt.PresetOption
 
 final case class ScalaOptions(
   scalaVersion: Option[MaybeScalaVersion] = None,
@@ -12,6 +13,7 @@ final case class ScalaOptions(
   addScalaCompiler: Option[Boolean] = None,
   semanticDbOptions: SemanticDbOptions = SemanticDbOptions(),
   scalacOptions: ShadowingSeq[Positioned[ScalacOpt]] = ShadowingSeq.empty,
+  scalacPresetOption: Option[PresetOption] = None,
   extraScalaVersions: Set[String] = Set.empty,
   compilerPlugins: Seq[Positioned[AnyDependency]] = Nil,
   platform: Option[Positioned[Platform]] = None,
