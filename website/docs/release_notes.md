@@ -10,8 +10,9 @@ import ReactPlayer from 'react-player'
 
 ## [v1.8.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.0)
 
-### Support for Scala 3.7.0
+### Support for Scala 3.7.0 and 3.3.6
 This Scala CLI version switches the default Scala version to 3.7.0.
+The CLI internals are now built with Scala 3.3.6.
 
 ```bash
 scala-cli version
@@ -19,7 +20,7 @@ scala-cli version
 # Scala version (default): 3.7.0
 ```
 
-Added by [@Gedochao](https://github.com/Gedochao) in [#3661](https://github.com/VirtusLab/scala-cli/pull/3661)
+Added by [@Gedochao](https://github.com/Gedochao) in [#3661](https://github.com/VirtusLab/scala-cli/pull/3661) and [#3671](https://github.com/VirtusLab/scala-cli/pull/3671)
 
 ### Support for Scala.js 1.19.0
 This Scala CLI version adds support for Scala.js 1.19.0.
@@ -188,6 +189,8 @@ Added by [@Gedochao](https://github.com/Gedochao) in [#3653](https://github.com/
 * Bump Scala 3 Next RC to 3.7.1-RC1 by [@Gedochao](https://github.com/Gedochao) in [#3663](https://github.com/VirtusLab/scala-cli/pull/3663)
 * Update `runner` & `test-runner` to Scala 3.3.5 LTS (was 3.0.2) by [@Gedochao](https://github.com/Gedochao) in [#3650](https://github.com/VirtusLab/scala-cli/pull/3650)
 * Update `scalafmt` to 3.9.6 by [@scala-steward](https://github.com/scala-steward) in [#3667](https://github.com/VirtusLab/scala-cli/pull/3667)
+* chore: Bump Bloop to 2.0.10 by [@tgodzik](https://github.com/tgodzik) in [#3670](https://github.com/VirtusLab/scala-cli/pull/3670)
+* Bump Scala 3 LTS to 3.3.6 by [@Gedochao](https://github.com/Gedochao) in [#3671](https://github.com/VirtusLab/scala-cli/pull/3671)
 
 **Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.7.1...v1.8.0
 
