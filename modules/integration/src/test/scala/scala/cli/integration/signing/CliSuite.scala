@@ -5,11 +5,11 @@ import scala.concurrent.duration.{Duration, FiniteDuration}
 
 class CliSuite extends munit.FunSuite {
   implicit class BeforeEachOpts(munitContext: BeforeEach) {
-    def locationAbsolutePath: os.Path = os.pwd / os.RelPath(munitContext.test.location.path)
+    def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
 
   implicit class AfterEachOpts(munitContext: AfterEach) {
-    def locationAbsolutePath: os.Path = os.pwd / os.RelPath(munitContext.test.location.path)
+    def locationAbsolutePath: os.Path = os.Path(munitContext.test.location.path)
   }
   val testStartEndLogger: Fixture[Unit] = new Fixture[Unit]("files") {
     def apply(): Unit = ()
