@@ -13,7 +13,7 @@ object AmmUtil {
       case i  => fileName.take(i)
     }
 
-    (pkg, Name(wrapper))
+    (pkg, Name(s"${wrapper}_scalacli_wrapper"))
   }
 
   def encodeScalaSourcePath(path: Seq[Name]) = path.map(_.backticked).mkString(".")
