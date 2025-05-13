@@ -314,7 +314,13 @@ object ScalaCli {
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
-      coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
+      try
+        coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
+      catch {
+        // ignore error resulting from redirect STDOUT to /dev/null
+        case e: java.io.IOException
+            if Properties.isWin && e.getMessage.contains("GetConsoleMode error 6") =>
+      }
 
     new ScalaCliCommands(progName, baseRunnerName, fullRunnerName)
       .main(scalaCliArgs)
