@@ -27,6 +27,17 @@ final case class Sources(
   files: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
     DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptions {
+
+  private def codeFile(codeFile: String, root: os.Path): Sources.CodeFile =
+    scala.util.Try {
+      val uri = java.net.URI.create(codeFile)
+      uri.getScheme match {
+        case "file" | "http" | "https" | "git+ssh" => uri
+      }
+    }.getOrElse {
+      os.Path(codeFile, root)
+    }
+
   def buildOptions: Either[BuildException, BuildOptions] = either {
 
     val paths = files
@@ -35,7 +46,7 @@ final case class Sources(
         for {
           root <- Directive.osRoot(files.scopePath, positioned.positions.headOption)
           path <- {
-            try Right(positioned.map(os.Path(_, root)))
+            try Right(positioned.map(codeFile(_, root)))
             catch {
               case e: IllegalArgumentException =>
                 Left(new WrongSourcePathError(positioned.value, e, positioned.positions))
@@ -55,5 +66,8 @@ final case class Sources(
 }
 
 object Sources {
+
+  type CodeFile = os.Path | java.net.URI
+
   val handler: DirectiveHandler[Sources] = DirectiveHandler.derive
 }

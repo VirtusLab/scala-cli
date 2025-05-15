@@ -1,7 +1,10 @@
 package scala.build
 
-import java.io.File
+import coursier.cache.FileCache
+import coursier.util.Artifact
+import coursier.util.Task
 
+import java.io.File
 import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -209,7 +212,8 @@ object CrossSources {
         .flatMap(_.options)
         .flatMap(_.internal.extraSourceFiles)
         .distinct
-    val inputsElemFromDirectives: Seq[SingleFile] =
+
+    val inputsElemFromDirectives: Seq[SingleElement] =
       value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
     val preprocessedSourcesFromDirectives: Seq[PreprocessedSource] =
       value(preprocessSources(inputsElemFromDirectives.pipe(elements =>
@@ -403,7 +407,39 @@ object CrossSources {
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
-  private def resolveInputsFromSources(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
+  // TODO: reuse existing one? e.g. scala.cli.commands.shared.SharedOptions.coursierCache
+  lazy val fileCache: FileCache[coursier.util.Task] = FileCache()
+
+  private def downloadFile(pUri: Positioned[java.net.URI]) =
+    import scala.build.options.ScalaVersionUtil.fileWithTtl0
+    val artifact = Artifact(pUri.value.toString).withChanging(true)
+    fileCache.fileWithTtl0(artifact)
+      .left
+      .map(err =>
+        new MalformedDirectiveError(err.describe, pUri.positions)
+      ) // TODO: better erorr type
+      .map(f => os.read.bytes(os.Path(f, Os.pwd))).map(content =>
+        Seq(Virtual(pUri.value.toString, content))
+      )
+
+  type CodeFile = os.Path | java.net.URI
+
+  private def resolveInputsFromSources(
+    sources: Seq[Positioned[CodeFile]],
+    enableMarkdown: Boolean
+  ) =
+    val links = sources.collect {
+      case Positioned(pos, value: java.net.URI) => Positioned(pos, value)
+    }
+    val paths = sources.collect {
+      case Positioned(pos, value: os.Path) => Positioned(pos, value)
+    }
+
+    (resolveInputsFromPath(paths, enableMarkdown) ++ links.map(downloadFile)).sequence
+      .left.map(CompositeBuildException(_))
+      .map(_.flatten)
+
+  private def resolveInputsFromPath(sources: Seq[Positioned[os.Path]], enableMarkdown: Boolean) =
     sources.map { source =>
       val sourcePath   = source.value
       lazy val dir     = sourcePath / os.up
@@ -424,9 +460,7 @@ object CrossSources {
           else s"$sourcePath: not found path defined in using directive."
         Left(new MalformedDirectiveError(msg, source.positions))
       }
-    }.sequence
-      .left.map(CompositeBuildException(_))
-      .map(_.flatten)
+    }
 
   /** Filters out the sources from the input sequence based on the provided 'exclude' patterns. The
     * exclude patterns can be absolute paths, relative paths, or glob patterns.
