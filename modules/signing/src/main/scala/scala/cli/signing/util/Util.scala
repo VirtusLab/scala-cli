@@ -1,6 +1,4 @@
 package scala.cli.signing.util
-
-import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 object Util {

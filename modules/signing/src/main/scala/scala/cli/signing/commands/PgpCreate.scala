@@ -4,8 +4,7 @@ import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
 import org.bouncycastle.bcpg.ArmoredOutputStream
 
-import java.io.{BufferedOutputStream, ByteArrayOutputStream, File}
-import java.util.{Base64, HexFormat}
+import java.io.{ByteArrayOutputStream, File}
 
 import scala.cli.signing.util.PgpHelper
 

@@ -1,6 +1,6 @@
 package scala.cli.signing
 
-import caseapp._
+import caseapp.*
 import caseapp.core.app.CommandsEntryPoint
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 

@@ -10,7 +10,7 @@ import org.bouncycastle.bcpg.{
   HashAlgorithmTags,
   SymmetricKeyAlgorithmTags
 }
-import org.bouncycastle.openpgp.{Util => _, _}
+import org.bouncycastle.openpgp.*
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.{
@@ -19,11 +19,12 @@ import org.bouncycastle.openpgp.operator.jcajce.{
   JcaPGPContentVerifierBuilderProvider,
   JcePBESecretKeyDecryptorBuilder
 }
-import org.codehaus.plexus.util.cli.CommandLineUtils.StringStreamConsumer
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintWriter, StringWriter}
+
 import scala.cli.signing.shared.Secret
-import scala.jdk.CollectionConverters._
+import scala.cli.signing.util.Util.maybeDecodeBase64
+import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 final case class BouncycastleSigner(
@@ -211,7 +212,7 @@ object BouncycastleSigner {
     secretKey: Secret[Array[Byte]],
     passwordOpt: Option[Secret[String]]
   ): BouncycastleSigner = {
-    val is         = new ByteArrayInputStream(Util.maybeDecodeBase64(secretKey.value))
+    val is         = new ByteArrayInputStream(maybeDecodeBase64(secretKey.value))
     val secretKey0 = readSecretKey(is)
     BouncycastleSigner(secretKey0, passwordOpt)
   }

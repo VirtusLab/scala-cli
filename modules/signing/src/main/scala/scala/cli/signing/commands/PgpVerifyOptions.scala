@@ -1,6 +1,6 @@
 package scala.cli.signing.commands
 
-import caseapp._
+import caseapp.*
 
 @HelpMessage("Verify PGP signatures")
 final case class PgpVerifyOptions(

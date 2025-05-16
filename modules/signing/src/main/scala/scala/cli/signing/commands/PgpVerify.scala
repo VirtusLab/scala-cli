@@ -1,6 +1,6 @@
 package scala.cli.signing.commands
 
-import caseapp._
+import caseapp.*
 import caseapp.core.app.Command
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}

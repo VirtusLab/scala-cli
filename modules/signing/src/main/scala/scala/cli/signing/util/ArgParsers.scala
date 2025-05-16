@@ -1,7 +1,6 @@
 package scala.cli.signing.util
 
-import caseapp.core.argparser.ArgParser
-import caseapp.core.argparser.SimpleArgParser
+import caseapp.core.argparser.{ArgParser, SimpleArgParser}
 
 import scala.cli.signing.shared.PasswordOption
 

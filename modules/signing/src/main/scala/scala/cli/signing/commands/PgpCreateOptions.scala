@@ -1,9 +1,9 @@
 package scala.cli.signing.commands
 
-import caseapp._
+import caseapp.*
 
 import scala.cli.signing.shared.PasswordOption
-import scala.cli.signing.util.ArgParsers._
+import scala.cli.signing.util.ArgParsers.*
 
 @HelpMessage("Create PGP key pair")
 final case class PgpCreateOptions(

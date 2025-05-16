@@ -2,14 +2,12 @@ package scala.cli.signing.commands
 
 import caseapp.core.RemainingArgs
 import caseapp.core.app.Command
-import org.bouncycastle.bcpg.PublicKeyAlgorithmTags
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.{PGPPublicKeyRingCollection, PGPUtil}
 
 import java.io.ByteArrayInputStream
-import java.nio.charset.StandardCharsets
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object PgpKeyId extends Command[PgpKeyIdOptions] {
 
@@ -18,7 +16,6 @@ object PgpKeyId extends Command[PgpKeyIdOptions] {
   )
 
   // from https://stackoverflow.com/questions/9655181/how-to-convert-a-byte-array-to-a-hex-string-in-java/9855338#9855338
-  private val hexChars = "0123456789abcdef".toCharArray
   private def bytesToHex(bytes: Array[Byte]): String = {
     val hexChars = Array.ofDim[Char](bytes.length * 2)
     for (j <- bytes.indices) {
