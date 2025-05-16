@@ -11,6 +11,7 @@ import scala.util.Try
 
 @DirectiveGroupName("Custom sources")
 @DirectiveExamples("//> using file utils.scala")
+@DirectiveExamples("//> using file https://raw.githubusercontent.com/softwaremill/sttp/refs/heads/master/examples/src/main/scala/sttp/client4/examples/json/GetAndParseJsonCatsEffectCirce.scala")
 @DirectiveUsage(
   "`//> using file `_path_ | `//> using files `_path1_ _path2_ …",
   """`//> using file` _path_
@@ -32,7 +33,7 @@ final case class Sources(
     scala.util.Try {
       val uri = java.net.URI.create(codeFile)
       uri.getScheme match {
-        case "file" | "http" | "https" | "git+ssh" => uri
+        case "file" | "http" | "https" => uri
       }
     }.getOrElse {
       os.Path(codeFile, root)

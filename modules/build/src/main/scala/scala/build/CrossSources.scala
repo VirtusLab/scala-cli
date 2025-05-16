@@ -1,10 +1,8 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.util.Artifact
-import coursier.util.Task
+import coursier.util.{Artifact, Task}
 
-import java.io.File
 import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
@@ -417,7 +415,7 @@ object CrossSources {
       .left
       .map(err =>
         new MalformedDirectiveError(err.describe, pUri.positions)
-      ) // TODO: better erorr type
+      ) // TODO: better error type
       .map(f => os.read.bytes(os.Path(f, Os.pwd))).map(content =>
         Seq(Virtual(pUri.value.toString, content))
       )
