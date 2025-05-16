@@ -145,7 +145,7 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative04
     def scalaPackager                     = "0.1.32"
-    def signingCli                        = "0.2.6"
+    def signingCli                        = "0.2.7"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.6"
