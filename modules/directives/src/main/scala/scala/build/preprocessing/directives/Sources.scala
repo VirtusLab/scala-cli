@@ -11,7 +11,9 @@ import scala.util.Try
 
 @DirectiveGroupName("Custom sources")
 @DirectiveExamples("//> using file utils.scala")
-@DirectiveExamples("//> using file https://raw.githubusercontent.com/softwaremill/sttp/refs/heads/master/examples/src/main/scala/sttp/client4/examples/json/GetAndParseJsonCatsEffectCirce.scala")
+@DirectiveExamples(
+  "//> using file https://raw.githubusercontent.com/softwaremill/sttp/refs/heads/master/examples/src/main/scala/sttp/client4/examples/json/GetAndParseJsonCatsEffectCirce.scala"
+)
 @DirectiveUsage(
   "`//> using file `_path_ | `//> using files `_path1_ _path2_ …",
   """`//> using file` _path_
