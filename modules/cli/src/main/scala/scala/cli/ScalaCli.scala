@@ -319,7 +319,7 @@ object ScalaCli {
       catch {
         // ignore error resulting from redirect STDOUT to /dev/null
         case e: java.io.IOException
-            if Properties.isWin && e.getMessage.contains("GetConsoleMode error 6") =>
+            if e.getMessage.contains("GetConsoleMode error 6") =>
       }
 
     new ScalaCliCommands(progName, baseRunnerName, fullRunnerName)
