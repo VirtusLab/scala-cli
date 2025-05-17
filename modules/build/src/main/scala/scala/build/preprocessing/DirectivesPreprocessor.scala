@@ -23,7 +23,7 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
-import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
+import scala.build.preprocessing.directives.Directives.*
 import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
 import scala.build.preprocessing.directives.*
 

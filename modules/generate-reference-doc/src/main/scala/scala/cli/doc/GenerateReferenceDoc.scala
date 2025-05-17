@@ -16,7 +16,7 @@ import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
-import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
+import scala.build.preprocessing.directives.Directives.*
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
 import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
