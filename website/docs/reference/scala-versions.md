@@ -1,4 +1,4 @@
----
+74600347---
 title: Supported scala versions
 sidebar_position: 7
 ---
