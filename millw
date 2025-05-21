@@ -33,7 +33,7 @@
 set -e
 
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
-  DEFAULT_MILL_VERSION="0.11.13"
+  DEFAULT_MILL_VERSION="0.12.14"
 fi
 
 

@@ -19,7 +19,7 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
   MAX_RETRIES=5
   RETRY_COUNT=0
   while (( RETRY_COUNT < MAX_RETRIES )); do
-      ./mill.bat -i "$COMMAND" generate-native-image.bat
+      ./mill.bat -i "$COMMAND" --scriptDest generate-native-image.bat
 
       if [[ $? -ne 0 ]]; then
           echo "Error occurred during 'mill.bat -i $COMMAND generate-native-image.bat' command. Retrying... ($((RETRY_COUNT + 1))/$MAX_RETRIES)"
