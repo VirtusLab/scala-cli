@@ -12,7 +12,8 @@ import scala.build.errors.{
   CompositeBuildException,
   ExcludeDefinitionError,
   MalformedDirectiveError,
-  Severity
+  Severity,
+  UsingFileFromUriError
 }
 import scala.build.input.ElementsUtils.*
 import scala.build.input.*
@@ -413,9 +414,7 @@ object CrossSources {
     val artifact = Artifact(pUri.value.toString).withChanging(true)
     fileCache.fileWithTtl0(artifact)
       .left
-      .map(err =>
-        new MalformedDirectiveError(err.describe, pUri.positions)
-      ) // TODO: better error type
+      .map(cause => new UsingFileFromUriError(pUri.value, pUri.positions, cause))
       .map(f => os.read.bytes(os.Path(f, Os.pwd))).map(content =>
         Seq(Virtual(pUri.value.toString, content))
       )
