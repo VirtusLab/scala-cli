@@ -34,7 +34,7 @@ object Scala {
   val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
 
   def scalaJs    = "1.19.0"
-  def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
+  def scalaJsCli = "1.19.0.1" // this must be compatible with the Scala.js version
 
   private def patchVer(sv: String): Int =
     sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
