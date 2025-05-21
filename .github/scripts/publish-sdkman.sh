@@ -10,7 +10,7 @@
 set -eu
 
 version() {
-  "./mill" -i writePackageVersionTo scala-cli-version 1>&2
+  "./mill" -i writePackageVersionTo --dest scala-cli-version 1>&2
   cat scala-cli-version
 }
 

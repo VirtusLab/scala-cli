@@ -108,7 +108,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     // FIXME this should be adjusted to Scala Native 0.5.x syntax once Mill gets support for it
     TestUtil.retryOnCi() {
       simpleTest(
-        ExportTestProjects.nativeTest(actualScalaVersion, useNative04Syntax = true),
+        ExportTestProjects.nativeTest(actualScalaVersion),
         mainClass = None
       )
     }

@@ -1,3 +1,4 @@
+package build.project.utils
 import java.util.Locale
 
 lazy val isArmArchitecture: Boolean =

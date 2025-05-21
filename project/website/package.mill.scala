@@ -1,4 +1,5 @@
-import $file.deps, deps.Scala
+package build.project.website
+import build.project.deps, deps.Scala
 
 private def lastTableLine(path: os.Path, colCount: Int): Seq[String] = {
   val content = os.read(path)
