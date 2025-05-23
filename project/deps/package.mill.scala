@@ -1,6 +1,9 @@
+package build.project.deps
 import Deps.Versions
 import mill._
 import scalalib._
+
+import scala.annotation.unused
 
 object Cli {
   def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -65,7 +68,7 @@ object Scala {
       (0 until max37).map(i => s"3.7.$i") ++ Seq(scala3Next)
   }
 
-  def legacyScala3Versions =
+  def legacyScala3Versions: Seq[String] =
     listAll
       .filter(_.startsWith("3"))
       .distinct
@@ -75,9 +78,10 @@ object Scala {
   def maxAmmoniteScala213Version  = scala213
   def maxAmmoniteScala3Version    = "3.6.3"
   def maxAmmoniteScala3LtsVersion = "3.3.5"
-  lazy val listMaxAmmoniteScalaVersion =
+  lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
-  lazy val listAllAmmonite = {
+  @unused
+  lazy val listAllAmmonite: Seq[String] = {
     import coursier.core.Version
     val max212 = Version(maxAmmoniteScala212Version)
     val max213 = Version(maxAmmoniteScala213Version)
@@ -96,27 +100,27 @@ object Scala {
 }
 
 object Java {
-  def minimumBloopJava    = 17
-  def minimumInternalJava = 16
-  def defaultJava         = minimumBloopJava
-  def mainJavaVersions    = Seq(8, 11, 17, 21, 23)
-  def allJavaVersions =
+  def minimumBloopJava: Int      = 17
+  def minimumInternalJava: Int   = 16
+  def defaultJava: Int           = minimumBloopJava
+  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23)
+  def allJavaVersions: Seq[Int] =
     (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
 }
 
 // Dependencies used in integration test fixtures
 object TestDeps {
-  def pprint           = Deps.pprint
-  def munit            = Deps.munit
-  def scalaSnapshot213 = "2.13.8-bin-e814d78"
+  def pprint: Dep              = Deps.pprint
+  def munit: Dep               = Deps.munit
+  def scalaSnapshot213: String = "2.13.8-bin-e814d78"
 
-  def archLinuxImage =
+  def archLinuxImage: String =
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
 }
 
 object InternalDeps {
   object Versions {
-    def mill          = os.read(os.pwd / ".mill-version").trim
+    def mill: String  = _root_.mill.main.BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
@@ -143,7 +147,7 @@ object Deps {
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
-    def maxScalaNativeForMillExport       = scalaNative04
+    def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.1.32"
     def signingCli                        = "0.2.7"
     def signingCliJvmVersion              = Java.defaultJava
