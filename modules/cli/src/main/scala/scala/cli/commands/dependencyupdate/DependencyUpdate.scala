@@ -45,7 +45,8 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
         ),
         logger,
         buildOptions.suppressWarningOptions,
-        buildOptions.internal.exclude
+        buildOptions.internal.exclude,
+        download = buildOptions.downloader
       ).orExit(logger)
 
     val sharedOptions = crossSources.sharedOptions(buildOptions)

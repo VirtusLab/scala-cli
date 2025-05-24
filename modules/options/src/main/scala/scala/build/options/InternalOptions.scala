@@ -8,6 +8,8 @@ import scala.build.errors.BuildException
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.InteractiveNop
 
+type CodeFile = os.Path | java.net.URI
+
 final case class InternalOptions(
   keepDiagnostics: Boolean = false,
   cache: Option[FileCache[Task]] = None,
@@ -24,7 +26,7 @@ final case class InternalOptions(
     * really needed.
     */
   keepResolution: Boolean = false,
-  extraSourceFiles: Seq[Positioned[os.Path]] = Nil,
+  extraSourceFiles: Seq[Positioned[CodeFile]] = Nil,
   exclude: Seq[Positioned[String]] = Nil,
   offline: Option[Boolean] = None
 ) {

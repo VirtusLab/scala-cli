@@ -43,7 +43,8 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
           ),
           logger,
           options.suppressWarningOptions,
-          options.internal.exclude
+          options.internal.exclude,
+          download = options.downloader
         )
       }
 

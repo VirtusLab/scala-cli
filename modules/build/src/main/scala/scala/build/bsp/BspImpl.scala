@@ -113,7 +113,8 @@ final class BspImpl(
         logger = persistentLogger,
         suppressWarningOptions = buildOptions.suppressWarningOptions,
         exclude = buildOptions.internal.exclude,
-        maybeRecoverOnError = maybeRecoverOnError(Scope.Main)
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Main),
+        download = buildOptions.downloader
       ).left.map((_, Scope.Main))
     }
 

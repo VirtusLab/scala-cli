@@ -267,7 +267,8 @@ object Build {
       ),
       logger,
       options.suppressWarningOptions,
-      options.internal.exclude
+      options.internal.exclude,
+      download = options.downloader
     )
 
   private def build(
