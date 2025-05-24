@@ -29,7 +29,6 @@ import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
 import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
-import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
@@ -658,7 +657,7 @@ final case class SharedOptions(
     Inputs.validateArgs(
       args,
       Os.pwd,
-      SharedOptions.downloadInputs(coursierCache),
+      BuildOptions.Download.changing(coursierCache),
       SharedOptions.readStdin(logger = logger),
       !Properties.isWin,
       enableMarkdown = true
@@ -674,15 +673,6 @@ object SharedOptions {
   implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
   implicit lazy val help: Help[SharedOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make
-
-  private def downloadInputs(cache: FileCache[Task]): String => Either[String, Array[Byte]] = {
-    url =>
-      val artifact = Artifact(url).withChanging(true)
-      cache.fileWithTtl0(artifact)
-        .left
-        .map(_.describe)
-        .map(f => os.read.bytes(os.Path(f, Os.pwd)))
-  }
 
   /** [[Inputs]] builder, handy when you don't have a [[SharedOptions]] instance at hand */
   def inputs(
@@ -715,7 +705,7 @@ object SharedOptions {
       args,
       Os.pwd,
       defaultInputs = defaultInputs,
-      download = downloadInputs(cache),
+      download = BuildOptions.Download.changing(cache),
       stdinOpt = readStdin(logger = logger),
       scriptSnippetList = scriptSnippetList,
       scalaSnippetList = scalaSnippetList,

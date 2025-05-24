@@ -4,9 +4,8 @@ import java.net.URI
 
 import scala.build.Position
 
-final class UsingFileFromUriError(uri: URI, positions: Seq[Position], cause: Throwable)
+final class UsingFileFromUriError(uri: URI, positions: Seq[Position], description: String)
     extends BuildException(
-      message = s"Error using file from $uri - ${cause.getLocalizedMessage}",
-      positions = positions,
-      cause = cause
+      message = s"Error using file from $uri - $description",
+      positions = positions
     )

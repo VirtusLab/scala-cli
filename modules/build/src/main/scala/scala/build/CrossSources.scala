@@ -163,7 +163,8 @@ object CrossSources {
     logger: Logger,
     suppressWarningOptions: SuppressWarningOptions,
     exclude: Seq[Positioned[String]] = Nil,
-    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e),
+    download: BuildOptions.Download = BuildOptions.Download.notSupported
   )(using ScalaCliInvokeData): Either[BuildException, (CrossSources, Inputs)] = either {
 
     def preprocessSources(elems: Seq[SingleElement])
@@ -213,7 +214,7 @@ object CrossSources {
         .distinct
 
     val inputsElemFromDirectives: Seq[SingleElement] =
-      value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown))
+      value(resolveInputsFromSources(sourcesFromDirectives, inputs.enableMarkdown, download))
     val preprocessedSourcesFromDirectives: Seq[PreprocessedSource] =
       value(preprocessSources(inputsElemFromDirectives.pipe(elements =>
         value(excludeSources(elements, inputs.workspace, allExclude))
@@ -406,24 +407,19 @@ object CrossSources {
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
-  // TODO: reuse existing one? e.g. scala.cli.commands.shared.SharedOptions.coursierCache
-  lazy val fileCache: FileCache[coursier.util.Task] = FileCache()
-
-  private def downloadFile(pUri: Positioned[java.net.URI]) =
-    import scala.build.options.ScalaVersionUtil.fileWithTtl0
-    val artifact = Artifact(pUri.value.toString).withChanging(true)
-    fileCache.fileWithTtl0(artifact)
-      .left
-      .map(cause => new UsingFileFromUriError(pUri.value, pUri.positions, cause))
-      .map(f => os.read.bytes(os.Path(f, Os.pwd))).map(content =>
-        Seq(Virtual(pUri.value.toString, content))
-      )
+  private def downloadFile(download: BuildOptions.Download)(pUri: Positioned[java.net.URI]) =
+    download(pUri.value.toString).left.map(
+      new UsingFileFromUriError(pUri.value, pUri.positions, _)
+    ).map(content =>
+      Seq(Virtual(pUri.value.toString, content))
+    )
 
   type CodeFile = os.Path | java.net.URI
 
   private def resolveInputsFromSources(
     sources: Seq[Positioned[CodeFile]],
-    enableMarkdown: Boolean
+    enableMarkdown: Boolean,
+    download: BuildOptions.Download
   ) =
     val links = sources.collect {
       case Positioned(pos, value: java.net.URI) => Positioned(pos, value)
@@ -432,7 +428,7 @@ object CrossSources {
       case Positioned(pos, value: os.Path) => Positioned(pos, value)
     }
 
-    (resolveInputsFromPath(paths, enableMarkdown) ++ links.map(downloadFile)).sequence
+    (resolveInputsFromPath(paths, enableMarkdown) ++ links.map(downloadFile(download))).sequence
       .left.map(CompositeBuildException(_))
       .map(_.flatten)
 
