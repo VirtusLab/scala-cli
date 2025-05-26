@@ -4,7 +4,6 @@ import caseapp.*
 import caseapp.core.Indexed
 
 import scala.build.Logger
-import scala.cli.ScalaCli
 import scala.cli.ScalaCli.{fullRunnerName, progName}
 import scala.cli.commands.bloop.BloopExit
 import scala.cli.commands.default.LegacyScalaOptions.*

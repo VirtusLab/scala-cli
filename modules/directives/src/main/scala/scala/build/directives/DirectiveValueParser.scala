@@ -2,7 +2,6 @@ package scala.build.directives
 
 import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
 
-import scala.build.Positioned.apply
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,

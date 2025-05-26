@@ -1,7 +1,4 @@
 package scala.build.compiler
-
-import ch.epfl.scala.bsp4j
-
 import scala.annotation.tailrec
 import scala.build.{Bloop, Logger, Position, Positioned, Project}
 import scala.concurrent.duration.FiniteDuration

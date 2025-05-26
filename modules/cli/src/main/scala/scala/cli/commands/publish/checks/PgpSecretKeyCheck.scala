@@ -10,9 +10,9 @@ import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, MalformedCliInputError}
 import scala.build.internal.util.WarningMessages
+import scala.build.options.PublishOptions as BPublishOptions
 import scala.build.options.publish.ConfigPasswordOption
 import scala.build.options.publish.ConfigPasswordOption.*
-import scala.build.options.PublishOptions as BPublishOptions
 import scala.cli.commands.config.ThrowawayPgpSecret
 import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.publish.ConfigUtil.*

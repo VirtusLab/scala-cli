@@ -7,7 +7,6 @@ import scala.build.internals.EnvVar
 import scala.build.{Build, Logger}
 import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.run.RunMode
 import scala.cli.packaging.Library
 import scala.util.Properties
 

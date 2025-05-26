@@ -1,5 +1,5 @@
 package build.project.settings
-import $ivy.`com.goyeau::mill-scalafix::0.3.1`
+import $ivy.`com.goyeau::mill-scalafix::0.5.1`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.31-1`
 import build.project.deps
 import deps.{
@@ -822,10 +822,21 @@ trait ScalaCliScalafixModule extends ScalafixModule {
       if (isScala2) Seq(s"-P:semanticdb:sourceroot:$sourceRoot")
       else Seq(s"-sourceroot", sourceRoot.toString)
     val warnUnusedOptions =
-      if (!parentOptions.contains("-Ywarn-unused") && scalaVersion().startsWith("2."))
+      if (!parentOptions.contains("-Ywarn-unused") && scalaVersion().startsWith("2.12"))
         Seq("-Ywarn-unused")
+      else if (!parentOptions.contains("-Wunused") && scalaVersion().startsWith("2.13"))
+        Seq("-Wunused")
+      else if (!parentOptions.contains("-Wunused:all") && scalaVersion().startsWith("3"))
+        Seq("-Wunused:all")
       else Nil
     parentOptions ++ semDbOptions ++ warnUnusedOptions
+  }
+}
+
+// meant to be used with modules which still have to be cross-compiled on Scala 2.12
+trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
+  override def scalafixConfig: Target[Option[Path]] = Task {
+    Some(Task.workspace / ".scalafix.legacy.conf")
   }
 }
 

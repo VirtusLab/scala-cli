@@ -6,18 +6,17 @@ import dependency.*
 
 import java.io.File
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
 import scala.build.interactive.InteractiveFileOps
-import scala.build.internal.{Constants, Runner}
+import scala.build.internal.Runner
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
-import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.errors.ScaladocGenerationFailedError
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils

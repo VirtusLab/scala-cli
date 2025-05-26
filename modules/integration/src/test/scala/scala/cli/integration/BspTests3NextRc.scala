@@ -1,11 +1,11 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with Test3NextRc {

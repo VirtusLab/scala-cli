@@ -1,23 +1,13 @@
 package scala.cli.exportCmd
-
-import coursier.ivy.IvyRepository
-import coursier.maven.MavenRepository
-import coursier.parse.RepositoryParser
 import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
 
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
-import scala.build.internal.Runner.frameworkNames
-import scala.build.options.{BuildOptions, Platform, Scope, ShadowingSeq}
-import scala.build.testrunner.AsmTestRunner
+import scala.build.options.{BuildOptions, Scope, ShadowingSeq}
 import scala.build.{Logger, Positioned, Sources}
 import scala.cli.ScalaCli
-import scala.cli.commands.export0.ExportOptions
 import scala.cli.exportCmd.POMBuilderHelper.*
-import scala.xml.{Elem, XML}
+import scala.xml.Elem
 
 object POMBuilderHelper {
   def buildNode(name: String, value: String): Elem =
@@ -41,8 +31,8 @@ final case class MavenProjectDescriptor(
   mavenAppVersion: String,
   logger: Logger
 ) extends ProjectDescriptor {
-  private val q  = "\""
-  private val nl = System.lineSeparator()
+
+  System.lineSeparator()
 
   private def sources(sourcesMain: Sources, sourcesTest: Sources): MavenProject = {
     val mainSources = ProjectDescriptor.sources(sourcesMain)
@@ -113,7 +103,7 @@ final case class MavenProjectDescriptor(
         // TODO dep.attributes
         val artNameWithPrefix = dep.nameAttributes match {
           case NoAttributes           => name
-          case s: ScalaNameAttributes => s"${name}_$getScalaPrefix"
+          case _: ScalaNameAttributes => s"${name}_$getScalaPrefix"
         }
         val scope0 =
           if (scope == Scope.Test) MavenScopes.Test
@@ -134,7 +124,7 @@ final case class MavenProjectDescriptor(
         testDeps: ShadowingSeq[Positioned[AnyDependency]],
         isCompileOnly: Boolean
       ): Seq[MavenLibraryDependency] = {
-        val scopePriorities       = List()
+        List()
         val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
         val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
         val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
@@ -186,7 +176,7 @@ final case class MavenProjectDescriptor(
 
     val javacOptions = javacOptionsSettings(options)
 
-    val javaOptions = javaOptionsSettings(options)
+    javaOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
     val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
@@ -206,8 +196,8 @@ final case class MavenProjectDescriptor(
     scalaVersion: String
   ): MavenPlugin = {
 
-    val scalaVersionNode = buildNode("scalaVersion", scalaVersion)
-    val javacOptionsElem = {
+    buildNode("scalaVersion", scalaVersion)
+    locally {
       val opts = javacOptions.map { opt =>
         buildNode("javacArg", opt)
       }

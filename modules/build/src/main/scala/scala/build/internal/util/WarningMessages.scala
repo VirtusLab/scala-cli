@@ -4,7 +4,7 @@ import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.Constants
 import scala.build.internals.FeatureType
 import scala.build.preprocessing.directives.{DirectiveHandler, ScopedDirective}
-import scala.cli.commands.{SpecificationLevel, tags}
+import scala.cli.commands.SpecificationLevel
 import scala.cli.config.Key
 
 object WarningMessages {

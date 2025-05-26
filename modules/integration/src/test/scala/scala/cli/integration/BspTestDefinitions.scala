@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import ch.epfl.scala.bsp4j.JvmTestEnvironmentParams
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.{Gson, JsonElement}
 
@@ -11,8 +11,8 @@ import java.nio.file.Paths
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.concurrent.duration.*
-import scala.jdk.CollectionConverters.*
+import scala.concurrent.duration._
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs

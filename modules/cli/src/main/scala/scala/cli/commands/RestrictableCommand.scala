@@ -5,7 +5,6 @@ import caseapp.core.parser.Parser
 
 import scala.build.Logger
 import scala.build.input.ScalaCliInvokeData
-import scala.cli.commands.shared.HasGlobalOptions
 
 trait RestrictableCommand[T](implicit myParser: Parser[T]) {
   self: Command[T] =>

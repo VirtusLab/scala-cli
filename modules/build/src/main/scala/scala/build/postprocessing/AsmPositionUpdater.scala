@@ -2,7 +2,6 @@ package scala.build.postprocessing
 
 import org.objectweb.asm
 
-import java.io
 import java.nio.file.{FileAlreadyExistsException, NoSuchFileException}
 
 import scala.build.{Logger, Os, retry}

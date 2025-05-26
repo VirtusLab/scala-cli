@@ -21,7 +21,6 @@ import scala.build.errors.{
 import scala.build.internal.Regexes.scala2NightlyRegex
 import scala.build.internal.{Constants, Util}
 import scala.concurrent.duration.{Duration, DurationInt}
-import scala.util.Try
 import scala.util.control.NonFatal
 
 object ScalaVersionUtil {

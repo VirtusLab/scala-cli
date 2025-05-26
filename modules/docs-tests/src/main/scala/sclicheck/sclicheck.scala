@@ -132,7 +132,7 @@ def checkPath(options: Options)(path: os.Path): Seq[TestCase] =
         os.list(path).filterNot(_.last.startsWith("."))
       toCheck.toList.flatMap(checkPath(options))
   catch
-    case e @ FailedCheck(line, file, text) =>
+    case e @ FailedCheck(_, _, _) =>
       println(Red(e.getMessage))
       Seq(TestCase(path.relativeTo(os.pwd), Some(e.getMessage)))
     case e: Throwable =>
@@ -379,12 +379,11 @@ def checkFile(file: os.Path, options: Options): Unit =
     val header  = s"File was generated from based on $relFile, do not edit manually!"
     allSources.result().foreach { s =>
       val content = os.read.lines(s)
-      val cleared =
-        if !shouldAlignContent(s) || content.size < 2 then content
-        else
-          val head = content.take(1).dropWhile(_ == fakeLineMarker)
-          val tail = content.drop(1).dropWhile(_ == fakeLineMarker)
-          head ++ tail
+      if !shouldAlignContent(s) || content.size < 2 then content
+      else
+        val head = content.take(1).dropWhile(_ == fakeLineMarker)
+        val tail = content.drop(1).dropWhile(_ == fakeLineMarker)
+        head ++ tail
 
       os.write.over(s, content.mkString(s"// $header\n\n", "\n", ""))
     }

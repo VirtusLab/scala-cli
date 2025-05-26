@@ -4,7 +4,6 @@ import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpMessages}
-import scala.cli.commands.uninstallcompletions.SharedUninstallCompletionsOptions
 
 // format: off
 @HelpMessage(UninstallCompletionsOptions.helpMessage, "", UninstallCompletionsOptions.detailedHelpMessage)

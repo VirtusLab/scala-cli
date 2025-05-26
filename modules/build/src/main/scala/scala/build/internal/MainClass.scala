@@ -5,10 +5,8 @@ import org.objectweb.asm.ClassReader
 
 import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.file.NoSuchFileException
-import java.util.jar.{Attributes, JarFile, JarInputStream, Manifest}
-import java.util.zip.ZipEntry
+import java.util.jar.{Attributes, JarFile}
 
-import scala.build.input.Element
 import scala.build.internal.zip.WrappedZipInputStream
 import scala.build.{Logger, retry}
 

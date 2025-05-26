@@ -4,6 +4,7 @@ import dependency.parser.ModuleParser
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{
   BuildException,
@@ -11,9 +12,8 @@ import scala.build.errors.{
   MalformedInputError,
   ModuleFormatError
 }
-import scala.build.options._
+import scala.build.options.*
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Packaging")
@@ -89,7 +89,7 @@ final case class Packaging(
       .map { path =>
         try Right(os.Path(path, os.pwd)) // !!!
         catch {
-          case e: IllegalArgumentException =>
+          case _: IllegalArgumentException =>
             Left(???)
         }
       }

@@ -12,7 +12,6 @@ import scala.build.options.{JavaOpt, JavaOptions, ShadowingSeq}
 import scala.build.{Os, Position, Positioned, options as bo}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions, SharedOptions}
 import scala.concurrent.ExecutionContextExecutorService
-import scala.util.control.NonFatal
 import scala.util.{Failure, Properties, Success, Try}
 
 object JvmUtils {
@@ -72,7 +71,7 @@ object JvmUtils {
     implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
     val javaHomeManager = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
-    val logger = javaHomeManager.cache
+    javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)
       .getOrElse(_root_.coursier.cache.CacheLogger.nop)
 

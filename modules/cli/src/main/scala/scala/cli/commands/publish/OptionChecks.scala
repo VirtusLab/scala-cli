@@ -2,10 +2,10 @@ package scala.cli.commands.publish
 
 import coursier.cache.FileCache
 import coursier.util.Task
-import sttp.client3._
+import sttp.client3.*
 
 import scala.build.Logger
-import scala.cli.commands.publish.checks._
+import scala.cli.commands.publish.checks.*
 import scala.cli.config.ConfigDb
 
 object OptionChecks {

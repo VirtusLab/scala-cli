@@ -1,7 +1,7 @@
 package scala.build
 
-import ch.epfl.scala.bsp4j.SourcesItem
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.SourcesItem
 
 import java.util.concurrent.CompletableFuture
 

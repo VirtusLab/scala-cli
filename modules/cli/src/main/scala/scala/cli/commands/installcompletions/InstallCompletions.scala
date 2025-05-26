@@ -4,18 +4,17 @@ import caseapp.*
 import caseapp.core.complete.{Bash, Fish, Zsh}
 import caseapp.core.help.HelpFormat
 
-import java.io.File
 import java.nio.charset.Charset
 import java.nio.file.Paths
 import java.util
 
 import scala.build.internals.EnvVar
 import scala.build.{Directories, Logger}
+import scala.cli.ScalaCli
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.internal.{Argv0, ProfileFileUpdater}
+import scala.cli.internal.ProfileFileUpdater
 import scala.cli.util.ArgHelpers.*
-import scala.cli.{CurrentParams, ScalaCli}
 object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
   override def names = List(
     List("install", "completions"),

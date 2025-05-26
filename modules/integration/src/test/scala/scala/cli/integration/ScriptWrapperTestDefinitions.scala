@@ -1,11 +1,11 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.async.Async.{async, await}
 import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 trait ScriptWrapperTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
   private def appWrapperSnippet(wrapperName: String)    = s"object $wrapperName extends App {"

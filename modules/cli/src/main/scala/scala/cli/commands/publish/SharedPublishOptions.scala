@@ -3,7 +3,7 @@ package scala.cli.commands.publish
 import caseapp.*
 
 import scala.build.compiler.{ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.cli.commands.shared.{HelpGroup, ScopeOptions}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
 // format: off

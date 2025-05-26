@@ -5,12 +5,11 @@ import caseapp.core.help.HelpFormat
 
 import scala.build.Logger
 import scala.build.internal.Constants
+import scala.cli.ScalaCli
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup}
 import scala.cli.commands.update.Update
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.config.PasswordOption
 import scala.cli.util.ArgHelpers.*
-import scala.cli.{CurrentParams, ScalaCli}
 
 object Version extends ScalaCommand[VersionOptions] {
   override def group: String = HelpCommandGroup.Miscellaneous.toString

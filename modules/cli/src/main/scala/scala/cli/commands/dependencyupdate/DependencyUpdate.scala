@@ -6,9 +6,8 @@ import caseapp.core.help.HelpFormat
 import scala.build.actionable.ActionableDependencyHandler
 import scala.build.actionable.ActionableDiagnostic.ActionableDependencyUpdateDiagnostic
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.options.{BuildOptions, Scope}
+import scala.build.options.Scope
 import scala.build.{CrossSources, Logger, Position, Sources}
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.util.ArgHelpers.*

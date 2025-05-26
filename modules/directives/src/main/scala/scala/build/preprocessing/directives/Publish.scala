@@ -2,11 +2,11 @@ package scala.build.preprocessing.directives
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.options.publish.{Developer, License, Vcs}
 import scala.build.options.{BuildOptions, PostBuildOptions, PublishOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Publish")

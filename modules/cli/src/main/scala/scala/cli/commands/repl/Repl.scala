@@ -4,15 +4,14 @@ import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
 import coursier.cache.FileCache
-import coursier.core.Version
-import coursier.error.{FetchError, ResolutionError}
+import coursier.error.ResolutionError
 import dependency.*
 
 import java.io.File
 import java.util.zip.ZipFile
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.{
   BuildException,
   CantDownloadAmmoniteError,
@@ -23,21 +22,16 @@ import scala.build.input.Inputs
 import scala.build.internal.{Constants, Runner}
 import scala.build.options.ScalacOpt.noDashPrefixes
 import scala.build.options.{BuildOptions, JavaOpt, MaybeScalaVersion, ScalaVersionUtil, Scope}
-import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.run.Run.{
-  maybePrintSimpleScalacOutput,
-  orPythonDetectionError,
-  pythonPathEnv
-}
+import scala.cli.CurrentParams
+import scala.cli.commands.run.Run.{orPythonDetectionError, pythonPathEnv}
 import scala.cli.commands.run.RunMode
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, ScalacOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.packaging.Library
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils
-import scala.cli.{CurrentParams, ScalaCli}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -79,11 +73,11 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           s.versionOpt.exists(v => ScalaVersionUtil.scala3Lts.contains(v.toLowerCase))
         private def isLts: Boolean =
           s.versionOpt.exists(_.startsWith(Constants.scala3LtsPrefix)) || isLtsAlias
-      baseOptions.scalaOptions.scalaVersion match
+      baseOptions.scalaOptions.scalaVersion match {
         case Some(s)
-            if isDefaultAmmonite && s.isLts &&
-            (s.versionOpt
-              .exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) ||
+            if isDefaultAmmonite &&
+            s.isLts && (s
+              .versionOpt.exists(_.coursierVersion > maxAmmoniteScalaLtsVer.coursierVersion) ||
             s.isLtsAlias) =>
           val versionString = s.versionOpt.filter(_ => !s.isLtsAlias).getOrElse(Constants.scala3Lts)
           logger.message(s"Scala $versionString is not yet supported with this version of Ammonite")
@@ -97,6 +91,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           logger.message(s"Defaulting to Scala $maxAmmoniteScalaVer")
           Some(MaybeScalaVersion(maxAmmoniteScalaVer))
         case s => s
+      }
     }
 
     baseOptions.copy(

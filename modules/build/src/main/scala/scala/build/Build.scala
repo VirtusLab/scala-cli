@@ -19,12 +19,12 @@ import scala.build.internal.resource.ResourceMapper
 import scala.build.internal.{Constants, MainClass, Name, Util}
 import scala.build.options.*
 import scala.build.options.validation.ValidationException
-import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.build.postprocessing.*
+import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration.DurationInt
+import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.{Properties, Try}
 
 trait Build {
   def inputs: Inputs

@@ -1,8 +1,7 @@
 package scala.build
 
 import coursier.cache.FileCache
-import coursier.core.{Repository, Version}
-import coursier.error.{CoursierError, ResolutionError}
+import coursier.core.Repository
 import coursier.util.Task
 import dependency.*
 import org.apache.commons.compress.archivers.zip.ZipFile
@@ -12,7 +11,7 @@ import java.io.ByteArrayInputStream
 import java.util.Properties
 
 import scala.build.EitherCps.{either, value}
-import scala.build.errors.{BuildException, FetchingDependenciesError}
+import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.internal.CsLoggerUtil.*
 

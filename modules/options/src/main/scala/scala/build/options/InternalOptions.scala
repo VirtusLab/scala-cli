@@ -6,7 +6,6 @@ import coursier.util.Task
 import scala.build.Positioned
 import scala.build.errors.BuildException
 import scala.build.interactive.Interactive
-import scala.build.interactive.Interactive.InteractiveNop
 
 final case class InternalOptions(
   keepDiagnostics: Boolean = false,

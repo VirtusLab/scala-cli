@@ -5,7 +5,6 @@ import scala.build.directives.{
   HasBuildOptionsWithRequirements,
   HasBuildRequirements
 }
-import scala.build.errors.{BuildException, UnusedDirectiveError}
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives
 

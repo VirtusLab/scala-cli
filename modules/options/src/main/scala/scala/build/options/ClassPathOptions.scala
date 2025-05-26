@@ -1,6 +1,6 @@
 package scala.build.options
 
-import dependency._
+import dependency.*
 
 import scala.build.Positioned
 

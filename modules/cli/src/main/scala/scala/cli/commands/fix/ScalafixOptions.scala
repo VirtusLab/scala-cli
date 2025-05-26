@@ -1,16 +1,9 @@
 package scala.cli.commands.fix
 
 import caseapp.*
-import coursier.core.Version
 
-import scala.build.EitherCps.{either, value}
-import scala.build.errors.BuildException
-import scala.build.internal.FetchExternalBinary
-import scala.build.options.BuildOptions
-import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
-import scala.cli.commands.{Constants, tags}
-import scala.util.Properties
+import scala.cli.commands.shared.HelpGroup
+import scala.cli.commands.tags
 
 final case class ScalafixOptions(
   @Group(HelpGroup.Fix.toString)

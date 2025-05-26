@@ -1,7 +1,4 @@
 package scala.build.actionable
-
-import dependency._
-
 import scala.build.Position
 import scala.build.errors.Diagnostic.TextEdit
 import scala.build.errors.{Diagnostic, Severity}

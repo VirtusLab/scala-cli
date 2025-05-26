@@ -2,17 +2,7 @@ package scala.build.preprocessing
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.Ops.*
-import scala.build.directives.{
-  HasBuildOptions,
-  HasBuildOptionsWithRequirements,
-  HasBuildRequirements
-}
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  DirectiveErrors,
-  UnusedDirectiveError
-}
+import scala.build.errors.{BuildException, CompositeBuildException, DirectiveErrors}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.util.WarningMessages
 import scala.build.internals.FeatureType
@@ -23,9 +13,8 @@ import scala.build.options.{
   SuppressWarningOptions,
   WithBuildRequirements
 }
-import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
-import scala.build.preprocessing.directives.PartiallyProcessedDirectives.*
 import scala.build.preprocessing.directives.*
+import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
 
 case class DirectivesPreprocessor(
   path: Either[String, os.Path],

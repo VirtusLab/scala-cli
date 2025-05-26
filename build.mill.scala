@@ -18,6 +18,7 @@ import settings.{
   ScalaCliCrossSbtModule,
   ScalaCliSbtModule,
   ScalaCliScalafixModule,
+  ScalaCliScalafixLegacyModule,
   jvmPropertiesFileName,
   localRepoResourcePath,
   platformExecutableJarExtension,
@@ -1255,7 +1256,7 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
 
 trait Runner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with ScalaCliScalafixModule {
+    with ScalaCliScalafixLegacyModule {
   def crossScalaVersion: String = crossValue
   def scalacOptions: Target[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8")
@@ -1278,7 +1279,7 @@ trait Runner extends ScalaCliCrossSbtModule
 
 trait TestRunner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with ScalaCliScalafixModule {
+    with ScalaCliScalafixLegacyModule {
   def crossScalaVersion: String = crossValue
   def scalacOptions: Target[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8")
@@ -1293,7 +1294,7 @@ trait TestRunner extends ScalaCliCrossSbtModule
 
 trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with ScalaCliScalafixModule {
+    with ScalaCliScalafixLegacyModule {
   def crossScalaVersion: String = crossValue
   def constantsFile: Target[PathRef] = Task(persistent = true) {
     val dir  = Task.dest / "constants"

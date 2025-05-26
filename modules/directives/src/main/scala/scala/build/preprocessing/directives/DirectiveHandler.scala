@@ -1,24 +1,13 @@
 package scala.build.preprocessing.directives
-
-import com.virtuslab.using_directives.custom.model.{EmptyValue, Value}
-
 import java.util.Locale
 
 import scala.build.Logger
 import scala.build.Ops.*
 import scala.build.directives.*
-import scala.build.errors.{
-  BuildException,
-  CompositeBuildException,
-  UnexpectedDirectiveError,
-  UsingDirectiveExpectationError,
-  UsingDirectiveValueNumError,
-  UsingDirectiveWrongValueTypeError
-}
+import scala.build.errors.{BuildException, CompositeBuildException, UnexpectedDirectiveError}
 import scala.build.preprocessing.Scoped
 import scala.cli.commands.SpecificationLevel
-import scala.deriving.*
-import scala.quoted.{_, given}
+import scala.quoted.*
 
 trait DirectiveHandler[+T] { self =>
   def name: String
@@ -117,7 +106,7 @@ object DirectiveHandler {
     import quotes.reflect.*
     val tpe = TypeRepr.of[U]
     val sym = TypeRepr.of[U] match {
-      case AppliedType(base, params) =>
+      case AppliedType(base, _) =>
         base.typeSymbol
       case _ =>
         TypeTree.of[U].symbol
@@ -173,7 +162,7 @@ object DirectiveHandler {
     val nudeSubtype      = TypeIdent(sym).tpe
     val baseConst        = nudeSubtype.memberType(sym.primaryConstructor)
     val tpeArgsFromChild = typeArgs(tpe)
-    val const = baseConst match {
+    baseConst match {
       case MethodType(_, _, resTp) => resTp
       case PolyType(names, _, resPolyTp) =>
         val targs     = typeArgs(tpe)
@@ -216,8 +205,8 @@ object DirectiveHandler {
     ${ deriveParserImpl[T] }
   private def deriveParserImpl[T](using q: Quotes, t: Type[T]): Expr[DirectiveHandler[T]] = {
     import quotes.reflect.*
-    val tSym    = TypeTree.of[T].symbol
-    val origin  = shortName[T]
+    val tSym = TypeTree.of[T].symbol
+    shortName[T]
     val fields0 = fields[T]
 
     val defaultMap: Map[String, Expr[Any]] = {
@@ -382,7 +371,7 @@ object DirectiveHandler {
                     .sortBy(_._1.getOrElse(""))
                   valuesByScope
                     .map {
-                      case (scopeOpt, values) =>
+                      case (scopeOpt, _) =>
                         $parser.parse(
                           $scopedDirective.directive.key,
                           $scopedDirective.directive.values,

@@ -1,12 +1,12 @@
 package scala.cli.graal
 
-import org.objectweb.asm._
+import org.objectweb.asm.*
 
 import java.io.{File, InputStream}
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object BytecodeProcessor {
 

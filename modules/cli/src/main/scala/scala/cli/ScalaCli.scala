@@ -4,22 +4,20 @@ import bloop.rifle.FailedToStartServerException
 import coursier.core.Version
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{ByteArrayOutputStream, File, PrintStream}
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
-import scala.build.Directories
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.cli.commands.CommandUtils
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
-import scala.collection.mutable.ListBuffer
 import scala.util.Properties
 
 object ScalaCli {

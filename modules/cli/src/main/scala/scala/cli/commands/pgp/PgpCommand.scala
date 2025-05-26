@@ -1,8 +1,7 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.app.Command
-import caseapp.core.complete.{Completer, CompletionItem}
-import caseapp.core.help.{Help, HelpFormat}
+import caseapp.core.help.Help
 import caseapp.core.parser.Parser
 
 import scala.build.Logger

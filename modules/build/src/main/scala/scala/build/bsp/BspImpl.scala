@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import bloop.rifle.{BloopRifleConfig, BloopServer}
+import bloop.rifle.BloopServer
 import ch.epfl.scala.bsp4j as b
 import com.github.plokhotnyuk.jsoniter_scala.core.{JsonReaderException, readFromArray}
 import dependency.ScalaParameters
@@ -11,8 +11,8 @@ import java.io.{InputStream, OutputStream}
 import java.util.UUID
 import java.util.concurrent.{CompletableFuture, Executor}
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.compiler.BloopCompiler
 import scala.build.errors.{
   BuildException,

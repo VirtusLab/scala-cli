@@ -3,7 +3,7 @@ package scala.cli.packaging
 import java.io.OutputStream
 import java.nio.file.StandardOpenOption.{CREATE, TRUNCATE_EXISTING}
 import java.nio.file.attribute.FileTime
-import java.util.jar.{Attributes => JarAttributes, JarOutputStream}
+import java.util.jar.{Attributes as JarAttributes, JarOutputStream}
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
 import scala.build.Build

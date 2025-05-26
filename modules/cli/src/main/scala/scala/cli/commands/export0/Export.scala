@@ -2,27 +2,20 @@ package scala.cli.commands.export0
 
 import caseapp.*
 import caseapp.core.help.HelpFormat
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
-import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.FileCache
 import coursier.util.{Artifact, Task}
 
-import java.io.{OutputStreamWriter, PrintStream}
-import java.nio.charset.{Charset, StandardCharsets}
-
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internal.Constants
-import scala.build.options.{BuildOptions, Platform, Scope}
+import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{HelpGroup, SharedOptions}
 import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.exportCmd.*
 import scala.cli.util.ArgHelpers.*
-import scala.util.Using
 
 object Export extends ScalaCommand[ExportOptions] {
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL

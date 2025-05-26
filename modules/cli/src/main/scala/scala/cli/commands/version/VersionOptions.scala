@@ -3,14 +3,7 @@ package scala.cli.commands.version
 import caseapp.*
 
 import scala.cli.ScalaCli.fullRunnerName
-import scala.cli.commands.shared.{
-  GlobalOptions,
-  GlobalSuppressWarningOptions,
-  HasGlobalOptions,
-  HelpGroup,
-  HelpMessages,
-  LoggingOptions
-}
+import scala.cli.commands.shared.{GlobalOptions, HasGlobalOptions, HelpGroup, HelpMessages}
 import scala.cli.commands.tags
 import scala.cli.signing.shared.PasswordOption
 import scala.cli.signing.util.ArgParsers.*

@@ -4,7 +4,7 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
-import scala.build.{Logger, Os}
+import scala.build.Logger
 import scala.cli.commands.tags
 import scala.cli.internal.CliLogger
 

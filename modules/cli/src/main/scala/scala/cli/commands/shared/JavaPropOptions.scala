@@ -1,7 +1,6 @@
 package scala.cli.commands.shared
 
 import caseapp.*
-import caseapp.core.Scala3Helpers.*
 import caseapp.core.parser.{Argument, NilParser, StandardArgument}
 import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}

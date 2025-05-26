@@ -1,6 +1,6 @@
 package scala.build.bsp
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 
 trait LoggingBuildClient extends b.BuildClient {
   protected def underlying: b.BuildClient

@@ -4,11 +4,10 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import dependency.*
 
-import scala.build.input.{Inputs, ProjectScalaFile, Script, SourceScalaFile}
+import scala.build.Logger
+import scala.build.input.{ProjectScalaFile, Script, SourceScalaFile}
 import scala.build.internal.{Constants, ExternalBinaryParams, FetchExternalBinary, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.options.BuildOptions
-import scala.build.{Logger, Sources}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.fmt.FmtUtil.*

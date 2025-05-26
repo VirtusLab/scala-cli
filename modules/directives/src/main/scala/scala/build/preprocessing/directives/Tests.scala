@@ -1,9 +1,9 @@
 package scala.build.preprocessing.directives
 
+import scala.build.Positioned
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.options.{BuildOptions, TestOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Test framework")

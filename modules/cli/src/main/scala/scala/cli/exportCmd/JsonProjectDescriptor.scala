@@ -1,23 +1,8 @@
 package scala.cli.exportCmd
-
-import com.github.plokhotnyuk.jsoniter_scala.core.WriterConfig
-import coursier.ivy.IvyRepository
-import coursier.maven.MavenRepository
-import coursier.parse.RepositoryParser
-import coursier.{LocalRepositories, Repositories}
-import dependency.NoAttributes
-
-import java.nio.charset.StandardCharsets
-import java.nio.file.Path
-
 import scala.build.errors.BuildException
 import scala.build.info.{BuildInfo, ScopedBuildInfo}
-import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope}
-import scala.build.testrunner.AsmTestRunner
-import scala.build.{Logger, Positioned, Sources}
-import scala.cli.commands.util.CommandHelpers
-import scala.cli.util.SeqHelpers.*
+import scala.build.{Logger, Sources}
 
 final case class JsonProjectDescriptor(
   projectName: Option[String] = None,

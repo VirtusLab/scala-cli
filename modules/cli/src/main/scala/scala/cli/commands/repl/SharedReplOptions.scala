@@ -3,14 +3,7 @@ package scala.cli.commands.repl
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{
-  CrossOptions,
-  HelpGroup,
-  ScopeOptions,
-  SharedJavaOptions,
-  SharedPythonOptions,
-  SharedWatchOptions
-}
+import scala.cli.commands.shared.{CrossOptions, HelpGroup, SharedJavaOptions, SharedWatchOptions}
 import scala.cli.commands.{Constants, tags}
 
 // format: off

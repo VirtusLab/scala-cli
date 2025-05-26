@@ -2,9 +2,7 @@ package scala.cli.exportCmd
 
 import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
-import dependency.NoAttributes
 
-import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 
 import scala.build.errors.BuildException
@@ -14,7 +12,6 @@ import scala.build.options.{BuildOptions, Platform, ScalaJsOptions, ScalaNativeO
 import scala.build.testrunner.AsmTestRunner
 import scala.build.{Logger, Sources}
 import scala.cli.ScalaCli
-import scala.cli.util.SeqHelpers.*
 
 final case class MillProjectDescriptor(
   millVersion: String,
