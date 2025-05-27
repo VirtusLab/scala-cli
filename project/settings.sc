@@ -160,6 +160,11 @@ trait CliLaunchers extends SbtModule { self =>
   def defaultFilesResourcePath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
+
+    def writeDefaultNativeImageScript(scriptDest: String) = T.command {
+      super.writeNativeImageScript(scriptDest, "")()
+    }
+
     def launcherKind: String
     def nativeImageCsCommand    = Seq(cs())
     def nativeImagePersist      = System.getenv("CI") != null
@@ -363,9 +368,9 @@ trait CliLaunchers extends SbtModule { self =>
         .call(cwd = os.pwd / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def writeNativeImageScript(scriptDest: String, imageDest: String = "") = T.command {
+    override def writeDefaultNativeImageScript(scriptDest: String) = T.command {
       buildHelperImage()
-      super.writeNativeImageScript(scriptDest, imageDest)()
+      super.writeDefaultNativeImageScript(scriptDest)()
     }
   }
 
