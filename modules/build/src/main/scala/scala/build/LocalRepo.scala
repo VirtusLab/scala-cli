@@ -77,18 +77,21 @@ object LocalRepo {
 
       if !os.exists(repoDir) then
         withLock((repoDir / os.up).toNIO, version) {
-          val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-          try os.remove.all(tmpRepoDir)
-          catch {
-            case t: Throwable =>
-              logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
-          }
-          using(archiveUrl.openStream()) { is =>
-            using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
-              extractZip(zis, tmpRepoDir)
+          // Post-lock validation: Recheck repository directory existence to handle
+          // potential race conditions between initial check and lock acquisition
+          if !os.exists(repoDir) then
+            val tmpRepoDir = repoDir / os.up / s".$version.tmp"
+            try os.remove.all(tmpRepoDir)
+            catch {
+              case t: Throwable =>
+                logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
             }
-          }
-          os.move(tmpRepoDir, repoDir)
+            using(archiveUrl.openStream()) { is =>
+              using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
+                extractZip(zis, tmpRepoDir)
+              }
+            }
+            os.move(tmpRepoDir, repoDir)
         }
 
       val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"

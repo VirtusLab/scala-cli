@@ -14,9 +14,9 @@ object Scala {
   def runnerScala3     = scala3Lts
   def scala3NextPrefix = "3.7"
   def scala3Next       = s"$scala3NextPrefix.0" // the newest/next version of Scala
-  def scala3NextAnnounced   = "3.6.4"     // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.7.1-RC1" // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = "3.7.0-RC4" // the latest announced RC version of Scala Next
+  def scala3NextAnnounced   = scala3Next  // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.7.1-RC2" // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = "3.7.1-RC1" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -34,7 +34,7 @@ object Scala {
   val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
 
   def scalaJs    = "1.19.0"
-  def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
+  def scalaJsCli = "1.19.0.1" // this must be compatible with the Scala.js version
 
   private def patchVer(sv: String): Int =
     sv.split('.').drop(2).head.takeWhile(_.isDigit).toInt
@@ -135,7 +135,7 @@ object Deps {
     def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.20.1"
-    def scalaMeta                         = "4.13.5"
+    def scalaMeta                         = "4.13.6"
     def scalafmt                          = "3.9.6"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.7"
@@ -145,12 +145,12 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative04
     def scalaPackager                     = "0.1.32"
-    def signingCli                        = "0.2.6"
+    def signingCli                        = "0.2.7"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
-    def javaClassName                     = "0.1.4"
+    def javaClassName                     = "0.1.6"
     def bloop                             = "2.0.10"
-    def sbtVersion                        = "1.10.11"
+    def sbtVersion                        = "1.11.0"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
     def mavenExecPluginVersion            = "3.3.0"
