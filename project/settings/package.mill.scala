@@ -23,7 +23,7 @@ import mill.scalalib._
 import os.{CommandResult, Path}
 import upickle.default._
 
-import java.io.{File, InputStream}
+import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.annotation.unused
@@ -62,7 +62,6 @@ def fromPath(name: String): String =
     name
 
 def cs: Target[String] = Task(persistent = true) {
-
   val arch      = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
   val ext       = if (Properties.isWin) ".exe" else ""
   val csVersion = if (arch == "aarch64" && Properties.isMac) buildCsM1Version else buildCsVersion
@@ -124,19 +123,11 @@ def cs: Target[String] = Task(persistent = true) {
     }
   }
 
-  if (os.isFile(dest))
-    dest.toString
-  else
-    downloadOpt().getOrElse(fromPath("cs")): String
+  if (os.isFile(dest)) dest.toString
+  else downloadOpt().getOrElse(fromPath("cs")): String
 }
 
-def platformExtension: String =
-  if (Properties.isWin) ".exe"
-  else ""
-
-def platformExecutableJarExtension: String =
-  if (Properties.isWin) ".bat"
-  else ""
+def platformExecutableJarExtension: String = if (Properties.isWin) ".bat" else ""
 
 lazy val arch = sys.props("os.arch").toLowerCase(java.util.Locale.ROOT) match {
   case "amd64" => "x86_64"
@@ -152,12 +143,6 @@ def platformSuffix: String = {
 }
 
 def localRepoResourcePath = "local-repo.zip"
-
-def getGhToken(): String =
-  Option(System.getenv("UPLOAD_GH_TOKEN"))
-    .getOrElse {
-      sys.error("UPLOAD_GH_TOKEN not set")
-    }
 
 trait CliLaunchers extends SbtModule { self =>
 
@@ -205,7 +190,7 @@ trait CliLaunchers extends SbtModule { self =>
     private def staticLibDirName = "native-libs"
 
     private def copyCsjniutilTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = {
-      val jniUtilsVersion = Deps.jniUtils.dep.version
+      val jniUtilsVersion = Deps.jniUtils.dep.versionConstraint.asString
       val libRes = os.proc(
         cs,
         "fetch",
@@ -218,7 +203,7 @@ trait CliLaunchers extends SbtModule { self =>
       os.copy.over(libPath, destDir / "csjniutils.lib")
     }
     private def copyLibsodiumjniTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = {
-      val libsodiumjniVersion = Deps.libsodiumjni.dep.version
+      val libsodiumjniVersion = Deps.libsodiumjni.dep.versionConstraint.asString
       val (classifier, ext) = sys.props.get("os.arch") match {
         case Some("x86_64" | "amd64") =>
           if (Properties.isWin) ("x86_64-pc-win32", "lib")
@@ -450,7 +435,7 @@ trait CliLaunchers extends SbtModule { self =>
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-    Task.log.outputStream.println(s"Config generated in ${outputDir.relativeTo(Task.workspace)}")
+    Task.log.streams.out.println(s"Config generated in ${outputDir.relativeTo(Task.workspace)}")
   }
 
   @unused
@@ -600,7 +585,6 @@ trait PublishLocalNoFluff extends PublishModule {
 }
 
 trait LocalRepo extends Module {
-
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
@@ -620,12 +604,12 @@ trait LocalRepo extends Module {
         VcsVersion.vcsState()
       }
   def localRepoZip: Target[PathRef] = Task {
-    val repoVer   = vcsState().format()
-    val ver       = version()
-    val something = localRepo()
-    val repoDir   = Task.workspace / "out" / "repo" / ver
-    val destDir   = Task.dest / ver / "repo.zip"
-    val dest      = destDir / "repo.zip"
+    val repoVer = vcsState().format()
+    val ver     = version()
+    localRepo()
+    val repoDir = Task.workspace / "out" / "repo" / ver
+    val destDir = Task.dest / ver / "repo.zip"
+    val dest    = destDir / "repo.zip"
 
     import java.io._
     import java.util.zip._
@@ -841,7 +825,6 @@ trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
 }
 
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
-trait ScalaCliSbtModule      extends SbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
   def javacOptions: Target[Seq[String]] = super.javacOptions() ++ Seq(
@@ -869,50 +852,4 @@ object License {
 case class Licenses(licenses: List[License])
 object Licenses {
   implicit val rw: ReadWriter[Licenses] = macroRW
-}
-
-def updateLicensesFile() = T.task {
-  val url             = "https://github.com/spdx/license-list-data/raw/master/json/licenses.json"
-  var is: InputStream = null
-  val b =
-    try {
-      is = new java.net.URL(url).openStream()
-      is.readAllBytes()
-    }
-    finally if (is != null) is.close()
-  val content = new String(b, "UTF-8")
-
-  val licenses = read[Licenses](content).licenses
-
-  System.err.println(s"Found ${licenses.length} licenses")
-
-  val licensesCode = licenses
-    .sortBy(_.licenseId)
-    .map { license =>
-      s"""    License("${license.licenseId}", "${license.name.replace(
-          "\"",
-          "\\\""
-        )}", "${license.reference}")"""
-    }
-    .mkString(",\n")
-
-  val genSource =
-    s"""package scala.build.internal
-       |
-       |object Licenses {
-       |  // format: off
-       |  val list = Seq(
-       |$licensesCode
-       |  )
-       |  // format: on
-       |
-       |  lazy val map = list.map(l => l.id -> l).toMap
-       |}
-       |""".stripMargin
-
-  val dest =
-    os.rel / "modules" / "build" / "src" / "main" / "scala" / "scala" / "build" / "internal" / "Licenses.scala"
-  os.write.over(Task.workspace / dest, genSource)
-
-  System.err.println(s"Wrote $dest")
 }

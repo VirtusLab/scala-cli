@@ -13,12 +13,12 @@ import settings.{
   CliLaunchers,
   FormatNativeImageConf,
   HasTests,
+  Licenses,
   LocalRepo,
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
-  ScalaCliSbtModule,
-  ScalaCliScalafixModule,
   ScalaCliScalafixLegacyModule,
+  ScalaCliScalafixModule,
   jvmPropertiesFileName,
   localRepoResourcePath,
   platformExecutableJarExtension,
@@ -31,7 +31,7 @@ import deps.alpineVersion
 import build.project.website
 import coursier.Repository
 
-import java.io.File
+import java.io.{File, InputStream}
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.Locale
@@ -43,6 +43,7 @@ import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
 import mill.testrunner.TestResult
 import os.{CommandResult, Path}
+import upickle.default.read
 
 import _root_.scala.util.{Properties, Using}
 import _root_.scala.annotation.unused
@@ -349,8 +350,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
       val sv = scalaVersion()
       def compile(extraSources: os.Path*): CommandResult =
         os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
-          check =
-            false,
+          check = false,
           mergeErrIntoOut = true,
           cwd = Task.workspace
         )
@@ -1136,35 +1136,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     }
     def generatedSources: Target[Seq[PathRef]] = super.generatedSources() ++ Seq(constantsFile())
 
-    def runTests(
-      launcherTask: T[PathRef],
-      cliKind: String,
-      args: String*
-    ): Task[(String, Seq[TestResult])] = {
-      val argsTask = Task.Anon {
-        val launcher = launcherTask().path
-        val debugReg = "^--debug$|^--debug:([0-9]+)$".r
-        val debugPortOpt = args.find(debugReg.matches).flatMap {
-          case debugReg(port) => Option(port).orElse(Some("5005"))
-          case _              => None
-        }
-        val debugArgs = debugPortOpt match {
-          case Some(port) =>
-            System.err.println(
-              s"--debug option has been passed. Listening for transport dt_socket at address: $port"
-            )
-            Seq(s"-Dtest.scala-cli.debug.port=$port")
-          case _ => Seq.empty
-        }
-        val extraArgs = Seq(
-          s"-Dtest.scala-cli.path=$launcher",
-          s"-Dtest.scala-cli.kind=$cliKind"
-        )
-        args ++ extraArgs ++ debugArgs
-      }
-      testTask(argsTask, Task.Anon(Seq.empty[String]))
-    }
-
     override def test(args: String*): Command[(String, Seq[TestResult])] = jvm(args: _*)
 
     def forcedLauncher: Target[PathRef] = Task(persistent = true) {
@@ -1234,16 +1205,65 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
         }
     }
 
-    def jvm(args: String*): Command[(String, Seq[TestResult])] =
-      T.command(runTests(Launchers.jvm, "jvm", args: _*))
-    def jvmBootstrapped(args: String*): Command[(String, Seq[TestResult])] =
-      T.command(runTests(Launchers.jvmBootstrapped, "jvmBootstrapped", args: _*))
-    def native(args: String*): Command[(String, Seq[TestResult])] =
-      T.command(runTests(Launchers.native, "native", args: _*))
-    def nativeStatic(args: String*): Command[(String, Seq[TestResult])] =
-      T.command(runTests(Launchers.nativeStatic, "native-static", args: _*))
-    def nativeMostlyStatic(args: String*): Command[(String, Seq[TestResult])] =
-      T.command(runTests(Launchers.nativeMostlyStatic, "native-mostly-static", args: _*))
+    private def extraTestArgs(launcher: os.Path, cliKind: String): Seq[String] =
+      Seq(
+        s"-Dtest.scala-cli.path=$launcher",
+        s"-Dtest.scala-cli.kind=$cliKind"
+      )
+
+    private def debugTestArgs(args: Seq[String]): Seq[String] = {
+      val debugReg = "^--debug$|^--debug:([0-9]+)$".r
+      val debugPortOpt = args.find(debugReg.matches).flatMap {
+        case debugReg(port) => Option(port).orElse(Some("5005"))
+        case _              => None
+      }
+      debugPortOpt match {
+        case Some(port) =>
+          System.err.println(
+            s"--debug option has been passed. Listening for transport dt_socket at address: $port"
+          )
+          Seq(s"-Dtest.scala-cli.debug.port=$port")
+        case _ => Seq.empty
+      }
+    }
+
+    private def testArgs(args: Seq[String], launcher: os.Path, cliKind: String): Seq[String] =
+      extraTestArgs(launcher, cliKind) ++ debugTestArgs(args)
+
+    def jvm(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      testTask(
+        Task.Anon(args ++ testArgs(args, Launchers.jvm().path, "jvm")),
+        Task.Anon(Seq.empty[String])
+      )()
+    }
+    def jvmBootstrapped(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      testTask(
+        Task.Anon(args ++ testArgs(args, Launchers.jvmBootstrapped().path, "jvmBootstrapped")),
+        Task.Anon(Seq.empty[String])
+      )()
+    }
+    def native(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      testTask(
+        Task.Anon(args ++ testArgs(args, Launchers.native().path, "native")),
+        Task.Anon(Seq.empty[String])
+      )()
+    }
+    def nativeStatic(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      testTask(
+        Task.Anon(args ++ testArgs(args, Launchers.nativeStatic().path, "native-static")),
+        Task.Anon(Seq.empty[String])
+      )()
+    }
+    def nativeMostlyStatic(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+      testTask(
+        Task.Anon(args ++ testArgs(
+          args,
+          Launchers.nativeMostlyStatic().path,
+          "native-mostly-static"
+        )),
+        Task.Anon(Seq.empty[String])
+      )()
+    }
   }
 }
 
@@ -2052,8 +2072,4 @@ object ci extends Module {
       Task.workspace / "website" / "docs" / "guides" / "advanced" / "scala-js.md"
     )
   }
-}
-
-def updateLicensesFile(): Command[Unit] = T.command {
-  settings.updateLicensesFile()
 }
