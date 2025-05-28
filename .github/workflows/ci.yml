@@ -51,6 +51,26 @@ jobs:
         name: test-results-unit-tests
         path: test-report.xml
 
+  test-fish-shell:
+    timeout-minutes: 120
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        submodules: true
+    - uses: VirtusLab/scala-cli-setup@v1
+      with:
+        jvm: "temurin:17"
+    - name: Install fish
+      run: |
+        sudo apt-add-repository ppa:fish-shell/release-3
+        sudo apt update
+        sudo apt install fish
+    - name: Test mill script in fish shell
+      run: |
+        fish -c './mill __.compile'
+
   jvm-tests-1:
     timeout-minutes: 120
     runs-on: ubuntu-24.04
