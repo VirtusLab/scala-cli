@@ -1651,6 +1651,9 @@ jobs:
       - vc-redist
       - format
       - checks
+      - test-fish-shell
+      - test-hypothetical-sbt-export
+      - bloop-memory-footprint
       - reference-doc
       - docs-tests
     if: github.event_name == 'push' && github.repository == 'VirtusLab/scala-cli'
@@ -1730,6 +1733,9 @@ jobs:
       - vc-redist
       - format
       - checks
+      - test-fish-shell
+      - test-hypothetical-sbt-export
+      - bloop-memory-footprint
       - reference-doc
       - generate-linux-arm64-native-launcher
       - publish
