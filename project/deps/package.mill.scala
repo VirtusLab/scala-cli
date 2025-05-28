@@ -79,7 +79,6 @@ object Scala {
   def maxAmmoniteScala3LtsVersion = "3.3.5"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
-  @unused
   lazy val listAllAmmonite: Seq[String] = {
     import coursier.core.Version
     val max212 = Version(maxAmmoniteScala212Version)

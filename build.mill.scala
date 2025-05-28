@@ -151,9 +151,8 @@ object integration extends CliIntegration {
       )
     }
   }
-  @unused
+
   object `docker-slim` extends CliIntegrationDocker {
-    @unused
     object test extends ScalaCliTests {
       def sources: Target[Seq[PathRef]] = Task.Sources {
         integration.docker.test.sources()
@@ -170,7 +169,6 @@ object integration extends CliIntegration {
   }
 }
 
-@unused
 object `docs-tests` extends Cross[DocsTests](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
@@ -239,7 +237,6 @@ object packager extends ScalaModule with Bloop.Module {
   def mainClass: Target[Option[String]] = Some("packager.cli.PackagerCli")
 }
 
-@unused
 object `generate-reference-doc` extends Cross[GenerateReferenceDoc](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
@@ -261,12 +258,10 @@ trait GenerateReferenceDoc extends CrossSbtModule with ScalaCliScalafixModule {
   )
 }
 
-@unused
 object dummy extends Module {
   // dummy projects to get scala steward updates for Ammonite and scalafmt, whose
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
-  @unused
   object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
   trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
     def crossScalaVersion: String = crossValue
@@ -278,7 +273,6 @@ object dummy extends Module {
       Agg(ammoniteDep)
     }
   }
-  @unused
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
@@ -286,14 +280,12 @@ object dummy extends Module {
       Deps.scalafmtCli
     )
   }
-  @unused
   object pythonInterface extends JavaModule with Bloop.Module {
     def skipBloop = true
     def ivyDeps: Target[Agg[Dep]] = Agg(
       Deps.pythonInterface
     )
   }
-  @unused
   object scalaPy extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
@@ -301,7 +293,6 @@ object dummy extends Module {
       Deps.scalaPy
     )
   }
-  @unused
   object scalafix extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
@@ -1353,7 +1344,6 @@ object `local-repo` extends LocalRepo {
 }
 
 // Helper CI commands
-
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Command {
   publish.publishSonatype(
     data = define.Target.sequence(tasks.value)(),
@@ -1362,7 +1352,6 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Co
   )
 }
 
-@unused
 def copyTo(task: mill.main.Tasks[PathRef], dest: String): Command[Unit] = Task.Command {
   val destPath = os.Path(dest, Task.workspace)
   if (task.value.length > 1)
@@ -1372,7 +1361,6 @@ def copyTo(task: mill.main.Tasks[PathRef], dest: String): Command[Unit] = Task.C
   os.copy.over(ref.path, destPath)
 }
 
-@unused
 def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
   val destPath   = os.Path(dest, Task.workspace)
   val rawVersion = cli(Scala.defaultInternal).publishVersion()
@@ -1382,7 +1370,6 @@ def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
   os.write.over(destPath, version)
 }
 
-@unused
 def writeShortPackageVersionTo(dest: String): Command[Unit] = Task.Command {
   val destPath   = os.Path(dest, Task.workspace)
   val rawVersion = cli(Scala.defaultInternal).publishVersion()
@@ -1429,7 +1416,6 @@ def copyLauncher(directory: String = "artifacts"): Command[Path] = Task.Command 
   )
 }
 
-@unused
 def copyJvmLauncher(directory: String = "artifacts"): Command[Unit] = Task.Command {
   val launcher = cli(Scala.defaultInternal).standaloneLauncher().path
   os.copy(
@@ -1439,7 +1425,6 @@ def copyJvmLauncher(directory: String = "artifacts"): Command[Unit] = Task.Comma
     replaceExisting = true
   )
 }
-@unused
 def copyJvmBootstrappedLauncher(directory: String = "artifacts"): Command[Unit] = Task.Command {
   val launcher = cliBootstrapped.jar().path
   os.copy(
@@ -1450,7 +1435,6 @@ def copyJvmBootstrappedLauncher(directory: String = "artifacts"): Command[Unit] 
   )
 }
 
-@unused
 def uploadLaunchers(directory: String = "artifacts"): Command[Unit] = Task.Command {
   val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1467,7 +1451,6 @@ def uploadLaunchers(directory: String = "artifacts"): Command[Unit] = Task.Comma
   )
 }
 
-@unused
 def unitTests(): Command[(String, Seq[TestResult])] = Task.Command {
   `build-module`(Scala.defaultInternal).test.test()()
   `build-macros`(Scala.defaultInternal).test.test()()
@@ -1484,25 +1467,21 @@ def debug(port: Int, args: Task[Args] = Task.Anon(Args())) = Task.Command {
   cli(Scala.defaultInternal).debug(port, args)()
 }
 
-@unused
 def defaultNativeImage(): Command[PathRef] =
   Task.Command {
     cli(Scala.defaultInternal).nativeImage()
   }
 
-@unused
 def nativeIntegrationTests(): Command[(String, Seq[TestResult])] =
   Task.Command {
     integration.test.native()()
   }
 
-@unused
 def copyDefaultLauncher(directory: String = "artifacts"): Command[Path] =
   Task.Command {
     copyLauncher(directory)()
   }
 
-@unused
 def copyMostlyStaticLauncher(directory: String = "artifacts"): Command[Path] = Task.Command {
   val nativeLauncher = cli(Scala.defaultInternal).nativeImageMostlyStatic().path
   Upload.copyLauncher0(
@@ -1515,7 +1494,6 @@ def copyMostlyStaticLauncher(directory: String = "artifacts"): Command[Path] = T
   )
 }
 
-@unused
 def copyStaticLauncher(directory: String = "artifacts"): Command[Path] = Task.Command {
   val nativeLauncher = cli(Scala.defaultInternal).nativeImageStatic().path
   Upload.copyLauncher0(
@@ -1559,13 +1537,10 @@ private def commitChanges(
 }
 
 // TODO Move most CI-specific tasks there
-@unused
 object ci extends Module {
-  @unused
   def publishVersion(): Command[Unit] = Task.Command {
     println(cli(Scala.defaultInternal).publishVersion())
   }
-  @unused
   def updateScalaCliSetup(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1595,7 +1570,6 @@ object ci extends Module {
     os.proc("git", "switch", "-c", targetBranch).call(cwd = mainDir)
     commitChanges(s"Update scala-cli version to $version", targetBranch, mainDir, force = true)
   }
-  @unused
   def updateStandaloneLauncher(): Command[CommandResult] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1665,7 +1639,6 @@ object ci extends Module {
 
     (x86Sha256, arm64Sha256)
   }
-  @unused
   def updateScalaCliBrewFormula(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1709,7 +1682,6 @@ object ci extends Module {
 
     commitChanges(s"Update for $version", branch, homebrewFormulaDir)
   }
-  @unused
   def updateScalaExperimentalBrewFormula(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1753,7 +1725,6 @@ object ci extends Module {
 
     commitChanges(s"Update for $version", branch, homebrewFormulaDir)
   }
-  @unused
   def updateInstallationScript(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1781,7 +1752,6 @@ object ci extends Module {
 
     commitChanges(s"Update installation script for $version", branch, packagesDir)
   }
-  @unused
   def updateDebianPackages(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1850,7 +1820,6 @@ object ci extends Module {
 
     commitChanges(s"Update Debian packages for $version", branch, packagesDir)
   }
-  @unused
   def updateChocolateyPackage(): Command[CommandResult] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1895,7 +1864,6 @@ object ci extends Module {
       chocoKey
     ).call(cwd = chocoDir)
   }
-  @unused
   def updateCentOsPackages(): Command[Unit] = Task.Command {
     val version = cli(Scala.defaultInternal).publishVersion()
 
@@ -1950,7 +1918,6 @@ object ci extends Module {
     os.Path("C:\\Program Files\\Microsoft Visual Studio"),
     os.Path("C:\\Program Files (x86)\\Microsoft Visual Studio")
   )
-  @unused
   def copyVcRedist(
     directory: String = "artifacts",
     distName: String = "vc_redist.x64.exe"
@@ -1992,7 +1959,6 @@ object ci extends Module {
       val destDir = os.Path(directory, Task.workspace)
       os.copy(orig, destDir / distName, createFolders = true, replaceExisting = true)
     }
-  @unused
   def writeWixConfigExtra(dest: String = "wix-visual-cpp-redist.xml"): Command[Unit] =
     Task.Command {
       val msmPath = {
@@ -2037,13 +2003,10 @@ object ci extends Module {
       val dest0 = os.Path(dest, Task.workspace)
       os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
     }
-  @unused
   def setShouldPublish(): Command[Unit] = publish.setShouldPublish()
-  @unused
   def shouldPublish(): Command[Unit] = Task.Command {
     println(publish.shouldPublish())
   }
-  @unused
   def copyJvm(jvm: String = deps.graalVmJvmId, dest: String = "jvm"): Command[Path] = Task.Command {
     import sys.process._
     val command = Seq(
@@ -2063,7 +2026,6 @@ object ci extends Module {
     destJavaHome
   }
 
-  @unused
   def checkScalaVersions(): Command[Unit] = Task.Command {
     website.checkMainScalaVersions(
       Task.workspace / "website" / "docs" / "reference" / "scala-versions.md"

@@ -152,9 +152,8 @@ trait CliLaunchers extends SbtModule { self =>
 
   trait CliNativeImage extends NativeImage {
 
-    def writeDefaultNativeImageScript(scriptDest: String) = T.command {
-      super.writeNativeImageScript(scriptDest, "")()
-    }
+    def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
+      Task.Command(super.writeNativeImageScript(scriptDest, "")())
 
     def launcherKind: String
     def nativeImageCsCommand: Target[Seq[String]] = Seq(cs())
@@ -359,7 +358,7 @@ trait CliLaunchers extends SbtModule { self =>
         .call(cwd = Task.workspace / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
-    def writeNativeImageScript(scriptDest: String, imageDest: String = ""): Command[Unit] =
+    override def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
       Task.Command {
         buildHelperImage()
         super.writeDefaultNativeImageScript(scriptDest)()
@@ -415,7 +414,6 @@ trait CliLaunchers extends SbtModule { self =>
   def nativeImageMostlyStatic: Target[PathRef] =
     `mostly-static-image`.nativeImage
 
-  @unused
   def runWithAssistedConfig(args: String*): Command[Unit] = Task.Command {
     val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))

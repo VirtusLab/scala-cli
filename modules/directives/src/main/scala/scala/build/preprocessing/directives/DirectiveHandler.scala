@@ -104,7 +104,6 @@ object DirectiveHandler {
     t: Type[U]
   ): List[(q.reflect.Symbol, q.reflect.TypeRepr)] = {
     import quotes.reflect.*
-    val tpe = TypeRepr.of[U]
     val sym = TypeRepr.of[U] match {
       case AppliedType(base, _) =>
         base.typeSymbol
@@ -114,77 +113,6 @@ object DirectiveHandler {
 
     // Many things inspired by https://github.com/plokhotnyuk/jsoniter-scala/blob/8f39e1d45fde2a04984498f036cad93286344c30/jsoniter-scala-macros/shared/src/main/scala-3/com/github/plokhotnyuk/jsoniter_scala/macros/JsonCodecMaker.scala#L564-L613
     // and around, here
-
-    def typeArgs(tpe: TypeRepr): List[TypeRepr] = tpe match
-      case AppliedType(_, typeArgs) => typeArgs.map(_.dealias)
-      case _                        => Nil
-
-    def resolveParentTypeArg(
-      child: Symbol,
-      fromNudeChildTarg: TypeRepr,
-      parentTarg: TypeRepr,
-      binding: Map[String, TypeRepr]
-    ): Map[String, TypeRepr] =
-      if (fromNudeChildTarg.typeSymbol.isTypeParam) { // todo: check for paramRef instead ?
-        val paramName = fromNudeChildTarg.typeSymbol.name
-        binding.get(paramName) match
-          case None => binding.updated(paramName, parentTarg)
-          case Some(oldBinding) =>
-            if (oldBinding =:= parentTarg) binding
-            else sys.error(
-              s"Type parameter $paramName in class ${child.name} appeared in the constructor of " +
-                s"${tpe.show} two times differently, with ${oldBinding.show} and ${parentTarg.show}"
-            )
-      }
-      else if (fromNudeChildTarg <:< parentTarg)
-        binding // TODO: assupe parentTag is covariant, get covariance from tycon type parameters.
-      else
-        (fromNudeChildTarg, parentTarg) match
-          case (AppliedType(ctycon, ctargs), AppliedType(ptycon, ptargs)) =>
-            ctargs.zip(ptargs).foldLeft(resolveParentTypeArg(child, ctycon, ptycon, binding)) {
-              (b, e) =>
-                resolveParentTypeArg(child, e._1, e._2, b)
-            }
-          case _ =>
-            sys.error(s"Failed unification of type parameters of ${tpe.show} from child $child - " +
-              s"${fromNudeChildTarg.show} and ${parentTarg.show}")
-
-    def resolveParentTypeArgs(
-      child: Symbol,
-      nudeChildParentTags: List[TypeRepr],
-      parentTags: List[TypeRepr],
-      binding: Map[String, TypeRepr]
-    ): Map[String, TypeRepr] =
-      nudeChildParentTags.zip(parentTags).foldLeft(binding)((s, e) =>
-        resolveParentTypeArg(child, e._1, e._2, s)
-      )
-
-    val nudeSubtype      = TypeIdent(sym).tpe
-    val baseConst        = nudeSubtype.memberType(sym.primaryConstructor)
-    val tpeArgsFromChild = typeArgs(tpe)
-    baseConst match {
-      case MethodType(_, _, resTp) => resTp
-      case PolyType(names, _, resPolyTp) =>
-        val targs     = typeArgs(tpe)
-        val tpBinding = resolveParentTypeArgs(sym, tpeArgsFromChild, targs, Map.empty)
-        val ctArgs = names.map { name =>
-          tpBinding.get(name).getOrElse(sys.error(
-            s"Type parameter $name of $sym can't be deduced from " +
-              s"type arguments of ${tpe.show}. Please provide a custom implicitly accessible codec for it."
-          ))
-        }
-        val polyRes = resPolyTp match
-          case MethodType(_, _, resTp) => resTp
-          case other                   => other // hope we have no multiple typed param lists yet.
-        if (ctArgs.isEmpty) polyRes
-        else polyRes match
-          case AppliedType(base, _) => base.appliedTo(ctArgs)
-          case AnnotatedType(AppliedType(base, _), annot) =>
-            AnnotatedType(base.appliedTo(ctArgs), annot)
-          case _ => polyRes.appliedTo(ctArgs)
-      case other =>
-        sys.error(s"Primary constructor for ${tpe.show} is not MethodType or PolyType but $other")
-    }
     sym.primaryConstructor
       .paramSymss
       .flatten
@@ -205,8 +133,7 @@ object DirectiveHandler {
     ${ deriveParserImpl[T] }
   private def deriveParserImpl[T](using q: Quotes, t: Type[T]): Expr[DirectiveHandler[T]] = {
     import quotes.reflect.*
-    val tSym = TypeTree.of[T].symbol
-    shortName[T]
+    val tSym    = TypeTree.of[T].symbol
     val fields0 = fields[T]
 
     val defaultMap: Map[String, Expr[Any]] = {

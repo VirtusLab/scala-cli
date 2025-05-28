@@ -32,8 +32,6 @@ final case class MavenProjectDescriptor(
   logger: Logger
 ) extends ProjectDescriptor {
 
-  System.lineSeparator()
-
   private def sources(sourcesMain: Sources, sourcesTest: Sources): MavenProject = {
     val mainSources = ProjectDescriptor.sources(sourcesMain)
     val testSources = ProjectDescriptor.sources(sourcesTest)
@@ -124,7 +122,6 @@ final case class MavenProjectDescriptor(
         testDeps: ShadowingSeq[Positioned[AnyDependency]],
         isCompileOnly: Boolean
       ): Seq[MavenLibraryDependency] = {
-        List()
         val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
         val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
         val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
@@ -176,8 +173,6 @@ final case class MavenProjectDescriptor(
 
     val javacOptions = javacOptionsSettings(options)
 
-    javaOptionsSettings(options)
-
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
     val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
     val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
@@ -195,17 +190,6 @@ final case class MavenProjectDescriptor(
     jdkVersion: String,
     scalaVersion: String
   ): MavenPlugin = {
-
-    buildNode("scalaVersion", scalaVersion)
-    locally {
-      val opts = javacOptions.map { opt =>
-        buildNode("javacArg", opt)
-      }
-      <javacArgs>
-        {opts}
-      </javacArgs>
-    }
-
     val execElements =
       <executions>
         <execution>
