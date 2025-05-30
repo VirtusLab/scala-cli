@@ -1,6 +1,7 @@
 #!/usr/bin/env -S scala-cli shebang
 //> using scala 3
 //> using toolkit default
+//> using options -Werror -Wunused:all
 
 val modules =
   os.proc(os.pwd / "mill", "-i", "resolve", "__[]")
@@ -18,14 +19,17 @@ for { module <- modules } {
     .lines()
     .filter(_.count(_ == ':') == 2)
     .map { case depRegex(org, name, depVersion) => (org, name, depVersion) }
+  val invalidOrgAndName = "invalid:invalid"
   val scalaVersionsByOrgAndName = deps
-    .groupBy { case (org, scalaDepSuffixRegex(nameWithoutSuffix, _), _) =>
-      s"$org:$nameWithoutSuffix"
+    .groupBy {
+      case (org, scalaDepSuffixRegex(nameWithoutSuffix, _), _) => s"$org:$nameWithoutSuffix"
+      case _                                                   => invalidOrgAndName
     }
-    .map { case (key, entries) =>
-      key -> entries.map { case (_, scalaDepSuffixRegex(_, scalaVersion), _) =>
-        scalaVersion
-      }.distinct
+    .collect {
+      case (key, entries) if key != invalidOrgAndName =>
+        key -> entries
+          .collect { case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion }
+          .distinct
     }
     .filter { case (_, scalaVersions) => scalaVersions.head != null } // filter out non-Scala deps
   println("Checking for clashing dependency Scala versions...")
