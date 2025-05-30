@@ -545,7 +545,7 @@ trait HasTests extends SbtModule {
   }
 }
 
-trait PublishLocalNoFluff extends PublishModule {
+trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
   def emptyZip: Target[PathRef] = Task {
     import java.io._
     import java.util.zip._

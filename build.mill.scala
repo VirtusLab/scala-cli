@@ -4,6 +4,7 @@ import $packages._
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 import $ivy.`io.get-coursier::coursier-launcher:2.1.24`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.31-1`
+import build.ci.publishVersion
 import build.project.deps
 import deps.{Cli, Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import build.project.publish
@@ -388,7 +389,7 @@ trait Core extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule {
   def crossScalaVersion: String = crossValue
 
-  def moduleDeps: Seq[PublishModule] = Seq(
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     config(crossScalaVersion)
   )
   def compileModuleDeps: Seq[JavaModule] = Seq(
@@ -580,7 +581,7 @@ trait Directives extends ScalaCliCrossSbtModule
     with HasTests
     with ScalaCliScalafixModule {
   def crossScalaVersion: String = crossValue
-  def moduleDeps: Seq[PublishModule] = Seq(
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     options(crossScalaVersion),
     core(crossScalaVersion),
     `build-macros`(crossScalaVersion),
@@ -641,8 +642,8 @@ trait Directives extends ScalaCliCrossSbtModule
 trait Config extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  def crossScalaVersion: String      = crossValue
-  def moduleDeps: Seq[PublishModule] = Seq(`specification-level`(crossScalaVersion))
+  def crossScalaVersion: String                     = crossValue
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(`specification-level`(crossScalaVersion))
   def ivyDeps: Target[Agg[Dep]] = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
@@ -669,7 +670,7 @@ trait Config extends ScalaCliCrossSbtModule
 trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   def crossScalaVersion: String = crossValue
-  def moduleDeps: Seq[PublishModule] = Seq(
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     core(crossScalaVersion)
   )
   def compileModuleDeps: Seq[JavaModule] = Seq(
@@ -725,8 +726,8 @@ trait Scala3Graal extends ScalaCliCrossSbtModule
 }
 
 trait Scala3GraalProcessor extends CrossScalaModule with ScalaCliPublishModule {
-  def moduleDeps: Seq[PublishModule] = Seq(`scala3-graal`(crossScalaVersion))
-  def finalMainClass: Target[String] = "scala.cli.graal.CoursierCacheProcessor"
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(`scala3-graal`(crossScalaVersion))
+  def finalMainClass: Target[String]                = "scala.cli.graal.CoursierCacheProcessor"
 }
 
 trait Build extends ScalaCliCrossSbtModule
@@ -735,7 +736,7 @@ trait Build extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule {
   def crossScalaVersion: String = crossValue
   def millSourcePath: os.Path   = super.millSourcePath / os.up / "build"
-  def moduleDeps: Seq[PublishModule] = Seq(
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     options(crossScalaVersion),
     directives(crossScalaVersion),
     `scala-cli-bsp`,
@@ -933,7 +934,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   def javacOptions: Target[Seq[String]] = Task {
     super.javacOptions() ++ Seq("--release", "16")
   }
-  def moduleDeps: Seq[PublishModule] = Seq(
+  def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     `build-module`(crossScalaVersion),
     config(crossScalaVersion),
     `scala3-graal`(crossScalaVersion),
@@ -1345,10 +1346,16 @@ object `local-repo` extends LocalRepo {
 
 // Helper CI commands
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Command {
+  val pv = publishVersion()
+  System.err.println(s"Publish version: $pv")
+  val bundleName = s"$organization-$ghName-$pv"
+  System.err.println(s"Publishing bundle: $bundleName")
   publish.publishSonatype(
     data = define.Target.sequence(tasks.value)(),
     log = Task.ctx().log,
-    workspace = Task.workspace
+    workspace = Task.workspace,
+    env = Task.env,
+    bundleName = bundleName
   )
 }
 
