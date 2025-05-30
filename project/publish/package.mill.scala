@@ -154,9 +154,9 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
 def publishSonatype(
   data: Seq[PublishModule.PublishData],
   log: mill.api.Logger,
-  workspace: os.Path
+  workspace: os.Path,
+  env: Map[String, String]
 ): Unit = {
-
   val credentials = sys.env("SONATYPE_USERNAME") + ":" + sys.env("SONATYPE_PASSWORD")
   val pgpPassword = sys.env("PGP_PASSWORD")
   val timeout     = 10.minutes
@@ -195,7 +195,7 @@ def publishSonatype(
     connectTimeout = timeout.toMillis.toInt,
     log = log,
     workspace = workspace,
-    env = sys.env,
+    env = env,
     awaitTimeout = timeout.toMillis.toInt,
     stagingRelease = isRelease
   )
