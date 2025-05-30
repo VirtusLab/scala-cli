@@ -1346,7 +1346,8 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Co
   publish.publishSonatype(
     data = define.Target.sequence(tasks.value)(),
     log = Task.ctx().log,
-    workspace = Task.workspace
+    workspace = Task.workspace,
+    env = Task.env
   )
 }
 
