@@ -2,7 +2,7 @@
 //> using scala 3
 //> using toolkit default
 //> using dep org.scala-lang.modules::scala-xml:2.4.0
-//> using options -Werror
+//> using options -Werror -Wunused:all
 // adapted from https://github.com/vic/mill-test-junit-report
 import java.io.File
 import scala.collection.mutable.ArrayBuffer

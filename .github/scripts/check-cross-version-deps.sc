@@ -1,7 +1,7 @@
 #!/usr/bin/env -S scala-cli shebang
 //> using scala 3
 //> using toolkit default
-//> using options -Werror
+//> using options -Werror -Wunused:all
 
 val modules =
   os.proc(os.pwd / "mill", "-i", "resolve", "__[]")
@@ -31,7 +31,7 @@ for { module <- modules } {
       key -> entries
         .map {
           case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion
-          case _                                            => "invalid"
+          case _                                            => invalidVersion
         }
         .filterNot(_ == invalidVersion)
         .distinct
