@@ -4,20 +4,17 @@ import caseapp.*
 import caseapp.core.Arg
 import caseapp.core.Scala3Helpers.*
 import caseapp.core.util.Formatter
-import dotty.tools.dotc.ScalacCommand
 import munit.diff.Diff
-import shapeless.tag
 
 import java.nio.charset.StandardCharsets
 import java.util
 
 import scala.build.info.{ArtifactId, BuildInfo, ExportDependencyFormat, ScopedBuildInfo}
-import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, BuildRequirements, WithBuildRequirements}
 import scala.build.preprocessing.directives.DirectiveHandler
 import scala.build.preprocessing.directives.DirectivesPreprocessingUtils.*
-import scala.cli.commands.{ScalaCommand, SpecificationLevel, tags}
+import scala.cli.commands.{ScalaCommand, SpecificationLevel}
 import scala.cli.doc.ReferenceDocUtils.*
 import scala.cli.util.ArgHelpers.*
 import scala.cli.{ScalaCli, ScalaCliCommands}

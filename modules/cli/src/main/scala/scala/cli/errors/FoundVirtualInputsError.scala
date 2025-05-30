@@ -1,7 +1,7 @@
 package scala.cli.errors
 
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, Virtual}
+import scala.build.input.Virtual
 
 final class FoundVirtualInputsError(
   val virtualInputs: Seq[Virtual]

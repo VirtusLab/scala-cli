@@ -1,7 +1,4 @@
 package scala.build
-
-import coursier.core.{Repository, Version}
-import coursier.parse.RepositoryParser
 import coursier.paths.Util
 
 import java.io.{BufferedInputStream, Closeable}
@@ -9,7 +6,6 @@ import java.nio.channels.{FileChannel, FileLock}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, StandardOpenOption}
 
-import scala.build.errors.{BuildException, RepositoryFormatError}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 object LocalRepo {

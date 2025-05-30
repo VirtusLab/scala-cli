@@ -12,7 +12,6 @@ import java.nio.file.{Files, Path, Paths}
 
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
-import scala.build.Ops.EitherSeqOps
 import scala.build.errors.*
 import scala.build.internals.EnvVar
 import scala.build.testrunner.FrameworkUtils.*

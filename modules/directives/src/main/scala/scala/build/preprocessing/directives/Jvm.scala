@@ -2,7 +2,7 @@ package scala.build.preprocessing.directives
 
 import scala.build.directives.*
 import scala.build.errors.BuildException
-import scala.build.options.{BuildOptions, JavaOpt}
+import scala.build.options.BuildOptions
 import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 

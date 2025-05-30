@@ -3,7 +3,7 @@ package scala.cli.commands.dependencyupdate
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, ScopeOptions, SharedOptions}
+import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, SharedOptions}
 import scala.cli.commands.tags
 
 // format: off

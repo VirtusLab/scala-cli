@@ -31,11 +31,6 @@ object DeprecatedDirectives {
   private def valueReplacement(replacements: String*)(warning: String): WarningAndReplacement =
     (warning, DirectiveTemplate(Nil, Some(replacements.toSeq)))
 
-  private def allAliasesOf(key: String, handler: DirectiveHandler[?]): Seq[String] =
-    handler.keys.find(_.nameAliases.contains(key))
-      .toSeq
-      .flatMap(_.nameAliases)
-
   private def allKeysFrom(handler: DirectiveHandler[?]): Seq[String] =
     handler.keys.flatMap(_.nameAliases)
 

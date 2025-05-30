@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import scala.build.Logger
 import scala.build.errors.CheckScalaCliVersionError
 import scala.build.internal.Constants.{ghName, ghOrg, version as scalaCliVersion}
-import scala.cli.CurrentParams
 import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
 import scala.cli.signing.shared.Secret

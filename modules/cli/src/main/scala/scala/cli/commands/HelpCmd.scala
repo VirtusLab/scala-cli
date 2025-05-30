@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.RuntimeCommandsHelp
 
 import scala.build.Logger
-import scala.cli.commands.shared.{HelpOptions, ScalaCliHelp}
+import scala.cli.commands.shared.HelpOptions
 
 class HelpCmd(actualHelp: => RuntimeCommandsHelp)
     extends ScalaCommandWithCustomHelp[HelpOptions](actualHelp) {

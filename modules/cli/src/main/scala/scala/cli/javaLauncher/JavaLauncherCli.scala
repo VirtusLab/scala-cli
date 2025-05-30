@@ -3,11 +3,10 @@ package scala.cli.javaLauncher
 import java.io.File
 
 import scala.build.Positioned
-import scala.build.errors.BuildException
 import scala.build.internal.{OsLibc, Runner}
 import scala.build.options.{BuildOptions, JavaOptions}
 import scala.cli.commands.shared.LoggingOptions
-import scala.cli.javaLauncher.JavaLauncherCli.LauncherKind._
+import scala.cli.javaLauncher.JavaLauncherCli.LauncherKind.*
 object JavaLauncherCli {
 
   def runAndExit(remainingArgs: Seq[String]): Nothing = {

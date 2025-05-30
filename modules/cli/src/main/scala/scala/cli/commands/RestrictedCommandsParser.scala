@@ -1,16 +1,13 @@
 package scala.cli.commands
 
 import caseapp.Name
-import caseapp.core.app.Command
 import caseapp.core.parser.Parser
-import caseapp.core.util.{CaseUtil, Formatter}
+import caseapp.core.util.Formatter
 import caseapp.core.{Arg, Error}
 
 import scala.build.Logger
 import scala.build.input.ScalaCliInvokeData
-import scala.build.internal.util.WarningMessages
-import scala.build.internals.{ConsoleUtils, FeatureType}
-import scala.cli.ScalaCli
+import scala.build.internals.FeatureType
 import scala.cli.util.ArgHelpers.*
 
 object RestrictedCommandsParser {

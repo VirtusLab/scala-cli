@@ -25,10 +25,10 @@ jobs:
       with:
         jvm: "temurin:17"
     - name: Copy launcher
-      run: ./mill -i copyJvmLauncher artifacts/
+      run: ./mill -i copyJvmLauncher --directory artifacts/
       if: runner.os == 'Linux'
     - name: Copy bootstrapped launcher
-      run: ./mill -i copyJvmBootstrappedLauncher artifacts/
+      run: ./mill -i copyJvmBootstrappedLauncher --directory artifacts/
       if: runner.os == 'Linux'
     - uses: actions/upload-artifact@v4
       if: runner.os == 'Linux'
@@ -217,7 +217,7 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v4
       with:
         name: linux-launchers
@@ -433,7 +433,7 @@ jobs:
       if: env.SHOULD_PUBLISH == 'true'
       run: .github/scripts/generate-os-packages.sh
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v4
       with:
         name: macos-launchers
@@ -636,7 +636,7 @@ jobs:
         if: env.SHOULD_PUBLISH == 'true'
         run: .github/scripts/generate-os-packages.sh
       - name: Copy artifacts
-        run: ./mill -i copyDefaultLauncher artifacts/
+        run: ./mill -i copyDefaultLauncher --directory artifacts/
       - uses: actions/upload-artifact@v4
         with:
           name: macos-m1-launchers
@@ -842,7 +842,7 @@ jobs:
       run: .github/scripts/generate-os-packages.sh
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyDefaultLauncher artifacts/
+      run: ./mill -i copyDefaultLauncher --directory artifacts/
     - uses: actions/upload-artifact@v4
       with:
         name: windows-launchers
@@ -1070,7 +1070,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh mostly-static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyMostlyStaticLauncher artifacts/
+      run: ./mill -i copyMostlyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v4
       with:
         name: mostly-static-launchers
@@ -1273,7 +1273,7 @@ jobs:
       run: .github/scripts/generate-native-image.sh static
       shell: bash
     - name: Copy artifacts
-      run: ./mill -i copyStaticLauncher artifacts/
+      run: ./mill -i copyStaticLauncher --directory artifacts/
     - uses: actions/upload-artifact@v4
       with:
         name: static-launchers
@@ -1570,7 +1570,7 @@ jobs:
     - name: Java Home
       run: echo "$JAVA_HOME"
     - name: Build Scala CLI
-      run: ./mill copyJvmLauncher build
+      run: ./mill copyJvmLauncher --directory build
     - name: Build Benchmark
       run: java -jar ./build/scala-cli --power package --standalone gcbenchmark/gcbenchmark.scala -o gc
     - name: Run Benchmark

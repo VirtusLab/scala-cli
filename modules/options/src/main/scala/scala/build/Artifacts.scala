@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
 import coursier.error.ResolutionError
 import coursier.util.Task
-import coursier.{Dependency => CsDependency, Fetch, Resolution, core => csCore, util => csUtil}
+import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
 import dependency.*
 
 import java.net.URL
@@ -22,7 +22,7 @@ import scala.build.errors.{
 import scala.build.internal.Constants
 import scala.build.internal.Constants.*
 import scala.build.internal.CsLoggerUtil.*
-import scala.build.internal.Util.{PositionedScalaDependencyOps, ScalaModuleOps}
+import scala.build.internal.Util.PositionedScalaDependencyOps
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.collection.mutable
 

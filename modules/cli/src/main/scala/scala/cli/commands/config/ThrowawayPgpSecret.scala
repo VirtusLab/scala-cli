@@ -1,6 +1,6 @@
 package scala.cli.commands.config
 
-import coursier.cache.{Cache, FileCache}
+import coursier.cache.FileCache
 import coursier.util.Task
 
 import java.security.SecureRandom

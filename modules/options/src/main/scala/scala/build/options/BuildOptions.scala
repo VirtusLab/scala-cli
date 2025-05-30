@@ -1,10 +1,8 @@
 package scala.build.options
-
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import coursier.cache.{ArchiveCache, FileCache, UnArchiver}
+import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
-import coursier.util.{Artifact, Task}
+import coursier.util.Task
 import dependency.*
 
 import java.io.File
@@ -13,18 +11,16 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.EitherCps.{either, value}
-import scala.build.actionable.{ActionableDiagnostic, ActionablePreprocessor}
+import scala.build.actionable.ActionablePreprocessor
 import scala.build.errors.*
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.*
 import scala.build.internal.Constants.*
-import scala.build.internal.CsLoggerUtil.*
 import scala.build.internal.Regexes.scala3NightlyNicknameRegex
-import scala.build.internal.{Constants, OsLibc, StableScalaVersion, Util}
+import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
-import scala.build.options.BuildRequirements.ScopeRequirement
 import scala.build.options.validation.BuildOptionsRule
-import scala.build.{Artifacts, Logger, Os, Position, Positioned}
+import scala.build.{Artifacts, Logger, Position, Positioned}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*

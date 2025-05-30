@@ -25,7 +25,7 @@ final class BloopCompilerMaker(
     buildOptions: BuildOptions
   ): Either[BuildException, ScalaCompiler] =
     getConfig(buildOptions) match
-      case Left(ex) if offline =>
+      case Left(_) if offline =>
         logger.diagnostic(WarningMessages.offlineModeBloopJvmNotFound, Severity.Warning)
         SimpleScalaCompilerMaker("java", Nil).create(
           workspace,

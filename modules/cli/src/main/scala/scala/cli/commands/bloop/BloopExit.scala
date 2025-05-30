@@ -4,7 +4,6 @@ import bloop.rifle.{BloopRifle, BloopRifleConfig}
 import caseapp.*
 
 import scala.build.{Directories, Logger, Os}
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 
 object BloopExit extends ScalaCommand[BloopExitOptions] {

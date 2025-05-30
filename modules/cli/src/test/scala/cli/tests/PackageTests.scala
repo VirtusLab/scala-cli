@@ -10,9 +10,7 @@ import scala.build.tests.util.BloopServer
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.commands.package0.Package
-import scala.cli.internal.CachedBinary
 import scala.cli.packaging.Library
-import scala.util.{Properties, Random}
 
 class PackageTests extends munit.FunSuite {
 

@@ -1,10 +1,8 @@
 package scala.cli.launcher
 
 import caseapp.*
-import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
-import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.cli.commands.shared.{HelpGroup, SharedOptions}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.{Constants, tags}
 
 case class ScalaRunnerLauncherOptions(

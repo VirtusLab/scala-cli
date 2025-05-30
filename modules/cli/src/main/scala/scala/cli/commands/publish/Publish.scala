@@ -4,16 +4,14 @@ import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Authentication, Configuration}
-import coursier.maven.MavenRepository
 import coursier.publish.checksum.logger.InteractiveChecksumLogger
 import coursier.publish.checksum.{ChecksumType, Checksums}
 import coursier.publish.fileset.{FileSet, Path}
 import coursier.publish.signing.logger.InteractiveSignerLogger
 import coursier.publish.signing.{GpgSigner, NopSigner, Signer}
-import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.upload.logger.InteractiveUploadLogger
 import coursier.publish.upload.{DummyUpload, FileUpload, HttpURLConnectionUpload, Upload}
-import coursier.publish.{Content, Hooks, Pom, PublishRepository}
+import coursier.publish.{Content, Hooks, Pom}
 
 import java.io.{File, OutputStreamWriter}
 import java.net.URI
@@ -23,15 +21,15 @@ import java.time.{Instant, LocalDateTime, ZoneOffset}
 import java.util.concurrent.Executors
 import java.util.function.Supplier
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.*
 import scala.build.compiler.ScalaCompilerMaker
-import scala.build.errors.{BuildException, CompositeBuildException, NoMainClassFoundError, Severity}
+import scala.build.errors.{BuildException, CompositeBuildException, Severity}
 import scala.build.input.Inputs
 import scala.build.internal.Util
 import scala.build.internal.Util.ScalaDependencyOps
-import scala.build.options.publish.{Developer, License, Signer => PSigner, Vcs}
+import scala.build.options.publish.{Developer, License, Signer as PSigner, Vcs}
 import scala.build.options.{
   BuildOptions,
   ComputeVersion,
@@ -44,16 +42,14 @@ import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.pgp.{PgpExternalCommand, PgpScalaSigningOptions}
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.publish.{PublishParamsOptions, PublishRepositoryOptions}
 import scala.cli.commands.shared.{
   HelpCommandGroup,
   HelpGroup,
   MainClassOptions,
   SharedOptions,
-  SharedPythonOptions,
   SharedVersionOptions
 }
-import scala.cli.commands.util.{BuildCommandHelpers, ScalaCliSttpBackend}
+import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.{ScalaCommand, SpecificationLevel, WatchUtil}
 import scala.cli.config.{ConfigDb, Keys, PasswordOption, PublishCredentials}
 import scala.cli.errors.{

@@ -5,11 +5,10 @@ import scala.build.directives.*
 import scala.build.errors.{BuildException, CompositeBuildException, WrongJarPathError}
 import scala.build.options.WithBuildRequirements.*
 import scala.build.options.{BuildOptions, ClassPathOptions, Scope, WithBuildRequirements}
-import scala.build.preprocessing.ScopePath
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.CustomJar.JarType
 import scala.cli.commands.SpecificationLevel
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 @DirectiveGroupName("Custom JAR")
 @DirectiveExamples(

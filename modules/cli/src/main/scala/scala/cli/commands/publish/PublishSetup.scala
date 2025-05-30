@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.build.Ops.*
 import scala.build.errors.CompositeBuildException
-import scala.build.options.{BuildOptions, InternalOptions, Scope, SuppressWarningOptions}
+import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.{CrossSources, Directories, Logger, Sources}
 import scala.cli.ScalaCli
 import scala.cli.commands.github.{LibSodiumJni, SecretCreate, SecretList}
@@ -16,7 +16,7 @@ import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.{HelpCommandGroup, SharedOptions}
 import scala.cli.commands.util.ScalaCliSttpBackend
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.Constants
 import scala.cli.util.ArgHelpers.*
 import scala.cli.util.ConfigDbUtils

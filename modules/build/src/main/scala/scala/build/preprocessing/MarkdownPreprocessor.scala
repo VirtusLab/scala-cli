@@ -5,16 +5,9 @@ import java.nio.charset.StandardCharsets
 import scala.build.EitherCps.{either, value}
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{
-  Inputs,
-  MarkdownFile,
-  ScalaCliInvokeData,
-  SingleElement,
-  VirtualMarkdownFile
-}
+import scala.build.input.{MarkdownFile, ScalaCliInvokeData, SingleElement, VirtualMarkdownFile}
 import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
-import scala.build.internal.{AmmUtil, Name}
-import scala.build.options.{BuildOptions, BuildRequirements, SuppressWarningOptions}
+import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.ScalaPreprocessor.ProcessingOutput
 
 case object MarkdownPreprocessor extends Preprocessor {

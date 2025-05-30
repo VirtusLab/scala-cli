@@ -1,15 +1,11 @@
 package scala.build.options
-
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.{Constants, Ref}
 
 import scala.build.errors.{BuildException, MalformedInputError}
 import scala.build.{Position, Positioned}
-import scala.io.Codec
 import scala.jdk.CollectionConverters.*
-import scala.util.{Success, Try, Using}
+import scala.util.Using
 
 sealed abstract class ComputeVersion extends Product with Serializable {
   def get(workspace: os.Path): Either[BuildException, String]
@@ -132,9 +128,6 @@ object ComputeVersion {
     final class GitTagError(positions: Seq[Position], message: String)
         extends BuildException(message, positions)
   }
-
-  private lazy val commandCodec: JsonValueCodec[List[String]] =
-    JsonCodecMaker.make
 
   def parse(input: Positioned[String]): Either[BuildException, ComputeVersion] =
     if (input.value == "git" || input.value == "git:tag")

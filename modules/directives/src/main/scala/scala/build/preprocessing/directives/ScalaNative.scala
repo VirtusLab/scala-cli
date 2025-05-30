@@ -4,7 +4,6 @@ import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaNativeOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 
 @DirectiveGroupName("Scala Native options")

@@ -1,6 +1,8 @@
-import Deps.Versions
+package build.project.deps
 import mill._
 import scalalib._
+
+import scala.annotation.unused
 
 object Cli {
   def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -65,7 +67,7 @@ object Scala {
       (0 until max37).map(i => s"3.7.$i") ++ Seq(scala3Next)
   }
 
-  def legacyScala3Versions =
+  def legacyScala3Versions: Seq[String] =
     listAll
       .filter(_.startsWith("3"))
       .distinct
@@ -75,9 +77,9 @@ object Scala {
   def maxAmmoniteScala213Version  = scala213
   def maxAmmoniteScala3Version    = "3.6.3"
   def maxAmmoniteScala3LtsVersion = "3.3.5"
-  lazy val listMaxAmmoniteScalaVersion =
+  lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
-  lazy val listAllAmmonite = {
+  lazy val listAllAmmonite: Seq[String] = {
     import coursier.core.Version
     val max212 = Version(maxAmmoniteScala212Version)
     val max213 = Version(maxAmmoniteScala213Version)
@@ -96,27 +98,27 @@ object Scala {
 }
 
 object Java {
-  def minimumBloopJava    = 17
-  def minimumInternalJava = 16
-  def defaultJava         = minimumBloopJava
-  def mainJavaVersions    = Seq(8, 11, 17, 21, 23)
-  def allJavaVersions =
+  def minimumBloopJava: Int      = 17
+  def minimumInternalJava: Int   = 16
+  def defaultJava: Int           = minimumBloopJava
+  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23)
+  def allJavaVersions: Seq[Int] =
     (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
 }
 
 // Dependencies used in integration test fixtures
 object TestDeps {
-  def pprint           = Deps.pprint
-  def munit            = Deps.munit
-  def scalaSnapshot213 = "2.13.8-bin-e814d78"
+  def pprint: Dep              = Deps.pprint
+  def munit: Dep               = Deps.munit
+  def scalaSnapshot213: String = "2.13.8-bin-e814d78"
 
-  def archLinuxImage =
+  def archLinuxImage: String =
     "archlinux@sha256:b15db21228c7cd5fd3ab364a97193ba38abfad0e8b9593c15b71850b74738153"
 }
 
 object InternalDeps {
   object Versions {
-    def mill          = os.read(os.pwd / ".mill-version").trim
+    def mill: String  = _root_.mill.main.BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
@@ -143,7 +145,7 @@ object Deps {
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
-    def maxScalaNativeForMillExport       = scalaNative04
+    def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.1.32"
     def signingCli                        = "0.2.7"
     def signingCliJvmVersion              = Java.defaultJava
@@ -189,11 +191,10 @@ object Deps {
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def dependency   = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient = ivy"com.spotify:docker-client:8.16.0"
-  // TODO bump once 0.15.5 is out
-  def expecty = ivy"com.eed3si9n.expecty::expecty:0.17.0"
-  def fansi   = ivy"com.lihaoyi::fansi:0.5.0"
-  def giter8  = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava   = ivy"com.google.guava:guava:33.4.8-jre"
+  def expecty      = ivy"com.eed3si9n.expecty::expecty:0.17.0"
+  def fansi        = ivy"com.lihaoyi::fansi:0.5.0"
+  def giter8       = ivy"org.foundweekends.giter8:giter8:0.16.2"
+  def guava        = ivy"com.google.guava:guava:33.4.8-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
@@ -214,20 +215,18 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def jsoup         = ivy"org.jsoup:jsoup:${Versions.jsoup}"
-  def libsodiumjni  = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
-  def macroParadise = ivy"org.scalamacros:::paradise:2.1.1"
+  def jsoup        = ivy"org.jsoup:jsoup:${Versions.jsoup}"
+  def libsodiumjni = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
     ivy"org.scalameta::metaconfig-typesafe-config:0.16.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit                      = ivy"org.scalameta::munit:1.1.1"
-  def nativeTestRunner           = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
-  def nativeTools                = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib                      = ivy"com.lihaoyi::os-lib:0.11.3"
-  def pprint                     = ivy"com.lihaoyi::pprint:0.9.0"
-  def pythonInterface            = ivy"io.github.alexarchambault.python:interface:0.1.0"
-  def pythonNativeLibs           = ivy"ai.kien::python-native-libs:0.2.4"
-  def scala3Compiler(sv: String) = ivy"org.scala-lang:scala3-compiler_3:$sv"
+  def munit              = ivy"org.scalameta::munit:1.1.1"
+  def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
+  def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
+  def osLib              = ivy"com.lihaoyi::os-lib:0.11.3"
+  def pprint             = ivy"com.lihaoyi::pprint:0.9.0"
+  def pythonInterface    = ivy"io.github.alexarchambault.python:interface:0.1.0"
+  def pythonNativeLibs   = ivy"ai.kien::python-native-libs:0.2.4"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
@@ -281,7 +280,6 @@ object Deps {
   def toolkitTest               = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
   val typelevelToolkitVersion   = "0.1.29"
   def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
-  def typelevelToolkitTest      = ivy"org.typelevel:toolkit-test:$typelevelToolkitVersion"
   def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.4"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users

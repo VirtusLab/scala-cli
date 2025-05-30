@@ -1,20 +1,14 @@
 package scala.build.preprocessing
 
 import com.virtuslab.using_directives.UsingDirectivesProcessor
-import com.virtuslab.using_directives.custom.model.{
-  BooleanValue,
-  EmptyValue,
-  StringValue,
-  UsingDirectives,
-  Value
-}
+import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
 import com.virtuslab.using_directives.custom.utils.ast.*
 
 import scala.annotation.targetName
 import scala.build.errors.*
 import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.UsingDirectivesOps.*
-import scala.build.preprocessing.directives.{DirectiveUtil, ScopedDirective, StrictDirective}
+import scala.build.preprocessing.directives.StrictDirective
 import scala.build.{Logger, Position}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*

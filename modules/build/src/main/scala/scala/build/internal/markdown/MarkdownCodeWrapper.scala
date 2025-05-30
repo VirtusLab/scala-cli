@@ -1,8 +1,6 @@
 package scala.build.internal.markdown
 
 import scala.annotation.tailrec
-import scala.build.errors.BuildException
-import scala.build.internal.markdown.MarkdownCodeBlock
 import scala.build.internal.{AmmUtil, Name}
 import scala.build.preprocessing.{
   ExtractedDirectives,
