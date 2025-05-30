@@ -25,16 +25,11 @@ for { module <- modules } {
       case (org, scalaDepSuffixRegex(nameWithoutSuffix, _), _) => s"$org:$nameWithoutSuffix"
       case _                                                   => invalidOrgAndName
     }
-    .filterNot { case (key, _) => key == invalidOrgAndName }
-    .map { case (key, entries) =>
-      val invalidVersion = "invalid"
-      key -> entries
-        .map {
-          case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion
-          case _                                            => invalidVersion
-        }
-        .filterNot(_ == invalidVersion)
-        .distinct
+    .collect {
+      case (key, entries) if key != invalidOrgAndName =>
+        key -> entries
+          .collect { case (_, scalaDepSuffixRegex(_, scalaVersion), _) => scalaVersion }
+          .distinct
     }
     .filter { case (_, scalaVersions) => scalaVersions.head != null } // filter out non-Scala deps
   println("Checking for clashing dependency Scala versions...")
