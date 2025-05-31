@@ -126,6 +126,8 @@ Manually add sources to the project. Does not support chaining, sources are adde
 #### Examples
 `//> using file utils.scala`
 
+`//> using file https://raw.githubusercontent.com/softwaremill/sttp/refs/heads/master/examples/src/main/scala/sttp/client4/examples/json/GetAndParseJsonCatsEffectCirce.scala`
+
 ### Dependency
 
 Add dependencies

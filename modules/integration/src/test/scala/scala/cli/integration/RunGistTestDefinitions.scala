@@ -9,15 +9,16 @@ trait RunGistTestDefinitions { _: RunTestDefinitions =>
     if (Properties.isWin) "\"" + url + "\""
     else url
 
+  protected val scalaScriptUrl =
+    "https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/b0285fa0305f76856897517b06251970578565af/test.sc"
+  protected val scalaScriptMessage = "Hello from GitHub Gist"
+
   test("Script URL") {
-    val url =
-      "https://gist.github.com/alexarchambault/f972d941bc4a502d70267cfbbc4d6343/raw/b0285fa0305f76856897517b06251970578565af/test.sc"
-    val message = "Hello from GitHub Gist"
     emptyInputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(url))
+      val output = os.proc(TestUtil.cli, extraOptions, escapedUrls(scalaScriptUrl))
         .call(cwd = root)
         .out.trim()
-      expect(output == message)
+      expect(output == scalaScriptMessage)
     }
   }
 

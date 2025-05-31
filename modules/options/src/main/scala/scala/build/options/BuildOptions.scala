@@ -2,7 +2,7 @@ package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
 import coursier.parse.RepositoryParser
-import coursier.util.Task
+import coursier.util.{Artifact, Task}
 import dependency.*
 
 import java.io.File
@@ -20,7 +20,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
-import scala.build.{Artifacts, Logger, Position, Positioned}
+import scala.build.{Artifacts, Logger, Os, Position, Positioned}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*
@@ -579,6 +579,8 @@ final case class BuildOptions(
     }
   }
 
+  lazy val downloader: BuildOptions.Download = BuildOptions.Download(finalCache)
+
   lazy val interactive: Either[BuildException, Interactive] =
     internal.interactive.map(_()).getOrElse(Right(InteractiveNop))
 }
@@ -626,6 +628,23 @@ object BuildOptions {
       val javaVersion = OsLibc.javaVersion(javaCmd)
       JavaHomeInfo(javaHome, javaCmd, javaVersion)
     }
+  }
+
+  type Download = String => Either[String, Array[Byte]]
+  object Download {
+    def apply(
+      cache: FileCache[Task],
+      toArtifact: String => Artifact = Artifact.fromUrl
+    ): Download = {
+      import scala.build.options.ScalaVersionUtil.fileWithTtl0
+      url =>
+        cache.fileWithTtl0(toArtifact(url))
+          .left
+          .map(_.describe)
+          .map(f => os.read.bytes(os.Path(f, Os.pwd)))
+    }
+    def changing(cache: FileCache[Task]): Download = apply(cache, Artifact(_).withChanging(true))
+    val notSupported: Download                     = _ => Left("URL not supported")
   }
 
   implicit val hasHashData: HasHashData[BuildOptions] = HasHashData.derive
