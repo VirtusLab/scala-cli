@@ -1,6 +1,6 @@
 package scala.build.preprocessing
 
-import com.virtuslab.using_directives.custom.utils.{Position => DirectivePosition}
+import com.virtuslab.using_directives.custom.utils.Position as DirectivePosition
 import com.virtuslab.using_directives.reporter.Reporter
 
 import scala.build.Position

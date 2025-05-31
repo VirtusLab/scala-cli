@@ -1,7 +1,4 @@
 package scala.build
-
-import coursier.core.{Repository, Version}
-import coursier.parse.RepositoryParser
 import coursier.paths.Util
 
 import java.io.{BufferedInputStream, Closeable}
@@ -9,7 +6,6 @@ import java.nio.channels.{FileChannel, FileLock}
 import java.nio.charset.StandardCharsets
 import java.nio.file.{Path, StandardOpenOption}
 
-import scala.build.errors.{BuildException, RepositoryFormatError}
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
 object LocalRepo {
@@ -77,18 +73,21 @@ object LocalRepo {
 
       if !os.exists(repoDir) then
         withLock((repoDir / os.up).toNIO, version) {
-          val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-          try os.remove.all(tmpRepoDir)
-          catch {
-            case t: Throwable =>
-              logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
-          }
-          using(archiveUrl.openStream()) { is =>
-            using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
-              extractZip(zis, tmpRepoDir)
+          // Post-lock validation: Recheck repository directory existence to handle
+          // potential race conditions between initial check and lock acquisition
+          if !os.exists(repoDir) then
+            val tmpRepoDir = repoDir / os.up / s".$version.tmp"
+            try os.remove.all(tmpRepoDir)
+            catch {
+              case t: Throwable =>
+                logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
             }
-          }
-          os.move(tmpRepoDir, repoDir)
+            using(archiveUrl.openStream()) { is =>
+              using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
+                extractZip(zis, tmpRepoDir)
+              }
+            }
+            os.move(tmpRepoDir, repoDir)
         }
 
       val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"

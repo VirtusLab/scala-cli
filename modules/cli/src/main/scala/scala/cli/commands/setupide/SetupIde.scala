@@ -8,8 +8,8 @@ import com.google.gson.GsonBuilder
 
 import java.nio.charset.{Charset, StandardCharsets}
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.IdeInputs
 import scala.build.errors.{BuildException, WorkspaceError}
 import scala.build.input.{Inputs, OnDisk, Virtual, WorkspaceOrigin}
@@ -48,7 +48,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
         )
       }
 
-      val sharedOptions = crossSources.sharedOptions(options)
+      crossSources.sharedOptions(options)
 
       val scopedSources = value(crossSources.scopedSources(options))
       val mainSources = value(scopedSources.sources(

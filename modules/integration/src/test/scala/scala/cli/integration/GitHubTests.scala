@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 import coursier.cache.ArchiveCache
 import coursier.util.Artifact

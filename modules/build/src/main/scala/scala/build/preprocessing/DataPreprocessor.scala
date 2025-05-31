@@ -1,18 +1,9 @@
 package scala.build.preprocessing
-
-import java.nio.charset.StandardCharsets
-
-import scala.build.EitherCps.{either, value}
+import scala.build.EitherCps.either
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SingleElement, VirtualData}
-import scala.build.options.{
-  BuildOptions,
-  BuildRequirements,
-  SuppressWarningOptions,
-  WithBuildRequirements
-}
-import scala.build.preprocessing.directives.PreprocessedDirectives
+import scala.build.input.{ScalaCliInvokeData, SingleElement, VirtualData}
+import scala.build.options.{BuildRequirements, SuppressWarningOptions}
 
 case object DataPreprocessor extends Preprocessor {
   def preprocess(

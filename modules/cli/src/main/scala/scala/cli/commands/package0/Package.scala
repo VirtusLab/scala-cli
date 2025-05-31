@@ -15,13 +15,12 @@ import packager.rpm.RedHatPackage
 import packager.windows.WindowsPackage
 
 import java.io.{ByteArrayOutputStream, OutputStream}
-import java.nio.charset.StandardCharsets
 import java.nio.file.attribute.FileTime
 import java.util.zip.{ZipEntry, ZipOutputStream}
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.*
 import scala.build.errors.*
 import scala.build.interactive.InteractiveFileOps
 import scala.build.internal.Util.*
@@ -33,13 +32,12 @@ import scala.cli.CurrentParams
 import scala.cli.commands.OptionsHelper.*
 import scala.cli.commands.doc.Doc
 import scala.cli.commands.packaging.Spark
-import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.run.Run.orPythonDetectionError
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, MainClassOptions, SharedOptions}
 import scala.cli.commands.util.BuildCommandHelpers
 import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.{CommandUtils, ScalaCommand, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.errors.ScalaJsLinkingError
 import scala.cli.internal.{CachedBinary, Constants, ProcUtil, ScalaJsLinker}
 import scala.cli.packaging.{Library, NativeImage}
@@ -1082,8 +1080,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
           Seq("--linking-option", linkerOption)
         }
       }.toSeq.flatten
-
-    import PackageType.Native.*
 
     val allCliOptions = pythonCliOptions ++
       cliOptions ++

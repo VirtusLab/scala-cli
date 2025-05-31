@@ -2,7 +2,6 @@ package scala.build.preprocessing
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.Logger
 import scala.build.errors.{BuildException, FileNotFoundException}
 
 object PreprocessingUtil {

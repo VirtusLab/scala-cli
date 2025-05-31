@@ -2,13 +2,11 @@ package scala.build.preprocessing.directives
 
 import os.Path
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
 import scala.build.directives.*
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, ScalaJsMode, ScalaJsOptions}
-import scala.build.{Positioned, options}
 import scala.cli.commands.SpecificationLevel
 import scala.util.Try
 

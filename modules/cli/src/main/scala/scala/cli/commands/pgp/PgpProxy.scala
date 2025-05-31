@@ -1,11 +1,10 @@
 package scala.cli.commands.pgp
 
-import coursier.cache.{Cache, FileCache}
+import coursier.cache.FileCache
 import coursier.util.Task
 
 import scala.build.errors.BuildException
 import scala.build.{Logger, options as bo}
-import scala.cli.commands.pgp.{PgpCreateExternal, PgpKeyIdExternal}
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.errors.PgpError
 import scala.util.Properties

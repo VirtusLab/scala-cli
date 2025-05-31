@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 /** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */

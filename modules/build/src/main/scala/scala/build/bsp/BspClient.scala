@@ -1,17 +1,16 @@
 package scala.build.bsp
 
-import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.bsp4j.{ScalaAction, ScalaDiagnostic, ScalaTextEdit, ScalaWorkspaceEdit}
 import com.google.gson.{Gson, JsonElement}
 
 import java.lang.Boolean as JBoolean
 import java.net.URI
 import java.nio.file.Paths
-import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.build.Position.File
-import scala.build.bsp.protocol.TextEdit
-import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic, Severity}
+import scala.build.errors.{BuildException, CompositeBuildException, Diagnostic}
 import scala.build.internal.util.WarningMessages
 import scala.build.postprocessing.LineConversion.scalaLineToScLine
 import scala.build.{BloopBuildClient, GeneratedSource, Logger}

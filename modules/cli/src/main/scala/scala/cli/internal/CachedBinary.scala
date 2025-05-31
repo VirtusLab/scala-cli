@@ -5,7 +5,7 @@ import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 
 import scala.build.Build
-import scala.build.input.{Inputs, OnDisk, ResourceDirectory}
+import scala.build.input.{OnDisk, ResourceDirectory}
 import scala.build.internal.Constants
 
 object CachedBinary {

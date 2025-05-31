@@ -4,46 +4,34 @@ import bloop.rifle.BloopRifleConfig
 import caseapp.*
 import caseapp.core.Arg
 import caseapp.core.help.Help
-import caseapp.core.util.Formatter
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
 import coursier.core.Version
-import coursier.util.{Artifact, Task}
+import coursier.util.Task
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
 import java.io.{File, InputStream}
-import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.EitherOptOps
-import scala.build.*
 import scala.build.compiler.{BloopCompilerMaker, ScalaCompilerMaker, SimpleScalaCompilerMaker}
-import scala.build.directives.DirectiveDescription
-import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException, Severity}
+import scala.build.errors.{AmbiguousPlatformError, BuildException, ConfigDbException}
 import scala.build.input.{Element, Inputs, ResourceDirectory, ScalaCliInvokeData}
 import scala.build.interactive.Interactive
 import scala.build.interactive.Interactive.{InteractiveAsk, InteractiveNop}
 import scala.build.internal.util.WarningMessages
-import scala.build.internal.{Constants, FetchExternalBinary, OsLibc, Util}
+import scala.build.internal.{Constants, FetchExternalBinary, OsLibc}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
-import scala.build.options.{BuildOptions, ComputeVersion, Platform, ScalacOpt, ShadowingSeq}
+import scala.build.options.{BuildOptions, Platform, ShadowingSeq}
 import scala.build.preprocessing.directives.ClasspathUtils.*
 import scala.build.preprocessing.directives.Toolkit.maxScalaNativeWarningMsg
 import scala.build.preprocessing.directives.{Python, Toolkit}
-import scala.build.options as bo
 import scala.cli.ScalaCli
 import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.shared.{
-  HasGlobalOptions,
-  ScalaJsOptions,
-  ScalaNativeOptions,
-  SharedOptions,
-  SourceGeneratorOptions,
-  SuppressWarningOptions
-}
 import scala.cli.commands.tags
 import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.util.ScalacOptionsUtil.*
@@ -51,10 +39,7 @@ import scala.cli.config.Key.BooleanEntry
 import scala.cli.config.{ConfigDb, Keys}
 import scala.cli.launcher.PowerOptions
 import scala.cli.util.ConfigDbUtils
-import scala.concurrent.ExecutionContextExecutorService
-import scala.concurrent.duration.*
 import scala.util.Properties
-import scala.util.control.NonFatal
 
 // format: off
 final case class SharedOptions(
@@ -303,7 +288,8 @@ final case class SharedOptions(
 
   def scalacOptions: List[String] = scalac.scalacOption ++ scalacOptionsFromFiles
 
-  def buildOptions(ignoreErrors: Boolean = false): Either[BuildException, bo.BuildOptions] =
+  def buildOptions(ignoreErrors: Boolean = false)
+    : Either[BuildException, scala.build.options.BuildOptions] =
     either {
       val releaseOpt = scalacOptions.getScalacOption("-release")
       val targetOpt  = scalacOptions.getScalacPrefixOption("-target")
@@ -359,19 +345,19 @@ final case class SharedOptions(
       val maxDefaultScalaNativeVersions =
         toolkitMaxDefaultScalaNativeVersions.toList ++ scalapyMaxDefaultScalaNativeVersions
       val snOpts = scalaNativeOptions(native, maxDefaultScalaNativeVersions)
-      bo.BuildOptions(
-        sourceGeneratorOptions = bo.SourceGeneratorOptions(
+      scala.build.options.BuildOptions(
+        sourceGeneratorOptions = scala.build.options.SourceGeneratorOptions(
           useBuildInfo = sourceGenerator.useBuildInfo,
           projectVersion = sharedVersionOptions.projectVersion,
           computeVersion = value {
             sharedVersionOptions.computeVersion
               .map(Positioned.commandLine)
-              .map(ComputeVersion.parse)
+              .map(scala.build.options.ComputeVersion.parse)
               .sequence
           }
         ),
         suppressWarningOptions =
-          bo.SuppressWarningOptions(
+          scala.build.options.SuppressWarningOptions(
             suppressDirectivesInMultipleFilesWarning = getOptionOrFromConfig(
               suppress.suppressDirectivesInMultipleFilesWarning,
               Keys.suppressDirectivesInMultipleFilesWarning
@@ -386,15 +372,15 @@ final case class SharedOptions(
             ),
             suppressDeprecatedFeatureWarning = shouldSuppressDeprecatedWarnings
           ),
-        scalaOptions = bo.ScalaOptions(
+        scalaOptions = scala.build.options.ScalaOptions(
           scalaVersion = scalaVersion
             .map(_.trim)
             .filter(_.nonEmpty)
-            .map(bo.MaybeScalaVersion(_)),
+            .map(scala.build.options.MaybeScalaVersion(_)),
           scalaBinaryVersion = scalaBinaryVersion.map(_.trim).filter(_.nonEmpty),
           addScalaLibrary = scalaLibrary.orElse(java.map(!_)),
           addScalaCompiler = withCompiler,
-          semanticDbOptions = bo.SemanticDbOptions(
+          semanticDbOptions = scala.build.options.SemanticDbOptions(
             generateSemanticDbs = semanticDbOptions.semanticDb,
             semanticDbTargetRoot = semanticDbOptions.semanticDbTargetRoot.map(os.Path(_, os.pwd)),
             semanticDbSourceRoot = semanticDbOptions.semanticDbSourceRoot.map(os.Path(_, os.pwd))
@@ -412,18 +398,18 @@ final case class SharedOptions(
             ),
           platform = platformOpt.map(o => Positioned(List(Position.CommandLine()), o))
         ),
-        scriptOptions = bo.ScriptOptions(
+        scriptOptions = scala.build.options.ScriptOptions(
           forceObjectWrapper = objectWrapper
         ),
         scalaJsOptions = scalaJsOptions(js),
         scalaNativeOptions = snOpts,
         javaOptions = value(scala.cli.commands.util.JvmUtils.javaOptions(jvm)),
-        jmhOptions = bo.JmhOptions(
+        jmhOptions = scala.build.options.JmhOptions(
           jmhVersion = benchmarking.jmhVersion,
           enableJmh = benchmarking.jmh,
           runJmh = benchmarking.jmh
         ),
-        classPathOptions = bo.ClassPathOptions(
+        classPathOptions = scala.build.options.ClassPathOptions(
           extraClassPath = extraRegularJarsAndClasspath,
           extraCompileOnlyJars = extraCompileOnlyClassPath,
           extraSourceJars = extraSourceJars.extractedClassPath ++ assumedSourceJars,
@@ -435,7 +421,7 @@ final case class SharedOptions(
           extraCompileOnlyDependencies =
             extraCompileOnlyDependencies(ignoreErrors, resolvedToolkitDependency)
         ),
-        internal = bo.InternalOptions(
+        internal = scala.build.options.InternalOptions(
           cache = Some(coursierCache),
           localRepository = LocalRepo.localRepo(Directories.directories.localRepoDir, logger),
           verbosity = Some(logging.verbosity),
@@ -444,7 +430,7 @@ final case class SharedOptions(
           exclude = exclude.map(Positioned.commandLine),
           offline = coursier.getOffline()
         ),
-        notForBloopOptions = bo.PostBuildOptions(
+        notForBloopOptions = scala.build.options.PostBuildOptions(
           scalaJsLinkerOptions = linkerOptions(js),
           addRunnerDependencyOpt = runner,
           python = sharedPython.python,
@@ -575,7 +561,7 @@ final case class SharedOptions(
         .getOrElse(None)
     )
 
-  def bloopRifleConfig(extraBuildOptions: Option[BuildOptions] = None)
+  def bloopRifleConfig(extraBuildOptions: Option[scala.build.options.BuildOptions] = None)
     : Either[BuildException, BloopRifleConfig] = either {
     val options = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
     lazy val defaultJvmHome = value {
@@ -588,7 +574,11 @@ final case class SharedOptions(
         for (javaHome <- options.javaHomeLocationOpt()) yield {
           val (javaHomeVersion, javaHomeCmd) = OsLibc.javaHomeVersion(javaHome.value)
           if (javaHomeVersion >= Constants.minimumBloopJavaVersion)
-            BuildOptions.JavaHomeInfo(javaHome.value, javaHomeCmd, javaHomeVersion)
+            scala.build.options.BuildOptions.JavaHomeInfo(
+              javaHome.value,
+              javaHomeCmd,
+              javaHomeVersion
+            )
           else defaultJvmHome
         }
       }.getOrElse(defaultJvmHome)
@@ -664,12 +654,11 @@ final case class SharedOptions(
     )
 
   def strictBloopJsonCheckOrDefault: Boolean =
-    strictBloopJsonCheck.getOrElse(bo.InternalOptions.defaultStrictBloopJsonCheck)
+    strictBloopJsonCheck.getOrElse(scala.build.options.InternalOptions.defaultStrictBloopJsonCheck)
 
 }
 
 object SharedOptions {
-  import ArgFileOption.parser
   implicit lazy val parser: Parser[SharedOptions]            = Parser.derive
   implicit lazy val help: Help[SharedOptions]                = Help.derive
   implicit lazy val jsonCodec: JsonValueCodec[SharedOptions] = JsonCodecMaker.make

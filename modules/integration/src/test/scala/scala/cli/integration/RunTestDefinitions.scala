@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class RunTestDefinitions
@@ -462,8 +462,7 @@ abstract class RunTestDefinitions
         s"""val msg = "$message"
            |println(msg)
            |""".stripMargin,
-      os.rel / "Dockerfile" ->
-        os.read(os.Path(Constants.mostlyStaticDockerfile, os.pwd))
+      os.rel / "Dockerfile" -> os.read(os.Path(Constants.mostlyStaticDockerfile))
     )
     inputs.fromRoot { root =>
       os.copy(os.Path(TestUtil.cli.head), root / "scala-cli")

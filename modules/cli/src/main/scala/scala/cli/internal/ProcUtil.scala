@@ -1,13 +1,11 @@
 package scala.cli.internal
-
-import java.net.{HttpURLConnection, URL, URLConnection}
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.{CancellationException, CompletableFuture, CompletionException}
 
 import scala.build.Logger
 import scala.build.internals.EnvVar
+import scala.util.Properties
 import scala.util.control.NonFatal
-import scala.util.{Properties, Try}
 
 object ProcUtil {
 

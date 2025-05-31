@@ -5,8 +5,6 @@ import coursier.maven.MavenRepository
 import coursier.{Dependency, LocalRepositories, Repositories}
 import dependency.AnyDependency
 
-import java.nio.charset.StandardCharsets
-
 import scala.build.options.{BuildOptions, ConfigMonoid}
 
 final case class ScopedBuildInfo(
@@ -112,8 +110,6 @@ object ScopedBuildInfo {
       customJarsDecls = customCompileOnlyJarsDecls ++ customJarsDecls
     )
   }
-
-  private val charSet = StandardCharsets.UTF_8
 
   implicit val monoid: ConfigMonoid[ScopedBuildInfo] = ConfigMonoid.derive
 }

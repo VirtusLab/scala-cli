@@ -1,6 +1,4 @@
 package scala.cli.commands.fix
-
-import caseapp.core.RemainingArgs
 import os.{BasePathImpl, FilePath}
 
 import scala.build.Ops.EitherMap2
@@ -10,13 +8,8 @@ import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.preprocessing.directives.*
 import scala.build.preprocessing.{ExtractedDirectives, SheBang}
-import scala.build.{BuildThreads, CrossSources, Logger, Position, Sources}
-import scala.cli.commands.shared.SharedOptions
+import scala.build.{CrossSources, Logger, Position, Sources}
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.commands.{ScalaCommand, SpecificationLevel}
-import scala.cli.config.Keys
-import scala.cli.util.ConfigDbUtils
-import scala.collection.immutable.HashMap
 import scala.util.chaining.scalaUtilChainingOps
 
 object BuiltInRules extends CommandHelpers {

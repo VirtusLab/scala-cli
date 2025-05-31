@@ -4,7 +4,7 @@ import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.Runner
 import scala.build.{Build, Logger}
-import scala.cli.commands.package0.{Package => PackageCmd}
+import scala.cli.commands.package0.Package as PackageCmd
 import scala.cli.commands.packaging.Spark
 
 object RunHadoop {

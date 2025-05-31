@@ -4,17 +4,16 @@ import caseapp.*
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-import scala.build.EitherCps.{either, value}
 import scala.build.*
+import scala.build.EitherCps.{either, value}
 import scala.build.bsp.{BspReloadableOptions, BspThreads}
 import scala.build.errors.BuildException
 import scala.build.input.Inputs
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.publish.ConfigUtil.*
 import scala.cli.commands.shared.SharedOptions
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.launcher.LauncherOptions
 import scala.cli.util.ConfigDbUtils
 import scala.cli.{CurrentParams, ScalaCli}
@@ -153,10 +152,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     }
 
     val bspReloadableOptionsReference = BspReloadableOptions.Reference { () =>
-      val sharedOptions    = getSharedOptions()
-      val launcherOptions  = getLauncherOptions()
-      val envs             = getEnvsFromFile()
-      val bloopRifleConfig = sharedOptions.bloopRifleConfig()
+      val sharedOptions   = getSharedOptions()
+      val launcherOptions = getLauncherOptions()
+      val envs            = getEnvsFromFile()
 
       refreshPowerMode(launcherOptions, sharedOptions, envs)
 
@@ -195,9 +193,9 @@ object Bsp extends ScalaCommand[BspOptions] {
     launcherOptions: LauncherOptions,
     envs: Map[String, String]
   ): BuildOptions = {
-    val logger      = sharedOptions.logger
-    val baseOptions = sharedOptions.buildOptions().orExit(logger)
-    val withDefaults = baseOptions.copy(
+    val logger                    = sharedOptions.logger
+    val baseOptions: BuildOptions = sharedOptions.buildOptions().orExit(logger)
+    val withDefaults: BuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))
       ),
@@ -212,7 +210,7 @@ object Bsp extends ScalaCommand[BspOptions] {
           baseOptions.notForBloopOptions.addRunnerDependencyOpt.orElse(Some(false))
       )
     )
-    val withEnvs = envs.get(EnvVar.Java.javaHome.name)
+    val withEnvs: BuildOptions = envs.get(EnvVar.Java.javaHome.name)
       .filter(_ => withDefaults.javaOptions.javaHomeOpt.isEmpty)
       .map(javaHome =>
         withDefaults.copy(javaOptions =

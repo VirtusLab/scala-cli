@@ -5,7 +5,6 @@ import coursier.util.Task
 
 import java.nio.charset.StandardCharsets
 
-import scala.build.info.BuildInfo
 import scala.build.input.Inputs
 import scala.build.internal.{CodeWrapper, WrapperParams}
 import scala.build.options.{BuildOptions, Scope}

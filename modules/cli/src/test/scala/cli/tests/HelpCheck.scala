@@ -2,8 +2,8 @@ package cli.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
+import scala.cli.ScalaCliCommands
 import scala.cli.commands.version.Version
-import scala.cli.{ScalaCli, ScalaCliCommands}
 
 class HelpCheck extends munit.FunSuite {
 

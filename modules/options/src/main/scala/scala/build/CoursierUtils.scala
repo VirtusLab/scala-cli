@@ -1,8 +1,7 @@
 package scala.build
 
-import coursier.core.{Dependency => CDependency, Module}
-import coursier.parse.{DependencyParser, ModuleParser}
-import dependency.{DependencyLike, NameAttributes}
+import coursier.core.Module
+import coursier.parse.ModuleParser
 
 import scala.build.internal.Constants
 import scala.quoted.*

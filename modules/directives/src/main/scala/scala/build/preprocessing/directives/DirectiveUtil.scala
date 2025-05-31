@@ -1,11 +1,10 @@
 package scala.build.preprocessing.directives
 
-import com.virtuslab.using_directives.custom.model.{BooleanValue, EmptyValue, StringValue, Value}
+import com.virtuslab.using_directives.custom.model.{BooleanValue, StringValue, Value}
 import com.virtuslab.using_directives.custom.utils.ast.StringLiteral
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 
-import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException, DependencyFormatError}
 import scala.build.preprocessing.ScopePath

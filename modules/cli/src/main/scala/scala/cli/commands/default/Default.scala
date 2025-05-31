@@ -1,7 +1,7 @@
 package scala.cli.commands.default
 
+import caseapp.core.RemainingArgs
 import caseapp.core.help.RuntimeCommandsHelp
-import caseapp.core.{Error, RemainingArgs}
 
 import scala.build.Logger
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}

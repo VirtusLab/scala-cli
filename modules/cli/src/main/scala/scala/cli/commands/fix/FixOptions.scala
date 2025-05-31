@@ -3,7 +3,6 @@ package scala.cli.commands.fix
 import caseapp.*
 import caseapp.core.help.Help
 
-import scala.cli.ScalaCli
 import scala.cli.ScalaCli.fullRunnerName
 import scala.cli.commands.shared.{HasSharedOptions, HelpGroup, HelpMessages, SharedOptions}
 import scala.cli.commands.tags

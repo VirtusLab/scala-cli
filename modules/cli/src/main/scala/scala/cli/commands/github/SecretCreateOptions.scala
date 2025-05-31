@@ -3,7 +3,7 @@ package scala.cli.commands.github
 import caseapp.*
 
 import scala.cli.ScalaCli.progName
-import scala.cli.commands.shared.{CoursierOptions, HelpGroup, HelpMessages}
+import scala.cli.commands.shared.{CoursierOptions, HelpGroup}
 import scala.cli.commands.tags
 
 // format: off

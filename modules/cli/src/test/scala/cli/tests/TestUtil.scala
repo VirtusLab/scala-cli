@@ -5,7 +5,7 @@ import coursier.util.{Artifact, Task}
 
 import java.io.File
 
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.concurrent.duration.DurationInt
 import scala.util.control.NonFatal
 
 object TestUtil {

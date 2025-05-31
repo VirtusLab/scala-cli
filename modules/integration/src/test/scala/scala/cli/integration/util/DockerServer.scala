@@ -5,7 +5,7 @@ package scala.cli.integration.util
 import com.spotify.docker.client.DefaultDockerClient
 import com.spotify.docker.client.messages.{ContainerConfig, HostConfig, PortBinding}
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Try
 
 final case class DockerServer(

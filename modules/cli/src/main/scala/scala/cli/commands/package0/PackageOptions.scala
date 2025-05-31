@@ -10,7 +10,6 @@ import scala.build.errors.{BuildException, CompositeBuildException, ModuleFormat
 import scala.build.options.*
 import scala.build.options.packaging.*
 import scala.build.{BuildThreads, Positioned}
-import scala.cli.commands.package0.PackageOptions
 import scala.cli.commands.shared.*
 import scala.cli.commands.tags
 

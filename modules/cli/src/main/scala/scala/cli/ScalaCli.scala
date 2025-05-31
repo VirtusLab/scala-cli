@@ -4,22 +4,20 @@ import bloop.rifle.FailedToStartServerException
 import coursier.core.Version
 import sun.misc.{Signal, SignalHandler}
 
-import java.io.{ByteArrayOutputStream, File, PrintStream}
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
-import scala.build.Directories
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.cli.commands.CommandUtils
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.Argv0
 import scala.cli.javaLauncher.JavaLauncherCli
 import scala.cli.launcher.{LauncherCli, LauncherOptions, PowerOptions}
 import scala.cli.publish.BouncycastleSignerMaker
 import scala.cli.util.ConfigDbUtils
-import scala.collection.mutable.ListBuffer
 import scala.util.Properties
 
 object ScalaCli {
@@ -314,7 +312,13 @@ object ScalaCli {
 
     if (Properties.isWin && System.console() != null && coursier.paths.Util.useJni())
       // Enable ANSI output in Windows terminal
-      coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
+      try
+        coursier.jniutils.WindowsAnsiTerminal.enableAnsiOutput()
+      catch {
+        // ignore error resulting from redirect STDOUT to /dev/null
+        case e: java.io.IOException
+            if e.getMessage.contains("GetConsoleMode error 6") =>
+      }
 
     new ScalaCliCommands(progName, baseRunnerName, fullRunnerName)
       .main(scalaCliArgs)

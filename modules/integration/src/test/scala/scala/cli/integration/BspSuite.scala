@@ -1,9 +1,9 @@
 package scala.cli.integration
 
-import ch.epfl.scala.bsp4j as b
+import ch.epfl.scala.{bsp4j => b}
 import com.eed3si9n.expecty.Expecty.expect
-import com.github.plokhotnyuk.jsoniter_scala.core.*
-import com.github.plokhotnyuk.jsoniter_scala.macros.*
+import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.macros._
 import com.google.gson.Gson
 import com.google.gson.internal.LinkedTreeMap
 import org.eclipse.lsp4j.jsonrpc.messages.ResponseError
@@ -14,9 +14,9 @@ import java.util.concurrent.{ExecutorService, ScheduledExecutorService}
 import scala.annotation.tailrec
 import scala.cli.integration.BspSuite.{Details, detailsCodec}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.concurrent.{Await, Future, Promise}
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 

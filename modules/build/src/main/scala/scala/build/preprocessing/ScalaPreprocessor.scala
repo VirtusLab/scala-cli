@@ -1,29 +1,12 @@
 package scala.build.preprocessing
-
-import dependency.AnyDependency
-import dependency.parser.DependencyParser
-
 import java.nio.charset.StandardCharsets
 
 import scala.build.EitherCps.{either, value}
-import scala.build.Ops.*
-import scala.build.directives.{
-  HasBuildOptions,
-  HasBuildOptionsWithRequirements,
-  HasBuildRequirements
-}
 import scala.build.errors.*
-import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
-import scala.build.internal.Util
+import scala.build.input.{ScalaCliInvokeData, ScalaFile, SingleElement, VirtualScalaFile}
 import scala.build.options.*
-import scala.build.preprocessing.directives.{
-  DirectiveHandler,
-  DirectiveUtil,
-  PreprocessedDirectives,
-  ScopedDirective
-}
-import scala.build.preprocessing.{DeprecatedDirectives, directives}
-import scala.build.{Logger, Position, Positioned}
+import scala.build.preprocessing.directives.PreprocessedDirectives
+import scala.build.{Logger, Position}
 
 case object ScalaPreprocessor extends Preprocessor {
   case class ProcessingOutput(

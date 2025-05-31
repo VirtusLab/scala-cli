@@ -1,7 +1,7 @@
 package scala.build.internal
 
 import bloop.rifle.VersionUtil.parseJavaVersion
-import coursier.jvm.{JavaHome, JvmChannel}
+import coursier.jvm.JvmChannel
 
 import java.io.IOException
 import java.nio.charset.Charset

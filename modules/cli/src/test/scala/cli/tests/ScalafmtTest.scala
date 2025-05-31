@@ -7,7 +7,6 @@ import scala.build.Ops.*
 import scala.build.internal.Constants
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
-import scala.cli.commands.update.Update.Release
 
 class ScalafmtTests extends munit.FunSuite {
   private lazy val defaultScalafmtVersion = Constants.defaultScalafmtVersion

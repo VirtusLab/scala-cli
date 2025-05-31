@@ -4,7 +4,7 @@ import caseapp.*
 
 import scala.build.internal.Constants
 import scala.build.options as bo
-import scala.cli.commands.shared.{CoursierOptions, HelpGroup, LoggingOptions, SharedJvmOptions}
+import scala.cli.commands.shared.HelpGroup
 import scala.cli.commands.tags
 
 // format: off

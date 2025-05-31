@@ -1,6 +1,6 @@
 package scala.cli.commands.packaging
 
-import dependency._
+import dependency.*
 
 object Spark {
 

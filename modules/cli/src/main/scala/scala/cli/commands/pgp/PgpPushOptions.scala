@@ -2,7 +2,7 @@ package scala.cli.commands.pgp
 
 import caseapp.*
 
-import scala.cli.commands.shared._
+import scala.cli.commands.shared.*
 
 // format: off
 final case class PgpPushOptions(

@@ -3,7 +3,6 @@ package scala.cli.commands.publish
 import caseapp.core.RemainingArgs
 import caseapp.core.help.HelpFormat
 
-import scala.build.options.BuildOptions
 import scala.build.{BuildThreads, Logger}
 import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand

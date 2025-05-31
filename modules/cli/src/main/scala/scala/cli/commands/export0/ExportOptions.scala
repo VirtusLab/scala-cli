@@ -8,7 +8,6 @@ import scala.cli.commands.shared.{
   HelpGroup,
   HelpMessages,
   MainClassOptions,
-  ScopeOptions,
   SharedOptions
 }
 import scala.cli.commands.tags

@@ -2,7 +2,7 @@ package scala.cli.commands.publish.checks
 
 import scala.build.Logger
 import scala.build.errors.BuildException
-import scala.build.options.{PublishOptions => BPublishOptions}
+import scala.build.options.PublishOptions as BPublishOptions
 import scala.cli.commands.publish.{OptionCheck, PublishSetupOptions}
 
 final case class LicenseCheck(

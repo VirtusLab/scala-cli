@@ -4,9 +4,8 @@ import bloop.rifle.BloopRifleConfig
 import caseapp.core.RemainingArgs
 
 import scala.build.{Directories, Logger}
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
+import scala.cli.commands.shared.CoursierOptions
 
 object BloopOutput extends ScalaCommand[BloopOutputOptions] {
 

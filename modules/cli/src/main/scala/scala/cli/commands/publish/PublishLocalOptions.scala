@@ -3,7 +3,6 @@ package scala.cli.commands.publish
 import caseapp.*
 
 import scala.cli.commands.pgp.PgpScalaSigningOptions
-import scala.cli.commands.publish.PublishSetupOptions.{cmdName, docWebsiteSuffix, helpHeader}
 import scala.cli.commands.shared.*
 
 // format: off

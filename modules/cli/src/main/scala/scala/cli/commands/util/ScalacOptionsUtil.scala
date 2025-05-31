@@ -1,11 +1,6 @@
 package scala.cli.commands.util
-
-import scala.build.Logger
 import scala.build.options.ScalacOpt.{filterScalacOptionKeys, noDashPrefixes}
 import scala.build.options.{ScalacOpt, ShadowingSeq}
-import scala.cli.commands.bloop.BloopExit
-import scala.cli.commands.default.LegacyScalaOptions
-import scala.cli.commands.shared.ScalacOptions.YScriptRunnerOption
 import scala.cli.commands.shared.{ScalacExtraOptions, ScalacOptions}
 
 object ScalacOptionsUtil {

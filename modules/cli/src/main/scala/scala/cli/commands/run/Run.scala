@@ -9,27 +9,25 @@ import java.util.Locale
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicReference
 
+import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.*
 import scala.build.errors.{BuildException, CompositeBuildException}
 import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
-import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, ScalacOpt, Scope}
+import scala.build.options.{BuildOptions, JavaOpt, PackageType, Platform, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.package0.Package
-import scala.cli.commands.publish.ConfigUtil.*
-import scala.cli.commands.run.RunMode
 import scala.cli.commands.setupide.SetupIde
 import scala.cli.commands.shared.{HelpCommandGroup, HelpGroup, SharedOptions}
 import scala.cli.commands.update.Update
 import scala.cli.commands.util.BuildCommandHelpers.*
 import scala.cli.commands.util.{BuildCommandHelpers, RunHadoop, RunSpark}
 import scala.cli.commands.{CommandUtils, ScalaCommand, SpecificationLevel, WatchUtil}
-import scala.cli.config.{ConfigDb, Keys}
+import scala.cli.config.Keys
 import scala.cli.internal.ProcUtil
 import scala.cli.packaging.Library.fullClassPathMaybeAsJar
 import scala.cli.util.ArgHelpers.*

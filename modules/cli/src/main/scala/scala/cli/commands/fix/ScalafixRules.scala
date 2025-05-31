@@ -1,9 +1,6 @@
 package scala.cli.commands.fix
 
 import coursier.cache.FileCache
-import scalafix.interfaces.ScalafixError.*
-
-import java.io.File
 
 import scala.build.EitherCps.{either, value}
 import scala.build.compiler.ScalaCompilerMaker
@@ -11,15 +8,11 @@ import scala.build.errors.BuildException
 import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.internal.{Constants, Runner}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.options.{BuildOptions, Scope}
-import scala.build.{Build, Logger, Os, ScalafixArtifacts}
-import scala.cli.commands.fix.ScalafixOptions
+import scala.build.options.BuildOptions
+import scala.build.{Build, Logger, ScalafixArtifacts}
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.BuildCommandHelpers.copyOutput
 import scala.cli.commands.util.CommandHelpers
-import scala.cli.commands.util.ScalacOptionsUtil.*
-import scala.jdk.CollectionConverters.*
-import scala.jdk.OptionConverters.*
 
 object ScalafixRules extends CommandHelpers {
   def runRules(

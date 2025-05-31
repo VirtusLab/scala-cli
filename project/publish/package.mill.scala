@@ -1,6 +1,7 @@
+package build.project.publish
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
 import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r`
-import $file.settings, settings.{PublishLocalNoFluff, workspaceDirName}
+import build.project.settings, settings.{PublishLocalNoFluff, workspaceDirName}
 
 import de.tobiasroeser.mill.vcs.version._
 import mill._, scalalib._
@@ -11,14 +12,14 @@ import java.nio.charset.Charset
 import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 
-lazy val (ghOrg, ghName) = {
+lazy val (ghOrg: String, ghName: String) = {
   def default = ("VirtusLab", "scala-cli")
   val isCI    = System.getenv("CI") != null
   if (isCI) {
     val repos = {
       var git: Git = null
       try {
-        git = Git.open(os.pwd.toIO)
+        git = Git.open(os.Path(sys.env("MILL_WORKSPACE_ROOT")).toIO)
         git.remoteList().call().asScala.toVector
       }
       finally
@@ -104,15 +105,15 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
       .getOrElse(state.format())
       .stripPrefix("v")
 
-def finalPublishVersion = {
+def finalPublishVersion: Target[String] = {
   val isCI = System.getenv("CI") != null
   if (isCI)
-    T.persistent {
+    Task(persistent = true) {
       val state = VcsVersion.vcsState()
       computePublishVersion(state, simple = false)
     }
   else
-    T {
+    Task {
       val state = VcsVersion.vcsState()
       computePublishVersion(state, simple = true)
     }
@@ -122,7 +123,7 @@ def organization = "org.virtuslab.scala-cli"
 
 trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
   import mill.scalalib.publish._
-  def pomSettings = PomSettings(
+  def pomSettings: Target[PomSettings] = PomSettings(
     description = artifactName(),
     organization = organization,
     url = s"https://github.com/$ghOrg/$ghName",
@@ -136,9 +137,8 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
       Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
-  def publishVersion =
-    finalPublishVersion()
-  override def sourceJar = T {
+  def publishVersion: Target[String] = finalPublishVersion()
+  override def sourceJar: Target[PathRef] = Task {
     import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
     createJar(
@@ -153,7 +153,8 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
 
 def publishSonatype(
   data: Seq[PublishModule.PublishData],
-  log: mill.api.Logger
+  log: mill.api.Logger,
+  workspace: os.Path
 ): Unit = {
 
   val credentials = sys.env("SONATYPE_USERNAME") + ":" + sys.env("SONATYPE_PASSWORD")
@@ -179,21 +180,21 @@ def publishSonatype(
     snapshotUri = "https://oss.sonatype.org/content/repositories/snapshots",
     credentials = credentials,
     signed = true,
-    // format: off
     gpgArgs = Seq(
       "--detach-sign",
       "--batch=true",
       "--yes",
-      "--pinentry-mode", "loopback",
-      "--passphrase", pgpPassword,
+      "--pinentry-mode",
+      "loopback",
+      "--passphrase",
+      pgpPassword,
       "--armor",
       "--use-agent"
     ),
-    // format: on
     readTimeout = timeout.toMillis.toInt,
     connectTimeout = timeout.toMillis.toInt,
     log = log,
-    workspace = os.pwd,
+    workspace = workspace,
     env = sys.env,
     awaitTimeout = timeout.toMillis.toInt,
     stagingRelease = isRelease
@@ -210,19 +211,19 @@ def isTag: Boolean =
   Option(System.getenv("BUILD_SOURCEBRANCH"))
     .orElse(Option(System.getenv("GITHUB_REF")))
     .exists(_.startsWith("refs/tags"))
-def shouldPublish = T.persistent {
+def shouldPublish = Task(persistent = true) {
   val isSnapshot = finalPublishVersion().endsWith("SNAPSHOT")
   // not a snapshot, not a tag: let the tag job do the publishing
   isSnapshot || isTag
 }
-def setShouldPublish() = T.command {
+def setShouldPublish() = Task.Command {
   val envFile = System.getenv("GITHUB_ENV")
   if (envFile == null)
     sys.error("GITHUB_ENV not set")
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
   os.write.append(
-    os.Path(envFile, os.pwd),
+    os.Path(envFile, Task.workspace),
     s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet)
   )
 }

@@ -59,7 +59,7 @@ object Bloop {
         Right(success)
       }
     catch {
-      case ex @ BrokenPipeInCauses(e) =>
+      case ex @ BrokenPipeInCauses(_) =>
         logger.debug(s"Caught $ex while exchanging with Bloop server, assuming Bloop server exited")
         Left(ex)
       case ex: ExecutionException =>

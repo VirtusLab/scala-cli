@@ -3,7 +3,6 @@ package scala.cli.commands.directories
 import caseapp.*
 
 import scala.build.Logger
-import scala.cli.CurrentParams
 import scala.cli.commands.ScalaCommand
 
 object Directories extends ScalaCommand[DirectoriesOptions] {

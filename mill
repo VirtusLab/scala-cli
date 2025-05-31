@@ -3,6 +3,10 @@
 # Adapted from
 
 coursier_version="2.1.24"
+COMMAND=$@
+
+# necessary for Windows various shell environments
+IS_WINDOWS=$(uname | grep -E 'CYG*|MSYS*|MING*|UCRT*|ClANG*|GIT*')
 
 # https://stackoverflow.com/questions/3466166/how-to-check-if-running-in-cygwin-mac-or-linux/17072017#17072017
 if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
@@ -64,8 +68,7 @@ function to_bash_syntax {
     echo "$S" | sed -E -e 's#^set #export #' -e 's#%([A-Z_][A-Z_0-9]*)%#${\1}#g' | tr '\\' '/'
   done
 }
-# necessary for Windows various shell environments
-if [[ `uname | grep -E 'CYG*|MSYS*|MING*|UCRT*|ClANG*|GIT*'` ]]; then
+if [[ $IS_WINDOWS ]]; then
   # needed for coursier version < 2.1.8, harmless otherwise
   IFS=$'\n'
   eval "$(to_bash_syntax `"$cs" java --env --jvm temurin:17` || to_bash_syntax `"$cs" java --env --jvm openjdk:1.17.0`)"
@@ -80,4 +83,8 @@ export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
-exec "$DIR/millw" "$@"
+if [[ $IS_WINDOWS ]]; then
+  exec "$DIR/millw" "$@"
+else
+  exec "$DIR/millw" $COMMAND
+fi

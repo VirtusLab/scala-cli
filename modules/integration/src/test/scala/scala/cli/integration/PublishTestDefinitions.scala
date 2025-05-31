@@ -6,7 +6,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.zip.ZipFile
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {

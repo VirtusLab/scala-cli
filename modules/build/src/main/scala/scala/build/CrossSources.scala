@@ -1,12 +1,7 @@
 package scala.build
 
-import coursier.cache.FileCache
-import coursier.util.{Artifact, Task}
-
-import scala.build.CollectionOps.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
-import scala.build.Positioned
 import scala.build.errors.{
   BuildException,
   CompositeBuildException,
@@ -15,8 +10,8 @@ import scala.build.errors.{
   Severity,
   UsingFileFromUriError
 }
-import scala.build.input.ElementsUtils.*
 import scala.build.input.*
+import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.util.{RegexUtils, WarningMessages}
 import scala.build.options.{
@@ -28,7 +23,6 @@ import scala.build.options.{
   WithBuildRequirements
 }
 import scala.build.preprocessing.*
-import scala.build.testrunner.DynamicTestRunner.globPattern
 import scala.util.Try
 import scala.util.chaining.*
 

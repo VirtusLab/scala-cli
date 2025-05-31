@@ -1,13 +1,10 @@
 package scala.cli.commands.pgp
 
 import caseapp.core.RemainingArgs
-import coursier.cache.ArchiveCache
 
 import scala.build.Logger
 import scala.cli.commands.ScalaCommand
-import scala.cli.commands.pgp.{KeyServer, PgpProxyMaker}
 import scala.cli.commands.util.ScalaCliSttpBackend
-import scala.cli.internal.PgpProxyMakerSubst
 
 object PgpPush extends ScalaCommand[PgpPushOptions] {
 

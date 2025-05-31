@@ -1,13 +1,13 @@
 package scala.build.options
 
-import _root_.bloop.config.{Config => BloopConfig}
-import dependency._
+import _root_.bloop.config.Config as BloopConfig
+import dependency.*
 
 import java.nio.file.Paths
 
 import scala.build.internal.Constants
+import scala.scalanative.build as sn
 import scala.scalanative.build.LTO
-import scala.scalanative.{build => sn}
 
 enum ScalaNativeTarget:
   case Application, LibraryDynamic, LibraryStatic
@@ -16,10 +16,9 @@ enum ScalaNativeTarget:
     this match
       case Application    => sn.BuildTarget.application
       case LibraryDynamic => sn.BuildTarget.libraryDynamic
-      case libraryStatic  => sn.BuildTarget.libraryStatic
+      case _              => sn.BuildTarget.libraryStatic
 
 object ScalaNativeTarget:
-  import ScalaNativeTarget.*
   def fromString(str: String): Option[ScalaNativeTarget] =
     str match
       case "application" | "app"                    => Some(Application)
