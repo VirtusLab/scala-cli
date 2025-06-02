@@ -16,7 +16,7 @@ final case class BuildThreads(
 
 object BuildThreads {
   def create(): BuildThreads = {
-    val bloop = _root_.bloop.rifle.BloopThreads.create()
+    val bloop       = _root_.bloop.rifle.BloopThreads.create()
     val fileWatcher = Executors.newSingleThreadScheduledExecutor(
       Util.daemonThreadFactory("scala-cli-file-watcher")
     )

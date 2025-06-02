@@ -39,9 +39,9 @@ object ThrowawayPgpSecret {
     signingCliOptions: bo.ScalaSigningCliOptions
   ): Either[BuildException, (Secret[String], Secret[String])] = either {
 
-    val dir    = os.temp.dir(perms = if (Properties.isWin) null else "rwx------")
-    val pubKey = dir / "pub"
-    val secKey = dir / "sec"
+    val dir     = os.temp.dir(perms = if (Properties.isWin) null else "rwx------")
+    val pubKey  = dir / "pub"
+    val secKey  = dir / "sec"
     val retCode = value {
       (new PgpProxyMaker).get(
         signingCliOptions.forceExternal.getOrElse(false)

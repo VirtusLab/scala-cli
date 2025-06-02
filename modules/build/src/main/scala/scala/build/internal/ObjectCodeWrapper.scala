@@ -18,14 +18,14 @@ case class ObjectCodeWrapper(scalaVersion: String, log: String => Unit) extends 
     val mainObject         = WrapperUtils.mainObjectInScript(scalaVersion, code)
     val name               = mainClassObject(indexedWrapperName).backticked
     val aliasedWrapperName = name + "$$alias"
-    val realScript =
+    val realScript         =
       if (name == "main_sc")
         s"$aliasedWrapperName.alias" // https://github.com/VirtusLab/scala-cli/issues/314
       else s"${indexedWrapperName.backticked}"
 
     val funHashCodeMethod = mainObject match
       case WrapperUtils.ScriptMainMethod.Exists(name) => s"$realScript.$name.main(args)"
-      case otherwise =>
+      case otherwise                                  =>
         otherwise.warningMessage.foreach(log)
         s"val _ = $realScript.hashCode()"
     // We need to call hashCode (or any other method so compiler does not report a warning)

@@ -18,7 +18,7 @@ class VcsParseTest extends munit.FunSuite {
   }
 
   test("invalid GitHub: missing /") {
-    val actual = Vcs.parse(Positioned.none("github:scala-cli"))
+    val actual   = Vcs.parse(Positioned.none("github:scala-cli"))
     val expected =
       Left(new MalformedInputError("github-vcs", "github:scala-cli", "github:org/project", Nil))
 
@@ -27,7 +27,7 @@ class VcsParseTest extends munit.FunSuite {
   }
 
   test("invalid GitHub: too many /") {
-    val actual = Vcs.parse(Positioned.none("github:github.com/VirtusLab/scala-cli"))
+    val actual   = Vcs.parse(Positioned.none("github:github.com/VirtusLab/scala-cli"))
     val expected = Left(new MalformedInputError(
       "github-vcs",
       "github:github.com/VirtusLab/scala-cli",
@@ -68,7 +68,7 @@ class VcsParseTest extends munit.FunSuite {
   }
 
   test("invalid generic: extra |") {
-    val actual = Vcs.parse(Positioned.none("a|b|c|d"))
+    val actual   = Vcs.parse(Positioned.none("a|b|c|d"))
     val expected =
       Left(new MalformedInputError("vcs", "a|b|c|d", "url|connection|developer-connection", Nil))
 
@@ -77,7 +77,7 @@ class VcsParseTest extends munit.FunSuite {
   }
 
   test("invalid generic: gibberish") {
-    val actual = Vcs.parse(Positioned.none("sfrgt pagdhn"))
+    val actual   = Vcs.parse(Positioned.none("sfrgt pagdhn"))
     val expected = Left(new MalformedInputError(
       "vcs",
       "sfrgt pagdhn",

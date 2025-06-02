@@ -5,7 +5,7 @@ object OptionsHelper {
     def mandatory(parameter: String, group: String): A =
       x match {
         case Some(v) => v
-        case None =>
+        case None    =>
           System.err.println(
             s"${parameter.toLowerCase.capitalize} parameter is mandatory for ${group.toLowerCase.capitalize}"
           )

@@ -30,8 +30,8 @@ case class Options(
 enum Commands:
   def context: Context
   def name: String = toString.takeWhile(_ != '(')
-  def log: Any = this match {
-    case _: Clear => ""
+  def log: Any     = this match {
+    case _: Clear                  => ""
     case Check(patterns, regex, _) =>
       val kind = if regex then "regexes" else "patterns"
       s"last output matches $kind: ${patterns.map(p => s"'$p'").mkString(", ")}"
@@ -169,7 +169,7 @@ def checkFile(file: os.Path, options: Options): Unit =
   val content  = os.read.lines(file).toList
   val commands = parse(content, Vector(), Context(file.relativeTo(os.pwd), 1))
   val destName = file.last.stripSuffix(".md")
-  val out =
+  val out      =
     sys.env.get("SCLICHECK_DEST") match
       case None =>
         val isCi = System.getenv("CI") != null
@@ -342,7 +342,7 @@ def checkFile(file: os.Path, options: Options): Unit =
       def printResult(success: Boolean, startTime: Long): Unit =
         val duration    = System.currentTimeMillis - startTime
         val commandName = s"[${cmd.name} in $duration ms]"
-        val cmdLog =
+        val cmdLog      =
           if success then Green(commandName)
           else Red(commandName)
         println(s"$cmdLog ${cmd.log}")
@@ -441,7 +441,7 @@ def checkFile(file: os.Path, options: Options): Unit =
 
   @tailrec
   def parseArgs(args: Seq[String], options: Options): Options = args match
-    case Nil => options
+    case Nil              => options
     case "--step" :: rest =>
       parseArgs(rest, options.copy(step = true))
     case "--stopAtFailure" :: rest =>

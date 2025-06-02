@@ -169,7 +169,7 @@ object ConsoleBloopBuildClient {
     val msgIt = diag.getMessage.linesIterator
 
     val path0 = path match {
-      case Left(source) => source
+      case Left(source)                     => source
       case Right(p) if p.startsWith(Os.pwd) =>
         "." + File.separator + p.relativeTo(Os.pwd).toString
       case Right(p) => p.toString

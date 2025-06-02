@@ -131,7 +131,7 @@ final case class ArtifactId(name: String, fullName: String)
 object ExportDependencyFormat {
   def apply(dep: Dependency): ExportDependencyFormat = {
     val scalaVersionStartIndex = dep.module.name.value.lastIndexOf('_')
-    val shortDepName = if (scalaVersionStartIndex == -1)
+    val shortDepName           = if (scalaVersionStartIndex == -1)
       dep.module.name.value
     else
       dep.module.name.value.take(scalaVersionStartIndex)

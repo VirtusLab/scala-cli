@@ -24,7 +24,7 @@ object ScalaCliHelp {
     HelpGroup.ScalaNative,
     HelpGroup.Help
   )
-  private val hiddenHelpGroups = Seq(HelpGroup.ScalaJs, HelpGroup.ScalaNative)
+  private val hiddenHelpGroups    = Seq(HelpGroup.ScalaJs, HelpGroup.ScalaNative)
   private val sortedCommandGroups =
     Seq(HelpCommandGroup.Main, HelpCommandGroup.Miscellaneous, HelpCommandGroup.Undefined)
   val helpFormat: HelpFormat = HelpFormat.default()

@@ -35,7 +35,7 @@ import scala.jdk.CollectionConverters.*
 abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
 
-  val buildThreads = BuildThreads.create()
+  val buildThreads   = BuildThreads.create()
   def bloopConfigOpt =
     if (server) Some(BloopServer.bloopConfig)
     else None
@@ -55,7 +55,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  def sv2 = Constants.defaultScala213Version
+  def sv2            = Constants.defaultScala213Version
   val defaultOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
@@ -64,7 +64,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     scriptOptions = ScriptOptions(Some(true))
   )
 
-  def sv3 = Constants.defaultScalaVersion
+  def sv3                  = Constants.defaultScalaVersion
   val defaultScala3Options = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),
@@ -177,7 +177,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
       )
     )
 
-    val testInputs = TestInputs(os.rel / "simple.sc" -> scriptContents)
+    val testInputs   = TestInputs(os.rel / "simple.sc" -> scriptContents)
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         semanticDbOptions = defaultOptions.scalaOptions.semanticDbOptions.copy(
@@ -750,7 +750,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
     inputs.withBuild(defaultOptions, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
       val expectedOptions = Seq("-source:future")
-      val scalacOptions =
+      val scalacOptions   =
         maybeBuild.orThrow.options.scalaOptions.scalacOptions.toSeq.map(_.value.value)
       expect(scalacOptions == expectedOptions)
     }
@@ -900,7 +900,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           .toOption
           .flatMap(_.successfulOpt)
           .getOrElse(sys.error("cannot happen"))
-        val cp = build.fullClassPath
+        val cp     = build.fullClassPath
         val coreCp = cp.filter { f =>
           val name = f.last
           !name.startsWith("scala-library") &&
@@ -913,7 +913,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
 
   test("declared sources in using directive should be included to count project hash") {
     val helloFile = "Hello.scala"
-    val inputs =
+    val inputs    =
       TestInputs(
         os.rel / helloFile ->
           """|//> using file Utils.scala

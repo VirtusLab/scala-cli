@@ -26,7 +26,7 @@ case class Test(
 @tailrec
 def findFiles(paths: Seq[os.Path], result: Seq[os.Path] = Nil): Seq[os.Path] =
   paths match
-    case Nil => result
+    case Nil          => result
     case head :: tail =>
       val newFiles =
         if head.segments.contains("test") && head.last.endsWith(".dest") && os.isDir(head) then
@@ -54,7 +54,7 @@ if new File(args(2)).exists() then {
 }
 val into = args(2).toNormalisedPath
 
-val pathArg = args(3)
+val pathArg           = args(3)
 val rootPath: os.Path =
   if Paths.get(pathArg).isAbsolute then os.Path(pathArg) else os.Path(pathArg, os.pwd)
 if !os.isDir(rootPath) then {

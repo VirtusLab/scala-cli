@@ -16,9 +16,9 @@ object WarningMessages {
   def experimentalFeaturesUsed(namesAndFeatureTypes: Seq[(String, FeatureType)]): String = {
     val message = namesAndFeatureTypes match {
       case Seq((name, featureType)) => s"The `$name` $featureType is experimental"
-      case namesAndTypes =>
-        val nl                   = System.lineSeparator()
-        val distinctFeatureTypes = namesAndTypes.map(_._2).distinct
+      case namesAndTypes            =>
+        val nl                                    = System.lineSeparator()
+        val distinctFeatureTypes                  = namesAndTypes.map(_._2).distinct
         val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
           (
             namesAndTypes.map((name, fType) => s" - `$name`")
@@ -115,7 +115,7 @@ object WarningMessages {
     projectFilePath: String,
     pathsToReport: Iterable[String] = Nil
   ) = {
-    val detectedMsg = "Using directives detected in multiple files"
+    val detectedMsg    = "Using directives detected in multiple files"
     val recommendedMsg =
       s"It is recommended to keep them centralized in the $projectFilePath file."
     if pathsToReport.isEmpty then

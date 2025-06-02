@@ -5,7 +5,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 trait BspTests3Definitions { _: BspTestDefinitions =>
   test("BSP class wrapper for Scala 3") {
     val (script1, script2) = "script1.sc" -> "script2.sc"
-    val inputs = TestInputs(
+    val inputs             = TestInputs(
       os.rel / script1 ->
         s"""def main(args: String*): Unit = println("Hello")
            |main()
@@ -26,7 +26,7 @@ trait BspTests3Definitions { _: BspTestDefinitions =>
   }
 
   for {
-    useDirectives <- Seq(true, false)
+    useDirectives        <- Seq(true, false)
     (directive, options) <- Seq(
       ("//> using object.wrapper", Seq("--object-wrapper")),
       ("//> using platform js", Seq("--js"))
@@ -36,7 +36,7 @@ trait BspTests3Definitions { _: BspTestDefinitions =>
   } test(s"BSP object wrapper forced with $testNameSuffix") {
     val (script1, script2) = "script1.sc" -> "script2.sc"
     val directiveString    = if (useDirectives) directive else ""
-    val inputs = TestInputs(
+    val inputs             = TestInputs(
       os.rel / script1 ->
         s"""$directiveString
            |

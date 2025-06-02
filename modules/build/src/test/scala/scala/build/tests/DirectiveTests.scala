@@ -94,7 +94,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
            |""".stripMargin
     ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build       = maybeBuild.orThrow
         val graalvmArgs =
           build.options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs
         expect(graalvmArgs.map(_.value) == expectedGraalVMArgs)
@@ -109,15 +109,15 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuilds(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuilds) =>
-        val expectedVersion = "latest.release"
-        val builds          = maybeBuilds.orThrow
-        val Some(mainBuild) = builds.get(Scope.Main)
+        val expectedVersion  = "latest.release"
+        val builds           = maybeBuilds.orThrow
+        val Some(mainBuild)  = builds.get(Scope.Main)
         val Some(toolkitDep) =
           mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
         expect(toolkitDep.organization == Constants.toolkitOrganization)
         expect(toolkitDep.name == Constants.toolkitName)
         expect(toolkitDep.version == expectedVersion)
-        val Some(testBuild) = builds.get(Scope.Test)
+        val Some(testBuild)      = builds.get(Scope.Test)
         val Some(toolkitTestDep) =
           testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
         expect(toolkitTestDep.organization == Constants.toolkitOrganization)
@@ -142,7 +142,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   for (scope <- Scope.all) {
     def withProjectFile[T](projectFileContent: String)(f: (Build, Boolean) => T): T = TestInputs(
-      os.rel / "project.scala" -> projectFileContent,
+      os.rel / "project.scala"    -> projectFileContent,
       os.rel / "Tests.test.scala" ->
         """class Tests extends munit.FunSuite {
           |  test("foo") {
@@ -262,14 +262,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("handling special syntax for path") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
         """//> using options -coverage-out:${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -281,14 +281,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("handling special syntax for path with more dollars before") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
         """//> using options -coverage-out:$$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -300,14 +300,14 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("skip handling special syntax for path when double dollar") {
-    val filePath = os.rel / "src" / "simple.scala"
+    val filePath   = os.rel / "src" / "simple.scala"
     val testInputs = TestInputs(
       os.rel / filePath ->
         """//> using options -coverage-out:$${.}"""
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build                                        = maybeBuild.orThrow
         val scalacOptions: Option[Positioned[ScalacOpt]] =
           build.options.scalaOptions.scalacOptions.toSeq.headOption
         assert(scalacOptions.nonEmpty)
@@ -396,7 +396,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build            = maybeBuild.orThrow
         val publishOptionsCI =
           build.options.notForBloopOptions.publishOptions.contextual(isCi = true)
         val publishOptionsLocal =

@@ -11,7 +11,7 @@ class ArgsFileTests extends ScalaCliSuite {
   ) {
     val fileName   = "Simple.sc"
     val serverArgs = if (useServer) Nil else List("--server=false")
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "args.txt" -> """|-release
                                 |8""".stripMargin,
       os.rel / fileName ->
@@ -36,7 +36,7 @@ class ArgsFileTests extends ScalaCliSuite {
   if (!Properties.isWin)
     test("pass scalac options using arguments file in shebang script") {
       val inputs = TestInputs(
-        os.rel / "args.txt" -> """|-release 8""".stripMargin,
+        os.rel / "args.txt"            -> """|-release 8""".stripMargin,
         os.rel / "script-with-shebang" ->
           s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang @args.txt
               |

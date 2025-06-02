@@ -61,7 +61,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     HelpGroup.NativeImage
   )
   val hiddenHelpGroups: Seq[HelpGroup] = Seq(HelpGroup.Entrypoint, HelpGroup.Watch)
-  override def helpFormat: HelpFormat = super.helpFormat
+  override def helpFormat: HelpFormat  = super.helpFormat
     .withHiddenGroups(hiddenHelpGroups)
     .withPrimaryGroups(primaryHelpGroups)
   override def sharedOptions(options: PackageOptions): Option[SharedOptions] = Some(options.shared)
@@ -79,8 +79,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val compilerMaker       = options.compilerMaker(threads).orExit(logger)
     val docCompilerMakerOpt = options.docCompilerMakerOpt
 
-    val cross    = options.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val cross                 = options.compileCross.cross.getOrElse(false)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -89,7 +89,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     val withTestScope = options.shared.scope.test.getOrElse(false)
     if options.watch.watchMode then {
       var expectedModifyEpochSecondOpt = Option.empty[Long]
-      val watcher = Build.watch(
+      val watcher                      = Build.watch(
         inputs,
         initialBuildOptions,
         compilerMaker,
@@ -168,7 +168,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   }
 
   def finalBuildOptions(options: PackageOptions): BuildOptions = {
-    val initialOptions = options.finalBuildOptions.orExit(options.shared.logger)
+    val initialOptions    = options.finalBuildOptions.orExit(options.shared.logger)
     val finalBuildOptions = initialOptions.copy(scalaOptions =
       initialOptions.scalaOptions.copy(defaultScalaVersion = Some(defaultScalaVersion))
     )
@@ -269,7 +269,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       }
 
       val packageOutput = builds.head.options.notForBloopOptions.packageOptions.output
-      val dest = output.orElse(packageOutput)
+      val dest          = output.orElse(packageOutput)
         .orElse {
           builds.flatMap(_.sources.defaultMainClass)
             .headOption
@@ -308,7 +308,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       def mainClass: Either[BuildException, String] =
         builds.head.options.mainClass.filter(_.nonEmpty) match {
           case Some(cls) => Right(cls)
-          case None =>
+          case None      =>
             val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
             builds
               .map { build =>
@@ -554,8 +554,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     withTestScope: Boolean
   ): Either[BuildException, os.Path] = either {
 
-    val workDir = builds.head.inputs.docJarWorkDir
-    val dest    = workDir / "doc.jar"
+    val workDir   = builds.head.inputs.docJarWorkDir
+    val dest      = workDir / "doc.jar"
     val cacheData =
       CachedBinary.getCacheData(
         builds = builds,
@@ -610,7 +610,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             val origContent = os.read.bytes(origPath)
             (subPath, origContent, lastModified)
         }
-        val prefix = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
+        val prefix    = if (originalOpt.isEmpty) os.rel else generatedSourcesPrefix
         val generated = (
           prefix / inMemSource.generatedRelPath,
           inMemSource.content,
@@ -686,8 +686,8 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
 
     val appPath = os.temp.dir(prefix = "scala-cli-docker") / "app"
     builds.head.options.platform.value match {
-      case Platform.JVM => value(bootstrap(builds, appPath, mainClass, () => Right(()), logger))
-      case Platform.JS  => buildJs(builds, appPath, Some(mainClass), logger)
+      case Platform.JVM    => value(bootstrap(builds, appPath, mainClass, () => Right(()), logger))
+      case Platform.JS     => buildJs(builds, appPath, Some(mainClass), logger)
       case Platform.Native =>
         val dest =
           value(buildNative(
@@ -752,7 +752,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     }
 
     // TODO Generate that in memory
-    val tmpJar = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
+    val tmpJar       = os.temp(prefix = destPath.last.stripSuffix(".jar"), suffix = ".jar")
     val tmpJarParams = Parameters.Assembly()
       .withExtraZipEntries(byteCodeZipEntries)
       .withMainClass(mainClass)
@@ -767,14 +767,14 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
             ClassPathEntry.Resource(path.last, os.mtime(path), os.read.bytes(path))
           else ClassPathEntry.Url(url)
       }
-    val byteCodeEntry = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
+    val byteCodeEntry  = ClassPathEntry.Resource(s"${destPath.last}-content.jar", 0L, tmpJarContent)
     val extraClassPath = builds.head.options.classPathOptions.extraClassPath.map { classPath =>
       ClassPathEntry.Resource(classPath.last, os.mtime(classPath), os.read.bytes(classPath))
     }
 
     val allEntries    = Seq(byteCodeEntry) ++ dependencyEntries ++ extraClassPath
     val loaderContent = coursier.launcher.ClassLoaderContent(allEntries)
-    val preamble = Preamble()
+    val preamble      = Preamble()
       .withOsKind(Properties.isWin)
       .callsItself(Properties.isWin)
       .withJavaOpts(builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value))
@@ -841,12 +841,12 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .sequence
         .left.map(CompositeBuildException(_))
     }
-    val modulesSet = modules.toSet
+    val modulesSet   = modules.toSet
     val providedDeps = res
       .flatMap(_.dependencyArtifacts.map(_._1))
       .filter(dep => modulesSet.contains(dep.module))
     val providedRes = res.map(_.subset(providedDeps))
-    val fileMap = builds.flatMap(_.artifacts.detailedRuntimeArtifacts).distinct
+    val fileMap     = builds.flatMap(_.artifacts.detailedRuntimeArtifacts).distinct
       .map { case (_, _, artifact, path) => artifact -> path }
       .toMap
     val providedFiles = providedRes
@@ -894,7 +894,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         }
 
     val provided = builds.head.options.notForBloopOptions.packageOptions.provided ++ extraProvided
-    val allJars =
+    val allJars  =
       builds.flatMap(_.artifacts.runtimeArtifacts.map(_._2)) ++ extraJars.filter(os.exists(_))
     val jars =
       if (provided.isEmpty) allJars
@@ -970,7 +970,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
   ): Either[BuildException, os.Path] = {
     val jar       = Library.libraryJar(builds)
     val classPath = Seq(jar) ++ builds.flatMap(_.artifacts.classPath)
-    val input = ScalaJsLinker.LinkJSInput(
+    val input     = ScalaJsLinker.LinkJSInput(
       options = builds.head.options.notForBloopOptions.scalaJsLinkerOptions,
       javaCommand =
         builds.head.options.javaHome().value.javaCommand, // FIXME Allow users to use another JVM here?
@@ -1055,7 +1055,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         _.sources.resourceDirs.nonEmpty
       ))
 
-    val setupPython = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
+    val setupPython   = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
     val pythonLdFlags =
       if setupPython then
         value {
@@ -1101,7 +1101,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       builds.foreach(build => NativeResourceMapper.copyCFilesToScalaNativeDir(build, nativeWorkDir))
       val jar       = Library.libraryJar(builds)
       val classpath = (Seq(jar) ++ builds.flatMap(_.artifacts.classPath)).map(_.toString).distinct
-      val args =
+      val args      =
         allCliOptions ++
           logger.scalaNativeCliInternalLoggerOptions ++
           List[String](
@@ -1155,7 +1155,7 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
       case (_, _) if builds.head.options.notForBloopOptions.packageOptions.isDockerEnabled =>
         basePackageTypeOpt match {
           case Some(PackageType.Docker) | None => Right(PackageType.Docker)
-          case Some(packageType) => Left(new MalformedCliInputError(
+          case Some(packageType)               => Left(new MalformedCliInputError(
               s"Unsupported package type: $packageType for Docker."
             ))
         }

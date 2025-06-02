@@ -44,13 +44,13 @@ object SemanticdbProcessor {
             function <- updateTree(a.function)
             args     <- updateTrees(a.arguments)
           } yield a.withFunction(function).withArguments(args)
-        case Tree.Empty => Some(Tree.Empty)
+        case Tree.Empty      => Some(Tree.Empty)
         case f: FunctionTree =>
           for {
             body <- updateTree(f.body)
           } yield f.withBody(body)
-        case i: IdTree      => Some(i)
-        case l: LiteralTree => Some(l)
+        case i: IdTree             => Some(i)
+        case l: LiteralTree        => Some(l)
         case m: MacroExpansionTree =>
           for {
             beforeExp <- updateTree(m.beforeExpansion)
@@ -72,7 +72,7 @@ object SemanticdbProcessor {
       }
 
     if (os.isFile(orig)) {
-      val docs = TextDocuments.parseFrom(os.read.bytes(orig))
+      val docs        = TextDocuments.parseFrom(os.read.bytes(orig))
       val updatedDocs = docs.withDocuments {
         docs.documents.map { doc =>
           doc

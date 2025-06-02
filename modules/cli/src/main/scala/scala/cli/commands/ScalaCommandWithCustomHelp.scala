@@ -22,11 +22,11 @@ abstract class ScalaCommandWithCustomHelp[T <: HasGlobalOptions](
     HelpCompanion.deriveHelp[LegacyScalaOptions]
 
   protected def customHelp(showHidden: Boolean): String = {
-    val helpString            = actualHelp.help(helpFormat, showHidden)
-    val launcherHelpString    = launcherHelp.optionsHelp(helpFormat, showHidden)
-    val legacyScalaHelpString = legacyScalaHelp.optionsHelp(helpFormat, showHidden)
-    val allExternalHelp       = HelpCompanion.deriveHelp[AllExternalHelpOptions]
-    val allExternalHelpString = allExternalHelp.optionsHelp(helpFormat, showHidden)
+    val helpString                       = actualHelp.help(helpFormat, showHidden)
+    val launcherHelpString               = launcherHelp.optionsHelp(helpFormat, showHidden)
+    val legacyScalaHelpString            = legacyScalaHelp.optionsHelp(helpFormat, showHidden)
+    val allExternalHelp                  = HelpCompanion.deriveHelp[AllExternalHelpOptions]
+    val allExternalHelpString            = allExternalHelp.optionsHelp(helpFormat, showHidden)
     val legacyScalaHelpStringWithPadding =
       if legacyScalaHelpString.nonEmpty then
         s"""

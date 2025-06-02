@@ -12,8 +12,8 @@ import scala.jdk.CollectionConverters.{MapHasAsJava, MapHasAsScala}
 class SetupScalaCLITests extends munit.FunSuite {
 
   test(s"should read java properties from file") {
-    val key   = "scala-cli"
-    val value = "true"
+    val key    = "scala-cli"
+    val value  = "true"
     val inputs = TestInputs(
       os.rel / Constants.jvmPropertiesFileName ->
         s"""-Xignored_1

@@ -215,7 +215,7 @@ final case class SharedOptions(
 ) extends HasGlobalOptions {
   // format: on
 
-  def logger: Logger = logging.logger
+  def logger: Logger                 = logging.logger
   override def global: GlobalOptions =
     GlobalOptions(logging = logging, globalSuppress = suppress.global, powerOptions = powerOptions)
 
@@ -302,12 +302,12 @@ final case class SharedOptions(
         case _ =>
       }
       val parsedPlatform = platform.map(Platform.normalize).flatMap(Platform.parse)
-      val platformOpt = value {
+      val platformOpt    = value {
         (parsedPlatform, js.js, native.native) match {
           case (Some(p: Platform.JS.type), _, false)      => Right(Some(p))
           case (Some(p: Platform.Native.type), false, _)  => Right(Some(p))
           case (Some(p: Platform.JVM.type), false, false) => Right(Some(p))
-          case (Some(p), _, _) =>
+          case (Some(p), _, _)                            =>
             val jsSeq        = if (js.js) Seq(Platform.JS) else Seq.empty
             val nativeSeq    = if (native.native) Seq(Platform.Native) else Seq.empty
             val platformsSeq = Seq(p) ++ jsSeq ++ nativeSeq
@@ -491,7 +491,7 @@ final case class SharedOptions(
   def globalInteractiveWasSuggested: Either[BuildException, Option[Boolean]] = either {
     value(ConfigDbUtils.configDb).get(Keys.globalInteractiveWasSuggested) match {
       case Right(opt) => opt
-      case Left(ex) =>
+      case Left(ex)   =>
         logger.debug(ConfigDbException(ex))
         None
     }
@@ -502,7 +502,7 @@ final case class SharedOptions(
       logging.verbosityOptions.interactive,
       value(ConfigDbUtils.configDb).get(Keys.interactive) match {
         case Right(opt) => opt
-        case Left(ex) =>
+        case Left(ex)   =>
           logger.debug(ConfigDbException(ex))
           None
       },
@@ -510,7 +510,7 @@ final case class SharedOptions(
     ) match {
       case (Some(true), _, Some(true)) => InteractiveAsk
       case (_, Some(true), _)          => InteractiveAsk
-      case (Some(true), _, _) =>
+      case (Some(true), _, _)          =>
         val answers @ List(yesAnswer, _) = List("Yes", "No")
         InteractiveAsk.chooseOne(
           s"""You have run the current ${ScalaCli.baseRunnerName} command with the --interactive mode turned on.
@@ -554,7 +554,7 @@ final case class SharedOptions(
       ConfigDbUtils.configDb.map(_.get(configDbKey))
         .map {
           case Right(opt) => opt
-          case Left(ex) =>
+          case Left(ex)   =>
             logger.debug(ConfigDbException(ex))
             None
         }
@@ -563,7 +563,7 @@ final case class SharedOptions(
 
   def bloopRifleConfig(extraBuildOptions: Option[scala.build.options.BuildOptions] = None)
     : Either[BuildException, BloopRifleConfig] = either {
-    val options = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
+    val options             = extraBuildOptions.foldLeft(value(buildOptions()))(_ orElse _)
     lazy val defaultJvmHome = value {
       JvmUtils.downloadJvm(OsLibc.defaultJvm(OsLibc.jvmIndexOs), options)
     }

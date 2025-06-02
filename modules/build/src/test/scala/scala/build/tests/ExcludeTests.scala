@@ -80,7 +80,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
   test("exclude relative paths") {
     val testInputs = TestInputs(
       os.rel / "Hello.scala" -> "object Hello",
-      os.rel / "Main.scala" ->
+      os.rel / "Main.scala"  ->
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
@@ -114,7 +114,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
   test("exclude absolute file paths") {
     val testInputs = TestInputs(
       os.rel / "Hello.scala" -> "object Hello",
-      os.rel / "Main.scala" ->
+      os.rel / "Main.scala"  ->
         """object Main {
           |}""".stripMargin,
       os.rel / "project.scala" ->
@@ -147,7 +147,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
   test("exclude relative directory paths") {
     val testInputs = TestInputs(
-      os.rel / "Hello.scala" -> "object Hello",
+      os.rel / "Hello.scala"                  -> "object Hello",
       os.rel / "src" / "scala" / "Main.scala" ->
         """object Main {
           |}""".stripMargin,
@@ -181,7 +181,7 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
   test("exclude relative directory paths with glob pattern") {
     val testInputs = TestInputs(
-      os.rel / "Hello.scala" -> "object Hello",
+      os.rel / "Hello.scala"                  -> "object Hello",
       os.rel / "src" / "scala" / "Main.scala" ->
         """object Main {
           |}""".stripMargin,

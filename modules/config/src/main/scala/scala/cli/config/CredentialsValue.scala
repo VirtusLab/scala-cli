@@ -36,7 +36,7 @@ abstract class CredentialsAsJson[T <: CredentialsValue] {
       .getOrElse(Right(None))
     (maybeUser, maybePassword) match {
       case (Right(userOpt), Right(passwordOpt)) => Right(toCredentialsValue(userOpt, passwordOpt))
-      case _ =>
+      case _                                    =>
         val errors =
           maybeUser.left.toOption.toList ::: maybePassword.left.toOption.toList match {
             case Nil    => sys.error("Cannot happen")

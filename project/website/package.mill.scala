@@ -2,8 +2,8 @@ package build.project.website
 import build.project.deps, deps.Scala
 
 private def lastTableLine(path: os.Path, colCount: Int): Seq[String] = {
-  val content = os.read(path)
-  val lines   = content.linesIterator.toVector
+  val content   = os.read(path)
+  val lines     = content.linesIterator.toVector
   val (line, _) = lines
     .zipWithIndex
     .filter(_._1.count(_ == '|') == colCount + 1)

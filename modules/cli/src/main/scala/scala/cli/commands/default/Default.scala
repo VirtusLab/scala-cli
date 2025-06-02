@@ -59,7 +59,7 @@ class Default(actualHelp: => RuntimeCommandsHelp)
       }.parse(options.legacyScala.filterNonDeprecatedArgs(rawArgs, progName, logger)) match
         case Left(e)                              => error(e)
         case Right((replOptions: ReplOptions, _)) => Repl.runCommand(replOptions, args, logger)
-        case Right((runOptions: RunOptions, _)) =>
+        case Right((runOptions: RunOptions, _))   =>
           Run.runCommand(
             runOptions,
             args.remaining,

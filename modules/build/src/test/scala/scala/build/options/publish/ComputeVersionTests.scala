@@ -11,7 +11,7 @@ class ComputeVersionTests extends munit.FunSuite {
   test("git tag") {
     TestInputs().fromRoot { root =>
       val ghRepo = "scala-cli/compute-version-test"
-      val repo =
+      val repo   =
         if (TestUtil.isCI) s"https://git@github.com/$ghRepo.git"
         else s"https://github.com/$ghRepo.git"
       os.proc("git", "clone", repo)

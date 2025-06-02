@@ -74,7 +74,7 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "compile", extraOptions, ".")
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -100,7 +100,7 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -131,7 +131,7 @@ abstract class CompileTestDefinitions
           |""".stripMargin
     ).fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
+      val output         = os.proc(TestUtil.cli, "compile", ".", "--test", extraOptions)
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -155,7 +155,7 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root).err.trim()
       expect(!output.contains(warningMessage))
     }
@@ -177,7 +177,7 @@ abstract class CompileTestDefinitions
 
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in multiple files"
-      val output = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
+      val output         = os.proc(TestUtil.cli, "--power", "compile", extraOptions, ".")
         .call(cwd = root, stderr = os.Pipe).err.trim()
       expect(output.contains(warningMessage))
     }
@@ -226,7 +226,7 @@ abstract class CompileTestDefinitions
   test("test scope") {
     mainAndTestInputs.fromRoot { root =>
       val tempOutput = root / "output"
-      val output =
+      val output     =
         os.proc(
           TestUtil.cli,
           "compile",
@@ -451,7 +451,7 @@ abstract class CompileTestDefinitions
   if (actualScalaVersion.startsWith("3"))
     test("generate scoverage.coverage file") {
       val fileName = "Hello.scala"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName ->
           s"""//> using options -coverage-out:.
              |
@@ -474,7 +474,7 @@ abstract class CompileTestDefinitions
     }
   def noDuplicatesInClassPathTest(): Unit = {
     val sparkVersion = "3.3.0"
-    val inputs = TestInputs(
+    val inputs       = TestInputs(
       os.rel / "Hello.scala" ->
         s"""//> using dep org.apache.spark::spark-sql:$sparkVersion
            |object Hello {
@@ -570,8 +570,8 @@ abstract class CompileTestDefinitions
           extraOptions
         )
           .call(cwd = root)
-      val classPath = res.out.trim().split(File.pathSeparator)
-      val outputDir = os.Path(classPath.head, root)
+      val classPath  = res.out.trim().split(File.pathSeparator)
+      val outputDir  = os.Path(classPath.head, root)
       val classFiles = os.walk(outputDir)
         .filter(_.last.endsWith(".class"))
         .filter(os.isFile(_))
@@ -681,7 +681,7 @@ abstract class CompileTestDefinitions
 
   test("new build targets should only be created when CLI options change") {
     val filename = "Main.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / filename ->
         """object Main extends App {
           |  println("Hello")
@@ -729,7 +729,7 @@ abstract class CompileTestDefinitions
     ) {
       val excludedFileName = "Foo.scala"
       val excludedPath     = os.rel / "dir1" / "dir2" / excludedFileName
-      val inputs = TestInputs(
+      val inputs           = TestInputs(
         os.rel / "project.scala" -> s"//> using exclude */*/$excludedFileName",
         excludedPath             -> "val foo // invalid code"
       )
@@ -740,7 +740,7 @@ abstract class CompileTestDefinitions
 
   test("no previous compilation error should be printed") {
     val filename = "Main.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / filename ->
         """|object Main extends App {
            |  val msg: String = "1"
@@ -824,7 +824,7 @@ abstract class CompileTestDefinitions
 
   test("i3389") {
     val filename = "Main.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / filename ->
         """//> using optionsdeprecation
           |""".stripMargin
@@ -848,7 +848,7 @@ abstract class CompileTestDefinitions
 
   test("i3389-2") {
     val filename = "Main.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / filename ->
         """//> using unrecognised.directive value1 value2
           |""".stripMargin

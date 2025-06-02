@@ -10,7 +10,7 @@ import scala.cli.javaLauncher.JavaLauncherCli.LauncherKind.*
 object JavaLauncherCli {
 
   def runAndExit(remainingArgs: Seq[String]): Nothing = {
-    val logger = LoggingOptions().logger
+    val logger       = LoggingOptions().logger
     val scalaCliPath =
       System.getProperty("java.class.path").split(File.pathSeparator).iterator.toList.map { f =>
         os.Path(f, os.pwd)

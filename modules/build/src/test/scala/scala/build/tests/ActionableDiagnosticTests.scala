@@ -16,7 +16,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
   val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions = BuildOptions(
+  val baseOptions     = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
@@ -25,7 +25,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
   test("using outdated os-lib") {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
-    val testInputs = TestInputs(
+    val testInputs      = TestInputs(
       os.rel / "Foo.scala" ->
         s"""//> using dep $dependencyOsLib
            |
@@ -36,7 +36,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build             = maybeBuild.orThrow
         val updateDiagnostics =
           ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 
@@ -54,7 +54,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
   test("actionable diagnostic report correct position") {
     val dependencyOsLib     = "com.lihaoyi::os-lib:0.7.8"
     val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
-    val testInputs = TestInputs(
+    val testInputs          = TestInputs(
       os.rel / "Foo.scala" ->
         s"""//> using dep $dependencyOsLib
            |//> using dep $dependencyPprintLib
@@ -66,7 +66,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuild(baseOptions, buildThreads, None, actionableDiagnostics = true) {
       (root, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build             = maybeBuild.orThrow
         val updateDiagnostics =
           ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 
@@ -86,7 +86,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
   test("using outdated dependencies with --suppress-outdated-dependency-warning") {
     val dependencyOsLib     = "com.lihaoyi::os-lib:0.7.8"
     val dependencyPprintLib = "com.lihaoyi::pprint:0.6.6"
-    val testInputs = TestInputs(
+    val testInputs          = TestInputs(
       os.rel / "Foo.scala" ->
         s"""//> using dep $dependencyOsLib
            |//> using dep $dependencyPprintLib
@@ -104,7 +104,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
     testInputs.withBuild(optionsWithSuppress, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
-        val build = maybeBuild.orThrow
+        val build             = maybeBuild.orThrow
         val updateDiagnostics =
           ActionablePreprocessor.generateActionableDiagnostics(build.options).orThrow
 

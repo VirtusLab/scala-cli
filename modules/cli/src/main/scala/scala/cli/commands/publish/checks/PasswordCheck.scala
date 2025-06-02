@@ -25,7 +25,7 @@ final case class PasswordCheck(
       workspace,
       logger
     ) match {
-      case None => Right(None)
+      case None       => Right(None)
       case Some(host) =>
         configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
           credListOpt.flatMap { credList =>
@@ -57,7 +57,7 @@ final case class PasswordCheck(
       if (options.publishParams.setupCi) {
         val password = options.publishRepo.password match {
           case Some(password0) => password0.toConfig
-          case None =>
+          case None            =>
             value(passwordOpt(pubOpt)) match {
               case Some(password0) =>
                 logger.message("publish.credentials:")

@@ -41,10 +41,10 @@ object VersionOptions {
   implicit lazy val parser: Parser[VersionOptions] = Parser.derive
   implicit lazy val help: Help[VersionOptions]     = Help.derive
 
-  val cmdName = "version"
+  val cmdName            = "version"
   private val helpHeader =
     s"Prints the version of the $fullRunnerName and the default version of Scala."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader (which can be overridden in the project)
        |If network connection is available, this sub-command also checks if the installed $fullRunnerName is up-to-date.

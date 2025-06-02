@@ -148,7 +148,7 @@ class BloopTests extends ScalaCliSuite {
              |}
              |""".stripMargin
         val sourcePath = os.rel / "Hello.scala"
-        val inputs = TestInputs(
+        val inputs     = TestInputs(
           sourcePath -> content("Hello")
         )
         inputs.fromRoot { root =>
@@ -170,7 +170,7 @@ class BloopTests extends ScalaCliSuite {
     }
 
   test("run bloop with jvm version if > 17") {
-    val hello = "Hello from Java 21"
+    val hello  = "Hello from Java 21"
     val inputs = TestInputs(
       os.rel / "Simple.java" ->
         s"""|//> using jvm 21
@@ -200,7 +200,7 @@ class BloopTests extends ScalaCliSuite {
     test(s"compiles $lang file with correct jdk version for $option ${
         if (useDirective) "use directive" else "option"
       }") {
-      def isScala = lang == "scala"
+      def isScala     = lang == "scala"
       val optionValue =
         if (option == "java-home")
           os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim()).toString()
@@ -233,7 +233,7 @@ class BloopTests extends ScalaCliSuite {
         assert(res.exitCode == 1)
 
         val compilationError = res.err.text()
-        val message =
+        val message          =
           if (isScala) "value repeat is not a member of String"
           else "error: cannot find symbol"
 

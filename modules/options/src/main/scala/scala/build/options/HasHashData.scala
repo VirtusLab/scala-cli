@@ -18,7 +18,7 @@ object HasHashData:
   ): Unit =
     inline erasedValue[C] match
       case _: EmptyTuple => ()
-      case _: (t *: ts) =>
+      case _: (t *: ts)  =>
         val hasher     = summonInline[HasHashData[t]]
         val newPrefix  = prefix + "." + indexes(index) // in 2.x we were not adding '.'
         val childValue = main.asInstanceOf[Product].productElement(index).asInstanceOf[t]

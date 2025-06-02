@@ -159,7 +159,7 @@ object TestInputs {
   def withTmpDir[T](prefix: String, forceCwd: Option[os.Path] = None)(f: os.Path => T): T =
     forceCwd match {
       case Some(path) => f(path)
-      case None =>
+      case None       =>
         val tmpDir = os.temp.dir(prefix = prefix)
         try f(tmpDir)
         finally tryRemoveAll(tmpDir)

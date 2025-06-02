@@ -66,7 +66,7 @@ object Logger {
     def log(diagnostics: Seq[Diagnostic]): Unit = ()
     def log(ex: BuildException): Unit           = ()
     def debug(ex: BuildException): Unit         = ()
-    def exit(ex: BuildException): Nothing =
+    def exit(ex: BuildException): Nothing       =
       throw new Exception(ex)
 
     def coursierLogger(printBefore: String): coursier.cache.CacheLogger =

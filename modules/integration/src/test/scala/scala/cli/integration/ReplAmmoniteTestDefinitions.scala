@@ -45,7 +45,7 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
   def ammoniteTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
     TestInputs.empty.fromRoot { root =>
       val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-      val ammArgs = Seq(
+      val ammArgs          = Seq(
         "-c",
         s"""println("Hello" + " from Scala " + $retrieveScalaVersionCode)"""
       )
@@ -59,7 +59,7 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
       val res =
         os.proc(TestUtil.cli, "--power", "repl", testExtraOptions, "--ammonite", ammArgs)
           .call(cwd = root, stderr = os.Pipe)
-      val output = res.out.trim()
+      val output     = res.out.trim()
       val expectedSv =
         if (useMaxAmmoniteScalaVersion) actualMaxAmmoniteScalaVersion
         else expectedScalaVersionForAmmonite
@@ -84,7 +84,7 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
            |""".stripMargin
     ).fromRoot { root =>
       val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-      val ammArgs = Seq("-c", "println(example.TestScopeExample.message)")
+      val ammArgs          = Seq("-c", "println(example.TestScopeExample.message)")
         .map {
           if (Properties.isWin)
             a => if (a.contains(" ")) "\"" + a.replace("\"", "\\\"") + "\"" else a
@@ -116,7 +116,7 @@ trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
 
   def ammoniteScalapyTest(useMaxAmmoniteScalaVersion: Boolean): Unit = {
     val testExtraOptions = if (useMaxAmmoniteScalaVersion) ammoniteExtraOptions else extraOptions
-    val inputs = TestInputs(
+    val inputs           = TestInputs(
       os.rel / "foo" / "something.py" ->
         """messageStart = 'Hello from'
           |messageEnd = 'ScalaPy'

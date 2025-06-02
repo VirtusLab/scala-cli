@@ -59,7 +59,7 @@ object Bsp extends ScalaCommand[BspOptions] {
     latestEnvs: Map[String, String]
   ): Unit = {
     val previousPowerMode = ScalaCli.allowRestrictedFeatures
-    val configPowerMode = ConfigDbUtils.getLatestConfigDbOpt(latestSharedOptions.logger)
+    val configPowerMode   = ConfigDbUtils.getLatestConfigDbOpt(latestSharedOptions.logger)
       .flatMap(_.get(Keys.power).toOption)
       .flatten
       .getOrElse(false)
@@ -193,8 +193,8 @@ object Bsp extends ScalaCommand[BspOptions] {
     launcherOptions: LauncherOptions,
     envs: Map[String, String]
   ): BuildOptions = {
-    val logger                    = sharedOptions.logger
-    val baseOptions: BuildOptions = sharedOptions.buildOptions().orExit(logger)
+    val logger                     = sharedOptions.logger
+    val baseOptions: BuildOptions  = sharedOptions.buildOptions().orExit(logger)
     val withDefaults: BuildOptions = baseOptions.copy(
       classPathOptions = baseOptions.classPathOptions.copy(
         fetchSources = baseOptions.classPathOptions.fetchSources.orElse(Some(true))

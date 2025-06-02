@@ -28,7 +28,7 @@ sealed abstract class Virtual extends SingleElement {
 }
 
 object Virtual {
-  val urlPathWithQueryParamsRegex = "https?://.*/([^/^?]+)(/?.*)?$".r
+  val urlPathWithQueryParamsRegex                        = "https?://.*/([^/^?]+)(/?.*)?$".r
   def apply(path: String, content: Array[Byte]): Virtual = {
     val filename = path match {
       case urlPathWithQueryParamsRegex(name, _) => name

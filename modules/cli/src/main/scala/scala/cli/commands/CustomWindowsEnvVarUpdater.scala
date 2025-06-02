@@ -72,7 +72,7 @@ case class CustomWindowsEnvVarUpdater(
 
     for ((k, v) <- update.pathLikeAppends) {
       val formerValueOpt = getEnvironmentVariable(k)
-      val alreadyInList = formerValueOpt
+      val alreadyInList  = formerValueOpt
         .exists(_.split(CustomWindowsEnvVarUpdater.windowsPathSeparator).contains(v))
       if (!alreadyInList) {
         val newValue = formerValueOpt

@@ -39,8 +39,8 @@ class JavaParserProxyBinary(
 
   def className(content: Array[Byte]): Either[BuildException, Option[String]] = either {
 
-    val platformSuffix = FetchExternalBinary.platformSuffix()
-    val version        = javaClassNameVersionOpt.getOrElse(Constants.javaClassNameVersion)
+    val platformSuffix  = FetchExternalBinary.platformSuffix()
+    val version         = javaClassNameVersionOpt.getOrElse(Constants.javaClassNameVersion)
     val (tag, changing) =
       if (version == "latest") ("nightly", true)
       else ("v" + version, false)
@@ -63,7 +63,7 @@ class JavaParserProxyBinary(
     val source =
       os.temp(content, suffix = ".java", perms = if (Properties.isWin) null else "rw-------")
     val command = binary.command
-    val output =
+    val output  =
       try {
         logger.debug(s"Running $command $source")
         val res = os.proc(command, source).call()

@@ -22,7 +22,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
     )
     inputs.asZip { (root, zipPath) =>
       val message = "Hello"
-      val output = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
+      val output  = os.proc(TestUtil.cli, extraOptions, zipPath.toString)
         .call(cwd = root)
         .out.trim()
       expect(output == message)
@@ -123,7 +123,7 @@ trait RunZipTestDefinitions { _: RunTestDefinitions =>
   test("Zip with Markdown containing resource directive") {
     val (inputA, inputB) = "1" -> "2"
     val expectedMessage  = s"$inputA,$inputB"
-    val inputs = TestInputs(
+    val inputs           = TestInputs(
       os.rel / "Hello.md" ->
         s"""# Example Markdown file
            |A snippet for printing inputs from resources

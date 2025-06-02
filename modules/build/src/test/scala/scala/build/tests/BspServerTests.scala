@@ -24,7 +24,7 @@ import scala.build.internal.ClassCodeWrapper
 class BspServerTests extends TestUtil.ScalaCliBuildSuite {
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
   val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions = BuildOptions(
+  val baseOptions     = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
@@ -62,7 +62,7 @@ class BspServerTests extends TestUtil.ScalaCliBuildSuite {
             expect(generatedSources.size == 1)
             val wrappedScript     = generatedSources.head
             val wrappedScriptCode = os.read(wrappedScript.generated)
-            val topWrapper = wrappedScriptCode
+            val topWrapper        = wrappedScriptCode
               .linesIterator
               .take(wrappedScript.wrapperParamsOpt.map(_.topWrapperLineCount).getOrElse(0))
               .mkString("", System.lineSeparator(), System.lineSeparator())

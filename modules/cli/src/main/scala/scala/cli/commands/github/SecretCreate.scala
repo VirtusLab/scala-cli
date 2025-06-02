@@ -23,7 +23,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.EXPERIMENTAL
   override def helpFormat: HelpFormat = super.helpFormat.withPrimaryGroup(HelpGroup.Secret)
-  override def names = List(
+  override def names                  = List(
     List("github", "secret", "create"),
     List("gh", "secret", "create")
   )

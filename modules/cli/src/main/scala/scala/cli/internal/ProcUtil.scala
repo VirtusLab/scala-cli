@@ -18,7 +18,7 @@ object ProcUtil {
     val usesSh = hasBinEnvShHeader || hasBinShHeader
 
     if (usesSh) {
-      val content = os.read.bytes(file)
+      val content        = os.read.bytes(file)
       val updatedContent =
         if (hasBinEnvShHeader)
           "#!/usr/bin/env bash".getBytes(StandardCharsets.UTF_8) ++

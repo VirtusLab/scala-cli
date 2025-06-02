@@ -110,7 +110,7 @@ class MarkdownTests extends ScalaCliSuite {
     val expectedOutput = msg1 + msg2 + msg3 + msg4
     TestInputs(
       os.rel / "ScalaMessage.scala" -> "case class ScalaMessage(value: String)",
-      os.rel / "JavaMessage.java" ->
+      os.rel / "JavaMessage.java"   ->
         """public class JavaMessage {
           |  public String value;
           |  public JavaMessage(String value) {
@@ -119,7 +119,7 @@ class MarkdownTests extends ScalaCliSuite {
           |}
           |""".stripMargin,
       os.rel / "scripts" / "script.sc" -> "case class ScriptMessage(value: String)",
-      os.rel / "Main.md" ->
+      os.rel / "Main.md"               ->
         s"""# Main
            |Run it all from a snippet.
            |```scala
@@ -133,7 +133,7 @@ class MarkdownTests extends ScalaCliSuite {
            |""".stripMargin
     ).fromRoot { root =>
       val snippetCode = "case class SnippetMessage(value: String)"
-      val result =
+      val result      =
         os.proc(
           TestUtil.cli,
           "--power",
@@ -218,7 +218,7 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"
@@ -276,7 +276,7 @@ class MarkdownTests extends ScalaCliSuite {
            |```
            |""".stripMargin
     ).fromRoot { root =>
-      val result = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
+      val result         = os.proc(TestUtil.cli, "sample.md").call(cwd = root)
       val expectedOutput =
         s"""$msg1
            |"$msg2"

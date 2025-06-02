@@ -64,7 +64,7 @@ class CPSTest extends munit.FunSuite {
   }
 
   test("fallback to Right") {
-    val res = new V2
+    val res               = new V2
     val a: Either[E2, V2] = either {
       value(Right(res))
     }

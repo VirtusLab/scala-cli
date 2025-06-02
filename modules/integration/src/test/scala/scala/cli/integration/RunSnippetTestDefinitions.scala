@@ -7,7 +7,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "run",
@@ -24,7 +24,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "run",
@@ -41,7 +41,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark
       val msg       = "Hello world"
-      val res = os.proc(
+      val res       = os.proc(
         TestUtil.cli,
         "run",
         "--java-snippet",
@@ -57,7 +57,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "--power",
@@ -79,7 +79,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
     emptyInputs.fromRoot { root =>
       val quotation = TestUtil.argQuotationMark
 
-      val scriptSnippetOption = "--script-snippet"
+      val scriptSnippetOption                                      = "--script-snippet"
       val scriptMessages @ Seq(scriptMsg1, scriptMsg2, scriptMsg3) =
         Seq("hello script 1", "hello script 2", "hello script 3")
       val script0 =
@@ -94,7 +94,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
       val script2 = s"def scriptMsg2: String = $quotation$scriptMsg2$quotation"
       val script3 = s"def scriptMsg3: String = $quotation$scriptMsg3$quotation"
 
-      val scalaSnippetOption = "--scala-snippet"
+      val scalaSnippetOption                                   = "--scala-snippet"
       val scalaMessages @ Seq(scalaMsg1, scalaMsg2, scalaMsg3) =
         Seq("hello scala 1", "hello scala 2", "hello scala 3")
       val scala0 = "object SnippetMain extends App { snippet.printAll() }"
@@ -102,7 +102,7 @@ trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
       val scala2 = s"object ScalaSnippet2 { def msg: String = $quotation$scalaMsg2$quotation }"
       val scala3 = s"object ScalaSnippet3 { def msg: String = $quotation$scalaMsg3$quotation }"
 
-      val javaSnippetOption = "--java-snippet"
+      val javaSnippetOption                                = "--java-snippet"
       val javaMessages @ Seq(javaMsg1, javaMsg2, javaMsg3) =
         Seq("hello scala 1", "hello scala 2", "hello scala 3")
       val java1 =

@@ -70,7 +70,7 @@ case class StrictDirective(
       .map { v =>
         val position = DirectiveUtil.position(v, path)
         v match
-          case _: EmptyValue => position.startPos
+          case _: EmptyValue                                 => position.startPos
           case v if DirectiveUtil.isWrappedInDoubleQuotes(v) =>
             position.endPos._1 -> (position.endPos._2 + 1)
           case _ => position.endPos

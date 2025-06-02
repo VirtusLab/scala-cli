@@ -32,8 +32,8 @@ final case class BuildInfo(
       )
 
   def generateContents(): String = {
-    val nl     = System.lineSeparator()
-    val indent = " " * 2
+    val nl         = System.lineSeparator()
+    val indent     = " " * 2
     val stringVals = Seq(
       "/** version of Scala used to compile this project */",
       s"val scalaVersion = \"${escapeBackslashes(scalaVersion.getOrElse(Constants.defaultScalaVersion))}\"",

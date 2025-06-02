@@ -9,7 +9,7 @@ trait MillTestHelper {
     else os.rel / "mill"
 
   protected val millJvmOptsFileName: String = ".mill-jvm-opts"
-  protected val millJvmOptsContent: String = """-Xmx512m
+  protected val millJvmOptsContent: String  = """-Xmx512m
                                                |-Xms128m
                                                |""".stripMargin
 

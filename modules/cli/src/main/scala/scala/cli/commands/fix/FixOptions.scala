@@ -40,10 +40,10 @@ object FixOptions {
   implicit lazy val parser: Parser[FixOptions] = Parser.derive
   implicit lazy val help: Help[FixOptions]     = Help.derive
 
-  val cmdName = "fix"
+  val cmdName            = "fix"
   private val helpHeader =
     s"Run $fullRunnerName & Scalafix rules to lint, rewrite or otherwise rearrange a $fullRunnerName project."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

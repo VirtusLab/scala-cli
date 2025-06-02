@@ -47,7 +47,7 @@ object ScalaJsLinker {
         Seq(path.toString)
       case None =>
         val scalaJsCliVersion = options.finalScalaJsCliVersion
-        val scalaJsCliDep = {
+        val scalaJsCliDep     = {
           val mod = mod"org.virtuslab.scala-cli:scalajscli_2.13"
           dependency.Dependency(mod, s"$scalaJsCliVersion+")
         }
@@ -91,7 +91,7 @@ object ScalaJsLinker {
             val useLatest = scalaJsVersion == "latest"
             val ext       = if (Properties.isWin) ".zip" else ".gz"
             val tag       = if (useLatest) "launchers" else s"v$scalaJsCliVersion"
-            val url =
+            val url       =
               s"https://github.com/virtusLab/scala-js-cli/releases/download/$tag/scala-js-ld-$osArch$ext"
             val params = ExternalBinaryParams(
               url,
@@ -130,8 +130,8 @@ object ScalaJsLinker {
     }
 
     val allArgs = {
-      val outputArgs  = Seq("--outputDir", linkingDir.toString)
-      val longRunning = if (useLongRunning) Seq("--longRunning") else Seq.empty[String]
+      val outputArgs    = Seq("--outputDir", linkingDir.toString)
+      val longRunning   = if (useLongRunning) Seq("--longRunning") else Seq.empty[String]
       val mainClassArgs =
         Option(input.mainClassOrNull).toSeq.flatMap(mainClass =>
           Seq("--mainMethod", mainClass + ".main")

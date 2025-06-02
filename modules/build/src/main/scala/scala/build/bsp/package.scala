@@ -26,7 +26,7 @@ package object bsp {
     }
 
     def withVerbosity(verbose: Boolean): b.CompileParams = {
-      val verboseArg = "--verbose"
+      val verboseArg                 = "--verbose"
       val argumentsContainVerboseArg =
         Option(compileParams.getArguments).exists(_.contains(verboseArg))
       if verbose && !argumentsContainVerboseArg then compileParams.withExtraArgs(List(verboseArg))

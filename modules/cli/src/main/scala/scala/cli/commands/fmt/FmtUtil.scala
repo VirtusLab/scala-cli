@@ -40,7 +40,7 @@ object FmtUtil {
   ): (Option[String], Option[String], Option[os.Path]) = {
     case class RunnerMetaconfig(dialect: String = "")
     object RunnerMetaconfig {
-      lazy val default: RunnerMetaconfig = RunnerMetaconfig("")
+      lazy val default: RunnerMetaconfig                                      = RunnerMetaconfig("")
       implicit lazy val surface: metaconfig.generic.Surface[RunnerMetaconfig] =
         metaconfig.generic.deriveSurface[RunnerMetaconfig]
       implicit lazy val decoder: metaconfig.ConfDecoder[RunnerMetaconfig] =
@@ -57,7 +57,7 @@ object FmtUtil {
       implicit lazy val decoder: metaconfig.ConfDecoder[ScalafmtMetaconfig] =
         metaconfig.generic.deriveDecoder[ScalafmtMetaconfig](default)
     }
-    val confName = ".scalafmt.conf"
+    val confName  = ".scalafmt.conf"
     val pathMaybe =
       options.scalafmtConfStr.flatMap { s =>
         val tmpConfPath = workspace / Constants.workspaceDirName / ".scalafmt.conf"
@@ -192,7 +192,7 @@ object FmtUtil {
     ): String =
       if (overrides.isEmpty) content
       else {
-        val sep = System.lineSeparator
+        val sep    = System.lineSeparator
         val values = overrides
           .map { case (key, dialect) =>
             s"""|  "$key" {
@@ -206,7 +206,7 @@ object FmtUtil {
       }
 
     val doNothing = identity[String] _
-    val combined = List(
+    val combined  = List(
       version.fold(doNothing)(v => withUpdatedVersion(_, v)),
       runnerDialect.fold(doNothing)(v => withUpdatedDialect(_, v)),
       withFileOverride(_, fileOverride)

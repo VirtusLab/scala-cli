@@ -12,7 +12,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with MillTestHelper { _: TestScalaVersion =>
   override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
 
-  override val outputDir: RelPath = millOutputDir
+  override val outputDir: RelPath                    = millOutputDir
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,

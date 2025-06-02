@@ -14,7 +14,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
   test("running scala-cli with no args should not accept run-only options") {
     TestInputs.empty.fromRoot { root =>
       val runSpecificOption = "--list-main-classes"
-      val res = os.proc(TestUtil.cli, runSpecificOption).call(
+      val res               = os.proc(TestUtil.cli, runSpecificOption).call(
         cwd = root,
         mergeErrIntoOut = true,
         check = false
@@ -26,7 +26,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
   test("running scala-cli with args should not accept repl-only options") {
     TestInputs(os.rel / "Hello.sc" -> """println("Hello")""").fromRoot { root =>
       val replSpecificOption = "--ammonite"
-      val res = os.proc(TestUtil.cli, "--power", ".", replSpecificOption).call(
+      val res                = os.proc(TestUtil.cli, "--power", ".", replSpecificOption).call(
         cwd = root,
         mergeErrIntoOut = true,
         check = false
@@ -40,7 +40,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "--execute-scala",
@@ -56,7 +56,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "--execute-java",
@@ -72,7 +72,7 @@ class DefaultTests extends WithWarmUpScalaCliSuite with LegacyScalaRunnerTestDef
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"
       val quotation = TestUtil.argQuotationMark
-      val res =
+      val res       =
         os.proc(
           TestUtil.cli,
           "--power",

@@ -114,7 +114,7 @@ final case class PgpSecretKeyCheck(
 
           value(keyServers).forall { keyServer =>
             KeyServer.check(keyId, keyServer, backend) match
-              case Right(Right(_)) => true
+              case Right(Right(_))  => true
               case Right(Left(msg)) =>
                 logger.debug(
                   s"""Response from $keyServer:

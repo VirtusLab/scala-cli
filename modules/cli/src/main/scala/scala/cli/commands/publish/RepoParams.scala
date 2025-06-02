@@ -121,7 +121,7 @@ object RepoParams {
   ) = {
     val repo0   = PublishRepository.Sonatype(MavenRepository(base))
     val backend = ScalaCliSttpBackend.httpURLConnection(logger, connectionTimeoutSeconds)
-    val api = SonatypeApi(
+    val api     = SonatypeApi(
       backend,
       base + "/service/local",
       None,

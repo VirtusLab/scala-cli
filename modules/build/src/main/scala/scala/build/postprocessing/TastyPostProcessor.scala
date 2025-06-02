@@ -36,7 +36,7 @@ case object TastyPostProcessor extends PostProcessor {
     ) match {
       case Right(false) => Right(())
       case Left(msg)    => if (updatedPaths.isEmpty) Right(()) else Left(msg)
-      case Right(true) =>
+      case Right(true)  =>
         val paths = updatedPaths
         if (paths.isEmpty) Right(())
         else Right(
@@ -56,10 +56,10 @@ case object TastyPostProcessor extends PostProcessor {
     try retry()(logger) {
         val content = os.read.bytes(f)
         TastyData.read(content) match {
-          case Left(ex) => logger.debug(s"Ignoring exception during TASty postprocessing: $ex")
+          case Left(ex)    => logger.debug(s"Ignoring exception during TASty postprocessing: $ex")
           case Right(data) =>
             logger.debug(s"Parsed TASTy file $f")
-            var updatedOne = false
+            var updatedOne  = false
             val updatedData = data.mapNames { n =>
               updatedPaths.get(n) match {
                 case Some(newName) =>

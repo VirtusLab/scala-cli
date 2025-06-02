@@ -22,7 +22,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
   val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories: Directories                 = Directories.under(extraRepoTmpDir)
   def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
-  val buildOptions: BuildOptions = BuildOptions(
+  val buildOptions: BuildOptions               = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
@@ -49,11 +49,11 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
 
   test("project file") {
     val projectFileName = Constants.projectFileName
-    val testInputs = TestInputs(
+    val testInputs      = TestInputs(
       files = Seq(
         os.rel / "custom-dir" / projectFileName -> "",
         os.rel / projectFileName                -> s"//> using javaProp \"foo=bar\"".stripMargin,
-        os.rel / "foo.scala" ->
+        os.rel / "foo.scala"                    ->
           s"""object Foo {
              |  def main(args: Array[String]): Unit =
              |    println("Foo")
@@ -105,7 +105,7 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
 
   test("passing project file and its parent directory") {
     val projectFileName = Constants.projectFileName
-    val testInputs = TestInputs(
+    val testInputs      = TestInputs(
       files = Seq(
         os.rel / "foo.scala" ->
           s"""object Foo {

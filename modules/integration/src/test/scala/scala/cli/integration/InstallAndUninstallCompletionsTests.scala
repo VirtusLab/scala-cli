@@ -9,7 +9,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   val zshRcFile: String  = ".zshrc"
   val bashRcFile: String = ".bashrc"
   val fishRcFile: String = "config.fish"
-  val rcContent: String = s"""
+  val rcContent: String  = s"""
                              |dummy line
                              |dummy line""".stripMargin
   val testInputs: TestInputs = TestInputs(
@@ -55,7 +55,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   lazy val bashRcScript: String = {
     val progName = "scala-cli"
     val ifs      = "\\n"
-    val script =
+    val script   =
       s"""_${progName}_completions() {
          |  local IFS=$$'$ifs'
          |  eval "$$($progName complete bash-v1 "$$(( $$COMP_CWORD + 1 ))" "$${COMP_WORDS[@]}")"
@@ -68,7 +68,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
 
   lazy val fishRcScript: String = {
     val progName = "scala-cli"
-    val script =
+    val script   =
       s"""complete $progName -a '($progName complete fish-v1 (math 1 + (count (__fish_print_cmd_args))) (__fish_print_cmd_args))'"""
     addTags(script)
   }
@@ -76,7 +76,7 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   lazy val zshRcScript: String = {
     val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
     val dir      = os.Path(projDirs.dataLocalDir, TestUtil.pwd) / "completions" / "zsh"
-    val script = Seq(
+    val script   = Seq(
       s"""fpath=("$dir" $$fpath)""",
       "compinit"
     ).map(_ + System.lineSeparator()).mkString

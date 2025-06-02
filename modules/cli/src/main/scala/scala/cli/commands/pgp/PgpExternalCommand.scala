@@ -102,7 +102,7 @@ abstract class PgpExternalCommand extends ExternalCommand {
 
     val logger = options.global.logging.logger
 
-    val cache = options.coursier.coursierCache(logger.coursierLogger(""))
+    val cache   = options.coursier.coursierCache(logger.coursierLogger(""))
     val retCode = tryRun(
       cache,
       remainingArgs,
@@ -179,7 +179,7 @@ object PgpExternalCommand {
         .getOrElse(Constants.scalaCliSigningVersion)
     val ver              = if (version.startsWith("latest")) "latest.release" else version
     val signingMainClass = "scala.cli.signing.ScalaCliSigning"
-    val jvmSigningDep =
+    val jvmSigningDep    =
       dep"${Constants.scalaCliSigningOrganization}:${Constants.scalaCliSigningName}_3:$ver"
 
     if (signingCliOptions.forceJvm.getOrElse(false)) {
@@ -213,7 +213,7 @@ object PgpExternalCommand {
       command.flatMap(_.value)
     }
     else {
-      val platformSuffix = FetchExternalBinary.platformSuffix()
+      val platformSuffix  = FetchExternalBinary.platformSuffix()
       val (tag, changing) =
         if (version == "latest") ("launchers", true)
         else ("v" + version, false)

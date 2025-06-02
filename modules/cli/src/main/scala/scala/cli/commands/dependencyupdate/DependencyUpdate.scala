@@ -15,7 +15,7 @@ import scala.cli.util.ArgHelpers.*
 object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
   override def group: String                               = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.RESTRICTED
-  override def helpFormat: HelpFormat =
+  override def helpFormat: HelpFormat                      =
     super.helpFormat.withPrimaryGroup(HelpGroup.Dependency)
   override def sharedOptions(options: DependencyUpdateOptions): Option[SharedOptions] =
     Some(options.shared)
@@ -65,7 +65,7 @@ object DependencyUpdate extends ScalaCommand[DependencyUpdateOptions] {
 
     val actionableMainUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Main)
     val actionableTestUpdateDiagnostics = generateActionableUpdateDiagnostic(Scope.Test)
-    val actionableUpdateDiagnostics =
+    val actionableUpdateDiagnostics     =
       (actionableMainUpdateDiagnostics ++ actionableTestUpdateDiagnostics).distinct
 
     if (options.all)

@@ -82,7 +82,7 @@ final case class MavenProjectDescriptor(
     sources: Sources
   ): MavenProject = {
 
-    val scalaV = getScalaVersion(options)
+    val scalaV         = getScalaVersion(options)
     def getScalaPrefix =
       if scalaV.startsWith("3") then "3"
       else if scalaV.startsWith("2.13") then "2.13"
@@ -124,7 +124,7 @@ final case class MavenProjectDescriptor(
       ): Seq[MavenLibraryDependency] = {
         val mainDependenciesMaven = buildMavenDepModels(mainDeps, isCompileOnly)
         val testDependenciesMaven = buildMavenDepModels(testDeps, isCompileOnly)
-        val resolvedDeps = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
+        val resolvedDeps          = (mainDependenciesMaven ++ testDependenciesMaven).groupBy(k =>
           k.groupId + k.artifactId + k.version
         ).map { (_, list) =>
           val highestScope = MavenScopes.getHighestPriorityScope(list.map(_.scope))
@@ -222,8 +222,8 @@ final case class MavenProjectDescriptor(
       </compilerArgs>
     }
 
-    val sourceArg = buildNode("source", jdkVersion)
-    val targetArg = buildNode("target", jdkVersion)
+    val sourceArg  = buildNode("source", jdkVersion)
+    val targetArg  = buildNode("target", jdkVersion)
     val configNode =
       <configuration>
         {javacOptionsElem}

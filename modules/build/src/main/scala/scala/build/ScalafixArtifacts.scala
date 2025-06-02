@@ -114,7 +114,7 @@ object ScalafixArtifacts {
         )
 
       val expectedJarName = s"scalafix-interfaces-${Constants.scalafixVersion}.jar"
-      val interfacesJar = fetchResult.collectFirst {
+      val interfacesJar   = fetchResult.collectFirst {
         case (_, path) if path.last == expectedJarName => path
       }
 
@@ -126,7 +126,7 @@ object ScalafixArtifacts {
   private def readScalafixProperties(jar: Path): Either[BuildException, String] = {
     import scala.jdk.CollectionConverters.*
     val zipFile = new ZipFile(jar.toNIO)
-    val entry = zipFile.getEntries().asScala.find(entry =>
+    val entry   = zipFile.getEntries().asScala.find(entry =>
       entry.getName() == "scalafix-interfaces.properties"
     )
     val out =
@@ -147,7 +147,7 @@ object ScalafixArtifacts {
       case regex("2", "13")              => Right("scala213")
       case regex("3", x) if x.toInt <= 3 => Right("scala3LTS")
       case regex("3", _)                 => Right("scala3Next")
-      case _ =>
+      case _                             =>
         Left(new BuildException(s"Scalafix is not supported for Scala version: $scalaVersion") {})
     }
 

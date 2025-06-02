@@ -107,7 +107,7 @@ case class DirectivesPreprocessor(
     directives: Seq[StrictDirective],
     handlers: Seq[DirectiveHandler[T]]
   ): Either[BuildException, PartiallyProcessedDirectives[T]] = {
-    val configMonoidInstance = implicitly[ConfigMonoid[T]]
+    val configMonoidInstance               = implicitly[ConfigMonoid[T]]
     val shouldSuppressExperimentalFeatures =
       suppressWarningOptions.suppressExperimentalFeatureWarning.getOrElse(false)
 

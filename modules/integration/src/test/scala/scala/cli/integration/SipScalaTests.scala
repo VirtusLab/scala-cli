@@ -483,7 +483,7 @@ class SipScalaTests extends ScalaCliSuite
         |}
         |""".stripMargin).fromRoot { root =>
       val continuationsVersion = "1.0.3"
-      val res = os.proc(
+      val res                  = os.proc(
         TestUtil.cli,
         "compile",
         sourceFileName,
@@ -573,7 +573,7 @@ class SipScalaTests extends ScalaCliSuite
     TestInputs.empty.fromRoot { root =>
       val (sv1, sv2)  = (Constants.scala212, Constants.scala213)
       val launcherOpt = "--cli-default-scala-version"
-      val r = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
+      val r           = os.proc(TestUtil.cli, launcherOpt, sv1, launcherOpt, sv2, "version")
         .call(cwd = root, check = false, stderr = os.Pipe)
       expect(r.exitCode == 1)
       expect(r.err.trim().contains(launcherOpt))
@@ -705,7 +705,7 @@ class SipScalaTests extends ScalaCliSuite
       val defaultSv       = Constants.scala213
       val expectedMessage = s"Default version: $defaultSv"
       val launcherOpt     = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes       = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -743,7 +743,7 @@ class SipScalaTests extends ScalaCliSuite
       val defaultSv       = Constants.scala213
       val expectedMessage = s"Default version: $defaultSv"
       val launcherOpt     = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes       = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -782,7 +782,7 @@ class SipScalaTests extends ScalaCliSuite
     TestInputs(os.rel / input -> code).fromRoot { root =>
       val defaultSv   = Constants.scala213
       val launcherOpt = "--cli-default-scala-version"
-      val exportRes = os.proc(
+      val exportRes   = os.proc(
         TestUtil.cli,
         launcherOpt,
         defaultSv,
@@ -823,7 +823,7 @@ class SipScalaTests extends ScalaCliSuite
       TestInputs.empty.fromRoot { root =>
         val cliVersion   = "1.3.1"
         val scalaVersion = "3.5.1-RC1-bin-20240522-e0c030c-NIGHTLY"
-        val res = os.proc(
+        val res          = os.proc(
           TestUtil.cli,
           "--cli-version",
           cliVersion,
@@ -872,7 +872,7 @@ class SipScalaTests extends ScalaCliSuite
   if (!Constants.scala3NextRc.startsWith(Constants.scala3LtsPrefix))
     test("scalac help respects --cli-default-scala-version") {
       TestInputs.empty.fromRoot { root =>
-        val sv = Constants.scala3NextRc
+        val sv                          = Constants.scala3NextRc
         val launcherVersionOverrideHelp =
           os.proc(TestUtil.cli, "--cli-default-scala-version", sv, "--scalac-help")
             .call(cwd = root).out.trim()

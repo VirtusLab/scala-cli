@@ -44,7 +44,7 @@ final case class Artifacts(
   resolution: Option[Resolution]
 ) {
 
-  def userDependencies = defaultDependencies ++ extraDependencies
+  def userDependencies                  = defaultDependencies ++ extraDependencies
   lazy val jarsForUserExtraDependencies = {
     val extraDependenciesMap =
       extraDependencies.map(dep => dep.module.name -> dep.version).toMap
@@ -423,7 +423,7 @@ object Artifacts {
     val (hasRunner, extraRunnerJars) =
       if scalaOpt.nonEmpty then {
         val addJvmRunner0 = addJvmRunner.getOrElse(false)
-        val runnerJars =
+        val runnerJars    =
           if addJvmRunner0 then {
             val maybeSnapshotRepo =
               if runnerVersion.endsWith("SNAPSHOT") then
@@ -655,7 +655,7 @@ object Artifacts {
     val extraRepositoriesWithFallback = extraRepositories :+ fallbackRepository
 
     val forceScalaVersions = forceScalaVersionOpt match {
-      case None => Nil
+      case None     => Nil
       case Some(sv) =>
         if (sv.startsWith("2."))
           Seq(
@@ -679,7 +679,7 @@ object Artifacts {
 
     // FIXME Many parameters that we could allow to customize here
     val defaultFetcher = coursier.Fetch()
-    var fetcher = defaultFetcher
+    var fetcher        = defaultFetcher
       .withCache(cache)
       // repository order matters here, since in some cases coursier resolves only the head
       .withRepositories(extraRepositoriesWithFallback ++ defaultFetcher.repositories)

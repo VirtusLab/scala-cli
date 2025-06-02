@@ -135,7 +135,7 @@ object Key {
     def fromString(values: Seq[String]): Either[MalformedValue, Boolean] =
       values match {
         case Seq(value) if value.toBooleanOption.isDefined => Right(value.toBoolean)
-        case _ =>
+        case _                                             =>
           Left(new MalformedValue(
             this,
             values,
@@ -188,7 +188,7 @@ object Key {
     val description: String = "",
     override val hidden: Boolean = false
   ) extends KeyWithJsonCodec[List[String]] {
-    def asString(value: List[String]): Seq[String] = value
+    def asString(value: List[String]): Seq[String]                            = value
     def fromString(values: Seq[String]): Either[MalformedValue, List[String]] =
       Right(values.toList)
   }

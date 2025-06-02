@@ -22,7 +22,7 @@ object CleanOptions {
   implicit lazy val help: Help[CleanOptions]     = Help.derive
   val cmdName                                    = "clean"
   private val helpHeader                         = "Clean the workspace."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

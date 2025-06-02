@@ -131,7 +131,7 @@ trait FixScalafixRulesTestDefinitions {
         scalaVersionArgs
       ).call(cwd = root)
       val updatedContent = noCrLf(os.read(root / "Hello.scala"))
-      val expected = noCrLf {
+      val expected       = noCrLf {
         s"""|//> using options $scalafixUnusedRuleOption
             |package hello
             |
@@ -197,7 +197,7 @@ trait FixScalafixRulesTestDefinitions {
          |}
          |""".stripMargin
 
-    val confFileName = "unusual-scalafix-filename"
+    val confFileName       = "unusual-scalafix-filename"
     val inputs: TestInputs = TestInputs(
       os.rel / confFileName ->
         s"""|rules = [
@@ -230,7 +230,7 @@ trait FixScalafixRulesTestDefinitions {
   }
 
   test("external rule") {
-    val directive = s"//> using scalafixDependency com.github.xuwei-k::scalafix-rules:0.5.1"
+    val directive        = s"//> using scalafixDependency com.github.xuwei-k::scalafix-rules:0.5.1"
     val original: String =
       s"""|$directive
           |

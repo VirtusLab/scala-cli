@@ -30,7 +30,7 @@ import scala.jdk.CollectionConverters.*
 class OfflineTests extends TestUtil.ScalaCliBuildSuite {
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-offline-")
   val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions = BuildOptions(
+  val baseOptions     = BuildOptions(
     internal = InternalOptions(
       cache = Some(FileCache()
         .withLocation(directories.cacheDir.toString)

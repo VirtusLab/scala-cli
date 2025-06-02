@@ -94,7 +94,7 @@ final case class Platform(
 
     allBuildOptions.headOption.fold(BuildOptions()) { buildOptions =>
       val mergedBuildOptions = allBuildOptions.foldLeft(BuildOptions())(_ orElse _)
-      val mainPlatformOpt =
+      val mainPlatformOpt    =
         mergedBuildOptions.scalaOptions.platform.map(_.value) // shouldn't be empty…
       val extraPlatforms = ConfigMonoid.sum {
         allBuildOptions

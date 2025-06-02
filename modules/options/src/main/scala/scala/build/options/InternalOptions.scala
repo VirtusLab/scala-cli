@@ -29,7 +29,7 @@ final case class InternalOptions(
   exclude: Seq[Positioned[String]] = Nil,
   offline: Option[Boolean] = None
 ) {
-  def verbosityOrDefault: Int = verbosity.getOrElse(0)
+  def verbosityOrDefault: Int                = verbosity.getOrElse(0)
   def strictBloopJsonCheckOrDefault: Boolean =
     strictBloopJsonCheck.getOrElse(InternalOptions.defaultStrictBloopJsonCheck)
 }

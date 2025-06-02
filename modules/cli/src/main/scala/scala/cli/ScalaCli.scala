@@ -29,7 +29,7 @@ object ScalaCli {
     coursier.jniutils.LoadWindowsLibrary.assumeInitialized()
 
   private val defaultProgName = "scala-cli"
-  var progName: String = {
+  var progName: String        = {
     val argv0 = (new Argv0).get(defaultProgName)
     val last  = Paths.get(argv0).getFileName.toString
     last match {
@@ -39,7 +39,7 @@ object ScalaCli {
     }
   }
   private val scalaCliBinaryName = "scala-cli"
-  private var isSipScala = {
+  private var isSipScala         = {
     lazy val isPowerConfigDb = for {
       configDb   <- ConfigDbUtils.configDb.toOption
       powerEntry <- configDb.get(Keys.power).toOption
@@ -51,7 +51,7 @@ object ScalaCli {
   }
   def setPowerMode(power: Boolean): Unit = isSipScala = !power
   def allowRestrictedFeatures            = !isSipScala
-  def fullRunnerName =
+  def fullRunnerName                     =
     if (progName.contains(scalaCliBinaryName)) "Scala CLI" else "Scala code runner"
   def baseRunnerName = if (progName.contains(scalaCliBinaryName)) scalaCliBinaryName else "scala"
   private def isGraalvmNativeImage: Boolean =
@@ -60,7 +60,7 @@ object ScalaCli {
   private var maybeLauncherOptions: Option[LauncherOptions] = None
 
   def launcherOptions: LauncherOptions = maybeLauncherOptions.getOrElse(LauncherOptions())
-  def getDefaultScalaVersion: String =
+  def getDefaultScalaVersion: String   =
     launcherOptions.scalaRunner.cliUserScalaVersion.getOrElse(Constants.defaultScalaVersion)
 
   private var launcherJavaPropArgs: List[String] = List.empty
@@ -98,7 +98,7 @@ object ScalaCli {
     baos.toByteArray
   }
 
-  private def isCI = EnvVar.Internal.ci.valueOpt.nonEmpty
+  private def isCI             = EnvVar.Internal.ci.valueOpt.nonEmpty
   private def printStackTraces = EnvVar.ScalaCli.printStackTraces.valueOpt
     .map(_.toLowerCase(Locale.ROOT))
     .exists {
@@ -247,7 +247,7 @@ object ScalaCli {
           case Some(ver) =>
             val powerArgs              = launcherOpts.powerOptions.toCliArgs
             val initialScalaRunnerArgs = launcherOpts.scalaRunner
-            val finalScalaRunnerArgs = (Version(ver) match
+            val finalScalaRunnerArgs   = (Version(ver) match
               case v if v < Version("1.4.0") && !ver.contains("nightly") =>
                 initialScalaRunnerArgs.copy(
                   skipCliUpdates = None,

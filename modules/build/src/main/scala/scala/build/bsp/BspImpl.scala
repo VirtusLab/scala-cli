@@ -410,8 +410,8 @@ final class BspImpl(
     reloadableOptions: BspReloadableOptions,
     presetIntelliJ: Boolean = false
   ): BloopSession = {
-    val logger       = reloadableOptions.logger
-    val buildOptions = reloadableOptions.buildOptions
+    val logger            = reloadableOptions.logger
+    val buildOptions      = reloadableOptions.buildOptions
     val createBloopServer =
       () =>
         BloopServer.buildServer(
@@ -530,7 +530,7 @@ final class BspImpl(
     }
     threads.prepareBuildExecutor.submit(initiateFirstBuild)
 
-    val es = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
+    val es      = ExecutionContext.fromExecutorService(threads.buildThreads.bloop.jsonrpc)
     val futures = Seq(
       BspImpl.naiveJavaFutureToScalaFuture(f).map(_ => ())(es),
       currentBloopSession.bspServer.initiateShutdown
@@ -616,7 +616,7 @@ final class BspImpl(
         if (previousInputs.projectName != preBuildProject.mainScope.project.projectName)
           for (client <- finalBloopSession.bspServer.clientOpt) {
             val newTargetIds = finalBloopSession.bspServer.targetIds
-            val events =
+            val events       =
               newTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.CREATED)) ++
                 previousTargetIds.map(buildTargetIdToEvent(_, b.BuildTargetEventKind.DELETED))
             val didChangeBuildTargetParams = new b.DidChangeBuildTarget(events.asJava)
@@ -715,9 +715,9 @@ object BspImpl {
   private final class LoggingBspClient(actualLocalClient: BspClient) extends LoggingBuildClient
       with BloopBuildClient {
     // in Scala 3 type of the method needs to be explicitly overridden
-    def underlying: scala.build.bsp.BspClient = actualLocalClient
-    def clear()                               = underlying.clear()
-    def diagnostics                           = underlying.diagnostics
+    def underlying: scala.build.bsp.BspClient    = actualLocalClient
+    def clear()                                  = underlying.clear()
+    def diagnostics                              = underlying.diagnostics
     def setProjectParams(newParams: Seq[String]) =
       underlying.setProjectParams(newParams)
     def setGeneratedSources(scope: Scope, newGeneratedSources: Seq[GeneratedSource]) =

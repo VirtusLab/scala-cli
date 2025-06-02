@@ -33,12 +33,12 @@ class BspServer(
 
   def clientOpt: Option[BuildClient] = client
 
-  @volatile private var extraDependencySources: Seq[os.Path] = Nil
+  @volatile private var extraDependencySources: Seq[os.Path]    = Nil
   def setExtraDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraDependencySources = sourceJars
   }
 
-  @volatile private var extraTestDependencySources: Seq[os.Path] = Nil
+  @volatile private var extraTestDependencySources: Seq[os.Path]    = Nil
   def setExtraTestDependencySources(sourceJars: Seq[os.Path]): Unit = {
     extraTestDependencySources = sourceJars
   }
@@ -208,7 +208,7 @@ class BspServer(
     super.buildTargetDependencySources(check(params)).thenApply { res =>
       val updatedItems = res.getItems.asScala.map {
         case item if validTarget(item.getTarget) =>
-          val isTestTarget = item.getTarget.getUri.endsWith("-test")
+          val isTestTarget                = item.getTarget.getUri.endsWith("-test")
           val validExtraDependencySources =
             if isTestTarget then (extraDependencySources ++ extraTestDependencySources).distinct
             else extraDependencySources
@@ -254,7 +254,7 @@ class BspServer(
   override def buildTargetOutputPaths(params: b.OutputPathsParams)
     : CompletableFuture[b.OutputPathsResult] = {
     check(params)
-    val targets = params.getTargets.asScala.filter(validTarget)
+    val targets         = params.getTargets.asScala.filter(validTarget)
     val outputPathsItem =
       targets
         .map(buildTargetId => (buildTargetId, targetWorkspaceDirOpt(buildTargetId)))
@@ -317,7 +317,7 @@ class BspServer(
     CompletableFuture.completedFuture(res)
   }
 
-  private val shutdownPromise = Promise[Unit]()
+  private val shutdownPromise                             = Promise[Unit]()
   override def buildShutdown(): CompletableFuture[Object] = {
     if (!shutdownPromise.isCompleted)
       shutdownPromise.success(())

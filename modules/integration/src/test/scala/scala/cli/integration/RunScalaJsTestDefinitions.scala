@@ -8,7 +8,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   def simpleJsTestOutput(extraArgs: String*): String = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -57,7 +57,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("without node on the PATH") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -107,7 +107,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("simple script JS command") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -135,7 +135,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("esmodule import JS") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""//> using jsModuleKind es
            |import scala.scalajs.js
@@ -160,7 +160,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("simple script JS via config file") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "simple.sc" ->
         s"""//> using platform scala-js
            |import scala.scalajs.js
@@ -177,7 +177,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("simple script JS via platform option") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "simple.sc" ->
         s"""//> using platform scala-native
            |import scala.scalajs.js
@@ -195,7 +195,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("Multiple scripts JS") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -257,7 +257,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
 
   test("Directory JS") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "dir" / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -382,7 +382,7 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
   test("remap imports directive error") {
     val fileName = os.rel / "run.scala"
     val notexist = "I_DONT_EXIST.json"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       fileName ->
         s"""//> using jsEsModuleImportMap $notexist
            | //> using jsModuleKind es

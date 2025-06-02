@@ -38,7 +38,7 @@ import scala.util.Properties
 object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
   override def group: String           = HelpCommandGroup.Main.toString
   override def scalaSpecificationLevel = SpecificationLevel.MUST
-  override def helpFormat: HelpFormat = super.helpFormat
+  override def helpFormat: HelpFormat  = super.helpFormat
     .withHiddenGroup(HelpGroup.Watch)
     .withPrimaryGroup(HelpGroup.Repl)
   override def names: List[List[String]] = List(
@@ -118,7 +118,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
 
   override def runCommand(options: ReplOptions, args: RemainingArgs, logger: Logger): Unit = {
     val initialBuildOptions = buildOptionsOrExit(options)
-    def default = Inputs.default().getOrElse {
+    def default             = Inputs.default().getOrElse {
       Inputs.empty(Os.pwd, options.shared.markdown.enableMarkdown)
     }
     val inputs =
@@ -178,8 +178,8 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       )
     }
 
-    val cross    = options.sharedRepl.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val cross                 = options.sharedRepl.compileCross.cross.getOrElse(false)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -194,7 +194,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
            else Nil)
       // synchronizing, so that multiple presses to enter (handled by WatchUtil.waitForCtrlC)
       // don't try to run repls in parallel
-      val lock = new Object
+      val lock       = new Object
       def runThing() = lock.synchronized {
         doRunRepl(
           buildOptions = initialBuildOptions,

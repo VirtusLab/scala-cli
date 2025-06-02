@@ -189,7 +189,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               val retCode = p1.exitValue()
               onExitOpt.foreach(_())
               (retCode, allowTerminate) match {
-                case (0, true) =>
+                case (0, true)  =>
                 case (0, false) =>
                   val gray  = ScalaCliConsole.GRAY
                   val reset = Console.RESET
@@ -227,7 +227,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
     )
     if CommandUtils.shouldCheckUpdate then Update.checkUpdateSafe(logger)
 
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -381,7 +381,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       }
     val mainClass: String = mainClassOpt match {
       case Some(cls) => cls
-      case None =>
+      case None      =>
         val retainedMainClassesByScope: Map[Scope, String] = value {
           builds
             .map { build =>
@@ -457,7 +457,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           builds.head.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
 
         val linkerConfig = builds.head.options.scalaJsOptions.linkerConfig(logger)
-        val jsDest = {
+        val jsDest       = {
           val delete = scratchDirOpt.isEmpty
           scratchDirOpt.foreach(os.makeDir.all(_))
           os.temp(
@@ -504,7 +504,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         val (pythonExecutable, pythonLibraryPaths, pythonExtraEnv) =
           if (setupPython) {
             val (exec, libPaths) = value {
-              val python = Python()
+              val python                  = Python()
               val pythonPropertiesOrError = for {
                 paths      <- python.nativeLibraryPaths
                 executable <- python.executable
@@ -528,7 +528,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               if (Properties.isWin) EnvVar.Misc.path.name
               else if (Properties.isMac) EnvVar.Misc.dyldLibraryPath.name
               else EnvVar.Misc.ldLibraryPath.name
-            val currentOpt = Option(System.getenv(prependTo))
+            val currentOpt     = Option(System.getenv(prependTo))
             val currentEntries = currentOpt
               .map(_.split(File.pathSeparator).toSet)
               .getOrElse(Set.empty)
@@ -543,7 +543,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
           }
         val programNameEnv =
           pythonExecutable.fold(Map.empty)(py => Map("SCALAPY_PYTHON_PROGRAMNAME" -> py))
-        val extraEnv = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
+        val extraEnv    = libraryPathsEnv ++ programNameEnv ++ pythonExtraEnv
         val maybeResult = withNativeLauncher(
           builds,
           mainClass,

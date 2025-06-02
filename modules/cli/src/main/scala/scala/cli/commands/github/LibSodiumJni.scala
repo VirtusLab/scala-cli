@@ -82,7 +82,7 @@ object LibSodiumJni {
     import scala.build.internal.Util.DependencyOps
 
     val classifier = FetchExternalBinary.platformSuffix(supportsMusl = false)
-    val ext =
+    val ext        =
       if (Properties.isLinux) "so"
       else if (Properties.isMac) "dylib"
       else if (Properties.isWin) "dll"
@@ -119,7 +119,7 @@ object LibSodiumJni {
 
     if (!allStaticallyLinked) {
       val (archiveUrl, pathInArchive) = archiveUrlAndPath()
-      val sodiumLibOpt = value {
+      val sodiumLibOpt                = value {
         FetchExternalBinary.fetchLauncher(
           archiveUrl,
           changing = false,

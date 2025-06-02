@@ -124,7 +124,7 @@ trait BspSuite { _: ScalaCliSuite =>
         null
 
       val bspServerExited = Promise[Unit]()
-      val t = new Thread("bsp-server-watcher") {
+      val t               = new Thread("bsp-server-watcher") {
         setDaemon(true)
         override def run() = {
           proc.join()
@@ -174,7 +174,7 @@ trait BspSuite { _: ScalaCliSuite =>
     @tailrec
     def helper(count: Int): T =
       attempt() match {
-        case Success(t) => t
+        case Success(t)  => t
         case Failure(ex) =>
           if (count <= 1)
             throw new Exception(ex)

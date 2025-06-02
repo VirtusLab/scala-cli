@@ -22,7 +22,7 @@ class PackageTestsDefault extends PackageTestDefinitions with TestDefault {
         val packageRes =
           os.proc(TestUtil.cli, "--power", "package", "--native", ".", "-o", "hello", extraOptions)
             .call(cwd = root, mergeErrIntoOut = true)
-        val packageOutput = packageRes.out.trim()
+        val packageOutput    = packageRes.out.trim()
         val topPackageOutput =
           packageOutput.linesIterator.takeWhile(!_.startsWith("Wrote ")).toVector
         // no compilation or Scala Native pipeline output, as this should just re-use what the run command wrote

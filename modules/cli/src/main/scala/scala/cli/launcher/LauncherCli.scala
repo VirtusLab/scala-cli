@@ -38,7 +38,7 @@ object LauncherCli {
         None
       ) match {
         case Right(value) => value
-        case Left(value) =>
+        case Left(value)  =>
           System.err.println(value.message)
           sys.exit(1)
       }

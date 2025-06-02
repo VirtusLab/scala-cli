@@ -51,7 +51,7 @@ final case class Inputs(
     }
 
   private lazy val inputsHash: String = elements.inputsHash
-  lazy val projectName: String = {
+  lazy val projectName: String        = {
     val needsSuffix = mayAppendHash && (elements match {
       case Seq(d: Directory) => d.path != workspace
       case _                 => true
@@ -96,7 +96,7 @@ final case class Inputs(
   }
   def sourceHash(): String = {
     def bytes(s: String): Array[Byte] = s.getBytes(StandardCharsets.UTF_8)
-    val it = elements.iterator.flatMap {
+    val it                            = elements.iterator.flatMap {
       case elem: OnDisk =>
         val content = elem match {
           case dirInput: Directory =>
@@ -138,7 +138,7 @@ object Inputs {
     extraClasspathWasPassed: Boolean
   ): Inputs = {
     assert(extraClasspathWasPassed || validElems.nonEmpty)
-    val allDirs = validElems.collect { case d: Directory => d.path }
+    val allDirs      = validElems.collect { case d: Directory => d.path }
     val updatedElems = validElems.filter {
       case f: SourceFile =>
         val isInDir = allDirs.exists(f.path.relativeTo(_).ups == 0)
@@ -232,11 +232,11 @@ object Inputs {
   )(using programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     args.zipWithIndex.map {
       case (arg, idx) =>
-        lazy val path      = os.Path(arg, cwd)
-        lazy val dir       = path / os.up
-        lazy val subPath   = path.subRelativeTo(dir)
-        lazy val stdinOpt0 = stdinOpt
-        lazy val content   = os.read.bytes(path)
+        lazy val path            = os.Path(arg, cwd)
+        lazy val dir             = path / os.up
+        lazy val subPath         = path.subRelativeTo(dir)
+        lazy val stdinOpt0       = stdinOpt
+        lazy val content         = os.read.bytes(path)
         lazy val fullProgramCall = programInvokeData.progName +
           s"${
               if programInvokeData.subCommand == SubCommand.Default then ""
@@ -343,7 +343,7 @@ object Inputs {
     val validatedSnippets: Seq[Either[String, Seq[Element]]] =
       validateSnippets(scriptSnippetList, scalaSnippetList, javaSnippetList, markdownSnippetList)
     val validatedArgsAndSnippets = validatedArgs ++ validatedSnippets
-    val invalid = validatedArgsAndSnippets.collect {
+    val invalid                  = validatedArgsAndSnippets.collect {
       case Left(msg) => msg
     }
     if (invalid.isEmpty) {
@@ -353,7 +353,7 @@ object Inputs {
       assert(extraClasspathWasPassed || validElems.nonEmpty)
       val (inferredWorkspace, inferredNeedsHash, workspaceOrigin) = {
         val settingsFiles = validElems.projectSettingsFiles
-        val dirsAndFiles = validElems.collect {
+        val dirsAndFiles  = validElems.collect {
           case d: Directory  => d
           case f: SourceFile => f
         }
@@ -386,7 +386,7 @@ object Inputs {
         }.getOrElse((os.pwd, true, WorkspaceOrigin.Forced))
       }
       val (workspace, needsHash, workspaceOrigin0) = forcedWorkspace match {
-        case None => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
+        case None                   => (inferredWorkspace, inferredNeedsHash, workspaceOrigin)
         case Some(forcedWorkspace0) =>
           val needsHash0 = forcedWorkspace0 != inferredWorkspace || inferredNeedsHash
           (forcedWorkspace0, needsHash0, WorkspaceOrigin.Forced)

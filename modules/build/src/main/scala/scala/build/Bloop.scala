@@ -103,7 +103,7 @@ object Bloop {
     bloopVersion: String
   ): Either[BuildException, Seq[File]] = either {
     val moduleStr = BloopRifleConfig.defaultModule
-    val mod = value {
+    val mod       = value {
       ModuleParser.parse(moduleStr)
         .left.map(err => new ModuleFormatError(moduleStr, err, Some("Bloop")))
     }

@@ -85,7 +85,7 @@ object TestInputs {
   private def withTmpDir[T](f: os.Path => T): T = {
     val tmpDir = baseTmpDir / s"test-${tmpCount.incrementAndGet()}"
     os.makeDir.all(tmpDir)
-    val tmpDir0 = os.Path(tmpDir.toIO.getCanonicalFile)
+    val tmpDir0           = os.Path(tmpDir.toIO.getCanonicalFile)
     def removeAll(): Unit =
       try os.remove.all(tmpDir0)
       catch {

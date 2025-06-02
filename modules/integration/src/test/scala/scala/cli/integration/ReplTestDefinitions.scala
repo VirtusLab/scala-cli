@@ -97,7 +97,7 @@ abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
       TestInputs.empty.fromRoot { root =>
         val expectedMessage = "1337"
         val code            = s"""println($expectedMessage)"""
-        val r = os.proc(
+        val r               = os.proc(
           TestUtil.cli,
           "repl",
           "--repl-quit-after-init",

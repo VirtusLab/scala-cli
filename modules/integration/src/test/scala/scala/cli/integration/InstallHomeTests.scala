@@ -12,7 +12,7 @@ class InstallHomeTests extends ScalaCliSuite {
   val dummyScalaCliFirstName  = "DummyScalaCli-1.scala"
   val dummyScalaCliSecondName = "DummyScalaCli-2.scala"
   val dummyScalaCliBinName    = "scala-cli-dummy-test"
-  val testInputs: TestInputs = TestInputs(
+  val testInputs: TestInputs  = TestInputs(
     os.rel / dummyScalaCliFirstName ->
       s"""
          |object DummyScalaCli extends App {

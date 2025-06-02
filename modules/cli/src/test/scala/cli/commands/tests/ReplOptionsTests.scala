@@ -9,7 +9,7 @@ import scala.cli.commands.shared.{SharedOptions, SharedPythonOptions}
 class ReplOptionsTests extends munit.FunSuite {
 
   test("ScalaPy version") {
-    val ver = "X.Y.Z"
+    val ver         = "X.Y.Z"
     val replOptions = ReplOptions(
       shared = SharedOptions(
         sharedPython = SharedPythonOptions(

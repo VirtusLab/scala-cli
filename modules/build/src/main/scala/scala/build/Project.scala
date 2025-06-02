@@ -39,7 +39,7 @@ final case class Project(
         val baseJvmConf = bloopJvmPlatform
         val home        = javaHomeOpt.map(_.toNIO).orElse(baseJvmConf.config.home)
         baseJvmConf.copy(config = baseJvmConf.config.copy(home = home))
-      case (Some(jsConfig), _) => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
+      case (Some(jsConfig), _)     => BloopConfig.Platform.Js(config = jsConfig, mainClass = None)
       case (_, Some(nativeConfig)) =>
         BloopConfig.Platform.Native(config = nativeConfig, mainClass = None)
     }
@@ -88,7 +88,7 @@ final case class Project(
     }.flatten.toList
 
   private def maybeUpdateInputs(logger: Logger): Boolean = {
-    val dest = directory / ".bloop" / s"$projectName.inputs.txt"
+    val dest      = directory / ".bloop" / s"$projectName.inputs.txt"
     val onDiskOpt =
       if (os.exists(dest)) Some(os.read.bytes(dest))
       else None
@@ -117,7 +117,7 @@ final case class Project(
   def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
     lazy val bloopFileContent =
       writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
-    val dest = directory / ".bloop" / s"$projectName.json"
+    val dest    = directory / ".bloop" / s"$projectName.json"
     val doWrite =
       if (strictCheck)
         !os.isFile(dest) || {

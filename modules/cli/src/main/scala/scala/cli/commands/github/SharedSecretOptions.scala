@@ -26,7 +26,7 @@ final case class SharedSecretOptions(
   lazy val (repoOrg, repoName) =
     repository.split('/') match {
       case Array(org, name) => (org, name)
-      case _ =>
+      case _                =>
         sys.error(s"Malformed repository: '$repository' (expected 'org/name')")
     }
 }

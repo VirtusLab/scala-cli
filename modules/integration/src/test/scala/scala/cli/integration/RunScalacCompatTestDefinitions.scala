@@ -11,7 +11,7 @@ import scala.util.Properties
 trait RunScalacCompatTestDefinitions {
   _: RunTestDefinitions =>
 
-  final val smithyVersion = "1.50.0"
+  final val smithyVersion     = "1.50.0"
   private def shutdownBloop() =
     os.proc(TestUtil.cli, "bloop", "exit", "--power").call(mergeErrIntoOut = true)
 
@@ -156,7 +156,7 @@ trait RunScalacCompatTestDefinitions {
       val printOptionsScala213OrHigher = Seq("-V", "-Vphases", "-W", "-Xsource:help")
       val printOptionsScala2 = Seq("-Xlint:help", "-opt:help", "-Xmixin-force-forwarders:help")
       actualScalaVersion match {
-        case v if v.startsWith("3") => printOptionsForAllVersions ++ printOptionsScala213OrHigher
+        case v if v.startsWith("3")    => printOptionsForAllVersions ++ printOptionsScala213OrHigher
         case v if v.startsWith("2.13") =>
           printOptionsForAllVersions ++ printOptionsScala213OrHigher ++ printOptionsScala2
         case v if v.startsWith("2.12") => printOptionsForAllVersions ++ printOptionsScala2
@@ -423,7 +423,7 @@ trait RunScalacCompatTestDefinitions {
     TestInputs(os.rel / "s.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val scala212VersionString = s"2.12.$scalaPatchVersion"
-        val res =
+        val res                   =
           os.proc(TestUtil.cli, "run", ".", "-S", scala212VersionString, TestUtil.extraOptions)
             .call(cwd = root)
         expect(res.out.trim() == scala212VersionString)
@@ -479,7 +479,7 @@ trait RunScalacCompatTestDefinitions {
   if (actualScalaVersion.startsWith("3") || actualScalaVersion.startsWith("2.13")) {
     val fileName       = "Main.scala"
     val expectedOutput = "Hello"
-    val oldSyntaxCode =
+    val oldSyntaxCode  =
       s"""object Main extends App {
          |  if (true) println("$expectedOutput") else println("Error")
          |}
@@ -557,11 +557,11 @@ trait RunScalacCompatTestDefinitions {
     if actualScalaVersion == Constants.scala3Next || actualScalaVersion == Constants.scala3NextRc
   }
     test(s"consecutive -Xmacro-settings:* flags are not ignored (passed via $optionsSource)") {
-      val sourceFileName = "example.scala"
-      val macroFileName  = "macro.scala"
+      val sourceFileName                                                   = "example.scala"
+      val macroFileName                                                    = "macro.scala"
       val macroSettings @ Seq(macroSetting1, macroSetting2, macroSetting3) =
         Seq("one", "two", "three")
-      val macroSettingOptions = macroSettings.map(s => s"-Xmacro-settings:$s")
+      val macroSettingOptions  = macroSettings.map(s => s"-Xmacro-settings:$s")
       val maybeDirectiveString =
         if (useDirective) s"//> using options ${macroSettingOptions.mkString(" ")}" else ""
       TestInputs(

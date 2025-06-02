@@ -45,7 +45,7 @@ object Doc extends ScalaCommand[DocOptions] {
     val compilerMaker       = ScalaCompilerMaker.IgnoreScala2(maker)
     val docCompilerMakerOpt = Some(SimpleScalaCompilerMaker("java", Nil, scaladoc = true))
 
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -66,7 +66,7 @@ object Doc extends ScalaCommand[DocOptions] {
       .orExit(logger).docBuilds match {
       case b if b.forall(_.success) =>
         val successfulBuilds = b.collect { case s: Build.Successful => s }
-        val res0 = doDoc(
+        val res0             = doDoc(
           logger,
           options.output.filter(_.nonEmpty),
           options.force,
@@ -145,7 +145,7 @@ object Doc extends ScalaCommand[DocOptions] {
       .map(sp => sp -> sp.scalaVersion.startsWith("2.")) match {
       case Some((_, true)) if withTestScope =>
         builds.find(_.scope == Scope.Test).getOrElse(builds.head).project.scaladocDir
-      case Some((_, true)) => builds.head.project.scaladocDir
+      case Some((_, true))        => builds.head.project.scaladocDir
       case Some((scalaParams, _)) =>
         val res = value {
           Artifacts.fetchAnyDependencies(
@@ -159,7 +159,7 @@ object Doc extends ScalaCommand[DocOptions] {
         }
         val destDir = builds.head.project.scaladocDir
         os.makeDir.all(destDir)
-        val ext = if Properties.isWin then ".exe" else ""
+        val ext      = if Properties.isWin then ".exe" else ""
         val baseArgs = Seq(
           "-classpath",
           builds.flatMap(_.fullClassPath).distinct.map(_.toString).mkString(File.pathSeparator),
@@ -190,7 +190,7 @@ object Doc extends ScalaCommand[DocOptions] {
       case None =>
         val destDir = builds.head.project.scaladocDir
         os.makeDir.all(destDir)
-        val ext = if (Properties.isWin) ".exe" else ""
+        val ext         = if (Properties.isWin) ".exe" else ""
         val javaSources =
           builds
             .flatMap(b => b.sources.paths.map(_._1) ++ b.generatedSources.map(_.generated))

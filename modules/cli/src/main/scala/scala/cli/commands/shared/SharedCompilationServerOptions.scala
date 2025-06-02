@@ -136,7 +136,7 @@ final case class SharedCompilationServerOptions(
       case Some(path) =>
         (os.Path(path, Os.pwd), false)
       case None =>
-        val dir = socketDirectory(directories)
+        val dir      = socketDirectory(directories)
         val fileName = pidOrRandom
           .map("proc-" + _)
           .left.map("conn-" + _)
@@ -167,7 +167,7 @@ final case class SharedCompilationServerOptions(
       case None          => default
       case Some("tcp")   => None
       case Some("local") => namedSocket
-      case Some(other) =>
+      case Some(other)   =>
         sys.error(
           s"Invalid bloop BSP protocol value: '$other' (expected 'tcp', 'local', or 'default')"
         )

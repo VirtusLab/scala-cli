@@ -57,7 +57,7 @@ case class MarkdownOpenFence(
     */
   def toUnclosedBackticksError(mdPath: os.Path): MarkdownUnclosedBackticksError = {
     val startCoordinates = tickStartLine -> indent
-    val endCoordinates =
+    val endCoordinates   =
       tickStartLine -> (indent + backticks.length)
     val position = Position.File(Right(mdPath), startCoordinates, endCoordinates)
     MarkdownUnclosedBackticksError(backticks, Seq(position))

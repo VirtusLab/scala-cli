@@ -73,8 +73,8 @@ object Test extends ScalaCommand[TestOptions] {
 
     val compilerMaker = options.shared.compilerMaker(threads)
 
-    val cross    = options.compileCross.cross.getOrElse(false)
-    val configDb = ConfigDbUtils.configDb.orExit(logger)
+    val cross                 = options.compileCross.cross.getOrElse(false)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)
@@ -94,10 +94,10 @@ object Test extends ScalaCommand[TestOptions] {
       }
       else {
         val optionsKeys = builds.map.keys.toVector.map(_.optionsKey).distinct
-        val builds0 = optionsKeys.flatMap { optionsKey =>
+        val builds0     = optionsKeys.flatMap { optionsKey =>
           builds.map.get(CrossKey(optionsKey, Scope.Test))
         }
-        val buildsLen = builds0.length
+        val buildsLen                = builds0.length
         val printBeforeAfterMessages =
           buildsLen > 1 && options.shared.logging.verbosity >= 0
         val results =
@@ -196,7 +196,7 @@ object Test extends ScalaCommand[TestOptions] {
     build.options.platform.value match {
       case Platform.JS =>
         val linkerConfig = build.options.scalaJsOptions.linkerConfig(logger)
-        val esModule =
+        val esModule     =
           build.options.scalaJsOptions.moduleKindStr.exists(m => m == "es" || m == "esmodule")
         value {
           Run.withLinkedJs(
@@ -244,7 +244,7 @@ object Test extends ScalaCommand[TestOptions] {
         val predefinedTestFrameworks0 =
           predefinedTestFrameworks match {
             case f if f.nonEmpty => f
-            case Nil =>
+            case Nil             =>
               findTestFramework(classPath.map(_.toNIO), logger).map(Positioned.none).toList
           }
         val testOnly = build.options.testOptions.testOnly
@@ -277,7 +277,7 @@ object Test extends ScalaCommand[TestOptions] {
       val parentInspector = new AsmTestRunner.ParentInspector(classPath)
       Runner.frameworkNames(classPath, parentInspector, logger) match {
         case Right(f) => f.headOption
-        case Left(_) =>
+        case Left(_)  =>
           logger.message(
             s"zio-test found in the class path, zio-test-sbt should be added to run zio tests with $fullRunnerName."
           )

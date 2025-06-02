@@ -35,7 +35,7 @@ object DeprecatedDirectives {
     handler.keys.flatMap(_.nameAliases)
 
   private val deprecatedCombinationsAndReplacements = Map[DirectiveTemplate, WarningAndReplacement](
-    DirectiveTemplate(Seq("lib"), None) -> keyReplacement("dep")(deprecatedWarning("lib", "dep")),
+    DirectiveTemplate(Seq("lib"), None)  -> keyReplacement("dep")(deprecatedWarning("lib", "dep")),
     DirectiveTemplate(Seq("libs"), None) -> keyReplacement("dep")(deprecatedWarning(
       "libs",
       "deps"

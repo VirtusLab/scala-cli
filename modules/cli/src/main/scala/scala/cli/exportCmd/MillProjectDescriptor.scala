@@ -70,10 +70,10 @@ final case class MillProjectDescriptor(
     mainOptions: BuildOptions,
     testOptions: BuildOptions
   ): MillProject = {
-    val mainDeps = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val mainDeps        = mainOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
     val compileMainDeps =
       mainOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
-    val testDeps = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
+    val testDeps        = testOptions.classPathOptions.extraDependencies.toSeq.map(_.value.render)
     val compileTestDeps =
       testOptions.classPathOptions.extraCompileOnlyDependencies.toSeq.map(_.value.render)
     MillProject(
@@ -140,18 +140,18 @@ final case class MillProjectDescriptor(
 
     val testClassPath: Seq[Path] = options.artifacts(logger, Scope.Test) match {
       case Right(artifacts) => artifacts.classPath.map(_.toNIO)
-      case Left(exception) =>
+      case Left(exception)  =>
         logger.debug(exception.message)
         Seq.empty
     }
     val parentInspector = new AsmTestRunner.ParentInspector(testClassPath)
-    val frameworkName0 = options.testOptions.frameworks.headOption.orElse {
+    val frameworkName0  = options.testOptions.frameworks.headOption.orElse {
       frameworkNames(testClassPath, parentInspector, logger).toOption
         .flatMap(_.headOption) // TODO: handle multiple frameworks here
     }
 
     val testFrameworkDecls = frameworkName0 match {
-      case None => Nil
+      case None     => Nil
       case Some(fw) =>
         Seq(s"""def testFramework = "$fw"""")
     }

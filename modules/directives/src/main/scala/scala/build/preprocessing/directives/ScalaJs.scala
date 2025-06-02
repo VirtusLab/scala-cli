@@ -136,7 +136,7 @@ final case class ScalaJs(
       )
     val jsImportMapAsPath = jsEsModuleImportMap.map(absFilePath).sequence
     jsImportMapAsPath.map(_ match
-      case None => BuildOptions(scalaJsOptions = scalaJsOptions)
+      case None            => BuildOptions(scalaJsOptions = scalaJsOptions)
       case Some(importmap) =>
         BuildOptions(
           scalaJsOptions = scalaJsOptions.copy(remapEsModuleImportMap = Some(importmap))

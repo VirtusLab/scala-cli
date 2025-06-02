@@ -8,7 +8,7 @@ class StandaloneLauncherTests extends ScalaCliSuite {
   test(s"Standalone launcher should run with java 8") {
     // It should download Java 17 and use it to run itself
     val message = "Hello World"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "hello.sc" -> s"""println("$message")"""
     )
     inputs.fromRoot { root =>

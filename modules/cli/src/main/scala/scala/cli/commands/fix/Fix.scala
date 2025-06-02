@@ -36,9 +36,9 @@ object Fix extends ScalaCommand[FixOptions] {
       if options.enableScalafix then
         either {
           logger.message("Running scalafix rules...")
-          val threads            = BuildThreads.create()
-          val compilerMaker      = options.shared.compilerMaker(threads)
-          val workspace: os.Path = if args.all.isEmpty then os.pwd else inputs.workspace
+          val threads                      = BuildThreads.create()
+          val compilerMaker                = options.shared.compilerMaker(threads)
+          val workspace: os.Path           = if args.all.isEmpty then os.pwd else inputs.workspace
           val actionableDiagnosticsEnabled = options.shared.logging.verbosityOptions.actions
             .orElse(configDb.get(Keys.actions).getOrElse(None))
           val scalafixExitCode: Int = value {

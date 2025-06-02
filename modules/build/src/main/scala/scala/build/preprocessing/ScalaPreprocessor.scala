@@ -41,7 +41,7 @@ case object ScalaPreprocessor extends Preprocessor {
         val res = either {
           val content   = value(PreprocessingUtil.maybeRead(f.path))
           val scopePath = ScopePath.fromPath(f.path)
-          val source =
+          val source    =
             value(
               process(
                 content,
@@ -171,7 +171,7 @@ case object ScalaPreprocessor extends Preprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
-    val (contentWithNoShebang, _) = SheBang.ignoreSheBangLines(content)
+    val (contentWithNoShebang, _)                = SheBang.ignoreSheBangLines(content)
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentChars = contentWithNoShebang.toCharArray,
       path = path,
@@ -210,7 +210,7 @@ case object ScalaPreprocessor extends Preprocessor {
       logger
     )
 
-    val (content0, isSheBang) = SheBang.ignoreSheBangLines(content)
+    val (content0, isSheBang)                          = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
       value(DirectivesPreprocessor(
         path,
@@ -229,7 +229,7 @@ case object ScalaPreprocessor extends Preprocessor {
       val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
       val allOptions         = Seq(preprocessedDirectives.globalUsings)
       val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
-      val lastContentOpt = preprocessedDirectives.strippedContent
+      val lastContentOpt     = preprocessedDirectives.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
       val directivesPositions = preprocessedDirectives.directivesPositions.map { pos =>
         if (isSheBang) pos.copy(endPos = pos.endPos._1 + 1 -> pos.endPos._2) else pos

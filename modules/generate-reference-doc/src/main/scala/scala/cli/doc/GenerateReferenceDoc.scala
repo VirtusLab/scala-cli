@@ -55,7 +55,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     else path.toString
 
   private def maybeWrite(dest: os.Path, content: String): Unit = {
-    val content0 = content.getBytes(StandardCharsets.UTF_8)
+    val content0    = content.getBytes(StandardCharsets.UTF_8)
     val needsUpdate = !os.exists(dest) || {
       val currentContent = os.read.bytes(dest)
       !util.Arrays.equals(content0, currentContent)
@@ -175,7 +175,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       val isInternal            = onlyForHiddenCommands || allArgsHidden
       val b                     = if (isInternal) hiddenOptionsContent else mainOptionsContent
       if (originCommands.nonEmpty) {
-        val formattedOrigin = formatOrigin(origin)
+        val formattedOrigin   = formatOrigin(origin)
         val formattedCommands = originCommands.map { c =>
           // https://scala-cli.virtuslab.org/docs/reference/commands#install-completions
           val names = c.names.map(_.mkString(" "))
@@ -349,7 +349,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       if (origins.nonEmpty) {
         val links = origins.map { origin =>
           val cleanedUp = formatOrigin(origin, keepCapitalization = false)
-          val linkPart = cleanedUp
+          val linkPart  = cleanedUp
             .split("\\s+")
             .map(_.toLowerCase(util.Locale.ROOT).filter(_ != '.'))
             .mkString("-")
@@ -558,7 +558,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     )
 
     val generatedBuildInfo = BuildInfo(BuildOptions(), os.pwd) match {
-      case Right(bv) => bv
+      case Right(bv)       => bv
       case Left(exception) =>
         System.err.println(s"Failed to generate BuildInfo: ${exception.message}")
         sys.exit(1)
@@ -644,7 +644,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       ScalaCli.baseRunnerName,
       ScalaCli.fullRunnerName
     )
-    val commands = scalaCli.commands
+    val commands           = scalaCli.commands
     val restrictedCommands =
       commands.iterator.collect {
         case s: ScalaCommand[_] if !s.isRestricted && !s.isExperimental => s
@@ -652,7 +652,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val allArgs       = commands.flatMap(actualHelp(_).args)
     val nameFormatter = scalaCli.actualDefaultCommand.nameFormatter
 
-    val allCliOptionsContent = cliOptionsContent(commands, allArgs, nameFormatter)
+    val allCliOptionsContent        = cliOptionsContent(commands, allArgs, nameFormatter)
     val restrictedCliOptionsContent =
       cliOptionsContent(restrictedCommands, allArgs, nameFormatter, onlyRestricted = true)
 
@@ -662,7 +662,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     val scalaOptionsReference = optionsReference(restrictedCommands, nameFormatter)
 
     val allUsingDirectiveHandlers = usingDirectiveHandlers ++ usingDirectiveWithReqsHandlers
-    val allDirectivesContent = usingContent(
+    val allDirectivesContent      = usingContent(
       allUsingDirectiveHandlers,
       requireDirectiveHandlers,
       onlyRestricted = false

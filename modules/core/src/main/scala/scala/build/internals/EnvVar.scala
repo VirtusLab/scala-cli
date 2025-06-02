@@ -19,8 +19,8 @@ case class EnvVar(
   passToIde: Boolean = true,
   requiresPower: Boolean = false
 ) {
-  def valueOpt: Option[String]  = Option(System.getenv(name))
-  override def toString: String = s"$name=${valueOpt.getOrElse("")}"
+  def valueOpt: Option[String]            = Option(System.getenv(name))
+  override def toString: String           = s"$name=${valueOpt.getOrElse("")}"
   def helpMessage(spaces: String): String = {
     val powerString =
       if requiresPower then s"${ScalaCliConsole.GRAY}(power)${Console.RESET} " else ""
@@ -70,7 +70,7 @@ object EnvVar {
 
   object Misc extends EnvVarGroup {
     override def groupName: String = "Miscellaneous"
-    override def all = Seq(
+    override def all               = Seq(
       path,
       dyldLibraryPath,
       ldLibraryPath,
@@ -92,7 +92,7 @@ object EnvVar {
 
   object Coursier extends EnvVarGroup {
     override def groupName: String = "Coursier"
-    override def all = Seq(
+    override def all               = Seq(
       coursierBinDir,
       coursierCache,
       coursierConfigDir,
@@ -117,7 +117,7 @@ object EnvVar {
     val coursierNoTerm       = EnvVar("COURSIER_NO_TERM", "Terminal toggle")
     val coursierProgress     = EnvVar("COURSIER_PROGRESS", "Progress bar toggle")
     val coursierRepositories = EnvVar("COURSIER_REPOSITORIES", "Coursier repositories")
-    val coursierVendoredZis =
+    val coursierVendoredZis  =
       EnvVar("COURSIER_VENDORED_ZIS", "Toggle io.github.scala_cli.zip.ZipInputStream")
     val csMavenHome = EnvVar("CS_MAVEN_HOME", "Coursier Maven home directory")
     val insideEmacs = EnvVar("INSIDE_EMACS", "Emacs toggle")
@@ -125,7 +125,7 @@ object EnvVar {
 
   object ScalaCli extends EnvVarGroup {
     override def groupName: String = "Scala CLI"
-    def all = Seq(
+    def all                        = Seq(
       config,
       home,
       interactive,
@@ -135,14 +135,14 @@ object EnvVar {
       allowSodiumJni,
       vendoredZipInputStream
     )
-    val config            = EnvVar("SCALA_CLI_CONFIG", "Scala CLI configuration file path")
-    val extraTimeout      = Bloop.bloopExtraTimeout.copy(requiresPower = false)
-    val home              = EnvVar("SCALA_CLI_HOME", "Scala CLI home directory")
-    val interactive       = EnvVar("SCALA_CLI_INTERACTIVE", "Interactive mode toggle")
-    val interactiveInputs = EnvVar("SCALA_CLI_INTERACTIVE_INPUTS", "Interactive mode inputs")
-    val power             = EnvVar("SCALA_CLI_POWER", "Power mode toggle")
-    val printStackTraces  = EnvVar("SCALA_CLI_PRINT_STACK_TRACES", "Print stack traces toggle")
-    val allowSodiumJni    = EnvVar("SCALA_CLI_SODIUM_JNI_ALLOW", "Allow to load libsodiumjni")
+    val config                 = EnvVar("SCALA_CLI_CONFIG", "Scala CLI configuration file path")
+    val extraTimeout           = Bloop.bloopExtraTimeout.copy(requiresPower = false)
+    val home                   = EnvVar("SCALA_CLI_HOME", "Scala CLI home directory")
+    val interactive            = EnvVar("SCALA_CLI_INTERACTIVE", "Interactive mode toggle")
+    val interactiveInputs      = EnvVar("SCALA_CLI_INTERACTIVE_INPUTS", "Interactive mode inputs")
+    val power                  = EnvVar("SCALA_CLI_POWER", "Power mode toggle")
+    val printStackTraces       = EnvVar("SCALA_CLI_PRINT_STACK_TRACES", "Print stack traces toggle")
+    val allowSodiumJni         = EnvVar("SCALA_CLI_SODIUM_JNI_ALLOW", "Allow to load libsodiumjni")
     val vendoredZipInputStream =
       EnvVar("SCALA_CLI_VENDORED_ZIS", "Toggle io.github.scala_cli.zip.ZipInputStream")
   }
@@ -155,7 +155,7 @@ object EnvVar {
 
   object Bloop extends EnvVarGroup {
     override def groupName: String = "Bloop"
-    override def all = Seq(
+    override def all               = Seq(
       bloopComputationCores,
       bloopDaemonDir,
       bloopJavaOpts,

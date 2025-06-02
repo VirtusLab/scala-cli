@@ -11,8 +11,8 @@ object SparkTestDefinitions {
   def lightweightSparkDistribVersionOpt: Option[String] = Option("0.0.5")
 
   final class Spark(val sparkVersion: String, val scalaVersion: String) {
-    private def sbv         = scalaVersion.split('.').take(2).mkString(".")
-    private var toDeleteOpt = Option.empty[os.Path]
+    private def sbv             = scalaVersion.split('.').take(2).mkString(".")
+    private var toDeleteOpt     = Option.empty[os.Path]
     lazy val sparkHome: os.Path = {
       val url = lightweightSparkDistribVersionOpt match {
         case Some(lightweightSparkDistribVersion) =>
@@ -32,7 +32,7 @@ object SparkTestDefinitions {
         toDeleteOpt = Some(copy)
         System.err.println(s"Copying $home over to $copy")
         os.copy(home, copy)
-        val fetchJarsScript0 = copy / "fetch-jars.sh"
+        val fetchJarsScript0       = copy / "fetch-jars.sh"
         val cmd: Seq[os.Shellable] =
           if (Properties.isWin) Seq("""C:\Program Files\Git\bin\bash.EXE""", fetchJarsScript0)
           else Seq(fetchJarsScript0)
@@ -57,7 +57,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
 
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  protected def defaultMaster = "local[4]"
+  protected def defaultMaster                                                     = "local[4]"
   protected def simpleJobInputs(spark: Spark, withTestScope: Boolean): TestInputs = TestInputs(
     os.rel / (if (withTestScope) "SparkJob.test.scala" else "SparkJob.scala") ->
       s"""//> using dep org.apache.spark::spark-sql:${spark.sparkVersion}
@@ -98,7 +98,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         "https://github.com/steveloughran/winutils/releases/download/tag_2017-08-29-hadoop-2.8.1-native/hadoop-2.8.1.zip"
       )
         .call(cwd = hadoopHome)
-      val dataDir = os.Path(res.out.trim())
+      val dataDir     = os.Path(res.out.trim())
       val binStuffDir = os.list(dataDir)
         .filter(os.isDir(_))
         .filter(_.last.startsWith("hadoop-"))
@@ -136,7 +136,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
         if (needsWinUtils) maybeHadoopHomeForWinutils(root / "hadoop-home")
         else Map.empty[String, String]
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
-      val res = os.proc(
+      val res          = os.proc(
         TestUtil.cli,
         "--power",
         "run",
@@ -168,7 +168,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
 
   test("run spark spark-submit args") {
     val jobName = "the test spark job"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "SparkJob.scala" ->
         s"""//> using dep org.apache.spark::spark-sql:3.3.0
            |
@@ -191,7 +191,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
     )
     inputs.fromRoot { root =>
       val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
-      val res = os.proc(
+      val res      = os.proc(
         TestUtil.cli,
         "--power",
         "run",

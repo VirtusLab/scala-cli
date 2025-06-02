@@ -31,7 +31,7 @@ object WrapperUtils {
     val scriptDialect =
       if scalaVersion.startsWith("3") then dialects.Scala3Future else dialects.Scala213Source3
 
-    given Dialect = scriptDialect.withAllowToplevelStatements(true).withAllowToplevelTerms(true)
+    given Dialect  = scriptDialect.withAllowToplevelStatements(true).withAllowToplevelTerms(true)
     val parsedCode = code.parse[Source] match
       case Parsed.Success(Source(stats)) => stats
       case _                             => Nil
@@ -79,7 +79,7 @@ object WrapperUtils {
         ScriptMainMethod.Exists(head)
       case head :: Nil =>
         ScriptMainMethod.ToplevelStatsPresent
-      case Nil => ScriptMainMethod.NoMain
+      case Nil                         => ScriptMainMethod.NoMain
       case seq if noToplevelStatements =>
         ScriptMainMethod.Multiple(seq)
       case seq =>

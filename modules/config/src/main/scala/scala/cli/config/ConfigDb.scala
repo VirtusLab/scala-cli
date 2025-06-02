@@ -33,7 +33,7 @@ final class ConfigDb private (
     */
   def get[T](key: Key[T]): Either[ConfigDb.ConfigDbFormatError, Option[T]] =
     rawEntries.get(key.fullName) match {
-      case None => Right(None)
+      case None                  => Right(None)
       case Some(rawEntryContent) =>
         key.parse(rawEntryContent)
           .left.map { e =>
@@ -89,7 +89,7 @@ final class ConfigDb private (
             (k, serialize(v0, level + 1))
         }
       val sortedMap: Map[String, RawJson] = ListMap.empty ++ keyValues
-      val b =
+      val b                               =
         writeToArray(sortedMap, WriterConfig.withIndentionStep((level + 1) * 2))(ConfigDb.codec)
       if (b.nonEmpty && b.last == '}'.toByte)
         // FIXME We're copying / moving arrays around quite a bit here
@@ -133,7 +133,7 @@ final class ConfigDb private (
           ).asJava)
         )
       val dirPerms = Files.getPosixFilePermissions(dir).asScala.toSet
-      val permsOk =
+      val permsOk  =
         !dirPerms.contains(PosixFilePermission.GROUP_READ) &&
         !dirPerms.contains(PosixFilePermission.GROUP_WRITE) &&
         !dirPerms.contains(PosixFilePermission.GROUP_EXECUTE) &&
