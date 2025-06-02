@@ -108,7 +108,8 @@ object Bsp extends ScalaCommand[BspOptions] {
             ),
             persistentLogger,
             baseOptions.suppressWarningOptions,
-            baseOptions.internal.exclude
+            baseOptions.internal.exclude,
+            download = baseOptions.downloader
           )
 
           val (allInputs, finalBuildOptions) = {

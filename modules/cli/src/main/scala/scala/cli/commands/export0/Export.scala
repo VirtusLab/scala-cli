@@ -43,7 +43,8 @@ object Export extends ScalaCommand[ExportOptions] {
         ),
         logger,
         buildOptions.suppressWarningOptions,
-        buildOptions.internal.exclude
+        buildOptions.internal.exclude,
+        download = buildOptions.downloader
       )
     }
 

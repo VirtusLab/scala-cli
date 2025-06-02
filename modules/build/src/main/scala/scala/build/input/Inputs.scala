@@ -11,7 +11,7 @@ import scala.build.errors.{BuildException, InputsException, WorkspaceError}
 import scala.build.input.ElementsUtils.*
 import scala.build.internal.Constants
 import scala.build.internal.zip.WrappedZipInputStream
-import scala.build.options.Scope
+import scala.build.options.{BuildOptions, Scope}
 import scala.build.preprocessing.SheBang.isShebangScript
 import scala.util.matching.Regex
 import scala.util.{Properties, Try}
@@ -225,7 +225,7 @@ object Inputs {
   def validateArgs(
     args: Seq[String],
     cwd: os.Path,
-    download: String => Either[String, Array[Byte]],
+    download: BuildOptions.Download,
     stdinOpt: => Option[Array[Byte]],
     acceptFds: Boolean,
     enableMarkdown: Boolean
@@ -423,7 +423,7 @@ object Inputs {
     args: Seq[String],
     cwd: os.Path,
     defaultInputs: () => Option[Inputs] = () => None,
-    download: String => Either[String, Array[Byte]] = _ => Left("URL not supported"),
+    download: BuildOptions.Download = BuildOptions.Download.notSupported,
     stdinOpt: => Option[Array[Byte]] = None,
     scriptSnippetList: List[String] = List.empty,
     scalaSnippetList: List[String] = List.empty,

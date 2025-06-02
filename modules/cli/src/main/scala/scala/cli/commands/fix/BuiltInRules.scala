@@ -169,7 +169,8 @@ object BuiltInRules extends CommandHelpers {
       ),
       logger = logger,
       suppressWarningOptions = SuppressWarningOptions.suppressAll,
-      exclude = buildOptions.internal.exclude
+      exclude = buildOptions.internal.exclude,
+      download = buildOptions.downloader
     ).orExit(logger)
 
     val sharedOptions = crossSources.sharedOptions(buildOptions)

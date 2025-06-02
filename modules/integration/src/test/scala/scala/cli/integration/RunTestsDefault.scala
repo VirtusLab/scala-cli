@@ -111,6 +111,17 @@ class RunTestsDefault extends RunTestDefinitions
     }
   }
 
+  test("using file + http[s] link directive") {
+    val inputPath = os.rel / "usingFileLinkExample.scala"
+    TestInputs(inputPath -> s"//> using file $scalaScriptUrl\n").fromRoot {
+      root =>
+        val res = os.proc(TestUtil.cli, "run", extraOptions, inputPath)
+          .call(cwd = root)
+        val out = res.out.trim()
+        expect(out == scalaScriptMessage)
+    }
+  }
+
   for {
     suppressDeprecatedWarnings <- Seq(true, false)
     suppressByConfig           <- if (suppressDeprecatedWarnings) Seq(true, false) else Seq(false)
