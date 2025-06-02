@@ -54,7 +54,7 @@ object ComputeVersion {
               .flatMap(r => versionOf(r.getName).map((r, _)).iterator)
               .scanLeft((Option.empty[(Ref, String)], Option.empty[(Ref, String)])) {
                 case ((acc, stableAcc), v @ (_, name)) =>
-                  val acc0 = acc.orElse(Some(v))
+                  val acc0       = acc.orElse(Some(v))
                   val stableAcc0 = stableAcc.orElse {
                     if (name.forall(c => c == '.' || c.isDigit)) Some(v)
                     else None

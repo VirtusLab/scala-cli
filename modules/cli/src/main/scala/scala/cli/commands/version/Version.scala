@@ -15,7 +15,7 @@ object Version extends ScalaCommand[VersionOptions] {
   override def group: String = HelpCommandGroup.Miscellaneous.toString
 
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.SHOULD
-  override def helpFormat: HelpFormat =
+  override def helpFormat: HelpFormat                      =
     super.helpFormat
       .withHiddenGroup(HelpGroup.Logging)
       .withHiddenGroupWhenShowHidden(HelpGroup.Logging)

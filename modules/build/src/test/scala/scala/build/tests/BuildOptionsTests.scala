@@ -39,13 +39,13 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
   val directories     = Directories.under(extraRepoTmpDir)
   val buildThreads    = BuildThreads.create()
-  val baseOptions = BuildOptions(
+  val baseOptions     = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
     )
   )
-  def bloopConfigOpt = Some(BloopServer.bloopConfig)
+  def bloopConfigOpt            = Some(BloopServer.bloopConfig)
   override def afterAll(): Unit = {
     buildThreads.shutdown()
   }
@@ -320,7 +320,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     }
 
   {
-    val cache = FileCache().withTtl(0.seconds)
+    val cache        = FileCache().withTtl(0.seconds)
     val repositories = BuildOptions(
       internal = InternalOptions(cache = Some(cache)),
       classPathOptions =
@@ -363,7 +363,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         .filter(ScalaVersionUtil.isStable)
         .filter(_.startsWith(prefix))
         .maxBy(Version(_))
-      expectedVersion = predefinedDefaultScalaVersion.getOrElse(defaultMatchingVersion)
+      expectedVersion            = predefinedDefaultScalaVersion.getOrElse(defaultMatchingVersion)
       expectedVersionDescription =
         if expectedVersion == defaultMatchingVersion then "default" else "overridden default"
       launcherDefaultVersionDescription = if expectedVersion == defaultMatchingVersion then ""
@@ -389,7 +389,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     val newSourceRoot = os.pwd / "out" / "foo"
 
     val extraScalacOpt = Seq("-sourceroot", newSourceRoot.toString)
-    val options = defaultOptions.copy(
+    val options        = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         scalaVersion = Some(MaybeScalaVersion("3.1.1")),
         scalacOptions = ShadowingSeq.from(
@@ -461,7 +461,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
 
   test("skip setting release option when -release or -java-output-version is set by user") {
     val javaOutputVersionOpt = "-java-output-version:16"
-    val inputs = TestInputs(
+    val inputs               = TestInputs(
       os.rel / "Hello.scala" ->
         s"""//> using option $javaOutputVersionOpt
            |""".stripMargin

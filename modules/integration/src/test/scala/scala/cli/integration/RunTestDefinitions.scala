@@ -35,7 +35,7 @@ abstract class RunTestDefinitions
   test("print command") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -51,7 +51,7 @@ abstract class RunTestDefinitions
   }
 
   test("manifest") {
-    val message = "Hello"
+    val message    = "Hello"
     val converters =
       if (actualScalaVersion.startsWith("2.12.")) "scala.collection.JavaConverters._"
       else "scala.jdk.CollectionConverters._"
@@ -384,7 +384,7 @@ abstract class RunTestDefinitions
     test("no JVM installed") {
       val fileName = "simple.sc"
       val message  = "Hello"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName ->
           s"""val msg = "$message"
              |println(msg)
@@ -405,7 +405,7 @@ abstract class RunTestDefinitions
         os.write(root / "script.sh", script)
         os.perms.set(root / "script.sh", "rwxr-xr-x")
         val termOpt = if (System.console() == null) Nil else Seq("-t")
-        val cmd = Seq[os.Shellable](
+        val cmd     = Seq[os.Shellable](
           "docker",
           "run",
           "--rm",
@@ -427,7 +427,7 @@ abstract class RunTestDefinitions
 
   test("Java options in config file") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "simple.sc" ->
         s"""//> using javaOpt -Dtest.message=$message
            |val msg = sys.props("test.message")
@@ -457,7 +457,7 @@ abstract class RunTestDefinitions
   def simpleScriptDistrolessImage(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -474,7 +474,7 @@ abstract class RunTestDefinitions
       os.remove(root / "Dockerfile")
       val termOpt   = if (System.console() == null) Nil else Seq("-t")
       val rawOutput = new ByteArrayOutputStream
-      val cmd = Seq[os.Shellable](
+      val cmd       = Seq[os.Shellable](
         "docker",
         "run",
         "--rm",
@@ -567,7 +567,7 @@ abstract class RunTestDefinitions
   ): TestInputs =
     TestInputs(
       os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
-      os.rel / "src" / "proj" / "Test.scala" ->
+      os.rel / "src" / "proj" / "Test.scala"                  ->
         s"""$directive
            |object Test {
            |  def main(args: Array[String]): Unit = {
@@ -756,7 +756,7 @@ abstract class RunTestDefinitions
   test("add to class path sources from using directive") {
     val fileName       = "Hello.scala"
     val (hello, world) = ("Hello", "World")
-    val inputs = TestInputs(
+    val inputs         = TestInputs(
       os.rel / fileName ->
         """|//> using file Utils.scala helper
            |
@@ -821,7 +821,7 @@ abstract class RunTestDefinitions
     )
     inputs.fromRoot { root =>
       val warningMessage = "Using directives detected in"
-      val output =
+      val output         =
         os.proc(TestUtil.cli, ".", "--suppress-warning-directives-in-multiple-files").call(
           cwd = root,
           stderr = os.Pipe
@@ -863,7 +863,7 @@ abstract class RunTestDefinitions
   def sudoTest(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -889,7 +889,7 @@ abstract class RunTestDefinitions
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
       val termOpt = if (System.console() == null) Nil else Seq("-t")
-      val cmd = Seq[os.Shellable](
+      val cmd     = Seq[os.Shellable](
         "docker",
         "run",
         "--rm",
@@ -918,7 +918,7 @@ abstract class RunTestDefinitions
   def authProxyTest(legacySetup: Boolean): Unit = {
     val okDir    = os.rel / "ok"
     val wrongDir = os.rel / "wrong"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       Seq(okDir, wrongDir).flatMap { baseDir =>
         Seq(
           baseDir / "Simple.scala" ->
@@ -970,8 +970,8 @@ abstract class RunTestDefinitions
     inputs.fromRoot { root =>
       val configDir = root / "configs"
       os.makeDir(configDir, "rwx------")
-      val configFile      = configDir / "config.json"
-      val wrongConfigFile = configDir / "wrong-config.json"
+      val configFile                  = configDir / "config.json"
+      val wrongConfigFile             = configDir / "wrong-config.json"
       val (configEnv, wrongConfigEnv) =
         if (legacySetup)
           (Map.empty[String, String], Map.empty[String, String])
@@ -1044,7 +1044,7 @@ abstract class RunTestDefinitions
   test("UTF-8") {
     val message  = "Hello from TestÅÄÖåäö"
     val fileName = "TestÅÄÖåäö.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""object TestÅÄÖåäö {
            |  def main(args: Array[String]): Unit = {
@@ -1075,7 +1075,7 @@ abstract class RunTestDefinitions
       val (scalaFile1, scalaFile2, scriptName) =
         ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
       val scriptsDir = "scripts"
-      val inputs = TestInputs(
+      val inputs     = TestInputs(
         os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
         os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
         os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
@@ -1089,17 +1089,17 @@ abstract class RunTestDefinitions
         )
           .call(cwd = root, mergeErrIntoOut = true, check = false)
         expect(res.exitCode == 1)
-        val output = res.out.trim()
+        val output       = res.out.trim()
         val errorMessage =
           output.linesWithSeparators.toSeq.takeRight(6).mkString // dropping compilation logs
-        val extraOptionsString = extraOptions.mkString(" ")
+        val extraOptionsString  = extraOptions.mkString(" ")
         val scriptMainClassName = if (actualScalaVersion.startsWith("3"))
           s"$scriptsDir.${scriptName}_sc"
         else
           s"$scriptsDir.$scriptName"
 
         val expectedMainClassNames = Seq(scalaFile1, scalaFile2, scriptMainClassName).sorted
-        val expectedErrorMessage =
+        val expectedErrorMessage   =
           s"""[${Console.RED}error${Console.RESET}]  Found several main classes: ${
               expectedMainClassNames.mkString(
                 ", "
@@ -1142,7 +1142,7 @@ abstract class RunTestDefinitions
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
-    val inputs = TestInputs(
+    val inputs                               = TestInputs(
       os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
       os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
@@ -1173,7 +1173,7 @@ abstract class RunTestDefinitions
     val fileName        = "main.scala"
     val resourceContent = "hello world"
     val resourcePath    = os.rel / projectDir / "resources" / "test.txt"
-    val inputs = TestInputs(
+    val inputs          = TestInputs(
       os.rel / projectDir / fileName ->
         s"""
            |//> using resourceDir resources
@@ -1227,7 +1227,7 @@ abstract class RunTestDefinitions
   if (actualScalaVersion.startsWith("3"))
     test("should throw exception for code compiled by scala 3.1.3") {
       val exceptionMsg = "Throw exception in Scala"
-      val inputs = TestInputs(
+      val inputs       = TestInputs(
         os.rel / "hello.sc" ->
           s"""//> using scala 3.1.3
              |throw new Exception("$exceptionMsg")""".stripMargin
@@ -1428,14 +1428,14 @@ abstract class RunTestDefinitions
     }
   }
   test("declare test scope custom jar from main scope") {
-    val projectFile      = "project.scala"
-    val testMessageFile  = "TestMessage.scala"
-    val mainMessageFile  = "MainMessage.scala"
-    val validMainFile    = "ValidMain.scala"
-    val invalidMainFile  = "InvalidMain.scala"
-    val testFile         = "Tests.test.scala"
-    val expectedMessage1 = "Hello"
-    val expectedMessage2 = " world!"
+    val projectFile                                                       = "project.scala"
+    val testMessageFile                                                   = "TestMessage.scala"
+    val mainMessageFile                                                   = "MainMessage.scala"
+    val validMainFile                                                     = "ValidMain.scala"
+    val invalidMainFile                                                   = "InvalidMain.scala"
+    val testFile                                                          = "Tests.test.scala"
+    val expectedMessage1                                                  = "Hello"
+    val expectedMessage2                                                  = " world!"
     val jarPathsWithFiles @ Seq((mainMessageJar, _), (testMessageJar, _)) =
       Seq(
         os.rel / "MainMessage.jar" -> mainMessageFile,
@@ -1503,7 +1503,7 @@ abstract class RunTestDefinitions
   }
   test("exclude file") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "Hello.scala" ->
         s"""object Hello extends App {
            | println("$message")
@@ -1678,7 +1678,7 @@ abstract class RunTestDefinitions
     val user        = "username"
     val password    = "1234"
     val realm       = "Realm"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       os.rel / "messages" / "Messages.scala" ->
         """package messages
           |
@@ -1935,7 +1935,7 @@ abstract class RunTestDefinitions
           case _                           => "3"
         }
 
-        val dep = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.6"
+        val dep    = s"com.lihaoyi:os-lib_$depScalaVersion:0.10.6"
         val inputs = TestInputs(
           os.rel / "NoDeps.scala" ->
             """//> using jvm zulu:11
@@ -2211,7 +2211,7 @@ abstract class RunTestDefinitions
       .fromRoot { root =>
         val invalidOpt = "--invalid"
         val validOpt   = "-Dfoo=bar"
-        val res = os.proc(TestUtil.cli, "run", "example.sc", "--server=false", extraOptions)
+        val res        = os.proc(TestUtil.cli, "run", "example.sc", "--server=false", extraOptions)
           .call(cwd = root, env = Map("JAVA_OPTS" -> s"$invalidOpt $validOpt"), stderr = os.Pipe)
         val errOutput = res.err.trim()
         expect(errOutput.contains(
@@ -2228,7 +2228,7 @@ abstract class RunTestDefinitions
     val invalidOpt     = "--invalid"
     val validOpt       = "-Dfoo=bar"
     TestInputs(
-      os.rel / "example.sc" -> s"println(\"$expectedOutput\")",
+      os.rel / "example.sc"     -> s"println(\"$expectedOutput\")",
       os.rel / ".scala-jvmopts" ->
         s"""$invalidOpt
            |$validOpt
@@ -2251,7 +2251,7 @@ abstract class RunTestDefinitions
       (actualInputPath, inputPathToCall, inputs) <- {
         val scalaInputPath  = os.rel / "Main.scala"
         val scriptInputPath = os.rel / "script.sc"
-        val scalaInputs = TestInputs(
+        val scalaInputs     = TestInputs(
           scalaInputPath -> s"""object Main extends App { println("$expectedMessage") }"""
         )
         val scriptInputs = TestInputs(scriptInputPath -> s"""println("$expectedMessage")""")
@@ -2270,7 +2270,7 @@ abstract class RunTestDefinitions
         inputs.fromRoot { root =>
           val localCache        = root / "local-cache"
           val dependencyVersion = "42.7.4"
-          val csRes = os.proc(
+          val csRes             = os.proc(
             TestUtil.cs,
             "fetch",
             "--cache",

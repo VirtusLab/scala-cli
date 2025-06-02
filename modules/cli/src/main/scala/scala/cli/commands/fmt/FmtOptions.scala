@@ -93,7 +93,7 @@ final case class FmtOptions(
   def binaryUrl(version: String): (String, Boolean) = {
     val osArchSuffix0 = osArchSuffix.map(_.trim).filter(_.nonEmpty)
       .getOrElse(FetchExternalBinary.platformSuffix())
-    val tag0 = scalafmtTag.getOrElse("v" + version)
+    val tag0           = scalafmtTag.getOrElse("v" + version)
     val gitHubOrgName0 = scalafmtGithubOrgName.getOrElse {
       version.coursierVersion match {
         case v if v < "3.5.9".coursierVersion => "scala-cli/scalafmt-native-image"
@@ -126,9 +126,9 @@ object FmtOptions {
   implicit lazy val parser: Parser[FmtOptions] = Parser.derive
   implicit lazy val help: Help[FmtOptions]     = Help.derive
 
-  val cmdName             = "fmt"
-  private val helpHeader  = "Formats Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val cmdName                     = "fmt"
+  private val helpHeader          = "Formats Scala code."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

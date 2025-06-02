@@ -95,7 +95,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
 
       val crossSourcesSharedOptions = crossSources.sharedOptions(cliBuildOptions)
       val scopedSources = crossSources.scopedSources(crossSourcesSharedOptions).orExit(logger)
-      val sources =
+      val sources       =
         scopedSources.sources(Scope.Main, crossSourcesSharedOptions, inputs.workspace, logger)
           .orExit(logger)
 
@@ -107,8 +107,8 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
     val backend = ScalaCliSttpBackend.httpURLConnection(logger)
 
     val checksInputOpt = options.checks.map(_.trim).filter(_.nonEmpty).filter(_ != "all")
-    val checkKinds = checksInputOpt match {
-      case None => OptionCheck.Kind.all.toSet
+    val checkKinds     = checksInputOpt match {
+      case None              => OptionCheck.Kind.all.toSet
       case Some(checksInput) =>
         OptionCheck.Kind.parseList(checksInput)
           .left.map { unrecognized =>
@@ -294,7 +294,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
       }
 
       if (options.checkWorkflow.getOrElse(options.publishParams.setupCi)) {
-        val workflowDir = inputs.workspace / ".github" / "workflows"
+        val workflowDir  = inputs.workspace / ".github" / "workflows"
         val hasWorkflows = os.isDir(workflowDir) &&
           os.list(workflowDir)
             .filter(_.last.endsWith(".yml")) // FIXME Accept more extensions?
@@ -304,7 +304,7 @@ object PublishSetup extends ScalaCommand[PublishSetupOptions] {
             s"Found some workflow files under ${CommandUtils.printablePath(workflowDir)}, not writing Scala CLI workflow"
           )
         else {
-          val dest = workflowDir / "ci.yml"
+          val dest    = workflowDir / "ci.yml"
           val content = {
             val resourcePath = Constants.defaultFilesResourcePath + "/workflows/default.yml"
             val cl           = Thread.currentThread().getContextClassLoader

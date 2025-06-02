@@ -21,7 +21,7 @@ final case class ScalaVersion(
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] =
     scala match {
-      case Nil => Right(BuildOptions())
+      case Nil             => Right(BuildOptions())
       case first :: others =>
         val buildOpt = BuildOptions(
           scalaOptions = ScalaOptions(

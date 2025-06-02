@@ -45,7 +45,7 @@ object ExportTestProjects {
 
     TestInputs(
       os.rel / s"$mainClassName.scala" -> mainFile,
-      os.rel / "Zio.test.scala" ->
+      os.rel / "Zio.test.scala"        ->
         """|//> using dep dev.zio::zio::1.0.8
            |//> using dep dev.zio::zio-test-sbt::1.0.8
            |
@@ -100,7 +100,7 @@ object ExportTestProjects {
   }
 
   def nativeTest(scalaVersion: String): TestInputs = {
-    val nl = "\\n"
+    val nl       = "\\n"
     val testFile =
       if (scalaVersion.startsWith("3."))
         s"""//> using scala $scalaVersion

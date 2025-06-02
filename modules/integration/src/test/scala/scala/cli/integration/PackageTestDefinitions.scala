@@ -20,7 +20,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("simple script") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -50,7 +50,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("current directory as default input") {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -77,7 +77,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("resource directory for coursier bootstrap launcher") {
     val fileName = "hello.sc"
     val message  = "1,2,3"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""|//> using resourceDir .
             |import scala.io.Source
@@ -106,7 +106,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val fileName     = "MyLibrary.scala"
     val outputLib    = "my-library.jar"
     val resourceFile = "input"
-    val inputs = TestInputs(
+    val inputs       = TestInputs(
       os.rel / fileName ->
         s"""|//> using resourceDir .
             |
@@ -172,7 +172,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   def simpleJsTest(): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |val console = js.Dynamic.global.console
@@ -199,7 +199,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
   def sourceMapJsTest(): Unit = {
     val fileName = "Hello.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalajs.js
            |
@@ -239,7 +239,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   def multiModulesJsTest(): Unit = {
     val fileName = "Hello.scala"
     val message  = "Hello World from JS"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""|//> using jsModuleKind es
             |//> using jsModuleSplitStyleStr smallestmodules
@@ -279,7 +279,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   def smallModulesJsTest(jvm: Boolean): Unit = {
     val fileName = "Hello.scala"
     val message  = "Hello World from JS"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""|//> using jsModuleKind es
             |//> using jsModuleSplitStyleStr smallmodulesfor
@@ -325,7 +325,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val fileName        = "Hello.scala"
     val jsHeader        = "#!/usr/bin/env node"
     val jsHeaderNewLine = s"$jsHeader\\n"
-    val inputs = TestInputs(
+    val inputs          = TestInputs(
       os.rel / fileName ->
         s"""|//> using jsHeader "$jsHeaderNewLine"
             |//> using jsMode release
@@ -361,7 +361,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   def jsWithoutMainTest(): Unit = {
     val fileName = "Hello.scala"
     val msg      = "Hello World"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""|import scala.scalajs.js.annotation._
             |
@@ -427,7 +427,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val fileName   = "simple.sc"
     val message    = "Hello"
     val platformNl = if (Properties.isWin) "\\r\\n" else "\\n"
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / fileName ->
         s"""import scala.scalanative.libc._
            |import scala.scalanative.unsafe._
@@ -464,7 +464,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   ): Unit = {
     val fileName              = "simple.sc"
     val directiveNativeTarget = if (shared) "dynamic" else "static"
-    val inputs = TestInputs(
+    val inputs                = TestInputs(
       os.rel / fileName ->
         s"""
            |//> using platform scala-native
@@ -538,7 +538,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     TestUtil.retryOnCi() {
       val fileName = "simple.sc"
       val message  = "Hello"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName ->
           s"""//> using dep org.typelevel::cats-kernel:2.6.1
              |import cats.kernel._
@@ -670,8 +670,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   }
 
   test("assembly classpath") {
-    val lib = os.rel / "lib"
-    val app = os.rel / "app"
+    val lib    = os.rel / "lib"
+    val app    = os.rel / "app"
     val inputs = TestInputs(
       lib / "lib" / "Message.scala" ->
         s"""package lib
@@ -771,7 +771,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       expect(os.isFile(launcher))
 
       var zf: ZipFile = null
-      val entries =
+      val entries     =
         try {
           zf = new ZipFile(launcher.toIO)
           expect(zf.getEntry("hello/Hello.class") != null)
@@ -889,7 +889,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
 
       val zf                 = new ZipFile((root / dest).toIO)
       val genSourceEntryName = "META-INF/generated/simple.scala"
-      val expectedEntries = Set(
+      val expectedEntries    = Set(
         "lib/Messages.scala",
         genSourceEntryName,
         "simple.sc"
@@ -922,7 +922,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
       )
 
       expect(os.isFile(root / dest))
-      val zf = new ZipFile((root / dest).toIO)
+      val zf              = new ZipFile((root / dest).toIO)
       val expectedEntries =
         if (actualScalaVersion.startsWith("2."))
           Seq(
@@ -957,8 +957,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   }
 
   test("native image") {
-    val message = "Hello from native-image"
-    val dest    = "hello"
+    val message    = "Hello from native-image"
+    val dest       = "hello"
     val actualDest =
       if (Properties.isWin) "hello.exe"
       else "hello"
@@ -1001,7 +1001,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
-    val inputs = TestInputs(
+    val inputs                               = TestInputs(
       os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
       os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
@@ -1032,7 +1032,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val fileName           = "Hello.scala"
     val destFile           = if (Properties.isWin) "hello.bat" else "hello"
     val (fooProp, barProp) = ("abc", "xyz")
-    val inputs = TestInputs(
+    val inputs             = TestInputs(
       os.rel / fileName ->
         s"""object Hello {
            |  def main(args: Array[String]): Unit =
@@ -1090,7 +1090,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val fileName           = "Hello.scala"
     val imageName          = "hello"
     val (fooProp, barProp) = ("abc", "xyz")
-    val inputs = TestInputs(
+    val inputs             = TestInputs(
       os.rel / fileName ->
         s"""object Hello {
            |  def main(args: Array[String]): Unit =
@@ -1175,7 +1175,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("fat jar") {
     val inputs = TestInputs(
       os.rel / "OsLibFatJar.scala" -> s"""//> using dep com.lihaoyi::os-lib:0.9.0""",
-      os.rel / "Hello.scala" ->
+      os.rel / "Hello.scala"       ->
         s"""object Main extends App {
            |  println(os.pwd)
            |}
@@ -1195,8 +1195,8 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         extraOptions
       ).call(cwd = root, stdin = os.Inherit, stdout = os.Inherit)
 
-      val outputName = if (Properties.isWin) "hello.bat" else "hello"
-      val launcher   = root / outputName
+      val outputName  = if (Properties.isWin) "hello.bat" else "hello"
+      val launcher    = root / outputName
       val packageCmds = Seq[os.Shellable](
         TestUtil.cli,
         "--power",
@@ -1243,7 +1243,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
                |""".stripMargin
         ).fromRoot { root =>
           val outputJarPath = root / "Hello.jar"
-          val res = os.proc(
+          val res           = os.proc(
             TestUtil.cli,
             "--power",
             "package",
@@ -1276,7 +1276,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
              |""".stripMargin
       ).fromRoot { root =>
         val outputJarPath = root / "Hello.jar"
-        val res = os.proc(
+        val res           = os.proc(
           TestUtil.cli,
           "--power",
           "package",
@@ -1298,7 +1298,7 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val resourceDir = "resources"
     TestInputs(
       os.rel / resourceDir / xmlFileName -> s"<example>$child</example>",
-      os.rel / s"$mainClass.scala" ->
+      os.rel / s"$mainClass.scala"       ->
         s"""//> using dep org.scala-lang.modules::scala-xml:2.2.0
            |object $mainClass {
            |  def main(args: Array[String]): Unit = {

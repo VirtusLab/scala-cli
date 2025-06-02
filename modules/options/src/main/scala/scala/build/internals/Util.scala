@@ -28,8 +28,8 @@ object Util {
 
   def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter        = new AtomicInteger
-      def threadNumber() = counter.incrementAndGet()
+      val counter                = new AtomicInteger
+      def threadNumber()         = counter.incrementAndGet()
       def newThread(r: Runnable) =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
           setDaemon(true)
@@ -52,7 +52,7 @@ object Util {
       : Either[NoScalaVersionProvidedError, coursier.Module] =
       paramsOpt match {
         case Some(params) => Right(toCs(params))
-        case None =>
+        case None         =>
           val isJavaMod = mod.nameAttributes == NoAttributes
           if (isJavaMod)
             Right(mod.asInstanceOf[dependency.Module].toCs)
@@ -89,7 +89,7 @@ object Util {
       : Either[NoScalaVersionProvidedError, coursier.Dependency] =
       paramsOpt match {
         case Some(params) => Right(toCs(params))
-        case None =>
+        case None         =>
           val isJavaDep = dep.module.nameAttributes == NoAttributes && dep.exclude.forall(
             _.nameAttributes == NoAttributes
           )

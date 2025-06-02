@@ -7,7 +7,7 @@ class PublishTestsDefault extends PublishTestDefinitions with TestDefault {
     val testOrg     = "test-org.foo"
     val testName    = "foo"
     val testVersion = "0.3.1"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       os.rel / "Foo.java" ->
         s"""//> using publish.organization $testOrg
            |//> using publish.name $testName

@@ -260,7 +260,7 @@ object DirectiveHandler {
         // from https://github.com/plokhotnyuk/jsoniter-scala/blob/1704a9cbb22b75a59f21ddf2a11427ba24df3212/jsoniter-scala-macros/shared/src/main/scala-3/com/github/plokhotnyuk/jsoniter_scala/macros/JsonCodecMaker.scala#L849-L854
         def genNew(argss: List[List[Term]]): Term =
           val constructorNoTypes = Select(New(Inferred(TypeRepr.of[T])), tSym.primaryConstructor)
-          val constructor = typeArgs(TypeRepr.of[T]) match
+          val constructor        = typeArgs(TypeRepr.of[T]) match
             case Nil      => constructorNoTypes
             case typeArgs => TypeApply(constructorNoTypes, typeArgs.map(Inferred(_)))
           argss.tail.foldLeft(Apply(constructor, argss.head))((acc, args) => Apply(acc, args))
@@ -336,11 +336,11 @@ object DirectiveHandler {
 
     '{
       new DirectiveHandler[T] {
-        def name  = $nameValue
-        def usage = $usageValue
+        def name             = $nameValue
+        def usage            = $usageValue
         override def usageMd =
           Some($usageMdValue).filter(_.nonEmpty).getOrElse(usage)
-        def description = $descriptionValue
+        def description            = $descriptionValue
         override def descriptionMd =
           Some($descriptionMdValue).filter(_.nonEmpty).getOrElse(description)
         override def examples = ${ Expr.ofList(examplesValue) }

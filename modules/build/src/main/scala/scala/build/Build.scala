@@ -80,7 +80,7 @@ object Build {
         mainClasses match {
           case Seq()          => Left(new NoMainClassFoundError)
           case Seq(mainClass) => Right(mainClass)
-          case _ =>
+          case _              =>
             inferredMainClass(mainClasses, logger)
               .left.flatMap { mainClasses =>
                 // decode the names to present them to the user,
@@ -357,9 +357,9 @@ object Build {
           value(res)
         }
 
-      val mainBuild = value(doBuildScope(mainOptions, mainSources, Scope.Main))
+      val mainBuild       = value(doBuildScope(mainOptions, mainSources, Scope.Main))
       val mainDocBuildOpt = docCompilerOpt match {
-        case None => None
+        case None              => None
         case Some(docCompiler) =>
           Some(value(doBuildScope(
             mainOptions,
@@ -373,7 +373,7 @@ object Build {
         if (buildTests) {
           val actualCompilerOpt = if doc then docCompilerOpt else Some(compiler)
           actualCompilerOpt match {
-            case None => None
+            case None                 => None
             case Some(actualCompiler) =>
               val testBuild = value {
                 mainBuild match {
@@ -549,7 +549,7 @@ object Build {
       scalaParamsOpt.flatMap { scalaParams =>
         val scalaVersion       = scalaParams.scalaVersion
         val nativeVersionMaybe = options.scalaNativeOptions.numeralVersion
-        def snCompatError =
+        def snCompatError      =
           Left(
             new ScalaNativeCompatibilityError(
               scalaVersion,
@@ -590,7 +590,7 @@ object Build {
           }
 
         numeralOrError match {
-          case Left(compatError) => Some(compatError)
+          case Left(compatError)       => Some(compatError)
           case Right(snNumeralVersion) =>
             warnIncompatibleNativeOptions(snNumeralVersion)
             None
@@ -711,7 +711,7 @@ object Build {
         val (crossSources: CrossSources, inputs0: Inputs) =
           value(allInputs(inputs, options, logger))
         val sharedOptions = crossSources.sharedOptions(options)
-        val compiler = value {
+        val compiler      = value {
           compilerMaker.create(
             inputs0.workspace / Constants.workspaceDirName,
             classesDir0,
@@ -1299,7 +1299,7 @@ object Build {
     private val lock                  = new Object
     private var f: ScheduledFuture[?] = _
     private val waitFor               = 50.millis
-    private val runnable: Runnable = { () =>
+    private val runnable: Runnable    = { () =>
       lock.synchronized {
         f = null
       }
@@ -1365,7 +1365,7 @@ object Build {
         )
       )
       val (crossSources, inputs0) = value(allInputs(jmhInputs, updatedOptions, logger))
-      val jmhBuilds = value {
+      val jmhBuilds               = value {
         Build.build(
           inputs0,
           crossSources,

@@ -128,7 +128,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   for {
-    useDirectives <- Seq(true, false)
+    useDirectives                    <- Seq(true, false)
     (directive, options, optionName) <- Seq(
       ("//> using object.wrapper", objectWrapperOptions, "--object-wrapper"),
       ("//> using platform js", platfromJsOptions, "--js")
@@ -172,7 +172,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   for {
-    useDirectives <- Seq(true, false)
+    useDirectives                    <- Seq(true, false)
     (directive, options, optionName) <- Seq(
       ("//> using scala 2.13", scala213Options, "--scala 2.13")
     )

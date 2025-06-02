@@ -20,7 +20,7 @@ object Interactive {
       case Some(interactiveInputs) =>
         synchronized {
           interactiveInputs match {
-            case Nil => ""
+            case Nil    => ""
             case h :: t =>
               interactiveInputsOpt = Some(t)
               h

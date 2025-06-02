@@ -24,7 +24,7 @@ object UsingDirectivesOps {
             case _ :+ lastUsingDef => getEndPostion(lastUsingDef)
             case _                 => (uds.getLine, uds.getColumn)
           }
-        case ud: UsingDef => getEndPostion(ud.getValue)
+        case ud: UsingDef     => getEndPostion(ud.getValue)
         case uvs: UsingValues => uvs.getValues.asScala match {
             case _ :+ lastUsingValue => getEndPostion(lastUsingValue)
             case _                   => (uvs.getLine, uvs.getColumn)

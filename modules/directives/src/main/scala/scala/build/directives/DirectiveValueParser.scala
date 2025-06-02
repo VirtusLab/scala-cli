@@ -72,7 +72,7 @@ object DirectiveValueParser {
 
   given DirectiveValueParser[Unit] = { (key, values, scopePath, path) =>
     values match {
-      case Seq() => Right(())
+      case Seq()          => Right(())
       case Seq(value, _*) =>
         val pos = value.position(path)
         Left(new MalformedDirectiveError("Expected no value in directive", Seq(pos)))
@@ -114,7 +114,7 @@ object DirectiveValueParser {
 
   given DirectiveValueParser[Boolean] = { (key, values, scopePath, path) =>
     values.filter(!_.isEmpty) match {
-      case Seq() => Right(true)
+      case Seq()  => Right(true)
       case Seq(v) =>
         v.asBoolean.toRight {
           new UsingDirectiveWrongValueTypeError(
@@ -182,7 +182,7 @@ object DirectiveValueParser {
     underlying.map(Some(_))
   given [T](using underlying: DirectiveSingleValueParser[T]): DirectiveValueParser[List[T]] = {
     (key, values, scopePath, path) =>
-      val res = values.filter(!_.isEmpty).map(underlying.parseValue(key, _, scopePath, path))
+      val res    = values.filter(!_.isEmpty).map(underlying.parseValue(key, _, scopePath, path))
       val errors = res.collect {
         case Left(e) => e
       }

@@ -323,7 +323,7 @@ object CrossSources {
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
       (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
         .flatMap { (withBuildRequirements, directivesPositions) =>
-          val scope = withBuildRequirements.scopedValue(Scope.Main).scope
+          val scope         = withBuildRequirements.scopedValue(Scope.Main).scope
           val path: os.Path = withBuildRequirements.value match
             case im: Sources.InMemory =>
               im.originalPath match
@@ -371,7 +371,7 @@ object CrossSources {
     val paths            = pathsWithDirectivePositions.map(_._1)
     val inMemory         = inMemoryWithDirectivePositions.map(_._1)
     val unwrappedScripts = unwrappedScriptsWithDirectivePositions.map(_._1)
-    val crossSources = CrossSources(
+    val crossSources     = CrossSources(
       paths,
       inMemory,
       defaultMainElemPath,

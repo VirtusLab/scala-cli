@@ -117,8 +117,8 @@ object Ivy {
     nodes += {
       val depNodes = dependencies.map {
         case (org, name, ver, confOpt, exclusions) =>
-          val conf     = confOpt.map(_.value).getOrElse("compile")
-          val confSpec = s"$conf->default(compile)"
+          val conf           = confOpt.map(_.value).getOrElse("compile")
+          val confSpec       = s"$conf->default(compile)"
           val exclusionNodes =
             exclusions.data.toSet().map { case (org, module) =>
               <exclude org={org.value} module={module.value}/>

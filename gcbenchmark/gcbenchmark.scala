@@ -21,7 +21,7 @@ object Main {
   val projectSize =
     200 // Number of files in a generated project used in benchmark
   val numberOfBuilds = 10 // How many times run build for each setup
-  val idleWait =
+  val idleWait       =
     90 // In seconds. Wait after builds are done, to measure how much memory JVM returns to OS
 
   val setups = Seq(

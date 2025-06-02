@@ -102,12 +102,12 @@ object GitHubTests {
       else if (Properties.isMac) "osx"
       else if (Properties.isLinux) "linux"
       else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
-    val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val arch      = sys.props("os.arch").toLowerCase(Locale.ROOT)
     val mambaArch = arch match {
       case "x86_64" | "amd64"  => "64"
       case "arm64" | "aarch64" => "arm64"
       case "ppc64le"           => "ppc64le"
-      case _ =>
+      case _                   =>
         sys.error(s"Unsupported mamba architecture: $arch")
     }
     s"$mambaOs-$mambaArch"
@@ -139,7 +139,7 @@ object GitHubTests {
   private def initSodium(): Unit = {
     val (url, relPath) = archiveUrlAndPath()
     val archiveCache   = ArchiveCache()
-    val dir = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
+    val dir            = archiveCache.get(Artifact(url)).unsafeRun()(archiveCache.cache.ec)
       .fold(e => throw new Exception(e), os.Path(_, os.pwd))
     val lib = dir / relPath
     System.load(lib.toString)

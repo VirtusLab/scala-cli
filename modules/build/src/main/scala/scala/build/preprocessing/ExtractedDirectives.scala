@@ -33,7 +33,7 @@ object ExtractedDirectives {
     logger: Logger,
     maybeRecoverOnError: BuildException => Option[BuildException]
   ): Either[BuildException, ExtractedDirectives] = {
-    val errors = new mutable.ListBuffer[Diagnostic]
+    val errors   = new mutable.ListBuffer[Diagnostic]
     val reporter = CustomDirectivesReporter
       .create(path) {
         case diag
@@ -45,8 +45,8 @@ object ExtractedDirectives {
           logger.log(Seq(diag))
         case diag => errors += diag
       }
-    val processor     = new UsingDirectivesProcessor(reporter)
-    val allDirectives = processor.extract(contentChars).asScala
+    val processor                = new UsingDirectivesProcessor(reporter)
+    val allDirectives            = processor.extract(contentChars).asScala
     val malformedDirectiveErrors =
       errors.map(diag => new MalformedDirectiveError(diag.message, diag.positions)).toSeq
     val maybeCompositeMalformedDirectiveError =
@@ -55,7 +55,7 @@ object ExtractedDirectives {
       else None
     if (malformedDirectiveErrors.isEmpty || maybeCompositeMalformedDirectiveError.isEmpty) {
 
-      val directivesOpt = allDirectives.headOption
+      val directivesOpt         = allDirectives.headOption
       val directivesPositionOpt = directivesOpt match {
         case Some(directives)
             if directives.containsTargetDirectives ||

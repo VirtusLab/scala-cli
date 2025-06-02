@@ -64,7 +64,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           ).orThrow
 
         val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-        val sources =
+        val sources       =
           scopedSources.sources(
             Scope.Main,
             crossSources.sharedOptions(BuildOptions()),
@@ -107,7 +107,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -147,7 +147,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -187,7 +187,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -230,7 +230,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -275,7 +275,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -362,7 +362,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -404,7 +404,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -448,7 +448,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -483,7 +483,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),
@@ -530,7 +530,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         ).orThrow
 
       val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
-      val sources =
+      val sources       =
         scopedSources.sources(
           Scope.Main,
           crossSources.sharedOptions(BuildOptions()),

@@ -49,7 +49,7 @@ private class TastyUnpickler(reader: TastyReader) { self =>
     val length     = reader.readNat()
     val start      = reader.currentAddr
     val end        = start + length
-    val result = tag match {
+    val result     = tag match {
       case NameTags.UTF8 =>
         Some(SimpleName(new String(reader.bytes.slice(start.index, start.index + length), "UTF-8")))
       case _ =>

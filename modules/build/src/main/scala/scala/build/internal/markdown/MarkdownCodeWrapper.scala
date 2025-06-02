@@ -87,7 +87,7 @@ object MarkdownCodeWrapper {
       s => {
         val packageDirective = pkg.map(_ + "; ").getOrElse("")
         val noWarnAnnotation = """@annotation.nowarn("msg=pure expression does nothing")"""
-        val firstLine =
+        val firstLine        =
           s"""${packageDirective}object $wrapperName { $noWarnAnnotation def main(args: Array[String]): Unit = { """
         s.indices.foldLeft(0 -> firstLine) {
           case ((nextScopeIndex, sum), index) =>
@@ -113,14 +113,14 @@ object MarkdownCodeWrapper {
     if (index >= snippets.length) s"$acc}" // close last class
     else {
       val fence: MarkdownCodeBlock = snippets(index)
-      val classOpener: String =
+      val classOpener: String      =
         if (index == 0)
           s"object ${scopeObjectName(scopeIndex)} {${System.lineSeparator()}" // first snippet needs to open a class
         else if (fence.resetScope)
           s"}; object ${scopeObjectName(scopeIndex)} {${System.lineSeparator()}" // if scope is being reset, close previous class and open a new one
         else System.lineSeparator()
       val nextScopeIndex = if index == 0 || fence.resetScope then scopeIndex + 1 else scopeIndex
-      val newAcc = acc + (System.lineSeparator() * (fence.startLine - line - 1)) // padding
+      val newAcc         = acc + (System.lineSeparator() * (fence.startLine - line - 1)) // padding
         .:++(classOpener) // new class opening (if applicable)
         .:++(fence.body) // snippet body
         .:++(System.lineSeparator()) // padding in place of closing backticks

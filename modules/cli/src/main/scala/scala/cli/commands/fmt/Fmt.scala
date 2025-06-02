@@ -83,7 +83,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
       }
       val scalaFmtConfPath = {
         val confFileName = ".scalafmt.conf"
-        val path =
+        val path         =
           if (options.saveScalafmtConf) pathMaybe.getOrElse(workspace / confFileName)
           else workspace / Constants.workspaceDirName / confFileName
         os.write.over(path, entry, createFolders = true)
@@ -95,7 +95,7 @@ object Fmt extends ScalaCommand[FmtOptions] {
           Seq(launcher)
         case None =>
           val (url, changing) = options.binaryUrl(version)
-          val params = ExternalBinaryParams(
+          val params          = ExternalBinaryParams(
             url,
             changing,
             "scalafmt",

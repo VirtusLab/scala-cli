@@ -21,7 +21,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
         val res = os.proc(TestUtil.cli, "compile", sourceFileName)
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(res.exitCode == 1)
-        val errOutput = res.err.trim()
+        val errOutput                   = res.err.trim()
         val expectedStrictEqualityError =
           " Values of types Cat and Dog cannot be compared with == or !="
         expect(errOutput.contains(expectedStrictEqualityError))
@@ -40,7 +40,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     for {
       mode <- modes
       if actualScalaVersion == Constants.scala3Next
-      dashPrefix <- Seq("-", "--")
+      dashPrefix    <- Seq("-", "--")
       syntaxVariant <- Seq(
         Seq(
           Seq(s"${dashPrefix}color:never"),
@@ -63,12 +63,12 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
       )
       (cliOpts, directiveOpts) = {
         val (initialCliOpts, initialDirectiveOpts) = mode match {
-          case m if m == mixed => syntaxVariant.splitAt(syntaxVariant.length - 1)
+          case m if m == mixed                => syntaxVariant.splitAt(syntaxVariant.length - 1)
           case m if m == mixedWithExplicitOpt =>
             val (initialCliOpts, initialDirectiveOpts) =
               syntaxVariant.splitAt(syntaxVariant.length - 1)
             initialCliOpts.map(_.flatMap(o => Seq("-O", o))) -> initialDirectiveOpts
-          case c if c == viaCli => syntaxVariant -> Nil
+          case c if c == viaCli                => syntaxVariant -> Nil
           case c if c == viaCliWithExplicitOpt =>
             syntaxVariant.map(_.flatMap(o => Seq("-O", o))) -> Nil
           case _ => Nil -> syntaxVariant
@@ -77,10 +77,10 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
       }
       cliOptsString       = cliOpts.mkString(" ")
       directiveOptsString = directiveOpts.mkString(" ")
-      includeDirective =
+      includeDirective    =
         (mode == viaDirective || mode == mixed || mode == mixedWithExplicitOpt) && directiveOpts.nonEmpty
       directiveString = if (includeDirective) s"//> using options $directiveOptsString" else ""
-      allOptsString = mode match {
+      allOptsString   = mode match {
         case m if m.startsWith(mixed) =>
           s"opts passed via command line: $cliOptsString, opts passed via directive: $directiveString"
         case c if c.startsWith(viaCli) =>
@@ -103,7 +103,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
           .call(cwd = root, check = false, stderr = os.Pipe)
         println(res.err.trim())
         expect(res.exitCode == 1)
-        val errOutput = res.err.trim()
+        val errOutput                   = res.err.trim()
         val expectedStrictEqualityError =
           "Values of types Cat and Dog cannot be compared with == or !="
         expect(errOutput.contains(expectedStrictEqualityError))
@@ -121,8 +121,8 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     sv            = actualScalaVersion
   } {
     test(s"consecutive -Wconf:* flags are not ignored (passed via $optionsSource)") {
-      val sourceFileName     = "example.scala"
-      val warningConfOptions = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
+      val sourceFileName       = "example.scala"
+      val warningConfOptions   = Seq("-Wconf:cat=deprecation:e", "-Wconf:any:s")
       val maybeDirectiveString =
         if (useDirective) s"//> using options ${warningConfOptions.mkString(" ")}" else ""
       TestInputs(os.rel / sourceFileName ->
@@ -155,7 +155,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
           .call(cwd = root, check = false, stderr = os.Pipe)
         expect(scalacRes.exitCode == cliRes.exitCode)
         val scalacResErr = scalacRes.err.trim()
-        val cliResErr =
+        val cliResErr    =
           cliRes.err.trim().linesIterator.toList
             // skip potentially irrelevant logs
             .dropWhile(_.contains("Check"))
@@ -166,8 +166,8 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
 
     if (!sv.startsWith("2.12"))
       test(s"consecutive -Wunused:* flags are not ignored (passed via $optionsSource)") {
-        val sourceFileName    = "example.scala"
-        val unusedLintOptions = Seq("-Wunused:locals", "-Wunused:privates")
+        val sourceFileName       = "example.scala"
+        val unusedLintOptions    = Seq("-Wunused:locals", "-Wunused:privates")
         val maybeDirectiveString =
           if (useDirective) s"//> using options ${unusedLintOptions.mkString(" ")}" else ""
         TestInputs(os.rel / sourceFileName ->

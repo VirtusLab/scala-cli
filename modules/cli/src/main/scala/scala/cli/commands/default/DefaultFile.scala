@@ -102,7 +102,7 @@ object DefaultFile extends ScalaCommand[DefaultFileOptions] {
       }
 
       val arg = allArgs.head
-      val f = defaultFiles.get(arg).orElse(defaultFilesByRelPath.get(arg)).getOrElse {
+      val f   = defaultFiles.get(arg).orElse(defaultFilesByRelPath.get(arg)).getOrElse {
         unrecognizedFile(arg, logger)
       }
       System.out.write(f.content())

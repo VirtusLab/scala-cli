@@ -11,8 +11,8 @@ final case class ComputeVersionCheck(
   workspace: os.Path,
   logger: Logger
 ) extends OptionCheck {
-  def kind      = OptionCheck.Kind.Core
-  def fieldName = "computeVersion"
+  def kind          = OptionCheck.Kind.Core
+  def fieldName     = "computeVersion"
   def directivePath =
     "publish" + (if (options.publishParams.setupCi) ".ci" else "") + ".computeVersion"
 

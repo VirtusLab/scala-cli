@@ -23,7 +23,7 @@ object BuiltInRules extends CommandHelpers {
 
   private lazy val directiveTestPrefix = "test."
   extension (strictDirective: StrictDirective) {
-    private def hasTestPrefix: Boolean = strictDirective.key.startsWith(directiveTestPrefix)
+    private def hasTestPrefix: Boolean        = strictDirective.key.startsWith(directiveTestPrefix)
     private def existsTestEquivalent: Boolean =
       !strictDirective.hasTestPrefix &&
       usingDirectivesWithTestPrefixKeysGrouped
@@ -115,7 +115,7 @@ object BuiltInRules extends CommandHelpers {
           .pipe(maybeTransformIntoTestEquivalent)
 
         val allDirectives = for {
-          directivesWithTestPrefix <- transformedTestDirectives.map(_.withTestPrefix)
+          directivesWithTestPrefix              <- transformedTestDirectives.map(_.withTestPrefix)
           directivesWithNoTestPrefixEquivalents <-
             transformedTestDirectives.map {
               _.noTestPrefixAvailable
@@ -204,7 +204,7 @@ object BuiltInRules extends CommandHelpers {
 
     val fromInMemory = sources.inMemory.map { inMem =>
       val originOrPath = inMem.originalPath.map((_, path) => path)
-      val content = originOrPath match {
+      val content      = originOrPath match {
         case Right(path) =>
           logger.debug(s"Extracting directives from ${loggingUtilities.relativePath(path)}")
           os.read(path)
@@ -277,7 +277,7 @@ object BuiltInRules extends CommandHelpers {
       directives = extractedFromSingleElement.directives
     } yield {
       val (withInitialTestPrefix, noInitialTestPrefix) = directives.partition(_.hasTestPrefix)
-      val (withTestEquivalent, noTestEquivalent) =
+      val (withTestEquivalent, noTestEquivalent)       =
         noInitialTestPrefix.partition(_.existsTestEquivalent)
       val transformedToTestEquivalents = withTestEquivalent.map {
         case StrictDirective(key, values, _, _) => StrictDirective("test." + key, values)

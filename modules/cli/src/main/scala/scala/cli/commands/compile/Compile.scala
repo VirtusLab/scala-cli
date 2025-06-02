@@ -24,7 +24,7 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
   override def sharedOptions(options: CompileOptions): Option[SharedOptions] = Some(options.shared)
 
   override def scalaSpecificationLevel: SpecificationLevel = SpecificationLevel.MUST
-  val primaryHelpGroups: Seq[HelpGroup] =
+  val primaryHelpGroups: Seq[HelpGroup]                    =
     Seq(
       HelpGroup.Compilation,
       HelpGroup.Scala,
@@ -94,8 +94,8 @@ object Compile extends ScalaCommand[CompileOptions] with BuildCommandHelpers {
 
     val threads = BuildThreads.create()
 
-    val compilerMaker = options.shared.compilerMaker(threads)
-    val configDb      = ConfigDbUtils.configDb.orExit(logger)
+    val compilerMaker         = options.shared.compilerMaker(threads)
+    val configDb              = ConfigDbUtils.configDb.orExit(logger)
     val actionableDiagnostics =
       options.shared.logging.verbosityOptions.actions.orElse(
         configDb.get(Keys.actions).getOrElse(None)

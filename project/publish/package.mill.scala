@@ -40,7 +40,7 @@ lazy val (ghOrg: String, ghName: String) = {
       case Some(url) if url.startsWith("https://github.com/") =>
         url.stripPrefix("https://github.com/").stripSuffix(".git").split("/", 2) match {
           case Array(org, name) => (org, name)
-          case Array(_) =>
+          case Array(_)         =>
             System.err.println(
               s"Warning: git remote URL $url doesn't look like a GitHub URL, using default GitHub org and name"
             )
@@ -137,7 +137,7 @@ trait ScalaCliPublishModule extends PublishModule with PublishLocalNoFluff {
       Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
-  def publishVersion: Target[String] = finalPublishVersion()
+  def publishVersion: Target[String]      = finalPublishVersion()
   override def sourceJar: Target[PathRef] = Task {
     import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet

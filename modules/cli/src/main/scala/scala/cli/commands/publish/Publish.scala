@@ -479,7 +479,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val moduleName = publishOptions.moduleName match {
       case Some(name0) => name0.value
-      case None =>
+      case None        =>
         val name = publishOptions.name match {
           case Some(name0) => name0.value
           case None        => defaultName(workspace, logger)
@@ -501,7 +501,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val maybeVer = publishOptions.version match {
       case Some(ver0) => Right(ver0.value)
-      case None =>
+      case None       =>
         val computeVer = publishOptions.contextual(isCi).computeVersion.orElse {
           def isGitRepo = GitRepo.gitRepoOpt(workspace).isDefined
 
@@ -559,7 +559,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       val mainClassOpt: Option[String] =
         (builds.head.options.mainClass.filter(_.nonEmpty) match {
           case Some(cls) => Right(cls)
-          case None =>
+          case None      =>
             val potentialMainClasses = builds.flatMap(_.foundMainClasses()).distinct
             builds
               .map { build =>
@@ -598,7 +598,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val docJarOpt =
       if publishOptions.contextual(isCi).docJar.getOrElse(true) then
         docBuilds match {
-          case Nil => None
+          case Nil       => None
           case docBuilds =>
             val docJarPath = value(PackageCmd.docJar(
               builds = docBuilds,
@@ -625,7 +625,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           }
         (dep0.module.organization, dep0.module.name, dep0.version, config, dep0.minimizedExclusions)
       }
-    val url = publishOptions.url.map(_.value)
+    val url     = publishOptions.url.map(_.value)
     val license = publishOptions.license.map(_.value).map { l =>
       Pom.License(l.name, l.url)
     }
@@ -804,7 +804,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
         val hostOpt = Option.when(isHttps)(new URI(repo).getHost)
         val maybeCredentials: Either[BuildException, Option[PublishCredentials]] = hostOpt match {
-          case None => Right(None)
+          case None       => Right(None)
           case Some(host) =>
             configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
               credListOpt.flatMap { credList =>
@@ -820,7 +820,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           case other => other.map(_.toConfig)
         }
         passwordOpt.map(_.get()) match {
-          case None => None
+          case None           => None
           case Some(password) =>
             val userOpt = publishOptions.contextual(isCi).repoUser match {
               case None  => value(maybeCredentials).flatMap(_.user)
@@ -880,7 +880,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       hostOpt.exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
     }
 
-    val now = Instant.now()
+    val now                       = Instant.now()
     val (fileSet0, modVersionOpt) = value {
       it
         .map {
@@ -987,7 +987,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           if repoParams.shouldSign then "signing is required for chosen repository" else ""
         for {
           secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException
-          secretKey <- secretKeyOpt.toRight(
+          secretKey    <- secretKeyOpt.toRight(
             new MissingPublishOptionError(
               "secret key",
               "--secret-key",
@@ -1036,7 +1036,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         if repoParams.acceptsChecksums then Seq(ChecksumType.MD5, ChecksumType.SHA1)
         else Nil
       case Some(Seq("none")) => Nil
-      case Some(inputs) =>
+      case Some(inputs)      =>
         value {
           inputs
             .map(ChecksumType.parse)
@@ -1070,7 +1070,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
     val isLegacySonatype        = isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
-    val hooksDataOpt = Option.when(!dummy) {
+    val hooksDataOpt            = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(ec)
       catch {
         case NonFatal(e)
@@ -1172,7 +1172,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           }
         for ((mod, version) <- modVersionOpt) {
           val checkRepo = repoParams0.repo.checkResultsRepo(isSnapshot0)
-          val relPath = {
+          val relPath   = {
             val elems =
               if repoParams.isIvy2LocalLike then
                 Seq(mod.organization.value, mod.name.value, version)

@@ -481,7 +481,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   }
 
   val platforms: Seq[(String, Seq[String])] = {
-    val maybeJs = Seq("JS" -> Seq("--js"))
+    val maybeJs     = Seq("JS" -> Seq("--js"))
     val maybeNative =
       if (actualScalaVersion.startsWith("2."))
         Seq("native" -> Seq("--native"))
@@ -641,7 +641,7 @@ abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionAr
   test("Cross-tests") {
     TestUtil.retryOnCi() {
       val supportsNative = actualScalaVersion.startsWith("2.")
-      val platforms = {
+      val platforms      = {
         var pf = Seq("jvm", "js")
         if (supportsNative)
           pf = pf :+ "native"

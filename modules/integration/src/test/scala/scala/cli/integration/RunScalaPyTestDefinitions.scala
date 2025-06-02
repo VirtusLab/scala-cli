@@ -109,7 +109,7 @@ trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
   }
 
   def pythonAndScalaSourcesTest(native: Boolean): Unit = {
-    val tq = "\"\"\""
+    val tq     = "\"\"\""
     val inputs = TestInputs(
       os.rel / "src" / "helpers.py" ->
         s"""class Helper:

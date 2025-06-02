@@ -92,12 +92,12 @@ object ReplArtifacts {
     addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")
-    val replDep =
+    val replDep  =
       if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
-    val externalDeps = dependencies ++ scalapyDeps
+    val externalDeps  = dependencies ++ scalapyDeps
     val replArtifacts =
       Artifacts.artifacts(
         Seq(replDep).map(Positioned.none),

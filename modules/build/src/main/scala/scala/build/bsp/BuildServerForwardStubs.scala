@@ -18,7 +18,7 @@ trait BuildServerForwardStubs extends b.BuildServer {
           maybeValue
         case error =>
           val methodContext = s"bloop bsp server, method: $methodName"
-          val context =
+          val context       =
             if (params.isEmpty) methodContext
             else
               params.mkString(s"$methodContext, with params: ", ", ", "")

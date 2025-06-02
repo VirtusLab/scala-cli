@@ -51,7 +51,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       crossSources.sharedOptions(options)
 
       val scopedSources = value(crossSources.scopedSources(options))
-      val mainSources = value(scopedSources.sources(
+      val mainSources   = value(scopedSources.sources(
         Scope.Main,
         crossSources.sharedOptions(options),
         allInputs.workspace,
@@ -133,7 +133,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       ))
 
     val (bspName, bspJsonDestination) = bspDetails(inputs.workspace, options.bspFile)
-    val scalaCliBspJsonDestination =
+    val scalaCliBspJsonDestination    =
       inputs.workspace / Constants.workspaceDirName / "ide-options-v2.json"
     val scalaCliBspLauncherOptsJsonDestination =
       inputs.workspace / Constants.workspaceDirName / "ide-launcher-options.json"

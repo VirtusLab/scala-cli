@@ -36,8 +36,8 @@ object NativeImage {
     nativeImage
   }
 
-  private def vcVersions = Seq("2022", "2019", "2017")
-  private def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+  private def vcVersions                              = Seq("2022", "2019", "2017")
+  private def vcEditions                              = Seq("Enterprise", "Community", "BuildTools")
   private lazy val vcVarsCandidates: Iterable[String] =
     EnvVar.Misc.vcVarsAll.valueOpt ++ {
       for {
@@ -99,7 +99,7 @@ object NativeImage {
     val str         = "HKEY_LOCAL_MACHINE/SYSTEM/MountedDevices".replace('/', '\\')
     val queryDrives = s"reg query $str"
     val lines       = os.proc("cmd", "/c", queryDrives).call().out.lines()
-    val dosDevices = lines.filter { s =>
+    val dosDevices  = lines.filter { s =>
       s.contains("DosDevices")
     }.map { s =>
       s.replaceAll(".DosDevices.", "").replaceAll(":.*", "")
@@ -178,14 +178,14 @@ object NativeImage {
 
     os.makeDir.all(nativeImageWorkDir)
 
-    val jvmId = builds.head.options.notForBloopOptions.packageOptions.nativeImageOptions.jvmId
+    val jvmId   = builds.head.options.notForBloopOptions.packageOptions.nativeImageOptions.jvmId
     val options = builds.head.options.copy(
       javaOptions = builds.head.options.javaOptions.copy(
         jvmIdOpt = Some(Positioned.none(jvmId))
       )
     )
 
-    val javaHome = options.javaHome().value
+    val javaHome        = options.javaHome().value
     val nativeImageArgs =
       options.notForBloopOptions.packageOptions.nativeImageOptions.graalvmArgs.map(_.value)
 

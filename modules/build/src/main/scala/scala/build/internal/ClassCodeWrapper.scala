@@ -17,16 +17,16 @@ case class ClassCodeWrapper(scalaVersion: String, log: String => Unit) extends C
     scriptPath: String
   ) = {
 
-    val mainObject = WrapperUtils.mainObjectInScript(scalaVersion, code)
+    val mainObject     = WrapperUtils.mainObjectInScript(scalaVersion, code)
     val mainInvocation = mainObject match
       case WrapperUtils.ScriptMainMethod.Exists(name) => s"script.$name.main(args)"
-      case otherwise =>
+      case otherwise                                  =>
         otherwise.warningMessage.foreach(log)
         s"val _ = script.hashCode()"
 
     val name             = mainClassObject(indexedWrapperName).backticked
     val wrapperClassName = scala.build.internal.Name(indexedWrapperName.raw ++ "$_").backticked
-    val mainObjectCode =
+    val mainObjectCode   =
       AmmUtil.normalizeNewlines(s"""|object $name {
                                     |  private var args$$opt0 = Option.empty[Array[String]]
                                     |  def args$$set(args: Array[String]): Unit = {

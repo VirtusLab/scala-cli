@@ -80,7 +80,7 @@ object OptionCheck {
         case _                     => None
       }
     def parseList(input: String): Either[Seq[String], Seq[Kind]] = {
-      val results = input.split(",").map(v => (v, parse(v))).toSeq
+      val results      = input.split(",").map(v => (v, parse(v))).toSeq
       val unrecognized = results.collect {
         case (v, None) => v
       }

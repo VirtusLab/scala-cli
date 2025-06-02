@@ -20,7 +20,7 @@ object Position {
   ) extends Position {
     def render(cwd: os.Path, sep: String): String = {
       val p = path match {
-        case Left(p0) => p0
+        case Left(p0)  => p0
         case Right(p0) =>
           if (p0.startsWith(cwd)) p0.relativeTo(cwd).segments.mkString(sep)
           else p0.toString

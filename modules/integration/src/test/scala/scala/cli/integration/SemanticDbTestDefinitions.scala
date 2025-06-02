@@ -51,7 +51,7 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
         os.proc(TestUtil.cli, "compile", extraOptions, javaSemDbOptions, ".")
           .call(cwd = root)
 
-        val files = os.walk(root / Constants.workspaceDirName)
+        val files      = os.walk(root / Constants.workspaceDirName)
         val semDbFiles = files
           .filter(_.last.endsWith(".semanticdb"))
           .filter(!_.segments.exists(_ == "bloop-internal-classes"))
@@ -92,12 +92,12 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
             }
           os.proc(TestUtil.cli, "compile", extraOptions, "--semantic-db", ".", targetDirOptions)
             .call(cwd = root)
-          val files = os.walk(root)
+          val files      = os.walk(root)
           val semDbFiles = files
             .filter(_.last.endsWith(".semanticdb"))
             .filter(!_.segments.exists(_ == "bloop-internal-classes"))
           expect(semDbFiles.length == 1)
-          val semDbFile = semDbFiles.head
+          val semDbFile              = semDbFiles.head
           val expectedSemanticDbPath =
             if (semanticDbTargetDir.isDefined)
               os.rel / semanticDbTargetDir
@@ -116,14 +116,14 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
             semanticDbTargetDir.map(_ => "and target root ").getOrElse("")
           }${workspaceDir.map(_ => "and custom workspace directory").getOrElse("")}"
       ) {
-        val (className1, className2) = s"Test1$inputType" -> s"Test2$inputType"
+        val (className1, className2)           = s"Test1$inputType" -> s"Test2$inputType"
         val (sourceFileName1, sourceFileName2) =
           if (inputType == "Java") s"$className1.java" -> s"$className2.java"
           else if (inputType == "Scala") s"$className1.scala" -> s"$className2.scala"
           else s"$className1.sc"                              -> s"$className2.sc"
         val (package1, package2)     = "foo"                 -> "bar"
         val (sourceDir1, sourceDir2) = (os.rel / "sources1") -> (os.rel / "sources2")
-        val (code1, code2) =
+        val (code1, code2)           =
           if (inputType == "Java")
             javaHelloWorld(package1, className1) -> javaHelloWorld(package2, className2)
           else if (inputType == "Scala")

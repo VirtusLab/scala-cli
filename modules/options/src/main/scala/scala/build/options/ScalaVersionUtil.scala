@@ -82,7 +82,7 @@ object ScalaVersionUtil {
         val scala2NightlyRepo =
           "https://scala-ci.typesafe.com/ui/api/v1/ui/nativeBrowser/scala-integration/org/scala-lang/scala-compiler"
         val artifact = Artifact(scala2NightlyRepo).withChanging(true)
-        val res = cache.fileWithTtl0(artifact)
+        val res      = cache.fileWithTtl0(artifact)
           .left.map { err =>
             val msg =
               """|Unable to compute the latest Scala 2 nightly version.
@@ -102,7 +102,7 @@ object ScalaVersionUtil {
       val webPageScala2Repo = value(downloadScala2RepoPage(cache))
       val scala2Repo        = readFromArray(webPageScala2Repo)(Scala2Repo.codec)
       val versions          = scala2Repo.children
-      val sortedVersion =
+      val sortedVersion     =
         versions
           .filter(_.name.startsWith(versionPrefix))
           .filterNot(_.name.contains("pre"))
@@ -146,7 +146,7 @@ object ScalaVersionUtil {
     ): Either[scala.build.errors.ScalaVersionError, String] =
       versions.latest(coursier.core.Latest.Release) match {
         case Some(versionString) => Right(versionString)
-        case None =>
+        case None                =>
           val msg =
             s"Unable to find matching version for $desc in available version: ${versions.available.mkString(", ")}. " +
               "This error may indicate a network or other problem accessing repository."
@@ -209,7 +209,7 @@ object ScalaVersionUtil {
         matchingStableVersions.filter(v => isSupportedVersion(v.repr))
 
       supportedMatchingStableVersions.find(_.repr == scalaVersionStringArg) match {
-        case Some(v) => Right(v.repr)
+        case Some(v)                                          => Right(v.repr)
         case None if supportedMatchingStableVersions.nonEmpty =>
           Right(supportedMatchingStableVersions.max.repr)
         case _ => Left(

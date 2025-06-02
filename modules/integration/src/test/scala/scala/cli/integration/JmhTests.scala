@@ -18,7 +18,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     useDirective <- Seq(None, Some("//> using jmh"))
     directiveString = useDirective.getOrElse("")
     jmhOptions      = if (useDirective.isEmpty) Seq("--jmh") else Nil
-    testMessage = useDirective match {
+    testMessage     = useDirective match {
       case None            => jmhOptions.mkString(" ")
       case Some(directive) => directive
     }
@@ -149,7 +149,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     useDirective <- Seq(None, Some("//> using jmh false"))
     directiveString = useDirective.getOrElse("")
     jmhOptions      = if (useDirective.isEmpty) Seq("--jmh=false") else Nil
-    testMessage = useDirective match {
+    testMessage     = useDirective match {
       case None             => jmhOptions.mkString(" ")
       case Some(directives) => directives.linesIterator.mkString("; ")
     }
@@ -173,7 +173,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
       )
     )
     directiveString = useDirective.getOrElse("")
-    jmhOptions =
+    jmhOptions      =
       if (useDirective.isEmpty) Seq("--jmh", "--jmh-version", exampleOldJmhVersion) else Nil
     testMessage = useDirective match {
       case None             => jmhOptions.mkString(" ")

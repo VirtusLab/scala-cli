@@ -366,7 +366,7 @@ object Runner {
       events
     } match {
     case events if requireTests && events.isEmpty => Left(new NoTestsRun)
-    case events => Right {
+    case events                                   => Right {
         !events.exists { ev =>
           ev.status == Status.Error ||
           ev.status == Status.Failure ||
@@ -438,13 +438,13 @@ object Runner {
         )
       }
     val adapterConfig = ScalaJsTestAdapter.Config().withLogger(logger.scalaJsLogger)
-    val inputs =
+    val inputs        =
       Seq(if esModule then Input.ESModule(entrypoint.toPath) else Input.Script(entrypoint.toPath))
     var adapter: ScalaJsTestAdapter = null
 
     logger.debug(s"JS tests class path: $classPath")
 
-    val parentInspector = new AsmTestRunner.ParentInspector(classPath)
+    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath)
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList
@@ -492,7 +492,7 @@ object Runner {
     logger.debug("Preparing to run tests with Scala Native...")
     logger.debug(s"Native tests class path: $classPath")
 
-    val parentInspector = new AsmTestRunner.ParentInspector(classPath)
+    val parentInspector                   = new AsmTestRunner.ParentInspector(classPath)
     val foundFrameworkNames: List[String] = predefinedTestFrameworks match {
       case f if f.nonEmpty => f.toList
       case Nil             => value(frameworkNames(classPath, parentInspector, logger)).toList

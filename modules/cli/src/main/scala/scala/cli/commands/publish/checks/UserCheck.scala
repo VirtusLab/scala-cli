@@ -25,7 +25,7 @@ final case class UserCheck(
       workspace,
       logger
     ) match {
-      case None => Right(None)
+      case None       => Right(None)
       case Some(host) =>
         configDb().get(Keys.publishCredentials).wrapConfigException.map { credListOpt =>
           credListOpt.flatMap { credList =>
@@ -57,7 +57,7 @@ final case class UserCheck(
       if (options.publishParams.setupCi) {
         val user0 = options.publishRepo.user match {
           case Some(value0) => value0.toConfig
-          case None =>
+          case None         =>
             value(userOpt(pubOpt)) match {
               case Some(user) =>
                 logger.message("publish.user:")

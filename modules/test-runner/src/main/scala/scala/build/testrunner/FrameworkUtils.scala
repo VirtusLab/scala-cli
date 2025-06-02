@@ -194,7 +194,7 @@ object FrameworkUtils {
     val isModule               = cls.getName.endsWith("$")
     val publicConstructorCount = cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
     val noPublicConstructors   = publicConstructorCount == 0
-    val definitelyNoTests = Modifier.isAbstract(cls.getModifiers) ||
+    val definitelyNoTests      = Modifier.isAbstract(cls.getModifiers) ||
       cls.isInterface ||
       publicConstructorCount > 1 ||
       isModule != noPublicConstructors

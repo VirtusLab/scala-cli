@@ -49,7 +49,7 @@ object Export extends ScalaCommand[ExportOptions] {
     }
 
     val scopedSources: ScopedSources = value(crossSources.scopedSources(buildOptions))
-    val sources: Sources =
+    val sources: Sources             =
       scopedSources.sources(
         scope,
         crossSources.sharedOptions(buildOptions),
@@ -108,7 +108,7 @@ object Export extends ScalaCommand[ExportOptions] {
       case (path, url) =>
         val art = Artifact(url).withChanging(true)
         cache.file(art).run.flatMap {
-          case Left(e) => Task.fail(e)
+          case Left(e)  => Task.fail(e)
           case Right(f) => Task.delay {
               val content = os.read.bytes(os.Path(f, Os.pwd))
               path -> content
@@ -244,8 +244,8 @@ object Export extends ScalaCommand[ExportOptions] {
       project.print(System.out)
     }
     else {
-      val sbtVersion                  = options.sbtVersion.getOrElse(Constants.sbtVersion)
-      val defaultMavenCompilerVersion = options.mvnVersion.getOrElse(Constants.mavenVersion)
+      val sbtVersion                       = options.sbtVersion.getOrElse(Constants.sbtVersion)
+      val defaultMavenCompilerVersion      = options.mvnVersion.getOrElse(Constants.mavenVersion)
       val defaultScalaMavenCompilerVersion =
         options.mvnScalaVersion.getOrElse(Constants.mavenScalaCompilerPluginVersion)
       val defaultMavenExecPluginVersion =

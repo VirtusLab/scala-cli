@@ -31,7 +31,7 @@ object CompileOptions {
   implicit lazy val help: Help[CompileOptions]     = Help.derive
   val cmdName                                      = "compile"
   private val helpHeader                           = "Compile Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

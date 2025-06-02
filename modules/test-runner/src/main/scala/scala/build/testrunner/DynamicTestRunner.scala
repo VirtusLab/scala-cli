@@ -87,7 +87,7 @@ object DynamicTestRunner {
 
     val classLoader = Thread.currentThread().getContextClassLoader
     val classPath0  = TestRunner.classPath(classLoader)
-    val frameworks =
+    val frameworks  =
       Option(testFrameworks)
         .filter(_.nonEmpty)
         .map(_.map(loadFramework(classLoader, _)).toSeq)
@@ -98,7 +98,7 @@ object DynamicTestRunner {
           )(logger) match {
             case f if f.nonEmpty     => f
             case _ if verbosity >= 2 => sys.error("No test framework found")
-            case _ =>
+            case _                   =>
               System.err.println("No test framework found")
               sys.exit(1)
           }
@@ -136,7 +136,7 @@ object DynamicTestRunner {
             .toVector
           val initialTasks = runner.tasks(taskDefs.toArray)
           val events       = TestRunner.runTasks(initialTasks, out)
-          val failed = events.exists { ev =>
+          val failed       = events.exists { ev =>
             ev.status == Status.Error ||
             ev.status == Status.Failure ||
             ev.status == Status.Canceled

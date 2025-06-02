@@ -21,7 +21,7 @@ object ReplOptions {
   val cmdName                                   = "repl"
   private val helpHeader                        = "Fire-up a Scala REPL."
   val helpMessage: String                       = HelpMessages.shortHelpMessage(cmdName, helpHeader)
-  val detailedHelpMessage: String =
+  val detailedHelpMessage: String               =
     s"""$helpHeader
        |
        |The entire $fullRunnerName project's classpath is loaded to the repl.

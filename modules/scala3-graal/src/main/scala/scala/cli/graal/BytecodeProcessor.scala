@@ -84,7 +84,7 @@ object BytecodeProcessor {
   }
 
   def processDir(dir: os.Path, dest: os.Path, cache: JarCache): ClassPathEntry = {
-    val paths = os.walk(dir).filter(os.isFile)
+    val paths                = os.walk(dir).filter(os.isFile)
     val (skipped, processed) = paths.partitionMap {
       case p if p.ext != "class" =>
         Left(p)
@@ -117,7 +117,7 @@ object BytecodeProcessor {
       var processedBytecode: Option[Array[Byte]] = None
       val endMarker                              = "///" // not a valid path
       var processed: String                      = endMarker
-      def processEntry(entry: JarEntry) = {
+      def processEntry(entry: JarEntry)          = {
         val newBytecode = processClassFile(jarFile.getInputStream(entry))
         processed = entry.getName()
         processedBytecode = newBytecode
@@ -136,7 +136,7 @@ object BytecodeProcessor {
         jarFile.entries().asIterator().asScala.foreach { entry =>
           val content: Array[Byte] = jarFile.getInputStream(entry).readAllBytes()
           val name                 = entry.getName()
-          val destBytes =
+          val destBytes            =
             if (cachedEntries.contains(name) || !name.endsWith(".class")) content
             else if (name == processed) processedBytecode.get
             else processClassFile(content).getOrElse(content)

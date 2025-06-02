@@ -41,7 +41,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
     }
     test("Scala code with references to existing files accepted as piped input") {
       val expectedOutput = "Hello"
-      val pipedInput =
+      val pipedInput     =
         s"""object Test extends App {
            |  val data = SomeData(value = "$expectedOutput")
            |  println(data.value)
@@ -56,7 +56,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
     }
     test("Java code accepted as piped input") {
       val expectedOutput = "Hello"
-      val pipedInput =
+      val pipedInput     =
         s"""public class Main {
            |    public static void main(String[] args) {
            |        System.out.println("$expectedOutput");
@@ -72,7 +72,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
     }
     test("Java code with multiple classes accepted as piped input") {
       val expectedOutput = "Hello"
-      val pipedInput =
+      val pipedInput     =
         s"""class OtherClass {
            |    public String message;
            |    public OtherClass(String message) {
@@ -104,10 +104,10 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
       val expectedOutput = hello + comma + world + exclamation
       val scriptSnippet  = s"def world = \"$world\""
       val scalaSnippet   = "case class ScalaSnippetData(value: String)"
-      val javaSnippet =
+      val javaSnippet    =
         s"public class JavaSnippet { public static String exclamation = \"$exclamation\"; }"
       val pipedInput = s"def hello = \"$hello\""
-      val inputs =
+      val inputs     =
         TestInputs(os.rel / "Main.scala" ->
           s"""object Main extends App {
              |  val hello = stdin.hello
@@ -188,7 +188,7 @@ trait RunPipedSourcesTestDefinitions { _: RunTestDefinitions =>
 
   test("Markdown code with a scala snippet accepted as piped input") {
     val expectedOutput = "Hello"
-    val pipedInput =
+    val pipedInput     =
       s"""# Piped Markdown
          |A simple `scala` snippet
          |```scala

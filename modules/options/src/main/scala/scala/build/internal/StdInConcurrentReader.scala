@@ -20,7 +20,7 @@ import scala.io.StdIn
   * callers of [[waitForLine]]__
   */
 object StdInConcurrentReader {
-  private implicit val ec: ExecutionContext = ExecutionContext.global
+  private implicit val ec: ExecutionContext                           = ExecutionContext.global
   private val readLineFuture: AtomicReference[Future[Option[String]]] =
     new AtomicReference(Future.successful(None))
 

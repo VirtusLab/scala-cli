@@ -67,7 +67,7 @@ object FetchExternalBinary {
   ): Either[BuildException, Option[os.Path]] = either {
 
     val artifact = Artifact(url).withChanging(changing)
-    val res = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
+    val res      = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
       logger.log(s"Getting $url")
       archiveCache.get(artifact)
         .unsafeRun()(archiveCache.cache.ec)
@@ -136,12 +136,12 @@ object FetchExternalBinary {
       else if (Properties.isMac) "osx"
       else if (Properties.isLinux) "linux"
       else sys.error(s"Unsupported mamba OS: ${sys.props("os.name")}")
-    val arch = sys.props("os.arch").toLowerCase(Locale.ROOT)
+    val arch      = sys.props("os.arch").toLowerCase(Locale.ROOT)
     val mambaArch = arch match {
       case "x86_64" | "amd64"  => "64"
       case "arm64" | "aarch64" => "arm64"
       case "ppc64le"           => "ppc64le"
-      case _ =>
+      case _                   =>
         sys.error(s"Unsupported mamba architecture: $arch")
     }
     s"$mambaOs-$mambaArch"

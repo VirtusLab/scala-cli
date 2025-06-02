@@ -36,7 +36,7 @@ object DocOptions {
   val cmdName                                  = "doc"
   private val helpHeader                       = "Generate Scaladoc documentation."
   val helpMessage: String                      = HelpMessages.shortHelpMessage(cmdName, helpHeader)
-  val detailedHelpMessage: String =
+  val detailedHelpMessage: String              =
     s"""Generate Scaladoc documentation.
        |
        |${HelpMessages.acceptedInputs}

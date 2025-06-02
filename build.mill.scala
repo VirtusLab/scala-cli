@@ -231,7 +231,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests
 object packager extends ScalaModule with Bloop.Module {
   def skipBloop                    = true
   def scalaVersion: Target[String] = Scala.scala213
-  def ivyDeps: Target[Agg[Dep]] = Agg(
+  def ivyDeps: Target[Agg[Dep]]    = Agg(
     Deps.scalaPackagerCli
   )
   def mainClass: Target[Option[String]] = Some("packager.cli.PackagerCli")
@@ -263,7 +263,7 @@ object dummy extends Module {
   // versions are used in the fmt and repl commands, and ensure Ammonite is available
   // for all Scala versions we support.
   object amm extends Cross[Amm](Scala.listMaxAmmoniteScalaVersion)
-  trait Amm extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
+  trait Amm  extends Cross.Module[String] with CrossScalaModule with Bloop.Module {
     def crossScalaVersion: String = crossValue
     def skipBloop                 = true
     def ivyDeps: Target[Agg[Dep]] = {
@@ -276,12 +276,12 @@ object dummy extends Module {
   object scalafmt extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
-    def ivyDeps: Target[Agg[Dep]] = Agg(
+    def ivyDeps: Target[Agg[Dep]]    = Agg(
       Deps.scalafmtCli
     )
   }
   object pythonInterface extends JavaModule with Bloop.Module {
-    def skipBloop = true
+    def skipBloop                 = true
     def ivyDeps: Target[Agg[Dep]] = Agg(
       Deps.pythonInterface
     )
@@ -289,14 +289,14 @@ object dummy extends Module {
   object scalaPy extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
-    def ivyDeps: Target[Agg[Dep]] = Agg(
+    def ivyDeps: Target[Agg[Dep]]    = Agg(
       Deps.scalaPy
     )
   }
   object scalafix extends ScalaModule with Bloop.Module {
     def skipBloop                    = true
     def scalaVersion: Target[String] = Scala.defaultInternal
-    def ivyDeps: Target[Agg[Dep]] = Agg(
+    def ivyDeps: Target[Agg[Dep]]    = Agg(
       Deps.scalafixInterfaces
     )
   }
@@ -306,7 +306,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule
     with HasTests {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String        = crossValue
   def compileIvyDeps: Target[Agg[Dep]] = Task {
     if (crossScalaVersion.startsWith("3")) super.compileIvyDeps()
     else super.compileIvyDeps() ++ Agg(Deps.scalaReflect(crossScalaVersion))
@@ -326,7 +326,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
     }
 
     def testNegativeCompilation(): Command[Unit] = Task.Command {
-      val base = Task.workspace / "modules" / "build-macros" / "src"
+      val base          = Task.workspace / "modules" / "build-macros" / "src"
       val negativeTests = Seq(
         "MismatchedLeft.scala" -> Seq(
           "Found\\: +EE1".r,
@@ -338,7 +338,7 @@ trait BuildMacros extends ScalaCliCrossSbtModule
       val cpsSource = base / "main" / "scala" / "scala" / "build" / "EitherCps.scala"
       assert(os.exists(cpsSource))
 
-      val sv = scalaVersion()
+      val sv                                             = scalaVersion()
       def compile(extraSources: os.Path*): CommandResult =
         os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
           check = false,
@@ -434,8 +434,8 @@ trait Core extends ScalaCliCrossSbtModule
   }
 
   def constantsFile: Target[PathRef] = Task(persistent = true) {
-    val dir  = Task.dest / "constants"
-    val dest = dir / "Constants.scala"
+    val dir                 = Task.dest / "constants"
+    val dest                = dir / "Constants.scala"
     val testRunnerMainClass = `test-runner`(Scala.runnerScala3)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
@@ -579,7 +579,7 @@ trait Directives extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
     with ScalaCliScalafixModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String      = crossValue
   def moduleDeps: Seq[PublishModule] = Seq(
     options(crossScalaVersion),
     core(crossScalaVersion),
@@ -643,7 +643,7 @@ trait Config extends ScalaCliCrossSbtModule
     with ScalaCliScalafixModule {
   def crossScalaVersion: String      = crossValue
   def moduleDeps: Seq[PublishModule] = Seq(`specification-level`(crossScalaVersion))
-  def ivyDeps: Target[Agg[Dep]] = {
+  def ivyDeps: Target[Agg[Dep]]      = {
     val maybeCollectionCompat =
       if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
       else Nil
@@ -668,7 +668,7 @@ trait Config extends ScalaCliCrossSbtModule
 
 trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String      = crossValue
   def moduleDeps: Seq[PublishModule] = Seq(
     core(crossScalaVersion)
   )
@@ -733,8 +733,8 @@ trait Build extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
     with ScalaCliScalafixModule {
-  def crossScalaVersion: String = crossValue
-  def millSourcePath: os.Path   = super.millSourcePath / os.up / "build"
+  def crossScalaVersion: String      = crossValue
+  def millSourcePath: os.Path        = super.millSourcePath / os.up / "build"
   def moduleDeps: Seq[PublishModule] = Seq(
     options(crossScalaVersion),
     directives(crossScalaVersion),
@@ -815,9 +815,9 @@ trait Build extends ScalaCliCrossSbtModule
 
 trait SpecificationLevel extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String          = crossValue
   def scalacOptions: Target[Seq[String]] = Task {
-    val isScala213 = crossScalaVersion.startsWith("2.13.")
+    val isScala213   = crossScalaVersion.startsWith("2.13.")
     val extraOptions =
       if (isScala213) Seq("-Xsource:3")
       else Nil
@@ -897,7 +897,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     super.generatedSources() ++ Seq(constantsFile(), optionsConstantsFile())
 
   def defaultFilesResources: Target[PathRef] = Task(persistent = true) {
-    val dir = Task.dest / "resources"
+    val dir                                                  = Task.dest / "resources"
     def transformWorkflow(content: Array[Byte]): Array[Byte] =
       new String(content, "UTF-8")
         .replaceAll(" ./scala-cli", " scala-cli")
@@ -1040,8 +1040,8 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     )
 
     def constantsFile: Target[PathRef] = Task(persistent = true) {
-      val dir  = Task.dest / "constants"
-      val dest = dir / "Constants.scala"
+      val dir                    = Task.dest / "constants"
+      val dest                   = dir / "Constants.scala"
       val mostlyStaticDockerfile =
         Task.workspace / ".github" / "scripts" / "docker" / "ScalaCliSlimDockerFile"
       assert(
@@ -1203,7 +1203,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       )
 
     private def debugTestArgs(args: Seq[String]): Seq[String] = {
-      val debugReg = "^--debug$|^--debug:([0-9]+)$".r
+      val debugReg     = "^--debug$|^--debug:([0-9]+)$".r
       val debugPortOpt = args.find(debugReg.matches).flatMap {
         case debugReg(port) => Option(port).orElse(Some("5005"))
         case _              => None
@@ -1260,7 +1260,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
   def scalaVersion: T[String] = Scala.scala213
-  def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
+  def ivyDeps: T[Agg[Dep]]    = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
 }
@@ -1268,12 +1268,12 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
 trait Runner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixLegacyModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String          = crossValue
   def scalacOptions: Target[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8")
   }
   def mainClass: Target[Option[String]] = Some("scala.cli.runner.Runner")
-  def sources: Target[Seq[PathRef]] = Task.Sources {
+  def sources: Target[Seq[PathRef]]     = Task.Sources {
     val scala3DirNames =
       if (crossScalaVersion.startsWith("3.")) {
         val name =
@@ -1291,7 +1291,7 @@ trait Runner extends ScalaCliCrossSbtModule
 trait TestRunner extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixLegacyModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String          = crossValue
   def scalacOptions: Target[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8")
   }
@@ -1306,7 +1306,7 @@ trait TestRunner extends ScalaCliCrossSbtModule
 trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixLegacyModule {
-  def crossScalaVersion: String = crossValue
+  def crossScalaVersion: String      = crossValue
   def constantsFile: Target[PathRef] = Task(persistent = true) {
     val dir  = Task.dest / "constants"
     val dest = dir / "Constants.scala"
@@ -1364,7 +1364,7 @@ def copyTo(task: mill.main.Tasks[PathRef], dest: String): Command[Unit] = Task.C
 def writePackageVersionTo(dest: String): Command[Unit] = Task.Command {
   val destPath   = os.Path(dest, Task.workspace)
   val rawVersion = cli(Scala.defaultInternal).publishVersion()
-  val version =
+  val version    =
     if (rawVersion.contains("+")) rawVersion.stripSuffix("-SNAPSHOT")
     else rawVersion
   os.write.over(destPath, version)
@@ -1438,7 +1438,7 @@ def copyJvmBootstrappedLauncher(directory: String = "artifacts"): Command[Unit] 
 def uploadLaunchers(directory: String = "artifacts"): Command[Unit] = Task.Command {
   val version = cli(Scala.defaultInternal).publishVersion()
 
-  val path = os.Path(directory, Task.workspace)
+  val path      = os.Path(directory, Task.workspace)
   val launchers = os.list(path).filter(os.isFile(_)).map { path =>
     path -> path.last
   }
@@ -1561,8 +1561,8 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(mainDir)
 
-    val setupScript          = os.read(setupScriptPath)
-    val scalaCliVersionRegex = "const scalaCLIVersion = '.*'".r
+    val setupScript            = os.read(setupScriptPath)
+    val scalaCliVersionRegex   = "const scalaCLIVersion = '.*'".r
     val updatedSetupScriptPath =
       scalaCliVersionRegex.replaceFirstIn(setupScript, s"const scalaCLIVersion = '$version'")
     os.write.over(setupScriptPath, updatedSetupScriptPath)
@@ -1590,14 +1590,14 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(scalaCliDir)
 
-    val launcherScript       = os.read(standaloneLauncherPath)
-    val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
+    val launcherScript        = os.read(standaloneLauncherPath)
+    val scalaCliVersionRegex  = "SCALA_CLI_VERSION=\".*\"".r
     val updatedLauncherScript =
       scalaCliVersionRegex.replaceFirstIn(launcherScript, s"""SCALA_CLI_VERSION="$version"""")
     os.write.over(standaloneLauncherPath, updatedLauncherScript)
 
-    val launcherWindowsScript       = os.read(standaloneWindowsLauncherPath)
-    val scalaCliWindowsVersionRegex = "SCALA_CLI_VERSION=.*\"".r
+    val launcherWindowsScript        = os.read(standaloneWindowsLauncherPath)
+    val scalaCliWindowsVersionRegex  = "SCALA_CLI_VERSION=.*\"".r
     val updatedWindowsLauncherScript =
       scalaCliWindowsVersionRegex.replaceFirstIn(
         launcherWindowsScript,
@@ -1744,8 +1744,8 @@ object ci extends Module {
     gitClone(repo, branch, targetDir)
     setupGithubRepo(packagesDir)
 
-    val installationScript   = os.read(installationScriptPath)
-    val scalaCliVersionRegex = "SCALA_CLI_VERSION=\".*\"".r
+    val installationScript        = os.read(installationScriptPath)
+    val scalaCliVersionRegex      = "SCALA_CLI_VERSION=\".*\"".r
     val updatedInstallationScript =
       scalaCliVersionRegex.replaceFirstIn(installationScript, s"""SCALA_CLI_VERSION="$version"""")
     os.write.over(installationScriptPath, updatedInstallationScript)
@@ -1923,8 +1923,8 @@ object ci extends Module {
     distName: String = "vc_redist.x64.exe"
   ): Command[Unit] =
     Task.Command {
-      def vcVersions = Seq("2022", "2019", "2017")
-      def vcEditions = Seq("Enterprise", "Community", "BuildTools")
+      def vcVersions        = Seq("2022", "2019", "2017")
+      def vcEditions        = Seq("Enterprise", "Community", "BuildTools")
       def candidateBaseDirs =
         for {
           vsBasePath <- vsBasePaths
@@ -1965,12 +1965,12 @@ object ci extends Module {
 
         val vcVersions = Seq("2022", "2019", "2017")
         val vcEditions = Seq("Enterprise", "Community", "BuildTools")
-        val vsDirs = Seq(
+        val vsDirs     = Seq(
           os.Path("""C:\Program Files\Microsoft Visual Studio"""),
           os.Path("""C:\Program Files (x86)\Microsoft Visual Studio""")
         )
-        val fileNamePrefix = "Microsoft_VC".toLowerCase(Locale.ROOT)
-        val fileNameSuffix = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
+        val fileNamePrefix                  = "Microsoft_VC".toLowerCase(Locale.ROOT)
+        val fileNameSuffix                  = "_CRT_x64.msm".toLowerCase(Locale.ROOT)
         def candidatesIt: Iterator[os.Path] =
           for {
             vsDir   <- vsDirs.iterator
@@ -2004,7 +2004,7 @@ object ci extends Module {
       os.write.over(dest0, content.getBytes(Charset.defaultCharset()), createFolders = true)
     }
   def setShouldPublish(): Command[Unit] = publish.setShouldPublish()
-  def shouldPublish(): Command[Unit] = Task.Command {
+  def shouldPublish(): Command[Unit]    = Task.Command {
     println(publish.shouldPublish())
   }
   def copyJvm(jvm: String = deps.graalVmJvmId, dest: String = "jvm"): Command[Path] = Task.Command {

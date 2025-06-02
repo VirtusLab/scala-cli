@@ -7,7 +7,7 @@ class RunTests213 extends RunTestDefinitions with Test213 {
     TestInputs(os.rel / "sample.sc" -> "println(util.Properties.versionNumberString)").fromRoot {
       root =>
         val snapshotScalaVersion = "2.13.11-bin-89f3de5-SNAPSHOT"
-        val res =
+        val res                  =
           os.proc(
             TestUtil.cli,
             "run",

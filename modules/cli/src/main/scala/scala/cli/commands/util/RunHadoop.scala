@@ -48,7 +48,7 @@ object RunHadoop {
           "HADOOP_CLIENT_OPTS" -> javaOpts.mkString(" ") // no escaping…
         )
     val hadoopJarCommand = Seq("hadoop", "jar")
-    val finalCommand =
+    val finalCommand     =
       hadoopJarCommand ++ Seq(assembly.toString, mainClass) ++ args
     if showCommand then Left(Runner.envCommand(extraEnv) ++ finalCommand)
     else {

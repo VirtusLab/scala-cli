@@ -90,7 +90,7 @@ object ConfigOptions {
   implicit lazy val help: Help[ConfigOptions]     = Help.derive
   private val helpHeader: String = s"Configure global settings for $fullRunnerName."
   private val cmdName            = "config"
-  val helpMessage: String =
+  val helpMessage: String        =
     s"""$helpHeader
        |
        |Available keys:
@@ -99,7 +99,7 @@ object ConfigOptions {
        |${HelpMessages.commandFullHelpReference(cmdName)}
        |${HelpMessages.commandDocWebsiteReference(cmdName)}""".stripMargin
   private def configKeyMessages(includeHidden: Boolean): Seq[String] = {
-    val allKeys: Seq[Key[_]] = Keys.map.values.toSeq
+    val allKeys: Seq[Key[_]]     = Keys.map.values.toSeq
     val allowedKeys: Seq[Key[_]] =
       if allowRestrictedFeatures then allKeys
       else allKeys.filterNot(k => k.isRestricted || k.isExperimental)
@@ -110,7 +110,7 @@ object ConfigOptions {
     keys.sortBy(_.fullName)
       .map { key =>
         val currentKeyFullNameLength = maxFullNameLength - key.fullName.length
-        val extraSpaces =
+        val extraSpaces              =
           if currentKeyFullNameLength > 0 then " " * currentKeyFullNameLength else ""
         val hiddenOrExperimentalString =
           if key.hidden then s"${ScalaCliConsole.GRAY}(hidden)${Console.RESET} "

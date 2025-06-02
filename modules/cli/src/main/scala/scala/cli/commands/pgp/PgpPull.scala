@@ -10,7 +10,7 @@ object PgpPull extends ScalaCommand[PgpPullOptions] {
 
   override def hidden                  = true
   override def scalaSpecificationLevel = SpecificationLevel.EXPERIMENTAL
-  override def names = List(
+  override def names                   = List(
     List("pgp", "pull")
   )
 

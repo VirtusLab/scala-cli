@@ -7,7 +7,7 @@ import scala.util.Properties
 trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
-    val inputs = TestInputs(
+    val inputs       = TestInputs(
       os.rel / mainFileName ->
         s"""//> using objectWrapper
            |//> using dep com.lihaoyi::os-lib:0.9.1 com.lihaoyi::upickle:3.1.2
@@ -77,7 +77,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
 
   test("built-in rules for script with shebang") {
     val mainFileName = "main.sc"
-    val inputs = TestInputs(
+    val inputs       = TestInputs(
       os.rel / mainFileName ->
         s"""#!/usr/bin/env -S scala-cli shebang
            |
@@ -145,7 +145,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
   test("built-in rules with test scope") {
     val mainSubPath = os.rel / "src" / "Main.scala"
     val testSubPath = os.rel / "test" / "MyTests.scala"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       mainSubPath ->
         s"""//> using objectWrapper
            |//> using dep com.lihaoyi::os-lib:0.9.1
@@ -253,13 +253,13 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
     val mainSubPath = os.rel / "src" / "Main.scala"
     val testSubPath = os.rel / "test" / "MyTests.scala"
 
-    val withUsedTargetSubPath = os.rel / "src" / "UsedTarget.scala"
+    val withUsedTargetSubPath  = os.rel / "src" / "UsedTarget.scala"
     val withUsedTargetContents =
       s"""//> using target.scala 3.3.0
          |//> using dep com.lihaoyi::upickle:3.1.2
          |case class UsedTarget(x: Int)
          |""".stripMargin
-    val withUnusedTargetSubPath = os.rel / "src" / "UnusedTarget.scala"
+    val withUnusedTargetSubPath  = os.rel / "src" / "UnusedTarget.scala"
     val withUnusedTargetContents =
       s"""//> using target.scala 2.13
          |//> using dep com.lihaoyi::upickle:3.1.2
@@ -296,7 +296,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
              |""".stripMargin,
         withUsedTargetSubPath   -> withUsedTargetContents,
         withUnusedTargetSubPath -> withUnusedTargetContents,
-        testSubPath ->
+        testSubPath             ->
           s"""//> using options -Xasync -Xfatal-warnings
              |//> using dep org.scalameta::munit::0.7.29
              |//> using scala 3.2.2
@@ -422,7 +422,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
 
   if (!Properties.isWin) // TODO: fix this test for Windows CI
     test("using directives with boolean values are handled correctly") {
-      val expectedMessage = "Hello, world!"
+      val expectedMessage    = "Hello, world!"
       def maybeScalapyPrefix =
         if (actualScalaVersion.startsWith("2.13.")) ""
         else "import me.shadaj.scalapy.py" + System.lineSeparator()

@@ -102,8 +102,8 @@ object TestUtil {
 
   private def daemonThreadFactory(prefix: String): ThreadFactory =
     new ThreadFactory {
-      val counter             = new AtomicInteger
-      def threadNumber(): Int = counter.incrementAndGet()
+      val counter                        = new AtomicInteger
+      def threadNumber(): Int            = counter.incrementAndGet()
       def newThread(r: Runnable): Thread =
         new Thread(r, s"$prefix-thread-${threadNumber()}") {
           setDaemon(true)
@@ -309,7 +309,7 @@ object TestUtil {
     timeout: Duration
   ): String = {
     implicit val ec0 = ec
-    val readLineF = Future {
+    val readLineF    = Future {
       stream.readLine()
     }
     Await.result(readLineF, timeout)

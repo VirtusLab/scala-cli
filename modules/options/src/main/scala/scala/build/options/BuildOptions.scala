@@ -413,7 +413,7 @@ final case class BuildOptions(
     scope: Scope,
     maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
   ): Either[BuildException, Artifacts] = either {
-    val isTests = scope == Scope.Test
+    val isTests                 = scope == Scope.Test
     val scalaArtifactsParamsOpt = value(scalaParams) match {
       case Some(scalaParams0) =>
         val params = Artifacts.ScalaArtifactsParams(
@@ -480,7 +480,7 @@ final case class BuildOptions(
   }
 
   private def allCrossScalaVersionOptions: Seq[BuildOptions] = {
-    val scalaOptions0 = scalaOptions.normalize
+    val scalaOptions0            = scalaOptions.normalize
     val sortedExtraScalaVersions = scalaOptions0
       .extraScalaVersions
       .toVector
@@ -499,7 +499,7 @@ final case class BuildOptions(
   }
 
   private def allCrossScalaPlatformOptions: Seq[BuildOptions] = {
-    val scalaOptions0 = scalaOptions.normalize
+    val scalaOptions0        = scalaOptions.normalize
     val sortedExtraPlatforms = scalaOptions0
       .extraPlatforms
       .toVector

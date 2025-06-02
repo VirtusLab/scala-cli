@@ -73,10 +73,10 @@ object Scala {
       .distinct
       .filter(minorVer(_) < minorVer(scala3Lts))
 
-  def maxAmmoniteScala212Version  = scala212
-  def maxAmmoniteScala213Version  = scala213
-  def maxAmmoniteScala3Version    = "3.6.3"
-  def maxAmmoniteScala3LtsVersion = "3.3.5"
+  def maxAmmoniteScala212Version                    = scala212
+  def maxAmmoniteScala213Version                    = scala213
+  def maxAmmoniteScala3Version                      = "3.6.3"
+  def maxAmmoniteScala3LtsVersion                   = "3.3.5"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
   lazy val listAllAmmonite: Seq[String] = {
@@ -102,7 +102,7 @@ object Java {
   def minimumInternalJava: Int   = 16
   def defaultJava: Int           = minimumBloopJava
   def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23)
-  def allJavaVersions: Seq[Int] =
+  def allJavaVersions: Seq[Int]  =
     (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
 }
 
@@ -138,7 +138,7 @@ object Deps {
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.20.1"
     def scalaMeta                         = "4.13.6"
-    def scalafmt                          = "3.9.6"
+    def scalafmt                          = "3.9.7"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.7"
     def scalaNative                       = scalaNative05
@@ -166,7 +166,7 @@ object Deps {
   // that Scala CLI supports.
   def ammonite             = ivy"com.lihaoyi:::ammonite:${Versions.ammonite}"
   def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
-  def argonautShapeless =
+  def argonautShapeless    =
     ivy"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
   def asm = ivy"org.ow2.asm:asm:9.8"
   // Force using of 2.13 - is there a better way?
@@ -186,15 +186,15 @@ object Deps {
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish = ivy"io.get-coursier.publish:publish_2.13:0.2.0"
+  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.2.0"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def dependency   = ivy"io.get-coursier::dependency:0.3.2"
-  def dockerClient = ivy"com.spotify:docker-client:8.16.0"
-  def expecty      = ivy"com.eed3si9n.expecty::expecty:0.17.0"
-  def fansi        = ivy"com.lihaoyi::fansi:0.5.0"
-  def giter8       = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava        = ivy"com.google.guava:guava:33.4.8-jre"
+  def dependency    = ivy"io.get-coursier::dependency:0.3.2"
+  def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
+  def expecty       = ivy"com.eed3si9n.expecty::expecty:0.17.0"
+  def fansi         = ivy"com.lihaoyi::fansi:0.5.0"
+  def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
+  def guava         = ivy"com.google.guava:guava:33.4.8-jre"
   def javaClassName =
     ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
@@ -207,7 +207,7 @@ object Deps {
   def jmhGeneratorBytecode = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = ivy"org.openjdk.jmh:jmh-core:${Versions.jmh}"
   def jniUtils             = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
-  def jsoniterCore =
+  def jsoniterCore         =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterCoreJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
@@ -215,8 +215,8 @@ object Deps {
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
     ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def jsoup        = ivy"org.jsoup:jsoup:${Versions.jsoup}"
-  def libsodiumjni = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
+  def jsoup              = ivy"org.jsoup:jsoup:${Versions.jsoup}"
+  def libsodiumjni       = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
     ivy"org.scalameta::metaconfig-typesafe-config:0.16.0"
       .exclude(("org.scala-lang", "scala-compiler"))
@@ -241,9 +241,9 @@ object Deps {
   def scalaPackager      = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
   def scalaPackagerCli   = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
   def scalaPy            = ivy"dev.scalapy::scalapy-core::0.5.3"
-  def scalaReflect(sv: String) = ivy"org.scala-lang:scala-reflect:$sv"
-  def semanticDbJavac          = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
-  def semanticDbScalac         = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
+  def scalaReflect(sv: String)  = ivy"org.scala-lang:scala-reflect:$sv"
+  def semanticDbJavac           = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
+  def semanticDbScalac          = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def scalametaSemanticDbShared =
     ivy"org.scalameta:semanticdb-shared_2.13:${Versions.scalaMeta}"
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
@@ -306,11 +306,11 @@ def ubuntuVersion = "24.04"
 
 object Docker {
   def customMuslBuilderImageName = "scala-cli-base-musl"
-  def muslBuilder =
+  def muslBuilder                =
     s"$customMuslBuilderImageName:latest"
 
-  def testImage       = s"ubuntu:$ubuntuVersion"
-  def alpineTestImage = s"alpine:$alpineVersion"
+  def testImage          = s"ubuntu:$ubuntuVersion"
+  def alpineTestImage    = s"alpine:$alpineVersion"
   def authProxyTestImage =
     "bahamat/authenticated-proxy@sha256:568c759ac687f93d606866fbb397f39fe1350187b95e648376b971e9d7596e75"
 }

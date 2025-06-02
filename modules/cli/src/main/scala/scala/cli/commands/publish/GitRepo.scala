@@ -8,7 +8,7 @@ import scala.util.{Properties, Using}
 
 object GitRepo {
 
-  private lazy val user = os.owner(os.home)
+  private lazy val user                       = os.owner(os.home)
   private def trusted(path: os.Path): Boolean =
     if (Properties.isWin)
       path.toIO.canWrite()

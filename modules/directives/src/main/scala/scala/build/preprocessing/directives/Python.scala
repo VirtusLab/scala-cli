@@ -29,6 +29,6 @@ final case class Python(
 
 object Python {
   val handler: DirectiveHandler[Python] = DirectiveHandler.derive
-  val maxScalaNativeWarningMsg =
+  val maxScalaNativeWarningMsg          =
     s"ScalaPy does not support Scala Native ${Constants.scalaNativeVersion}, ${Constants.scalaPyMaxScalaNative} should be used instead."
 }

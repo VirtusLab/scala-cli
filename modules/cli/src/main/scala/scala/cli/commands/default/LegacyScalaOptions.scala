@@ -74,7 +74,7 @@ case class LegacyScalaOptions(
     val iString                   = I.findArg(args)
     val noCompilationDaemonString = noCompilationDaemon.findArg(args)
     val runString                 = run.findArg(args)
-    val deprecatedArgs =
+    val deprecatedArgs            =
       Seq(
         saveOptionString,
         noSaveOptionString,

@@ -59,7 +59,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
     val scalaSuffix: String =
       if (actualScalaVersion.startsWith("3.")) "_3"
       else "_" + actualScalaVersion.split('.').take(2).mkString(".")
-    val dependency = s"$org:$name$scalaSuffix:$version"
+    val dependency                       = s"$org:$name$scalaSuffix:$version"
     val expectedArtifactsDir: os.RelPath =
       os.rel / "org" / "virtuslab" / "scalacli" / "test" / s"simple$scalaSuffix" / "0.2.0-SNAPSHOT"
     val expectedJsArtifactsDir: os.RelPath =
@@ -387,7 +387,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   test("correctly list main classes") {
     val (scalaFile1, scalaFile2, scriptName) = ("ScalaMainClass1", "ScalaMainClass2", "ScalaScript")
     val scriptsDir                           = "scripts"
-    val inputs = TestInputs(
+    val inputs                               = TestInputs(
       os.rel / s"$scalaFile1.scala"           -> s"object $scalaFile1 extends App { println() }",
       os.rel / s"$scalaFile2.scala"           -> s"object $scalaFile2 extends App { println() }",
       os.rel / scriptsDir / s"$scriptName.sc" -> "println()"
@@ -402,7 +402,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
         "--list-main-classes"
       )
         .call(cwd = root)
-      val output = res.out.trim()
+      val output   = res.out.trim()
       val resLocal = os.proc(
         TestUtil.cli,
         "--power",

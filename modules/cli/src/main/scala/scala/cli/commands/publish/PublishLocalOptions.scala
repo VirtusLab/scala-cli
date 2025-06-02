@@ -31,7 +31,7 @@ object PublishLocalOptions {
   val cmdName                                           = "publish local"
   private val helpHeader       = "Publishes build artifacts to the local Ivy2 repository."
   private val docWebsiteSuffix = "publishing/publish-local"
-  val helpMessage: String =
+  val helpMessage: String      =
     s"""$helpHeader
        |
        |${HelpMessages.commandFullHelpReference(cmdName)}

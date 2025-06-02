@@ -16,7 +16,7 @@ abstract class WithWarmUpScalaCliSuite extends ScalaCliSuite {
   def warmUpTests(ignoreErrors: Boolean): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)

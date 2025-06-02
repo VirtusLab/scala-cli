@@ -46,9 +46,9 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
 
   def sharedOptions(t: T): Option[SharedOptions] = // hello borked unused warning
     None
-  override def hasFullHelp     = true
-  override def hidden: Boolean = shouldExcludeInSip
-  protected var argvOpt        = Option.empty[Array[String]]
+  override def hasFullHelp                       = true
+  override def hidden: Boolean                   = shouldExcludeInSip
+  protected var argvOpt                          = Option.empty[Array[String]]
   protected def allowRestrictedFeatures: Boolean =
     ScalaCli.allowRestrictedFeatures || globalOptions.powerOptions.power
   private def shouldExcludeInSip = (isRestricted || isExperimental) && !allowRestrictedFeatures
@@ -132,7 +132,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
             state.flatMap(sharedOptions).toList.flatMap { sharedOptions =>
               val logger = sharedOptions.logger
               val cache  = sharedOptions.coursierCache
-              val sv = sharedOptions.buildOptions().orExit(logger)
+              val sv     = sharedOptions.buildOptions().orExit(logger)
                 .scalaParams
                 .toOption
                 .flatten
@@ -193,7 +193,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
       scalacOptions        = shared.scalacOptions
       updatedScalacOptions = scalacOptions.withScalacExtraOptions(shared.scalacExtra)
       if updatedScalacOptions.map(_.noDashPrefixes).exists(ScalacOptions.ScalacPrintOptions)
-      logger = shared.logger
+      logger            = shared.logger
       fixedBuildOptions = buildOptions.copy(scalaOptions =
         buildOptions.scalaOptions.copy(defaultScalaVersion = Some(ScalaCli.getDefaultScalaVersion))
       )
@@ -244,7 +244,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
           }
           else if (shared.helpGroups.helpRepl) {
             val initialBuildOptions = buildOptionsOrExit(options)
-            val artifacts = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
+            val artifacts     = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
             val replArtifacts = value {
               ReplArtifacts.default(
                 scalaParams,

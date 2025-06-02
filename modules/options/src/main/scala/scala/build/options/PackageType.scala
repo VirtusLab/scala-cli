@@ -12,7 +12,7 @@ object PackageType {
     override def runnable = Some(true)
   }
   case object LibraryJar extends PackageType
-  case object SourceJar extends PackageType {
+  case object SourceJar  extends PackageType {
     override def sourceBased = true
   }
   case object DocJar extends PackageType
@@ -68,7 +68,7 @@ object PackageType {
     "rpm"          -> Rpm,
     "msi"          -> Msi
   )
-  private lazy val map = mapping.toMap
+  private lazy val map                          = mapping.toMap
   def parse(input: String): Option[PackageType] =
     map.get(input)
 }

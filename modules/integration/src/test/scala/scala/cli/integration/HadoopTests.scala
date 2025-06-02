@@ -8,7 +8,7 @@ class HadoopTests extends munit.FunSuite {
   for {
     withTestScope <- Seq(true, false)
     scopeDescription = if (withTestScope) "test scope" else "main scope"
-    inputPath =
+    inputPath        =
       if (withTestScope) os.rel / "test" / "WordCount.java" else os.rel / "main" / "WordCount.java"
     directiveKey = if (withTestScope) "test.dep" else "dep"
     scopeOptions = if (withTestScope) Seq("--test") else Nil

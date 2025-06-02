@@ -19,7 +19,7 @@ object New extends ScalaCommand[NewOptions] {
 
   override def runCommand(options: NewOptions, remainingArgs: RemainingArgs, logger: Logger): Unit =
     val scalaParameters = ScalaParameters(Constants.defaultScala213Version)
-    val fetchedGiter8 = Artifacts.fetchAnyDependencies(
+    val fetchedGiter8   = Artifacts.fetchAnyDependencies(
       giter8Dependency.map(Positioned.none),
       Seq.empty,
       Some(scalaParameters),
@@ -28,7 +28,7 @@ object New extends ScalaCommand[NewOptions] {
       None
     ) match {
       case Right(value) => value
-      case Left(value) =>
+      case Left(value)  =>
         System.err.println(value.message)
         sys.exit(1)
     }

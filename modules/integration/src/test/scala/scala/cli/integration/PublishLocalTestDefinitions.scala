@@ -72,8 +72,8 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
       else " without explicit publish.version, reading it from git:tag"
     test(s"publish local$withPublishVersionString") {
       val expectedFiles = {
-        val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
-        val base    = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val modName   = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base      = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
         val baseFiles = Seq(
           base / "jars" / s"$modName.jar",
           base / "docs" / s"$modName-javadoc.jar",
@@ -110,7 +110,7 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
             ciOptions
           )
             .call(cwd = root)
-          val ivy2Local = root / "ivy2" / "local"
+          val ivy2Local  = root / "ivy2" / "local"
           val foundFiles = os.walk(ivy2Local)
             .filter(os.isFile(_))
             .map(_.relativeTo(ivy2Local))
@@ -277,8 +277,8 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
 
     test("publish local without docs") {
       val expectedFiles = {
-        val modName = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
-        val base    = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
+        val modName   = s"${PublishTestInputs.testName}_$testedPublishedScalaVersion"
+        val base      = os.rel / PublishTestInputs.testOrg / modName / testPublishVersion
         val baseFiles = Seq(
           base / "jars" / s"$modName.jar",
           base / "srcs" / s"$modName-sources.jar",
@@ -308,7 +308,7 @@ abstract class PublishLocalTestDefinitions extends ScalaCliSuite with TestScalaV
             "--doc=false"
           )
             .call(cwd = root)
-          val ivy2Local = root / "ivy2" / "local"
+          val ivy2Local  = root / "ivy2" / "local"
           val foundFiles = os.walk(ivy2Local)
             .filter(os.isFile(_))
             .map(_.relativeTo(ivy2Local))

@@ -53,7 +53,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
         def bloopBspStdout: Option[java.io.OutputStream] = Some(System.out)
         def bloopCliInheritStderr: Boolean               = true
         def bloopCliInheritStdout: Boolean               = true
-        def debug(msg: => String): Unit = {
+        def debug(msg: => String): Unit                  = {
           System.err.println(msg)
         }
         def debug(msg: => String, ex: Throwable): Unit = {
@@ -65,7 +65,7 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
           if (ex != null) ex.printStackTrace(System.err)
         }
         def error(msg: => String): Unit = System.err.println(msg)
-        def info(msg: => String): Unit =
+        def info(msg: => String): Unit  =
           System.err.println(msg)
       }
     else

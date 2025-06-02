@@ -38,7 +38,7 @@ final case class JavaOptions(
     cache: FileCache[Task],
     verbosity: Int
   ): JavaHome = {
-    val indexUrl = jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
+    val indexUrl  = jvmIndexOpt.getOrElse(JvmIndex.coursierIndexUrl)
     val indexTask = {
       val msg    = if (verbosity > 0) "Downloading JVM index" else ""
       val cache0 = cache.withMessage(msg)
@@ -124,7 +124,7 @@ final case class JavaOptions(
     verbosity: Int
   ): Positioned[os.Path] =
     javaHomeLocationOpt(archiveCache, cache, verbosity).getOrElse {
-      val jvmId = OsLibc.defaultJvm(finalJvmIndexOs)
+      val jvmId            = OsLibc.defaultJvm(finalJvmIndexOs)
       val javaHomeManager0 = javaHomeManager(archiveCache, cache, verbosity)
         .withMessage(s"Downloading JVM $jvmId")
       implicit val ec: ExecutionContextExecutorService = cache.ec

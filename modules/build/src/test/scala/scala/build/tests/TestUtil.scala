@@ -20,7 +20,7 @@ object TestUtil {
         }
     }
     override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
-    val testStartEndLogger = new Fixture[Unit]("files") {
+    val testStartEndLogger    = new Fixture[Unit]("files") {
       def apply(): Unit = ()
 
       override def beforeEach(context: BeforeEach): Unit = {

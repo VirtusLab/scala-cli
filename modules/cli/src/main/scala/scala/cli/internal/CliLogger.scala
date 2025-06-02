@@ -66,7 +66,7 @@ class CliLogger(
         s"${ConsoleBloopBuildClient.diagnosticPrefix(severity)} $message"
       )
     else {
-      val positions0 = positions.distinct
+      val positions0    = positions.distinct
       val filePositions = positions0.collect {
         case f: Position.File => f
       }
@@ -157,7 +157,7 @@ class CliLogger(
 
   def bloopRifleLogger =
     new BloopRifleLogger {
-      def info(msg: => String) = logger.message(msg)
+      def info(msg: => String)  = logger.message(msg)
       def debug(msg: => String) =
         if (verbosity >= 3) logger.debug(msg)
       def debug(msg: => String, ex: Throwable) =
@@ -172,7 +172,7 @@ class CliLogger(
           ex.printStackTrace(out)
       }
       def error(msg: => String) = logger.error(msg)
-      def bloopBspStdout =
+      def bloopBspStdout        =
         if (verbosity >= 2) Some(out)
         else None
       def bloopBspStderr =
@@ -209,8 +209,8 @@ class CliLogger(
   // Allow to disable that?
   def compilerOutputStream = out
 
-  private var experimentalWarnings: Map[FeatureType, Set[String]] = Map.empty
-  private var reported: Map[FeatureType, Set[String]]             = Map.empty
+  private var experimentalWarnings: Map[FeatureType, Set[String]]              = Map.empty
+  private var reported: Map[FeatureType, Set[String]]                          = Map.empty
   def experimentalWarning(featureName: String, featureType: FeatureType): Unit =
     if (!reported.get(featureType).exists(_.contains(featureName)))
       experimentalWarnings ++= experimentalWarnings.updatedWith(featureType) {

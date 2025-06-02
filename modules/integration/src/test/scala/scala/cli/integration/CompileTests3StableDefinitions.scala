@@ -18,7 +18,7 @@ trait CompileTests3StableDefinitions { _: CompileTestDefinitions =>
 
   test("render explain message") {
     val fileName = "Hello.scala"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName -> // should be dump to 3.3.1 after release
         s"""//> using scala 3.3.1-RC1-bin-20230203-3ef1e73-NIGHTLY
            |//> using options --explain

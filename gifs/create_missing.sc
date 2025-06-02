@@ -5,8 +5,8 @@
 /** Small and handy script to generate stubs for .svg files with nice TODO
   */
 
-val content = os.read(os.pwd / "website" / "src" / "components" / "features.js")
-val Image   = """.*image="([^ ]+)" +(title="(.+)")?.*""".r
+val content                = os.read(os.pwd / "website" / "src" / "components" / "features.js")
+val Image                  = """.*image="([^ ]+)" +(title="(.+)")?.*""".r
 def needStub(name: String) =
   !os.exists(os.pwd / "website" / "static" / "img" / name) && name.endsWith(".svg")
 

@@ -14,8 +14,8 @@ object Library {
     builds: Seq[Build.Successful],
     mainClassOpt: Option[String] = None
   ): os.Path = {
-    val workDir = builds.head.inputs.libraryJarWorkDir
-    val dest    = workDir / "library.jar"
+    val workDir   = builds.head.inputs.libraryJarWorkDir
+    val dest      = workDir / "library.jar"
     val cacheData =
       CachedBinary.getCacheData(
         builds,

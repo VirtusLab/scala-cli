@@ -69,7 +69,7 @@ object JvmUtils {
 
   def downloadJvm(jvmId: String, options: bo.BuildOptions): Either[BuildException, JavaHomeInfo] = {
     implicit val ec: ExecutionContextExecutorService = options.finalCache.ec
-    val javaHomeManager = options.javaHomeManager
+    val javaHomeManager                              = options.javaHomeManager
       .withMessage(s"Downloading JVM $jvmId")
     javaHomeManager.cache
       .flatMap(_.archiveCache.cache.loggerOpt)

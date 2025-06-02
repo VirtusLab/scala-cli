@@ -70,7 +70,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
 
   private def addToPath(dir: os.Path): Map[String, String] = {
     // On Windows, trying to preserve the case of the PATH entry
-    def default = "PATH" -> Option(System.getenv("PATH")).getOrElse("")
+    def default             = "PATH" -> Option(System.getenv("PATH")).getOrElse("")
     val (key, currentValue) =
       if (Properties.isWin)
         System.getenv().asScala.find(_._1.toLowerCase(Locale.ROOT) == "path").getOrElse(default)
@@ -90,7 +90,7 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
         if (usePath) addToPath(spark.sparkHome / "bin")
         else Map("SPARK_HOME" -> spark.sparkHome.toString)
       val scopeOptions = if (withTestScope) Seq("--test") else Nil
-      val res = os.proc(
+      val res          = os.proc(
         TestUtil.cli,
         "--power",
         "run",

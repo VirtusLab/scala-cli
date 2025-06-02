@@ -22,7 +22,7 @@ case object ScriptPreprocessor extends Preprocessor {
     input match {
       case script: Script =>
         val res = either {
-          val content = value(PreprocessingUtil.maybeRead(script.path))
+          val content      = value(PreprocessingUtil.maybeRead(script.path))
           val preprocessed = value {
             ScriptPreprocessor.preprocess(
               Right(script.path),
@@ -171,9 +171,9 @@ case object ScriptPreprocessor extends Preprocessor {
 
     buildOptions.scriptOptions.forceObjectWrapper match {
       case Some(true) => objectCodeWrapperForScalaVersion
-      case _ =>
+      case _          =>
         buildOptions.scalaOptions.platform.map(_.value) match {
-          case Some(_: Platform.JS.type) => objectCodeWrapperForScalaVersion
+          case Some(_: Platform.JS.type)                  => objectCodeWrapperForScalaVersion
           case _ if effectiveScalaVersion.startsWith("2") =>
             AppCodeWrapper(effectiveScalaVersion, logWarning)
           case _ => ClassCodeWrapper(effectiveScalaVersion, logWarning)

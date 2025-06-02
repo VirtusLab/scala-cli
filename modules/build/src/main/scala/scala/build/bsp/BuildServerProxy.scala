@@ -98,7 +98,7 @@ class BuildServerProxy(
     : CompletableFuture[b.JvmTestEnvironmentResult] =
     bspServer().buildTargetJvmTestEnvironment(params)
 
-  def targetIds: List[b.BuildTargetIdentifier] = bspServer().targetIds
+  def targetIds: List[b.BuildTargetIdentifier]                        = bspServer().targetIds
   def targetScopeIdOpt(scope: Scope): Option[b.BuildTargetIdentifier] =
     bspServer().targetScopeIdOpt(scope)
   def setGeneratedSources(scope: Scope, sources: Seq[GeneratedSource]): Unit =

@@ -19,14 +19,14 @@ object AsmTestRunner {
     private def parents(className: String): Seq[String] =
       Option(cache.get(className)) match {
         case Some(value) => value
-        case None =>
+        case None        =>
           val byteCodeOpt =
             findInClassPath(classPath, className + ".class")
               .take(1)
               .toList
               .headOption
           val parents = byteCodeOpt match {
-            case None => Nil
+            case None    => Nil
             case Some(b) =>
               val reader  = new asm.ClassReader(new ByteArrayInputStream(b))
               val checker = new TestClassChecker
@@ -42,7 +42,7 @@ object AsmTestRunner {
 
       def helper(done: Set[String], todo: List[String]): Stream[String] =
         todo match {
-          case Nil => Stream.empty
+          case Nil    => Stream.empty
           case h :: t =>
             if (done(h)) helper(done, t)
             else h #:: helper(done + h, parents(h).toList ::: t)
@@ -72,7 +72,7 @@ object AsmTestRunner {
 
     val isModule              = className.endsWith("$")
     val hasPublicConstructors = checker.publicConstructorCount > 0
-    val definitelyNoTests = checker.isAbstract ||
+    val definitelyNoTests     = checker.isAbstract ||
       checker.isInterface ||
       checker.publicConstructorCount > 1 ||
       isModule == hasPublicConstructors
@@ -217,7 +217,7 @@ object AsmTestRunner {
     (preferredClassesByteCode.iterator ++ listClassesByteCode(classPath, true))
       .flatMap {
         case (moduleInfo, _) if moduleInfo.contains("module-info") => Iterator.empty
-        case (name, is) =>
+        case (name, is)                                            =>
           val checker          = new TestClassChecker
           var is0: InputStream = null
           try {

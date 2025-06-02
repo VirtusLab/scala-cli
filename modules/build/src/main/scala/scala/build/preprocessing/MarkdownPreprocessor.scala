@@ -21,7 +21,7 @@ case object MarkdownPreprocessor extends Preprocessor {
     input match {
       case markdown: MarkdownFile =>
         val res = either {
-          val content = value(PreprocessingUtil.maybeRead(markdown.path))
+          val content      = value(PreprocessingUtil.maybeRead(markdown.path))
           val preprocessed = value {
             MarkdownPreprocessor.preprocess(
               Right(markdown.path),
@@ -39,7 +39,7 @@ case object MarkdownPreprocessor extends Preprocessor {
         Some(res)
       case markdown: VirtualMarkdownFile =>
         val content = new String(markdown.content, StandardCharsets.UTF_8)
-        val res = either {
+        val res     = either {
           val preprocessed = value {
             MarkdownPreprocessor.preprocess(
               Left(markdown.source),

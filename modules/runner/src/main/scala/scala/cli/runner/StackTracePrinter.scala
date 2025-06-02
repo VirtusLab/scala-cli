@@ -17,7 +17,7 @@ final case class StackTracePrinter(
 
   private def truncateStackTrace(ex: Throwable): Unit = {
     val noCallerStackTrace = callerClass match {
-      case None => ex.getStackTrace
+      case None         => ex.getStackTrace
       case Some(caller) =>
         ex.getStackTrace
           .takeWhile(_.getClassName.stripSuffix("$") != caller.stripSuffix("$"))

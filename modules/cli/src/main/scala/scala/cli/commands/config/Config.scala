@@ -162,7 +162,7 @@ object Config extends ScalaCommand[ConfigOptions] {
                               s"No ${Keys.repositoryCredentials.fullName} found for host $host"
                             )
                           valueOpt match {
-                            case None => notFound()
+                            case None           => notFound()
                             case Some(credList) =>
                               val idx = credList.indexWhere(_.host == host)
                               if (idx < 0) notFound()
@@ -326,11 +326,11 @@ object Config extends ScalaCommand[ConfigOptions] {
 
     if shouldUpdate then
       val interactive = options.global.logging.verbosityOptions.interactiveInstance()
-      val msg =
+      val msg         =
         s"Do you want to change the key '$keyFullName' from '$previousValueStr' to '$newValuesStr'?"
       interactive.confirmOperation(msg) match {
         case Some(true) => Right(())
-        case _ => Left(new Exception(
+        case _          => Left(new Exception(
             s"Unable to change the value for the key: '$keyFullName' from '$previousValueStr' to '$newValuesStr' without the force flag. Please pass -f or --force to override."
           ))
       }

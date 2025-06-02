@@ -52,7 +52,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
   def scalaNativeLtoTests(): Unit = {
     val fileName = "hello.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""//> using nativeLto thin
            |println("$message")
@@ -94,7 +94,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       val projectDir       = "nativeres"
       val resourceContent  = "resource contents"
       val resourceFileName = "embeddedfile.txt"
-      val inputs = TestInputs(
+      val inputs           = TestInputs(
         os.rel / projectDir / "main.scala" ->
           s"""|//> using platform scala-native
               |//> using resourceDir resources
@@ -130,7 +130,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       val projectDir      = "native-interop"
       val interopFileName = "bindings.c"
       val interopMsg      = "Hello C!"
-      val inputs = TestInputs(
+      val inputs          = TestInputs(
         os.rel / projectDir / "main.scala" ->
           s"""|//> using platform scala-native
               |
@@ -185,7 +185,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
       TestUtil.retryOnCi() {
         val message  = "using Scala 3 Native"
         val fileName = "scala3native.scala"
-        val inputs = TestInputs(
+        val inputs   = TestInputs(
           os.rel / fileName ->
             s"""import scala.scalanative.libc._
                |import scala.scalanative.unsafe._
@@ -229,7 +229,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
 
   def directoryNative(): Unit = {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "dir" / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -335,7 +335,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
         ) {
           TestUtil.retryOnCi() {
             val expectedMessage = "Hello"
-            val cmdLineOpts =
+            val cmdLineOpts     =
               if (useDirectives) Nil
               else Seq(
                 "--toolkit",
@@ -445,7 +445,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
         val expectedOutput = "42"
         val threadSleep    = "100"
         val threadAwait    = "2.seconds"
-        val inputs = TestInputs(
+        val inputs         = TestInputs(
           os.rel / fileName ->
             s"""$directive
                |import scala.concurrent._

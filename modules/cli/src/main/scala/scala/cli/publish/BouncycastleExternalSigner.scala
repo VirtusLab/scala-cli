@@ -16,7 +16,7 @@ final case class BouncycastleExternalSigner(
 
   private def withFileContent[T](content: Content)(f: os.Path => T): T =
     content match {
-      case file: Content.File => f(os.Path(file.path, os.pwd))
+      case file: Content.File  => f(os.Path(file.path, os.pwd))
       case m: Content.InMemory =>
         val permsOpt =
           if (Properties.isWin) None
@@ -29,7 +29,7 @@ final case class BouncycastleExternalSigner(
   def sign(content: Content): Either[String, String] =
     withFileContent(content) { path =>
       val passwordArgs = passwordOpt.toSeq.flatMap(p => Seq("--password", p.asString.value))
-      val proc =
+      val proc         =
         os.proc(
           command,
           "pgp",

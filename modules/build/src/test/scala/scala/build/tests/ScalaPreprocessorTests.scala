@@ -21,7 +21,7 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
          |    println(os.pwd)
          |  }
          |}""".stripMargin).fromRoot { root =>
-      val scalaFile = SourceScalaFile(root, os.sub / "Main.scala")
+      val scalaFile           = SourceScalaFile(root, os.sub / "Main.scala")
       val Some(Right(result)) = ScalaPreprocessor.preprocess(
         scalaFile,
         logger = TestLogger(),
@@ -43,7 +43,7 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
          |$depLine
          |println(os.pwd)
          |""".stripMargin).fromRoot { root =>
-      val scalaFile = Script(root, os.sub / "sample.sc", None)
+      val scalaFile           = Script(root, os.sub / "sample.sc", None)
       val Some(Right(result)) = ScriptPreprocessor.preprocess(
         scalaFile,
         logger = TestLogger(),
@@ -76,7 +76,7 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
            |    println(os.pwd)
            |  }
            |}""".stripMargin).fromRoot { root =>
-        val scalaFile = SourceScalaFile(root, os.sub / "Main.scala")
+        val scalaFile           = SourceScalaFile(root, os.sub / "Main.scala")
         val Some(Right(result)) = ScalaPreprocessor.preprocess(
           scalaFile,
           logger = TestLogger(),

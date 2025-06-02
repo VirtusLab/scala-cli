@@ -221,7 +221,7 @@ class FmtTests extends ScalaCliSuite {
     val projectFileName = "project.scala"
     TestInputs(
       os.rel / projectFileName -> simpleInputsUnformattedContent,
-      os.rel / confFileName ->
+      os.rel / confFileName    ->
         s"""|version = "${Constants.defaultScalafmtVersion}"
             |runner.dialect = scala3
             |""".stripMargin

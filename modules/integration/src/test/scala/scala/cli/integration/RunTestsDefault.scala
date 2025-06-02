@@ -9,7 +9,7 @@ class RunTestsDefault extends RunTestDefinitions
     with TestDefault {
   def archLinuxTest(): Unit = {
     val message = "Hello from Scala CLI on Arch Linux"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "hello.sc" ->
         s"""println("$message")
            |""".stripMargin
@@ -25,7 +25,7 @@ class RunTestsDefault extends RunTestDefinitions
       os.write(root / "script.sh", script)
       os.perms.set(root / "script.sh", "rwxr-xr-x")
       val termOpt = if (System.console() == null) Nil else Seq("-t")
-      val cmd = Seq[os.Shellable](
+      val cmd     = Seq[os.Shellable](
         "docker",
         "run",
         "--rm",

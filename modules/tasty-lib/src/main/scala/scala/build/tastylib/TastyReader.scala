@@ -102,7 +102,7 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
 
 object TastyReader {
   final class Bytes(val buf: Array[Byte], val start: Int, val end: Int) {
-    def length: Int = end - start
+    def length: Int                     = end - start
     def writeTo(os: OutputStream): Unit =
       os.write(buf, start, end - start)
   }

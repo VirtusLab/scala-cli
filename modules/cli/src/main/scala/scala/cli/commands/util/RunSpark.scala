@@ -25,7 +25,7 @@ object RunSpark {
 
     // FIXME Get Spark.sparkModules via provided settings?
     val providedModules = Spark.sparkModules
-    val providedFiles =
+    val providedFiles   =
       value(PackageCmd.providedFiles(builds, providedModules, logger)).toSet
     val depCp        = builds.flatMap(_.dependencyClassPath).distinct.filterNot(providedFiles)
     val javaHomeInfo = builds.head.options.javaHome().value
@@ -80,7 +80,7 @@ object RunSpark {
   ): Either[BuildException, Either[Seq[String], (Process, Option[() => Unit])]] = either {
 
     // FIXME Get Spark.sparkModules via provided settings?
-    val providedModules = Spark.sparkModules
+    val providedModules              = Spark.sparkModules
     val sparkClassPath: Seq[os.Path] = value(PackageCmd.providedFiles(
       builds,
       providedModules,
@@ -95,7 +95,7 @@ object RunSpark {
     val javaHomeInfo = builds.head.options.javaHome().value
     val javaOpts     = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
     val jarsArgs     = if depCp.isEmpty then Nil else Seq("--jars", depCp.mkString(","))
-    val finalArgs =
+    val finalArgs    =
       Seq("--class", mainClass) ++
         jarsArgs ++
         javaOpts.flatMap(opt => Seq("--driver-java-options", opt)) ++

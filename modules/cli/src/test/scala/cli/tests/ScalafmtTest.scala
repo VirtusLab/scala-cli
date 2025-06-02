@@ -38,7 +38,7 @@ class ScalafmtTests extends munit.FunSuite {
     final case class Asset(name: String)
     final case class Release(tag_name: String, assets: List[Asset])
     lazy val releaseCodec: JsonValueCodec[Release] = JsonCodecMaker.make
-    val url =
+    val url                                        =
       s"https://api.github.com/repos/scalameta/scalafmt/releases/tags/v$defaultScalafmtVersion"
 
     val expectedAssets = Seq(
@@ -65,7 +65,7 @@ class ScalafmtTests extends munit.FunSuite {
     }
     catch {
       case e: JsonReaderException => throw new Exception(s"Error reading $url", e)
-      case e: Throwable => throw new Exception(
+      case e: Throwable           => throw new Exception(
           s"""Failed to check for the ScalaFmt $defaultScalafmtVersion native launcher assets: ${e.getMessage}
              |
              |$errorMsg

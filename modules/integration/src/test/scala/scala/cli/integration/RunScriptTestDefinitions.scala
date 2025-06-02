@@ -11,7 +11,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   def simpleScriptTest(ignoreErrors: Boolean = false, extraArgs: Seq[String] = Nil): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / fileName ->
         s"""val msg = "$message"
            |println(msg)
@@ -35,7 +35,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("Multiple scripts") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -56,7 +56,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("main.sc is not a special case") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "main.sc" ->
         s"""println("$message")
            |""".stripMargin
@@ -71,7 +71,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("main.sc has an object with a main method") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "main.sc" ->
         s"""|
             |object Main {
@@ -88,7 +88,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
   test("main.sc has an object that extends App") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "main.sc" ->
         s"""|
             |object Main extends App{
@@ -108,7 +108,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("main.sc has an object with a main method and an object wrapper") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "main.sc" ->
         s"""|//> using objectWrapper
             |object Main {
@@ -183,7 +183,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   test("main.sc has both an object with a main method as well as top-level definitions") {
     val message1 = "Hello"
     val message2 = "Another hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / "main.sc" ->
         s"""|object Main {
             |  def main(args: Array[String]): Unit = println("$message1")
@@ -211,7 +211,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   ) {
     val message1 = "Hello"
     val message2 = "Another hello"
-    val inputs = TestInputs(
+    val inputs   = TestInputs(
       os.rel / "main.sc" ->
         s"""|//> using objectWrapper
             |object Main {
@@ -229,7 +229,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   if (actualScalaVersion.startsWith("3"))
     test("use method from main.sc file") {
       val message = "Hello"
-      val inputs = TestInputs(
+      val inputs  = TestInputs(
         os.rel / "message.sc" ->
           s"""println(main.msg)
              |""".stripMargin,
@@ -250,7 +250,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   else
     test("warn when main.sc file is used together with other scripts") {
       val message = "Hello"
-      val inputs = TestInputs(
+      val inputs  = TestInputs(
         os.rel / "message.sc" ->
           s"""println(main.msg)
              |""".stripMargin,
@@ -272,7 +272,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("Directory") {
     val message = "Hello"
-    val inputs = TestInputs(
+    val inputs  = TestInputs(
       os.rel / "dir" / "messages.sc" ->
         s"""def msg = "$message"
            |""".stripMargin,
@@ -292,14 +292,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory") {
-    val fileName = "script.sc"
+    val fileName          = "script.sc"
     val expectedClassName =
       if (actualScalaVersion.startsWith("3."))
         fileName.stripSuffix(".sc") + "$_"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       scriptPath ->
         s"""println(getClass.getName)
            |""".stripMargin
@@ -314,14 +314,14 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
   }
 
   test("sub-directory and script") {
-    val fileName = "script.sc"
+    val fileName          = "script.sc"
     val expectedClassName =
       if (actualScalaVersion.startsWith("3."))
         fileName.stripSuffix(".sc") + "$_"
       else
         fileName.stripSuffix(".sc") + "$"
     val scriptPath = os.rel / "something" / fileName
-    val inputs = TestInputs(
+    val inputs     = TestInputs(
       os.rel / "dir" / "Messages.scala" ->
         s"""object Messages {
            |  def msg = "Hello"
@@ -371,7 +371,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       val output         = res.out.lines()
       val exceptionLines = output.dropWhile(!_.startsWith("Exception in thread "))
       val tab            = "\t"
-      val expectedLines =
+      val expectedLines  =
         if (actualScalaVersion.startsWith("2.12."))
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
@@ -756,8 +756,8 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       wrapperType = if (useObjectWrapper) "object" else "class"
     }
       test(s"$wrapperType script wrapper satisfies strict compiler flags") {
-        val expectedMessage = "Hello"
-        val sourceFileName  = "strictClassWrapper.sc"
+        val expectedMessage      = "Hello"
+        val sourceFileName       = "strictClassWrapper.sc"
         val versionDependentOpts =
           if (
             actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
@@ -801,7 +801,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       test(s"$wrapperType script wrapper satisfies strict compiler flags") {
         val expectedMessage = "Hello"
         val sourceFileName  = "strictClassWrapper.sc"
-        val warningOptions =
+        val warningOptions  =
           if (actualScalaVersion.startsWith("2.13"))
             Seq("-Werror", "-Wdead-code", "-Wextra-implicit")
           else Seq("-Werror")

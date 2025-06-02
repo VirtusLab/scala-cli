@@ -73,7 +73,7 @@ class CachedBinaryTests extends munit.FunSuite {
           os.write(destPath, Random.alphanumeric.take(10).mkString(""), createFolders = true)
 
           val successfulBuilds = builds.builds.map { case s: Build.Successful => s }
-          val cacheData =
+          val cacheData        =
             CachedBinary.getCacheData(successfulBuilds, config, destPath, nativeWorkDir)
           expect(cacheData.changed)
       }

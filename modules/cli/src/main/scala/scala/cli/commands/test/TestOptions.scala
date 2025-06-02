@@ -42,9 +42,9 @@ object TestOptions {
   implicit lazy val parser: Parser[TestOptions] = Parser.derive
   implicit lazy val help: Help[TestOptions]     = Help.derive
 
-  val cmdName             = "test"
-  private val helpHeader  = "Compile and test Scala code."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  val cmdName                     = "test"
+  private val helpHeader          = "Compile and test Scala code."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

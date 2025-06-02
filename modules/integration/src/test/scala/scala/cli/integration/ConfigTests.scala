@@ -326,7 +326,7 @@ class ConfigTests extends ScalaCliSuite {
       val tmpFileAsc = root / "test-file.asc"
       os.write(tmpFile, "Hello")
 
-      val q = "\""
+      val q                                = "\""
       def maybeEscape(arg: String): String =
         if (Properties.isWin) q + arg + q
         else arg
@@ -371,7 +371,7 @@ class ConfigTests extends ScalaCliSuite {
     val user        = "alex"
     val password    = "1234"
     val realm       = "LeTestRealm"
-    val inputs = TestInputs(
+    val inputs      = TestInputs(
       os.rel / "messages" / "Messages.scala" ->
         """package messages
           |
@@ -433,7 +433,7 @@ class ConfigTests extends ScalaCliSuite {
           "config",
           "repositories.credentials"
         ).call(cwd = root, env = extraEnv)
-        val linePrefix = "configRepo0"
+        val linePrefix                  = "configRepo0"
         val expectedCredentialsAsString =
           s"""$linePrefix.host=$host
              |$linePrefix.username=value:$user
@@ -463,7 +463,7 @@ class ConfigTests extends ScalaCliSuite {
     val userEnvVarName     = "REPO_USER"
     val password           = "1234"
     val user               = "user"
-    val envVars = Map(
+    val envVars            = Map(
       userEnvVarName     -> user,
       passwordEnvVarName -> password
     )

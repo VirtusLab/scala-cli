@@ -28,8 +28,8 @@ object ProfileFileUpdater {
   ): Boolean = {
 
     def updated(content: String): Option[String] = {
-      val start  = s"# >>> $title >>>\n"
-      val endStr = s"# <<< $title <<<\n"
+      val start    = s"# >>> $title >>>\n"
+      val endStr   = s"# <<< $title <<<\n"
       val withTags = "\n" +
         start +
         addition.stripSuffix("\n") + "\n" + endStr
@@ -49,7 +49,7 @@ object ProfileFileUpdater {
     }
 
     var updatedSomething = false
-    val contentOpt = Some(file)
+    val contentOpt       = Some(file)
       .filter(Files.exists(_))
       .map(f => new String(Files.readAllBytes(f), charset))
     for (updatedContent <- updated(contentOpt.getOrElse(""))) {
@@ -77,7 +77,7 @@ object ProfileFileUpdater {
     }
 
     var updatedSomething = false
-    val contentOpt = Some(file)
+    val contentOpt       = Some(file)
       .filter(Files.exists(_))
       .map(f => new String(Files.readAllBytes(f), charset))
     for (updatedContent <- updated(contentOpt.getOrElse(""))) {

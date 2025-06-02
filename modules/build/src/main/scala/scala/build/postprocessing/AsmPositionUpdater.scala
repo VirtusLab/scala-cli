@@ -20,8 +20,8 @@ object AsmPositionUpdater {
     mappings: Map[String, (String, Int)],
     cw: asm.ClassWriter
   ) extends asm.ClassVisitor(asm.Opcodes.ASM9, cw) {
-    private var lineShiftOpt = Option.empty[Int]
-    def mappedStuff          = lineShiftOpt.nonEmpty
+    private var lineShiftOpt                                      = Option.empty[Int]
+    def mappedStuff                                               = lineShiftOpt.nonEmpty
     override def visitSource(source: String, debug: String): Unit =
       mappings.get(source) match {
         case None =>
@@ -56,7 +56,7 @@ object AsmPositionUpdater {
       .filter(_.last.endsWith(".class"))
       .foreach { path =>
         try retry()(logger) {
-            val is = os.read.inputStream(path)
+            val is                = os.read.inputStream(path)
             val updateByteCodeOpt =
               try retry()(logger) {
                   val reader  = new asm.ClassReader(is)

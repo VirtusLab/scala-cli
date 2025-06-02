@@ -15,16 +15,16 @@ final case class ScalaJsLinkerConfig(
   emitWasm: Boolean = false
 ) {
   def linkerCliArgs: Seq[String] = {
-    val moduleKindArgs       = Seq("--moduleKind", moduleKind)
-    val moduleSplitStyleArgs = Seq("--moduleSplitStyle", moduleSplitStyle)
+    val moduleKindArgs            = Seq("--moduleKind", moduleKind)
+    val moduleSplitStyleArgs      = Seq("--moduleSplitStyle", moduleSplitStyle)
     val smallModuleForPackageArgs =
       if (smallModuleForPackage.nonEmpty)
         Seq("--smallModuleForPackages", smallModuleForPackage.mkString(","))
       else
         Nil
-    val esFeaturesArgs = Seq("--esVersion", esFeatures.esVersion)
-    val checkIRArgs    = if (checkIR) Seq("--checkIR") else Nil
-    val sourceMapArgs  = if (sourceMap) Seq("--sourceMap") else Nil
+    val esFeaturesArgs              = Seq("--esVersion", esFeatures.esVersion)
+    val checkIRArgs                 = if (checkIR) Seq("--checkIR") else Nil
+    val sourceMapArgs               = if (sourceMap) Seq("--sourceMap") else Nil
     val relativizeSourceMapBaseArgs =
       relativizeSourceMapBase.toSeq
         .flatMap(uri => Seq("--relativizeSourceMap", uri))

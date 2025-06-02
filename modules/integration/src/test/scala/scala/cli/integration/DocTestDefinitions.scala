@@ -16,7 +16,7 @@ abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
     scopeDescription = scopeOpts.headOption.getOrElse("main")
   }
     test(s"generate static scala doc ($scopeDescription)") {
-      val dest = os.rel / "doc-static"
+      val dest   = os.rel / "doc-static"
       val inputs = TestInputs(
         os.rel / "lib" / "Messages.scala" ->
           """package lib

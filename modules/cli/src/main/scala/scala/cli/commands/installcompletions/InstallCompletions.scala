@@ -31,13 +31,13 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     args: RemainingArgs,
     logger: Logger
   ): Unit = {
-    val interactive = options.global.logging.verbosityOptions.interactiveInstance()
+    val interactive         = options.global.logging.verbosityOptions.interactiveInstance()
     lazy val completionsDir =
       options.output
         .map(os.Path(_, os.pwd))
         .getOrElse(Directories.directories.completionsDir)
 
-    val name = getName(options.name)
+    val name   = getName(options.name)
     val format = getFormat(options.format).getOrElse {
       val msg = "Cannot determine current shell. Which would you like to use?"
       interactive.chooseOne(msg, List("zsh", "bash")).getOrElse {
@@ -58,14 +58,14 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
         (script, defaultRcFile)
       case Zsh.id | "zsh" =>
         val completionScript = Zsh.script(name)
-        val zDotDir = EnvVar.Misc.zDotDir.valueOpt
+        val zDotDir          = EnvVar.Misc.zDotDir.valueOpt
           .map(os.Path(_, os.pwd))
           .getOrElse(os.home)
         val defaultRcFile        = zDotDir / ".zshrc"
         val dir                  = completionsDir / "zsh"
         val completionScriptDest = dir / s"_$name"
         val content              = completionScript.getBytes(Charset.defaultCharset())
-        val needsWrite = !os.exists(completionScriptDest) ||
+        val needsWrite           = !os.exists(completionScriptDest) ||
           !util.Arrays.equals(os.read.bytes(completionScriptDest), content)
         if (needsWrite) {
           logger.log(s"Writing $completionScriptDest")
@@ -88,8 +88,8 @@ object InstallCompletions extends ScalaCommand[InstallCompletionsOptions] {
     if (options.env)
       println(rcScript)
     else {
-      val rcFile = options.rcFile.map(os.Path(_, os.pwd)).getOrElse(defaultRcFile)
-      val banner = options.banner.replace("{NAME}", name)
+      val rcFile  = options.rcFile.map(os.Path(_, os.pwd)).getOrElse(defaultRcFile)
+      val banner  = options.banner.replace("{NAME}", name)
       val updated = ProfileFileUpdater.addToProfileFile(
         rcFile.toNIO,
         banner,

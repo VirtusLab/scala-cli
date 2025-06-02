@@ -41,7 +41,7 @@ object Update extends ScalaCommand[UpdateOptions] {
   def newestScalaCliVersion(tokenOpt: Option[Secret[String]])
     : Either[CheckScalaCliVersionError, String] = {
     // FIXME Do we need paging here?
-    val url = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
+    val url     = s"https://api.github.com/repos/$ghOrg/$ghName/releases"
     val headers =
       Seq("Accept" -> "application/vnd.github.v3+json") ++
         tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
@@ -55,7 +55,7 @@ object Update extends ScalaCommand[UpdateOptions] {
     }
     catch {
       case e: JsonReaderException => Left(CheckScalaCliVersionError(s"Error reading $url", e))
-      case e: Throwable => Left(CheckScalaCliVersionError(
+      case e: Throwable           => Left(CheckScalaCliVersionError(
           s"Failed to check for the newest Scala CLI version upstream: ${e.getMessage}",
           e
         ))

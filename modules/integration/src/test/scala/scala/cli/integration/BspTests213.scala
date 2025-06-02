@@ -12,7 +12,7 @@ class BspTests213 extends BspTestDefinitions with BspTests2Definitions with Test
   List(".sc", ".scala").foreach { filetype =>
     test(s"bsp should report actionable diagnostic from bloop for $filetype files (Scala 2.13)") {
       val fileName = s"Hello$filetype"
-      val inputs = TestInputs(
+      val inputs   = TestInputs(
         os.rel / fileName ->
           s"""
              |object Hello {

@@ -15,7 +15,7 @@ case class AppCodeWrapper(scalaVersion: String, log: String => Unit) extends Cod
     val mainObject = WrapperUtils.mainObjectInScript(scalaVersion, code)
     val invokeMain = mainObject match
       case WrapperUtils.ScriptMainMethod.Exists(name) => s"\n$name.main(args)"
-      case otherwise =>
+      case otherwise                                  =>
         otherwise.warningMessage.foreach(log)
         ""
     val packageDirective =

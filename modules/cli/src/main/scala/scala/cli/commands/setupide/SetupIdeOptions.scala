@@ -28,8 +28,8 @@ object SetupIdeOptions {
   implicit lazy val parser: Parser[SetupIdeOptions] = Parser.derive
   implicit lazy val help: Help[SetupIdeOptions]     = Help.derive
   val cmdName                                       = "setup-ide"
-  private val helpHeader  = "Generates a BSP file that you can import into your IDE."
-  val helpMessage: String = HelpMessages.shortHelpMessage(cmdName, helpHeader)
+  private val helpHeader          = "Generates a BSP file that you can import into your IDE."
+  val helpMessage: String         = HelpMessages.shortHelpMessage(cmdName, helpHeader)
   val detailedHelpMessage: String =
     s"""$helpHeader
        |

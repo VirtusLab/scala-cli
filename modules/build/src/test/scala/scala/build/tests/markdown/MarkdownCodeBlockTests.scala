@@ -27,7 +27,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("a simple Scala code block is extracted correctly from markdown") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -48,7 +48,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("shebang line is ignored in plain scala code blocks") {
-    val code = """println("Hello")""".stripMargin
+    val code     = """println("Hello")""".stripMargin
     val markdown =
       s"""# Some snippet
          |
@@ -143,7 +143,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("a Scala code block is skipped when it's tagged as `ignore` in markdown") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -155,7 +155,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("an unclosed code block produces a build error") {
-    val code = """println("Hello")"""
+    val code     = """println("Hello")"""
     val markdown =
       s"""# Some snippet
          |
@@ -171,7 +171,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
   }
 
   test("recovery from an unclosed code block error works correctly") {
-    val code = """println("closed snippet")"""
+    val code     = """println("closed snippet")"""
     val markdown =
       """# Some snippet
         |```scala
@@ -189,7 +189,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
         |""".stripMargin
     val subPath                            = os.sub / "Example.md"
     var maybeError: Option[BuildException] = None
-    val recoveryFunction = (be: BuildException) => {
+    val recoveryFunction                   = (be: BuildException) => {
       maybeError = Some(be)
       None
     }

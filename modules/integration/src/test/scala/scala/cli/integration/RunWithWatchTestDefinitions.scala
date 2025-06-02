@@ -43,7 +43,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
-            val inputPath = os.rel / "Main.java"
+            val inputPath             = os.rel / "Main.java"
             def code(message: String) = s"""public class Main {
                                            |  public static void main(String[] args) {
                                            |    System.out.println("$message");
@@ -55,7 +55,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
               code(expectedMessage2)
             )
           }, {
-            val inputPath = os.rel / "markdown.md"
+            val inputPath             = os.rel / "markdown.md"
             def code(message: String) =
               s"""# Some random docs with a Scala snippet
                  |```scala
@@ -219,7 +219,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
   if (!Properties.isMac || !TestUtil.isNativeCli || !TestUtil.isCI)
     // TODO make this pass reliably on Mac CI
     test("watch artifacts") {
-      val libSourcePath = os.rel / "lib" / "Messages.scala"
+      val libSourcePath            = os.rel / "lib" / "Messages.scala"
       def libSource(hello: String) =
         s"""//> using publish.organization test-org
            |//> using publish.name messages
@@ -232,7 +232,7 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
            |}
            |""".stripMargin
       TestInputs(
-        libSourcePath -> libSource("Hello"),
+        libSourcePath                    -> libSource("Hello"),
         os.rel / "app" / "TestApp.scala" ->
           """//> using lib test-org::messages:0.1.0
             |

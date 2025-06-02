@@ -95,7 +95,7 @@ object LocalRepo {
     }
   }
 
-  private val intraProcessLock = new Object
+  private val intraProcessLock                               = new Object
   private def withLock[T](dir: Path, id: String)(f: => T): T =
     intraProcessLock.synchronized {
       val lockFile = dir.resolve(s".lock-$id");

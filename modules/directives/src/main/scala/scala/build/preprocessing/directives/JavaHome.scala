@@ -22,7 +22,7 @@ final case class JavaHome(
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
     javaHome.value match {
-      case None => BuildOptions()
+      case None             => BuildOptions()
       case Some(homePosStr) =>
         val root = value(Directive.osRoot(javaHome.scopePath, homePosStr.positions.headOption))
         val home = value {

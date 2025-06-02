@@ -112,7 +112,7 @@ object Dependency {
       value(ds.asDependencies.map(ShadowingSeq.from))
     val classPathOptions =
       tpe match {
-        case DependencyType.Runtime => ClassPathOptions(extraDependencies = dependencies)
+        case DependencyType.Runtime     => ClassPathOptions(extraDependencies = dependencies)
         case DependencyType.CompileOnly =>
           ClassPathOptions(extraCompileOnlyDependencies = dependencies)
         case DependencyType.Scalafix => ClassPathOptions(scalafixDependencies = dependencies)
