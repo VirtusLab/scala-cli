@@ -39,6 +39,8 @@ jobs:
         retention-days: 2
     - name: Cross compile everything
       run: ./mill -i '__[_].compile'
+    - name: Build macros negative compilation tests
+      run: ./mill -i build-macros[_].test.testNegativeCompilation
     - name: Unit tests
       run: ./mill -i unitTests
     - name: Convert Mill test reports to JUnit XML format
