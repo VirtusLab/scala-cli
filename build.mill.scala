@@ -329,14 +329,17 @@ trait BuildMacros extends ScalaCliCrossSbtModule
       val base          = Task.workspace / "modules" / "build-macros" / "src"
       val negativeTests = Seq(
         "MismatchedLeft.scala" -> Seq(
-          "Found\\: +EE1".r,
-          "Found\\: +EE2".r,
-          "Required\\: +E2".r
+          "Found: +EE1".r,
+          "Found: +EE2".r,
+          "Required: +E2".r
         )
       )
 
-      val cpsSource = base / "main" / "scala" / "scala" / "build" / "EitherCps.scala"
-      assert(os.exists(cpsSource))
+      val cpsSource       = base / "main" / "scala" / "scala" / "build" / "EitherCps.scala"
+      val cpsSourceExists = os.exists(cpsSource)
+      if (!cpsSourceExists) System.err.println(s"Expected source file $cpsSource does not exist")
+      else System.err.println(s"Found source file $cpsSource")
+      assert(cpsSourceExists)
 
       val sv                                             = scalaVersion()
       def compile(extraSources: os.Path*): CommandResult =
@@ -345,7 +348,14 @@ trait BuildMacros extends ScalaCliCrossSbtModule
           mergeErrIntoOut = true,
           cwd = Task.workspace
         )
-      assert(0 == compile().exitCode)
+      val compileResult = compile()
+      if (compileResult.exitCode != 0) {
+        System.err.println(s"Compilation failed: $cpsSource")
+        System.err.println(compileResult.out.text())
+      }
+      else
+        System.err.println(s"Compiled $cpsSource successfully")
+      assert(0 == compileResult.exitCode)
 
       val notPassed = negativeTests.filter { case (testName, expectedErrors) =>
         val testFile = base / "negative-tests" / testName
