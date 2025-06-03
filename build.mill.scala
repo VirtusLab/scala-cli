@@ -13,7 +13,6 @@ import settings.{
   CliLaunchers,
   FormatNativeImageConf,
   HasTests,
-  Licenses,
   LocalRepo,
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
@@ -25,13 +24,12 @@ import settings.{
   projectFileName,
   workspaceDirName
 }
-import build.project.deps
 import deps.customRepositories
 import deps.alpineVersion
 import build.project.website
 import coursier.Repository
 
-import java.io.{File, InputStream}
+import java.io.File
 import java.net.URL
 import java.nio.charset.Charset
 import java.util.Locale
@@ -43,10 +41,8 @@ import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
 import mill.testrunner.TestResult
 import os.{CommandResult, Path}
-import upickle.default.read
 
 import _root_.scala.util.{Properties, Using}
-import _root_.scala.annotation.unused
 
 // Tell mill modules are under modules/
 implicit def millModuleBasePath: define.Ctx.BasePath =
@@ -329,9 +325,9 @@ trait BuildMacros extends ScalaCliCrossSbtModule
       val base          = Task.workspace / "modules" / "build-macros" / "src"
       val negativeTests = Seq(
         "MismatchedLeft.scala" -> Seq(
-          "Found\\: +EE1".r,
-          "Found\\: +EE2".r,
-          "Required\\: +E2".r
+          "Found: +EE1".r,
+          "Found: +EE2".r,
+          "Required: +E2".r
         )
       )
 
@@ -906,7 +902,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
       (
         "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.github/workflows/ci.yml",
         os.sub / "workflows" / "default.yml",
-        transformWorkflow _
+        transformWorkflow
       ),
       (
         "https://raw.githubusercontent.com/scala-cli/default-workflow/main/.gitignore",

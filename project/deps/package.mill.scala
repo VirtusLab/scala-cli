@@ -2,8 +2,6 @@ package build.project.deps
 import mill._
 import scalalib._
 
-import scala.annotation.unused
-
 object Cli {
   def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
 }
@@ -31,7 +29,6 @@ object Scala {
   val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val mainVersions        = (Seq(scala213) ++ scala3MainVersions).distinct
   val runnerScalaVersions = runnerScala3 +: allScala2
   val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
 
@@ -79,22 +76,6 @@ object Scala {
   def maxAmmoniteScala3LtsVersion                   = "3.3.5"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
     Seq(maxAmmoniteScala212Version, maxAmmoniteScala213Version, maxAmmoniteScala3Version)
-  lazy val listAllAmmonite: Seq[String] = {
-    import coursier.core.Version
-    val max212 = Version(maxAmmoniteScala212Version)
-    val max213 = Version(maxAmmoniteScala213Version)
-    val max3   = Version(maxAmmoniteScala3Version)
-    listAll.filter { v =>
-      if (v.startsWith("3."))
-        Version(v).compareTo(max3) <= 0
-      else if (v.startsWith("2.13."))
-        Version(v).compareTo(max213) <= 0
-      else if (v.startsWith("2.12."))
-        Version(v).compareTo(max212) <= 0
-      else
-        true
-    }
-  }
 }
 
 object Java {
@@ -134,7 +115,6 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
     def jmh                               = "1.37"
-    def jsoniterScala                     = "2.23.2"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.20.1"
     def scalaMeta                         = "4.13.6"
