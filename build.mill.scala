@@ -313,19 +313,11 @@ trait BuildMacros extends ScalaCliCrossSbtModule
   }
 
   object test extends ScalaCliTests {
-
-    // Is there a better way to add task dependency to test?
-    def test(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
-      val res = super.test(args: _*)()
-      testNegativeCompilation()()
-      res
-    }
-
     def scalacOptions: Target[Seq[String]] = Task {
       super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
     }
 
-    def testNegativeCompilation(): Command[Unit] = Task.Command {
+    def testNegativeCompilation(): Command[Unit] = Task.Command(exclusive = true) {
       val base          = Task.workspace / "modules" / "build-macros" / "src"
       val negativeTests = Seq(
         "MismatchedLeft.scala" -> Seq(
