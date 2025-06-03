@@ -8,6 +8,70 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.8.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.1)
+
+### Support for Scala 3.7.1
+This Scala CLI version switches the default Scala version to 3.7.1.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.8.1
+# Scala version (default): 3.7.1
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3707](https://github.com/VirtusLab/scala-cli/pull/3707)
+
+### Support for URLs in `using file` directives
+It is now possible to use URLs in `using file` directives, which allows linking sources from the net.
+
+```scala compile
+//> using file https://raw.githubusercontent.com/softwaremill/sttp/refs/heads/master/examples/src/main/scala/sttp/client4/examples/json/GetAndParseJsonCatsEffectCirce.scala
+```
+
+Added during a [Scala Tooling Spree](https://scalameta.org/scala-tooling-spree/) by [@ivan-klass](https://github.com/ivan-klass), [@majk-p](https://github.com/majk-p) and [@tgodzik](https://github.com/tgodzik) in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
+
+### Features
+* Support links in using file directive (implements #1328) by @ivan-klass, @majk-p and @tgodzik in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
+
+### Fixes
+* Fix race condition in local repo setup by [@unlsycn](https://github.com/unlsycn) in [#3693](https://github.com/VirtusLab/scala-cli/pull/3693)
+* Fix for #3481 by [@philwalk](https://github.com/philwalk) in [#3677](https://github.com/VirtusLab/scala-cli/pull/3677)
+
+### Internal and build changes
+* bugfix: Fix mill script on fish by [@tgodzik](https://github.com/tgodzik) in [#3700](https://github.com/VirtusLab/scala-cli/pull/3700)
+* Make `test-fish-shell`, `test-hypothetical-sbt-export` and `bloop-memory-footprint` required for publishing by [@Gedochao](https://github.com/Gedochao) in [#3701](https://github.com/VirtusLab/scala-cli/pull/3701)
+* [NIT] Refactor Scala CLI CI scripts by [@Gedochao](https://github.com/Gedochao) in [#3702](https://github.com/VirtusLab/scala-cli/pull/3702)
+* Remove the `github-dependency-graph` CI workflow by [@Gedochao](https://github.com/Gedochao) in [#3703](https://github.com/VirtusLab/scala-cli/pull/3703)
+* Add more tests for URLs in using file directives by [@Gedochao](https://github.com/Gedochao) in [#3706](https://github.com/VirtusLab/scala-cli/pull/3706)
+
+### Documentation changes
+* Fix Changing Java versions document by [@tmrkw1497](https://github.com/tmrkw1497) in [#3697](https://github.com/VirtusLab/scala-cli/pull/3697)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#3699](https://github.com/VirtusLab/scala-cli/pull/3699)
+
+### Updates
+* Update scala-cli.sh launcher for 1.8.0 by [@github-actions](https://github.com/github-actions) in [#3672](https://github.com/VirtusLab/scala-cli/pull/3672)
+* Update semanticdb-shared_2.13 to 4.13.6 by [@scala-steward](https://github.com/scala-steward) in [#3678](https://github.com/VirtusLab/scala-cli/pull/3678)
+* Bump sass from 1.87.0 to 1.88.0 in /website by [@dependabot](https://github.com/dependabot) in [#3676](https://github.com/VirtusLab/scala-cli/pull/3676)
+* Bump `java-class-name` to 0.1.6 by [@Gedochao](https://github.com/Gedochao) in [#3679](https://github.com/VirtusLab/scala-cli/pull/3679)
+* Update `scala-cli-signing` to 0.2.7 by [@scala-steward](https://github.com/scala-steward) in [#3683](https://github.com/VirtusLab/scala-cli/pull/3683)
+* Update `mill` scripts by [@Gedochao](https://github.com/Gedochao) in [#3686](https://github.com/VirtusLab/scala-cli/pull/3686)
+* Bump sass from 1.88.0 to 1.89.0 in /website by [@dependabot](https://github.com/dependabot) in [#3687](https://github.com/VirtusLab/scala-cli/pull/3687)
+* Bump `scala-js-cli` to 1.19.0.1 by [@Gedochao](https://github.com/Gedochao) in [#3689](https://github.com/VirtusLab/scala-cli/pull/3689)
+* Bump Scala 3 Next RC to 3.7.1-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3692](https://github.com/VirtusLab/scala-cli/pull/3692)
+* Update sbt, scripted-plugin to 1.11.0 by [@scala-steward](https://github.com/scala-steward) in [#3696](https://github.com/VirtusLab/scala-cli/pull/3696)
+* Bump `mill` to 0.12 by [@Gedochao](https://github.com/Gedochao) in [#3691](https://github.com/VirtusLab/scala-cli/pull/3691)
+* Bump `scalafmt` to 3.9.7 & reformat by [@Gedochao](https://github.com/Gedochao) in [#3705](https://github.com/VirtusLab/scala-cli/pull/3705)
+* Bump @docusaurus/preset-classic from 3.7.0 to 3.8.0 in /website by [@dependabot](https://github.com/dependabot) in [#3709](https://github.com/VirtusLab/scala-cli/pull/3709)
+* Bump sass from 1.89.0 to 1.89.1 in /website by [@dependabot](https://github.com/dependabot) in [#3710](https://github.com/VirtusLab/scala-cli/pull/3710)
+* Bump Scala Next to 3.7.1 by [@Gedochao](https://github.com/Gedochao) in [#3707](https://github.com/VirtusLab/scala-cli/pull/3707)
+
+## New Contributors
+* [@unlsycn](https://github.com/unlsycn) made their first contribution in [#3693](https://github.com/VirtusLab/scala-cli/pull/3693)
+* [@tmrkw1497](https://github.com/tmrkw1497) made their first contribution in [#3697](https://github.com/VirtusLab/scala-cli/pull/3697)
+* [@ivan-klass](https://github.com/ivan-klass) made their first contribution in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.0...v1.8.1
+
 ## [v1.8.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.0)
 
 ### Support for Scala 3.7.0 and 3.3.6
@@ -1603,10 +1667,10 @@ Added by [@lolgab](https://github.com/lolgab) in [#2928](https://github.com/Virt
 
 ### Documentation changes
 * Add docs for `ignore` keyword in snippets in md by [@sierikov](https://github.com/sierikov) in [#2898](https://github.com/VirtusLab/scala-cli/pull/2898)
-* Back port of documentation changes to main by @github-actions in [#2900](https://github.com/VirtusLab/scala-cli/pull/2900)
-* Back port of documentation changes to main by @github-actions in [#2910](https://github.com/VirtusLab/scala-cli/pull/2910)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#2900](https://github.com/VirtusLab/scala-cli/pull/2900)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#2910](https://github.com/VirtusLab/scala-cli/pull/2910)
 * Add Scalafmt Cookbook by [@sierikov](https://github.com/sierikov) in [#2903](https://github.com/VirtusLab/scala-cli/pull/2903)
-* Back port of documentation changes to main by @github-actions in [#2914](https://github.com/VirtusLab/scala-cli/pull/2914)
+* Back port of documentation changes to main by [@github-actions](https://github.com/github-actions) in [#2914](https://github.com/VirtusLab/scala-cli/pull/2914)
 * remove duplicated word by [@naferx](https://github.com/naferx) in [#2915](https://github.com/VirtusLab/scala-cli/pull/2915)
 * Remove unused imports by [@naferx](https://github.com/naferx) in [#2916](https://github.com/VirtusLab/scala-cli/pull/2916)
 * corrected instructions for downloading the launcher in Windows (fixes #2921) by [@philwalk](https://github.com/philwalk) in [#2922](https://github.com/VirtusLab/scala-cli/pull/2922)
@@ -1615,7 +1679,7 @@ Added by [@lolgab](https://github.com/lolgab) in [#2928](https://github.com/Virt
 * Fix instant-startup-scala-scripts.md overeager `docs-tests` by [@Gedochao](https://github.com/Gedochao) in [#2909](https://github.com/VirtusLab/scala-cli/pull/2909)
 
 ### Updates
-* Update scala-cli.sh launcher for 1.3.1 by @github-actions in [#2894](https://github.com/VirtusLab/scala-cli/pull/2894)
+* Update scala-cli.sh launcher for 1.3.1 by [@github-actions](https://github.com/github-actions) in [#2894](https://github.com/VirtusLab/scala-cli/pull/2894)
 * Update ammonite to 3.0.0-M1-24-26133e66 by [@scala-steward](https://github.com/scala-steward) in [#2896](https://github.com/VirtusLab/scala-cli/pull/2896)
 * Update ammonite to 3.0.0-M2-1-3763a1d4 by [@scala-steward](https://github.com/scala-steward) in [#2905](https://github.com/VirtusLab/scala-cli/pull/2905)
 * Update scalameta to 4.9.4 by [@scala-steward](https://github.com/scala-steward) in [#2906](https://github.com/VirtusLab/scala-cli/pull/2906)
