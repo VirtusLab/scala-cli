@@ -1797,7 +1797,7 @@ jobs:
       with:
         name: vc-redist-launchers
         path: artifacts/
-    - run: ./mill -i uploadLaunchers artifacts/
+    - run: ./mill -i uploadLaunchers --directory artifacts/
       if: env.SHOULD_PUBLISH == 'true'
       env:
         UPLOAD_GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
