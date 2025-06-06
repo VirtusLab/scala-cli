@@ -8,7 +8,7 @@ import build.ci.publishVersion
 import build.project.deps
 import deps.{Cli, Deps, Docker, InternalDeps, Java, Scala, TestDeps}
 import build.project.publish
-import publish.{ScalaCliPublishModule, ghName, ghOrg, organization}
+import publish.{ScalaCliPublishModule, finalPublishVersion, ghName, ghOrg, organization}
 import build.project.settings
 import settings.{
   CliLaunchers,
@@ -1344,7 +1344,7 @@ object `local-repo` extends LocalRepo {
 
 // Helper CI commands
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Command {
-  val pv = publishVersion()
+  val pv = finalPublishVersion()
   System.err.println(s"Publish version: $pv")
   val bundleName = s"$organization-$ghName-$pv"
   System.err.println(s"Publishing bundle: $bundleName")
