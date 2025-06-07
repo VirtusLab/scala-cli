@@ -325,7 +325,14 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           |VAL=1
           |!#
           |
-          |println("Hello World #!")""".stripMargin
+          |println("Hello World #!")""".stripMargin,
+      os.rel / "hasBangHashInComment.sc" ->
+        """#!/usr/bin/scala-cli
+          |
+          |
+          |
+          |
+          |println("Hello World !#")""".stripMargin
     )
     val expectedParsedCodes = Seq(
       """
@@ -349,7 +356,14 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         |
         |
         |
-        |println("Hello World #!")""".stripMargin
+        |println("Hello World #!")""".stripMargin,
+      """
+        |
+        |
+        |
+        |
+        |
+        |println("Hello World !#")""".stripMargin
     )
 
     testInputs.withInputs { (root, inputs) =>
