@@ -66,6 +66,30 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
       )
     val Right(Seq(actualResult: MarkdownCodeBlock)) =
       MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
+    expect(actualResult == expectedResult)
+  }
+
+  test("shebang closing line allowed in scala code") {
+    val code     = """println("Hello !#")""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 4
+      )
+    val Right(Seq(actualResult: MarkdownCodeBlock)) =
+      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
@@ -114,6 +138,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
       )
     val Right(Seq(actualResult: MarkdownCodeBlock)) =
       MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
@@ -209,4 +234,21 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
     expect(actualError.positions == expectedError.positions)
     expect(actualError.message == expectedError.message)
   }
+
+  def showDiffs(actual: MarkdownCodeBlock, expect: MarkdownCodeBlock): Unit = {
+    if actual != expect then
+      for (((a, b), i) <- (actual.body zip expect.body).zipWithIndex)
+        if (a != b) {
+          def c2s(c: Char): String = c match {
+            case '\r' => "\\r"
+            case '\n' => "\\n"
+            case _    => s"$c"
+          }
+          val aa = c2s(a)
+          val bb = c2s(b)
+          System.err.printf("== index %d: [%s]!=[%s]\n", i, aa, bb)
+        }
+      System.err.printf("actual[%s]\nexpect[%s]\n", actual, expect)
+  }
+
 }
