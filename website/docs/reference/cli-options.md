@@ -1394,7 +1394,7 @@ Path to the Scala.js linker
 ### `--js-cli-version`
 
 [Internal]
-Scala.js CLI version to use for linking (1.19.0.1 by default).
+Scala.js CLI version to use for linking (1.19.0.2 by default).
 
 ### `--js-cli-java-arg`
 
@@ -2192,7 +2192,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.2.7 by default)
+scala-cli-signing version when running externally (0.2.8 by default)
 
 ### `--signing-cli-java-arg`
 
