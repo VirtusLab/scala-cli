@@ -35,9 +35,9 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
-
   test("multiple plain Scala code blocks are wrapped correctly") {
     val snippet1               = """println("Hello")"""
     val codeBlock1             = MarkdownCodeBlock(PlainScalaInfo, snippet1, 3, 3)
@@ -65,6 +65,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
 
@@ -95,6 +96,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
 
@@ -114,6 +116,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, Some(expectedScala), None))
   }
 
@@ -138,6 +141,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, Some(expectedScala), None))
   }
 
@@ -158,33 +162,68 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, None, Some(expectedScala)))
   }
 
+  def stringPrep(s: String): String = AmmUtil.normalizeNewlines(s)
+
   test("multiple test Scala snippets are glued together correctly") {
-    val snippet1 =
+    val snippet1 = stringPrep(
       """//> using dep org.scalameta::munit:0.7.29
         |class Test1 extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin
+    )
     val codeBlock1 = MarkdownCodeBlock(TestScalaInfo, snippet1, 3, 6)
-    val snippet2   =
+    val snippet2   = stringPrep(
       """class Test2 extends munit.FunSuite {
         |  assert(true)
         |}""".stripMargin
+    )
     val codeBlock2             = MarkdownCodeBlock(TestScalaInfo, snippet2, 8, 10)
     val preprocessedCodeBlocks = PreprocessedMarkdownCodeBlocks(Seq(codeBlock1, codeBlock2))
     val markdown               = PreprocessedMarkdown(testCodeBlocks = preprocessedCodeBlocks)
     val expectedScala          = MarkdownCodeWrapper.WrappedMarkdownCode(
-      s"""
-         |
-         |
-         |$snippet1
-         |
-         |$snippet2
-         |""".stripMargin
+      stringPrep(
+        s"""
+           |
+           |
+           |$snippet1
+           |
+           |$snippet2
+           |""".stripMargin
+      )
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, None, Some(expectedScala)))
   }
+
+  import scala.reflect.Selectable.reflectiveSelectable
+  type HasCode     = { def code: String }
+  type CodeWrapper = (Option[HasCode], Option[HasCode], Option[HasCode])
+
+  def showDiffs(result: CodeWrapper, expect: String): Unit = {
+    val actual: String = result match {
+      case (Some(s), None, None) =>
+        s.code
+      case (None, Some(s), None) =>
+        s.code
+      case (None, None, Some(s)) =>
+        s.code
+      case _ =>
+        result.toString
+
+    }
+    if actual.toString != expect.toString then
+      for (((a, b), i) <- (actual zip expect).zipWithIndex)
+        if (a != b) {
+          val aa = TestUtil.c2s(a)
+          val bb = TestUtil.c2s(b)
+          System.err.printf("== index %d: [%s]!=[%s]\n", i, aa, bb)
+        }
+      System.err.printf("actual[%s]\nexpect[%s]\n", actual, expect)
+  }
+
 }

@@ -30,7 +30,7 @@ object BuiltInRules extends CommandHelpers {
         .exists(_.nameAliases.contains(directiveTestPrefix + strictDirective.key))
   }
 
-  private val newLine: String = System.lineSeparator()
+  private val newLine: String = scala.build.internal.AmmUtil.lineSeparator
 
   def runRules(
     inputs: Inputs,
@@ -191,7 +191,7 @@ object BuiltInRules extends CommandHelpers {
     val logger = loggingUtilities.logger
 
     val fromPaths = sources.paths.map { (path, _) =>
-      val (_, content) = SheBang.partitionOnShebangSection(os.read(path))
+      val (_, content, _) = SheBang.partitionOnShebangSection(os.read(path))
       logger.debug(s"Extracting directives from ${loggingUtilities.relativePath(path)}")
       ExtractedDirectives.from(
         contentChars = content.toCharArray,
@@ -220,7 +220,7 @@ object BuiltInRules extends CommandHelpers {
           }
       }
 
-      val (_, contentWithNoShebang) = SheBang.partitionOnShebangSection(content)
+      val (_, contentWithNoShebang, _) = SheBang.partitionOnShebangSection(content)
 
       ExtractedDirectives.from(
         contentChars = contentWithNoShebang.toCharArray,
@@ -298,7 +298,8 @@ object BuiltInRules extends CommandHelpers {
   ): Unit = {
     position match {
       case Some(Position.File(Right(path), _, _, offset)) =>
-        val (shebangSection, strippedContent) = SheBang.partitionOnShebangSection(os.read(path))
+        val (shebangSection, strippedContent, newLine) =
+          SheBang.partitionOnShebangSection(os.read(path))
 
         def ignoreOrAddNewLine(str: String) = if str.isBlank then "" else str + newLine
 

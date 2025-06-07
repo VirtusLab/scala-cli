@@ -66,6 +66,30 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
       )
     val Right(Seq(actualResult: MarkdownCodeBlock)) =
       MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
+    expect(actualResult == expectedResult)
+  }
+
+  test("end-of-shebang token allowed in scala code") {
+    val code     = """println("Hello !#")""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 4
+      )
+    val Right(Seq(actualResult: MarkdownCodeBlock)) =
+      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
@@ -114,6 +138,7 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
       )
     val Right(Seq(actualResult: MarkdownCodeBlock)) =
       MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    showDiffs(actualResult, expectedResult)
     expect(actualResult == expectedResult)
   }
 
@@ -209,4 +234,16 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
     expect(actualError.positions == expectedError.positions)
     expect(actualError.message == expectedError.message)
   }
+
+  def showDiffs(actual: MarkdownCodeBlock, expect: MarkdownCodeBlock): Unit = {
+    if actual != expect then
+      for (((a, b), i) <- (actual.body zip expect.body).zipWithIndex)
+        if (a != b) {
+          val aa = TestUtil.c2s(a)
+          val bb = TestUtil.c2s(b)
+          System.err.printf("== index %d: [%s]!=[%s]\n", i, aa, bb)
+        }
+      System.err.printf("actual[%s]\nexpect[%s]\n", actual, expect)
+  }
+
 }

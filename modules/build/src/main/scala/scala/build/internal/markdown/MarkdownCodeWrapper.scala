@@ -115,15 +115,15 @@ object MarkdownCodeWrapper {
       val fence: MarkdownCodeBlock = snippets(index)
       val classOpener: String      =
         if (index == 0)
-          s"object ${scopeObjectName(scopeIndex)} {${System.lineSeparator()}" // first snippet needs to open a class
+          s"object ${scopeObjectName(scopeIndex)} {${AmmUtil.lineSeparator}" // first snippet needs to open a class
         else if (fence.resetScope)
-          s"}; object ${scopeObjectName(scopeIndex)} {${System.lineSeparator()}" // if scope is being reset, close previous class and open a new one
-        else System.lineSeparator()
+          s"}; object ${scopeObjectName(scopeIndex)} {${AmmUtil.lineSeparator}" // if scope is being reset, close previous class and open a new one
+        else AmmUtil.lineSeparator
       val nextScopeIndex = if index == 0 || fence.resetScope then scopeIndex + 1 else scopeIndex
-      val newAcc         = acc + (System.lineSeparator() * (fence.startLine - line - 1)) // padding
+      val newAcc         = acc + (AmmUtil.lineSeparator * (fence.startLine - line - 1)) // padding
         .:++(classOpener) // new class opening (if applicable)
         .:++(fence.body) // snippet body
-        .:++(System.lineSeparator()) // padding in place of closing backticks
+        .:++(AmmUtil.lineSeparator) // padding in place of closing backticks
       generateMainScalaLines(
         snippets = snippets,
         index = index + 1,
@@ -154,9 +154,9 @@ object MarkdownCodeWrapper {
     if index >= snippets.length then acc
     else {
       val fence: MarkdownCodeBlock = snippets(index)
-      val newAcc = acc + (System.lineSeparator() * (fence.startLine - line)) // padding
+      val newAcc = acc + (AmmUtil.lineSeparator * (fence.startLine - line)) // padding
         .:++(fence.body) // snippet body
-        .:++(System.lineSeparator()) // padding in place of closing backticks
+        .:++(AmmUtil.lineSeparator) // padding in place of closing backticks
       generateRawScalaLines(snippets, index + 1, fence.endLine + 1, newAcc)
     }
 }

@@ -24,7 +24,11 @@ abstract class CodeWrapper {
     val (topWrapper, bottomWrapper) =
       apply(code, pkgName, indexedWrapperName, extraCode0, scriptPath)
 
-    val nl                            = System.lineSeparator()
+    // match lineSeparator to existing code
+    val nl = code.indexOf("\n") match {
+      case n if n > 0 && code(n - 1) == '\r' => System.lineSeparator()
+      case _                                 => "\n"
+    }
     val (topWrapper0, bottomWrapper0) =
       (
         topWrapper + "/*<script>*/" + nl,
