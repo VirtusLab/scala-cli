@@ -121,7 +121,7 @@ object Deps {
     def scalaMeta                         = "4.13.6"
     def scalafmt                          = "3.9.7"
     def scalaNative04                     = "0.4.17"
-    def scalaNative05                     = "0.5.7"
+    def scalaNative05                     = "0.5.8"
     def scalaNative                       = scalaNative05
     def maxScalaNativeForToolkit          = scalaNative05
     def maxScalaNativeForTypelevelToolkit = scalaNative04
