@@ -18,7 +18,7 @@ object ScalaCliSigning extends CommandsEntryPoint {
     PgpVerify
   )
 
-  def progName = "scala-cli-signing"
+  def progName             = "scala-cli-signing"
   override def description =
     "scala-cli-signing is a command-line tool to create PGP keys, and use them to sign files and verify signatures."
 

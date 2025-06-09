@@ -47,7 +47,7 @@ object PgpVerify extends Command[PgpVerifyOptions] {
         val key = pgpPubRingCollection.getPublicKey(sig.getKeyID)
 
         var is: InputStream = null
-        val verified =
+        val verified        =
           try {
             is = os.read.inputStream(filePath)
             BouncycastleSigner.verifySignature(sig, key, is)

@@ -182,7 +182,7 @@ object BouncycastleSigner {
         val factory0 = new JcaPGPObjectFactory(data.getDataStream())
         factory0.nextObject() match {
           case l: PGPSignatureList => Right(l.get(0))
-          case other =>
+          case other               =>
             Left(s"Unrecognized PGP object type: $other")
         }
       case sigList0: PGPSignatureList =>
