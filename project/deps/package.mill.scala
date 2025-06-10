@@ -280,7 +280,7 @@ def buildCsVersion   = Deps.Versions.coursierCli
 def buildCsM1Version = Deps.Versions.coursierM1Cli
 
 // Native library used to encrypt GitHub secrets
-def libsodiumVersion = "1.0.18"
+def libsodiumVersion = "1.0.20"
 // Using the libsodium static library from this Alpine version (in the static launcher)
 def alpineVersion = "3.16"
 def ubuntuVersion = "24.04"
