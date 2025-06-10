@@ -115,6 +115,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
+    def coursierPublish                   = "0.3.0"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.20.1"
@@ -167,7 +168,7 @@ object Deps {
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish::publish:0.3.0"
+  def coursierPublish    = ivy"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
   def dependency    = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
