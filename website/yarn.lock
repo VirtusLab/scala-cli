@@ -1651,14 +1651,6 @@
     postcss-sort-media-queries "^5.2.0"
     tslib "^2.6.0"
 
-"@docusaurus/logger@3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/logger/-/logger-3.7.0.tgz#07ecc2f460c4d2382df4991f9ce4e348e90af04c"
-  integrity sha512-z7g62X7bYxCYmeNNuO9jmzxLQG95q9QxINCwpboVcNff3SJiHJbGrarxxOVMVmAh1MsrSfxWkVGv4P41ktnFsA==
-  dependencies:
-    chalk "^4.1.2"
-    tslib "^2.6.0"
-
 "@docusaurus/logger@3.8.0":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/logger/-/logger-3.8.0.tgz#c1abbb084a8058dc0047d57070fb9cd0241a679d"
@@ -1947,36 +1939,13 @@
     tslib "^2.6.0"
     utility-types "^3.10.0"
 
-"@docusaurus/theme-translations@3.8.0":
+"@docusaurus/theme-translations@3.8.0", "@docusaurus/theme-translations@^2 || ^3":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/theme-translations/-/theme-translations-3.8.0.tgz#deb64dccab74361624c3cb352a4949a7ac868c74"
   integrity sha512-1DTy/snHicgkCkryWq54fZvsAglTdjTx4qjOXgqnXJ+DIty1B+aPQrAVUu8LiM+6BiILfmNxYsxhKTj+BS3PZg==
   dependencies:
     fs-extra "^11.1.1"
     tslib "^2.6.0"
-
-"@docusaurus/theme-translations@^2 || ^3":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/theme-translations/-/theme-translations-3.7.0.tgz#0891aedc7c7040afcb3a1b34051d3a69096d0d25"
-  integrity sha512-Ewq3bEraWDmienM6eaNK7fx+/lHMtGDHQyd1O+4+3EsDxxUmrzPkV7Ct3nBWTuE0MsoZr3yNwQVKjllzCMuU3g==
-  dependencies:
-    fs-extra "^11.1.1"
-    tslib "^2.6.0"
-
-"@docusaurus/types@3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/types/-/types-3.7.0.tgz#3f5a68a60f80ecdcb085666da1d68f019afda943"
-  integrity sha512-kOmZg5RRqJfH31m+6ZpnwVbkqMJrPOG5t0IOl4i/+3ruXyNfWzZ0lVtVrD0u4ONc/0NOsS9sWYaxxWNkH1LdLQ==
-  dependencies:
-    "@mdx-js/mdx" "^3.0.0"
-    "@types/history" "^4.7.11"
-    "@types/react" "*"
-    commander "^5.1.0"
-    joi "^17.9.2"
-    react-helmet-async "npm:@slorber/react-helmet-async@1.3.0"
-    utility-types "^3.10.0"
-    webpack "^5.95.0"
-    webpack-merge "^5.9.0"
 
 "@docusaurus/types@3.8.0":
   version "3.8.0"
@@ -1993,15 +1962,7 @@
     webpack "^5.95.0"
     webpack-merge "^5.9.0"
 
-"@docusaurus/utils-common@3.7.0", "@docusaurus/utils-common@^2 || ^3":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/utils-common/-/utils-common-3.7.0.tgz#1bef52837d321db5dd2361fc07f3416193b5d029"
-  integrity sha512-IZeyIfCfXy0Mevj6bWNg7DG7B8G+S6o6JVpddikZtWyxJguiQ7JYr0SIZ0qWd8pGNuMyVwriWmbWqMnK7Y5PwA==
-  dependencies:
-    "@docusaurus/types" "3.7.0"
-    tslib "^2.6.0"
-
-"@docusaurus/utils-common@3.8.0":
+"@docusaurus/utils-common@3.8.0", "@docusaurus/utils-common@^2 || ^3":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/utils-common/-/utils-common-3.8.0.tgz#2b1a6b1ec4a7fac62f1898d523d42f8cc4a8258f"
   integrity sha512-3TGF+wVTGgQ3pAc9+5jVchES4uXUAhAt9pwv7uws4mVOxL4alvU3ue/EZ+R4XuGk94pDy7CNXjRXpPjlfZXQfw==
@@ -2009,7 +1970,7 @@
     "@docusaurus/types" "3.8.0"
     tslib "^2.6.0"
 
-"@docusaurus/utils-validation@3.8.0":
+"@docusaurus/utils-validation@3.8.0", "@docusaurus/utils-validation@^2 || ^3":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/utils-validation/-/utils-validation-3.8.0.tgz#aa02e9d998e20998fbcaacd94873878bc3b9a4cd"
   integrity sha512-MrnEbkigr54HkdFeg8e4FKc4EF+E9dlVwsY3XQZsNkbv3MKZnbHQ5LsNJDIKDROFe8PBf5C4qCAg5TPBpsjrjg==
@@ -2023,47 +1984,7 @@
     lodash "^4.17.21"
     tslib "^2.6.0"
 
-"@docusaurus/utils-validation@^2 || ^3":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/utils-validation/-/utils-validation-3.7.0.tgz#dc0786fb633ae5cef8e93337bf21c2a826c7ecbd"
-  integrity sha512-w8eiKk8mRdN+bNfeZqC4nyFoxNyI1/VExMKAzD9tqpJfLLbsa46Wfn5wcKH761g9WkKh36RtFV49iL9lh1DYBA==
-  dependencies:
-    "@docusaurus/logger" "3.7.0"
-    "@docusaurus/utils" "3.7.0"
-    "@docusaurus/utils-common" "3.7.0"
-    fs-extra "^11.2.0"
-    joi "^17.9.2"
-    js-yaml "^4.1.0"
-    lodash "^4.17.21"
-    tslib "^2.6.0"
-
-"@docusaurus/utils@3.7.0", "@docusaurus/utils@^2 || ^3":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@docusaurus/utils/-/utils-3.7.0.tgz#dfdebd63524c52b498f36b2907a3b2261930b9bb"
-  integrity sha512-e7zcB6TPnVzyUaHMJyLSArKa2AG3h9+4CfvKXKKWNx6hRs+p0a+u7HHTJBgo6KW2m+vqDnuIHK4X+bhmoghAFA==
-  dependencies:
-    "@docusaurus/logger" "3.7.0"
-    "@docusaurus/types" "3.7.0"
-    "@docusaurus/utils-common" "3.7.0"
-    escape-string-regexp "^4.0.0"
-    file-loader "^6.2.0"
-    fs-extra "^11.1.1"
-    github-slugger "^1.5.0"
-    globby "^11.1.0"
-    gray-matter "^4.0.3"
-    jiti "^1.20.0"
-    js-yaml "^4.1.0"
-    lodash "^4.17.21"
-    micromatch "^4.0.5"
-    prompts "^2.4.2"
-    resolve-pathname "^3.0.0"
-    shelljs "^0.8.5"
-    tslib "^2.6.0"
-    url-loader "^4.1.1"
-    utility-types "^3.10.0"
-    webpack "^5.88.1"
-
-"@docusaurus/utils@3.8.0":
+"@docusaurus/utils@3.8.0", "@docusaurus/utils@^2 || ^3":
   version "3.8.0"
   resolved "https://registry.yarnpkg.com/@docusaurus/utils/-/utils-3.8.0.tgz#92bad89d2a11f5f246196af153093b12cd79f9ac"
   integrity sha512-2wvtG28ALCN/A1WCSLxPASFBFzXCnP0YKCAFIPcvEb6imNu1wg7ni/Svcp71b3Z2FaOFFIv4Hq+j4gD7gA0yfQ==
@@ -2098,10 +2019,10 @@
     cssesc "^3.0.0"
     immediate "^3.2.3"
 
-"@easyops-cn/docusaurus-search-local@^0.49.2":
-  version "0.49.2"
-  resolved "https://registry.yarnpkg.com/@easyops-cn/docusaurus-search-local/-/docusaurus-search-local-0.49.2.tgz#20c2b0ab3f58222b7e88335121b467c0e85259a2"
-  integrity sha512-ytXxbtpJ2gVECWrsdc6Wx7bPanueLQ95lLdR9n/tHKEPBm5d1v/vAsx487iUGVXYwzeEO8W/BQJ66Fcdvpq6xg==
+"@easyops-cn/docusaurus-search-local@^0.50.0":
+  version "0.50.0"
+  resolved "https://registry.yarnpkg.com/@easyops-cn/docusaurus-search-local/-/docusaurus-search-local-0.50.0.tgz#e7392893187e2061cbade12c4bc210afea071725"
+  integrity sha512-wJQNa1jc1bGy8hLTnCynIjpAmldYEcwWVqqSQfKhBlIu0Px9Fw3i1PIbnbG5D1Da4Ep+FkOdWWsqFZqkiBah1Q==
   dependencies:
     "@docusaurus/plugin-content-docs" "^2 || ^3"
     "@docusaurus/theme-translations" "^2 || ^3"
@@ -5047,7 +4968,7 @@ glob-to-regexp@^0.4.1:
   resolved "https://registry.npmjs.org/glob-to-regexp/-/glob-to-regexp-0.4.1.tgz"
   integrity sha512-lkX1HJXwyMcprw/5YUZc2s7DrpAiHB21/V+E1rHUrVNokkvB6bqMzT0VfV6/86ZNabt1k14YOIaT7nDvOX3Iiw==
 
-glob@^7.0.0, glob@^7.1.3:
+glob@^7.1.3:
   version "7.2.0"
   resolved "https://registry.npmjs.org/glob/-/glob-7.2.0.tgz"
   integrity sha512-lmLf6gtyrPq8tTjSmrO94wBeQbFR3HbLHbuyD69wuyQkImp2hWqMGB47OX65FBkPffO641IP9jWa1z4ivqG26Q==
@@ -5567,11 +5488,6 @@ inline-style-parser@0.1.1:
   version "0.1.1"
   resolved "https://registry.npmjs.org/inline-style-parser/-/inline-style-parser-0.1.1.tgz"
   integrity sha512-7NXolsK4CAS5+xvdj5OMMbI962hU/wvwoxk+LWR9Ek9bVtyuuYScDN6eS0rUm6TxApFpw7CX1o4uJzcd4AyD3Q==
-
-interpret@^1.0.0:
-  version "1.4.0"
-  resolved "https://registry.npmjs.org/interpret/-/interpret-1.4.0.tgz"
-  integrity sha512-agE4QfB2Lkp9uICn7BAqoscw4SZP9kTE2hxiFI3jBPmXJfdqiahTbUuKGsMoN2GtqL9AxhYioAcVvgsb1HvRbA==
 
 invariant@^2.2.4:
   version "2.2.4"
@@ -8078,13 +7994,6 @@ readdirp@~3.6.0:
   dependencies:
     picomatch "^2.2.1"
 
-rechoir@^0.6.2:
-  version "0.6.2"
-  resolved "https://registry.npmjs.org/rechoir/-/rechoir-0.6.2.tgz"
-  integrity sha1-hSBLVNuoLVdC4oyWdW70OvUOM4Q=
-  dependencies:
-    resolve "^1.1.6"
-
 regenerate-unicode-properties@^10.1.0:
   version "10.1.1"
   resolved "https://registry.npmjs.org/regenerate-unicode-properties/-/regenerate-unicode-properties-10.1.1.tgz"
@@ -8314,7 +8223,7 @@ resolve-pathname@^3.0.0:
   resolved "https://registry.npmjs.org/resolve-pathname/-/resolve-pathname-3.0.0.tgz"
   integrity sha512-C7rARubxI8bXFNB/hqcp/4iUeIXJhJZvFPFPiSPRnhU5UPxzMFIl+2E6yY6c4k9giDJAhtV+enfA+G89N6Csng==
 
-resolve@^1.1.6, resolve@^1.14.2:
+resolve@^1.14.2:
   version "1.20.0"
   resolved "https://registry.npmjs.org/resolve/-/resolve-1.20.0.tgz"
   integrity sha512-wENBPt4ySzg4ybFQW2TT1zMQucPK95HSh/nq2CFTZVOGut2+pQvSsgtda4d26YrYcr067wjbmzOG8byDPBX63A==
@@ -8598,15 +8507,6 @@ shell-quote@^1.8.1:
   version "1.8.1"
   resolved "https://registry.npmjs.org/shell-quote/-/shell-quote-1.8.1.tgz"
   integrity sha512-6j1W9l1iAs/4xYBI1SYOVZyFcCis9b4KCLQ8fgAGG07QvzaRLVVRQvAy85yNmmZSjYjg4MWh4gNvlPujU/5LpA==
-
-shelljs@^0.8.5:
-  version "0.8.5"
-  resolved "https://registry.npmjs.org/shelljs/-/shelljs-0.8.5.tgz"
-  integrity sha512-TiwcRcrkhHvbrZbnRcFYMLl30Dfov3HKqzp5tO5b4pt6G/SezKcYhmDg15zXVBswHmctSAQKznqNW2LO5tTDow==
-  dependencies:
-    glob "^7.0.0"
-    interpret "^1.0.0"
-    rechoir "^0.6.2"
 
 side-channel@^1.0.4:
   version "1.0.4"
