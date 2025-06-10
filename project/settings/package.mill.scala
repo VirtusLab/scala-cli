@@ -233,12 +233,29 @@ trait CliLaunchers extends SbtModule { self =>
       os.copy.over(libPath, destDir / s"${prefix}sodiumjni.$ext")
     }
     private def copyLibsodiumStaticTo(cs: String, destDir: os.Path, workspace: os.Path): Unit = {
-      val dirRes = os.proc(
-        cs,
-        "get",
-        "--archive",
-        s"https://download.libsodium.org/libsodium/releases/libsodium-$libsodiumVersion-stable-msvc.zip"
-      ).call()
+      val dirRes = {
+        val stable = os.proc(
+          cs,
+          "get",
+          "--archive",
+          s"https://download.libsodium.org/libsodium/releases/libsodium-$libsodiumVersion-stable-msvc.zip"
+        ).call(check = false)
+        if (stable.exitCode == 0) stable
+        else {
+          System.err.println(
+            s"Failed to download stable libsodium $libsodiumVersion from https://download.libsodium.org/libsodium/releases"
+          )
+          System.err.println(
+            "falling back to https://github.com/jedisct1/libsodium/releases *-RELEASE"
+          )
+          os.proc( // fallback to GitHuB *-RELEASE version
+            cs,
+            "get",
+            "--archive",
+            s"https://github.com/jedisct1/libsodium/releases/download/$libsodiumVersion-RELEASE/libsodium-$libsodiumVersion-msvc.zip"
+          ).call()
+        }
+      }
       val dir = os.Path(dirRes.out.trim(), workspace)
       os.copy.over(
         dir / "libsodium" / "x64" / "Release" / "v143" / "static" / "libsodium.lib",
