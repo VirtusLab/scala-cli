@@ -169,6 +169,7 @@ object Deps {
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
   def coursierPublish    = ivy"io.get-coursier.publish::publish:${Versions.coursierPublish}"
+    .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
   def dependency    = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
@@ -250,7 +251,7 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.17"
-  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.11.0"
+  def sttp                      = ivy"com.softwaremill.sttp.client3::core:3.11.0"
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
