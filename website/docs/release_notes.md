@@ -8,6 +8,55 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.8.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.2)
+
+### Support for Scala Native 0.5.8
+This Scala CLI version switches the default Scala Native version to 0.5.8.
+
+```bash
+scala-cli -e 'println("Hello from Scala Native 0.5.8!")' --native
+# Compiling project (Scala 3.7.1, Scala Native 0.5.8)
+# Compiled project (Scala 3.7.1, Scala Native 0.5.8)
+# [info] Linking (multithreadingEnabled=true, disable if not used) (1052 ms)
+# [info] Discovered 919 classes and 5640 methods after classloading
+# [info] Checking intermediate code (quick) (59 ms)
+# [info] Multithreading was not explicitly enabled - initial class loading has not detected any usage of system threads. Multithreading support will be disabled to improve performance.
+# [info] Linking (multithreadingEnabled=false) (369 ms)
+# [info] Discovered 511 classes and 2553 methods after classloading
+# [info] Checking intermediate code (quick) (7 ms)
+# [info] Discovered 491 classes and 1986 methods after optimization
+# [info] Optimizing (debug mode) (519 ms)
+# [info] Produced 9 LLVM IR files
+# [info] Generating intermediate code (521 ms)
+# [info] Compiling to native code (1762 ms)
+# [info] Linking with [pthread, dl, m]
+# [info] Linking native code (immix gc, none lto) (98 ms)
+# [info] Postprocessing (0 ms)
+# [info] Total (4379 ms)
+# Hello from Scala Native 0.5.8!
+```
+
+Added in [#3728](https://github.com/VirtusLab/scala-cli/pull/3728)
+
+### Internal and build changes
+* Migrate publishing to Sonatype Maven Central by [@Gedochao](https://github.com/Gedochao) in [#3704](https://github.com/VirtusLab/scala-cli/pull/3704)
+* Fix version string of published artifacts by [@Gedochao](https://github.com/Gedochao) in [#3721](https://github.com/VirtusLab/scala-cli/pull/3721)
+
+### Updates
+* Update scala-cli.sh launcher for 1.8.1 by [@github-actions](https://github.com/github-actions) in [#3719](https://github.com/VirtusLab/scala-cli/pull/3719)
+* Bump `sbt` to 1.11.1 by [@Gedochao](https://github.com/Gedochao) in [#3723](https://github.com/VirtusLab/scala-cli/pull/3723)
+* Bump deps to versions migrated to Sonatype Maven Central by [@Gedochao](https://github.com/Gedochao) in [#3722](https://github.com/VirtusLab/scala-cli/pull/3722)
+* Update publish_2.13 to 0.2.1 by [@scala-steward](https://github.com/scala-steward) in [#3727](https://github.com/VirtusLab/scala-cli/pull/3727)
+* Bump sass from 1.89.1 to 1.89.2 in /website by [@dependabot](https://github.com/dependabot) in [#3733](https://github.com/VirtusLab/scala-cli/pull/3733)
+* Bump @easyops-cn/docusaurus-search-local from 0.49.2 to 0.50.0 in /website by [@dependabot](https://github.com/dependabot) in [#3730](https://github.com/VirtusLab/scala-cli/pull/3730)
+* Bump react and react-dom in /website by [@dependabot](https://github.com/dependabot) in [#3732](https://github.com/VirtusLab/scala-cli/pull/3732)
+* Bump `scala-cli-signing` to 0.2.9 & coursier `publish` to 0.3.0 by [@Gedochao](https://github.com/Gedochao) in [#3734](https://github.com/VirtusLab/scala-cli/pull/3734)
+* Bump `docusaurus` to 3.8.1 by [@Gedochao](https://github.com/Gedochao) in [#3737](https://github.com/VirtusLab/scala-cli/pull/3737)
+* Bump SBT to 1.11.2 by [@Gedochao](https://github.com/Gedochao) in [#3739](https://github.com/VirtusLab/scala-cli/pull/3739)
+* Update Scala Native to 0.5.8 by [@scala-steward](https://github.com/scala-steward) in [#3728](https://github.com/VirtusLab/scala-cli/pull/3728)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.1...v1.8.2
+
 ## [v1.8.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.1)
 
 ### Support for Scala 3.7.1
@@ -31,7 +80,7 @@ It is now possible to use URLs in `using file` directives, which allows linking 
 Added during a [Scala Tooling Spree](https://scalameta.org/scala-tooling-spree/) by [@ivan-klass](https://github.com/ivan-klass), [@majk-p](https://github.com/majk-p) and [@tgodzik](https://github.com/tgodzik) in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
 
 ### Features
-* Support links in using file directive (implements #1328) by @ivan-klass, @majk-p and @tgodzik in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
+* Support links in using file directive (implements #1328) by [@ivan-klass](https://github.com/ivan-klass), [@majk-p](https://github.com/majk-p) and [@tgodzik](https://github.com/tgodzik) in [#3681](https://github.com/VirtusLab/scala-cli/pull/3681)
 
 ### Fixes
 * Fix race condition in local repo setup by [@unlsycn](https://github.com/unlsycn) in [#3693](https://github.com/VirtusLab/scala-cli/pull/3693)
