@@ -115,6 +115,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
+    def coursierPublish                   = "0.3.0"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.20.1"
@@ -128,7 +129,7 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.1.33"
-    def signingCli                        = "0.2.8"
+    def signingCli                        = "0.2.9"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.7"
@@ -167,9 +168,9 @@ object Deps {
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
   def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish:publish_2.13:0.2.1"
+  def coursierPublish    = ivy"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
   def dependency    = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.17.0"
@@ -250,7 +251,7 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.17"
-  def sttp                      = ivy"com.softwaremill.sttp.client3:core_2.13:3.11.0"
+  def sttp                      = ivy"com.softwaremill.sttp.client3::core:3.11.0"
   def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
   def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
   def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
