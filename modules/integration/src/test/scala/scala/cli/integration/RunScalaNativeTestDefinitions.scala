@@ -54,7 +54,7 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     val message  = "Hello"
     val inputs   = TestInputs(
       os.rel / fileName ->
-        s"""//> using nativeLto thin
+        s"""//> using nativeLto full
            |println("$message")
            |""".stripMargin
     )
@@ -67,10 +67,9 @@ trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
     }
   }
 
-  if (!Properties.isMac)
-    test("scala native with lto optimisation") {
-      TestUtil.retryOnCi()(scalaNativeLtoTests())
-    }
+  test("scala native with lto optimisation") {
+    TestUtil.retryOnCi()(scalaNativeLtoTests())
+  }
 
   test("simple script native command") {
     TestUtil.retryOnCi() {

@@ -3255,14 +3255,14 @@ The available options are "thin", "full" and "none".
 You can do it with the `--native-lto` option from the command line:
 
 ```bash
-scala-cli -e 'println("Hello")' --native --native-lto thin
+scala-cli -e 'println("Hello")' --native --native-lto full
 ```
 
 Or with a `using` directive:
 
 ```scala compile
 //> using platform "scala-native"
-//> using nativeLto "thin"
+//> using nativeLto "full"
 @main def main(): Unit = println("Hello")
 ```
 
