@@ -155,4 +155,8 @@ object ComputeVersion {
           input.positions
         )
       )
+
+  def defaultComputeVersion(mayDefaultToGitTag: Boolean): Option[ComputeVersion] =
+    if mayDefaultToGitTag then Some(ComputeVersion.GitTag(os.rel, dynVer = false, positions = Nil))
+    else None
 }
