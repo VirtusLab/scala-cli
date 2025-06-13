@@ -69,6 +69,28 @@ class MarkdownCodeBlockTests extends TestUtil.ScalaCliBuildSuite {
     expect(actualResult == expectedResult)
   }
 
+  test("shebang closing line allowed in scala code") {
+    val code     = """println("Hello !#")""".stripMargin
+    val markdown =
+      s"""# Some snippet
+         |
+         |```scala
+         |#!/usr/bin/env -S scala-cli shebang
+         |$code
+         |```
+         |""".stripMargin
+    val expectedResult =
+      MarkdownCodeBlock(
+        info = PlainScalaInfo,
+        body = "\n" + code,
+        startLine = 3,
+        endLine = 4
+      )
+    val Right(Seq(actualResult: MarkdownCodeBlock)) =
+      MarkdownCodeBlock.findCodeBlocks(os.sub / "Example.md", markdown)
+    expect(actualResult == expectedResult)
+  }
+
   test("a raw Scala code block is extracted correctly from markdown") {
     val code = """object Main extends App {
                  |  println("Hello")
