@@ -1344,6 +1344,11 @@ object `local-repo` extends LocalRepo {
 
 // Helper CI commands
 def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Command {
+  val taskNames = tasks.value.map(_.toString())
+  System.err.println(
+    s"""Tasks producing artifacts to be included in the bundle:
+       |  ${taskNames.mkString("\n  ")}""".stripMargin
+  )
   val pv = finalPublishVersion()
   System.err.println(s"Publish version: $pv")
   val bundleName = s"$organization-$ghName-$pv"

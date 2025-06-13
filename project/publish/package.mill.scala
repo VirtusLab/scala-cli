@@ -6,6 +6,7 @@ import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCreden
 import settings.{PublishLocalNoFluff, workspaceDirName}
 import de.tobiasroeser.mill.vcs.version._
 import mill._
+import mill.javalib.publish.Artifact
 import scalalib._
 import org.eclipse.jgit.api.Git
 
@@ -166,20 +167,23 @@ def publishSonatype(
   val pgpPassword = sys.env("PGP_PASSWORD")
   val timeout     = 10.minutes
 
-  val artifacts = data.map {
+  System.err.println("Actual artifacts included in the bundle:")
+  val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] = data.map {
     case PublishModule.PublishData(a, s) =>
+      System.err.println(s"  ${a.group}:${a.id}:${a.version}")
       (s.map { case (p, f) => (p.path, f) }, a)
   }
 
   val isRelease: Boolean = {
-    val versions = artifacts.map(_._2.version).toSet
-    val set      = versions.map(!_.endsWith("-SNAPSHOT"))
+    val versions: Set[String] = artifacts.map(_._2.version).toSet
+    val set: Set[Boolean]     = versions.map(!_.endsWith("-SNAPSHOT"))
     assert(
       set.size == 1,
       s"Found both snapshot and non-snapshot versions: ${versions.toVector.sorted.mkString(", ")}"
     )
     set.head
   }
+  System.err.println(s"Is release: $isRelease")
   val publisher = new SonatypeCentralPublisher(
     credentials = credentials,
     gpgArgs = Seq(
@@ -200,8 +204,10 @@ def publishSonatype(
     env = env,
     awaitTimeout = timeout.toMillis.toInt
   )
-  val publishingType  = if (isRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
+  val publishingType = if (isRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
+  System.err.println(s"Publishing type: $publishingType")
   val finalBundleName = if (bundleName.nonEmpty) Some(bundleName) else None
+  System.err.println(s"Final bundle name: $finalBundleName")
   publisher.publishAll(
     publishingType = publishingType,
     singleBundleName = finalBundleName,
