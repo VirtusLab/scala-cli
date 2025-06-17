@@ -6,6 +6,7 @@ import coursier.publish.sonatype.SonatypeApi
 import coursier.publish.util.EmaRetryParams
 import coursier.publish.{Hooks, PublishRepository}
 
+import java.net.URI
 import java.util.concurrent.ScheduledExecutorService
 
 import scala.build.EitherCps.{either, value}
@@ -38,8 +39,13 @@ final case class RepoParams(
         case other => other
       }
     )
-  def withAuth(authOpt: Option[Authentication]): RepoParams =
-    authOpt.fold(this)(withAuth(_))
+  def withAuth(authOpt: Option[Authentication]): RepoParams = authOpt.fold(this)(withAuth)
+
+  lazy val isLegacySonatype: Boolean =
+    Option(new URI(repo.snapshotRepo.root))
+      .filter(_.getScheme == "https")
+      .map(_.getHost)
+      .exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
 }
 
 object RepoParams {

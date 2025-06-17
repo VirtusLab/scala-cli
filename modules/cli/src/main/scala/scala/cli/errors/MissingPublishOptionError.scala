@@ -27,3 +27,10 @@ final class MissingPublishOptionError(
           extraPart
       }
     )
+
+object MissingPublishOptionError {
+  def versionError =
+    new MissingPublishOptionError("version", "--project-version", "publish.version")
+  def repositoryError =
+    new MissingPublishOptionError("repository", "--publish-repository", "publish.repository")
+}
