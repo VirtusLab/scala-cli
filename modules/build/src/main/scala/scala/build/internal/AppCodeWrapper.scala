@@ -1,5 +1,7 @@
 package scala.build.internal
 
+import scala.build.preprocessing.SheBang
+
 case class AppCodeWrapper(scalaVersion: String, log: String => Unit) extends CodeWrapper {
   override def mainClassObject(className: Name) = className
 
@@ -20,6 +22,9 @@ case class AppCodeWrapper(scalaVersion: String, log: String => Unit) extends Cod
         ""
     val packageDirective =
       if (pkgName.isEmpty) "" else s"package ${AmmUtil.encodeScalaSourcePath(pkgName)}" + "\n"
+
+    given newLine: String = SheBang.lineSeparator(code)
+
     val top = AmmUtil.normalizeNewlines(
       s"""$packageDirective
          |

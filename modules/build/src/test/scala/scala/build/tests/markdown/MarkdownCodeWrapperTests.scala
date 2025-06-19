@@ -5,7 +5,6 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.Position
 import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
-import scala.build.internal.AmmUtil
 import scala.build.preprocessing.directives.StrictDirective
 import scala.build.preprocessing.{
   ExtractedDirectives,
@@ -35,9 +34,9 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
-
   test("multiple plain Scala code blocks are wrapped correctly") {
     val snippet1               = """println("Hello")"""
     val codeBlock1             = MarkdownCodeBlock(PlainScalaInfo, snippet1, 3, 3)
@@ -65,6 +64,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
 
@@ -95,6 +95,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |}}""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (Some(expectedScala), None, None))
   }
 
@@ -113,7 +114,9 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |$snippet
          |""".stripMargin
     )
-    val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    val result   = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    val expected = (None, Some(expectedScala), None)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, Some(expectedScala), None))
   }
 
@@ -138,6 +141,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, Some(expectedScala), None))
   }
 
@@ -158,6 +162,7 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, None, Some(expectedScala)))
   }
 
@@ -185,6 +190,38 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
          |""".stripMargin
     )
     val result = MarkdownCodeWrapper(os.sub / "Example.md", markdown)
+    showDiffs(result, expectedScala.code)
     expect(result == (None, None, Some(expectedScala)))
   }
+
+  import scala.reflect.Selectable.reflectiveSelectable
+  type HasCode     = { def code: String }
+  type CodeWrapper = (Option[HasCode], Option[HasCode], Option[HasCode])
+
+  def showDiffs(result: CodeWrapper, expect: String): Unit = {
+    val actual: String = result match {
+      case (Some(s), None, None) =>
+        s.code
+      case (None, Some(s), None) =>
+        s.code
+      case (None, None, Some(s)) =>
+        s.code
+      case _ =>
+        result.toString
+    }
+    if actual.toString != expect.toString then
+      for (((a, b), i) <- (actual zip expect).zipWithIndex)
+        if (a != b) {
+          def c2s(c: Char): String = c match {
+            case '\r' => "\\r"
+            case '\n' => "\\n"
+            case _    => s"$c"
+          }
+          val aa = c2s(a)
+          val bb = c2s(b)
+          System.err.printf("== index %d: [%s]!=[%s]\n", i, aa, bb)
+        }
+      System.err.printf("actual[%s]\nexpect[%s]\n", actual, expect)
+  }
+
 }

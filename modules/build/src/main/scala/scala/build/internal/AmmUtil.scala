@@ -2,6 +2,8 @@ package scala.build.internal
 
 // adapted from https://github.com/com-lihaoyi/Ammonite/blob/9be39debc367abad5f5541ef58f4b986b2a8d045/amm/util/src/main/scala/ammonite/util/Util.scala
 
+import scala.build.internals.EnvVar
+
 object AmmUtil {
   val upPathSegment                                                 = "^"
   def pathToPackageWrapper(relPath0: os.SubPath): (Seq[Name], Name) = {
@@ -18,5 +20,10 @@ object AmmUtil {
 
   def encodeScalaSourcePath(path: Seq[Name]) = path.map(_.backticked).mkString(".")
 
-  def normalizeNewlines(s: String) = s.replace("\r", "").replace("\n", System.lineSeparator())
+  def normalizeNewlines(s: String)(using newLine: String = lineSeparator): String =
+    s.replace("\r", "").replace("\n", newLine)
+
+  lazy val lineSeparator: String = if shell.nonEmpty then "\n" else System.lineSeparator()
+
+  lazy val shell: Option[String] = EnvVar.Misc.shell.valueOpt
 }
