@@ -1674,12 +1674,13 @@ jobs:
       env:
         PGP_SECRET: ${{ secrets.PGP_SECRET }}
     - run: ./mill -i ci.setShouldPublish
-    - run: ./mill -i -j1 publishSonatype --tasks '{__[],_,test-runner[2.13.16],test-runner[2.12.20],runner[2.13.16],runner[2.12.20]}.publishArtifacts'
+    - run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts '{__[],_,test-runner[2.13.16],test-runner[2.12.20],runner[2.13.16],runner[2.12.20]}.publishArtifacts'
       if: env.SHOULD_PUBLISH == 'true'
       env:
-        PGP_PASSWORD: ${{ secrets.PGP_PASSPHRASE }}
-        SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        MILL_PGP_SECRET_BASE64: ${{ secrets.PGP_SECRET }}
+        MILL_PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+        MILL_SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        MILL_SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
     - uses: webfactory/ssh-agent@a6f90b1f127823b31d4d4a8d96047790581349bd
       with:
         ssh-private-key: |
