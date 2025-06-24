@@ -1349,16 +1349,16 @@ def publishSonatype(tasks: mill.main.Tasks[PublishModule.PublishData]) = Task.Co
     s"""Tasks producing artifacts to be included in the bundle:
        |  ${taskNames.mkString("\n  ")}""".stripMargin
   )
-  val pv = finalPublishVersion()
-  System.err.println(s"Publish version: $pv")
-  val bundleName = s"$organization-$ghName-$pv"
-  System.err.println(s"Publishing bundle: $bundleName")
+//  val pv = finalPublishVersion()
+//  System.err.println(s"Publish version: $pv")
+//  val bundleName = s"$organization-$ghName-$pv"
+//  System.err.println(s"Publishing bundle: $bundleName")
   publish.publishSonatype(
     data = define.Target.sequence(tasks.value)(),
     log = Task.ctx().log,
     workspace = Task.workspace,
     env = Task.env,
-    bundleName = bundleName
+    bundleName = None
   )
 }
 

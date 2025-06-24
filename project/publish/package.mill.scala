@@ -158,7 +158,7 @@ def publishSonatype(
   log: mill.api.Logger,
   workspace: os.Path,
   env: Map[String, String],
-  bundleName: String
+  bundleName: Option[String] = None
 ): Unit = {
   val credentials = SonatypeCredentials(
     username = sys.env("SONATYPE_USERNAME"),
@@ -206,8 +206,11 @@ def publishSonatype(
   )
   val publishingType = if (isRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   System.err.println(s"Publishing type: $publishingType")
-  val finalBundleName = if (bundleName.nonEmpty) Some(bundleName) else None
-  System.err.println(s"Final bundle name: $finalBundleName")
+  val finalBundleName = bundleName.filter(_.nonEmpty)
+  finalBundleName match {
+    case Some(bn) => System.err.println(s"Final bundle name: $bn")
+    case _        => System.err.println("No bundle name provided")
+  }
   publisher.publishAll(
     publishingType = publishingType,
     singleBundleName = finalBundleName,
