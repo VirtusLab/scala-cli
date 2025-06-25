@@ -8,7 +8,34 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.8.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.3)
+
+This is a small release which aims to fix issues with publishing Scala CLI on Sonatype Central Portal.
+
+### Build and internal changes
+* Add extra logging on Scala CLI artifacts publishing by [@Gedochao](https://github.com/Gedochao) in [#3745](https://github.com/VirtusLab/scala-cli/pull/3745)
+* [NIT] Refactor publishing by [@Gedochao](https://github.com/Gedochao) in [#3743](https://github.com/VirtusLab/scala-cli/pull/3743)
+* Ensure publishing to Sonatype runs without parallelism by [@Gedochao](https://github.com/Gedochao) in [#3755](https://github.com/VirtusLab/scala-cli/pull/3755)
+* Don't use any custom logic when publishing to Sonatype Central by [@Gedochao](https://github.com/Gedochao) in [#3759](https://github.com/VirtusLab/scala-cli/pull/3759)
+* Print artifacts' version when publishing Scala CLI by [@Gedochao](https://github.com/Gedochao) in [#3760](https://github.com/VirtusLab/scala-cli/pull/3760)
+
+### Updates
+* Update scala-cli.sh launcher for 1.8.2 by [@github-actions](https://github.com/github-actions) in [#3744](https://github.com/VirtusLab/scala-cli/pull/3744)
+* Update semanticdb-shared_2.13 to 4.13.7 by [@scala-steward](https://github.com/scala-steward) in [#3746](https://github.com/VirtusLab/scala-cli/pull/3746)
+* Bump @easyops-cn/docusaurus-search-local from 0.50.0 to 0.51.0 in /website by [@dependabot](https://github.com/dependabot) in [#3748](https://github.com/VirtusLab/scala-cli/pull/3748)
+* Bump brace-expansion from 1.1.11 to 1.1.12 in /website by [@dependabot](https://github.com/dependabot) in [#3749](https://github.com/VirtusLab/scala-cli/pull/3749)
+* chore: Set latest RC to 3.7.2-RC1 by [@tgodzik](https://github.com/tgodzik) in [#3750](https://github.com/VirtusLab/scala-cli/pull/3750)
+* Bump @easyops-cn/docusaurus-search-local from 0.51.0 to 0.51.1 in /website by [@dependabot](https://github.com/dependabot) in [#3757](https://github.com/VirtusLab/scala-cli/pull/3757)
+* Update jsoup to 1.21.1 by [@scala-steward](https://github.com/scala-steward) in [#3762](https://github.com/VirtusLab/scala-cli/pull/3762)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.2...v1.8.3
+
 ## [v1.8.2](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.2)
+
+:::warning
+Due to technical difficulties, this version is not available on Sonatype Central Portal and on coursier. 
+If you care about those installation methods, please be patient as we resolve the issue and work on a subsequent release.
+:::
 
 ### Support for Scala Native 0.5.8
 This Scala CLI version switches the default Scala Native version to 0.5.8.
