@@ -72,6 +72,8 @@ object cliBootstrapped extends ScalaCliPublishModule {
 
   import mill.scalalib.Assembly
 
+  override def prependShellScript: T[String] = Task("")
+
   override def mainClass: Target[Option[String]] = Some("scala.cli.ScalaCli")
 
   override def assemblyRules: Seq[Assembly.Rule] = Seq(
