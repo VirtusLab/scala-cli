@@ -118,7 +118,7 @@ object Deps {
     def coursierPublish                   = "0.3.0"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
-    def jsoup                             = "1.20.1"
+    def jsoup                             = "1.21.1"
     def scalaMeta                         = "4.13.7"
     def scalafmt                          = "3.9.7"
     def scalaNative04                     = "0.4.17"
