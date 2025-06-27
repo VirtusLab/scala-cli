@@ -368,12 +368,38 @@ object TestUtil {
     finally if (proc.isAlive()) {
         proc.destroy()
         Thread.sleep(200L)
-        if (proc.isAlive()) proc.destroyForcibly()
+        if (proc.isAlive()) proc.destroy(shutdownGracePeriod = 0)
       }
 
   implicit class StringOps(a: String) {
     def countOccurrences(b: String): Int =
       if (b.isEmpty) 0 // Avoid infinite splitting
       else a.sliding(b.length).count(_ == b)
+  }
+
+  def printStderrUntilCondition(
+    proc: os.SubProcess,
+    timeout: Duration = 90.seconds
+  )(condition: String => Boolean)(
+    f: String => Unit = _ => ()
+  )(implicit ec: ExecutionContext): Unit = {
+    def revertTriggered(): Boolean = {
+      val stderrOutput = TestUtil.readLine(proc.stderr, ec, timeout)
+      println(stderrOutput)
+      f(stderrOutput)
+      condition(stderrOutput)
+    }
+
+    while (!revertTriggered()) Thread.sleep(100L)
+  }
+
+  implicit class ProcOps(proc: os.SubProcess) {
+    def printStderrUntilJlineRevertsToDumbTerminal(proc: os.SubProcess)(
+      f: String => Unit
+    )(implicit ec: ExecutionContext): Unit =
+      TestUtil.printStderrUntilCondition(proc)(_.contains("creating a dumb terminal"))(f)
+
+    def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit =
+      TestUtil.printStderrUntilCondition(proc, timeout)(_.contains("re-run"))()
   }
 }

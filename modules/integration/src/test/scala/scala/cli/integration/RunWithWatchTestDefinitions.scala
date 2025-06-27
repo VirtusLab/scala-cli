@@ -1,24 +1,12 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import os.SubProcess
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.duration.{Duration, DurationInt}
+import scala.cli.integration.TestUtil.ProcOps
+import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
 
 trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
-  implicit class ProcOps(proc: SubProcess) {
-    def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit = {
-      def rerunWasTriggered(): Boolean = {
-        val stderrOutput = TestUtil.readLine(proc.stderr, ec, timeout)
-        println(stderrOutput)
-        stderrOutput.contains("re-run")
-      }
-      while (!rerunWasTriggered()) Thread.sleep(100L)
-    }
-  }
-
   // TODO make this pass reliably on Mac CI
   if (!Properties.isMac || !TestUtil.isCI) {
     val expectedMessage1 = "Hello"

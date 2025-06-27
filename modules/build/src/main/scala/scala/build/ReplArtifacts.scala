@@ -5,6 +5,8 @@ import coursier.core.Repository
 import coursier.util.Task
 import dependency.*
 
+import java.io.File
+
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internal.CsLoggerUtil.*
@@ -89,16 +91,17 @@ object ReplArtifacts {
     logger: Logger,
     cache: FileCache[Task],
     repositories: Seq[Repository],
-    addScalapy: Option[String]
+    addScalapy: Option[String],
+    javaVersion: Int
   ): Either[BuildException, ReplArtifacts] = either {
     val isScala2 = scalaParams.scalaVersion.startsWith("2.")
     val replDep  =
-      if (isScala2) dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
+      if isScala2 then dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
       else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
-    val externalDeps  = dependencies ++ scalapyDeps
-    val replArtifacts =
+    val externalDeps                          = dependencies ++ scalapyDeps
+    val replArtifacts: Seq[(String, os.Path)] = value {
       Artifacts.artifacts(
         Seq(replDep).map(Positioned.none),
         repositories,
@@ -106,23 +109,51 @@ object ReplArtifacts {
         logger,
         cache.withMessage(s"Downloading Scala compiler ${scalaParams.scalaVersion}")
       )
-    val depArtifacts = Artifacts.artifacts(
-      externalDeps.map(Positioned.none),
-      repositories,
-      Some(scalaParams),
-      logger,
-      cache.withMessage(s"Downloading REPL dependencies")
-    )
+    }
+    val depArtifacts: Seq[(String, os.Path)] = value {
+      Artifacts.artifacts(
+        externalDeps.map(Positioned.none),
+        repositories,
+        Some(scalaParams),
+        logger,
+        cache.withMessage(s"Downloading REPL dependencies")
+      )
+    }
     val mainClass =
-      if (isScala2) "scala.tools.nsc.MainGenericRunner"
+      if isScala2 then "scala.tools.nsc.MainGenericRunner"
       else "dotty.tools.repl.Main"
+    val defaultReplJavaOpts = Seq("-Dscala.usejavacp=true")
+    val jlineArtifacts      =
+      replArtifacts
+        .map(_._2.toString)
+        .filter(_.contains("jline"))
+    val jlineJavaOpts: Seq[String] =
+      if javaVersion >= 24 && jlineArtifacts.nonEmpty then {
+        val modulePath    = Seq("--module-path", jlineArtifacts.mkString(File.pathSeparator))
+        val remainingOpts =
+          if isScala2 then
+            Seq(
+              "--add-modules",
+              "org.jline",
+              "--enable-native-access=org.jline"
+            )
+          else
+            Seq(
+              "--add-modules",
+              "org.jline.terminal",
+              "--enable-native-access=org.jline.nativ"
+            )
+        modulePath ++ remainingOpts
+      }
+      else Seq.empty
+    val replJavaOpts = defaultReplJavaOpts ++ jlineJavaOpts
     ReplArtifacts(
-      replArtifacts = value(replArtifacts),
-      depArtifacts = value(depArtifacts),
+      replArtifacts = replArtifacts,
+      depArtifacts = depArtifacts,
       extraClassPath = extraClassPath,
       extraSourceJars = Nil,
       replMainClass = mainClass,
-      replJavaOpts = Seq("-Dscala.usejavacp=true"),
+      replJavaOpts = replJavaOpts,
       addSourceJars = false
     )
   }

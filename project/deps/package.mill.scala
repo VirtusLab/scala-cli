@@ -83,7 +83,7 @@ object Java {
   def minimumBloopJava: Int      = 17
   def minimumInternalJava: Int   = 16
   def defaultJava: Int           = minimumBloopJava
-  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23)
+  def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24)
   def allJavaVersions: Seq[Int]  =
     (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
 }
