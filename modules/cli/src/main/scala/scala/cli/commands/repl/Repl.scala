@@ -452,9 +452,10 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
           cache,
           value(options.finalRepositories),
           addScalapy =
-            if (setupPython)
+            if setupPython then
               Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
-            else None
+            else None,
+          javaVersion = options.javaHome().value.version
         )
       }
     }

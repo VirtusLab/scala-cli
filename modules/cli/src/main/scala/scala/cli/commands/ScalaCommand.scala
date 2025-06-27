@@ -244,16 +244,18 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
           }
           else if (shared.helpGroups.helpRepl) {
             val initialBuildOptions = buildOptionsOrExit(options)
-            val artifacts     = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
-            val replArtifacts = value {
+            val artifacts        = initialBuildOptions.artifacts(logger, Scope.Main).orExit(logger)
+            val javaVersion: Int = initialBuildOptions.javaHome().value.version
+            val replArtifacts    = value {
               ReplArtifacts.default(
-                scalaParams,
-                artifacts.userDependencies,
-                Nil,
-                logger,
-                buildOptions.finalCache,
-                Nil,
-                None
+                scalaParams = scalaParams,
+                dependencies = artifacts.userDependencies,
+                extraClassPath = Nil,
+                logger = logger,
+                cache = buildOptions.finalCache,
+                repositories = Nil,
+                addScalapy = None,
+                javaVersion = javaVersion
               )
             }
             replArtifacts.replClassPath -> replArtifacts.replMainClass

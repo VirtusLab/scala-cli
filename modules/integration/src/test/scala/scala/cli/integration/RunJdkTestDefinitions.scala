@@ -2,7 +2,8 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.util.Properties
+import scala.cli.integration.TestUtil.ProcOps
+import scala.util.{Properties, Try}
 
 trait RunJdkTestDefinitions { _: RunTestDefinitions =>
   def javaIndex(javaVersion: Int): String =
@@ -127,6 +128,27 @@ trait RunJdkTestDefinitions { _: RunTestDefinitions =>
                 expect(res.out.trim() == expectedMessage)
               }
             }
+        }
+      }
+
+    // the warnings were introduced in JDK 24, so we only test this for JDKs >= 24
+    // the issue never affected Scala 2.12, so we skip it for that version
+    if (
+      !actualScalaVersion.startsWith("2.12") &&
+      !useScalaInstallationWrapper &&
+      Try(index.toInt).map(_ >= 24).getOrElse(false)
+    )
+      // TODO: test with Scala installation wrapper when the fix gets propagated there
+      test(s"REPL does not warn about restricted java.lang.System API called on JDK $index") {
+        TestInputs.empty.fromRoot { root =>
+          TestUtil.withProcessWatching(
+            proc = os.proc(TestUtil.cli, "repl", extraOptions, "--jvm", index)
+              .spawn(cwd = root, stderr = os.Pipe)
+          ) { (proc, _, ec) =>
+            proc.printStderrUntilJlineRevertsToDumbTerminal(proc) { s =>
+              expect(!s.contains("A restricted method in java.lang.System has been called"))
+            }(ec)
+          }
         }
       }
   }
