@@ -23,6 +23,8 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
   )
   val buildThreads = BuildThreads.create()
 
+  def path2url(p: os.Path): String = p.toIO.toURI.toURL.toString
+
   test("using outdated os-lib") {
     val dependencyOsLib = "com.lihaoyi::os-lib:0.7.8"
     val testInputs      = TestInputs(
@@ -160,7 +162,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     )
     val withRepoBuildOptions = baseOptions.copy(
       classPathOptions =
-        baseOptions.classPathOptions.copy(extraRepositories = Seq(s"file:${repoTmpDir.toString}"))
+        baseOptions.classPathOptions.copy(extraRepositories = Seq(path2url(repoTmpDir)))
     )
     testInputs.withBuild(withRepoBuildOptions, buildThreads, None, actionableDiagnostics = true) {
       (_, _, maybeBuild) =>
@@ -222,7 +224,7 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
     val withRepoBuildOptions = baseOptions.copy(
       classPathOptions =
         baseOptions.classPathOptions.copy(extraRepositories =
-          Seq(s"file:${repoTmpDir.toString.replace('\\', '/')}")
+          Seq(path2url(repoTmpDir))
         )
     )
     testInputs.withBuild(withRepoBuildOptions, buildThreads, None, actionableDiagnostics = true) {

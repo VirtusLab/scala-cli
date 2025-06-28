@@ -262,7 +262,7 @@ def checkFile(file: os.Path, options: Options): Unit =
         if !shouldAlignContent(file) then prefixLines.mkString("")
         else prefixLines.mkString("", "", s"$fakeLineMarker\n" * c.line)
 
-      os.write.over(file, code.mkString(prefix, "\n", ""), createFolders = true)
+      os.write.over(file, codeLines.mkString(prefix, "\n", ""), createFolders = true)
 
     def run(cmd: os.proc): Int =
       val res = cmd.call(

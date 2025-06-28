@@ -171,7 +171,8 @@ case object ScalaPreprocessor extends Preprocessor {
     allowRestrictedFeatures: Boolean,
     suppressWarningOptions: SuppressWarningOptions
   )(using ScalaCliInvokeData): Either[BuildException, Option[ProcessingOutput]] = either {
-    val (contentWithNoShebang, _)                = SheBang.ignoreSheBangLines(content)
+    val (contentWithNoShebang, _, _) = SheBang.ignoreSheBangLines(content)
+
     val extractedDirectives: ExtractedDirectives = value(ExtractedDirectives.from(
       contentChars = contentWithNoShebang.toCharArray,
       path = path,
@@ -210,7 +211,7 @@ case object ScalaPreprocessor extends Preprocessor {
       logger
     )
 
-    val (content0, isSheBang)                          = SheBang.ignoreSheBangLines(content)
+    val (content0, isSheBang, _)                       = SheBang.ignoreSheBangLines(content)
     val preprocessedDirectives: PreprocessedDirectives =
       value(DirectivesPreprocessor(
         path,

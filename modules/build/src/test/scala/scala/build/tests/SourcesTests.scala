@@ -308,24 +308,31 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           |#! nix-shell -i scala-cli
           |
           |println("Hello World")""".stripMargin,
-      os.rel / "something4.scala" ->
+      os.rel / "something4.sc" ->
         """#!/usr/bin/scala-cli
           |#! nix-shell -i scala-cli
           |
           |!#
           |
           |println("Hello World")""".stripMargin,
-      os.rel / "something5.scala" ->
+      os.rel / "something5.sc" ->
         """#!/usr/bin/scala-cli
           |
           |println("Hello World #!")""".stripMargin,
-      os.rel / "multiline.scala" ->
+      os.rel / "multiline.sc" ->
         """#!/usr/bin/scala-cli
           |# comment
           |VAL=1
           |!#
           |
-          |println("Hello World #!")""".stripMargin
+          |println("Hello World #!")""".stripMargin,
+      os.rel / "hasBangHashInComment.sc" ->
+        """#!/usr/bin/scala-cli
+          |
+          |
+          |
+          |
+          |println("Hello World !#")""".stripMargin
     )
     val expectedParsedCodes = Seq(
       """
@@ -349,7 +356,13 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         |
         |
         |
-        |println("Hello World #!")""".stripMargin
+        |println("Hello World #!")""".stripMargin,
+      """
+        |
+        |
+        |
+        |
+        |println("Hello World !#")""".stripMargin
     )
 
     testInputs.withInputs { (root, inputs) =>
@@ -375,9 +388,19 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         sources.inMemory.map(_.content).map(s => new String(s, StandardCharsets.UTF_8))
 
       parsedCodes.zip(expectedParsedCodes).foreach { case (parsedCode, expectedCode) =>
+        showDiff(parsedCode, expectedCode)
         expect(parsedCode.contains(expectedCode))
       }
     }
+  }
+  def showDiff(parsed: String, expected: String): Unit = {
+    if (!parsed.contains(expected))
+      for (((p, e), i) <- (parsed zip expected).zipWithIndex) {
+        val ps = TestUtil.c2s(p)
+        val es = TestUtil.c2s(e)
+        if (ps != es)
+          System.err.printf("%2d: [%s]!=[%s]\n", i, ps, es)
+      }
   }
 
   test("dependencies in .sc - using") {

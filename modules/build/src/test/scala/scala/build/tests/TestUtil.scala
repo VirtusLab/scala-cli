@@ -92,5 +92,11 @@ object TestUtil {
       )
   }
 
+  def c2s(c: Char): String = c match {
+    case '\r' => "\\r"
+    case '\n' => "\\n"
+    case s    => s"$s"
+  }
+
   lazy val cs = Constants.cs
 }
