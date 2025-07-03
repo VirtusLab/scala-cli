@@ -148,10 +148,10 @@ scala-cli config suppress-warning.experimental-features true
 ```
 
 Depending on outdated libraries produces warnings, which can be suppressed with
-the `--suppress-outdated-dependencies-warning` option.
+the `--suppress-outdated-dependency-warning` option.
 
 ````bash
-scala-cli OldDeps.sc --suppress-outdated-dependencies-warning
+scala-cli OldDeps.sc --suppress-outdated-dependency-warning
 ````
 
 Alternatively, the global config key `suppress-warning.outdated-dependencies-files` can be used.
