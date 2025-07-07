@@ -18,7 +18,7 @@ object AmmUtil {
 
   def encodeScalaSourcePath(path: Seq[Name]) = path.map(_.backticked).mkString(".")
 
-  def normalizeNewlines(s: String)(using newLine: String = lineSeparator): String =
+  def normalizeNewlines(s: String): String =
     s.replace("\r", "")
 
   lazy val lineSeparator: String = "\n"
