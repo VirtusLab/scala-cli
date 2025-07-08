@@ -39,7 +39,8 @@ case class MarkdownOpenFence(
     val start: Int               = tickStartLine + 1
     val bodyLines: Array[String] = lines.slice(start, tickEndLine)
     val body                     = bodyLines.mkString("\n")
-    val (bodyWithNoSheBang, _)   = SheBang.ignoreSheBangLines(body)
+
+    val (bodyWithNoSheBang, _, _) = SheBang.ignoreSheBangLines(body)
     MarkdownCodeBlock(
       info.split("\\s+").toList, // strip info by whitespaces
       bodyWithNoSheBang,

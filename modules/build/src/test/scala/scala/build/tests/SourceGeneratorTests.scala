@@ -54,6 +54,7 @@ class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
         "val scalaCliVersion = Some\\(\"[^\"]*\"\\)",
         "val scalaCliVersion = Some\\(\"1.1.1-SNAPSHOT\"\\)"
       )
+      .replaceAll("\\\\", "\\")
       .linesWithSeparators
       .filterNot(_.stripLeading().startsWith("/**"))
       .mkString
