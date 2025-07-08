@@ -115,7 +115,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
-    def coursierPublish                   = "0.3.0"
+    def coursierPublish                   = "0.4.0"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.21.1"
