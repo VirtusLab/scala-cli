@@ -26,6 +26,8 @@ final case class RepoParams(
   shouldSign: Boolean,
   shouldAuthenticate: Boolean
 ) {
+  import RepoParams.*
+
   def withAuth(auth: Authentication): RepoParams =
     copy(
       repo = repo.withAuthentication(auth),
@@ -42,14 +44,26 @@ final case class RepoParams(
     )
   def withAuth(authOpt: Option[Authentication]): RepoParams = authOpt.fold(this)(withAuth)
 
-  lazy val isLegacySonatype: Boolean =
+  lazy val isSonatype: Boolean =
     Option(new URI(repo.snapshotRepo.root))
       .filter(_.getScheme == "https")
       .map(_.getHost)
-      .exists(host => host == "oss.sonatype.org" || host.endsWith(".oss.sonatype.org"))
+      .exists(sonatypeHosts.contains)
 }
 
 object RepoParams {
+  private val sonatypeOssrhStagingApiBase = "https://ossrh-staging-api.central.sonatype.com"
+  private val sonatypeSnapshotsBase = "https://central.sonatype.com/repository/maven-snapshots/"
+  private val sonatypeLegacyBase    = "https://oss.sonatype.org"
+  private val sonatypeS01LegacyBase = "https://s01.oss.sonatype.org"
+  private def sonatypeHosts: Seq[String] =
+    Seq(
+      sonatypeLegacyBase,
+      sonatypeSnapshotsBase,
+      sonatypeS01LegacyBase,
+      sonatypeOssrhStagingApiBase
+    ).map(new URI(_).getHost)
+
   def apply(
     repo: String,
     vcsUrlOpt: Option[String],
@@ -67,10 +81,9 @@ object RepoParams {
       case "ivy2-local" =>
         RepoParams.ivy2Local(ivy2HomeOpt)
       case "sonatype" | "central" | "maven-central" | "mvn-central" =>
-        val ossrhStagingApiBase = "https://ossrh-staging-api.central.sonatype.com"
-        logger.message(s"Using Portal OSSRH Staging API: $ossrhStagingApiBase")
+        logger.message(s"Using Portal OSSRH Staging API: $sonatypeOssrhStagingApiBase")
         RepoParams.centralRepo(
-          base = ossrhStagingApiBase,
+          base = sonatypeOssrhStagingApiBase,
           useLegacySnapshots = false,
           connectionTimeoutRetries = connectionTimeoutRetries,
           connectionTimeoutSeconds = connectionTimeoutSeconds,
@@ -80,11 +93,10 @@ object RepoParams {
           logger = logger
         )
       case "sonatype-legacy" | "central-legacy" | "maven-central-legacy" | "mvn-central-legacy" =>
-        val legacyBase = "https://oss.sonatype.org"
-        logger.message(s"$warnPrefix $legacyBase is EOL since 2025-06-30.")
-        logger.message(s"$warnPrefix $legacyBase publishing is expected to fail.")
+        logger.message(s"$warnPrefix $sonatypeLegacyBase is EOL since 2025-06-30.")
+        logger.message(s"$warnPrefix $sonatypeLegacyBase publishing is expected to fail.")
         RepoParams.centralRepo(
-          base = legacyBase,
+          base = sonatypeLegacyBase,
           useLegacySnapshots = true,
           connectionTimeoutRetries = connectionTimeoutRetries,
           connectionTimeoutSeconds = connectionTimeoutSeconds,
@@ -94,11 +106,10 @@ object RepoParams {
           logger = logger
         )
       case "sonatype-s01" | "central-s01" | "maven-central-s01" | "mvn-central-s01" =>
-        val s01SonatypeLegacyBase = "https://s01.oss.sonatype.org"
-        logger.message(s"$warnPrefix $s01SonatypeLegacyBase is EOL since 2025-06-30.")
+        logger.message(s"$warnPrefix $sonatypeS01LegacyBase is EOL since 2025-06-30.")
         logger.message(s"$warnPrefix it's expected publishing will fail.")
         RepoParams.centralRepo(
-          base = s01SonatypeLegacyBase,
+          base = sonatypeS01LegacyBase,
           useLegacySnapshots = true,
           connectionTimeoutRetries = connectionTimeoutRetries,
           connectionTimeoutSeconds = connectionTimeoutSeconds,

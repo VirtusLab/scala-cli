@@ -425,7 +425,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     now: Instant,
     isIvy2LocalLike: Boolean,
     isCi: Boolean,
-    isLegacySonatype: Boolean,
+    isSonatype: Boolean,
     withTestScope: Boolean,
     logger: Logger
   ): Either[BuildException, (FileSet, (coursier.core.Module, String))] = either {
@@ -540,7 +540,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       developers = developers
     )
 
-    if isLegacySonatype then {
+    if isSonatype then {
       if url.isEmpty then
         logger.diagnostic(
           "Publishing to Sonatype, but project URL is empty (set it with the '//> using publish.url' directive)."
@@ -750,7 +750,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               now = now,
               isIvy2LocalLike = repoParams.isIvy2LocalLike,
               isCi = isCi,
-              isLegacySonatype = repoParams.isLegacySonatype,
+              isSonatype = repoParams.isSonatype,
               withTestScope = withTestScope,
               logger = logger
             )
@@ -878,7 +878,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
     val authOpt0    = value(authOpt(
       repo = repoParams.repo.repo(isSnapshot0).root,
-      isLegacySonatype = repoParams.isLegacySonatype
+      isLegacySonatype = repoParams.isSonatype
     ))
     val asciiRegex        = """[\u0000-\u007f]*""".r
     val usernameOnlyAscii = authOpt0.exists(auth => asciiRegex.matches(auth.user))
@@ -891,7 +891,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       )
     val repoParams0: RepoParams = repoParams.withAuth(authOpt0)
     val isLegacySonatype        =
-      repoParams0.isLegacySonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
+      repoParams0.isSonatype && !repoParams0.repo.releaseRepo.root.contains("s01")
     val hooksDataOpt = Option.when(!dummy) {
       try repoParams0.hooks.beforeUpload(finalFileSet, isSnapshot0).unsafeRun()(using ec)
       catch {
@@ -953,7 +953,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     errors.toList match {
       case (h @ (_, _, e: Upload.Error.HttpError)) :: _
-          if repoParams0.isLegacySonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
+          if repoParams0.isSonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
         val httpCodeRegex = "HTTP (\\d+)\n.*".r
         e.getMessage match {
           case httpCodeRegex("403") =>
@@ -968,7 +968,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             )
           case _ => throw new UploadError(::(h, Nil))
         }
-      case _ :: _ if repoParams0.isLegacySonatype && errors.forall {
+      case _ :: _ if repoParams0.isSonatype && errors.forall {
             case (_, _, _: Upload.Error.Unauthorized) => true
             case _                                    => false
           } =>
