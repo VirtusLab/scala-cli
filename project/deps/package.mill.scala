@@ -115,7 +115,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
-    def coursierPublish                   = "0.4.0"
+    def coursierPublish                   = "0.4.1"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.21.1"
@@ -129,7 +129,7 @@ object Deps {
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
     def scalaPackager                     = "0.1.33"
-    def signingCli                        = "0.2.9"
+    def signingCli                        = "0.2.10"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.7"
