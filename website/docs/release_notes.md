@@ -8,6 +8,64 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.8.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.4)
+
+### (⚡️ experimental) `publish` support for the Sonatype Central Portal
+This Scala CLI version adds support for publishing artifacts to the Sonatype Central Portal 
+via its [OSSRH Staging API](https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/).
+It is once again publish artifacts to Maven Central with Scala CLI.
+Both stable and `*-SNAPSHOT` versions are handled.
+The only configuration change necessary is to migrate the Sonatype namespace in the UI and regenerate credentials to the new Sonatype Central Portal, as [per Sonatype instructions](https://central.sonatype.org/pages/ossrh-eol/)
+
+```bash ignore
+scala-cli publish . --power
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3774](https://github.com/VirtusLab/scala-cli/pull/3774), [#3776](https://github.com/VirtusLab/scala-cli/pull/3776), [#3778](https://github.com/VirtusLab/scala-cli/pull/3778), [coursier/publish#128](https://github.com/coursier/publish/pull/128) and [coursier/publish#127](https://github.com/coursier/publish/pull/127)
+
+### Better support for the REPL with JDK 24+
+When using the REPL with JDK 24 or newer, users should no longer see the warnings about restricted methods of `java.lang.System` being used.
+
+```bash ignore
+scala-cli repl --jvm 24
+# WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+# WARNING: sun.misc.Unsafe::objectFieldOffset has been called by scala.runtime.LazyVals$ (file:/Users/pchabelski/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar)
+# WARNING: Please consider reporting this to the maintainers of class scala.runtime.LazyVals$
+# WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+# Welcome to Scala 3.7.1 (24.0.1, Java OpenJDK 64-Bit Server VM).
+# Type in expressions for evaluation. Or try :help.
+#            
+#
+# scala> 
+```
+
+Note that the deprecated method from `sun.misc.Unsafe` warning is still present, and will only be addressed in Scala 3.8.0.
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3767](https://github.com/VirtusLab/scala-cli/pull/3767)
+
+### Features
+* `publish` command with Sonatype Central Portal OSSRH Staging API by [@Gedochao](https://github.com/Gedochao) in [#3774](https://github.com/VirtusLab/scala-cli/pull/3774)
+* Add support for publishing with Scala CLI to Sonatype Central Portal by [@Gedochao](https://github.com/Gedochao) in [#3776](https://github.com/VirtusLab/scala-cli/pull/3776)
+
+### Fixes
+* Prevent the REPL from warning about restricted `java.lang.System` API on JDK 24 by [@Gedochao](https://github.com/Gedochao) in [#3767](https://github.com/VirtusLab/scala-cli/pull/3767)
+* fix for 3725, 3752, 3766 and 3769 by [@philwalk](https://github.com/philwalk) in [#3726](https://github.com/VirtusLab/scala-cli/pull/3726)
+
+### Documentation changes
+* Update verbosity.md by [@kubukoz](https://github.com/kubukoz) in [#3772](https://github.com/VirtusLab/scala-cli/pull/3772)
+
+### Updates
+* Update scala-cli.sh launcher for 1.8.3 by [@github-actions[bot]](https://github.com/github-actions[bot]) in [#3765](https://github.com/VirtusLab/scala-cli/pull/3765)
+* Update sbt, scripted-plugin to 1.11.3 by [@scala-steward](https://github.com/scala-steward) in [#3773](https://github.com/VirtusLab/scala-cli/pull/3773)
+* Update `scalafmt` to 3.9.8 by [@scala-steward](https://github.com/scala-steward) in [#3771](https://github.com/VirtusLab/scala-cli/pull/3771)
+* Update scalafix-interfaces to 0.14.3 by [@scala-steward](https://github.com/scala-steward) in [#3673](https://github.com/VirtusLab/scala-cli/pull/3673)
+* Bump `coursier/publish` to 0.4.2 by [@Gedochao](https://github.com/Gedochao) in [#3778](https://github.com/VirtusLab/scala-cli/pull/3778)
+* Update semanticdb-shared_2.13 to 4.13.8 by [@scala-steward](https://github.com/scala-steward) in [#3770](https://github.com/VirtusLab/scala-cli/pull/3770)
+* Update jimfs to 1.3.1 by [@scala-steward](https://github.com/scala-steward) in [#3779](https://github.com/VirtusLab/scala-cli/pull/3779)
+* Update `scala-cli-signing` to 0.2.11 by [@scala-steward](https://github.com/scala-steward) in [#3781](https://github.com/VirtusLab/scala-cli/pull/3781)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.3...v1.8.4
+
 ## [v1.8.3](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.3)
 
 This is a small release which aims to fix issues with publishing Scala CLI on Sonatype Central Portal.
