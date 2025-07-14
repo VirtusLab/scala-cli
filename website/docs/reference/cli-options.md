@@ -2192,7 +2192,7 @@ Available in commands:
 ### `--signing-cli-version`
 
 [Internal]
-scala-cli-signing version when running externally (0.2.10 by default)
+scala-cli-signing version when running externally (0.2.11 by default)
 
 ### `--signing-cli-java-arg`
 
