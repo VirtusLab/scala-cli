@@ -2,6 +2,7 @@ package scala.cli.internal
 
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.maven.MavenRepository
 import coursier.util.Task
 import dependency.*
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
@@ -58,7 +59,10 @@ object ScalaJsLinker {
 
         val extraRepos =
           if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
-            Seq(Repositories.sonatype("snapshots"))
+            Seq(
+              Repositories.sonatype("snapshots"),
+              MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+            )
           else
             Nil
 
