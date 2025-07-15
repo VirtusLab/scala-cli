@@ -184,7 +184,7 @@ object Deps {
         "org.jline" -> "jline-terminal",
         "org.jline" -> "jline-terminal-jna"
       )
-  def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
+  def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
   def jimfs                = ivy"com.google.jimfs:jimfs:1.3.1"
   def jmhGeneratorBytecode = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
   def jmhCore              = ivy"org.openjdk.jmh:jmh-core:${Versions.jmh}"
