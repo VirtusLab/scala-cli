@@ -22,7 +22,7 @@
     "docusaurus-plugin-sass": "^0.2.6",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-player": "^2.16.0",
+    "react-player": "^2.16.1",
     "sass": "^1.89.2"
   },
   "browserslist": {
