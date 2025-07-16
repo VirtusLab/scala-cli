@@ -2,6 +2,7 @@ package scala.cli.commands.pgp
 
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
+import coursier.maven.MavenRepository
 import coursier.util.Task
 import dependency.*
 
@@ -185,7 +186,10 @@ object PgpExternalCommand {
     if (signingCliOptions.forceJvm.getOrElse(false)) {
       val extraRepos =
         if (version.endsWith("SNAPSHOT"))
-          Seq(Repositories.sonatype("snapshots"))
+          Seq(
+            Repositories.sonatype("snapshots"),
+            MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+          )
         else
           Nil
 

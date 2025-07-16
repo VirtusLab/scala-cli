@@ -1,6 +1,7 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
+import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
@@ -261,7 +262,8 @@ final case class BuildOptions(
       then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
-          coursier.Repositories.sonatypeS01("snapshots")
+          coursier.Repositories.sonatypeS01("snapshots"),
+          MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
         )
       else Nil
     val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
