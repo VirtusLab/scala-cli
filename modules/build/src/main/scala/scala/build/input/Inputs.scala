@@ -222,6 +222,8 @@ object Inputs {
     ).flatten
   }
 
+  lazy val scalaHashbang = "#!.*scala.*".r
+
   def validateArgs(
     args: Seq[String],
     cwd: os.Path,
@@ -237,6 +239,7 @@ object Inputs {
         lazy val subPath         = path.subRelativeTo(dir)
         lazy val stdinOpt0       = stdinOpt
         lazy val content         = os.read.bytes(path)
+        lazy val firstline       = new String(content.takeWhile(_ != '\n')).trim
         lazy val fullProgramCall = programInvokeData.progName +
           s"${
               if programInvokeData.subCommand == SubCommand.Default then ""
@@ -275,7 +278,8 @@ object Inputs {
         }
         else if path.last == Constants.projectFileName then
           Right(Seq(ProjectScalaFile(dir, subPath)))
-        else if arg.endsWith(".sc") then Right(Seq(Script(dir, subPath, Some(arg))))
+        else if arg.endsWith(".sc") || scalaHashbang.matches(firstline) then
+          Right(Seq(Script(dir, subPath, Some(arg))))
         else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
         else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
