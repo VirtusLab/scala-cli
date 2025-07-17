@@ -234,12 +234,13 @@ object Inputs {
   )(using programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     args.zipWithIndex.map {
       case (arg, idx) =>
-        lazy val path            = os.Path(arg, cwd)
-        lazy val dir             = path / os.up
-        lazy val subPath         = path.subRelativeTo(dir)
-        lazy val stdinOpt0       = stdinOpt
-        lazy val content         = os.read.bytes(path)
-        lazy val firstline       = new String(content.takeWhile(_ != '\n')).trim
+        lazy val path      = os.Path(arg, cwd)
+        lazy val dir       = path / os.up
+        lazy val subPath   = path.subRelativeTo(dir)
+        lazy val stdinOpt0 = stdinOpt
+        lazy val content   = os.read.bytes(path)
+        lazy val firstline =
+          if os.isDir(path) then "" else new String(content.takeWhile(_ != '\n')).trim
         lazy val fullProgramCall = programInvokeData.progName +
           s"${
               if programInvokeData.subCommand == SubCommand.Default then ""
