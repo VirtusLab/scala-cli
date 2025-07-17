@@ -234,13 +234,12 @@ object Inputs {
   )(using programInvokeData: ScalaCliInvokeData): Seq[Either[String, Seq[Element]]] =
     args.zipWithIndex.map {
       case (arg, idx) =>
-        lazy val path      = os.Path(arg, cwd)
-        lazy val dir       = path / os.up
-        lazy val subPath   = path.subRelativeTo(dir)
-        lazy val stdinOpt0 = stdinOpt
-        lazy val content   = os.read.bytes(path)
-        lazy val firstline =
-          if os.isDir(path) then "" else new String(content.takeWhile(_ != '\n')).trim
+        lazy val path            = os.Path(arg, cwd)
+        lazy val dir             = path / os.up
+        lazy val subPath         = path.subRelativeTo(dir)
+        lazy val stdinOpt0       = stdinOpt
+        lazy val content         = os.read.bytes(path)
+        lazy val firstline       = new String(content.takeWhile(_ != '\n')).trim
         lazy val fullProgramCall = programInvokeData.progName +
           s"${
               if programInvokeData.subCommand == SubCommand.Default then ""
@@ -279,7 +278,7 @@ object Inputs {
         }
         else if path.last == Constants.projectFileName then
           Right(Seq(ProjectScalaFile(dir, subPath)))
-        else if arg.endsWith(".sc") || scalaHashbang.matches(firstline) then
+        else if arg.endsWith(".sc") || isShebangScript(String(content)) then
           Right(Seq(Script(dir, subPath, Some(arg))))
         else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
