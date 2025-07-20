@@ -573,6 +573,21 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       }
     }
 
+  test("script file with shebang header and no extension run with scala-cli") {
+    val msg    = "compiled and ran"
+    val inputs = TestInputs(
+      os.rel / "scriptWithShebang" ->
+        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+            |//> using scala $actualScalaVersion
+            |println($msg)""".stripMargin
+    )
+    inputs.fromRoot { root =>
+      val output = os.proc(TestUtil.cli, "scriptWithShebang")
+        .call(cwd = root).out.trim()
+      expect(output == msg)
+    }
+  }
+
   test("script file with shebang header and no extension run with scala-cli shebang") {
     val inputs = TestInputs(
       os.rel / "script-with-shebang" ->
@@ -591,25 +606,6 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       expect(output == "List(1, 2, 3, -v)")
     }
   }
-  test("script file with shebang header and no extension run with scala-cli") {
-    val inputs = TestInputs(
-      os.rel / "script-with-shebang" ->
-        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
-            |//> using scala $actualScalaVersion
-            |println(args.toList)""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val output = if (!Properties.isWin) {
-        os.perms.set(root / "script-with-shebang", os.PermSet.fromString("rwx------"))
-        os.proc("./script-with-shebang", "1", "2", "3", "-v").call(cwd = root).out.trim()
-      }
-      else
-        os.proc(TestUtil.cli, "script-with-shebang", "1", "2", "3", "-v")
-          .call(cwd = root).out.trim()
-      expect(output == "List(1, 2, 3, -v)")
-    }
-  }
-
   test("script file with NO shebang header and no extension run with scala-cli shebang") {
     val inputs = TestInputs(
       os.rel / "script-no-shebang" ->
