@@ -579,7 +579,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
       os.rel / "scriptWithShebang" ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
             |//> using scala $actualScalaVersion
-            |println("$msg")""".stripMargin
+            |println(s"$msg")""".stripMargin
     )
     inputs.fromRoot { root =>
       val output = os.proc(TestUtil.cli, "scriptWithShebang")
