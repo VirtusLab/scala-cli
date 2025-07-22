@@ -577,7 +577,7 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     val msg    = "compiled and ran"
     val inputs = TestInputs(
       os.rel / "scriptWithShebang" ->
-        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang -S 2.13
+        s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
             |//> using scala $actualScalaVersion
             |println(s"$msg")""".stripMargin
     )

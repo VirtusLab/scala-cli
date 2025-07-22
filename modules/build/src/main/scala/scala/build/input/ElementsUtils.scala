@@ -10,7 +10,7 @@ import scala.build.internal.Constants
 object ElementsUtils {
   extension (p: os.Path) {
     def hasShebang: Boolean = os.read.bytes(p, offset = 0, count = 2) == Array('#', '!')
-    def isScript: Boolean   = p.ext == "sc" || p.hasShebang
+    def isScript: Boolean   = (p.ext == "sc" || p.hasShebang) && p.ext != "scala")
   }
 
   extension (d: Directory) {
