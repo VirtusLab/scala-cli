@@ -1,6 +1,7 @@
 package build.project.deps
-import mill._
-import scalalib._
+import mill.*
+import mill.api.BuildInfo
+import scalalib.*
 
 object Cli {
   def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -99,7 +100,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill: String  = _root_.mill.main.BuildInfo.millVersion
+    def mill: String  = BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
@@ -145,93 +146,93 @@ object Deps {
   // DO NOT hardcode a Scala version in this dependency string
   // This dependency is used to ensure that Ammonite is available for Scala versions
   // that Scala CLI supports.
-  def ammonite             = ivy"com.lihaoyi:::ammonite:${Versions.ammonite}"
-  def ammoniteForScala3Lts = ivy"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
+  def ammonite             = mvn"com.lihaoyi:::ammonite:${Versions.ammonite}"
+  def ammoniteForScala3Lts = mvn"com.lihaoyi:::ammonite:${Versions.ammoniteForScala3Lts}"
   def argonautShapeless    =
-    ivy"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
-  def asm = ivy"org.ow2.asm:asm:9.8"
+    mvn"com.github.alexarchambault:argonaut-shapeless_6.3_2.13:${Versions.argonautShapeless}"
+  def asm = mvn"org.ow2.asm:asm:9.8"
   // Force using of 2.13 - is there a better way?
-  def bloopConfig = ivy"ch.epfl.scala:bloop-config_2.13:2.3.2"
+  def bloopConfig = mvn"ch.epfl.scala:bloop-config_2.13:2.3.2"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
-  def bloopRifle       = ivy"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
-  def bsp4j            = ivy"ch.epfl.scala:bsp4j:2.1.1"
-  def caseApp          = ivy"com.github.alexarchambault::case-app:2.1.0-M30"
-  def collectionCompat = ivy"org.scala-lang.modules::scala-collection-compat:2.13.0"
+  def bloopRifle       = mvn"ch.epfl.scala:bloop-rifle_2.13:${Versions.bloop}"
+  def bsp4j            = mvn"ch.epfl.scala:bsp4j:2.1.1"
+  def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.0-M30"
+  def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
   // Force using of 2.13 - is there a better way?
-  def coursier    = ivy"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierCli = ivy"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
-  def coursierJvm = ivy"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
+  def coursier    = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierCli = mvn"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
+  def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
     .exclude("io.get-coursier" -> "dependency_2.13")
-  def coursierLauncher = ivy"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
+  def coursierLauncher = mvn"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
     .exclude(("ai.kien", "python-native-libs_2.13"))
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-  def coursierProxySetup = ivy"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
-  def coursierPublish    = ivy"io.get-coursier.publish::publish:${Versions.coursierPublish}"
+  def coursierProxySetup = mvn"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
+  def coursierPublish    = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
-  def dependency    = ivy"io.get-coursier::dependency:0.3.2"
-  def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
-  def expecty       = ivy"com.eed3si9n.expecty::expecty:0.17.0"
-  def fansi         = ivy"com.lihaoyi::fansi:0.5.0"
-  def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
-  def guava         = ivy"com.google.guava:guava:33.4.8-jre"
+  def dependency    = mvn"io.get-coursier::dependency:0.3.2"
+  def dockerClient  = mvn"com.spotify:docker-client:8.16.0"
+  def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.0"
+  def fansi         = mvn"com.lihaoyi::fansi:0.5.0"
+  def giter8        = mvn"org.foundweekends.giter8:giter8:0.16.2"
+  def guava         = mvn"com.google.guava:guava:33.4.8-jre"
   def javaClassName =
-    ivy"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
+    mvn"org.virtuslab.scala-cli.java-class-name:java-class-name_3:${Versions.javaClassName}"
       .exclude(
         "org.jline" -> "jline-reader",
         "org.jline" -> "jline-terminal",
         "org.jline" -> "jline-terminal-jna"
       )
-  def jgit                 = ivy"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
-  def jimfs                = ivy"com.google.jimfs:jimfs:1.3.1"
-  def jmhGeneratorBytecode = ivy"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
-  def jmhCore              = ivy"org.openjdk.jmh:jmh-core:${Versions.jmh}"
-  def jniUtils             = ivy"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
+  def jgit                 = mvn"org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r"
+  def jimfs                = mvn"com.google.jimfs:jimfs:1.3.1"
+  def jmhGeneratorBytecode = mvn"org.openjdk.jmh:jmh-generator-bytecode:${Versions.jmh}"
+  def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
+  def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore         =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterCoreJava8 =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterMacros =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoniterMacrosJava8 =
-    ivy"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def jsoup              = ivy"org.jsoup:jsoup:${Versions.jsoup}"
-  def libsodiumjni       = ivy"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
+  def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
+  def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
-    ivy"org.scalameta::metaconfig-typesafe-config:0.16.0"
+    mvn"org.scalameta::metaconfig-typesafe-config:0.16.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit              = ivy"org.scalameta::munit:1.1.1"
-  def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
-  def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = ivy"com.lihaoyi::os-lib:0.11.3"
-  def pprint             = ivy"com.lihaoyi::pprint:0.9.0"
-  def pythonInterface    = ivy"io.github.alexarchambault.python:interface:0.1.0"
-  def pythonNativeLibs   = ivy"ai.kien::python-native-libs:0.2.4"
-  def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
-  def scalac(sv: String) = ivy"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = ivy"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
+  def munit              = mvn"org.scalameta::munit:1.1.1"
+  def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
+  def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
+  def osLib              = mvn"com.lihaoyi::os-lib:0.11.3"
+  def pprint             = mvn"com.lihaoyi::pprint:0.9.0"
+  def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
+  def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.4"
+  def scalaAsync         = mvn"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
+  def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"
+  def scalafmtCli        = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
-    ivy"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
+    mvn"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"
   // Force using of 2.13 - is there a better way?
-  def scalaJsEnvNodeJs = ivy"org.scala-js:scalajs-env-nodejs_2.13:1.4.0"
-  def scalaJsLogging   = ivy"org.scala-js:scalajs-logging_2.13:1.1.1"
+  def scalaJsEnvNodeJs = mvn"org.scala-js:scalajs-env-nodejs_2.13:1.4.0"
+  def scalaJsLogging   = mvn"org.scala-js:scalajs-logging_2.13:1.1.1"
   // Force using of 2.13 - is there a better way?
-  def scalaJsTestAdapter = ivy"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
-  def scalaPackager      = ivy"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
-  def scalaPackagerCli   = ivy"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
-  def scalaPy            = ivy"dev.scalapy::scalapy-core::0.5.3"
-  def scalaReflect(sv: String)  = ivy"org.scala-lang:scala-reflect:$sv"
-  def semanticDbJavac           = ivy"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
-  def semanticDbScalac          = ivy"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
+  def scalaJsTestAdapter = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
+  def scalaPackager      = mvn"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
+  def scalaPackagerCli   = mvn"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
+  def scalaPy            = mvn"dev.scalapy::scalapy-core::0.5.3"
+  def scalaReflect(sv: String)  = mvn"org.scala-lang:scala-reflect:$sv"
+  def semanticDbJavac           = mvn"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
+  def semanticDbScalac          = mvn"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
   def scalametaSemanticDbShared =
-    ivy"org.scalameta:semanticdb-shared_2.13:${Versions.scalaMeta}"
+    mvn"org.scalameta:semanticdb-shared_2.13:${Versions.scalaMeta}"
       .exclude("org.jline" -> "jline") // to prevent incompatibilities with GraalVM <23
       .exclude("com.lihaoyi" -> "sourcecode_2.13")
       .exclude("org.scala-lang.modules" -> "scala-collection-compat_2.13")
   def signingCliShared =
-    ivy"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
+    mvn"org.virtuslab.scala-cli-signing::shared:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
@@ -239,7 +240,7 @@ object Deps {
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
   def signingCli =
-    ivy"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
+    mvn"org.virtuslab.scala-cli-signing::cli:${Versions.signingCli}"
       // to prevent collisions with scala-cli's case-app version
       .exclude(("com.github.alexarchambault", "case-app_3"))
       .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
@@ -249,25 +250,25 @@ object Deps {
       .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
       .exclude(("com.lihaoyi", "os-lib_3"))
       .exclude(("com.lihaoyi", "os-lib_2.13"))
-  def slf4jNop                  = ivy"org.slf4j:slf4j-nop:2.0.17"
-  def sttp                      = ivy"com.softwaremill.sttp.client3::core:3.11.0"
-  def svm                       = ivy"org.graalvm.nativeimage:svm:$graalVmVersion"
-  def swoval                    = ivy"com.swoval:file-tree-views:2.1.12"
-  def testInterface             = ivy"org.scala-sbt:test-interface:1.0"
+  def slf4jNop                  = mvn"org.slf4j:slf4j-nop:2.0.17"
+  def sttp                      = mvn"com.softwaremill.sttp.client3::core:3.11.0"
+  def svm                       = mvn"org.graalvm.nativeimage:svm:$graalVmVersion"
+  def swoval                    = mvn"com.swoval:file-tree-views:2.1.12"
+  def testInterface             = mvn"org.scala-sbt:test-interface:1.0"
   val toolkitVersion            = "0.7.0"
   val toolkitVersionForNative04 = "0.3.0"
   val toolkitVersionForNative05 = toolkitVersion
-  def toolkit                   = ivy"org.scala-lang:toolkit:$toolkitVersion"
-  def toolkitTest               = ivy"org.scala-lang:toolkit-test:$toolkitVersion"
+  def toolkit                   = mvn"org.scala-lang:toolkit:$toolkitVersion"
+  def toolkitTest               = mvn"org.scala-lang:toolkit-test:$toolkitVersion"
   val typelevelToolkitVersion   = "0.1.29"
-  def typelevelToolkit          = ivy"org.typelevel:toolkit:$typelevelToolkitVersion"
-  def usingDirectives           = ivy"org.virtuslab:using_directives:1.1.4"
+  def typelevelToolkit          = mvn"org.typelevel:toolkit:$typelevelToolkitVersion"
+  def usingDirectives           = mvn"org.virtuslab:using_directives:1.1.4"
   // Lives at https://github.com/VirtusLab/no-crc32-zip-input-stream, see #865
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream     = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.3"
-  def scalafixInterfaces = ivy"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
+  def zipInputStream     = mvn"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.3"
+  def scalafixInterfaces = mvn"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
 def graalVmVersion     = "22.3.1"

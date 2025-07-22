@@ -26,7 +26,7 @@ def checkMainScalaVersions(path: os.Path): Unit = {
   val lastCells = cells.drop(1)
   assert(lastCells.length == 3)
   val expectedLastCells = Seq(Scala.scala3Next, Scala.scala213, Scala.scala212)
-  if (lastCells != expectedLastCells)
+  if lastCells != expectedLastCells then
     sys.error(
       s"Unexpected last line in Scala version table in $path " +
         s"(expected ${expectedLastCells.mkString(", ")}, got ${lastCells.mkString(", ")})"
@@ -38,7 +38,7 @@ def checkScalaJsVersions(path: os.Path): Unit = {
   val lastCells = cells.drop(1)
   assert(lastCells.length == 1)
   val expectedLastCells = Seq(Scala.scalaJs)
-  if (lastCells != expectedLastCells)
+  if lastCells != expectedLastCells then
     sys.error(
       s"Unexpected last line in Scala.js version table in $path " +
         s"(expected ${expectedLastCells.mkString(", ")}, got ${lastCells.mkString(", ")})"
