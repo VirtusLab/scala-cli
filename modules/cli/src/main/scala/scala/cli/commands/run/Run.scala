@@ -13,7 +13,7 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
+import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand, Script, ScalaFile}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
@@ -570,7 +570,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       case Platform.JVM =>
         runMode match {
           case RunMode.Default =>
+            val sources = builds.head.inputs.sourceFiles().map {
+              case s: ScalaFile => s.path.toString.replace('\\', '/')
+              case s: Script    => s.path.toString.replace('\\', '/')
+              case _            => ""
+            }.filter(_.nonEmpty).distinct.mkString("|")
             val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
+              ++ Seq(s"-Dscala.sources=$sources")
             val setupPython = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
             val (pythonJavaProps, pythonExtraEnv) =
               if (setupPython) {
@@ -590,6 +596,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               }
               else
                 (Nil, Map.empty[String, String])
+
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
             if showCommand then
               Left {
