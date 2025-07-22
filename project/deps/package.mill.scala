@@ -299,7 +299,8 @@ object Docker {
 def customRepositories =
   Seq(
     coursier.Repositories.sonatype("snapshots"),
-    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
+    coursier.MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
     // Uncomment for local development
     // coursier.LocalRepositories.Dangerous.maven2Local
   )
