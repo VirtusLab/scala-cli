@@ -13,7 +13,7 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand, Script, ScalaFile}
+import scala.build.input.{Inputs, ScalaCliInvokeData, ScalaFile, Script, SubCommand}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
