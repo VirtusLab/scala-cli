@@ -3,6 +3,7 @@ package scala.cli.launcher
 import coursier.Repositories
 import coursier.cache.FileCache
 import coursier.core.Version
+import coursier.maven.MavenRepository
 import coursier.util.{Artifact, Task}
 import dependency.*
 
@@ -22,7 +23,11 @@ object LauncherCli {
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
     val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
     val scalaParameters = ScalaParameters(scalaVersion)
-    val snapshotsRepo   = Seq(Repositories.central, Repositories.sonatype("snapshots"))
+    val snapshotsRepo   = Seq(
+      Repositories.central,
+      Repositories.sonatype("snapshots"),
+      MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+    )
 
     val cliVersion: String =
       if (version == "nightly") resolveNightlyScalaCliVersion(cache, scalaParameters) else version

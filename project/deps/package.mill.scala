@@ -7,17 +7,16 @@ object Cli {
 }
 
 object Scala {
-  def scala212            = "2.12.20"
-  def scala213            = "2.13.16"
-  def scala3LtsPrefix     = "3.3"                  // used for the LTS version tags
-  def scala3Lts           = s"$scala3LtsPrefix.6"  // the LTS version currently used in the build
-  def runnerScala3        = scala3Lts
-  def scala3NextPrefix    = "3.7"
-  def scala3Next          = s"$scala3NextPrefix.1" // the newest/next version of Scala
-  def scala3NextAnnounced =
-    s"$scala3NextPrefix.0" // the newest/next version of Scala that's been announced
-  def scala3NextRc        = "3.7.2-RC1"            // the latest RC version of Scala Next
-  def scala3NextRcAnnounced = "3.7.1-RC2" // the latest announced RC version of Scala Next
+  def scala212         = "2.12.20"
+  def scala213         = "2.13.16"
+  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
+  def scala3Lts        = s"$scala3LtsPrefix.6"  // the LTS version currently used in the build
+  def runnerScala3     = scala3Lts
+  def scala3NextPrefix = "3.7"
+  def scala3Next       = s"$scala3NextPrefix.1" // the newest/next version of Scala
+  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
+  def scala3NextRc          = "3.7.2-RC2"  // the latest RC version of Scala Next
+  def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -132,7 +131,7 @@ object Deps {
     def signingCli                        = "0.2.11"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
-    def javaClassName                     = "0.1.7"
+    def javaClassName                     = "0.1.8"
     def bloop                             = "2.0.10"
     def sbtVersion                        = "1.11.3"
     def mavenVersion                      = "3.8.1"
@@ -267,7 +266,7 @@ object Deps {
   // This provides a ZipInputStream that doesn't verify CRC32 checksums, that users
   // can enable by setting SCALA_CLI_VENDORED_ZIS=true in the environment, to workaround
   // some bad GraalVM / zlib issues (see #828 and linked issues for more details).
-  def zipInputStream     = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.2"
+  def zipInputStream     = ivy"org.virtuslab.scala-cli.zip-input-stream:zip-input-stream:0.1.3"
   def scalafixInterfaces = ivy"ch.epfl.scala:scalafix-interfaces:${Versions.scalafix}"
 }
 
@@ -300,7 +299,8 @@ object Docker {
 def customRepositories =
   Seq(
     coursier.Repositories.sonatype("snapshots"),
-    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots")
+    coursier.MavenRepository("https://s01.oss.sonatype.org/content/repositories/snapshots"),
+    coursier.MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
     // Uncomment for local development
     // coursier.LocalRepositories.Dangerous.maven2Local
   )

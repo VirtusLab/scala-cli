@@ -1,9 +1,10 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.assert as expect
-import coursier.Repositories
+import coursier.{Repositories, Repository}
 import coursier.cache.FileCache
 import coursier.core.Version
+import coursier.maven.MavenRepository
 import dependency.ScalaParameters
 
 import scala.build.Ops.*
@@ -444,10 +445,13 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
           .getOrElse(sys.error("cannot happen"))
         val repositories = build.options.finalRepositories.orThrow
 
-        expect(repositories.length == 3)
+        expect(repositories.length == 4)
         expect(repositories.contains(Repositories.sonatype("snapshots")))
         expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
+        expect(repositories.contains(
+          MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+        ))
     }
   }
 
