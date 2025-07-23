@@ -8,6 +8,11 @@ import scala.build.Directories
 import scala.build.internal.Constants
 
 object ElementsUtils {
+  extension (p: os.Path) {
+    def hasShebang: Boolean = os.read.bytes(p, offset = 0, count = 2) == Array('#', '!')
+    def isScript: Boolean   = p.ext == "sc" || (p.hasShebang && p.ext != "scala")
+  }
+
   extension (d: Directory) {
     def singleFilesFromDirectory(enableMarkdown: Boolean): Seq[SingleFile] = {
       import Ordering.Implicits.seqOrdering
@@ -20,7 +25,7 @@ object ElementsUtils {
             ProjectScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".scala") =>
             SourceScalaFile(d.path, p.subRelativeTo(d.path))
-          case p if p.last.endsWith(".sc") =>
+          case p if p.last.endsWith(".sc") || p.hasShebang =>
             Script(d.path, p.subRelativeTo(d.path), None)
           case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
             CFile(d.path, p.subRelativeTo(d.path))
