@@ -574,7 +574,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               case s: ScalaFile => s.path.toString.replace('\\', '/')
               case s: Script    => s.path.toString.replace('\\', '/')
               case _            => ""
-            }.filter(_.nonEmpty).distinct.mkString("|")
+            }.filter(_.nonEmpty).distinct.mkString(File.pathSeparator)
             val scriptPathExtraEnv = Map("_" -> Option(System.getenv("_")).getOrElse(sources))
             val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
               ++ Seq(s"-Dscala.sources=$sources")
