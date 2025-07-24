@@ -276,7 +276,7 @@ object Inputs {
         else if path.last == Constants.projectFileName then
           Right(Seq(ProjectScalaFile(dir, subPath)))
         else if os.isDir(path) then Right(Seq(Directory(path)))
-        else if arg.endsWith(".sc") || (os.exists(path) && isShebangScript(String(content))) then
+        else if arg.endsWith(".sc") || (os.exists(path) && path.isScript) then
           Right(Seq(Script(dir, subPath, Some(arg))))
         else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
@@ -286,7 +286,7 @@ object Inputs {
         else if acceptFds && arg.startsWith("/dev/fd/") then
           Right(Seq(VirtualScript(content, arg, os.sub / s"input-${idx + 1}.sc")))
         else if programInvokeData.subCommand == SubCommand.Shebang && os.exists(path) then
-          if isShebangScript(String(content)) then Right(Seq(Script(dir, subPath, Some(arg))))
+          if path.isScript then Right(Seq(Script(dir, subPath, Some(arg))))
           else
             Left(
               if programInvokeData.isShebangCapableShell then missingShebangHeaderErrorMsg
