@@ -28,6 +28,8 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using nativeLto` **none**_|full|thin_
     |
+    |`//> using nativeTargetTriple` _value_
+    |
     |`//> using nativeVersion` _value_
     |
     |`//> using nativeCompile` _value1_ _value2_ …
@@ -57,6 +59,7 @@ final case class ScalaNative(
   nativeGc: Option[String] = None,
   nativeMode: Option[String] = None,
   nativeLto: Option[String] = None,
+  nativeTargetTriple: Option[String] = None,
   nativeVersion: Option[String] = None,
   nativeCompile: List[String] = Nil,
   nativeLinking: List[String] = Nil,
@@ -72,6 +75,7 @@ final case class ScalaNative(
       gcStr = nativeGc,
       modeStr = nativeMode,
       ltoStr = nativeLto,
+      targetTripleStr = nativeTargetTriple,
       version = nativeVersion,
       compileOptions = nativeCompile,
       linkingOptions = nativeLinking,
