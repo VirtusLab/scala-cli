@@ -276,9 +276,9 @@ object Inputs {
         else if path.last == Constants.projectFileName then
           Right(Seq(ProjectScalaFile(dir, subPath)))
         else if os.isDir(path) then Right(Seq(Directory(path)))
-        else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".sc") || (os.exists(path) && isShebangScript(String(content))) then
           Right(Seq(Script(dir, subPath, Some(arg))))
+        else if arg.endsWith(".scala") then Right(Seq(SourceScalaFile(dir, subPath)))
         else if arg.endsWith(".java") then Right(Seq(JavaFile(dir, subPath)))
         else if arg.endsWith(".jar") then Right(Seq(JarFile(dir, subPath)))
         else if arg.endsWith(".c") || arg.endsWith(".h") then Right(Seq(CFile(dir, subPath)))
