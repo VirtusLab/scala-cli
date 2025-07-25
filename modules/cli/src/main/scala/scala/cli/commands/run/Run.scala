@@ -590,6 +590,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               }
               else
                 (Nil, Map.empty[String, String])
+
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
             if showCommand then
               Left {
