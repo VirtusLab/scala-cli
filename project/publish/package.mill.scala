@@ -1,38 +1,35 @@
 package build.project.publish
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r`
 import build.project.settings
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import settings.{PublishLocalNoFluff, workspaceDirName}
-import de.tobiasroeser.mill.vcs.version._
-import mill._
+import mill.*
 import mill.javalib.publish.Artifact
-import scalalib._
+import mill.util.{Tasks, VcsVersion}
+import scalalib.*
 import org.eclipse.jgit.api.Git
+import mill.api.{BuildCtx, ModuleCtx, Task}
 
 import java.nio.charset.Charset
-import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
-lazy val (ghOrg: String, ghName: String) = {
-  def default = ("VirtusLab", "scala-cli")
-  val isCI    = System.getenv("CI") != null
-  if (isCI) {
+def gh: (ghOrg: String, ghName: String) = {
+  lazy val default = ("VirtusLab", "scala-cli")
+  val isCI         = System.getenv("CI") != null
+  if isCI then {
     val repos = {
       var git: Git = null
       try {
         git = Git.open(os.Path(sys.env("MILL_WORKSPACE_ROOT")).toIO)
         git.remoteList().call().asScala.toVector
       }
-      finally
-        if (git != null)
-          git.close()
+      finally if git != null then git.close()
     }
     val reposByName = repos.flatMap(r =>
       r.getURIs.asScala.headOption.map(_.toASCIIString).toSeq.map((r.getName, _))
     )
     val repoUrlOpt =
-      if (reposByName.length == 1)
+      if reposByName.length == 1 then
         reposByName.headOption.map(_._2)
       else {
         val m = reposByName.toMap
@@ -58,21 +55,22 @@ lazy val (ghOrg: String, ghName: String) = {
         default
     }
   }
-  else
-    default
+  else default
 }
 
-private def computePublishVersion(state: VcsState, simple: Boolean): String =
-  if (state.commitsSinceLastTag > 0)
-    if (simple) {
+lazy val (ghOrg: String, ghName: String) = gh
+
+private def computePublishVersion(state: VcsVersion.State, simple: Boolean): String =
+  if state.commitsSinceLastTag > 0 then
+    if simple then {
       val versionOrEmpty = state.lastTag
         .filter(_ != "latest")
         .filter(_ != "nightly")
         .map(_.stripPrefix("v"))
         .flatMap { tag =>
-          if (simple) {
+          if simple then {
             val idx = tag.lastIndexOf(".")
-            if (idx >= 0)
+            if idx >= 0 then
               Some(
                 tag.take(idx + 1) +
                   (tag.drop(idx + 1).replaceAll("-RC.", "").toInt + 1).toString +
@@ -83,7 +81,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
           }
           else {
             val idx = tag.indexOf("-")
-            if (idx >= 0) Some(tag.take(idx) + "+" + tag.drop(idx + 1) + "-SNAPSHOT")
+            if idx >= 0 then Some(tag.take(idx) + "+" + tag.drop(idx + 1) + "-SNAPSHOT")
             else None
           }
         }
@@ -98,7 +96,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
         .replace("latest", "0.0.0")
         .replace("nightly", "0.0.0")
       val idx = rawVersion.indexOf("-")
-      if (idx >= 0) rawVersion.take(idx) + "-" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
+      if idx >= 0 then rawVersion.take(idx) + "-" + rawVersion.drop(idx + 1) + "-SNAPSHOT"
       else rawVersion
     }
   else
@@ -107,9 +105,9 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
       .getOrElse(state.format())
       .stripPrefix("v")
 
-def finalPublishVersion: Target[String] = {
+def finalPublishVersion: T[String] = {
   val isCI = System.getenv("CI") != null
-  if (isCI)
+  if isCI then
     Task(persistent = true) {
       val state = VcsVersion.vcsState()
       computePublishVersion(state, simple = false)
@@ -124,8 +122,8 @@ def finalPublishVersion: Target[String] = {
 def organization = "org.virtuslab.scala-cli"
 
 trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLocalNoFluff {
-  import mill.scalalib.publish._
-  def pomSettings: Target[PomSettings] = PomSettings(
+  import mill.scalalib.publish.*
+  def pomSettings: T[PomSettings] = PomSettings(
     description = artifactName(),
     organization = organization,
     url = s"https://github.com/$ghOrg/$ghName",
@@ -139,17 +137,20 @@ trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLoc
       Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
-  def publishVersion: Target[String]      = finalPublishVersion()
-  override def sourceJar: Target[PathRef] = Task {
-    import mill.util.Jvm.createJar
-    val allSources0 = allSources().map(_.path).filter(os.exists).toSet
-    createJar(
-      allSources0 ++ resources().map(_.path).filter(os.exists),
-      manifest(),
-      (input, relPath) =>
-        !allSources0(input) ||
-        (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
-    )
+  def publishVersion: T[String]      = finalPublishVersion()
+  override def sourceJar: T[PathRef] = Task {
+    PathRef {
+      import mill.util.Jvm.createJar
+      val allSources0 = allSources().map(_.path).filter(os.exists)
+      createJar(
+        jar = Task.dest / "out.jar",
+        inputPaths = allSources0 ++ resources().map(_.path).filter(os.exists),
+        manifest = manifest(),
+        fileFilter = (input, relPath) =>
+          !allSources0.toSet(input) ||
+          (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
+      )
+    }
   }
 }
 
@@ -204,14 +205,14 @@ def publishSonatype(
     env = env,
     awaitTimeout = timeout.toMillis.toInt
   )
-  val publishingType = if (isRelease) PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
+  val publishingType = if isRelease then PublishingType.AUTOMATIC else PublishingType.USER_MANAGED
   System.err.println(s"Publishing type: $publishingType")
-  val finalBundleName = if (bundleName.nonEmpty) Some(bundleName) else None
+  val finalBundleName = if bundleName.nonEmpty then Some(bundleName) else None
   System.err.println(s"Final bundle name: $finalBundleName")
   publisher.publishAll(
     publishingType = publishingType,
     singleBundleName = finalBundleName,
-    artifacts = artifacts: _*
+    artifacts = artifacts*
   )
 }
 
@@ -230,12 +231,12 @@ def shouldPublish = Task(persistent = true) {
 }
 def setShouldPublish() = Task.Command {
   val envFile = System.getenv("GITHUB_ENV")
-  if (envFile == null)
+  if envFile == null then
     sys.error("GITHUB_ENV not set")
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
   os.write.append(
-    os.Path(envFile, Task.workspace),
+    os.Path(envFile, BuildCtx.workspaceRoot),
     s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet)
   )
 }
