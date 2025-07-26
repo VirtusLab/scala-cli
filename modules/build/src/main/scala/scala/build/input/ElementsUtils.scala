@@ -9,8 +9,10 @@ import scala.build.internal.Constants
 
 object ElementsUtils {
   extension (p: os.Path) {
-    def hasShebang: Boolean = String(os.read.bytes(p, offset = 0, count = 2)) == "#!"
-    def isScript: Boolean   = p.ext == "sc" || (p.hasShebang && p.ext.isEmpty)
+    def hasShebang: Boolean =
+      os.isFile(p) && !p.toString.startsWith("/dev/fd/") &&
+      String(os.read.bytes(p, offset = 0, count = 2)) == "#!"
+    def isScript: Boolean = p.ext == "sc" || (p.hasShebang && p.ext.isEmpty)
   }
 
   extension (d: Directory) {
