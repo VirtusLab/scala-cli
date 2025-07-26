@@ -205,7 +205,7 @@ object Deps {
   def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = ivy"com.lihaoyi::os-lib:0.11.3"
-  def pprint             = ivy"com.lihaoyi::pprint:0.9.0"
+  def pprint             = ivy"com.lihaoyi::pprint:0.9.1"
   def pythonInterface    = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = ivy"ai.kien::python-native-libs:0.2.4"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
