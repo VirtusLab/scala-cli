@@ -574,17 +574,20 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
     }
 
   test("script file with shebang header and no extension run with scala-cli") {
-    val msg    = "compiled and ran"
-    val inputs = TestInputs(
-      os.rel / "scriptWithShebang" ->
+    val expected   = "success"
+    val scriptName = "scriptWithShebang"
+    val inputs     = TestInputs(
+      os.rel / scriptName ->
         s"""|#!/usr/bin/env -S ${TestUtil.cli.mkString(" ")} shebang
             |//> using scala $actualScalaVersion
-            |println(s"$msg")""".stripMargin
+            |println(s"$expected")""".stripMargin
     )
+    val cmd = TestUtil.cli ++ Seq(scriptName)
+    System.err.printf("### cmd[%s]\n", cmd.mkString(" "))
     inputs.fromRoot { root =>
-      val output = os.proc(TestUtil.cli, "scriptWithShebang")
+      val actual = os.proc(cmd)
         .call(cwd = root).out.trim()
-      expect(output == msg)
+      expect(actual == expected)
     }
   }
 
