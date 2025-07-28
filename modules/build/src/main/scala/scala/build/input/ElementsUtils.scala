@@ -31,7 +31,8 @@ object ElementsUtils {
             CFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".md") && enableMarkdown =>
             MarkdownFile(d.path, p.subRelativeTo(d.path))
-          case p if p.last.endsWith(".sc") || p.ext.isEmpty =>
+          case p if p.last.endsWith(".sc") =>
+            // TODO: hasShebang test without consuming 1st 2 bytes of Stream
             Script(d.path, p.subRelativeTo(d.path), None)
         }
         .toVector
