@@ -447,8 +447,19 @@ object Build {
               extraBuilds.flatMap(_.testDocOpt)
             )
           }
-          else
+          else {
+            if crossOptions.nonEmpty then {
+              val crossBuildParams: Seq[CrossBuildParams] = crossOptions.map(CrossBuildParams(_))
+              logger.message(
+                s"""Cross-building is disabled, ignoring ${crossOptions.length} builds:
+                   |  ${crossBuildParams.map(_.asString).mkString("\n  ")}
+                   |Cross builds are only available when the --cross option is passed.
+                   |Defaulting to ${CrossBuildParams(options).asString}
+                   |""".stripMargin
+              )
+            }
             (Nil, Nil, Nil, Nil)
+          }
 
         Builds(
           builds = Seq(nonCrossBuilds.main) ++ nonCrossBuilds.testOpt.toSeq,
@@ -610,7 +621,7 @@ object Build {
     actionableDiagnostics: Option[Boolean]
   )(using ScalaCliInvokeData): Either[BuildException, Builds] = either {
     val buildClient = BloopBuildClient.create(
-      logger,
+      logger = logger,
       keepDiagnostics = options.internal.keepDiagnostics
     )
     val classesDir0                           = classesRootDir(inputs.workspace, inputs.projectName)
@@ -628,14 +639,15 @@ object Build {
       )
     value {
       compilerMaker.withCompiler(
-        inputs0.workspace / Constants.workspaceDirName,
-        classesDir0,
-        buildClient,
-        logger,
-        buildOptions
+        workspace = inputs0.workspace / Constants.workspaceDirName,
+        classesDir = classesDir0,
+        buildClient = buildClient,
+        logger = logger,
+        buildOptions = buildOptions
       ) { compiler =>
         docCompilerMakerOpt match {
           case None =>
+            logger.debug("No doc compiler provided, skipping")
             build(
               inputs = inputs0,
               crossSources = crossSources,
@@ -651,11 +663,11 @@ object Build {
             )
           case Some(docCompilerMaker) =>
             docCompilerMaker.withCompiler(
-              inputs0.workspace / Constants.workspaceDirName,
-              classesDir0, // ???
-              buildClient,
-              logger,
-              buildOptions
+              workspace = inputs0.workspace / Constants.workspaceDirName,
+              classesDir = classesDir0, // ???
+              buildClient = buildClient,
+              logger = logger,
+              buildOptions = buildOptions
             ) { docCompiler =>
               build(
                 inputs = inputs0,
