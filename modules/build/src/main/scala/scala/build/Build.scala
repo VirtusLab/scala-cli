@@ -451,10 +451,10 @@ object Build {
             (Nil, Nil, Nil, Nil)
 
         Builds(
-          Seq(nonCrossBuilds.main) ++ nonCrossBuilds.testOpt.toSeq,
-          Seq(extraMainBuilds, extraTestBuilds),
-          nonCrossBuilds.docOpt.toSeq ++ nonCrossBuilds.testDocOpt.toSeq,
-          Seq(extraDocBuilds, extraDocTestBuilds)
+          builds = Seq(nonCrossBuilds.main) ++ nonCrossBuilds.testOpt.toSeq,
+          crossBuilds = Seq(extraMainBuilds, extraTestBuilds),
+          docBuilds = nonCrossBuilds.docOpt.toSeq ++ nonCrossBuilds.testDocOpt.toSeq,
+          docCrossBuilds = Seq(extraDocBuilds, extraDocTestBuilds)
         )
       }
 

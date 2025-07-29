@@ -690,14 +690,6 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     dummy: Boolean
   ): Either[BuildException, Unit] = either {
     assert(docBuilds.isEmpty || docBuilds.length == builds.length)
-
-    extension (b: Seq[Build.Successful]) {
-      private def groupedByCrossParams =
-        b.groupBy(b =>
-          b.options.scalaOptions.scalaVersion.map(_.asString).toString ->
-            b.options.platform.toString
-        )
-    }
     val groupedBuilds    = builds.groupedByCrossParams
     val groupedDocBuilds = docBuilds.groupedByCrossParams
     val it: Iterator[(Seq[Build.Successful], Seq[Build.Successful])] =
