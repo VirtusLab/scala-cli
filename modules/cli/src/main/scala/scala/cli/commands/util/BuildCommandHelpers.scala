@@ -7,6 +7,16 @@ import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
 
 trait BuildCommandHelpers { self: ScalaCommand[?] =>
+  case class CrossBuildParams(scalaVersion: String, platform: String)
+  extension (b: Seq[Build.Successful]) {
+    def groupedByCrossParams: Map[CrossBuildParams, Seq[Build.Successful]] =
+      b.groupBy { b =>
+        CrossBuildParams(
+          b.options.scalaOptions.scalaVersion.map(_.asString).toString,
+          b.options.platform.toString
+        )
+      }
+  }
   extension (successfulBuild: Build.Successful) {
     def retainedMainClass(
       logger: Logger,

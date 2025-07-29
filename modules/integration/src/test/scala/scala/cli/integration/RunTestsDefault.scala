@@ -163,14 +163,14 @@ class RunTestsDefault extends RunTestDefinitions
       s"run --cross $platformDesc $actualScalaVersion, ${Constants.scala213} and ${Constants.scala212} ($scopeDesc scope)"
     ) {
       TestUtil.retryOnCi() {
-        TestInputs {
+        TestInputs(
+          os.rel / "project.scala" -> s"//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}",
           os.rel / fileName ->
-            s"""//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}
-               |object Main extends App {
+            s"""object Main extends App {
                |  println("$expectedMessage")
                |}
                |""".stripMargin
-        }.fromRoot { root =>
+        ).fromRoot { root =>
           val r =
             os.proc(
               TestUtil.cli,
@@ -183,7 +183,10 @@ class RunTestsDefault extends RunTestDefinitions
               platformOptions
             )
               .call(cwd = root)
-          expect(r.out.trim() == expectedMessage)
+          expect(r.out.trim() ==
+            s"""$expectedMessage
+               |$expectedMessage
+               |$expectedMessage""".stripMargin)
         }
       }
     }
