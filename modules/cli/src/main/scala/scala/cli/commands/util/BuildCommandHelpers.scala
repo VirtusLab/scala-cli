@@ -1,21 +1,15 @@
 package scala.cli.commands.util
 
 import scala.build.errors.BuildException
-import scala.build.{Build, Builds, Logger, Os}
+import scala.build.{Build, Builds, CrossBuildParams, Logger, Os}
 import scala.cli.commands.ScalaCommand
 import scala.cli.commands.shared.SharedOptions
 import scala.cli.commands.util.ScalacOptionsUtil.*
 
 trait BuildCommandHelpers { self: ScalaCommand[?] =>
-  case class CrossBuildParams(scalaVersion: String, platform: String)
   extension (b: Seq[Build.Successful]) {
     def groupedByCrossParams: Map[CrossBuildParams, Seq[Build.Successful]] =
-      b.groupBy { b =>
-        CrossBuildParams(
-          b.options.scalaOptions.scalaVersion.map(_.asString).toString,
-          b.options.platform.toString
-        )
-      }
+      b.groupBy(bb => CrossBuildParams(bb.options))
   }
   extension (successfulBuild: Build.Successful) {
     def retainedMainClass(
