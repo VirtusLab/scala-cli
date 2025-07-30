@@ -583,7 +583,6 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
             |println(s"$expected")""".stripMargin
     )
     val cmd = TestUtil.cli ++ Seq(scriptName)
-    System.err.printf("### cmd[%s]\n", cmd.mkString(" "))
     inputs.fromRoot { root =>
       val actual = os.proc(cmd)
         .call(cwd = root).out.trim()
