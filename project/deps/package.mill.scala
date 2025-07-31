@@ -7,15 +7,16 @@ object Cli {
 }
 
 object Scala {
-  def scala212         = "2.12.20"
-  def scala213         = "2.13.16"
-  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
-  def scala3Lts        = s"$scala3LtsPrefix.6"  // the LTS version currently used in the build
-  def runnerScala3     = scala3Lts
-  def scala3NextPrefix = "3.7"
-  def scala3Next       = s"$scala3NextPrefix.1" // the newest/next version of Scala
-  def scala3NextAnnounced   = scala3Next   // the newest/next version of Scala that's been announced
-  def scala3NextRc          = "3.7.2-RC2"  // the latest RC version of Scala Next
+  def scala212            = "2.12.20"
+  def scala213            = "2.13.16"
+  def scala3LtsPrefix     = "3.3"                  // used for the LTS version tags
+  def scala3Lts           = s"$scala3LtsPrefix.6"  // the LTS version currently used in the build
+  def runnerScala3        = scala3Lts
+  def scala3NextPrefix    = "3.7"
+  def scala3Next          = s"$scala3NextPrefix.2" // the newest/next version of Scala
+  def scala3NextAnnounced =
+    s"$scala3NextPrefix.1" // the newest/next version of Scala that's been announced
+  def scala3NextRc        = "3.7.2-RC2"            // the latest RC version of Scala Next
   def scala3NextRcAnnounced = scala3NextRc // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
@@ -114,7 +115,7 @@ object Deps {
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
     def coursierM1Cli                     = coursierDefault
-    def coursierPublish                   = "0.4.2"
+    def coursierPublish                   = "0.4.3"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.21.1"
@@ -173,7 +174,7 @@ object Deps {
   def dependency    = ivy"io.get-coursier::dependency:0.3.2"
   def dockerClient  = ivy"com.spotify:docker-client:8.16.0"
   def expecty       = ivy"com.eed3si9n.expecty::expecty:0.17.0"
-  def fansi         = ivy"com.lihaoyi::fansi:0.5.0"
+  def fansi         = ivy"com.lihaoyi::fansi:0.5.1"
   def giter8        = ivy"org.foundweekends.giter8:giter8:0.16.2"
   def guava         = ivy"com.google.guava:guava:33.4.8-jre"
   def javaClassName =
@@ -205,7 +206,7 @@ object Deps {
   def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = ivy"com.lihaoyi::os-lib:0.11.3"
-  def pprint             = ivy"com.lihaoyi::pprint:0.9.0"
+  def pprint             = ivy"com.lihaoyi::pprint:0.9.3"
   def pythonInterface    = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = ivy"ai.kien::python-native-libs:0.2.4"
   def scalaAsync         = ivy"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
