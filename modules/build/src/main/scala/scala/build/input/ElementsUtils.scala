@@ -9,8 +9,10 @@ import scala.build.internal.Constants
 
 object ElementsUtils {
   extension (p: os.Path) {
-    def hasShebang: Boolean = os.read.bytes(p, offset = 0, count = 2) == Array('#', '!')
-    def isScript: Boolean   = p.ext == "sc" || (p.hasShebang && p.ext != "scala")
+    def hasShebang: Boolean =
+      os.isFile(p) && !p.toString.startsWith("/dev/fd/") &&
+      String(os.read.bytes(p, offset = 0, count = 2)) == "#!"
+    def isScript: Boolean = p.ext == "sc" || (p.hasShebang && p.ext.isEmpty)
   }
 
   extension (d: Directory) {
@@ -25,12 +27,13 @@ object ElementsUtils {
             ProjectScalaFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".scala") =>
             SourceScalaFile(d.path, p.subRelativeTo(d.path))
-          case p if p.last.endsWith(".sc") || p.hasShebang =>
-            Script(d.path, p.subRelativeTo(d.path), None)
           case p if p.last.endsWith(".c") || p.last.endsWith(".h") =>
             CFile(d.path, p.subRelativeTo(d.path))
           case p if p.last.endsWith(".md") && enableMarkdown =>
             MarkdownFile(d.path, p.subRelativeTo(d.path))
+          case p if p.last.endsWith(".sc") =>
+            // TODO: hasShebang test without consuming 1st 2 bytes of Stream
+            Script(d.path, p.subRelativeTo(d.path), None)
         }
         .toVector
         .sortBy(_.subPath.segments)
