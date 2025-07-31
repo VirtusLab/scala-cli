@@ -205,7 +205,7 @@ object Deps {
   def munit              = ivy"org.scalameta::munit:1.1.1"
   def nativeTestRunner   = ivy"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = ivy"org.scala-native::tools:${Versions.scalaNative}"
-  def osLib              = ivy"com.lihaoyi::os-lib:0.11.3"
+  def osLib              = ivy"com.lihaoyi::os-lib:0.11.5"
   def pprint             = ivy"com.lihaoyi::pprint:0.9.3"
   def pythonInterface    = ivy"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = ivy"ai.kien::python-native-libs:0.2.4"
