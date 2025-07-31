@@ -575,7 +575,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
               case s: Script    => s.path.toString.replace('\\', '/')
               case _            => ""
             }.filter(_.nonEmpty).distinct.mkString(File.pathSeparator)
-            val scriptPathExtraEnv = Map("_" -> Option(System.getenv("_")).getOrElse(sources))
             val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
               ++ Seq(s"-Dscala.sources=$sources")
             val setupPython = builds.head.options.notForBloopOptions.doSetupPython.getOrElse(false)
@@ -599,7 +598,6 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 (Nil, Map.empty[String, String])
 
             val allJavaOpts = pythonJavaProps ++ baseJavaProps
-            val extraEnv    = pythonExtraEnv ++ scriptPathExtraEnv
             if showCommand then
               Left {
                 Runner.jvmCommand(
@@ -608,7 +606,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                   builds.flatMap(_.fullClassPathMaybeAsJar(asJar)).distinct,
                   mainClass,
                   args,
-                  extraEnv = extraEnv,
+                  extraEnv = pythonExtraEnv,
                   useManifest = builds.head.options.notForBloopOptions.runWithManifest,
                   scratchDirOpt = scratchDirOpt
                 )
@@ -622,7 +620,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
                 args,
                 logger,
                 allowExecve = allowExecve,
-                extraEnv = extraEnv,
+                extraEnv = pythonExtraEnv,
                 useManifest = builds.head.options.notForBloopOptions.runWithManifest,
                 scratchDirOpt = scratchDirOpt
               )

@@ -15,8 +15,8 @@ For example, given this simple script:
 
 ```scala title=HelloScript.sc
 val sv = scala.util.Properties.versionNumberString
-
-val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}"
+val sources = sys.props("scala.sources").replace('\\', '/').replaceAll(".*/", "")
+val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}, sources [$sources]"
 println(message)
 ```
 
@@ -27,7 +27,7 @@ scala-cli run HelloScript.sc
 ```
 
 <!-- Expected-regex:
-Hello from Scala .*, Java .*
+Hello from Scala .*, Java .*, sources [HelloScript.sc]
 -->
 
 Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with Scala CLI. For example, given this script with a header that invokes Scala CLI:
