@@ -13,7 +13,15 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.{Inputs, ScalaCliInvokeData, OnDisk, ScalaFile, Script, SubCommand, MarkdownFile}
+import scala.build.input.{
+  Inputs,
+  ScalaCliInvokeData,
+  OnDisk,
+  ScalaFile,
+  Script,
+  SubCommand,
+  MarkdownFile
+}
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
@@ -568,18 +576,18 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         }
         value(maybeResult)
       case Platform.JVM =>
-        def fwd(s: String): String = s.replace('\\', '/')
+        def fwd(s: String): String  = s.replace('\\', '/')
         def base(s: String): String = fwd(s).replaceAll(".*/", "")
         runMode match {
           case RunMode.Default =>
             val sourceFiles = builds.head.inputs.sourceFiles().map {
-              case s: OnDisk        => fwd(s.path.toString)
-              case s: ScalaFile     => fwd(s.path.toString)
-              case s: Script        => fwd(s.path.toString)
-              case s: MarkdownFile  => fwd(s.path.toString)
-              case s                => s.getClass.getName
+              case s: OnDisk       => fwd(s.path.toString)
+              case s: ScalaFile    => fwd(s.path.toString)
+              case s: Script       => fwd(s.path.toString)
+              case s: MarkdownFile => fwd(s.path.toString)
+              case s               => s.getClass.getName
             }.filter(_.nonEmpty).distinct
-            val sources = sourceFiles.mkString(File.pathSeparator)
+            val sources     = sourceFiles.mkString(File.pathSeparator)
             val sourceNames = sourceFiles.map(base(_)).mkString(File.pathSeparator)
 
             val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
