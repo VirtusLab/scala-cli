@@ -484,7 +484,7 @@ trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
 
   if (!Properties.isWin)
     test("all test directives get extracted into project.scala") {
-      val osLibDep               = "com.lihaoyi::os-lib:0.11.3"
+      val osLibDep               = "com.lihaoyi::os-lib:0.11.5"
       val munitDep               = "org.scalameta::munit:1.1.1"
       val pprintDep              = "com.lihaoyi::pprint:0.9.3"
       val osLibDepDirective      = s"//> using dependency $osLibDep"
