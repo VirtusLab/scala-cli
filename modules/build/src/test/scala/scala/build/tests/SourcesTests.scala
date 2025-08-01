@@ -79,7 +79,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
         expect(obtainedDeps.sortBy(_.version) == expectedDeps.sortBy(_.version))
         expect(sources.paths.length == 1)
-        expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
+        val path = os.rel / "something.scala"
+        expect(sources.paths.map(_._2) == Seq(path))
         expect(sources.inMemory.isEmpty)
       }
     }
@@ -243,7 +244,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
       )
       expect(sources.paths.length == 1)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "something.scala"))
+      val path = os.rel / "something.scala"
+      expect(sources.paths.map(_._2) == Seq(path))
       expect(sources.inMemory.isEmpty)
     }
   }
@@ -288,7 +290,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
       )
       expect(sources.paths.length == 1)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "Something.java"))
+      val path = os.rel / "Something.java"
+      expect(sources.paths.map(_._2) == Seq(path))
       expect(sources.inMemory.isEmpty)
     }
   }
@@ -441,7 +444,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
+      val path = os.rel / "something.scala"
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(path))
     }
   }
 
@@ -485,7 +489,8 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       )
       expect(sources.paths.isEmpty)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory.map(_.generatedRelPath) == Seq(os.rel / "something.scala"))
+      val path = os.rel / "something.scala"
+      expect(sources.inMemory.map(_.generatedRelPath) == Seq(path))
     }
   }
 
@@ -516,11 +521,12 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           .orThrow
       val javaOpts = sources.buildOptions.javaOptions.javaOpts.toSeq.sortBy(_.toString)
 
+      val path = root / "something.sc"
       expect(
-        javaOpts(0).value.value == "-Dfoo1",
-        javaOpts(0).positions == Seq(Position.File(Right(root / "something.sc"), (0, 19), (0, 23))),
+        javaOpts.head.value.value == "-Dfoo1",
+        javaOpts.head.positions == Seq(Position.File(Right(path), (0, 19), (0, 23))),
         javaOpts(1).value.value == "-Dfoo2=bar2",
-        javaOpts(1).positions == Seq(Position.File(Right(root / "something.sc"), (1, 19), (1, 28)))
+        javaOpts(1).positions == Seq(Position.File(Right(path), (1, 19), (1, 28)))
       )
     }
   }
