@@ -16,7 +16,7 @@ For example, given this simple script:
 ```scala title=HelloScript.sc
 val sv = scala.util.Properties.versionNumberString
 val sources = sys.props("scala.sources").replace('\\', '/').replaceAll(".*/", "")
-val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}, sources [$sources]"
+val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}, sources $sources"
 println(message)
 ```
 
