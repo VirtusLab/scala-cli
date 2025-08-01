@@ -210,15 +210,15 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     CurrentParams.workspaceOpt = Some(inputs.workspace)
 
     val initialBuildOptions = mkBuildOptions(
-      baseOptions,
-      options.shared.sharedVersionOptions,
-      options.publishParams,
-      options.sharedPublish,
-      options.publishRepo,
-      options.signingCli,
-      options.connectionOptions,
-      options.mainClass,
-      options.ivy2LocalLike
+      baseOptions = baseOptions,
+      sharedVersionOptions = options.shared.sharedVersionOptions,
+      publishParams = options.publishParams,
+      sharedPublish = options.sharedPublish,
+      publishRepo = options.publishRepo,
+      scalaSigning = options.signingCli,
+      publishConnection = options.connectionOptions,
+      mainClass = options.mainClass,
+      ivy2LocalLike = options.ivy2LocalLike
     ).orExit(logger)
     val threads = BuildThreads.create()
 
@@ -289,11 +289,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     if watch then {
       val watcher = Build.watch(
-        inputs,
-        initialBuildOptions,
-        compilerMaker,
-        docCompilerMaker,
-        logger,
+        inputs = inputs,
+        options = initialBuildOptions,
+        compilerMaker = compilerMaker,
+        docCompilerMakerOpt = docCompilerMaker,
+        logger = logger,
         crossBuilds = cross,
         buildTests = buildTests,
         partial = None,
@@ -375,10 +375,26 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case _: Build.Cancelled  => false
       case _: Build.Failed     => false
     }
+    if allOk then logger.log("All standard builds ok...")
+    else {
+      val failedBuilds    = builds.all.filterNot(_.success)
+      val cancelledBuilds = builds.all.filter(_.cancelled)
+      logger.log(
+        s"Some standard builds were not successful (${failedBuilds.length} failed, ${cancelledBuilds.length} cancelled)."
+      )
+    }
     val allDocsOk = builds.allDoc.forall {
       case _: Build.Successful => true
       case _: Build.Cancelled  => true
       case _: Build.Failed     => false
+    }
+    if allDocsOk then logger.log("All doc builds ok...")
+    else {
+      val failedBuilds    = builds.allDoc.filterNot(_.success)
+      val cancelledBuilds = builds.allDoc.filter(_.cancelled)
+      logger.log(
+        s"Some doc builds were not successful (${failedBuilds.length} failed, ${cancelledBuilds.length} cancelled)."
+      )
     }
     if allOk && allDocsOk then {
       val builds0 = builds.all.collect {
@@ -391,7 +407,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         builds.builds match {
           case b if b.forall(_.success) && mainClassOptions.mainClassLs.contains(true) =>
             mainClassOptions.maybePrintMainClasses(
-              builds0.flatMap(_.foundMainClasses()).distinct,
+              mainClasses = builds0.flatMap(_.foundMainClasses()).distinct,
               shouldExit = allowExit
             )
           case _ => prepareFilesAndUpload(
@@ -444,7 +460,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     logger.message(s"Publishing $org:$moduleName:$ver")
 
-    val mainJar = {
+    val mainJar: os.Path = {
       val mainClassOpt: Option[String] =
         (builds.head.options.mainClass.filter(_.nonEmpty) match {
           case Some(cls) => Right(cls)
@@ -469,17 +485,22 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
               }
 
         }).toOption
-      val libraryJar = Library.libraryJar(builds, mainClassOpt)
-      val dest       = workingDir / org / s"$moduleName-$ver.jar"
+      logger.debug(s"Retained main class: ${mainClassOpt.getOrElse("(no main class found)")}")
+      val libraryJar: os.Path = Library.libraryJar(builds, mainClassOpt)
+      val dest: os.Path       = workingDir / org / s"$moduleName-$ver.jar"
+      logger.debug(s"Copying library jar from $libraryJar to $dest...")
       os.copy.over(libraryJar, dest, createFolders = true)
+      logger.log(s"Successfully copied library jar from $libraryJar to $dest")
       dest
     }
 
     val sourceJarOpt =
       if publishOptions.contextual(isCi).sourceJar.getOrElse(true) then {
-        val content   = PackageCmd.sourceJar(builds, now.toEpochMilli)
-        val sourceJar = workingDir / org / s"$moduleName-$ver-sources.jar"
+        val content            = PackageCmd.sourceJar(builds, now.toEpochMilli)
+        val sourceJar: os.Path = workingDir / org / s"$moduleName-$ver-sources.jar"
+        logger.debug(s"Saving source jar to $sourceJar...")
         os.write.over(sourceJar, content, createFolders = true)
+        logger.log(s"Successfully saved source jar to $sourceJar")
         Some(sourceJar)
       }
       else None
@@ -489,14 +510,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         docBuilds match {
           case Nil       => None
           case docBuilds =>
-            val docJarPath = value(PackageCmd.docJar(
+            val docJarPath: os.Path = value(PackageCmd.docJar(
               builds = docBuilds,
               logger = logger,
               extraArgs = Nil,
               withTestScope = withTestScope
             ))
-            val docJar = workingDir / org / s"$moduleName-$ver-javadoc.jar"
+            val docJar: os.Path = workingDir / org / s"$moduleName-$ver-javadoc.jar"
+            logger.debug(s"Copying doc jar from $docJarPath to $docJar...")
             os.copy.over(docJarPath, docJar, createFolders = true)
+            logger.log(s"Successfully copied doc jar from $docJarPath to $docJar")
             Some(docJar)
         }
       else None
@@ -512,19 +535,25 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             case (b, 1) if b.head.scope != Scope.Main => Some(Configuration(b.head.scope.name))
             case _                                    => None
           }
+        logger.debug(s"Dependency ${dep0.module.organization}:${dep0.module.name}:${dep0.version}")
         (dep0.module.organization, dep0.module.name, dep0.version, config, dep0.minimizedExclusions)
       }
-    val url     = publishOptions.url.map(_.value)
+    val url = publishOptions.url.map(_.value)
+    logger.debug(s"Published project URL: ${url.getOrElse("(not set)")}")
     val license = publishOptions.license.map(_.value).map { l =>
       Pom.License(l.name, l.url)
     }
+    logger.debug(s"Published project license: ${license.map(_.name).getOrElse("(not set)")}")
     val scm = publishOptions.versionControl.map { vcs =>
       Pom.Scm(vcs.url, vcs.connection, vcs.developerConnection)
     }
+    logger.debug(s"Published project SCM: ${scm.map(_.url).getOrElse("(not set)")}")
     val developers = publishOptions.developers.map { dev =>
       Pom.Developer(dev.id, dev.name, dev.url, dev.mail)
     }
+    logger.debug(s"Published project developers: ${developers.map(_.name).mkString(", ")}")
     val description = publishOptions.description.getOrElse(moduleName)
+    logger.debug(s"Published project description: $description")
 
     val pomContent = Pom.create(
       organization = coursier.Organization(org),
@@ -576,7 +605,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       hasSources = sourceJarOpt.isDefined
     )
 
-    def mavenFileSet = {
+    def mavenFileSet: FileSet = {
       val basePath = Path(org.split('.').toSeq ++ Seq(moduleName, ver))
 
       val mainEntries = Seq(
@@ -603,7 +632,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
     }
 
-    def ivy2LocalLikeFileSet = {
+    def ivy2LocalLikeFileSet: FileSet = {
       val basePath = Path(Seq(org, moduleName, ver))
 
       val mainEntries = Seq(
@@ -633,7 +662,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       FileSet(mainEntries ++ sourceJarEntries ++ docJarEntries)
     }
 
-    val fileSet = if isIvy2LocalLike then ivy2LocalLikeFileSet else mavenFileSet
+    val fileSet: FileSet = if isIvy2LocalLike then ivy2LocalLikeFileSet else mavenFileSet
 
     val mod = coursier.core.Module(
       coursier.core.Organization(org),
@@ -794,9 +823,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       case PSigner.BouncyCastle
           if publishOptions.contextual(isCi).secretKey.isDefined =>
         val secretKeyConfigOpt = publishOptions.contextual(isCi).secretKey.get
-        for {
-          secretKey <- secretKeyConfigOpt.get(configDb())
-        } yield getBouncyCastleSigner(secretKey, getSecretKeyPasswordOpt)
+        for { secretKey <- secretKeyConfigOpt.get(configDb()) } yield getBouncyCastleSigner(
+          secretKey = secretKey,
+          secretKeyPasswordOpt = getSecretKeyPasswordOpt
+        )
 
       // user specified --signer=bc or target repository requires signing
       // --secret-key-password is possibly specified (not mandatory)
@@ -807,8 +837,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
           secretKeyOpt <- configDb().get(Keys.pgpSecretKey).wrapConfigException
           secretKey    <- secretKeyOpt.toRight(
             new MissingPublishOptionError(
-              "secret key",
-              "--secret-key",
+              name = "secret key",
+              optionName = "--secret-key",
               directiveName = "",
               configKeys = Seq(Keys.pgpSecretKey.fullName),
               extraMessage = shouldSignMsg
@@ -824,13 +854,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     }
 
     val signerLogger =
-      new InteractiveSignerLogger(new OutputStreamWriter(System.err), verbosity = 1)
-    val signRes = value(signer).signatures(
-      fileSet0,
-      now,
-      ChecksumType.all.map(_.extension).toSet,
-      Set("maven-metadata.xml"),
-      signerLogger
+      new InteractiveSignerLogger(out = new OutputStreamWriter(System.err), verbosity = 1)
+    val signRes: Either[(Path, Content, String), FileSet] = value(signer).signatures(
+      fileSet = fileSet0,
+      now = now,
+      dontSignExtensions = ChecksumType.all.map(_.extension).toSet,
+      dontSignFiles = Set("maven-metadata.xml"),
+      logger = signerLogger
     )
 
     val fileSet1 = value {
@@ -863,11 +893,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
         }
     }
     val checksums = Checksums(
-      checksumTypes,
-      fileSet1,
-      now,
-      ec,
-      checksumLogger
+      types = checksumTypes,
+      fileSet = fileSet1,
+      now = now,
+      pool = ec,
+      logger = checksumLogger
     ).unsafeRun()(using ec)
     val fileSet2 = fileSet1 ++ checksums
 
@@ -876,7 +906,8 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       else fileSet2.order(ec).unsafeRun()(using ec)
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
-    val authOpt0    = value(authOpt(
+    if isSnapshot0 then logger.message("Publishing a SNAPSHOT version...")
+    val authOpt0 = value(authOpt(
       repo = repoParams.repo.repo(isSnapshot0).root,
       isLegacySonatype = repoParams.isSonatype
     ))
@@ -939,11 +970,12 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     val errors =
       try
         upload.uploadFileSet(
-          retainedRepo,
-          finalFileSet,
-          uploadLogger,
-          if parallelUpload.getOrElse(repoParams.defaultParallelUpload) then Some(ec) else None
-        ).unsafeRun()(ec)
+          repository = retainedRepo,
+          fileSet = finalFileSet,
+          logger = uploadLogger,
+          parallel =
+            if parallelUpload.getOrElse(repoParams.defaultParallelUpload) then Some(ec) else None
+        ).unsafeRun()(using ec)
       catch {
         case NonFatal(e) =>
           // Wrap exception from coursier, as it sometimes throws exceptions from other threads,
@@ -954,9 +986,11 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
     errors.toList match {
       case (h @ (_, _, e: Upload.Error.HttpError)) :: _
           if repoParams0.isSonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
+        logger.log(s"Error message: ${e.getMessage}")
         val httpCodeRegex = "HTTP (\\d+)\n.*".r
         e.getMessage match {
           case httpCodeRegex("403") =>
+            if logger.verbosity >= 2 then e.printStackTrace()
             logger.error(
               s"""
                  |Uploading files failed!
