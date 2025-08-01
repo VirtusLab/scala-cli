@@ -201,7 +201,8 @@ def checkFile(file: os.Path, options: Options): Unit =
            |exec $escapedCommand "$$@"
            |""".stripMargin
       os.write(binDir0 / scriptName, scriptCode)
-      os.perms.set(binDir0 / scriptName, "rwxr-xr-x")
+      if !scala.util.Properties.isWin then
+        os.perms.set(binDir0 / scriptName, "rwxr-xr-x")
     }
     createHelperScript(options.scalaCliCommand, "scala-cli")
     createHelperScript(options.scalaCliCommand, "scala")
@@ -289,9 +290,12 @@ def checkFile(file: os.Path, options: Options): Unit =
             .foreach(os.remove.all)
         val script = out / ".scala-build" / "run.sh"
         os.write.over(script, mkBashScript(cmds), createFolders = true)
-        os.perms.set(script, "rwxr-xr-x")
-
-        val exitCode = run(os.proc(script))
+        val scriptProc = if scala.util.Properties.isWin then
+          os.proc("sh.exe", script)
+        else
+          os.perms.set(script, "rwxr-xr-x")
+          os.proc(script)
+        val exitCode = run(scriptProc)
         if shouldFail then
           check(exitCode != 0, s"Commands should fail.")
         else
