@@ -80,8 +80,9 @@ class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
         val pprintLib =
           actionableDiagnostics.find(_.suggestion.startsWith("com.lihaoyi::pprint")).get
 
-        expect(osLib.positions == Seq(File(Right(root / "Foo.scala"), (0, 14), (0, 39))))
-        expect(pprintLib.positions == Seq(File(Right(root / "Foo.scala"), (1, 14), (1, 39))))
+        val path = root / "Foo.scala"
+        expect(osLib.positions == Seq(File(Right(path), (0, 14), (0, 39))))
+        expect(pprintLib.positions == Seq(File(Right(path), (1, 14), (1, 39))))
     }
   }
 

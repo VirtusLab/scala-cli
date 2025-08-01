@@ -107,7 +107,8 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "Hello.scala", os.rel / "project.scala"))
+      val paths = Seq(os.rel / "Hello.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
     }
   }
 
@@ -141,7 +142,8 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "Hello.scala", os.rel / "project.scala"))
+      val paths = Seq(os.rel / "Hello.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
     }
   }
 
@@ -175,7 +177,8 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "Hello.scala", os.rel / "project.scala"))
+      val paths = Seq(os.rel / "Hello.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
     }
   }
 
@@ -209,7 +212,8 @@ class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.nonEmpty)
       expect(sources.paths.length == 2)
-      expect(sources.paths.map(_._2) == Seq(os.rel / "Hello.scala", os.rel / "project.scala"))
+      val paths = Seq(os.rel / "Hello.scala", os.rel / "project.scala")
+      expect(sources.paths.map(_._2) == paths)
     }
   }
 
