@@ -1,103 +1,105 @@
 ---
-title: Displaying Source File Paths or Names
-sidebar_position: 6
+title: Accessing Source File Paths
+sidebar_position: 10
 ---
 
-## Source Paths and Names
+## Source Names and Paths
 
-A portable way to access source file paths is based on two System properties.
-Multiple source files, if present, are separated by `java.io.File.pathSeparator`.
+System properties provide source file paths, separated by `java.io.File.pathSeparator`.
+- `scala.source.names` filenames without a path.
+- `scala.sources`  full paths to source files
 
-### System property "scala.sources"
+### System property `scala.source.names`
 
-For example, given this simple script:
+This simple script reports the script file name:
 
-```scala title=reportSources.sc
-val sources = sys.props("scala.sources")
-println(s"scriptPath: $sources")
+```scala title=reportNames.sc
+val name = sys.props("scala.source.names")
+println(s"scriptName: $name")
 ```
 
-When run, the script reports its own path:
-
 ```bash
-scala-cli reportSources.sc
+scala-cli reportNames.sc
+# scriptName: reportNames.sc
 ```
 
 <!-- Expected-regex:
-scriptPath: .*/reportSources.sc
+scriptName: reportNames.sc
 -->
 
 Likewise, for this `.scala` program:
 
-```scala title=ReportPath.scala
+```scala title=SourceNames.scala
 object Main {
   def main(args: Array[String]): Unit =
-    val path = sys.props("scala.sources")
-    println(s"sourcePath: $path")
+    val names = sys.props("scala.source.names")
+    println(names)
 }
 ```
 
-When run, the script reports its own path:
-
 ```bash
-scala-cli ReportPath.scala
+scala-cli SourceNames.scala
+# SourceNames.scala
 ```
 
 <!-- Expected-regex:
-.*/ReportPath.scala
+SourceNames[.]scala
 -->
 
-And for this java program:
-
-```java title=PathsLister.java
-public class PathsLister {
-  public static void main(String[] args) {
-    String[] sources = System.getProperty("scala.sources").split(java.io.File.pathSeparator);
-    String list = String.join(",", sources);
-    System.out.printf("%s\n", list);
-  }
-}
-
-```
-
-```bash
-scala-cli PathsLister.java
-```
-
-<!-- Expected-regex:
-.*/PathsLister.java
--->
-
-
-The same java program, if provided with multiple sources, will display them all:
-
-```bash
-scala-cli PathsLister.java reportSources.sc ReportPath.scala --main-class PathsLister
-```
-
-<!-- Expected-regex:
-.*/PathsLister[.]java,.*/reportSources[.]sc,.*/ReportPath[.]scala
--->
-
-### System property "scala.source.names"
+This java program prints a comma-separated list of source names:
 
 ```java title=NamesLister.java
 public class NamesLister {
   public static void main(String[] args) {
-    String names = System.getProperty("scala.source.names");
-    String list = String.join(",", names.split(java.io.File.pathSeparator));
+    String sourceNames = System.getProperty("scala.source.names");
+    String[] names = sourceNames.split(java.io.File.pathSeparator);
+    String list = String.join(",", names);
     System.out.printf("%s\n", list);
   }
 }
 
 ```
-The property "scala.source.names" shows source file base names (without path):
 
 ```bash
-scala-cli NamesLister.java reportSources.sc ReportPath.scala --main-class NamesLister
+scala-cli NamesLister.java
+# NamesLister.java
 ```
 
 <!-- Expected-regex:
-NamesLister[.]java,reportSources[.]sc,ReportPath[.]scala
+NamesLister.java
+-->
+
+
+If multiple sources are provided, all are displayed:
+
+```bash
+scala-cli NamesLister.java reportNames.sc SourceNames.scala --main-class NamesLister
+# NamesLister.java,reportNames.sc,SourceNames.scala
+```
+
+<!-- Expected-regex:
+NamesLister[.]java,reportNames[.]sc,SourceNames[.]scala
+-->
+
+### System property `scala.sources`
+
+```java title=PathsLister.java
+public class PathsLister {
+  public static void main(String[] args) {
+    String paths = System.getProperty("scala.sources");
+    String list = String.join(",", paths.split(java.io.File.pathSeparator));
+    System.out.printf("%s\n", list);
+  }
+}
+```
+The property "scala.sources" displays full source file paths:
+
+```bash
+scala-cli PathsLister.java reportNames.sc SourceNames.scala --main-class PathsLister
+# /tmp/workdir/PathsLister.java,/tmp/workdir/reportNames.sc,/tmp/workdir/SourceNames.scala
+```
+
+<!-- Expected-regex:
+.*/PathsLister[.]java,.*/reportNames[.]sc,.*/SourceNames[.]scala
 -->
 
