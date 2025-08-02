@@ -13,15 +13,7 @@ import scala.build.*
 import scala.build.EitherCps.{either, value}
 import scala.build.Ops.*
 import scala.build.errors.{BuildException, CompositeBuildException}
-import scala.build.input.{
-  Inputs,
-  ScalaCliInvokeData,
-  OnDisk,
-  ScalaFile,
-  Script,
-  SubCommand,
-  MarkdownFile
-}
+import scala.build.input.*
 import scala.build.internal.{Constants, Runner, ScalaJsLinkerConfig}
 import scala.build.internals.ConsoleUtils.ScalaCliConsole
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
@@ -581,10 +573,10 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         runMode match {
           case RunMode.Default =>
             val sourceFiles = builds.head.inputs.sourceFiles().map {
-              case s: OnDisk       => fwd(s.path.toString)
               case s: ScalaFile    => fwd(s.path.toString)
               case s: Script       => fwd(s.path.toString)
               case s: MarkdownFile => fwd(s.path.toString)
+              case s: OnDisk       => fwd(s.path.toString)
               case s               => s.getClass.getName
             }.filter(_.nonEmpty).distinct
             val sources     = sourceFiles.mkString(File.pathSeparator)

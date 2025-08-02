@@ -1,102 +1,103 @@
 ---
-title: Running Scala Scripts
+title: Displaying Source File Paths or Names
 sidebar_position: 6
 ---
 
-## Scala Scripts
+## Source Paths and Names
 
-Scala scripts are files that contain Scala code without a main method.
-These source code files don't require build-tool configurations.
-To run Scala scripts very quickly without waiting the need for build tools, use Scala CLI.
+A portable way to access source file paths is based on two System properties.
+Multiple source files, if present, are separated by `java.io.File.pathSeparator`.
 
-### Run
+### System property "scala.sources"
 
 For example, given this simple script:
 
-```scala title=HelloScript.sc
-val sv = scala.util.Properties.versionNumberString
-val sources = sys.props("scala.source.names")
-val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}, sources $sources"
-println(message)
+```scala title=reportSources.sc
+val sources = sys.props("scala.sources")
+println(s"scriptPath: $sources")
 ```
 
-You can run it directly with Scala CLI — there's no need for a build tool or additional configuration:
+When run, the script reports its own path:
 
 ```bash
-scala-cli run HelloScript.sc
+scala-cli reportSources.sc
 ```
 
 <!-- Expected-regex:
-Hello from Scala .*, Java .*, sources [HelloScript.sc]
+scriptPath: .*/reportSources.sc
 -->
 
-Alternatively, you can add a "shebang" header to your script, make it executable, and execute it directly with Scala CLI. For example, given this script with a header that invokes Scala CLI:
+Likewise, for this `.scala` program:
 
-```scala title=HelloScriptSheBang.sc
-#!/usr/bin/env -S scala-cli shebang
-
-val sv = scala.util.Properties.versionNumberString
-
-def printMessage(): Unit =
-  val message = s"Hello from Scala ${sv}, Java ${System.getProperty("java.version")}"
-  println(message)
-
-printMessage()
+```scala title=ReportPath.scala
+object Main {
+  def main(args: Array[String]): Unit =
+    val path = sys.props("scala.sources")
+    println(s"sourcePath: $path")
+}
 ```
 
-You can make it executable and then run it like this:
+When run, the script reports its own path:
 
 ```bash
-chmod +x HelloScriptSheBang.sc
-./HelloScriptSheBang.sc
-# Hello from Scala 2.13.6, Java 16.0.1
+scala-cli ReportPath.scala
 ```
 
 <!-- Expected-regex:
-Hello from Scala .*, Java .*
+.*/ReportPath.scala
 -->
 
-You can also pass command line arguments to Scala scripts:
+And for this java program:
 
-```scala title=ScriptArguments.sc
-#!/usr/bin/env -S scala-cli shebang
-println(args(1))
+```java title=PathsLister.java
+public class PathsLister {
+  public static void main(String[] args) {
+    String[] sources = System.getProperty("scala.sources").split(java.io.File.pathSeparator);
+    String list = String.join(",", sources);
+    System.out.printf("%s\n", list);
+  }
+}
+
 ```
 
 ```bash
-chmod +x ScriptArguments.sc
-./ScriptArguments.sc foo bar
-# bar
+scala-cli PathsLister.java
 ```
 
 <!-- Expected-regex:
-bar
+.*/PathsLister.java
 -->
 
-As shown, command line arguments are accessed through the special `args` variable.
 
-
-## Features
-
-All of the features shown for non-scripts work for Scala scripts as well, such as waiting for changes (watch mode), dependency menagement, packaging, compiling, etc.
-
-### Package
-
-For example, run the `package` sub-command to package your script as a lightweight executable JAR file:
+The same java program, if provided with multiple sources, will display them all:
 
 ```bash
-scala-cli --power package HelloScript.sc
-./HelloScript
+scala-cli PathsLister.java reportSources.sc ReportPath.scala --main-class PathsLister
 ```
 
 <!-- Expected-regex:
-Hello from Scala .*, Java .*
+.*/PathsLister[.]java,.*/reportSources[.]sc,.*/ReportPath[.]scala
 -->
 
-### Watch mode
+### System property "scala.source.names"
 
-As another example, pass `--watch` to Scala CLI to watch all source files for changes, and then re-run them when there is a change:
+```java title=NamesLister.java
+public class NamesLister {
+  public static void main(String[] args) {
+    String names = System.getProperty("scala.source.names");
+    String list = String.join(",", names.split(java.io.File.pathSeparator));
+    System.out.printf("%s\n", list);
+  }
+}
 
-```bash ignore
-scala-cli --watch HelloScript.sc
 ```
+The property "scala.source.names" shows source file base names (without path):
+
+```bash
+scala-cli NamesLister.java reportSources.sc ReportPath.scala --main-class NamesLister
+```
+
+<!-- Expected-regex:
+NamesLister[.]java,reportSources[.]sc,ReportPath[.]scala
+-->
+
