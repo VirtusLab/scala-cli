@@ -103,3 +103,36 @@ scala-cli PathsLister.java reportNames.sc SourceNames.scala --main-class PathsLi
 .*/PathsLister[.]java,.*/reportNames[.]sc,.*/SourceNames[.]scala
 -->
 
+### Other examples
+
+When multiple `.md` files with plain `scala` snippets are being run, names and paths can refer to '.md' files:
+
+````markdown title=MainA.md
+# Main class A
+```scala
+println(s"A: ${sys.props("scala.source.names")}")
+```
+````
+
+
+````markdown title=MainB.md
+# Main class 2
+```scala
+println(s"2: ${sys.props("scala.source.names")}")
+```
+````
+
+When multiple such sources are passed as inputs, the main class has to be passed explicitly with the `--main-class`
+option.
+
+```bash
+scala-cli --power MainA.md MainB.md --main-class MainA_md
+# A: MainA.md:MainB.md
+```
+
+```text
+1: MainA.md:MainB.md
+```
+<!-- Expected-regex:
+A: MainA[.]md:MainB[.]md
+-->
