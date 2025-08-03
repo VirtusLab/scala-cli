@@ -119,7 +119,7 @@ object Deps {
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
     def jsoup                             = "1.21.1"
-    def scalaMeta                         = "4.13.8"
+    def scalaMeta                         = "4.13.9"
     def scalafmt                          = "3.9.8"
     def scalaNative04                     = "0.4.17"
     def scalaNative05                     = "0.5.8"
