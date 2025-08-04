@@ -48,7 +48,7 @@ Similarly, it is also possible to publish to a central repository. Refer to the 
 
 Once it is published, it can be accessed using the org-name with which it got published. For example, with the published toolkit under the organization `com.yadavan88`, it can be accessed as:
 
-```scala compile
+```scala
 //> using toolkit com.yadavan88:0.1.1-SNAPSHOT
 
 @main
