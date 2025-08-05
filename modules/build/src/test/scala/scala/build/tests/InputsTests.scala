@@ -167,7 +167,8 @@ class InputsTests extends TestUtil.ScalaCliBuildSuite {
               case (el: VirtualScript, url) =>
                 expect(el.source == url)
                 expect(el.content.isEmpty)
-                expect(el.wrapperPath.endsWith(os.rel / "test.sc"))
+                val path = os.rel / "test.sc"
+                expect(el.wrapperPath.endsWith(path))
               case (el: VirtualScalaFile, url) =>
                 expect(el.source == url)
                 expect(el.content.isEmpty)

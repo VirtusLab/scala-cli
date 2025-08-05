@@ -385,7 +385,8 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
         expect(resourceDirs.nonEmpty)
         expect(resourceDirs.length == 1)
-        expect(resourceDirs == Seq(root / "foo"))
+        val path = root / "foo"
+        expect(resourceDirs == Seq(path))
     }
   }
   test("parse boolean for publish.doc") {
@@ -424,8 +425,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               error.message == "Error parsing dependency 'not-a-dep': malformed module: not-a-dep"
             )
             expect(error.positions.length == 1)
+            val path = root / "simple.sc"
             expect(error.positions.head == Position.File(
-              Right(root / "simple.sc"),
+              Right(path),
               (0, 14),
               (0, 23)
             ))
@@ -457,8 +459,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               expect(xyzError.message.startsWith("Error downloading org.xyz:foo"))
               expect(!xyzError.message.contains("com.lihaoyi"))
               expect(!xyzError.message.contains("org.qwerty"))
+              val path = root / "simple.sc"
               expect(xyzError.positions.head == Position.File(
-                Right(root / "simple.sc"),
+                Right(path),
                 (0, 14),
                 (0, 32)
               ))
@@ -469,8 +472,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
               expect(qwertyError.message.contains("Error downloading org.qwerty:bar"))
               expect(!qwertyError.message.contains("com.lihaoyi"))
               expect(!qwertyError.message.contains("org.xyz"))
+              val path = root / "simple.sc"
               expect(qwertyError.positions.head == Position.File(
-                Right(root / "simple.sc"),
+                Right(path),
                 (1, 40),
                 (1, 61)
               ))
