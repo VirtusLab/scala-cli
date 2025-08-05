@@ -165,7 +165,7 @@ trait CliLaunchers extends SbtModule { self =>
         if (usesDocker) s"/data/$staticLibDirName"
         else staticLibDir().path.toString
       super.nativeImageOptions() ++ Seq(
-         "--no-fallback",
+        "--no-fallback",
         s"-H:IncludeResources=$localRepoResourcePath",
         s"-H:IncludeResources=$launcherTypeResourcePath",
         s"-H:IncludeResources=$defaultFilesResourcePath/.*",
