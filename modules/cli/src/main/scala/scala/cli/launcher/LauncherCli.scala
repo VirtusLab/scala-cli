@@ -14,6 +14,7 @@ import scala.build.options.{BuildOptions, JavaOptions}
 import scala.build.{Artifacts, Os, Positioned}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
+import scala.xml.XML
 
 object LauncherCli {
 
@@ -83,23 +84,22 @@ object LauncherCli {
     cache: FileCache[Task],
     scalaParameters: ScalaParameters
   ): String = {
-
     val snapshotRepoUrl =
-      s"https://oss.sonatype.org/content/repositories/snapshots/org/virtuslab/scala-cli/cli_${scalaParameters.scalaBinaryVersion}/"
-    val artifact = Artifact(snapshotRepoUrl).withChanging(true)
+      s"https://central.sonatype.com/repository/maven-snapshots/org/virtuslab/scala-cli/cli_${scalaParameters.scalaBinaryVersion}/"
+    val mavenMetadataUrl = s"$snapshotRepoUrl/maven-metadata.xml"
+    val artifact         = Artifact(mavenMetadataUrl).withChanging(true)
     cache.fileWithTtl0(artifact) match {
       case Left(_) =>
         System.err.println(s"Unable to find nightly ${ScalaCli.fullRunnerName} version")
         sys.exit(1)
       case Right(f) =>
-        val snapshotRepoPage = os.read(os.Path(f, Os.pwd))
-        val rawVersions      = coursier.CoursierUtil.rawVersions(snapshotRepoUrl, snapshotRepoPage)
-        val versions         = rawVersions.map(Version(_))
-
-        if (versions.isEmpty)
-          sys.error(s"No versions found in $snapshotRepoUrl (locally at $f)")
-        else
-          versions.max.repr
+        val metadataXml = os.read(os.Path(f, Os.pwd))
+        val parsed      = XML.loadString(metadataXml)
+        val rawVersions = (parsed \ "versioning" \ "versions" \ "version")
+          .map(_.text)
+        val versions = rawVersions.map(Version(_))
+        if versions.isEmpty then sys.error(s"No versions found in $snapshotRepoUrl (locally at $f)")
+        else versions.max.repr
     }
 
   }
