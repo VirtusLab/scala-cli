@@ -2,7 +2,6 @@ package scala.cli.internal
 
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.maven.MavenRepository
 import coursier.util.Task
 import dependency.*
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
@@ -14,7 +13,7 @@ import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned}
+import scala.build.{Logger, Positioned, SonatypeUtils}
 import scala.io.Source
 import scala.util.Properties
 
@@ -58,13 +57,13 @@ object ScalaJsLinker {
         )
 
         val extraRepos =
-          if (scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT"))
+          if scalaJsVersion.endsWith("SNAPSHOT") || scalaJsCliVersion.endsWith("SNAPSHOT")
+          then
             Seq(
               Repositories.sonatype("snapshots"),
-              MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+              SonatypeUtils.snapshotsRepository
             )
-          else
-            Nil
+          else Nil
 
         options.finalUseJvm match {
           case Right(()) =>

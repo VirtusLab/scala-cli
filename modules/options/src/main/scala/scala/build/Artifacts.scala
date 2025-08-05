@@ -3,7 +3,6 @@ package scala.build
 import coursier.cache.FileCache
 import coursier.core.{Classifier, Module, ModuleName, Organization, Repository, Version}
 import coursier.error.ResolutionError
-import coursier.maven.MavenRepository
 import coursier.util.Task
 import coursier.{Dependency as CsDependency, Fetch, Resolution, core as csCore, util as csUtil}
 import dependency.*
@@ -164,13 +163,12 @@ object Artifacts {
     val maybeSnapshotRepo = {
       val hasSnapshots = jvmTestRunnerDependencies.exists(_.version.endsWith("SNAPSHOT")) ||
         scalaArtifactsParamsOpt.flatMap(_.scalaNativeCliVersion).exists(_.endsWith("SNAPSHOT"))
-      if (hasSnapshots)
+      if hasSnapshots then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
-          MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+          SonatypeUtils.snapshotsRepository
         )
-      else
-        Nil
+      else Nil
     }
 
     val allExtraRepositories =
@@ -433,7 +431,7 @@ object Artifacts {
               if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(
                   coursier.Repositories.sonatype("snapshots"),
-                  MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+                  SonatypeUtils.snapshotsRepository
                 )
               else Nil
             val runnerVersion0 =

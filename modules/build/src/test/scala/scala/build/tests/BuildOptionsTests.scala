@@ -26,9 +26,7 @@ import scala.build.options.{
   ScalacOpt,
   ShadowingSeq
 }
-import scala.build.{Build, BuildThreads, LocalRepo}
-import scala.build.Directories
-import scala.build.Positioned
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, SonatypeUtils}
 import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
 import scala.build.internal.Regexes.scala3LtsRegex
@@ -449,9 +447,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         expect(repositories.contains(Repositories.sonatype("snapshots")))
         expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
-        expect(repositories.contains(
-          MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
-        ))
+        expect(repositories.contains(SonatypeUtils.snapshotsRepository))
     }
   }
 

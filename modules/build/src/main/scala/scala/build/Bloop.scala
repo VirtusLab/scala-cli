@@ -3,7 +3,6 @@ package scala.build
 import bloop.rifle.{BloopRifleConfig, BuildServer}
 import ch.epfl.scala.bsp4j
 import coursier.cache.FileCache
-import coursier.maven.MavenRepository
 import coursier.util.Task
 import dependency.parser.ModuleParser
 import dependency.{AnyDependency, DependencyLike, ScalaParameters, ScalaVersion}
@@ -83,7 +82,7 @@ object Bloop {
           Seq(
             coursier.Repositories.sonatype("snapshots"),
             coursier.Repositories.sonatypeS01("snapshots"),
-            MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+            SonatypeUtils.snapshotsRepository
           ),
           Some(params),
           logger,
