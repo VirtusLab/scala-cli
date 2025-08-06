@@ -27,6 +27,24 @@ class VersionTests extends ScalaCliSuite {
     }
   }
 
+  // given the 30 days snapshot retention, this may prove unreliable on the CI
+  // but might still be valuable for local testing
+  test("CLI nightly on new Maven Central Snapshots repo".flaky) {
+    TestInputs.empty.fromRoot {
+      root =>
+        val res =
+          os.proc(
+            TestUtil.cli,
+            "--cli-version",
+            "nightly",
+            "version",
+            "--cli-version"
+          )
+            .call(cwd = root)
+        expect(res.out.trim().coursierVersion >= "1.8.4".coursierVersion)
+    }
+  }
+
 }
 
 object VersionTests {

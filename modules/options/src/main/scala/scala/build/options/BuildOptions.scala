@@ -1,7 +1,6 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
-import coursier.maven.MavenRepository
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
@@ -21,7 +20,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
-import scala.build.{Artifacts, Logger, Os, Position, Positioned}
+import scala.build.{Artifacts, Logger, Os, Position, Positioned, SonatypeUtils}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*
@@ -263,7 +262,7 @@ final case class BuildOptions(
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),
-          MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+          SonatypeUtils.snapshotsRepository
         )
       else Nil
     val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")

@@ -2,7 +2,6 @@ package scala.cli.commands.pgp
 
 import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
-import coursier.maven.MavenRepository
 import coursier.util.Task
 import dependency.*
 
@@ -19,7 +18,7 @@ import scala.build.internal.{
   FetchExternalBinary,
   Runner
 }
-import scala.build.{Logger, Positioned, options as bo}
+import scala.build.{Logger, Positioned, SonatypeUtils, options as bo}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.commands.util.JvmUtils
@@ -185,13 +184,12 @@ object PgpExternalCommand {
 
     if (signingCliOptions.forceJvm.getOrElse(false)) {
       val extraRepos =
-        if (version.endsWith("SNAPSHOT"))
+        if version.endsWith("SNAPSHOT") then
           Seq(
             Repositories.sonatype("snapshots"),
-            MavenRepository("https://central.sonatype.com/repository/maven-snapshots")
+            SonatypeUtils.snapshotsRepository
           )
-        else
-          Nil
+        else Nil
 
       val (_, signingRes) = value {
         scala.build.Artifacts.fetchCsDependencies(
