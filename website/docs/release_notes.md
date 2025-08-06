@@ -8,6 +8,107 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.8.5](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.5)
+
+### Support for Scala 3.7.2
+This Scala CLI version switches the default Scala version to 3.7.2.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.8.5
+# Scala version (default): 3.7.2
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3809](https://github.com/VirtusLab/scala-cli/pull/3809)
+
+### Add props with input paths for non-script inputs
+2 new properties have been added, to provide a way to access input paths outside of `.sc` scripts:
+- `scala.sources` - full paths of all inputs in the project, separated by `java.io.File.pathSeparator`
+- `scala.source.names` - names of all inputs in the project, separated by `java.io.File.pathSeparator`
+
+```scala title=PrintSources.scala compile
+//PrintSources.scala
+@main def main() = {
+  println(sys.props("scala.sources"))
+  println(sys.props("scala.source.names"))
+}
+```
+
+```
+~/PrintSources.scala
+PrintSources.scala
+```
+
+These are meant to be an input type agnostic equivalent for the `scriptPath` method available in `.sc` scripts.
+
+Added by [@philwalk](https://github.com/philwalk) in [#3799](https://github.com/VirtusLab/scala-cli/pull/3799)
+
+### `sonatype:snapshots` points to the new Sonatype Central snapshots repository
+It is no longer necessary to manually add https://central.sonatype.com/repository/maven-snapshots, it is added under the `sonatype:snapshots` alias (along with the old snapshot repository).
+It is also added in all other contexts when snapshots should be used.
+
+```scala compile
+//> using repository sonatype:snapshots
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3797](https://github.com/VirtusLab/scala-cli/pull/3797)
+
+### Scala CLI nightlies are available again
+We once again publish Scala CLI nightlies. You can use the newest version under the `nightly` tag.
+As pre-1.8.5 Scala CLI versions do not look for them on the new Sonatype Central snapshots repository, 
+they will not be visible when called from earlier versions.
+```bash ignore
+scala-cli --cli-version nightly version
+# Scala CLI version: 1.8.4-24-g8ca6c960b-SNAPSHOT
+# Scala version (default): 3.7.2
+```
+
+:::info
+The new Sonatype Central Portal retains snapshot versions for 90 days,
+so individual nightly versions will be available to test for a limited time period.
+:::
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3818](https://github.com/VirtusLab/scala-cli/pull/3818)
+
+### Features
+* Automatically add the new Sonatype Central Portal snapshots repository when snapshots are expected to be used by [@Gedochao](https://github.com/Gedochao) in [#3797](https://github.com/VirtusLab/scala-cli/pull/3797)
+* Adjust Scala CLI nightly version resolution for the new Maven Central Snapshots repository by [@Gedochao](https://github.com/Gedochao) in [#3818](https://github.com/VirtusLab/scala-cli/pull/3818)
+* provide a way to access paths of source files by [@philwalk](https://github.com/philwalk) in [#3799](https://github.com/VirtusLab/scala-cli/pull/3799)
+* Add more logging for publishing by [@Gedochao](https://github.com/Gedochao) in [#3813](https://github.com/VirtusLab/scala-cli/pull/3813)
+
+### Fixes
+* fix for 3789 - updated by [@philwalk](https://github.com/philwalk) in [#3794](https://github.com/VirtusLab/scala-cli/pull/3794)
+* script extension can be either '.sc' or empty string by [@philwalk](https://github.com/philwalk) in [#3802](https://github.com/VirtusLab/scala-cli/pull/3802)
+
+### Build and internal changes
+* Tag tests relying on old snapshots as flaky (or remove them where applicable) by [@Gedochao](https://github.com/Gedochao) in [#3817](https://github.com/VirtusLab/scala-cli/pull/3817)
+* Add `--no-fallback` to graalvm native-image configuration by [@lbialy](https://github.com/lbialy) in [#3820](https://github.com/VirtusLab/scala-cli/pull/3820)
+
+### Updates
+* Bump react-player from 2.16.0 to 2.16.1 in /website by [@dependabot[bot]](https://github.com/dependabot[bot]) in [#3784](https://github.com/VirtusLab/scala-cli/pull/3784)
+* Update scala-cli.sh launcher for 1.8.4 by [@github-actions[bot]](https://github.com/github-actions[bot]) in [#3787](https://github.com/VirtusLab/scala-cli/pull/3787)
+* Update zip-input-stream to 0.1.3 by [@scala-steward](https://github.com/scala-steward) in [#3792](https://github.com/VirtusLab/scala-cli/pull/3792)
+* Update Scala 3 Next RC to 3.7.2-RC2 by [@scala-steward](https://github.com/scala-steward) in [#3791](https://github.com/VirtusLab/scala-cli/pull/3791)
+* Update java-class-name_3 to 0.1.8 by [@scala-steward](https://github.com/scala-steward) in [#3795](https://github.com/VirtusLab/scala-cli/pull/3795)
+* Update Scala 3 Next announced RC to 3.7.2-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3796](https://github.com/VirtusLab/scala-cli/pull/3796)
+* Update publish to 0.4.3 by [@scala-steward](https://github.com/scala-steward) in [#3801](https://github.com/VirtusLab/scala-cli/pull/3801)
+* Update pprint to 0.9.1 by [@scala-steward](https://github.com/scala-steward) in [#3803](https://github.com/VirtusLab/scala-cli/pull/3803)
+* Update pprint to 0.9.3 by [@scala-steward](https://github.com/scala-steward) in [#3805](https://github.com/VirtusLab/scala-cli/pull/3805)
+* Bump @easyops-cn/docusaurus-search-local from 0.51.1 to 0.52.1 in /website by [@dependabot[bot]](https://github.com/dependabot[bot]) in [#3807](https://github.com/VirtusLab/scala-cli/pull/3807)
+* Update fansi to 0.5.1 by [@scala-steward](https://github.com/scala-steward) in [#3804](https://github.com/VirtusLab/scala-cli/pull/3804)
+* Update Scala 3 Next to 3.7.2 by [@Gedochao](https://github.com/Gedochao) in [#3809](https://github.com/VirtusLab/scala-cli/pull/3809)
+* Update mill-main to 0.12.15 by [@scala-steward](https://github.com/scala-steward) in [#3814](https://github.com/VirtusLab/scala-cli/pull/3814)
+* Update `scalameta` to 4.13.9 by [@scala-steward](https://github.com/scala-steward) in [#3816](https://github.com/VirtusLab/scala-cli/pull/3816)
+* Update scalafmt-cli_2.13, scalafmt-core to 3.9.9 by [@scala-steward](https://github.com/scala-steward) in [#3815](https://github.com/VirtusLab/scala-cli/pull/3815)
+* Update os-lib to 0.11.5 by [@scala-steward](https://github.com/scala-steward) in [#3811](https://github.com/VirtusLab/scala-cli/pull/3811)
+* Set Scala 3.7.2 as the latest announced Scala 3 Next by [@Gedochao](https://github.com/Gedochao) in [#3812](https://github.com/VirtusLab/scala-cli/pull/3812)
+* Bump Bloop to 2.0.13 by [@Gedochao](https://github.com/Gedochao) in [#3821](https://github.com/VirtusLab/scala-cli/pull/3821)
+
+## New Contributors
+* [@lbialy](https://github.com/lbialy) made their first contribution in [#3820](https://github.com/VirtusLab/scala-cli/pull/3820)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.4...v1.8.5
+
 ## [v1.8.4](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.4)
 
 ### (⚡️ experimental) `publish` support for the Sonatype Central Portal
