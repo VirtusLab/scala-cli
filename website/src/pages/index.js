@@ -35,13 +35,13 @@ const Index = (props) => {
 
 			<SectionAbout title="Why Scala CLI?">
 				<p>
-					Scala CLI combines <em>all</em> the features you need to learn and use Scala in your scripts, playgrounds and (single-module) projects.
+					Scala CLI combines <em>all</em> of the features you need to learn and use Scala in your scripts, playgrounds and (single-module) projects.
 				</p>
 				<p>
 					To get started you can read <a href="/docs/overview">the documentation</a>, or just <a href="/install">install</a> and enjoy <code>scala-cli</code>.
 				</p>
 				<p>
-					Scala CLI will soon become the default Scala runner and will be shipped as `scala` (<a href="https://virtuslab.com/blog/scala-cli-the-new-scala-runner/">read more</a>).
+                    Scala CLI is the default Scala runner and is being shipped as <code>scala</code> along with <code>scalac</code> as part of the official language installation since <a href="https://github.com/scala/scala3/releases/tag/3.5.0">Scala 3.5.0</a>. (<a href="/docs/reference/scala-command/">read more</a>).
 				</p>
 			</SectionAbout>
 
