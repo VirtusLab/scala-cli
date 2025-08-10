@@ -228,4 +228,28 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
       }
     }
   }
+
+  test(s"${
+      if (actualScalaVersion.startsWith("2.12")) "-Xfatal-warnings" else "-Werror"
+    } should fail the build on warnings") {
+    TestInputs(
+      os.rel / "Main.scala" ->
+        """object Something {
+          |  def foo = {
+          |    val x = 1
+          |    2
+          |  }
+          |}
+          |""".stripMargin
+    ).fromRoot { root =>
+      val scalacOpts = actualScalaVersion match {
+        case v if v.startsWith("2.12.") => Seq("-Xfatal-warnings", "-Ywarn-unused:_")
+        case v if v.startsWith("2.13.") => Seq("-Werror", "-Wunused")
+        case _                          => Seq("-Werror", "-Wunused:all")
+      }
+      val r = os.proc(TestUtil.cli, "compile", ".", extraOptions, scalacOpts)
+        .call(cwd = root, check = false, stderr = os.Pipe)
+      expect(r.exitCode != 0)
+    }
+  }
 }
