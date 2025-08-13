@@ -20,7 +20,6 @@ import io.github.alexarchambault.millnativeimage.NativeImage
 import mill._
 import mill.api.Loose
 import mill.scalalib._
-import os.{CommandResult, Path}
 import upickle.default._
 
 import java.io.File
@@ -61,7 +60,7 @@ def fromPath(name: String): String =
   else
     name
 
-def cs: Target[String] = Task(persistent = true) {
+def cs: T[String] = Task(persistent = true) {
   val arch      = sys.props.getOrElse("os.arch", "").toLowerCase(Locale.ROOT)
   val ext       = if (Properties.isWin) ".exe" else ""
   val csVersion = if (arch == "aarch64" && Properties.isMac) buildCsM1Version else buildCsVersion
@@ -156,10 +155,10 @@ trait CliLaunchers extends SbtModule { self =>
       Task.Command(super.writeNativeImageScript(scriptDest, "")())
 
     def launcherKind: String
-    def nativeImageCsCommand: Target[Seq[String]] = Seq(cs())
-    def nativeImagePersist: Boolean               = System.getenv("CI") != null
-    def nativeImageGraalVmJvmId: Target[String]   = deps.graalVmJvmId
-    def nativeImageOptions: Target[Seq[String]]   = Task {
+    override def nativeImageCsCommand: T[Seq[String]] = Seq(cs())
+    override def nativeImagePersist: Boolean          = System.getenv("CI") != null
+    override def nativeImageGraalVmJvmId: T[String]   = deps.graalVmJvmId
+    override def nativeImageOptions: T[Seq[String]]   = Task {
       val usesDocker = nativeImageDockerParams().nonEmpty
       val cLibPath   =
         if (usesDocker) s"/data/$staticLibDirName"
@@ -175,8 +174,8 @@ trait CliLaunchers extends SbtModule { self =>
               Seq("-Djdk.lang.Process.launchMechanism=vfork", "-H:PageSize=65536")
             else Nil)
     }
-    def nativeImageName: Target[String]            = "scala-cli"
-    def nativeImageClassPath: Target[Seq[PathRef]] = Task {
+    override def nativeImageName: T[String]            = "scala-cli"
+    override def nativeImageClassPath: T[Seq[PathRef]] = Task {
       val launcherKindResourceDir = Task.dest / "resources"
       os.write(
         launcherKindResourceDir / launcherTypeResourcePath,
@@ -185,7 +184,7 @@ trait CliLaunchers extends SbtModule { self =>
       )
       PathRef(launcherKindResourceDir) +: self.nativeImageClassPath()
     }
-    def nativeImageMainClass: Target[String] = self.nativeImageMainClass()
+    override def nativeImageMainClass: T[String] = self.nativeImageMainClass()
 
     private def staticLibDirName = "native-libs"
 
@@ -275,7 +274,7 @@ trait CliLaunchers extends SbtModule { self =>
       System.err.println(s"Calling ${proc.command.flatMap(_.value).mkString(" ")}")
       proc.call(stdin = os.Inherit, stdout = os.Inherit)
     }
-    def staticLibDir: Target[PathRef] = Task {
+    def staticLibDir: T[PathRef] = Task {
       val dir = nativeImageDockerWorkingDir() / staticLibDirName
       os.makeDir.all(dir)
 
@@ -295,7 +294,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `base-image` extends CliNativeImage {
-    def launcherKind = "default"
+    override def launcherKind = "default"
   }
 
   private def maybePassNativeImageJpmsOption =
@@ -305,8 +304,8 @@ trait CliLaunchers extends SbtModule { self =>
       }
 
   object `linux-docker-image` extends CliNativeImage {
-    def launcherKind: String = `base-image`.launcherKind
-    def nativeImageDockerParams: Target[Option[NativeImage.DockerParams]] = Some(
+    override def launcherKind: String = `base-image`.launcherKind
+    override def nativeImageDockerParams: T[Option[NativeImage.DockerParams]] = Some(
       NativeImage.DockerParams(
         imageName = s"ubuntu:$ubuntuVersion",
         prepareCommand =
@@ -339,13 +338,13 @@ trait CliLaunchers extends SbtModule { self =>
     )
 
   object `static-image` extends CliNativeImage {
-    def launcherKind                            = "static"
-    def nativeImageOptions: Target[Seq[String]] = Task {
+    override def launcherKind                       = "static"
+    override def nativeImageOptions: T[Seq[String]] = Task {
       super.nativeImageOptions() ++ Seq(
         "-J-Dscala-cli.static-launcher=true"
       )
     }
-    def nativeImageDockerParams: Target[Option[NativeImage.DockerParams]] = Task {
+    override def nativeImageDockerParams: T[Option[NativeImage.DockerParams]] = Task {
       val baseDockerParams = NativeImage.linuxStaticParams(
         Docker.muslBuilder,
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
@@ -354,7 +353,7 @@ trait CliLaunchers extends SbtModule { self =>
       buildHelperImage()
       Some(dockerParams)
     }
-    def buildHelperImage: Target[Unit] = Task {
+    def buildHelperImage: T[Unit] = Task {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
         .call(cwd = Task.workspace / "project" / "musl-image", stdout = os.Inherit)
       ()
@@ -367,8 +366,8 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   object `mostly-static-image` extends CliNativeImage {
-    def launcherKind                                                      = "mostly-static"
-    def nativeImageDockerParams: Target[Option[NativeImage.DockerParams]] = Task {
+    override def launcherKind                                                 = "mostly-static"
+    override def nativeImageDockerParams: T[Option[NativeImage.DockerParams]] = Task {
       val baseDockerParams = NativeImage.linuxMostlyStaticParams(
         s"ubuntu:$ubuntuVersion",
         s"https://github.com/coursier/coursier/releases/download/v${deps.csDockerVersion}/cs-x86_64-pc-linux.gz"
@@ -380,7 +379,7 @@ trait CliLaunchers extends SbtModule { self =>
 
   def localRepoJar: T[PathRef]
 
-  def nativeImageMainClass: Target[String] = Task {
+  def nativeImageMainClass: T[String] = Task {
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
   }
 
@@ -393,26 +392,26 @@ trait CliLaunchers extends SbtModule { self =>
       }
 
     Task {
-      mill.define.Target.traverse(allModuleDeps(this :: Nil).distinct)(m =>
+      mill.define.Task.traverse(allModuleDeps(this :: Nil).distinct)(m =>
         Task.Anon(m.jar())
       )()
     }
   }
 
-  def nativeImageClassPath: Target[Seq[PathRef]] = Task {
+  def nativeImageClassPath: T[Seq[PathRef]] = Task {
     val localRepoJar0 = localRepoJar()
     runClasspath() :+ localRepoJar0 // isn't localRepoJar already there?
   }
 
-  def nativeImage: Target[PathRef] =
+  def nativeImage: T[PathRef] =
     if (Properties.isLinux && arch == "x86_64" && isCI)
       `linux-docker-image`.nativeImage
     else
       `base-image`.nativeImage
 
-  def nativeImageStatic: Target[PathRef] =
+  def nativeImageStatic: T[PathRef] =
     `static-image`.nativeImage
-  def nativeImageMostlyStatic: Target[PathRef] =
+  def nativeImageMostlyStatic: T[PathRef] =
     `mostly-static-image`.nativeImage
 
   def runWithAssistedConfig(args: String*): Command[Unit] = Task.Command {
@@ -438,7 +437,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   @unused
-  def runFromJars(args: String*): Command[CommandResult] = Task.Command {
+  def runFromJars(args: String*): Command[os.CommandResult] = Task.Command {
     val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command    = Seq("java", "-cp", cp, mainClass0) ++ args
@@ -448,16 +447,16 @@ trait CliLaunchers extends SbtModule { self =>
     )
   }
 
-  def runClasspath: Target[Seq[PathRef]] = Task {
+  override def runClasspath: T[Seq[PathRef]] = Task {
     super.runClasspath() ++ Seq(localRepoJar())
   }
 
-  def jarClassPath: Target[Seq[PathRef]] = Task {
+  def jarClassPath: T[Seq[PathRef]] = Task {
     val cp = runClasspath() ++ transitiveJarsAgg()
     cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
   }
 
-  def launcher: Target[PathRef] = Task {
+  override def launcher: T[PathRef] = Task {
     import coursier.launcher.{BootstrapGenerator, ClassPathEntry, Parameters, Preamble}
 
     import scala.util.Properties.isWin
@@ -480,7 +479,7 @@ trait CliLaunchers extends SbtModule { self =>
     PathRef(dest)
   }
 
-  def standaloneLauncher: Target[PathRef] = Task {
+  def standaloneLauncher: T[PathRef] = Task {
     val cachePath = os.Path(coursier.cache.FileCache().location, Task.workspace)
     def urlOf(path: os.Path): Option[String] =
       if (path.startsWith(cachePath)) {
@@ -524,7 +523,7 @@ trait CliLaunchers extends SbtModule { self =>
 }
 
 trait HasTests extends SbtModule {
-  def scalacOptions: Target[Seq[String]] = Task {
+  override def scalacOptions: T[Seq[String]] = Task {
     val sv           = scalaVersion()
     val isScala213   = sv.startsWith("2.13.")
     val extraOptions =
@@ -533,13 +532,13 @@ trait HasTests extends SbtModule {
     super.scalacOptions() ++ extraOptions
   }
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
-    def ivyDeps: Target[Agg[Dep]] = super.ivyDeps() ++ Agg(
+    override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
       Deps.expecty,
       Deps.munit
     )
-    def forkArgs: Target[Seq[String]] = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
+    override def forkArgs: T[Seq[String]] = super.forkArgs() ++ Seq("-Xmx512m", "-Xms128m")
 
-    def repositoriesTask: Task[Seq[Repository]] =
+    override def repositoriesTask: Task[Seq[Repository]] =
       Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
     override def testFramework: T[String] = super.testFramework
@@ -547,7 +546,7 @@ trait HasTests extends SbtModule {
 }
 
 trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
-  def emptyZip: Target[PathRef] = Task {
+  def emptyZip: T[PathRef] = Task {
     import java.io._
     import java.util.zip._
     val dest = Task.dest / "empty.zip"
@@ -587,13 +586,13 @@ trait LocalRepo extends Module {
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
-  def localRepo: Target[Seq[PathRef]] = Task {
+  def localRepo: T[Seq[PathRef]] = Task {
     val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
     val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Target.sequence(tasks)
+    define.Task.sequence(tasks)
   }
 
-  private def vcsState: Target[VcsState] =
+  private def vcsState: T[VcsState] =
     if (isCI)
       Task(persistent = true) {
         VcsVersion.vcsState()
@@ -602,7 +601,7 @@ trait LocalRepo extends Module {
       Task {
         VcsVersion.vcsState()
       }
-  def localRepoZip: Target[PathRef] = Task {
+  def localRepoZip: T[PathRef] = Task {
     val repoVer = vcsState().format()
     val ver     = version()
     localRepo()
@@ -647,7 +646,7 @@ trait LocalRepo extends Module {
     PathRef(dest)
   }
 
-  def localRepoJar: Target[PathRef] = Task {
+  def localRepoJar: T[PathRef] = Task {
     val zip  = localRepoZip().path
     val dest = Task.dest / "repo.jar"
 
@@ -729,7 +728,7 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
 }
 
 trait FormatNativeImageConf extends JavaModule {
-  def nativeImageConfDirs: Target[Seq[Path]] = Task {
+  def nativeImageConfDirs: T[Seq[os.Path]] = Task {
     resources()
       .map(_.path / "META-INF" / "native-image")
       .filter(os.exists(_))
@@ -775,19 +774,19 @@ trait FormatNativeImageConf extends JavaModule {
 
 trait ScalaCliScalafixModule extends ScalafixModule {
 
-  override def semanticDbVersion: Target[String] = Deps.Versions.scalaMeta
+  override def semanticDbVersion: T[String] = Deps.Versions.scalaMeta
 
-  def scalafixConfig: Target[Option[Path]] = Task {
+  def scalafixConfig: T[Option[os.Path]] = Task {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
     else Some(Task.workspace / ".scalafix3.conf")
   }
-  def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = super.scalacPluginIvyDeps() ++ {
+  def scalacPluginIvyDeps: T[Loose.Agg[Dep]] = super.scalacPluginIvyDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
   // Explicitly setting sourceroot, so that Scala CLI doesn't use a wrong one.
   // Using Task.workspace is more or less required, for scalafix stuff to work fine.
-  def scalacOptions: Target[Seq[String]] = Task {
+  def scalacOptions: T[Seq[String]] = Task {
     val sv            = scalaVersion()
     val isScala2      = sv.startsWith("2.")
     val sourceRoot    = Task.workspace
@@ -818,7 +817,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 
 // meant to be used with modules which still have to be cross-compiled on Scala 2.12
 trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
-  override def scalafixConfig: Target[Option[Path]] = Task {
+  override def scalafixConfig: T[Option[os.Path]] = Task {
     Some(Task.workspace / ".scalafix.legacy.conf")
   }
 }
@@ -826,11 +825,11 @@ trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {
-  def javacOptions: Target[Seq[String]] = super.javacOptions() ++ Seq(
+  def javacOptions: T[Seq[String]] = super.javacOptions() ++ Seq(
     "--release",
     "16"
   )
-  def scalacOptions: Target[Seq[String]] = Task {
+  def scalacOptions: T[Seq[String]] = Task {
     val sv           = scalaVersion()
     val isScala213   = sv.startsWith("2.13.")
     val extraOptions =
