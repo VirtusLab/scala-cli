@@ -125,7 +125,7 @@ def organization = "org.virtuslab.scala-cli"
 
 trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLocalNoFluff {
   import mill.scalalib.publish._
-  def pomSettings: T[PomSettings] = PomSettings(
+  override def pomSettings: T[PomSettings] = PomSettings(
     description = artifactName(),
     organization = organization,
     url = s"https://github.com/$ghOrg/$ghName",
@@ -139,8 +139,8 @@ trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLoc
       Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
-  def publishVersion: T[String]      = finalPublishVersion()
-  override def sourceJar: T[PathRef] = Task {
+  override def publishVersion: T[String] = finalPublishVersion()
+  override def sourceJar: T[PathRef]     = Task {
     import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
     createJar(
