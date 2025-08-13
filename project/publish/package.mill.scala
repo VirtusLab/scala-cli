@@ -107,7 +107,7 @@ private def computePublishVersion(state: VcsState, simple: Boolean): String =
       .getOrElse(state.format())
       .stripPrefix("v")
 
-def finalPublishVersion: Target[String] = {
+def finalPublishVersion: T[String] = {
   val isCI = System.getenv("CI") != null
   if (isCI)
     Task(persistent = true) {
@@ -125,7 +125,7 @@ def organization = "org.virtuslab.scala-cli"
 
 trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLocalNoFluff {
   import mill.scalalib.publish._
-  def pomSettings: Target[PomSettings] = PomSettings(
+  def pomSettings: T[PomSettings] = PomSettings(
     description = artifactName(),
     organization = organization,
     url = s"https://github.com/$ghOrg/$ghName",
@@ -139,8 +139,8 @@ trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLoc
       Developer("MaciejG604", "Maciej Gajek", "https://github.com/MaciejG604")
     )
   )
-  def publishVersion: Target[String]      = finalPublishVersion()
-  override def sourceJar: Target[PathRef] = Task {
+  def publishVersion: T[String]      = finalPublishVersion()
+  override def sourceJar: T[PathRef] = Task {
     import mill.util.Jvm.createJar
     val allSources0 = allSources().map(_.path).filter(os.exists).toSet
     createJar(
