@@ -1,6 +1,6 @@
 package build.project.publish
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r`
+import $ivy.`org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r`
 import build.project.settings
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import settings.{PublishLocalNoFluff, workspaceDirName}
