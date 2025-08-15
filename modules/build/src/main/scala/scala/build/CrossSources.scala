@@ -382,6 +382,16 @@ object CrossSources {
     crossSources -> finalInputs
   }
 
+  extension (uri: java.net.URI)
+    def asString: String =
+      java.net.URI(
+        uri.getScheme,
+        uri.getAuthority,
+        uri.getPath,
+        null,
+        uri.getFragment
+      ).toString
+
   /** @return
     *   the resource directories that should be added to the classpath
     */
@@ -405,7 +415,7 @@ object CrossSources {
     download(pUri.value.toString).left.map(
       new UsingFileFromUriError(pUri.value, pUri.positions, _)
     ).map(content =>
-      Seq(Virtual(pUri.value.toString, content))
+      Seq(Virtual(pUri.value.asString, content))
     )
 
   type CodeFile = os.Path | java.net.URI

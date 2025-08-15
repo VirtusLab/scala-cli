@@ -125,6 +125,39 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  test("dependencies in .scala - using URL with query parameters") {
+    val testInputs = TestInputs(
+      os.rel / "something.scala" ->
+        """| //> using file http://github.com/VirtusLab/scala-cli/blob/main/modules/dummy/amm/src/main/scala/AmmDummy.scala?version=3
+           |
+           |object Main {
+           |}
+           |""".stripMargin
+    )
+    testInputs.withInputs { (root, inputs) =>
+      val (crossSources, _) =
+        CrossSources.forInputs(
+          inputs,
+          preprocessors,
+          TestLogger(),
+          SuppressWarningOptions(),
+          download = _ => Right(Array.empty[Byte])
+        ).orThrow
+      val scopedSources = crossSources.scopedSources(BuildOptions()).orThrow
+      val sources       =
+        scopedSources.sources(
+          Scope.Main,
+          crossSources.sharedOptions(BuildOptions()),
+          root,
+          TestLogger()
+        ).orThrow
+
+      expect(sources.paths.length == 1)
+      expect(sources.inMemory.length == 1)
+      expect(sources.inMemory(0).generatedRelPath.last == "AmmDummy.scala")
+    }
+  }
+
   test("dependencies in .test.scala - using") {
     val testInputs = TestInputs(
       os.rel / "something.test.scala" ->
