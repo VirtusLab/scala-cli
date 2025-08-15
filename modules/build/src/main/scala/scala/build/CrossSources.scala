@@ -401,11 +401,23 @@ object CrossSources {
     fromInputs ++ fromSources ++ fromSourcesWithRequirements
   }
 
+  /** @return
+    *   a java.net.URI to a String without query parameters
+    */
+  private def uriToString(uri: java.net.URI): String =
+    java.net.URI(
+      uri.getScheme(),
+      uri.getAuthority(),
+      uri.getPath(),
+      null,
+      uri.getFragment()
+    ).toString()
+
   private def downloadFile(download: BuildOptions.Download)(pUri: Positioned[java.net.URI]) =
     download(pUri.value.toString).left.map(
       new UsingFileFromUriError(pUri.value, pUri.positions, _)
     ).map(content =>
-      Seq(Virtual(pUri.value.toString, content))
+      Seq(Virtual(uriToString(pUri.value), content))
     )
 
   type CodeFile = os.Path | java.net.URI
