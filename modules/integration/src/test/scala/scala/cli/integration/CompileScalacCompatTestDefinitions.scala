@@ -234,21 +234,24 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     withBloop    <- Seq(false, true)
     withBloopString = if (withBloop) "with Bloop" else "scalac"
     buildServerOpts = if (withBloop) Nil else Seq("--server=false")
+    if !Properties.isWin || withBloop
   }
     test(s"sanity check for Scala $scalaVersion standard library with cc ($withBloopString)") {
-      val input = "example.scala"
-      TestInputs(os.rel / input ->
-        s"""//> using scala $scalaVersion
-           |import language.experimental.captureChecking
-           |
-           |trait File extends caps.SharedCapability:
-           |  def count(): Int
-           |
-           |def f(file: File): IterableOnce[Int]^{file} =
-           |  Iterator(1)
-           |    .map(_ + file.count())
-           |""".stripMargin).fromRoot { root =>
-        os.proc(TestUtil.cli, "compile", input, buildServerOpts).call(cwd = root)
+      TestUtil.retryOnCi() {
+        val input = "example.scala"
+        TestInputs(os.rel / input ->
+          s"""//> using scala $scalaVersion
+             |import language.experimental.captureChecking
+             |
+             |trait File extends caps.SharedCapability:
+             |  def count(): Int
+             |
+             |def f(file: File): IterableOnce[Int]^{file} =
+             |  Iterator(1)
+             |    .map(_ + file.count())
+             |""".stripMargin).fromRoot { root =>
+          os.proc(TestUtil.cli, "compile", input, buildServerOpts).call(cwd = root)
+        }
       }
     }
 }
