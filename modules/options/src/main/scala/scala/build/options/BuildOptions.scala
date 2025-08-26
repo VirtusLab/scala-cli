@@ -1,6 +1,7 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
+import coursier.jvm.JavaHome
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
@@ -157,7 +158,7 @@ final case class BuildOptions(
           .withScalaBinaryVersion(scalaVersion.split('.').take(2).mkString("."))
           .withInput(s"org.scalameta:semanticdb-scalac_$scalaVersion:")
           .complete()
-          .future()(finalCache.ec)
+          .future()(using finalCache.ec)
       }
 
     val versions =
@@ -245,7 +246,7 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  lazy val javaHomeManager =
+  lazy val javaHomeManager: JavaHome =
     javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)

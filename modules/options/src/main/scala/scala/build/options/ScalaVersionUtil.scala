@@ -37,7 +37,7 @@ object ScalaVersionUtil {
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
-        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
+        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(using cache.ec)
         catch {
           case NonFatal(e) => throw new Exception(e)
         }
@@ -52,9 +52,9 @@ object ScalaVersionUtil {
       cacheWithTtl.logger.use {
         Versions(cacheWithTtl)
           .withModule(module)
-          .addRepositories(repositories: _*)
+          .addRepositories(repositories*)
           .result()
-          .unsafeRun()(cacheWithTtl.ec)
+          .unsafeRun()(using cacheWithTtl.ec)
       }
     def versionsWithTtl0(
       module: Module,
@@ -101,7 +101,7 @@ object ScalaVersionUtil {
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
       val webPageScala2Repo = value(downloadScala2RepoPage(cache))
-      val scala2Repo        = readFromArray(webPageScala2Repo)(Scala2Repo.codec)
+      val scala2Repo        = readFromArray(webPageScala2Repo)(using Scala2Repo.codec)
       val versions          = scala2Repo.children
       val sortedVersion     =
         versions
@@ -259,9 +259,9 @@ object ScalaVersionUtil {
         val versions = cache.logger.use {
           try Versions(cache)
               .withModule(mod)
-              .addRepositories(repositories: _*)
+              .addRepositories(repositories*)
               .result()
-              .unsafeRun()(cache.ec)
+              .unsafeRun()(using cache.ec)
           catch {
             case NonFatal(e) => throw new Exception(e)
           }
