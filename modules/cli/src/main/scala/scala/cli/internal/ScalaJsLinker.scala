@@ -61,7 +61,9 @@ object ScalaJsLinker {
           then
             Seq(
               Repositories.sonatype("snapshots"),
-              SonatypeUtils.snapshotsRepository
+              Repositories.sonatypeS01("snapshots"),
+              SonatypeUtils.snapshotsRepository,
+              SonatypeUtils.scala3NightlyRepository
             )
           else Nil
 

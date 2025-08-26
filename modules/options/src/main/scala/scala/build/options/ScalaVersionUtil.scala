@@ -11,6 +11,7 @@ import java.io.File
 
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
+import scala.build.SonatypeUtils
 import scala.build.errors.{
   BuildException,
   InvalidBinaryScalaVersionError,
@@ -134,11 +135,16 @@ object ScalaVersionUtil {
     /** @return
       *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
       */
-    def scala3(cache: FileCache[Task]): Either[BuildException, String] =
+    def scala3(cache: FileCache[Task]): Either[BuildException, String] = {
+      val repositories = Seq(SonatypeUtils.scala3NightlyRepository)
+      val versions     = cache
+        .versionsWithTtl0(scala3Library, repositories)
+        .versions
       latestScalaVersionFrom(
-        cache.versionsWithTtl0(scala3Library).versions,
-        "latest Scala 3 nightly build"
+        versions = versions,
+        desc = "latest Scala 3 nightly build"
       )
+    }
 
     private def latestScalaVersionFrom(
       versions: CoreVersions,
@@ -166,9 +172,10 @@ object ScalaVersionUtil {
 
     def scala3(
       versionString: String,
-      cache: FileCache[Task]
+      cache: FileCache[Task],
+      repositories: Seq[Repository] = Seq.empty
     ): Either[BuildException, Unit] =
-      cache.versionsWithTtl0(scala3Library).verify(versionString)
+      cache.versionsWithTtl0(scala3Library, repositories).verify(versionString)
   }
 
   def validateNonStable(
@@ -227,8 +234,7 @@ object ScalaVersionUtil {
     || (scala212Nightly +: scala213Nightly).contains(version)
 
   def isScala3Nightly(version: String): Boolean =
-    version.startsWith("3") && version.endsWith("-NIGHTLY")
-
+    (version.startsWith("3") && version.endsWith("-NIGHTLY")) || version == scala3Nightly
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
 

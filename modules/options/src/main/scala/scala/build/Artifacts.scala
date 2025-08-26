@@ -166,7 +166,9 @@ object Artifacts {
       if hasSnapshots then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
-          SonatypeUtils.snapshotsRepository
+          coursier.Repositories.sonatypeS01("snapshots"),
+          SonatypeUtils.snapshotsRepository,
+          SonatypeUtils.scala3NightlyRepository
         )
       else Nil
     }
@@ -431,7 +433,9 @@ object Artifacts {
               if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(
                   coursier.Repositories.sonatype("snapshots"),
-                  SonatypeUtils.snapshotsRepository
+                  coursier.Repositories.sonatypeS01("snapshots"),
+                  SonatypeUtils.snapshotsRepository,
+                  SonatypeUtils.scala3NightlyRepository
                 )
               else Nil
             val runnerVersion0 =

@@ -249,11 +249,15 @@ final case class BuildOptions(
     javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
+  private val scala3NightlyRepo = Seq(SonatypeUtils.scala3NightlyRepository.root)
 
   def finalRepositories: Either[BuildException, Seq[Repository]] = either {
     val nightlyRepos =
-      if (scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)))
+      if scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)) then
         scala2NightlyRepo
+      else if scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala3Nightly(sv.asString))
+      then
+        scala3NightlyRepo
       else
         Nil
     val snapshotRepositories =
@@ -262,7 +266,8 @@ final case class BuildOptions(
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),
-          SonatypeUtils.snapshotsRepository
+          SonatypeUtils.snapshotsRepository,
+          SonatypeUtils.scala3NightlyRepository
         )
       else Nil
     val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
@@ -277,7 +282,7 @@ final case class BuildOptions(
         .left.map(errors => new RepositoryFormatError(errors))
     }
 
-    parseRepositories ++ snapshotRepositories
+    (parseRepositories ++ snapshotRepositories).distinct
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
@@ -363,7 +368,8 @@ final case class BuildOptions(
               case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
                 ScalaVersionUtil.CheckNightly.scala3(
                   versionString,
-                  cache
+                  cache,
+                  repositories
                 )
                   .map(_ => versionString)
               case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
@@ -456,7 +462,8 @@ final case class BuildOptions(
       if (scalaArtifactsParamsOpt.isDefined) None
       else Some(false) // no runner in pure Java mode
     }
-    val maybeArtifacts = Artifacts(
+    val extraRepositories: Seq[Repository] = value(finalRepositories)
+    val maybeArtifacts                     = Artifacts(
       scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
@@ -470,7 +477,7 @@ final case class BuildOptions(
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.finalJmhVersion,
-      extraRepositories = value(finalRepositories),
+      extraRepositories = extraRepositories,
       keepResolution = internal.keepResolution,
       includeBuildServerDeps = useBuildServer.getOrElse(true),
       cache = finalCache,

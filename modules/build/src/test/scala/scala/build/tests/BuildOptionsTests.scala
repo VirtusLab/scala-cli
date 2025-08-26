@@ -323,7 +323,12 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     val repositories = BuildOptions(
       internal = InternalOptions(cache = Some(cache)),
       classPathOptions =
-        ClassPathOptions(extraRepositories = Seq(coursier.Repositories.scalaIntegration.root))
+        ClassPathOptions(
+          extraRepositories = Seq(
+            coursier.Repositories.scalaIntegration.root,
+            SonatypeUtils.scala3NightlyRepository.root
+          )
+        )
     ).finalRepositories.orThrow
     val allScalaVersions = ScalaVersionUtil.allMatchingVersions(None, cache, repositories)
     for {
@@ -443,11 +448,12 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
           .getOrElse(sys.error("cannot happen"))
         val repositories = build.options.finalRepositories.orThrow
 
-        expect(repositories.length == 4)
+        expect(repositories.length == 5)
         expect(repositories.contains(Repositories.sonatype("snapshots")))
         expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
         expect(repositories.contains(SonatypeUtils.snapshotsRepository))
+        expect(repositories.contains(SonatypeUtils.scala3NightlyRepository))
     }
   }
 

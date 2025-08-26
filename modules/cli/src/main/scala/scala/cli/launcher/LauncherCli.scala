@@ -24,7 +24,8 @@ object LauncherCli {
     val snapshotsRepo   = Seq(
       Repositories.central,
       Repositories.sonatype("snapshots"),
-      SonatypeUtils.snapshotsRepository
+      SonatypeUtils.snapshotsRepository,
+      SonatypeUtils.scala3NightlyRepository
     )
 
     val cliVersion: String =

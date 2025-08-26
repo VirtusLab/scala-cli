@@ -228,4 +228,27 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
       }
     }
   }
+
+  for {
+    scalaVersion <- Seq("3.nightly", "3.8.0-RC1-bin-20250825-ee2f641-NIGHTLY")
+    withBloop    <- Seq(false) // TODO: fix this with Bloop
+    withBloopString = if (withBloop) "with Bloop" else "scalac"
+    buildServerOpts = if (withBloop) Nil else Seq("--server=false")
+  }
+    test(s"sanity check for Scala $scalaVersion standard library with cc ($withBloopString)") {
+      val input = "example.scala"
+      TestInputs(os.rel / input ->
+        s"""//> using scala $scalaVersion
+           |import language.experimental.captureChecking
+           |
+           |trait File extends caps.SharedCapability:
+           |  def count(): Int
+           |
+           |def f(file: File): IterableOnce[Int]^{file} =
+           |  Iterator(1)
+           |    .map(_ + file.count())
+           |""".stripMargin).fromRoot { root =>
+        os.proc(TestUtil.cli, "compile", input, buildServerOpts).call(cwd = root)
+      }
+    }
 }
