@@ -11,7 +11,7 @@ import java.io.File
 
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
-import scala.build.SonatypeUtils
+import scala.build.RepositoryUtils
 import scala.build.errors.{
   BuildException,
   InvalidBinaryScalaVersionError,
@@ -136,7 +136,7 @@ object ScalaVersionUtil {
       *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
       */
     def scala3(cache: FileCache[Task]): Either[BuildException, String] = {
-      val repositories = Seq(SonatypeUtils.scala3NightlyRepository)
+      val repositories = Seq(RepositoryUtils.scala3NightlyRepository)
       val versions     = cache
         .versionsWithTtl0(scala3Library, repositories)
         .versions

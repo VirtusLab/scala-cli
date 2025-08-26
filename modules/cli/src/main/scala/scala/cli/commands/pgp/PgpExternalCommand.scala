@@ -18,7 +18,7 @@ import scala.build.internal.{
   FetchExternalBinary,
   Runner
 }
-import scala.build.{Logger, Positioned, SonatypeUtils, options as bo}
+import scala.build.{Logger, Positioned, RepositoryUtils, options as bo}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, SharedJvmOptions}
 import scala.cli.commands.util.JvmUtils
@@ -188,8 +188,8 @@ object PgpExternalCommand {
           Seq(
             Repositories.sonatype("snapshots"),
             Repositories.sonatypeS01("snapshots"),
-            SonatypeUtils.snapshotsRepository,
-            SonatypeUtils.scala3NightlyRepository
+            RepositoryUtils.snapshotsRepository,
+            RepositoryUtils.scala3NightlyRepository
           )
         else Nil
 

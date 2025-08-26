@@ -167,8 +167,8 @@ object Artifacts {
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),
-          SonatypeUtils.snapshotsRepository,
-          SonatypeUtils.scala3NightlyRepository
+          RepositoryUtils.snapshotsRepository,
+          RepositoryUtils.scala3NightlyRepository
         )
       else Nil
     }
@@ -241,7 +241,7 @@ object Artifacts {
               value {
                 artifacts(
                   bridgeDependencies.map(Positioned.none),
-                  (allExtraRepositories ++ Seq(SonatypeUtils.scala3NightlyRepository)).distinct,
+                  (allExtraRepositories ++ Seq(RepositoryUtils.scala3NightlyRepository)).distinct,
                   Some(scalaArtifactsParams.params),
                   logger,
                   cache.withMessage(
@@ -434,8 +434,8 @@ object Artifacts {
                 Seq(
                   coursier.Repositories.sonatype("snapshots"),
                   coursier.Repositories.sonatypeS01("snapshots"),
-                  SonatypeUtils.snapshotsRepository,
-                  SonatypeUtils.scala3NightlyRepository
+                  RepositoryUtils.snapshotsRepository,
+                  RepositoryUtils.scala3NightlyRepository
                 )
               else Nil
             val runnerVersion0 =

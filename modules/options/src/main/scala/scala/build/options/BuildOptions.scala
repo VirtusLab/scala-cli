@@ -20,7 +20,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
-import scala.build.{Artifacts, Logger, Os, Position, Positioned, SonatypeUtils}
+import scala.build.{Artifacts, Logger, Os, Position, Positioned, RepositoryUtils}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*
@@ -249,7 +249,7 @@ final case class BuildOptions(
     javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
-  private val scala3NightlyRepo = Seq(SonatypeUtils.scala3NightlyRepository.root)
+  private val scala3NightlyRepo = Seq(RepositoryUtils.scala3NightlyRepository.root)
 
   def finalRepositories: Either[BuildException, Seq[Repository]] = either {
     val nightlyRepos =
@@ -266,8 +266,8 @@ final case class BuildOptions(
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),
-          SonatypeUtils.snapshotsRepository,
-          SonatypeUtils.scala3NightlyRepository
+          RepositoryUtils.snapshotsRepository,
+          RepositoryUtils.scala3NightlyRepository
         )
       else Nil
     val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")

@@ -26,7 +26,7 @@ import scala.build.options.{
   ScalacOpt,
   ShadowingSeq
 }
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, SonatypeUtils}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned, RepositoryUtils}
 import scala.build.tests.util.BloopServer
 import scala.concurrent.duration.DurationInt
 import scala.build.internal.Regexes.scala3LtsRegex
@@ -326,7 +326,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         ClassPathOptions(
           extraRepositories = Seq(
             coursier.Repositories.scalaIntegration.root,
-            SonatypeUtils.scala3NightlyRepository.root
+            RepositoryUtils.scala3NightlyRepository.root
           )
         )
     ).finalRepositories.orThrow
@@ -452,8 +452,8 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         expect(repositories.contains(Repositories.sonatype("snapshots")))
         expect(repositories.contains(Repositories.sonatypeS01("snapshots")))
         expect(repositories.contains(Repositories.central))
-        expect(repositories.contains(SonatypeUtils.snapshotsRepository))
-        expect(repositories.contains(SonatypeUtils.scala3NightlyRepository))
+        expect(repositories.contains(RepositoryUtils.snapshotsRepository))
+        expect(repositories.contains(RepositoryUtils.scala3NightlyRepository))
     }
   }
 
