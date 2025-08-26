@@ -174,7 +174,7 @@ object Artifacts {
     }
 
     val allExtraRepositories =
-      maybeSnapshotRepo ++ extraRepositories
+      (maybeSnapshotRepo ++ extraRepositories).distinct
 
     val scalaOpt = scalaArtifactsParamsOpt match {
       case Some(scalaArtifactsParams) =>
@@ -241,7 +241,7 @@ object Artifacts {
               value {
                 artifacts(
                   bridgeDependencies.map(Positioned.none),
-                  allExtraRepositories,
+                  (allExtraRepositories ++ Seq(SonatypeUtils.scala3NightlyRepository)).distinct,
                   Some(scalaArtifactsParams.params),
                   logger,
                   cache.withMessage(

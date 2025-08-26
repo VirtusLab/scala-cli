@@ -231,7 +231,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
 
   for {
     scalaVersion <- Seq("3.nightly", "3.8.0-RC1-bin-20250825-ee2f641-NIGHTLY")
-    withBloop    <- Seq(false) // TODO: fix this with Bloop
+    withBloop    <- Seq(false, true)
     withBloopString = if (withBloop) "with Bloop" else "scalac"
     buildServerOpts = if (withBloop) Nil else Seq("--server=false")
   }
