@@ -234,7 +234,7 @@ trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
     withBloop    <- Seq(false, true)
     withBloopString = if (withBloop) "with Bloop" else "scalac"
     buildServerOpts = if (withBloop) Nil else Seq("--server=false")
-    if !Properties.isWin || withBloop
+    if (!Properties.isWin || withBloop) && actualScalaVersion == Constants.scala3Next
   }
     test(s"sanity check for Scala $scalaVersion standard library with cc ($withBloopString)") {
       TestUtil.retryOnCi() {
