@@ -253,14 +253,13 @@ final case class BuildOptions(
   private val scala3NightlyRepo = Seq(RepositoryUtils.scala3NightlyRepository.root)
 
   def finalRepositories: Either[BuildException, Seq[Repository]] = either {
+    val maybeSv = scalaOptions.scalaVersion
+      .map(_.asString)
+      .orElse(scalaOptions.defaultScalaVersion)
     val nightlyRepos =
-      if scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)) then
-        scala2NightlyRepo
-      else if scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala3Nightly(sv.asString))
-      then
-        scala3NightlyRepo
-      else
-        Nil
+      if maybeSv.exists(ScalaVersionUtil.isScala2Nightly) then scala2NightlyRepo
+      else if maybeSv.exists(ScalaVersionUtil.isScala3Nightly) then scala3NightlyRepo
+      else Nil
     val snapshotRepositories =
       if classPathOptions.extraRepositories.contains("snapshots")
       then
