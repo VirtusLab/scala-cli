@@ -228,7 +228,7 @@ trait DocsTests extends CrossSbtModule with ScalaCliScalafixModule with HasTests
 
 object packager extends ScalaModule with Bloop.Module {
   override def skipBloop               = true
-  override def scalaVersion: T[String] = Scala.scala213
+  override def scalaVersion: T[String] = Scala.scala3Lts
   override def ivyDeps: T[Agg[Dep]]    = Agg(
     Deps.scalaPackagerCli
   )
