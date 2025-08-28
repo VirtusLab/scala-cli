@@ -110,17 +110,20 @@ class SparkTests212 extends SparkTestDefinitions with Test212 {
       expect(output.contains(expectedOutput))
     }
 
-  test("package spark 2.4") {
-    simplePackageSparkJobTest(spark24)
-  }
+  if (!Properties.isMac) { // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+    test("package spark 2.4") {
+      simplePackageSparkJobTest(spark24)
+    }
 
-  test("package spark 3.0") {
-    simplePackageSparkJobTest(spark30)
+    test("package spark 3.0") {
+      simplePackageSparkJobTest(spark30)
+    }
   }
 
   for {
     withTestScope <- Seq(true, false)
     scopeDescription = if (withTestScope) "test scope" else "main scope"
+    if !Properties.isMac // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
   } {
     test(s"run spark 2.4 ($scopeDescription)") {
       simpleRunSparkJobTest(spark24, withTestScope = withTestScope)

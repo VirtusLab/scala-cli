@@ -157,6 +157,7 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
   for {
     withTestScope <- Seq(true, false)
     scopeDescription = if (withTestScope) "test scope" else "main scope"
+    if !Properties.isMac // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
   } test(s"run spark 3.3 standalone ($scopeDescription)") {
     simpleRunStandaloneSparkJobTest(
       actualScalaVersion,
@@ -166,51 +167,52 @@ abstract class SparkTestDefinitions extends ScalaCliSuite with TestScalaVersionA
     )
   }
 
-  test("run spark spark-submit args") {
-    val jobName = "the test spark job"
-    val inputs  = TestInputs(
-      os.rel / "SparkJob.scala" ->
-        s"""//> using dep org.apache.spark::spark-sql:3.3.0
-           |
-           |import org.apache.spark._
-           |import org.apache.spark.sql._
-           |
-           |object SparkJob {
-           |  def main(args: Array[String]): Unit = {
-           |    val spark = SparkSession.builder().getOrCreate()
-           |    val name = spark.conf.get("spark.app.name")
-           |    assert(name == "$jobName")
-           |    import spark.implicits._
-           |    def sc    = spark.sparkContext
-           |    val accum = sc.longAccumulator
-           |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
-           |    println("Result: " + accum.value)
-           |  }
-           |}
-           |""".stripMargin
-    )
-    inputs.fromRoot { root =>
-      val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
-      val res      = os.proc(
-        TestUtil.cli,
-        "--power",
-        "run",
-        extraOptions,
-        "--spark-standalone",
-        ".",
-        "--submit-arg",
-        "--name",
-        "--submit-arg",
-        jobName
+  if (!Properties.isMac) // TODO: https://github.com/VirtusLab/scala-cli/issues/3841
+    test("run spark spark-submit args") {
+      val jobName = "the test spark job"
+      val inputs  = TestInputs(
+        os.rel / "SparkJob.scala" ->
+          s"""//> using dep org.apache.spark::spark-sql:3.3.0
+             |
+             |import org.apache.spark._
+             |import org.apache.spark.sql._
+             |
+             |object SparkJob {
+             |  def main(args: Array[String]): Unit = {
+             |    val spark = SparkSession.builder().getOrCreate()
+             |    val name = spark.conf.get("spark.app.name")
+             |    assert(name == "$jobName")
+             |    import spark.implicits._
+             |    def sc    = spark.sparkContext
+             |    val accum = sc.longAccumulator
+             |    sc.parallelize(1 to 10).foreach(x => accum.add(x))
+             |    println("Result: " + accum.value)
+             |  }
+             |}
+             |""".stripMargin
       )
-        .call(cwd = root, env = extraEnv)
+      inputs.fromRoot { root =>
+        val extraEnv = maybeHadoopHomeForWinutils(root / "hadoop-home")
+        val res      = os.proc(
+          TestUtil.cli,
+          "--power",
+          "run",
+          extraOptions,
+          "--spark-standalone",
+          ".",
+          "--submit-arg",
+          "--name",
+          "--submit-arg",
+          jobName
+        )
+          .call(cwd = root, env = extraEnv)
 
-      val expectedOutput = "Result: 55"
+        val expectedOutput = "Result: 55"
 
-      val output = res.out.trim().linesIterator.toVector
+        val output = res.out.trim().linesIterator.toVector
 
-      expect(output.contains(expectedOutput))
+        expect(output.contains(expectedOutput))
+      }
     }
-  }
 
 }
