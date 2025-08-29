@@ -127,7 +127,7 @@ object Deps {
     def maxScalaNativeForTypelevelToolkit = scalaNative04
     def maxScalaNativeForScalaPy          = scalaNative04
     def maxScalaNativeForMillExport       = scalaNative05
-    def scalaPackager                     = "0.1.33"
+    def scalaPackager                     = "0.2.0"
     def signingCli                        = "0.2.11"
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
@@ -218,10 +218,10 @@ object Deps {
   def scalaJsEnvNodeJs = mvn"org.scala-js:scalajs-env-nodejs_2.13:1.4.0"
   def scalaJsLogging   = mvn"org.scala-js:scalajs-logging_2.13:1.1.1"
   // Force using of 2.13 - is there a better way?
-  def scalaJsTestAdapter = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
-  def scalaPackager      = mvn"org.virtuslab:scala-packager_2.13:${Versions.scalaPackager}"
-  def scalaPackagerCli   = mvn"org.virtuslab:scala-packager-cli_2.13:${Versions.scalaPackager}"
-  def scalaPy            = mvn"dev.scalapy::scalapy-core::0.5.3"
+  def scalaJsTestAdapter        = mvn"org.scala-js:scalajs-sbt-test-adapter_2.13:${Scala.scalaJs}"
+  def scalaPackager             = mvn"org.virtuslab::scala-packager:${Versions.scalaPackager}"
+  def scalaPackagerCli          = mvn"org.virtuslab::scala-packager-cli:${Versions.scalaPackager}"
+  def scalaPy                   = mvn"dev.scalapy::scalapy-core::0.5.3"
   def scalaReflect(sv: String)  = mvn"org.scala-lang:scala-reflect:$sv"
   def semanticDbJavac           = mvn"com.sourcegraph:semanticdb-javac:${Versions.javaSemanticdb}"
   def semanticDbScalac          = mvn"org.scalameta:::semanticdb-scalac:${Versions.scalaMeta}"
