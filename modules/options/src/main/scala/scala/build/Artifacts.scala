@@ -166,13 +166,15 @@ object Artifacts {
       if hasSnapshots then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
-          SonatypeUtils.snapshotsRepository
+          coursier.Repositories.sonatypeS01("snapshots"),
+          RepositoryUtils.snapshotsRepository,
+          RepositoryUtils.scala3NightlyRepository
         )
       else Nil
     }
 
     val allExtraRepositories =
-      maybeSnapshotRepo ++ extraRepositories
+      (maybeSnapshotRepo ++ extraRepositories).distinct
 
     val scalaOpt = scalaArtifactsParamsOpt match {
       case Some(scalaArtifactsParams) =>
@@ -239,7 +241,7 @@ object Artifacts {
               value {
                 artifacts(
                   bridgeDependencies.map(Positioned.none),
-                  allExtraRepositories,
+                  (allExtraRepositories ++ Seq(RepositoryUtils.scala3NightlyRepository)).distinct,
                   Some(scalaArtifactsParams.params),
                   logger,
                   cache.withMessage(
@@ -431,7 +433,9 @@ object Artifacts {
               if runnerVersion.endsWith("SNAPSHOT") then
                 Seq(
                   coursier.Repositories.sonatype("snapshots"),
-                  SonatypeUtils.snapshotsRepository
+                  coursier.Repositories.sonatypeS01("snapshots"),
+                  RepositoryUtils.snapshotsRepository,
+                  RepositoryUtils.scala3NightlyRepository
                 )
               else Nil
             val runnerVersion0 =

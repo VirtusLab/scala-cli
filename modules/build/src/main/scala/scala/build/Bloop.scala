@@ -82,7 +82,8 @@ object Bloop {
           Seq(
             coursier.Repositories.sonatype("snapshots"),
             coursier.Repositories.sonatypeS01("snapshots"),
-            SonatypeUtils.snapshotsRepository
+            RepositoryUtils.snapshotsRepository,
+            RepositoryUtils.scala3NightlyRepository
           ),
           Some(params),
           logger,

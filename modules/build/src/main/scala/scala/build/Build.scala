@@ -987,7 +987,7 @@ object Build {
           scalaBinaryVersion = params.scalaBinaryVersion,
           scalacOptions = scalacOptions.toSeq.map(_.value),
           compilerClassPath = scalaArtifacts.compilerClassPath,
-          bridgeJarsOpt = scalaArtifacts.bridgeJarsOpt
+          bridgeJarsOpt = scalaArtifacts.bridgeJarsOpt.map(_.headOption.toSeq)
         )
         Some(compilerParams)
 

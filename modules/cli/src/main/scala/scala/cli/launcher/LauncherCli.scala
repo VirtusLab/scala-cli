@@ -10,7 +10,7 @@ import scala.build.internal.CsLoggerUtil.CsCacheExtensions
 import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, JavaOptions}
-import scala.build.{Artifacts, Os, Positioned, SonatypeUtils}
+import scala.build.{Artifacts, Os, Positioned, RepositoryUtils}
 import scala.cli.ScalaCli
 import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
 import scala.xml.XML
@@ -24,7 +24,8 @@ object LauncherCli {
     val snapshotsRepo   = Seq(
       Repositories.central,
       Repositories.sonatype("snapshots"),
-      SonatypeUtils.snapshotsRepository
+      RepositoryUtils.snapshotsRepository,
+      RepositoryUtils.scala3NightlyRepository
     )
 
     val cliVersion: String =
@@ -83,8 +84,9 @@ object LauncherCli {
     scalaBinaryVersion: String
   ): String = {
     val cliSubPath       = s"org/virtuslab/scala-cli/cli_$scalaBinaryVersion"
-    val mavenMetadataUrl = s"${SonatypeUtils.snapshotsRepositoryUrl}/$cliSubPath/maven-metadata.xml"
-    val artifact         = Artifact(mavenMetadataUrl).withChanging(true)
+    val mavenMetadataUrl =
+      s"${RepositoryUtils.snapshotsRepositoryUrl}/$cliSubPath/maven-metadata.xml"
+    val artifact = Artifact(mavenMetadataUrl).withChanging(true)
     cache.fileWithTtl0(artifact) match {
       case Left(_) =>
         System.err.println(s"Unable to find nightly ${ScalaCli.fullRunnerName} version")

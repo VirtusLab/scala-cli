@@ -12,7 +12,7 @@ import java.util.concurrent.ScheduledExecutorService
 import scala.build.EitherCps.{either, value}
 import scala.build.errors.BuildException
 import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
-import scala.build.{Logger, SonatypeUtils}
+import scala.build.{Logger, RepositoryUtils}
 import scala.cli.commands.util.ScalaCliSttpBackend
 
 final case class RepoParams(
@@ -53,7 +53,7 @@ final case class RepoParams(
 
 object RepoParams {
   private val sonatypeOssrhStagingApiBase = "https://ossrh-staging-api.central.sonatype.com"
-  private val sonatypeSnapshotsBase       = s"${SonatypeUtils.snapshotsRepositoryUrl}/"
+  private val sonatypeSnapshotsBase       = s"${RepositoryUtils.snapshotsRepositoryUrl}/"
   private val sonatypeLegacyBase          = "https://oss.sonatype.org"
   private val sonatypeS01LegacyBase       = "https://s01.oss.sonatype.org"
   private def sonatypeHosts: Seq[String]  =

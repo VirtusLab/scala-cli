@@ -1,6 +1,7 @@
 package scala.build.options
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.core.{Repository, Version}
+import coursier.jvm.JavaHome
 import coursier.parse.RepositoryParser
 import coursier.util.{Artifact, Task}
 import dependency.*
@@ -20,7 +21,7 @@ import scala.build.internal.Regexes.scala3NightlyNicknameRegex
 import scala.build.internal.{Constants, OsLibc, Util}
 import scala.build.internals.EnvVar
 import scala.build.options.validation.BuildOptionsRule
-import scala.build.{Artifacts, Logger, Os, Position, Positioned, SonatypeUtils}
+import scala.build.{Artifacts, Logger, Os, Position, Positioned, RepositoryUtils}
 import scala.collection.immutable.Seq
 import scala.concurrent.Await
 import scala.concurrent.duration.*
@@ -157,7 +158,7 @@ final case class BuildOptions(
           .withScalaBinaryVersion(scalaVersion.split('.').take(2).mkString("."))
           .withInput(s"org.scalameta:semanticdb-scalac_$scalaVersion:")
           .complete()
-          .future()(finalCache.ec)
+          .future()(using finalCache.ec)
       }
 
     val versions =
@@ -245,24 +246,28 @@ final case class BuildOptions(
 
   def javaHome(): Positioned[JavaHomeInfo] = javaCommand0
 
-  lazy val javaHomeManager =
+  lazy val javaHomeManager: JavaHome =
     javaOptions.javaHomeManager(archiveCache, finalCache, internal.verbosityOrDefault)
 
   private val scala2NightlyRepo = Seq(coursier.Repositories.scalaIntegration.root)
+  private val scala3NightlyRepo = Seq(RepositoryUtils.scala3NightlyRepository.root)
 
   def finalRepositories: Either[BuildException, Seq[Repository]] = either {
+    val maybeSv = scalaOptions.scalaVersion
+      .map(_.asString)
+      .orElse(scalaOptions.defaultScalaVersion)
     val nightlyRepos =
-      if (scalaOptions.scalaVersion.exists(sv => ScalaVersionUtil.isScala2Nightly(sv.asString)))
-        scala2NightlyRepo
-      else
-        Nil
+      if maybeSv.exists(ScalaVersionUtil.isScala2Nightly) then scala2NightlyRepo
+      else if maybeSv.exists(ScalaVersionUtil.isScala3Nightly) then scala3NightlyRepo
+      else Nil
     val snapshotRepositories =
       if classPathOptions.extraRepositories.contains("snapshots")
       then
         Seq(
           coursier.Repositories.sonatype("snapshots"),
           coursier.Repositories.sonatypeS01("snapshots"),
-          SonatypeUtils.snapshotsRepository
+          RepositoryUtils.snapshotsRepository,
+          RepositoryUtils.scala3NightlyRepository
         )
       else Nil
     val extraRepositories = classPathOptions.extraRepositories.filterNot(_ == "snapshots")
@@ -277,7 +282,7 @@ final case class BuildOptions(
         .left.map(errors => new RepositoryFormatError(errors))
     }
 
-    parseRepositories ++ snapshotRepositories
+    (parseRepositories ++ snapshotRepositories).distinct
   }
 
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
@@ -363,7 +368,8 @@ final case class BuildOptions(
               case versionString if ScalaVersionUtil.isScala3Nightly(versionString) =>
                 ScalaVersionUtil.CheckNightly.scala3(
                   versionString,
-                  cache
+                  cache,
+                  repositories
                 )
                   .map(_ => versionString)
               case versionString if ScalaVersionUtil.isScala2Nightly(versionString) =>
@@ -456,7 +462,8 @@ final case class BuildOptions(
       if (scalaArtifactsParamsOpt.isDefined) None
       else Some(false) // no runner in pure Java mode
     }
-    val maybeArtifacts = Artifacts(
+    val extraRepositories: Seq[Repository] = value(finalRepositories)
+    val maybeArtifacts                     = Artifacts(
       scalaArtifactsParamsOpt,
       javacPluginDependencies = value(javacPluginDependencies),
       extraJavacPlugins = javaOptions.javacPlugins.map(_.value),
@@ -470,7 +477,7 @@ final case class BuildOptions(
       addJvmRunner = addRunnerDependency0,
       addJvmTestRunner = isTests && addJvmTestRunner,
       addJmhDependencies = jmhOptions.finalJmhVersion,
-      extraRepositories = value(finalRepositories),
+      extraRepositories = extraRepositories,
       keepResolution = internal.keepResolution,
       includeBuildServerDeps = useBuildServer.getOrElse(true),
       cache = finalCache,

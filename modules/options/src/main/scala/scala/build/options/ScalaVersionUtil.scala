@@ -11,6 +11,7 @@ import java.io.File
 
 import scala.build.CoursierUtils.*
 import scala.build.EitherCps.{either, value}
+import scala.build.RepositoryUtils
 import scala.build.errors.{
   BuildException,
   InvalidBinaryScalaVersionError,
@@ -36,7 +37,7 @@ object ScalaVersionUtil {
   extension (cache: FileCache[Task]) {
     def fileWithTtl0(artifact: Artifact): Either[ArtifactError, File] =
       cache.logger.use {
-        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(cache.ec)
+        try cache.withTtl(0.seconds).file(artifact).run.unsafeRun()(using cache.ec)
         catch {
           case NonFatal(e) => throw new Exception(e)
         }
@@ -51,9 +52,9 @@ object ScalaVersionUtil {
       cacheWithTtl.logger.use {
         Versions(cacheWithTtl)
           .withModule(module)
-          .addRepositories(repositories: _*)
+          .addRepositories(repositories*)
           .result()
-          .unsafeRun()(cacheWithTtl.ec)
+          .unsafeRun()(using cacheWithTtl.ec)
       }
     def versionsWithTtl0(
       module: Module,
@@ -100,7 +101,7 @@ object ScalaVersionUtil {
       cache: FileCache[Task]
     ): Either[BuildException, String] = either {
       val webPageScala2Repo = value(downloadScala2RepoPage(cache))
-      val scala2Repo        = readFromArray(webPageScala2Repo)(Scala2Repo.codec)
+      val scala2Repo        = readFromArray(webPageScala2Repo)(using Scala2Repo.codec)
       val versions          = scala2Repo.children
       val sortedVersion     =
         versions
@@ -134,11 +135,16 @@ object ScalaVersionUtil {
     /** @return
       *   Either a BuildException or the calculated (ScalaVersion, ScalaBinaryVersion) tuple
       */
-    def scala3(cache: FileCache[Task]): Either[BuildException, String] =
+    def scala3(cache: FileCache[Task]): Either[BuildException, String] = {
+      val repositories = Seq(RepositoryUtils.scala3NightlyRepository)
+      val versions     = cache
+        .versionsWithTtl0(scala3Library, repositories)
+        .versions
       latestScalaVersionFrom(
-        cache.versionsWithTtl0(scala3Library).versions,
-        "latest Scala 3 nightly build"
+        versions = versions,
+        desc = "latest Scala 3 nightly build"
       )
+    }
 
     private def latestScalaVersionFrom(
       versions: CoreVersions,
@@ -166,9 +172,10 @@ object ScalaVersionUtil {
 
     def scala3(
       versionString: String,
-      cache: FileCache[Task]
+      cache: FileCache[Task],
+      repositories: Seq[Repository] = Seq.empty
     ): Either[BuildException, Unit] =
-      cache.versionsWithTtl0(scala3Library).verify(versionString)
+      cache.versionsWithTtl0(scala3Library, repositories).verify(versionString)
   }
 
   def validateNonStable(
@@ -227,8 +234,7 @@ object ScalaVersionUtil {
     || (scala212Nightly +: scala213Nightly).contains(version)
 
   def isScala3Nightly(version: String): Boolean =
-    version.startsWith("3") && version.endsWith("-NIGHTLY")
-
+    (version.startsWith("3") && version.endsWith("-NIGHTLY")) || version == scala3Nightly
   def isStable(version: String): Boolean =
     !version.exists(_.isLetter)
 
@@ -253,9 +259,9 @@ object ScalaVersionUtil {
         val versions = cache.logger.use {
           try Versions(cache)
               .withModule(mod)
-              .addRepositories(repositories: _*)
+              .addRepositories(repositories*)
               .result()
-              .unsafeRun()(cache.ec)
+              .unsafeRun()(using cache.ec)
           catch {
             case NonFatal(e) => throw new Exception(e)
           }

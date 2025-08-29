@@ -13,7 +13,7 @@ import scala.build.errors.{BuildException, ScalaJsLinkingError}
 import scala.build.internal.Util.{DependencyOps, ModuleOps}
 import scala.build.internal.{ExternalBinaryParams, FetchExternalBinary, Runner, ScalaJsLinkerConfig}
 import scala.build.options.scalajs.ScalaJsLinkerOptions
-import scala.build.{Logger, Positioned, SonatypeUtils}
+import scala.build.{Logger, Positioned, RepositoryUtils}
 import scala.io.Source
 import scala.util.Properties
 
@@ -61,7 +61,9 @@ object ScalaJsLinker {
           then
             Seq(
               Repositories.sonatype("snapshots"),
-              SonatypeUtils.snapshotsRepository
+              Repositories.sonatypeS01("snapshots"),
+              RepositoryUtils.snapshotsRepository,
+              RepositoryUtils.scala3NightlyRepository
             )
           else Nil
 
