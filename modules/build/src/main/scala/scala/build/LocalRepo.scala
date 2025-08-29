@@ -77,11 +77,7 @@ object LocalRepo {
           // potential race conditions between initial check and lock acquisition
           if !os.exists(repoDir) then
             val tmpRepoDir = repoDir / os.up / s".$version.tmp"
-            try os.remove.all(tmpRepoDir)
-            catch {
-              case t: Throwable =>
-                logger.message(s"Error removing $tmpRepoDir: ${t.getMessage}")
-            }
+            os.remove.all(tmpRepoDir)
             using(archiveUrl.openStream()) { is =>
               using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
                 extractZip(zis, tmpRepoDir)
@@ -101,30 +97,21 @@ object LocalRepo {
       val lockFile = dir.resolve(s".lock-$id");
       Util.createDirectories(lockFile.getParent)
       var channel: FileChannel = null
+      var lock: FileLock       = null
 
       try {
         channel = FileChannel.open(
           lockFile,
           StandardOpenOption.CREATE,
-          StandardOpenOption.WRITE,
-          StandardOpenOption.DELETE_ON_CLOSE
+          StandardOpenOption.WRITE
         )
-
-        var lock: FileLock = null
-        try {
-          lock = channel.lock()
-
-          try f
-          finally {
-            lock.release()
-            lock = null
-            channel.close()
-            channel = null
-          }
-        }
-        finally if (lock != null) lock.release()
+        lock = channel.lock()
+        f
       }
-      finally if (channel != null) channel.close()
+      finally {
+        if (lock != null) lock.release()
+        if (channel != null) channel.close()
+      }
     }
 
 }
