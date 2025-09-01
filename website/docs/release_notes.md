@@ -8,6 +8,62 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.9.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.9.0)
+
+### Support for the new Scala 3 nightly repository
+This Scala CLI version supports the new Scala 3 nightly versions repository: 
+https://repo.scala-lang.org/artifactory/maven-nightlies
+
+This means that newest Scala 3 nightly versions will become available to use with Scala CLI, 
+as well as the `3.nightly` tag will now refer to the actual, newest Scala version.
+
+As a result, Scala 3.8 features like capture checked Scala 3 library should now be available from Scala CLI.
+
+```scala compile
+//> using scala 3.8.0-RC1-bin-20250901-ca400bd-NIGHTLY
+import language.experimental.captureChecking
+
+trait File extends caps.SharedCapability:
+  def count(): Int
+
+def f(file: File): IterableOnce[Int]^{file} =
+  Iterator(1)
+    .map(_ + file.count())
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3838](https://github.com/VirtusLab/scala-cli/pull/3838)
+
+### Features
+* Add support for the new Scala 3 nightly repository by [@Gedochao](https://github.com/Gedochao) in [#3838](https://github.com/VirtusLab/scala-cli/pull/3838)
+
+### Fixes
+* Fix using directive with URL + query parameters by [@jgoday](https://github.com/jgoday) in [#3835](https://github.com/VirtusLab/scala-cli/pull/3835)
+
+### Documentation changes
+* Update the Scala CLI docs landing page by [@Gedochao](https://github.com/Gedochao) in [#3825](https://github.com/VirtusLab/scala-cli/pull/3825)
+* Back port of documentation changes to main by @github-actions[bot] in [#3826](https://github.com/VirtusLab/scala-cli/pull/3826)
+
+### Build and internal changes
+* Prepare for Mill 1.0.x bump by [@Gedochao](https://github.com/Gedochao) in [#3833](https://github.com/VirtusLab/scala-cli/pull/3833)
+* Temporarily disable flaky Spark tests on Mac CI by [@Gedochao](https://github.com/Gedochao) in [#3842](https://github.com/VirtusLab/scala-cli/pull/3842)
+
+### Updates
+* Update scala-cli.sh launcher for 1.8.5 by @github-actions[bot] in [#3824](https://github.com/VirtusLab/scala-cli/pull/3824)
+* Bump actions/checkout from 4 to 5 by @dependabot[bot] in [#3827](https://github.com/VirtusLab/scala-cli/pull/3827)
+* Bump sass from 1.89.2 to 1.90.0 in /website by @dependabot[bot] in [#3828](https://github.com/VirtusLab/scala-cli/pull/3828)
+* Bump `case-app` to 2.1.0 by [@Gedochao](https://github.com/Gedochao) in [#3830](https://github.com/VirtusLab/scala-cli/pull/3830)
+* Bump actions/download-artifact from 4 to 5 by @dependabot[bot] in [#3829](https://github.com/VirtusLab/scala-cli/pull/3829)
+* Update sbt, scripted-plugin to 1.11.4 by [@scala-steward](https://github.com/scala-steward) in [#3832](https://github.com/VirtusLab/scala-cli/pull/3832)
+* Update Scala 3 Next RC to 3.7.3-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3834](https://github.com/VirtusLab/scala-cli/pull/3834)
+* Bump `scala-packager` to 0.2.0 by [@Gedochao](https://github.com/Gedochao) in [#3843](https://github.com/VirtusLab/scala-cli/pull/3843)
+* Update announced Scala 3 RC to 3.7.3-RC2 by [@Gedochao](https://github.com/Gedochao) in [#3845](https://github.com/VirtusLab/scala-cli/pull/3845)
+* Update jsoup to 1.21.2 by [@scala-steward](https://github.com/scala-steward) in [#3840](https://github.com/VirtusLab/scala-cli/pull/3840)
+
+## New Contributors
+* @jgoday made their first contribution in [#3835](https://github.com/VirtusLab/scala-cli/pull/3835)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.8.5...v1.9.0
+
 ## [v1.8.5](https://github.com/VirtusLab/scala-cli/releases/tag/v1.8.5)
 
 ### Support for Scala 3.7.2
