@@ -13,7 +13,7 @@ abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersio
   _: TestScalaVersion =>
   protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
-  private object TestCase {
+  protected object TestCase {
     val expectedMessage    = "Hello"
     val org                = "org.virtuslab.scalacli.test"
     val name               = "simple"
