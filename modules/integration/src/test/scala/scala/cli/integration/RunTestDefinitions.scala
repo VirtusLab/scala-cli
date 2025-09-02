@@ -2413,4 +2413,29 @@ abstract class RunTestDefinitions
         expect(!res.err.trim().contains(legacyRunnerWarning))
       }
   }
+
+  for (parallelInstancesCount <- Seq(2, 5, 10))
+    test(
+      s"run $parallelInstancesCount instances in parallel without local repo"
+    ) {
+      TestInputs.empty.fromRoot { root =>
+        val localRepoPath =
+          os.Path(os.proc(
+            TestUtil.cli,
+            "directories",
+            "--power"
+          ).call().out.text().linesIterator.find(_.startsWith("Local repository:")).getOrElse(
+            throw new RuntimeException("Local repository line not found in directories output")
+          ).split(":", 2).last.trim())
+        os.remove.all(localRepoPath)
+
+        val processes =
+          (0 until parallelInstancesCount).map { _ =>
+            os.proc(TestUtil.cli, "--version")
+              .spawn(cwd = root)
+          }.zipWithIndex
+        processes.foreach { case (p, _) => p.waitFor() }
+        processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+      }
+    }
 }
