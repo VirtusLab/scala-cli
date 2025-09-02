@@ -984,7 +984,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       }
 
     errors.toList match {
-      case (h @ (_, _, e: Upload.Error.HttpError)) :: _
+      case (h @ (_, _, e: Upload.Error.HttpError)) :: t
           if repoParams0.isSonatype && errors.distinctBy(_._3.getMessage()).size == 1 =>
         logger.log(s"Error message: ${e.getMessage}")
         val httpCodeRegex = "HTTP (\\d+)\n.*".r
@@ -1000,9 +1000,10 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
                  | -> have you registered your organisation yet?
                  |""".stripMargin
             )
-          case _ => throw new UploadError(::(h, Nil))
+            value(Left(new UploadError(::(h, t))))
+          case _ => value(Left(new UploadError(::(h, t))))
         }
-      case _ :: _ if repoParams0.isSonatype && errors.forall {
+      case h :: t if repoParams0.isSonatype && errors.forall {
             case (_, _, _: Upload.Error.Unauthorized) => true
             case _                                    => false
           } =>
@@ -1017,6 +1018,7 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
              | -> consult publish subcommand documentation
              |""".stripMargin
         )
+        value(Left(new UploadError(::(h, t))))
       case h :: t =>
         value(Left(new UploadError(::(h, t))))
       case Nil =>
