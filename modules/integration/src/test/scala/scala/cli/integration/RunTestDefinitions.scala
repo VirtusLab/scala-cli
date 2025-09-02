@@ -32,6 +32,15 @@ abstract class RunTestDefinitions
   protected val ciOpt: Seq[String] =
     Option(System.getenv("CI")).map(v => Seq("-e", s"CI=$v")).getOrElse(Nil)
 
+  def canUseScalaInstallationWrapper: Boolean =
+    actualScalaVersion.startsWith("3") && actualScalaVersion.split('.').drop(1).head.toInt >= 5
+
+  lazy val actualScalaRunnerWrapperVersion: String = actualScalaVersion match {
+    case v if v == Constants.scala3NextRc => Constants.scala3NextRcAnnounced
+    case v if v == Constants.scala3Next   => Constants.scala3NextAnnounced
+    case v                                => v
+  }
+
   test("print command") {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -1069,6 +1078,40 @@ abstract class RunTestDefinitions
       expect(res.out.text(Codec.default).trim == message)
     }
   }
+
+  for {
+    useScalaInstallationWrapper <-
+      if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)
+    launcherString = if (useScalaInstallationWrapper) "coursier scala installation" else "Scala CLI"
+    withLauncher = (root: os.Path) =>
+      (f: Seq[os.Shellable] => Unit) =>
+        if (useScalaInstallationWrapper)
+          withScalaRunnerWrapper(
+            root = root,
+            localBin = root / "local-bin",
+            scalaVersion = actualScalaRunnerWrapperVersion,
+            shouldCleanUp = false
+          )(launcher => f(Seq(launcher)))
+        else
+          f(Seq(TestUtil.cli))
+  }
+    test(
+      s"UTF-8 characters on the input path & current working directory path with $launcherString"
+    ) {
+      val expectedMessage = "Hello"
+      val utf8DirPath     = os.rel / "äöü"
+      val inputName       = "Hello.sc"
+      val inputPath       = utf8DirPath / inputName
+      TestInputs(inputPath -> s"""println("$expectedMessage")""")
+        .fromRoot { root =>
+          withLauncher(root / utf8DirPath) { launcher =>
+            println(launcher.toString())
+            val res = os.proc(launcher, "run", inputName, extraOptions)
+              .call(cwd = root / utf8DirPath)
+            expect(res.out.trim() == expectedMessage)
+          }
+        }
+    }
 
   test("return relevant error if multiple .scala main classes are present") {
     TestUtil.retryOnCi() {

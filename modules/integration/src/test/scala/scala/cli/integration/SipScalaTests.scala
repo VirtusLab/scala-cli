@@ -884,4 +884,60 @@ class SipScalaTests extends ScalaCliSuite
         expect(launcherVersionOverrideHelp == standardVersionOverrideHelp)
       }
     }
+
+  test("coursier scala installation works with utf8 paths") {
+    val utf8DirPath = os.rel / "äöü"
+    TestInputs(utf8DirPath / "version.sc" ->
+      "println(dotty.tools.dotc.config.Properties.versionNumberString)")
+      .fromRoot { root =>
+        val rootWithUtf8 = root / utf8DirPath
+        val localCache   = rootWithUtf8 / "local-cache"
+        val localBin     = rootWithUtf8 / "local-bin"
+        val scalaVersion = Constants.scala3NextRcAnnounced
+        withScalaRunnerWrapper(
+          root = rootWithUtf8,
+          localCache = Some(localCache),
+          localBin = localBin,
+          scalaVersion = scalaVersion
+        ) { launchScalaPath =>
+          val r = os.proc(launchScalaPath, "--with-compiler", "version.sc")
+            .call(
+              cwd = rootWithUtf8,
+              env = Map("COURSIER_CACHE" -> localCache.toString),
+              check = false // need to clean up even on failure
+            )
+          expect(r.exitCode == 0)
+          expect(r.out.trim() == scalaVersion)
+        }
+      }
+  }
+
+  test("raw coursier works with utf8 paths") {
+    val utf8DirPath = os.rel / "äöü"
+    TestInputs(utf8DirPath / "version.sc" ->
+      "println(dotty.tools.dotc.config.Properties.versionNumberString)")
+      .fromRoot { root =>
+        val rootWithUtf8 = root / utf8DirPath
+        val localCache   = rootWithUtf8 / "local-cache"
+        val localBin     = rootWithUtf8 / "local-bin"
+        val scalaVersion = Constants.scala3NextRcAnnounced
+        // ensure cs works at all
+        os.proc(TestUtil.cs, "version")
+          .call(cwd = rootWithUtf8, stdout = os.Inherit)
+        // ensure scala is installable
+        os.proc(
+          TestUtil.cs,
+          "install",
+          "--cache",
+          localCache,
+          "--install-dir",
+          localBin,
+          s"scala:$scalaVersion"
+        ).call(cwd = rootWithUtf8)
+        // ensure scala got installed
+        val launcherPath = if (Properties.isWin) localBin / "scala.bat" else localBin / "scala"
+        os.proc(launcherPath, "--version")
+          .call(cwd = rootWithUtf8, stdout = os.Inherit)
+      }
+  }
 }
