@@ -1,6 +1,5 @@
 package build.project.settings
-import $ivy.`com.goyeau::mill-scalafix::0.5.1`
-import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.31-1`
+
 import build.project.deps
 import deps.{
   Deps,
@@ -15,18 +14,18 @@ import build.project.utils
 import utils.isArmArchitecture
 import com.goyeau.mill.scalafix.ScalafixModule
 import coursier.Repository
-import de.tobiasroeser.mill.vcs.version.{VcsState, VcsVersion}
 import io.github.alexarchambault.millnativeimage.NativeImage
-import mill._
-import mill.api.Loose
-import mill.scalalib._
-import upickle.default._
+import mill.*
+import mill.scalalib.*
+import upickle.default.*
 
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.annotation.unused
 import scala.util.Properties
+import mill.util.{Tasks, VcsVersion}
+import mill.api.{BuildCtx, Task}
 
 private def isCI = System.getenv("CI") != null
 
@@ -101,12 +100,12 @@ def cs: T[String] = Task(persistent = true) {
       val archiveCache = coursier.cache.ArchiveCache().withCache(cache)
       val task         = cache.logger.using(archiveCache.get(coursier.util.Artifact(url)))
       val maybeFile    =
-        try task.unsafeRun()(cache.ec)
+        try task.unsafeRun()(using cache.ec)
         catch {
           case t: Throwable =>
             throw new Exception(s"Error getting and extracting $url", t)
         }
-      val f    = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, Task.workspace))
+      val f    = maybeFile.fold(ex => throw new Exception(ex), os.Path(_, BuildCtx.workspaceRoot))
       val exec =
         if (Properties.isWin && os.isDir(f) && f.last.endsWith(".zip"))
           os.list(f).find(_.last.endsWith(".exe")).getOrElse(
@@ -143,6 +142,13 @@ def platformSuffix: String = {
 
 def localRepoResourcePath = "local-repo.zip"
 
+trait LocatedInModules extends Module {
+  override def moduleDir: os.Path = {
+    val oldModuleDir: os.Path = super.moduleDir
+    oldModuleDir / os.up / "modules" / oldModuleDir.last
+  }
+}
+
 trait CliLaunchers extends SbtModule { self =>
 
   def launcherTypeResourcePath: os.RelPath =
@@ -150,6 +156,7 @@ trait CliLaunchers extends SbtModule { self =>
   def defaultFilesResourcePath: os.RelPath = os.rel / "scala" / "cli" / "commands" / "publish"
 
   trait CliNativeImage extends NativeImage {
+    override def generateNativeImageWithFileSystemChecker: Boolean = false
 
     def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
       Task.Command(super.writeNativeImageScript(scriptDest, "")())
@@ -275,21 +282,23 @@ trait CliLaunchers extends SbtModule { self =>
       proc.call(stdin = os.Inherit, stdout = os.Inherit)
     }
     def staticLibDir: T[PathRef] = Task {
-      val dir = nativeImageDockerWorkingDir() / staticLibDirName
-      os.makeDir.all(dir)
+      BuildCtx.withFilesystemCheckerDisabled {
+        val dir = nativeImageDockerWorkingDir() / staticLibDirName
+        os.makeDir.all(dir)
 
-      if (Properties.isWin) {
-        copyLibsodiumStaticTo(cs(), dir, Task.workspace)
-        copyLibsodiumjniTo(cs(), dir, Task.workspace)
-        copyCsjniutilTo(cs(), dir, Task.workspace)
+        if (Properties.isWin) {
+          copyLibsodiumStaticTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyCsjniutilTo(cs(), dir, BuildCtx.workspaceRoot)
+        }
+
+        if (launcherKind == "static") {
+          copyAlpineLibsodiumTo(cs(), dir, BuildCtx.workspaceRoot)
+          copyLibsodiumjniTo(cs(), dir, BuildCtx.workspaceRoot)
+        }
+
+        PathRef(dir)
       }
-
-      if (launcherKind == "static") {
-        copyAlpineLibsodiumTo(cs(), dir, Task.workspace)
-        copyLibsodiumjniTo(cs(), dir, Task.workspace)
-      }
-
-      PathRef(dir)
     }
   }
 
@@ -355,7 +364,7 @@ trait CliLaunchers extends SbtModule { self =>
     }
     def buildHelperImage: T[Unit] = Task {
       os.proc("docker", "build", "-t", Docker.customMuslBuilderImageName, ".")
-        .call(cwd = Task.workspace / "project" / "musl-image", stdout = os.Inherit)
+        .call(cwd = BuildCtx.workspaceRoot / "project" / "musl-image", stdout = os.Inherit)
       ()
     }
     override def writeDefaultNativeImageScript(scriptDest: String): Command[Unit] =
@@ -383,7 +392,7 @@ trait CliLaunchers extends SbtModule { self =>
     mainClass().getOrElse(sys.error("Don't know what main class to use"))
   }
 
-  def transitiveJarsAgg: T[Agg[PathRef]] = {
+  def transitiveJarsSeq: T[Seq[PathRef]] = {
     def allModuleDeps(todo: List[JavaModule]): List[JavaModule] =
       todo match {
         case Nil    => Nil
@@ -392,7 +401,7 @@ trait CliLaunchers extends SbtModule { self =>
       }
 
     Task {
-      mill.define.Task.traverse(allModuleDeps(this :: Nil).distinct)(m =>
+      Task.traverse(allModuleDeps(this :: Nil).distinct)(m =>
         Task.Anon(m.jar())
       )()
     }
@@ -429,11 +438,13 @@ trait CliLaunchers extends SbtModule { self =>
       cp,
       mainClass0
     ) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
+    os.proc(command.map(x => x: os.Shellable)*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
     )
-    Task.log.streams.out.println(s"Config generated in ${outputDir.relativeTo(Task.workspace)}")
+    Task.log.streams.out.println(
+      s"Config generated in ${outputDir.relativeTo(BuildCtx.workspaceRoot)}"
+    )
   }
 
   @unused
@@ -441,7 +452,7 @@ trait CliLaunchers extends SbtModule { self =>
     val cp         = jarClassPath().map(_.path).mkString(File.pathSeparator)
     val mainClass0 = mainClass().getOrElse(sys.error("No main class"))
     val command    = Seq("java", "-cp", cp, mainClass0) ++ args
-    os.proc(command.map(x => x: os.Shellable): _*).call(
+    os.proc(command.map(x => x: os.Shellable)*).call(
       stdin = os.Inherit,
       stdout = os.Inherit
     )
@@ -452,7 +463,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def jarClassPath: T[Seq[PathRef]] = Task {
-    val cp = runClasspath() ++ transitiveJarsAgg()
+    val cp = runClasspath() ++ transitiveJarsSeq()
     cp.filter(ref => os.exists(ref.path) && !os.isDir(ref.path))
   }
 
@@ -480,7 +491,7 @@ trait CliLaunchers extends SbtModule { self =>
   }
 
   def standaloneLauncher: T[PathRef] = Task {
-    val cachePath = os.Path(coursier.cache.FileCache().location, Task.workspace)
+    val cachePath = os.Path(coursier.cache.FileCache().location, BuildCtx.workspaceRoot)
     def urlOf(path: os.Path): Option[String] =
       if (path.startsWith(cachePath)) {
         val segments = path.relativeTo(cachePath).segments
@@ -532,7 +543,7 @@ trait HasTests extends SbtModule {
     super.scalacOptions() ++ extraOptions
   }
   trait ScalaCliTests extends ScalaCliModule with super.SbtTests with TestModule.Munit {
-    override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
       Deps.expecty,
       Deps.munit
     )
@@ -559,23 +570,23 @@ trait PublishLocalNoFluff extends SonatypeCentralPublishModule {
   }
   // adapted from https://github.com/com-lihaoyi/mill/blob/fea79f0515dda1def83500f0f49993e93338c3de/scalalib/src/PublishModule.scala#L70-L85
   // writes empty zips as source and doc JARs
-  def publishLocalNoFluff(localIvyRepo: String = null): define.Command[PathRef] = Task.Command {
+  def publishLocalNoFluff(localIvyRepo: String = null): Command[PathRef] = Task.Command {
 
     import mill.scalalib.publish.LocalIvyPublisher
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
       case repo =>
-        new LocalIvyPublisher(os.Path(repo.replace("{VERSION}", publishVersion()), Task.workspace))
+        new LocalIvyPublisher(os.Path(
+          repo.replace("{VERSION}", publishVersion()),
+          BuildCtx.workspaceRoot
+        ))
     }
 
     publisher.publishLocal(
-      jar = jar().path,
-      sourcesJar = emptyZip().path,
-      docJar = emptyZip().path,
       pom = pom().path,
-      ivy = ivy().path,
+      ivy = Right(ivy().path),
       artifact = artifactMetadata(),
-      extras = extraPublish()
+      publishInfos = Seq.empty
     )
 
     jar()
@@ -586,13 +597,13 @@ trait LocalRepo extends Module {
   def stubsModules: Seq[PublishLocalNoFluff]
   def version: T[String]
 
-  def localRepo: T[Seq[PathRef]] = Task {
-    val repoRoot = os.rel / "out" / "repo" / "{VERSION}"
-    val tasks    = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
-    define.Task.sequence(tasks)
+  def localRepo: T[Seq[PathRef]] = {
+    val repoRoot                     = os.rel / "out" / "repo" / "{VERSION}"
+    val tasks: Seq[Command[PathRef]] = stubsModules.map(_.publishLocalNoFluff(repoRoot.toString))
+    Task.sequence(tasks)()
   }
 
-  private def vcsState: T[VcsState] =
+  private def vcsState: T[VcsVersion.State] =
     if (isCI)
       Task(persistent = true) {
         VcsVersion.vcsState()
@@ -605,45 +616,47 @@ trait LocalRepo extends Module {
     val repoVer = vcsState().format()
     val ver     = version()
     localRepo()
-    val repoDir = Task.workspace / "out" / "repo" / ver
+    val repoDir = BuildCtx.workspaceRoot / "out" / "repo" / ver
     val destDir = Task.dest / ver / "repo.zip"
     val dest    = destDir / "repo.zip"
 
-    import java.io._
-    import java.util.zip._
-    os.makeDir.all(destDir)
-    var fos: FileOutputStream = null
-    var zos: ZipOutputStream  = null
-    try {
-      fos = new FileOutputStream(dest.toIO)
-      zos = new ZipOutputStream(new BufferedOutputStream(fos))
+    BuildCtx.withFilesystemCheckerDisabled {
+      import java.io._
+      import java.util.zip._
+      os.makeDir.all(destDir)
+      var fos: FileOutputStream = null
+      var zos: ZipOutputStream  = null
+      try {
+        fos = new FileOutputStream(dest.toIO)
+        zos = new ZipOutputStream(new BufferedOutputStream(fos))
 
-      val versionEntry = new ZipEntry("version")
-      versionEntry.setTime(0L)
-      zos.putNextEntry(versionEntry)
-      zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
-      zos.flush()
+        val versionEntry = new ZipEntry("version")
+        versionEntry.setTime(0L)
+        zos.putNextEntry(versionEntry)
+        zos.write(repoVer.getBytes(StandardCharsets.UTF_8))
+        zos.flush()
 
-      os.walk(repoDir).filter(_ != repoDir).foreach { p =>
-        val isDir = os.isDir(p)
-        val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
-        val entry = new ZipEntry(name)
-        entry.setTime(os.mtime(p))
-        zos.putNextEntry(entry)
-        if (!isDir) {
-          zos.write(os.read.bytes(p))
-          zos.flush()
+        os.walk(repoDir).filter(_ != repoDir).foreach { p =>
+          val isDir = os.isDir(p)
+          val name  = p.relativeTo(repoDir).toString + (if (isDir) "/" else "")
+          val entry = new ZipEntry(name)
+          entry.setTime(os.mtime(p))
+          zos.putNextEntry(entry)
+          if (!isDir) {
+            zos.write(os.read.bytes(p))
+            zos.flush()
+          }
+          zos.closeEntry()
         }
-        zos.closeEntry()
+        zos.finish()
       }
-      zos.finish()
-    }
-    finally {
-      if (zos != null) zos.close()
-      if (fos != null) fos.close()
-    }
+      finally {
+        if (zos != null) zos.close()
+        if (fos != null) fos.close()
+      }
 
-    PathRef(dest)
+      PathRef(dest)
+    }
   }
 
   def localRepoJar: T[PathRef] = Task {
@@ -703,12 +716,12 @@ private def doFormatNativeImageConf(dir: os.Path, format: Boolean): List[os.Path
                   entries -= "methods"
                 ujson.Obj(entries)
               }
-            ujson.Arr(values: _*)
+            ujson.Arr(values*)
           }
         else if (sortByName(name))
           json.arrOpt.fold(json) { arr =>
             val values = arr.toVector.sortBy(_("name").str)
-            ujson.Arr(values: _*)
+            ujson.Arr(values*)
           }
         else
           json
@@ -750,7 +763,7 @@ trait FormatNativeImageConf extends JavaModule {
       for (f <- needsFormatting)
         System.err.println(
           s"  ${
-              if (f.startsWith(Task.workspace)) f.relativeTo(Task.workspace).toString
+              if (f.startsWith(BuildCtx.workspaceRoot)) f.relativeTo(BuildCtx.workspaceRoot).toString
               else f.toString
             }"
         )
@@ -776,20 +789,20 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 
   override def semanticDbVersion: T[String] = Deps.Versions.scalaMeta
 
-  def scalafixConfig: T[Option[os.Path]] = Task {
+  override def scalafixConfig: T[Option[os.Path]] = Task {
     if (scalaVersion().startsWith("2.")) super.scalafixConfig()
-    else Some(Task.workspace / ".scalafix3.conf")
+    else Some(BuildCtx.workspaceRoot / ".scalafix3.conf")
   }
-  def scalacPluginIvyDeps: T[Loose.Agg[Dep]] = super.scalacPluginIvyDeps() ++ {
+  override def scalacPluginMvnDeps: T[Seq[Dep]] = super.scalacPluginMvnDeps() ++ {
     if (scalaVersion().startsWith("2.")) Seq(Deps.semanticDbScalac)
     else Nil
   }
   // Explicitly setting sourceroot, so that Scala CLI doesn't use a wrong one.
-  // Using Task.workspace is more or less required, for scalafix stuff to work fine.
-  def scalacOptions: T[Seq[String]] = Task {
+  // Using BuildCtx.workspaceRoot is more or less required, for scalafix stuff to work fine.
+  override def scalacOptions: T[Seq[String]] = Task {
     val sv            = scalaVersion()
     val isScala2      = sv.startsWith("2.")
-    val sourceRoot    = Task.workspace
+    val sourceRoot    = BuildCtx.workspaceRoot
     val parentOptions = {
       val l = super.scalacOptions()
       if (isScala2) l.filterNot(_.startsWith("-P:semanticdb:sourceroot:"))
@@ -818,7 +831,7 @@ trait ScalaCliScalafixModule extends ScalafixModule {
 // meant to be used with modules which still have to be cross-compiled on Scala 2.12
 trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
   override def scalafixConfig: T[Option[os.Path]] = Task {
-    Some(Task.workspace / ".scalafix.legacy.conf")
+    Some(BuildCtx.workspaceRoot / ".scalafix.legacy.conf")
   }
 }
 

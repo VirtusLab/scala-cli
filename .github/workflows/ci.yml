@@ -1536,7 +1536,7 @@ jobs:
     - name: Check native-image config format
       run: ./mill -i __.checkNativeImageConfFormat
     - name: Check Ammonite availability
-      run: ./mill -i 'dummy.amm[_].resolvedRunIvyDeps'
+      run: ./mill -i 'dummy.amm[_].resolvedRunMvnDeps'
     - name: Check for cross Scala version conflicts
       run: .github/scripts/check-cross-version-deps.sc
     - name: Scalafix check
