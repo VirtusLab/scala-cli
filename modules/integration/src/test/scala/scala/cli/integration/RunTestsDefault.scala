@@ -157,20 +157,27 @@ class RunTestsDefault extends RunTestDefinitions
     scopeDesc       = if (useTestScope) "test" else "main"
     expectedMessage = "Hello, World!"
     platformOptions <- Seq(Seq("--native"), Seq("--js"), Nil)
-    platformDesc = platformOptions.headOption.getOrElse("JVM").stripPrefix("--")
-  }
+    platformDesc = platformOptions.headOption.map {
+      case "--native" => "Native"
+      case "--js"     => "JS"
+      case other      => other
+    }.getOrElse("JVM")
+    crossScalaVersions = Seq(actualScalaVersion, Constants.scala213, Constants.scala212)
+    numberOfBuilds     = crossScalaVersions.size
+    testInputs         = TestInputs(
+      os.rel / "project.scala" -> s"//> using scala ${crossScalaVersions.mkString(" ")}",
+      os.rel / fileName        ->
+        s"""object Main extends App {
+           |  println("$expectedMessage")
+           |}
+           |""".stripMargin
+    )
+  } {
     test(
-      s"run --cross $platformDesc $actualScalaVersion, ${Constants.scala213} and ${Constants.scala212} ($scopeDesc scope)"
+      s"run --cross platform $platformDesc Scala ${crossScalaVersions.mkString(" ")} ($scopeDesc scope)"
     ) {
       TestUtil.retryOnCi() {
-        TestInputs {
-          os.rel / fileName ->
-            s"""//> using scala $actualScalaVersion ${Constants.scala213} ${Constants.scala212}
-               |object Main extends App {
-               |  println("$expectedMessage")
-               |}
-               |""".stripMargin
-        }.fromRoot { root =>
+        testInputs.fromRoot { root =>
           val r =
             os.proc(
               TestUtil.cli,
@@ -183,10 +190,34 @@ class RunTestsDefault extends RunTestDefinitions
               platformOptions
             )
               .call(cwd = root)
+          expect(r.out.trim().linesIterator.count(_.trim() == expectedMessage) == numberOfBuilds)
+        }
+      }
+    }
+
+    test(
+      s"run without --cross $platformDesc ${crossScalaVersions.mkString(" ")} ($scopeDesc scope)"
+    ) {
+      TestUtil.retryOnCi() {
+        testInputs.fromRoot { root =>
+          val r =
+            os.proc(
+              TestUtil.cli,
+              "run",
+              ".",
+              extraOptions,
+              scopeOptions,
+              platformOptions
+            )
+              .call(cwd = root, stderr = os.Pipe)
+          println(r.err.trim())
+          expect(r.err.trim().contains(s"Defaulting to Scala $actualScalaVersion, $platformDesc"))
+          expect(r.err.trim().contains(s"ignoring ${numberOfBuilds - 1} builds"))
           expect(r.out.trim() == expectedMessage)
         }
       }
     }
+  }
 
   for {
     scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor
