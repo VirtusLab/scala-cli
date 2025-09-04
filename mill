@@ -84,7 +84,7 @@ export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 
 if [[ $IS_WINDOWS ]]; then
-  exec "$DIR/millw" "$@"
+  exec "$DIR/mill.bat" "$@"
 else
   exec "$DIR/millw" $COMMAND
 fi
