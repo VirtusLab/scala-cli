@@ -1045,6 +1045,15 @@
     ]
   },
   {
+    "name": "org.eclipse.jgit.lib.CoreConfig$TrustStat",
+    "methods": [
+      {
+        "name": "values",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
     "name": "org.eclipse.lsp4j.jsonrpc.RemoteEndpoint",
     "allDeclaredConstructors": true,
     "allPublicConstructors": true,
