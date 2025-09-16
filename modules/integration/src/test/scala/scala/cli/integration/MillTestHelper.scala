@@ -10,8 +10,8 @@ trait MillTestHelper {
 
   protected val millJvmOptsFileName: String = ".mill-jvm-opts"
   protected val millJvmOptsContent: String  = """-Xmx512m
-                                               |-Xms128m
-                                               |""".stripMargin
+                                                |-Xms128m
+                                                |""".stripMargin
 
   protected val millDefaultProjectName = "project"
 
