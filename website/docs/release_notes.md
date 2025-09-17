@@ -8,6 +8,52 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.9.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.9.1)
+
+### Support for Scala 3.7.3
+This Scala CLI version switches the default Scala version to 3.7.3.
+
+```bash
+scala-cli version
+# Scala CLI version: 1.9.1
+# Scala version (default): 3.7.3
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3866](https://github.com/VirtusLab/scala-cli/pull/3866)
+
+### Support for Scala.js 1.20.1
+This Scala CLI version adds support for Scala.js 1.20.1.
+
+```bash
+scala-cli -e 'println("Hello")' --js
+# Compiling project (Scala 3.7.3, Scala.js 1.20.1)
+# Compiled project (Scala 3.7.3, Scala.js 1.20.1)
+# Hello
+```
+
+Added by [@Gedochao](https://github.com/Gedochao) in [#3861](https://github.com/VirtusLab/scala-cli/pull/3861) and [scala-js-cli#160](https://github.com/VirtusLab/scala-js-cli/pull/160)
+
+### Fixes
+* Fix completely broken lock during setting up local repo on Linux by [@unlsycn](https://github.com/unlsycn) in [#3846](https://github.com/VirtusLab/scala-cli/pull/3846)
+* Ensure `publish` actually fails on a failed upload by [@Gedochao](https://github.com/Gedochao) in [#3853](https://github.com/VirtusLab/scala-cli/pull/3853)
+
+### Updates
+* Update scala-cli.sh launcher for 1.9.0 by @github-actions[bot] in [#3851](https://github.com/VirtusLab/scala-cli/pull/3851)
+* Bump sass from 1.90.0 to 1.91.0 in /website by @dependabot[bot] in [#3839](https://github.com/VirtusLab/scala-cli/pull/3839)
+* Bump Scala 3 Next RC to 3.7.3-RC3 by [@Gedochao](https://github.com/Gedochao) in [#3854](https://github.com/VirtusLab/scala-cli/pull/3854)
+* Bump `react` & `react-dom` from 19.1.0 to 19.1.1 in /website by @dependabot[bot] in [#3806](https://github.com/VirtusLab/scala-cli/pull/3806)
+* Bump announced Scala 3 Next RC to 3.7.3-RC3 by [@Gedochao](https://github.com/Gedochao) in [#3858](https://github.com/VirtusLab/scala-cli/pull/3858)
+* Bump `jgit` to 7.3.0.202506031305-r by [@Gedochao](https://github.com/Gedochao) in [#3856](https://github.com/VirtusLab/scala-cli/pull/3856)
+* Bump Scala.js to 1.20.1 by [@Gedochao](https://github.com/Gedochao) in [#3861](https://github.com/VirtusLab/scala-cli/pull/3861)
+* Bump actions/setup-python from 5 to 6 by @dependabot[bot] in [#3863](https://github.com/VirtusLab/scala-cli/pull/3863)
+* Bump Scala Next to 3.7.3 by [@Gedochao](https://github.com/Gedochao) in [#3866](https://github.com/VirtusLab/scala-cli/pull/3866)
+* Bump sass from 1.91.0 to 1.92.1 in /website by @dependabot[bot] in [#3864](https://github.com/VirtusLab/scala-cli/pull/3864)
+* Bump @mdx-js/react from 3.1.0 to 3.1.1 in /website by @dependabot[bot] in [#3865](https://github.com/VirtusLab/scala-cli/pull/3865)
+* Bump actions/setup-node from 4 to 5 by @dependabot[bot] in [#3862](https://github.com/VirtusLab/scala-cli/pull/3862)
+* Bump `scalafmt` to 3.9.10 by [@Gedochao](https://github.com/Gedochao) in [#3868](https://github.com/VirtusLab/scala-cli/pull/3868)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.9.0...v1.9.1
+
 ## [v1.9.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.9.0)
 
 ### Support for the new Scala 3 nightly repository
