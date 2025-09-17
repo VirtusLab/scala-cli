@@ -10,8 +10,8 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   val bashRcFile: String = ".bashrc"
   val fishRcFile: String = "config.fish"
   val rcContent: String  = s"""
-                             |dummy line
-                             |dummy line""".stripMargin
+                              |dummy line
+                              |dummy line""".stripMargin
   val testInputs: TestInputs = TestInputs(
     os.rel / zshRcFile                       -> rcContent,
     os.rel / bashRcFile                      -> rcContent,
