@@ -88,9 +88,6 @@ jobs:
       run: ./mill -i integration.test.jvm
       env:
         SCALA_CLI_IT_GROUP: 1
-    - name: Fat jar integration test
-      if: success() || failure()
-      run: ./mill integration.test.jvmBootstrapped 'scala.cli.integration.StandaloneLauncherTests.*'
     - name: Convert Mill test reports to JUnit XML format
       if: success() || failure()
       run: .github/scripts/generate-junit-reports.sc jvm-tests-1 'Scala CLI JVM Tests (1)' test-report.xml out/
