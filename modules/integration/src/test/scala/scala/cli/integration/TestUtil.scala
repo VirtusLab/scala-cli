@@ -16,16 +16,17 @@ import scala.util.Properties
 
 object TestUtil {
 
-  val cliKind: String              = sys.props("test.scala-cli.kind")
-  val isNativeCli: Boolean         = cliKind.startsWith("native")
-  val isJvmCli: Boolean            = cliKind.startsWith("jvm")
-  val isCI: Boolean                = System.getenv("CI") != null
-  val isM1: Boolean                = sys.props.get("os.arch").contains("aarch64")
-  val cliPath: String              = sys.props("test.scala-cli.path")
-  val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
-  val detectCliPath: String        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
-  val cli: Seq[String]             = cliCommand(cliPath)
-  val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
+  val cliKind: String               = sys.props("test.scala-cli.kind")
+  val isNativeCli: Boolean          = cliKind.startsWith("native")
+  val isJvmCli: Boolean             = cliKind.startsWith("jvm")
+  val isJvmBootstrappedCli: Boolean = cliKind.startsWith("jvmBootstrapped")
+  val isCI: Boolean                 = System.getenv("CI") != null
+  val isM1: Boolean                 = sys.props.get("os.arch").contains("aarch64")
+  val cliPath: String               = sys.props("test.scala-cli.path")
+  val debugPortOpt: Option[String]  = sys.props.get("test.scala-cli.debug.port")
+  val detectCliPath: String         = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  val cli: Seq[String]              = cliCommand(cliPath)
+  val ltsEqualsNext: Boolean        = Constants.scala3Lts equals Constants.scala3Next
 
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))

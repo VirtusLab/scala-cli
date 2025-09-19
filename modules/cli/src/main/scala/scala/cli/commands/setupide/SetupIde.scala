@@ -19,6 +19,7 @@ import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
 import scala.cli.commands.{CommandUtils, ScalaCommand}
+import scala.cli.commands.CommandUtils.toCommand
 import scala.cli.errors.FoundVirtualInputsError
 import scala.cli.launcher.LauncherOptions
 import scala.jdk.CollectionConverters.*
@@ -161,7 +162,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       launcherOptions.cliVersion.orElse(launcherOptions.scalaRunner.predefinedCliVersion)
     )
     val bspArgs =
-      List(launcher) ++
+      os.Path(launcher).toCommand ++
         finalLauncherOptions.toCliArgs ++
         launcherJavaPropArgs ++
         List("bsp") ++

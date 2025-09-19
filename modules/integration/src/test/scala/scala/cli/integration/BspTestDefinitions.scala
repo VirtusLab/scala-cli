@@ -15,8 +15,11 @@ import scala.concurrent.duration._
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
-abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs
-    with BspSuite with ScriptWrapperTestDefinitions {
+abstract class BspTestDefinitions extends ScalaCliSuite
+    with TestScalaVersionArgs
+    with BspSuite
+    with ScriptWrapperTestDefinitions
+    with CoursierScalaInstallationTestHelper {
   _: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
@@ -2216,6 +2219,55 @@ abstract class BspTestDefinitions extends ScalaCliSuite with TestScalaVersionArg
             expect(bspConfig.argv.head == TestUtil.cliPath)
             expect(bspConfig.argv.containsSlice(cliVersionArgs))
             expect(bspConfig.argv.indexOfSlice(cliVersionArgs) < bspConfig.argv.indexOf("bsp"))
+          }
+      }
+    }
+
+  for {
+    useScalaWrapper <- Seq(false, true)
+    withLauncher = (root: os.Path) =>
+      (f: Seq[os.Shellable] => Unit) =>
+        if (useScalaWrapper)
+          withScalaRunnerWrapper(
+            root = root,
+            localBin = root / "local-bin",
+            localCache = Some(root / "local-cache"),
+            scalaVersion = actualScalaVersion,
+            shouldCleanUp = false
+          )(launcher => f(Seq(launcher)))
+        else
+          f(Seq(TestUtil.cli))
+    launcherString         = if (useScalaWrapper) "coursier scala installation" else "Scala CLI"
+    connectionJsonFileName = if (useScalaWrapper) "scala.json" else "scala-cli.json"
+  }
+    test(
+      s"setup-ide with scala wrapper prepares valid BSP connection json with a valid launcher ($launcherString)"
+    ) {
+      TestUtil.retryOnCi() {
+        val scriptName = "example.sc"
+        TestInputs(os.rel / scriptName -> s"""println("Hello")""")
+          .fromRoot { root =>
+            withLauncher(root) { launcher =>
+              os.proc(launcher, "setup-ide", scriptName, extraOptions)
+                .call(cwd = root)
+              val expectedIdeLauncherFile =
+                root / Constants.workspaceDirName / "ide-launcher-options.json"
+              expect(expectedIdeLauncherFile.toNIO.toFile.exists())
+              val bspConfig =
+                readBspConfig(root = root, connectionJsonFileName = connectionJsonFileName)
+              val bspLauncherCommand = {
+                val launcherPrefix = bspConfig.argv.takeWhile(_ != TestUtil.cliPath)
+                launcherPrefix :+ bspConfig.argv.drop(launcherPrefix.length).head
+              }
+              expect(bspLauncherCommand.last == TestUtil.cliPath)
+              if (TestUtil.isJvmBootstrappedCli)
+                // this launcher is not self-executable and has to be launched with `java -jar`
+                expect(bspLauncherCommand == List("java", "-jar", TestUtil.cliPath))
+              else
+                expect(bspLauncherCommand == List(TestUtil.cliPath))
+              val r = os.proc(bspLauncherCommand, "version", "--cli-version").call(cwd = root)
+              expect(r.out.trim() == Constants.cliVersion)
+            }
           }
       }
     }

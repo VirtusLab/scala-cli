@@ -1,8 +1,7 @@
 package scala.cli.commands
 
 import java.io.File
-import java.nio.file.Paths
-
+import java.nio.file.{Files, Paths}
 import scala.build.Os
 import scala.cli.ScalaCli
 import scala.cli.internal.ProcUtil
@@ -48,8 +47,8 @@ object CommandUtils {
               .toString
           ).toOption
           currentLauncherPathOpt.map(currentLauncherPath =>
-            scalaCLICanonicalPathsFromPATH.get(os.Path(currentLauncherPath))
-              .getOrElse(currentLauncherPath)
+            scalaCLICanonicalPathsFromPATH
+              .getOrElse(os.Path(currentLauncherPath), currentLauncherPath)
           )
         }
         .getOrElse(programName)
@@ -59,4 +58,33 @@ object CommandUtils {
   def printablePath(path: os.Path): String =
     if (path.startsWith(Os.pwd)) "." + File.separator + path.relativeTo(Os.pwd).toString
     else path.toString
+
+  extension (launcher: os.Path) {
+    def isJar: Boolean =
+      if os.isFile(launcher) then
+        val mimeType = Files.probeContentType(launcher.toNIO)
+        mimeType match
+          case "application/java-archive" | "application/x-java-archive" => true
+          case "application/zip"                                         =>
+            // Extra check: ensure META-INF/MANIFEST.MF exists inside
+            val jarFile = new java.util.jar.JarFile(launcher.toIO)
+            try jarFile.getEntry("META-INF/MANIFEST.MF") != null
+            finally jarFile.close()
+          case _ => false
+      else false
+    def hasSelfExecutablePreamble: Boolean = {
+      // Read first 2 bytes raw: look for shebang '#!'
+      val in = Files.newInputStream(launcher.toNIO)
+      try
+        val b1 = in.read()
+        val b2 = in.read()
+        b1 == '#' && b2 == '!'
+      finally
+        in.close()
+    }
+    def toCommand: List[String] =
+      if isJar && !hasSelfExecutablePreamble then List("java", "-jar", launcher.toString)
+      else List(launcher.toString)
+
+  }
 }
