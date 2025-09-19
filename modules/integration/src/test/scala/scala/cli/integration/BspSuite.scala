@@ -199,8 +199,11 @@ trait BspSuite { _: ScalaCliSuite =>
     expect(expectedPrefixes.exists(uri.startsWith))
   }
 
-  protected def readBspConfig(root: os.Path): Details = {
-    val bspFile = root / ".bsp" / "scala-cli.json"
+  protected def readBspConfig(
+    root: os.Path,
+    connectionJsonFileName: String = "scala-cli.json"
+  ): Details = {
+    val bspFile = root / ".bsp" / connectionJsonFileName
     expect(os.isFile(bspFile))
     val content = os.read.bytes(bspFile)
     // check that we can decode the connection details
