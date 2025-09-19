@@ -60,12 +60,9 @@ trait CoursierScalaInstallationTestHelper {
         val scalaScript = execLine match { case scriptPathRegex(extractedPath) => extractedPath }
         val scalaScriptPath = os.Path(scalaScript)
         val lineToChange    = "eval \"${SCALA_CLI_CMD_BASH[@]}\" \\"
-        // FIXME: the way the scala script calls the launcher currently ignores the --debug flag
-        val newContent = os.read(scalaScriptPath).replace(
-          lineToChange,
-          s"""SCALA_CLI_CMD_BASH=(\"\\\"${TestUtil.cliPath}\\\"\")
-             |$lineToChange""".stripMargin
-        )
+        val changedLine     =
+          s"""eval \"${TestUtil.cli.mkString(s"\" \\${System.lineSeparator()}")}\" \\"""
+        val newContent = os.read(scalaScriptPath).replace(lineToChange, changedLine)
         os.write.over(scalaScriptPath, newContent)
         scalaBinary -> scalaScriptPath
       }
