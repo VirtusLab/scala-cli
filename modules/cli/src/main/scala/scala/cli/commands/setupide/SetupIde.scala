@@ -17,7 +17,9 @@ import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.build.options.{BuildOptions, Scope}
 import scala.cli.CurrentParams
+import scala.cli.commands.CommandUtils.{hasSelfExecutablePreamble, isJar}
 import scala.cli.commands.shared.{SharedBspFileOptions, SharedOptions}
+import scala.cli.commands.util.JvmUtils
 import scala.cli.commands.{CommandUtils, ScalaCommand}
 import scala.cli.errors.FoundVirtualInputsError
 import scala.cli.launcher.LauncherOptions
@@ -155,13 +157,32 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       s"-J-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:$port,suspend=y"
     )
 
-    val launcher = launcherOptions.scalaRunner.initialLauncherPath
-      .getOrElse(CommandUtils.getAbsolutePathToScalaCli(progName))
+    val launcher = os.Path {
+      launcherOptions.scalaRunner.initialLauncherPath
+        .getOrElse(CommandUtils.getAbsolutePathToScalaCli(progName))
+    }
     val finalLauncherOptions = launcherOptions.copy(cliVersion =
       launcherOptions.cliVersion.orElse(launcherOptions.scalaRunner.predefinedCliVersion)
     )
+
+    val launcherCommand =
+      if launcher.isJar && !launcher.hasSelfExecutablePreamble
+      then
+        List(
+          value {
+            JvmUtils.getJavaCmdVersionOrHigher(
+              javaVersion =
+                math.max(Constants.minimumInternalJavaVersion, Constants.minimumBloopJavaVersion),
+              options = buildOptions
+            )
+          }.javaCommand,
+          "-jar",
+          launcher.toString
+        )
+      else List(launcher.toString)
+
     val bspArgs =
-      List(launcher) ++
+      launcherCommand ++
         finalLauncherOptions.toCliArgs ++
         launcherJavaPropArgs ++
         List("bsp") ++

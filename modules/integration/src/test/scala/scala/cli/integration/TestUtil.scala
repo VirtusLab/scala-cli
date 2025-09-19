@@ -12,20 +12,21 @@ import scala.Console._
 import scala.annotation.tailrec
 import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.Properties
+import scala.util.{Properties, Try}
 
 object TestUtil {
 
-  val cliKind: String              = sys.props("test.scala-cli.kind")
-  val isNativeCli: Boolean         = cliKind.startsWith("native")
-  val isJvmCli: Boolean            = cliKind.startsWith("jvm")
-  val isCI: Boolean                = System.getenv("CI") != null
-  val isM1: Boolean                = sys.props.get("os.arch").contains("aarch64")
-  val cliPath: String              = sys.props("test.scala-cli.path")
-  val debugPortOpt: Option[String] = sys.props.get("test.scala-cli.debug.port")
-  val detectCliPath: String        = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
-  val cli: Seq[String]             = cliCommand(cliPath)
-  val ltsEqualsNext: Boolean       = Constants.scala3Lts equals Constants.scala3Next
+  val cliKind: String               = sys.props("test.scala-cli.kind")
+  val isNativeCli: Boolean          = cliKind.startsWith("native")
+  val isJvmCli: Boolean             = cliKind.startsWith("jvm")
+  val isJvmBootstrappedCli: Boolean = cliKind.startsWith("jvmBootstrapped")
+  val isCI: Boolean                 = System.getenv("CI") != null
+  val isM1: Boolean                 = sys.props.get("os.arch").contains("aarch64")
+  val cliPath: String               = sys.props("test.scala-cli.path")
+  val debugPortOpt: Option[String]  = sys.props.get("test.scala-cli.debug.port")
+  val detectCliPath: String         = if (TestUtil.isNativeCli) TestUtil.cliPath else "scala-cli"
+  val cli: Seq[String]              = cliCommand(cliPath)
+  val ltsEqualsNext: Boolean        = Constants.scala3Lts equals Constants.scala3Next
 
   lazy val legacyScalaVersionsOnePerMinor: Seq[String] =
     Constants.legacyScala3Versions.sorted.reverse.distinctBy(_.split('.').take(2).mkString("."))
@@ -401,5 +402,21 @@ object TestUtil {
 
     def printStderrUntilRerun(timeout: Duration)(implicit ec: ExecutionContext): Unit =
       TestUtil.printStderrUntilCondition(proc, timeout)(_.contains("re-run"))()
+  }
+
+  // based on the implementation from bloop-rifle:
+  // https://github.com/scalacenter/bloop/blob/65b0b290fddd6d4256665014a7d16531e29ded4f/bloop-rifle/src/main/scala/bloop/rifle/VersionUtil.scala#L13-L30
+  def parseJavaVersion(input: String): Option[Int] = {
+    val jvmReleaseRegex                             = "(1[.])?(\\d+)"
+    def jvmRelease(jvmVersion: String): Option[Int] = for {
+      regexMatch    <- jvmReleaseRegex.r.findFirstMatchIn(jvmVersion)
+      versionString <- Option(regexMatch.group(2))
+      versionInt    <- Try(versionString.toInt).toOption
+    } yield versionInt
+    for {
+      firstMatch         <- s""".*version .($jvmReleaseRegex).*""".r.findFirstMatchIn(input)
+      versionNumberGroup <- Option(firstMatch.group(1))
+      versionInt         <- jvmRelease(versionNumberGroup)
+    } yield versionInt
   }
 }
