@@ -273,7 +273,10 @@ object CrossSources {
 
     val resourceDirectoriesFromDirectives = {
       val resourceDirsFromCli =
-        allInputs.elements.flatMap { case rd: ResourceDirectory => Some(rd.path); case _ => None }
+        allInputs.elements.flatMap {
+          case rd: ResourceDirectory => Some(rd.path)
+          case _                     => None
+        }
       val resourceDirsFromBuildOptions: Seq[os.Path] =
         buildOptions.flatMap(_.value.classPathOptions.resourcesDir).distinct
       resourceDirsFromBuildOptions
@@ -318,7 +321,7 @@ object CrossSources {
       }
 
     val resourceDirs: Seq[WithBuildRequirements[os.Path]] =
-      resolveResourceDirs(finalInputs, preprocessedSources)
+      resolveResourceDirs(allInputs, preprocessedSources)
 
     lazy val allPathsWithDirectivesByScope: Map[Scope, Seq[(os.Path, Position.File)]] =
       (pathsWithDirectivePositions ++ inMemoryWithDirectivePositions ++ unwrappedScriptsWithDirectivePositions)
