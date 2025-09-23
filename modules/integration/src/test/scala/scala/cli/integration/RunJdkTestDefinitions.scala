@@ -8,7 +8,9 @@ import scala.util.{Properties, Try}
 trait RunJdkTestDefinitions { _: RunTestDefinitions =>
   def javaIndex(javaVersion: Int): String =
     // TODO just passing the version number on arm64 should be enough, needs a fix in cs
-    if (Properties.isMac && TestUtil.isM1 && (javaVersion < 11 || javaVersion == 16))
+    if (
+      (Properties.isMac && TestUtil.isM1 && (javaVersion < 11 || javaVersion == 16)) || javaVersion == 25
+    )
       s"zulu:$javaVersion"
     else javaVersion.toString
 
@@ -69,7 +71,7 @@ trait RunJdkTestDefinitions { _: RunTestDefinitions =>
           os.rel / "hello_world.sc" -> s"println(\"$expectedMessage\")"
         ).fromRoot { root =>
           withLauncher(root) { launcher =>
-            val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", javaVersion)
+            val res = os.proc(launcher, "run", ".", extraOptions, "--jvm", index)
               .call(cwd = root)
             expect(res.out.trim() == expectedMessage)
           }
