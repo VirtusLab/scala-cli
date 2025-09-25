@@ -230,9 +230,11 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
       ) { (build, isTestScope) =>
         val resourcesDirs = build.options.classPathOptions.resourcesDir
+        val sourcesResourcesDirs = build.successfulOpt.get.sources.resourceDirs
         expect(resourcesDirs.exists(_.last == "mainResources"))
         val hasTestResources = resourcesDirs.exists(_.last == "testResources")
         expect(if isTestScope then hasTestResources else !hasTestResources)
+        expect(resourcesDirs.toSet == sourcesResourcesDirs.toSet)
       }
     }
     test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
@@ -387,6 +389,21 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         expect(resourceDirs.length == 1)
         val path = root / "foo"
         expect(resourceDirs == Seq(path))
+    }
+  }
+  test("do not include test.resourceDir into sources for main scope") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using test.resourceDir foo
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Main) {
+      (root, _, maybeBuild) =>
+        val build =
+          maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        val resourceDirs = build.sources.resourceDirs
+
+        expect(resourceDirs.isEmpty)
     }
   }
   test("parse boolean for publish.doc") {
