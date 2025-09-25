@@ -202,7 +202,7 @@ object Deps {
   def metaconfigTypesafe =
     mvn"org.scalameta::metaconfig-typesafe-config:0.16.0"
       .exclude(("org.scala-lang", "scala-compiler"))
-  def munit              = mvn"org.scalameta::munit:1.1.1"
+  def munit              = mvn"org.scalameta::munit:1.2.0"
   def nativeTestRunner   = mvn"org.scala-native::test-runner:${Versions.scalaNative}"
   def nativeTools        = mvn"org.scala-native::tools:${Versions.scalaNative}"
   def osLib              = mvn"com.lihaoyi::os-lib:0.11.5"
