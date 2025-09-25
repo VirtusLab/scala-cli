@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.shaded.dirs.ProjectDirectories
+import coursier.paths.CoursierPaths
 
 import scala.util.Properties
 
@@ -74,9 +74,8 @@ class InstallAndUninstallCompletionsTests extends ScalaCliSuite {
   }
 
   lazy val zshRcScript: String = {
-    val projDirs = ProjectDirectories.from(null, null, "ScalaCli")
-    val dir      = os.Path(projDirs.dataLocalDir, TestUtil.pwd) / "completions" / "zsh"
-    val script   = Seq(
+    val dir = os.Path(CoursierPaths.dataLocalDirectoryPath(), TestUtil.pwd) / "completions" / "zsh"
+    val script = Seq(
       s"""fpath=("$dir" $$fpath)""",
       "compinit"
     ).map(_ + System.lineSeparator()).mkString
