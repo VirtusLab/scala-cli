@@ -642,7 +642,7 @@ jobs:
 
   generate-macos-m1-launcher:
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -671,7 +671,7 @@ jobs:
   native-macos-m1-tests-1:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -706,7 +706,7 @@ jobs:
   native-macos-m1-tests-2:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -741,7 +741,7 @@ jobs:
   native-macos-m1-tests-3:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -776,7 +776,7 @@ jobs:
   native-macos-m1-tests-4:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -811,7 +811,7 @@ jobs:
   native-macos-m1-tests-5:
     needs: generate-macos-m1-launcher
     timeout-minutes: 120
-    runs-on: "macOS-14"
+    runs-on: "macOS-15"
     steps:
       - uses: actions/checkout@v5
         with:
