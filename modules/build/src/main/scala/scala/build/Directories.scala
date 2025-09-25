@@ -1,10 +1,6 @@
 package scala.build
 
-import coursier.cache.shaded.dirs.ProjectDirectories
-import coursier.cache.shaded.dirs.impl.Windows
-import coursier.cache.shaded.dirs.jni.WindowsJni
-
-import java.util.function.Supplier
+import coursier.paths.CoursierPaths
 
 import scala.build.errors.ConfigDbException
 import scala.build.internals.EnvVar
@@ -35,33 +31,32 @@ object Directories {
 
   def defaultDbFileName: String =
     "config.json"
-
-  final case class OsLocations(projDirs: ProjectDirectories) extends Directories {
+  object OsLocations extends Directories {
     lazy val localRepoDir: os.Path =
-      os.Path(projDirs.cacheDir, Os.pwd) / "local-repo"
+      os.Path(CoursierPaths.cacheDirectoryPath(), Os.pwd) / "local-repo"
     lazy val binRepoDir: os.Path =
       os.Path(localRepoDir, Os.pwd) / "bin"
     lazy val completionsDir: os.Path =
-      os.Path(projDirs.dataLocalDir, Os.pwd) / "completions"
+      os.Path(CoursierPaths.dataLocalDirectoryPath(), Os.pwd) / "completions"
     lazy val virtualProjectsDir: os.Path =
-      os.Path(projDirs.cacheDir, Os.pwd) / "virtual-projects"
+      os.Path(CoursierPaths.cacheDirectoryPath(), Os.pwd) / "virtual-projects"
     lazy val bspSocketDir: os.Path =
       // FIXME I would have preferred to use projDirs.dataLocalDir, but it seems named socket
       // support, or name sockets in general, aren't fine with it.
-      os.Path(projDirs.cacheDir, Os.pwd) / "bsp-sockets"
+      os.Path(CoursierPaths.cacheDirectoryPath(), Os.pwd) / "bsp-sockets"
     lazy val bloopDaemonDir: os.Path =
       bloopWorkingDir / "daemon"
     lazy val bloopWorkingDir: os.Path = {
       val baseDir =
-        if (Properties.isMac) projDirs.cacheDir
-        else projDirs.dataLocalDir
+        if (Properties.isMac) CoursierPaths.cacheDirectoryPath()
+        else CoursierPaths.dataLocalDirectoryPath()
       os.Path(baseDir, Os.pwd) / "bloop"
     }
     lazy val secretsDir: os.Path =
-      os.Path(projDirs.dataLocalDir, Os.pwd) / "secrets"
+      os.Path(CoursierPaths.dataLocalDirectoryPath(), Os.pwd) / "secrets"
 
     lazy val cacheDir: os.Path =
-      os.Path(projDirs.cacheDir, os.pwd)
+      os.Path(CoursierPaths.cacheDirectoryPath(), os.pwd)
   }
 
   final case class SubDir(dir: os.Path) extends Directories {
@@ -85,12 +80,7 @@ object Directories {
       dir / "cache"
   }
 
-  def default(): Directories = {
-    val windows: Supplier[Windows] =
-      if coursier.paths.Util.useJni() then WindowsJni.getJdkAwareSupplier
-      else Windows.getDefaultSupplier
-    OsLocations(ProjectDirectories.from(null, null, "ScalaCli", windows))
-  }
+  def default(): Directories = OsLocations
 
   def under(dir: os.Path): Directories =
     SubDir(dir)
