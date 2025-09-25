@@ -439,7 +439,7 @@ jobs:
 
   generate-macos-launcher:
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
     - uses: actions/checkout@v5
       with:
@@ -468,7 +468,7 @@ jobs:
   native-macos-tests-1:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
     - uses: actions/checkout@v5
       with:
@@ -503,7 +503,7 @@ jobs:
   native-macos-tests-2:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
     - uses: actions/checkout@v5
       with:
@@ -538,7 +538,7 @@ jobs:
   native-macos-tests-3:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
     - uses: actions/checkout@v5
       with:
@@ -573,7 +573,7 @@ jobs:
   native-macos-tests-4:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -608,7 +608,7 @@ jobs:
   native-macos-tests-5:
     needs: generate-macos-launcher
     timeout-minutes: 120
-    runs-on: "macOS-13"
+    runs-on: "macOS-15-intel"
     steps:
       - uses: actions/checkout@v5
         with:
