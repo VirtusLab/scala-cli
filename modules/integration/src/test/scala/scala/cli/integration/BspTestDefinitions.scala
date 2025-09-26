@@ -2230,6 +2230,9 @@ abstract class BspTestDefinitions extends ScalaCliSuite
   for {
     useScalaWrapper <- Seq(false, true)
     if actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
+    scalaVersion =
+      if (actualScalaVersion == Constants.scala3NextRc) Constants.scala3NextRcAnnounced
+      else actualScalaVersion
     withLauncher = (root: os.Path) =>
       (f: Seq[os.Shellable] => Unit) =>
         if (useScalaWrapper)
@@ -2237,16 +2240,16 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             root = root,
             localBin = root / "local-bin",
             localCache = Some(root / "local-cache"),
-            scalaVersion = actualScalaVersion,
+            scalaVersion = scalaVersion,
             shouldCleanUp = false
           )(launcher => f(Seq(launcher)))
         else
           f(Seq(TestUtil.cli))
-    launcherString         = if (useScalaWrapper) "coursier scala installation" else "Scala CLI"
+    launcherString         = if (useScalaWrapper) s"scala wrapper ($scalaVersion)" else "Scala CLI"
     connectionJsonFileName = if (useScalaWrapper) "scala.json" else "scala-cli.json"
   }
     test(
-      s"setup-ide with scala wrapper prepares valid BSP connection json with a valid launcher ($launcherString)"
+      s"setup-ide prepares valid BSP connection json with a valid launcher ($launcherString)"
     ) {
       TestUtil.retryOnCi() {
         val scriptName = "example.sc"
