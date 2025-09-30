@@ -12,8 +12,7 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 import scala.cli.commands.package0.Package
 import scala.cli.packaging.Library
 
-class PackageTests extends munit.FunSuite {
-
+class PackageTests extends TestUtil.ScalaCliSuite {
   val buildThreads = BuildThreads.create()
   def bloopConfig  = BloopServer.bloopConfig
 

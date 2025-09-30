@@ -8,7 +8,7 @@ import scala.build.internal.Constants
 import scala.build.tests.{TestInputs, TestLogger}
 import scala.cli.commands.fmt.{FmtOptions, FmtUtil}
 
-class ScalafmtTests extends munit.FunSuite {
+class ScalafmtTests extends TestUtil.ScalaCliSuite {
   private lazy val defaultScalafmtVersion = Constants.defaultScalafmtVersion
 
   test("readVersionFromFile with non-default scalafmt version") {
