@@ -3,6 +3,7 @@ out/
 .metals/
 .vscode/
 .idea/
+.cursor/
 
 .bsp
 .scala-build
