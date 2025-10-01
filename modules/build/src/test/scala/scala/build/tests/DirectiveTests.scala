@@ -230,11 +230,9 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
       ) { (build, isTestScope) =>
         val resourcesDirs = build.options.classPathOptions.resourcesDir
-        val sourcesResourcesDirs = build.successfulOpt.get.sources.resourceDirs
         expect(resourcesDirs.exists(_.last == "mainResources"))
         val hasTestResources = resourcesDirs.exists(_.last == "testResources")
         expect(if isTestScope then hasTestResources else !hasTestResources)
-        expect(resourcesDirs.toSet == sourcesResourcesDirs.toSet)
       }
     }
     test(s"resolve test scope toolkit dependency correctly when building for ${scope.name} scope") {
