@@ -1,20 +1,20 @@
 package build.project.publish
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.4.0`
-import $ivy.`org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r`
+
 import build.project.settings
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import settings.{PublishLocalNoFluff, workspaceDirName}
-import de.tobiasroeser.mill.vcs.version._
-import mill._
+import mill.*
 import mill.javalib.publish.Artifact
-import scalalib._
+import mill.util.{Tasks, VcsVersion}
+import scalalib.*
 import org.eclipse.jgit.api.Git
+import mill.api.{BuildCtx, ModuleCtx, Task}
 
 import java.nio.charset.Charset
-import scala.concurrent.duration._
-import scala.jdk.CollectionConverters._
+import scala.concurrent.duration.*
+import scala.jdk.CollectionConverters.*
 
-lazy val (ghOrg: String, ghName: String) = {
+def gh: (ghOrg: String, ghName: String) = {
   def default = ("VirtusLab", "scala-cli")
   val isCI    = System.getenv("CI") != null
   if (isCI) {
@@ -62,7 +62,9 @@ lazy val (ghOrg: String, ghName: String) = {
     default
 }
 
-private def computePublishVersion(state: VcsState, simple: Boolean): String =
+lazy val (ghOrg: String, ghName: String) = gh
+
+private def computePublishVersion(state: VcsVersion.State, simple: Boolean): String =
   if (state.commitsSinceLastTag > 0)
     if (simple) {
       val versionOrEmpty = state.lastTag
@@ -141,15 +143,18 @@ trait ScalaCliPublishModule extends SonatypeCentralPublishModule with PublishLoc
   )
   override def publishVersion: T[String] = finalPublishVersion()
   override def sourceJar: T[PathRef]     = Task {
-    import mill.util.Jvm.createJar
-    val allSources0 = allSources().map(_.path).filter(os.exists).toSet
-    createJar(
-      allSources0 ++ resources().map(_.path).filter(os.exists),
-      manifest(),
-      (input, relPath) =>
-        !allSources0(input) ||
-        (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
-    )
+    PathRef {
+      import mill.util.Jvm.createJar
+      val allSources0 = allSources().map(_.path).filter(os.exists)
+      createJar(
+        jar = Task.dest / "out.jar",
+        inputPaths = allSources0 ++ resources().map(_.path).filter(os.exists),
+        manifest = manifest(),
+        fileFilter = (input, relPath) =>
+          !allSources0.toSet(input) ||
+          (!relPath.segments.contains(".scala") && !relPath.segments.contains(workspaceDirName))
+      )
+    }
   }
 }
 
@@ -211,7 +216,7 @@ def publishSonatype(
   publisher.publishAll(
     publishingType = publishingType,
     singleBundleName = finalBundleName,
-    artifacts = artifacts: _*
+    artifacts = artifacts*
   )
 }
 
@@ -235,7 +240,7 @@ def setShouldPublish() = Task.Command {
   val charSet = Charset.defaultCharset()
   val nl      = System.lineSeparator()
   os.write.append(
-    os.Path(envFile, Task.workspace),
+    os.Path(envFile, BuildCtx.workspaceRoot),
     s"SHOULD_PUBLISH=${shouldPublish()}$nl".getBytes(charSet)
   )
 }

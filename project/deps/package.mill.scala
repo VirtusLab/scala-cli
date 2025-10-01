@@ -1,6 +1,8 @@
 package build.project.deps
-import mill._
-import scalalib._
+
+import mill.*
+import mill.api.BuildInfo
+import scalalib.*
 
 object Cli {
   def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
@@ -100,7 +102,7 @@ object TestDeps {
 
 object InternalDeps {
   object Versions {
-    def mill: String  = _root_.mill.main.BuildInfo.millVersion
+    def mill: String  = BuildInfo.millVersion
     def lefouMillwRef = "166bcdf5741de8569e0630e18c3b2ef7e252cd96"
   }
 }
