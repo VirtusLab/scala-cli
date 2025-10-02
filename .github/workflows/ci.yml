@@ -1400,7 +1400,7 @@ jobs:
         jvm: "zulu:17"
     - uses: actions/setup-node@v5
       with:
-        node-version: 18
+        node-version: 24
     - name: Build documentation
       run: .github/scripts/build-website.sh
     - name: Test documentation
