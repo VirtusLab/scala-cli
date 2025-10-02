@@ -8,7 +8,7 @@ object Cli {
 
 object Scala {
   def scala212         = "2.12.20"
-  def scala213         = "2.13.16"
+  def scala213         = "2.13.17"
   def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
   def scala3Lts        = s"$scala3LtsPrefix.6"  // the LTS version currently used in the build
   def runnerScala3     = scala3Lts
@@ -72,7 +72,7 @@ object Scala {
       .filter(minorVer(_) < minorVer(scala3Lts))
 
   def maxAmmoniteScala212Version                    = scala212
-  def maxAmmoniteScala213Version                    = scala213
+  def maxAmmoniteScala213Version                    = "2.13.16"
   def maxAmmoniteScala3Version                      = "3.6.3"
   def maxAmmoniteScala3LtsVersion                   = "3.3.5"
   lazy val listMaxAmmoniteScalaVersion: Seq[String] =
