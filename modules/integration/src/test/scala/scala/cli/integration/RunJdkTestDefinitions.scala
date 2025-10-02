@@ -12,7 +12,7 @@ trait RunJdkTestDefinitions { _: RunTestDefinitions =>
   for {
     javaVersion <-
       if (!TestUtil.isJvmCli) Constants.allJavaVersions
-      else Constants.allJavaVersions.filter(_ >= 11)
+      else Constants.allJavaVersions.filter(_ >= Constants.minimumLauncherJavaVersion)
     index = javaVersion
     useScalaInstallationWrapper <-
       if (canUseScalaInstallationWrapper) Seq(false, true) else Seq(false)

@@ -207,7 +207,7 @@ def checkFile(file: os.Path, options: Options): Unit =
     createHelperScript(options.scalaCliCommand, "scala-cli")
     createHelperScript(options.scalaCliCommand, "scala")
     val coursierCliDep =
-      s"${Constants.coursierOrg}:${Constants.coursierCliModule}:${Constants.coursierCliVersion}"
+      s"${Constants.coursierOrg}:${Constants.coursierCliModule}_3:${Constants.coursierCliVersion}"
     createHelperScript(
       options.scalaCliCommand ++ Seq(
         "run",

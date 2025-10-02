@@ -167,7 +167,7 @@ object Deps {
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
-  def coursierCli = mvn"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
+  def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
   def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
     .exclude("io.get-coursier" -> "dependency_2.13")
