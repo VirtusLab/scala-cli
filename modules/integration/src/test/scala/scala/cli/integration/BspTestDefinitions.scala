@@ -2258,9 +2258,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite
         )
           .fromRoot { root =>
             withLauncher(root) { launcher =>
+              val jvmIndex = if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion else 8
               val javaHome =
                 os.Path(
-                  os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(),
+                  os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(),
                   os.pwd
                 )
               os.proc(launcher, "setup-ide", scriptName, extraOptions)

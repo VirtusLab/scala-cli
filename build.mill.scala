@@ -515,6 +515,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
          |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
          |
+         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def minimumInternalJavaVersion = ${Java.minimumInternalJava}
          |  def defaultJavaVersion = ${Java.defaultJava}
@@ -881,6 +882,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultJavaVersion = ${Java.defaultJava}
+         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
@@ -1061,6 +1063,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def cliVersion                   = "${publishVersion()}"
            |  def allJavaVersions              = Seq(${Java.allJavaVersions.sorted.mkString(", ")})
            |  def bspVersion                   = "${Deps.bsp4j.dep.versionConstraint.asString}"
+           |  def minimumLauncherJavaVersion   = ${Java.minimumJavaLauncherJava}
            |  def bloopMinimumJvmVersion       = ${Java.minimumBloopJava}
            |  def minimumInternalJvmVersion    = ${Java.minimumInternalJava}
            |  def defaultJvmVersion            = ${Java.defaultJava}

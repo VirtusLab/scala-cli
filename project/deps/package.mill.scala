@@ -80,12 +80,18 @@ object Scala {
 }
 
 object Java {
-  def minimumBloopJava: Int      = 17
-  def minimumInternalJava: Int   = 16
-  def defaultJava: Int           = minimumBloopJava
+  def minimumJavaLauncherJava  = 11
+  def minimumBloopJava: Int    = 17
+  def minimumInternalJava: Int = 16
+  def defaultJava: Int         = minimumBloopJava
+  def cliKeyJavaVersions       = Seq(
+    minimumBloopJava,
+    minimumInternalJava,
+    defaultJava,
+    minimumJavaLauncherJava
+  ).distinct
   def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24, 25)
-  def allJavaVersions: Seq[Int]  =
-    (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
+  def allJavaVersions: Seq[Int]  = (mainJavaVersions ++ cliKeyJavaVersions).distinct
 }
 
 // Dependencies used in integration test fixtures
@@ -160,8 +166,9 @@ object Deps {
   // Force using of 2.13 - is there a better way?
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
   def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
-  def coursierCli          = mvn"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
-  def coursierJvm          = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
+  def coursierCli = mvn"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
+  def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
     .exclude("io.get-coursier" -> "dependency_2.13")
   def coursierLauncher = mvn"io.get-coursier:coursier-launcher_2.13:${Versions.coursier}"
