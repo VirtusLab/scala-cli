@@ -778,15 +778,19 @@ object Build {
     val watcher =
       new Watcher(ListBuffer(), threads.fileWatcher, run(), info.foreach(_._1.shutdown()))
 
-    def doWatch(): Unit = {
+    def doWatch(): Unit = either {
+      val (crossSources: CrossSources, inputs0: Inputs) =
+        value(allInputs(inputs, options, logger))
       val elements: Seq[Element] =
-        if res == null then inputs.elements
+        if res == null then inputs0.elements
         else
           res
             .map { builds =>
+              val allResourceDirectories =
+                crossSources.resourceDirs.map(rd => ResourceDirectory(rd.value))
               val mainElems = builds.main.inputs.elements
               val testElems = builds.get(Scope.Test).map(_.inputs.elements).getOrElse(Nil)
-              (mainElems ++ testElems).distinct
+              (mainElems ++ testElems ++ allResourceDirectories).distinct
             }
             .getOrElse(inputs.elements)
       for (elem <- elements) {

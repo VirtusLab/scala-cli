@@ -567,9 +567,9 @@ abstract class RunTestDefinitions
   ): TestInputs =
     TestInputs(
       os.rel / "src" / "proj" / "resources" / "test" / "data" -> resourceContent,
-      os.rel / "src" / "proj" / "Test.scala"                  ->
+      os.rel / "src" / "proj" / "Example.scala"               ->
         s"""$directive
-           |object Test {
+           |object Example {
            |  def main(args: Array[String]): Unit = {
            |    val cl = Thread.currentThread().getContextClassLoader
            |    val is = cl.getResourceAsStream("test/data")
@@ -596,6 +596,22 @@ abstract class RunTestDefinitions
     )
       .fromRoot { root =>
         val res = os.proc(TestUtil.cli, "run", ".").call(cwd = root)
+        expect(res.out.trim() == expectedMessage)
+      }
+  }
+  test("resources via test directive") {
+    val expectedMessage = "hello"
+    resourcesInputs(
+      directive = "//> using test.resourceDirs ./resources",
+      resourceContent = expectedMessage
+    )
+      .fromRoot { root =>
+        val err = os.proc(TestUtil.cli, "run", ".")
+          .call(cwd = root, check = false, stderr = os.Pipe)
+        expect(err.err.trim().contains("java.lang.NullPointerException"))
+        expect(err.exitCode == 1)
+        val res = os.proc(TestUtil.cli, "run", ".", "--test")
+          .call(cwd = root)
         expect(res.out.trim() == expectedMessage)
       }
   }

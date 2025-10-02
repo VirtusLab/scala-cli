@@ -271,22 +271,8 @@ object CrossSources {
       )
     }).flatten
 
-    val resourceDirectoriesFromDirectives = {
-      val resourceDirsFromCli =
-        allInputs.elements.flatMap {
-          case rd: ResourceDirectory => Some(rd.path)
-          case _                     => None
-        }
-      val resourceDirsFromBuildOptions: Seq[os.Path] =
-        buildOptions.flatMap(_.value.classPathOptions.resourcesDir).distinct
-      resourceDirsFromBuildOptions
-        .filter(!resourceDirsFromCli.contains(_))
-        .map(ResourceDirectory(_))
-    }
-    val finalInputs = allInputs.add(resourceDirectoriesFromDirectives)
-
     val defaultMainElemPath = for {
-      defaultMainElem <- finalInputs.defaultMainClassElement
+      defaultMainElem <- allInputs.defaultMainClassElement
     } yield defaultMainElem.path
 
     val pathsWithDirectivePositions
@@ -296,7 +282,7 @@ object CrossSources {
           val baseReqs0 = baseReqs(d.scopePath)
           WithBuildRequirements(
             d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
-            (d.path, d.path.relativeTo(finalInputs.workspace))
+            (d.path, d.path.relativeTo(allInputs.workspace))
           ) -> d.directivesPositions
       }
     val inMemoryWithDirectivePositions
@@ -382,7 +368,7 @@ object CrossSources {
       buildOptions,
       unwrappedScripts
     )
-    crossSources -> finalInputs
+    crossSources -> allInputs
   }
 
   extension (uri: java.net.URI)

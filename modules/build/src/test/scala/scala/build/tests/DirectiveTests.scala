@@ -396,7 +396,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
     )
     testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Main) {
-      (root, _, maybeBuild) =>
+      (_, _, maybeBuild) =>
         val build =
           maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
         val resourceDirs = build.sources.resourceDirs
