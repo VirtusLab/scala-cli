@@ -389,6 +389,21 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         expect(resourceDirs == Seq(path))
     }
   }
+  test("do not include test.resourceDir into sources for main scope") {
+    val testInputs = TestInputs(
+      os.rel / "simple.sc" ->
+        """//> using test.resourceDir foo
+          |""".stripMargin
+    )
+    testInputs.withBuild(baseOptions, buildThreads, bloopConfigOpt, scope = Scope.Main) {
+      (_, _, maybeBuild) =>
+        val build =
+          maybeBuild.toOption.flatMap(_.successfulOpt).getOrElse(sys.error("cannot happen"))
+        val resourceDirs = build.sources.resourceDirs
+
+        expect(resourceDirs.isEmpty)
+    }
+  }
   test("parse boolean for publish.doc") {
     val testInputs = TestInputs(
       os.rel / "simple.sc" ->

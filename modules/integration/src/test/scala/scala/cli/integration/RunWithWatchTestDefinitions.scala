@@ -345,18 +345,34 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
 
   for {
     useDirective <- Seq(false, true)
+    testScope    <- if (useDirective) Seq(false, true) else Seq(false)
+    scopeString = if (testScope) "test" else "main"
     // TODO make this pass reliably on Mac CI
     if !Properties.isMac || !TestUtil.isCI
-    directive       = if (useDirective) "//> using resourceDirs ./resources" else ""
+    directive =
+      useDirective -> testScope match {
+        case (true, true)  => "//> using test.resourceDirs ./resources"
+        case (true, false) => "//> using resourceDirs ./resources"
+        case _             => ""
+      }
     resourceOptions = if (useDirective) Nil else Seq("--resource-dirs", "./src/proj/resources")
+    scopeOptions    = if (testScope) Seq("--test") else Nil
     title           = if (useDirective) "directive" else "command line"
-  } test(s"resources via $title with --watch") {
+  } test(s"resources via $title with --watch ($scopeString)") {
     val expectedMessage1 = "Hello"
     val expectedMessage2 = "world"
     resourcesInputs(directive = directive, resourceContent = expectedMessage1)
       .fromRoot { root =>
         TestUtil.withProcessWatching(
-          os.proc(TestUtil.cli, "run", "src", "--watch", resourceOptions, extraOptions)
+          os.proc(
+            TestUtil.cli,
+            "run",
+            "src",
+            "--watch",
+            resourceOptions,
+            scopeOptions,
+            extraOptions
+          )
             .spawn(cwd = root, stderr = os.Pipe)
         ) { (proc, timeout, ec) =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
