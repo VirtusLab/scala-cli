@@ -2,7 +2,7 @@
 
 # Adapted from
 
-coursier_version="2.1.24"
+coursier_version="2.1.25-M19"
 COMMAND=$@
 
 # necessary for Windows various shell environments
@@ -17,9 +17,8 @@ if [ "$(expr substr $(uname -s) 1 5 2>/dev/null)" == "Linux" ]; then
   fi
   cache_base="$HOME/.cache/coursier/v1"
 elif [ "$(uname)" == "Darwin" ]; then
-  # TODO: remove once coursier-m1 and coursier mainline are merged
   if [ "$(uname -p)" == "arm" ]; then 
-    cs_url="https://github.com/VirtusLab/coursier-m1/releases/download/v$coursier_version/cs-aarch64-apple-darwin.gz"
+    cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-aarch64-apple-darwin.gz"
   else 
     cs_url="https://github.com/coursier/coursier/releases/download/v$coursier_version/cs-x86_64-apple-darwin.gz"
   fi

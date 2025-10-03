@@ -80,12 +80,18 @@ object Scala {
 }
 
 object Java {
-  def minimumBloopJava: Int      = 17
-  def minimumInternalJava: Int   = 16
-  def defaultJava: Int           = minimumBloopJava
+  def minimumJavaLauncherJava  = 11
+  def minimumBloopJava: Int    = 17
+  def minimumInternalJava: Int = 16
+  def defaultJava: Int         = minimumBloopJava
+  def cliKeyJavaVersions       = Seq(
+    minimumBloopJava,
+    minimumInternalJava,
+    defaultJava,
+    minimumJavaLauncherJava
+  ).distinct
   def mainJavaVersions: Seq[Int] = Seq(8, 11, 17, 21, 23, 24, 25)
-  def allJavaVersions: Seq[Int]  =
-    (mainJavaVersions ++ Seq(minimumBloopJava, minimumInternalJava, defaultJava)).distinct
+  def allJavaVersions: Seq[Int]  = (mainJavaVersions ++ cliKeyJavaVersions).distinct
 }
 
 // Dependencies used in integration test fixtures
@@ -111,10 +117,9 @@ object Deps {
     def ammoniteForScala3Lts = ammonite
     def argonautShapeless    = "1.3.1"
     // jni-utils version may need to be sync-ed when bumping the coursier version
-    def coursierDefault                   = "2.1.24"
+    def coursierDefault                   = "2.1.25-M19"
     def coursier                          = coursierDefault
     def coursierCli                       = coursierDefault
-    def coursierM1Cli                     = coursierDefault
     def coursierPublish                   = "0.4.3"
     def jmh                               = "1.37"
     def jsoniterScalaJava8                = "2.13.5.2"
@@ -133,7 +138,7 @@ object Deps {
     def signingCliJvmVersion              = Java.defaultJava
     def javaSemanticdb                    = "0.10.0"
     def javaClassName                     = "0.1.8"
-    def bloop                             = "2.0.13"
+    def bloop                             = "2.0.15"
     def sbtVersion                        = "1.11.4"
     def mavenVersion                      = "3.8.1"
     def mavenScalaCompilerPluginVersion   = "4.9.1"
@@ -159,8 +164,10 @@ object Deps {
   def caseApp          = mvn"com.github.alexarchambault::case-app:2.1.0"
   def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
   // Force using of 2.13 - is there a better way?
-  def coursier    = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierCli = mvn"io.get-coursier:coursier-cli_2.13:${Versions.coursierCli}"
+  def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
+  def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
+  def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
   def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
     .exclude("io.get-coursier" -> "dependency_2.13")
@@ -170,7 +177,7 @@ object Deps {
   def coursierProxySetup = mvn"io.get-coursier:coursier-proxy-setup:${Versions.coursier}"
   def coursierPublish    = mvn"io.get-coursier.publish::publish:${Versions.coursierPublish}"
     .exclude(("org.scala-lang.modules", "scala-collection-compat_2.13"))
-    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_3"))
+    .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def dependency    = mvn"io.get-coursier::dependency:0.3.2"
   def dockerClient  = mvn"com.spotify:docker-client:8.16.0"
   def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.0"
@@ -277,8 +284,7 @@ def graalVmJvmId       = s"graalvm-java$graalVmJavaVersion:$graalVmVersion"
 
 def csDockerVersion = Deps.Versions.coursierCli
 
-def buildCsVersion   = Deps.Versions.coursierCli
-def buildCsM1Version = Deps.Versions.coursierM1Cli
+def buildCsVersion = Deps.Versions.coursierCli
 
 // Native library used to encrypt GitHub secrets
 def libsodiumVersion = "1.0.18"

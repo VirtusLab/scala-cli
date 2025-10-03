@@ -864,20 +864,23 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("verify drive-relative JAVA_HOME works") {
     TestUtil.retryOnCi() {
-      val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+      val jvmIndex =
+        if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion
+        else 8
+      val oldJavaHome =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(), os.pwd)
 
       val dr = os.Path.driveRoot
 
       // forward slash is legal in `Windows`
-      val javaHome = java8Home.toString.replace('\\', '/')
+      val javaHome = oldJavaHome.toString.replace('\\', '/')
       expect(javaHome.drop(dr.length).startsWith("/"))
 
       val sysPath: String = System.getenv("PATH").replace('\\', '/')
       val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
 
       val extraEnv = Map(
-        "JAVA_HOME" -> java8Home.toString,
+        "JAVA_HOME" -> oldJavaHome.toString,
         "PATH"      -> newPath
       )
 

@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.shaded.dirs.ProjectDirectories
+import coursier.paths.shaded.dirs.ProjectDirectories
 
 import scala.util.Properties
 

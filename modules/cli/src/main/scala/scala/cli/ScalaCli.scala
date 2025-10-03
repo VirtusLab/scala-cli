@@ -272,7 +272,18 @@ object ScalaCli {
             val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
             LauncherCli.runAndExit(ver, launcherOpts, newArgs)
           case _ if
-                javaMajorVersion < Constants.minimumBloopJavaVersion
+                javaMajorVersion < Constants.minimumLauncherJavaVersion
+                && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
+            System.err.println(
+              s"[${Console.RED}error${Console.RESET}] Java $javaMajorVersion is not supported with this Scala CLI (JVM) launcher."
+            )
+            System.err.println(
+              s"[${Console.RED}error${Console.RESET}] Please upgrade to at least Java ${Constants.minimumLauncherJavaVersion} or use a native Scala CLI launcher instead."
+            )
+            sys.exit(1)
+          case _ if
+                javaMajorVersion >= Constants.minimumLauncherJavaVersion
+                && javaMajorVersion < Constants.minimumBloopJavaVersion
                 && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
             JavaLauncherCli.runAndExit(args)
           case None =>
