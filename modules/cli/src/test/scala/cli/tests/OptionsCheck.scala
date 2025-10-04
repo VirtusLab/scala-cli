@@ -1,10 +1,11 @@
 package scala.cli.tests
 
+import cli.tests.TestUtil
+
 import scala.cli.ScalaCliCommands
 import scala.cli.commands.shared.HasGlobalOptions
 
-class OptionsCheck extends munit.FunSuite {
-
+class OptionsCheck extends TestUtil.ScalaCliSuite {
   for (
     command <-
       new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands

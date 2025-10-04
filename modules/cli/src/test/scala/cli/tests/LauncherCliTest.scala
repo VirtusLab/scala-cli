@@ -7,8 +7,7 @@ import scala.build.tests.TestLogger
 import scala.cli.commands.shared.CoursierOptions
 import scala.cli.launcher.LauncherCli
 
-class LauncherCliTest extends munit.FunSuite {
-  override def munitFlakyOK: Boolean = TestUtil.isCI
+class LauncherCliTest extends TestUtil.ScalaCliSuite {
 
   test("resolve nightly version".flaky) {
     val logger          = TestLogger()

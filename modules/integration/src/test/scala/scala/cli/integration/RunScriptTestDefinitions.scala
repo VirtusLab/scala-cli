@@ -390,7 +390,9 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
              |${tab}at throws$$.something(throws.sc:2)
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
              |$tab... 10 more""".stripMargin.linesIterator.toVector
-        else if (actualScalaVersion.coursierVersion >= ("2.13.13".coursierVersion))
+        else if (
+          actualScalaVersion.coursierVersion >= "2.13.13".coursierVersion && actualScalaVersion.coursierVersion < "2.13.17".coursierVersion
+        )
           s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
              |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
              |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
@@ -402,6 +404,28 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
              |${tab}at scala.collection.IterableOnceOps.foreach(IterableOnce.scala:619)
              |${tab}at scala.collection.IterableOnceOps.foreach$$(IterableOnce.scala:617)
              |${tab}at scala.collection.AbstractIterable.foreach(Iterable.scala:935)
+             |${tab}at scala.App.main(App.scala:98)
+             |${tab}at scala.App.main$$(App.scala:96)
+             |${tab}at throws$$.main(throws.sc:65534)
+             |${tab}at throws.main(throws.sc)
+             |Caused by: java.lang.RuntimeException: nope
+             |${tab}at scala.sys.package$$.error(package.scala:27)
+             |${tab}at throws$$.something(throws.sc:2)
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:3)
+             |$tab... 13 more
+             |""".stripMargin.linesIterator.toVector
+        else if (actualScalaVersion.coursierVersion >= "2.13.17".coursierVersion)
+          s"""Exception in thread "main" java.lang.Exception: Caught exception during processing
+             |${tab}at throws$$.delayedEndpoint$$throws$$1(throws.sc:6)
+             |${tab}at throws$$delayedInit$$body.apply(throws.sc:65534)
+             |${tab}at scala.Function0.apply$$mcV$$sp(Function0.scala:42)
+             |${tab}at scala.Function0.apply$$mcV$$sp$$(Function0.scala:42)
+             |${tab}at scala.runtime.AbstractFunction0.apply$$mcV$$sp(AbstractFunction0.scala:17)
+             |${tab}at scala.App.$$anonfun$$main$$1(App.scala:98)
+             |${tab}at scala.App.$$anonfun$$main$$1$$adapted(App.scala:98)
+             |${tab}at scala.collection.IterableOnceOps.foreach(IterableOnce.scala:630)
+             |${tab}at scala.collection.IterableOnceOps.foreach$$(IterableOnce.scala:628)
+             |${tab}at scala.collection.AbstractIterable.foreach(Iterable.scala:936)
              |${tab}at scala.App.main(App.scala:98)
              |${tab}at scala.App.main$$(App.scala:96)
              |${tab}at throws$$.main(throws.sc:65534)
@@ -840,20 +864,23 @@ trait RunScriptTestDefinitions { _: RunTestDefinitions =>
 
   test("verify drive-relative JAVA_HOME works") {
     TestUtil.retryOnCi() {
-      val java8Home =
-        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", "zulu:8").call().out.trim(), os.pwd)
+      val jvmIndex =
+        if (TestUtil.isJvmCli) Constants.minimumLauncherJavaVersion
+        else 8
+      val oldJavaHome =
+        os.Path(os.proc(TestUtil.cs, "java-home", "--jvm", jvmIndex).call().out.trim(), os.pwd)
 
       val dr = os.Path.driveRoot
 
       // forward slash is legal in `Windows`
-      val javaHome = java8Home.toString.replace('\\', '/')
+      val javaHome = oldJavaHome.toString.replace('\\', '/')
       expect(javaHome.drop(dr.length).startsWith("/"))
 
       val sysPath: String = System.getenv("PATH").replace('\\', '/')
       val newPath: String = s"$javaHome/bin" + File.pathSeparator + sysPath
 
       val extraEnv = Map(
-        "JAVA_HOME" -> java8Home.toString,
+        "JAVA_HOME" -> oldJavaHome.toString,
         "PATH"      -> newPath
       )
 

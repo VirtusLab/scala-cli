@@ -11,8 +11,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
     json
       .replaceAll("\\s", "")
       .replaceAll(
-        "ivy:file:[^\"]*(scalacli|ScalaCli)[^\"]*/local-repo[^\"]*",
-        "ivy:file:.../scalacli/local-repo/..."
+        "ivy:file:[^\"]*/local-repo/[^\"]*",
+        "ivy:file:.../local-repo/..."
       )
       .replaceAll(
         "ivy:file:[^\"]*\\.ivy2/local[^\"]*",
@@ -70,7 +70,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ],
           |   "resolvers": [
           |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../scalacli/local-repo/...",
+          |     "ivy:file:.../local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
@@ -139,7 +139,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ],
           |   "resolvers": [
           |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../scalacli/local-repo/...",
+          |     "ivy:file:.../local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }], [
@@ -170,7 +170,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   "resolvers": [
           |     "https://oss.sonatype.org/content/repositories/snapshots",
           |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../scalacli/local-repo/...",
+          |     "ivy:file:.../local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ],
           |   "resourceDirs":["${withEscapedBackslashes(root / "resources")}"],
@@ -250,7 +250,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ],
           |   "resolvers": [
           |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../scalacli/local-repo/...",
+          |     "ivy:file:.../local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }

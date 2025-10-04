@@ -122,7 +122,15 @@ object TestUtil {
     removeAnsiColors(result.toString).trim().linesIterator.filterNot { str =>
       // these lines are not stable and can easily change
       val shouldNotContain =
-        Set("Starting compilation server", "hint", "Download", "Result of", "Checking", "Checked")
+        Set(
+          "Starting compilation server",
+          "hint",
+          "Download",
+          "Result of",
+          "Checking",
+          "Checked",
+          "Failed to download"
+        )
       shouldNotContain.exists(str.contains)
     }.mkString(System.lineSeparator())
 

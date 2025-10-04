@@ -2,7 +2,7 @@ package build
 
 import $packages._
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-import $ivy.`io.get-coursier::coursier-launcher:2.1.24`
+import $ivy.`io.get-coursier::coursier-launcher:2.1.25-M19`
 import $ivy.`io.github.alexarchambault.mill::mill-native-image-upload:0.1.31-1`
 import build.ci.publishVersion
 import build.project.deps
@@ -130,6 +130,7 @@ object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
 object integration extends CliIntegration {
   object test extends IntegrationScalaTests {
     override def ivyDeps: T[Loose.Agg[Dep]] = super.ivyDeps() ++ Seq(
+      Deps.coursierArchiveCache,
       Deps.jgit,
       Deps.jsoup
     )
@@ -514,6 +515,7 @@ trait Core extends ScalaCliCrossSbtModule
          |  def typelevelToolkitDefaultVersion = "${Deps.typelevelToolkitVersion}"
          |  def typelevelToolkitMaxScalaNative = "${Deps.Versions.maxScalaNativeForTypelevelToolkit}"
          |
+         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def minimumInternalJavaVersion = ${Java.minimumInternalJava}
          |  def defaultJavaVersion = ${Java.defaultJava}
@@ -880,6 +882,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
          |object Constants {
          |  def defaultScalaVersion = "${Scala.defaultUser}"
          |  def defaultJavaVersion = ${Java.defaultJava}
+         |  def minimumLauncherJavaVersion = ${Java.minimumJavaLauncherJava}
          |  def minimumBloopJavaVersion = ${Java.minimumBloopJava}
          |  def scalaJsVersion = "${Scala.scalaJs}"
          |  def scalaJsCliVersion = "${Scala.scalaJsCli}"
@@ -1060,6 +1063,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
            |  def cliVersion                   = "${publishVersion()}"
            |  def allJavaVersions              = Seq(${Java.allJavaVersions.sorted.mkString(", ")})
            |  def bspVersion                   = "${Deps.bsp4j.dep.versionConstraint.asString}"
+           |  def minimumLauncherJavaVersion   = ${Java.minimumJavaLauncherJava}
            |  def bloopMinimumJvmVersion       = ${Java.minimumBloopJava}
            |  def minimumInternalJvmVersion    = ${Java.minimumInternalJava}
            |  def defaultJvmVersion            = ${Java.defaultJava}

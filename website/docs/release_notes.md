@@ -2647,7 +2647,7 @@ to Java 8.
 This is no longer the case. Scala CLI will now automatically download Java 17 for Bloop in such a situation 
 (and still use the JVM from `JAVA_HOME` for running the code, while Bloop runs on 17).
 
-```bash
+```bash ignore
 scala-cli --power bloop exit 
 # Stopped Bloop server.  
 export JAVA_HOME=$(cs java-home --jvm zulu:8)
