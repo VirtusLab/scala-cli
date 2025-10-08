@@ -244,7 +244,7 @@ Aliases: `-r`, `--repo`
 
 Add repositories for dependency resolution.
 
-Accepts predefined repositories supported by Coursier (like `sonatype:snapshots` or `m2Local`) or a URL of the root of Maven repository
+Accepts predefined repositories supported by Coursier (like `sonatype:snapshots`, `ivy2Local` or `m2Local`) or a URL of the root of Maven repository
 
 ### `--compiler-plugin`
 
