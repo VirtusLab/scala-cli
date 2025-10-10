@@ -138,6 +138,11 @@ final case class PackagerOptions(
   )
   @Tag(tags.restricted)
   dockerCmd: Option[String] = None,
+  
+  @Group(HelpGroup.Docker.toString)
+  @HelpMessage("Extra directories to be added to the docker image")
+  @Tag(tags.restricted)
+  dockerExtraDirectories: List[String] = Nil,
 
   @Group(HelpGroup.NativeImage.toString)
   @HelpMessage(s"GraalVM Java major version to use to build GraalVM native images (${Constants.defaultGraalVMJavaVersion} by default)")

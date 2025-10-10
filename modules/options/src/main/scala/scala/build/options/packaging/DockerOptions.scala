@@ -8,7 +8,8 @@ final case class DockerOptions(
   imageRepository: Option[String] = None,
   imageTag: Option[String] = None,
   cmd: Option[String] = None,
-  isDockerEnabled: Option[Boolean] = None
+  isDockerEnabled: Option[Boolean] = None,
+  extraDirectories: Seq[os.Path] = Nil
 )
 
 object DockerOptions {
