@@ -1,12 +1,20 @@
 package scala.build.internal
-
+import coursier.core.{Dependency, MinimizedExclusions, Publication, VariantPublication}
+import coursier.util.Artifact
+import coursier.version.VersionConstraint
 import dependency.NoAttributes
 
 import java.io.{File, PrintStream}
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 
-import scala.build.errors.NoScalaVersionProvidedError
+import scala.build.Ops.EitherSeqOps
+import scala.build.errors.{
+  BuildException,
+  CompositeBuildException,
+  NoScalaVersionProvidedError,
+  UnsupportedGradleModuleVariantError
+}
 import scala.build.{Os, Positioned}
 
 object Util {
@@ -64,11 +72,13 @@ object Util {
   implicit class DependencyOps(private val dep: dependency.Dependency) extends AnyVal {
     def toCs: coursier.Dependency = {
       val mod  = dep.module.toCs
-      var dep0 = coursier.Dependency(mod, dep.version)
+      var dep0 = coursier.Dependency(mod, VersionConstraint(dep.version))
       if (dep.exclude.nonEmpty)
-        dep0 = dep0.withExclusions {
-          dep.exclude.toSet[dependency.Module].map { mod =>
-            (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
+        dep0 = dep0.withMinimizedExclusions {
+          MinimizedExclusions {
+            dep.exclude.toSet[dependency.Module].map { mod =>
+              (coursier.Organization(mod.organization), coursier.ModuleName(mod.name))
+            }
           }
         }
       for (clOpt <- dep.userParams.find(_._1 == "classifier").map(_._2); cl <- clOpt)
@@ -122,4 +132,29 @@ object Util {
 
   def printablePath(p: Either[String, os.Path]): String =
     p.fold(identity, printablePath(_))
+
+  extension (fullDetailedArtifacts: Seq[(
+    Dependency,
+    Either[VariantPublication, Publication],
+    Artifact,
+    Option[File]
+  )]) {
+    def safeFullDetailedArtifacts: Either[BuildException, Seq[(
+      Dependency,
+      Publication,
+      Artifact,
+      Option[File]
+    )]] =
+      fullDetailedArtifacts
+        .map {
+          case (dependency, Right(publication), artifact, maybeFile) =>
+            Right((dependency, publication, artifact, maybeFile))
+          case (_, Left(variantPublication), _, _) =>
+            // TODO: Add support for Gradle Module variants
+            Left(UnsupportedGradleModuleVariantError(variantPublication))
+        }
+        .sequence
+        .left
+        .map(CompositeBuildException(_))
+  }
 }
