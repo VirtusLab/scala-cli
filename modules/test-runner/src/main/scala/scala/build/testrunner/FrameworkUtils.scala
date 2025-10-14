@@ -7,7 +7,7 @@ import java.lang.reflect.Modifier
 import java.nio.file.{Files, Path}
 import java.util.ServiceLoader
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 object FrameworkUtils {
   // needed for Scala 2.12

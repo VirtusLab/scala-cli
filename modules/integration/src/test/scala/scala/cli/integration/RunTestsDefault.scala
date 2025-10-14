@@ -192,7 +192,7 @@ class RunTestsDefault extends RunTestDefinitions
     scalaVersion <- TestUtil.legacyScalaVersionsOnePerMinor
     expectedMessage = "Hello, world!"
     expectedWarning =
-      s"Defaulting to a legacy runner module version: ${Constants.runnerLegacyVersion}"
+      s"Defaulting to a legacy runner module version: ${Constants.runnerScala30LegacyVersion}"
   }
     test(
       s"run a simple hello world with the runner module on the classpath and Scala $scalaVersion (legacy)"
