@@ -195,13 +195,13 @@ object PgpExternalCommand {
 
       val (_, signingRes) = value {
         scala.build.Artifacts.fetchCsDependencies(
-          Seq(Positioned.none(jvmSigningDep.toCs)),
-          extraRepos,
-          None,
-          Nil,
-          logger,
-          cache,
-          None
+          dependencies = Seq(Positioned.none(jvmSigningDep.toCs)),
+          extraRepositories = extraRepos,
+          forceScalaVersionOpt = None,
+          forcedVersions = Nil,
+          logger = logger,
+          cache = cache,
+          classifiersOpt = None
         )
       }
       val signingClassPath = signingRes.files

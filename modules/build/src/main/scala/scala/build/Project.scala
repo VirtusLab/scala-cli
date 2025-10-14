@@ -142,9 +142,15 @@ object Project {
   def resolution(
     detailedArtifacts: Seq[(CsDependency, csCore.Publication, csUtil.Artifact, os.Path)]
   ): BloopConfig.Resolution = {
-    val indices = detailedArtifacts.map(_._1.moduleVersion).zipWithIndex.toMap
+    val indices = detailedArtifacts
+      .map { case (dep, _, _, _) => dep.moduleVersionConstraint }
+      .map { case (m, vc) => m -> vc.asString }
+      .zipWithIndex.toMap
     val modules = detailedArtifacts
-      .groupBy(_._1.moduleVersion)
+      .groupBy(_._1.moduleVersionConstraint)
+      .map {
+        case ((m, vc), artifacts) => m -> vc.asString -> artifacts
+      }
       .toVector
       .sortBy { case (modVer, _) => indices.getOrElse(modVer, Int.MaxValue) }
       .iterator

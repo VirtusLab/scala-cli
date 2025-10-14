@@ -4,8 +4,9 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.Versions
 import coursier.cache.{ArtifactError, FileCache}
-import coursier.core.{Module, Repository, Version, Versions as CoreVersions}
+import coursier.core.{Module, Repository, Versions as CoreVersions}
 import coursier.util.{Artifact, Task}
+import coursier.version.{Latest, Version}
 
 import java.io.File
 
@@ -64,7 +65,8 @@ object ScalaVersionUtil {
 
   extension (versionsResult: Versions.Result) {
     def verify(versionString: String): Either[BuildException, Unit] =
-      if versionsResult.versions.available.contains(versionString) then Right(())
+      if versionsResult.versions.available0.exists(_.asString == versionString)
+      then Right(())
       else Left(NoValidScalaVersionFoundError(versionString))
   }
 
@@ -125,9 +127,9 @@ object ScalaVersionUtil {
       cache: FileCache[Task]
     ): Either[BuildException, String] = {
       val res = cache.versionsWithTtl0(scala3Library)
-        .versions.available.filter(_.endsWith("-NIGHTLY"))
+        .versions.available0.filter(_.asString.endsWith("-NIGHTLY"))
 
-      val threeXNightlies = res.filter(_.startsWith(s"3.$threeSubBinaryNum.")).map(Version(_))
+      val threeXNightlies = res.filter(_.asString.startsWith(s"3.$threeSubBinaryNum."))
       if threeXNightlies.nonEmpty then Right(threeXNightlies.max.repr)
       else Left(NoValidScalaVersionFoundError())
     }
@@ -150,11 +152,12 @@ object ScalaVersionUtil {
       versions: CoreVersions,
       desc: String
     ): Either[scala.build.errors.ScalaVersionError, String] =
-      versions.latest(coursier.core.Latest.Release) match {
-        case Some(versionString) => Right(versionString)
+      versions.latest(Latest.Release) match {
+        case Some(versionString) => Right(versionString.asString)
         case None                =>
-          val msg =
-            s"Unable to find matching version for $desc in available version: ${versions.available.mkString(", ")}. " +
+          val availableVersionsString = versions.available0.map(_.asString).mkString(", ")
+          val msg                     =
+            s"Unable to find matching version for $desc in available version: $availableVersionsString. " +
               "This error may indicate a network or other problem accessing repository."
           Left(new ScalaVersionError(msg))
       }
@@ -266,7 +269,7 @@ object ScalaVersionUtil {
             case NonFatal(e) => throw new Exception(e)
           }
         }
-        versions.versions.available
+        versions.versions.available0.map(_.asString)
       }
       .distinct
   }

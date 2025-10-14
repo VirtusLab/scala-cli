@@ -1,6 +1,6 @@
 package scala.build.preprocessing.directives
 
-import coursier.core.Version
+import coursier.version.Version
 import dependency.*
 
 import scala.build.Positioned
