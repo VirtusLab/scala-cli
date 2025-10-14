@@ -107,7 +107,8 @@ object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object runner        extends Runner
 object `test-runner` extends TestRunner
-object `tasty-lib`   extends Cross[TastyLib](Scala.all) with CrossScalaDefaultToInternal
+object `tasty-lib`   extends Cross[TastyLib](Scala.scala3MainVersions)
+    with CrossScalaDefaultToInternal
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
@@ -1316,7 +1317,7 @@ trait TestRunner extends SbtModule
 
 trait TastyLib extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
-    with ScalaCliScalafixLegacyModule {
+    with ScalaCliScalafixModule {
   override def crossScalaVersion: String = crossValue
   def constantsFile: T[PathRef]          = Task(persistent = true) {
     val dir  = Task.dest / "constants"
