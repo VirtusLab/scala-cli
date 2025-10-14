@@ -1,8 +1,8 @@
 package scala.cli.internal
 
-import coursier.Repositories
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.util.Task
+import coursier.{Repositories, VersionConstraint}
 import dependency.*
 import org.scalajs.testing.adapter.TestAdapterInitializer as TAI
 
@@ -71,13 +71,15 @@ object ScalaJsLinker {
           case Right(()) =>
             val (_, linkerRes) = value {
               scala.build.Artifacts.fetchCsDependencies(
-                Seq(Positioned.none(scalaJsCliDep.toCs)),
-                extraRepos,
-                None,
-                forcedVersions.map { case (m, v) => (m.toCs, v) },
-                logger,
-                cache,
-                None
+                dependencies = Seq(Positioned.none(scalaJsCliDep.toCs)),
+                extraRepositories = extraRepos,
+                forceScalaVersionOpt = None,
+                forcedVersions = forcedVersions.map { case (m, v) =>
+                  (m.toCs, VersionConstraint(v))
+                },
+                logger = logger,
+                cache = cache,
+                classifiersOpt = None
               )
             }
             val linkerClassPath = linkerRes.files

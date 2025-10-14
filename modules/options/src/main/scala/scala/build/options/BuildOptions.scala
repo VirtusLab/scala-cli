@@ -492,7 +492,7 @@ final case class BuildOptions(
     val sortedExtraScalaVersions = scalaOptions0
       .extraScalaVersions
       .toVector
-      .map(coursier.core.Version(_))
+      .map(coursier.version.Version(_))
       .sorted
       .map(_.repr)
       .reverse

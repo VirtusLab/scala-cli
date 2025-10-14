@@ -138,7 +138,7 @@ object ExportDependencyFormat {
     new ExportDependencyFormat(
       dep.module.organization.value,
       ArtifactId(shortDepName, dep.module.name.value),
-      dep.version
+      dep.versionConstraint.asString
     )
   }
 

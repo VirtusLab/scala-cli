@@ -3,6 +3,7 @@ package scala.build.internal
 import coursier.cache.{ArchiveCache, ArtifactError, CacheLogger}
 import coursier.error.FetchError
 import coursier.util.{Artifact, Task}
+import coursier.version.VersionConstraint
 
 import java.util.Locale
 
@@ -45,12 +46,12 @@ object FetchExternalBinary {
           .withCache(archiveCache.cache)
           .addDependencies(params.dependencies.map(_.toCs)*)
           .mapResolutionParams { params0 =>
-            params0.addForceVersion(
-              params.forcedVersions.map { case (m, v) => m.toCs -> v }*
+            params0.addForceVersion0(
+              params.forcedVersions.map { case (m, v) => m.toCs -> VersionConstraint(v) }*
             )
           }
-          .addRepositories(params.extraRepos: _*)
-          .run()(archiveCache.cache.ec)
+          .addRepositories(params.extraRepos*)
+          .run()(using archiveCache.cache.ec)
           .map(os.Path(_, os.pwd))
         ExternalBinary.ClassPath(javaCommand(), classPath, params.mainClass)
     }
