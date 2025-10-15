@@ -54,9 +54,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |"scalaVersion":"${Constants.scala3Next}",
           |"platform":"JVM",
           |"jvmVersion":"adopt:11",
-          |"scopes": [[
-          | "main",
-          | {
+          |"scopes": {
+          | "main": {
           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "dependencies": [
           |     {
@@ -74,7 +73,7 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |]]
+          |}
           |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
@@ -112,9 +111,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |"scalaVersion":"3.2.2",
           |"platform":"Native",
           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
-          |"scopes": [[
-          | "main",
-          | {
+          |"scopes": {
+          | "main": {
           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -142,9 +140,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |     "ivy:file:.../local-repo/...",
           |     "ivy:file:.../.ivy2/local/"
           |   ]
-          | }], [
-          | "test",
-          | {
+          | },
+          | "test": {
           |   "sources":["${withEscapedBackslashes(root / "unit.test.scala")}"],
           |   "scalacOptions":["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -175,8 +172,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |   ],
           |   "resourceDirs":["${withEscapedBackslashes(root / "resources")}"],
           |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
-          | }
-          |]]
+          |  }
+          |}
           |,"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
@@ -223,9 +220,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |"platform": "JS",
           |"scalaJsVersion": "${Constants.scalaJsVersion}",
           |"jsEsVersion":"es2015",
-          |"scopes": [[
-          | "main",
-          | {
+          |"scopes": {
+          | "main": {
           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
           |   "scalacOptions": ["-Xasync"],
           |   "scalaCompilerPlugins": [
@@ -254,7 +250,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
           |     "ivy:file:.../.ivy2/local/"
           |   ]
           | }
-          |]],"scalaCliVersion":"1.1.1-SNAPSHOT"
+          |},
+          |"scalaCliVersion":"1.1.1-SNAPSHOT"
           |}
           |""".replaceAll("\\s|\\|", ""))
 

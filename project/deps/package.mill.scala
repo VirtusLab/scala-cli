@@ -123,7 +123,7 @@ object Deps {
     def coursierCli                       = coursierDefault
     def coursierPublish                   = "0.4.3"
     def jmh                               = "1.37"
-    def jsoniterScalaJava8                = "2.13.5.2"
+    def jsoniterScala                     = "2.38.3"
     def jsoup                             = "1.21.2"
     def scalaMeta                         = "4.13.9"
     def scalafmt                          = "3.9.10"
@@ -198,9 +198,9 @@ object Deps {
   def jmhCore              = mvn"org.openjdk.jmh:jmh-core:${Versions.jmh}"
   def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore         =
-    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScala}"
   def jsoniterMacros =
-    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
+    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScala}"
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
   def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"
   def metaconfigTypesafe =
