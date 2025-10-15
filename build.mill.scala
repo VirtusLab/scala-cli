@@ -17,7 +17,6 @@ import settings.{
   LocalRepo,
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
-  ScalaCliScalafixLegacyModule,
   ScalaCliScalafixModule,
   jvmPropertiesFileName,
   localRepoResourcePath,
