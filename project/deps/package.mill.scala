@@ -199,11 +199,7 @@ object Deps {
   def jniUtils             = mvn"io.get-coursier.jniutils:windows-jni-utils:0.3.3"
   def jsoniterCore         =
     mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
-  def jsoniterCoreJava8 =
-    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-core:${Versions.jsoniterScalaJava8}"
   def jsoniterMacros =
-    mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
-  def jsoniterMacrosJava8 =
     mvn"com.github.plokhotnyuk.jsoniter-scala::jsoniter-scala-macros:${Versions.jsoniterScalaJava8}"
   def jsoup              = mvn"org.jsoup:jsoup:${Versions.jsoup}"
   def libsodiumjni       = mvn"org.virtuslab.scala-cli:libsodiumjni:0.0.4"

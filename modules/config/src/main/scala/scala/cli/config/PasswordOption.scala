@@ -1,7 +1,7 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
@@ -9,7 +9,7 @@ import java.nio.file.{Files, Path, Paths}
 
 sealed abstract class PasswordOption extends Product with Serializable {
   def get(): Secret[String]
-  def getBytes(): Secret[Array[Byte]] = get().map(_.getBytes(StandardCharsets.UTF_8))
+  def getBytes: Secret[Array[Byte]] = get().map(_.getBytes(StandardCharsets.UTF_8))
   def asString: Secret[String]
 }
 
@@ -27,7 +27,7 @@ abstract class LowPriorityPasswordOption {
       Right(PasswordOption.Env(str.stripPrefix("env:")))
     else if (str.startsWith("command:["))
       try {
-        val command = readFromString(str.stripPrefix("command:"))(commandCodec)
+        val command = readFromString(str.stripPrefix("command:"))(using commandCodec)
         Right(PasswordOption.Command(command))
       }
       catch {
@@ -64,7 +64,7 @@ object PasswordOption extends LowPriorityPasswordOption {
       val value = new String(Files.readAllBytes(path), StandardCharsets.UTF_8) // trim that?
       Secret(value)
     }
-    override def getBytes(): Secret[Array[Byte]] = {
+    override def getBytes: Secret[Array[Byte]] = {
       val value = Files.readAllBytes(path)
       Secret(value)
     }
@@ -89,7 +89,7 @@ object PasswordOption extends LowPriorityPasswordOption {
 
       val p = b.start()
 
-      val is   = p.getInputStream()
+      val is   = p.getInputStream
       var read = -1
       val buf  = Array.ofDim[Byte](2048)
       val baos = new ByteArrayOutputStream
@@ -106,11 +106,11 @@ object PasswordOption extends LowPriorityPasswordOption {
           s"Error running command ${command.mkString(" ")} (exit code: $exitCode)"
         )
 
-      val res = new String(baos.toByteArray()) // Using default codec here
+      val res = new String(baos.toByteArray) // Using default codec here
       Secret(res)
     }
     def asString: Secret[String] = {
-      val json = writeToString(command.toList)(commandCodec)
+      val json = writeToString(command.toList)(using commandCodec)
       Secret(s"command:$json")
     }
   }
