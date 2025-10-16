@@ -149,11 +149,11 @@ final case class MillProject(
       parts.mkString(nl)
     }
 
-    for ((path, language, content) <- mainSources) {
+    for ((path, _, content) <- mainSources) {
       val path0 = dir / name / "src" / path
       os.write(path0, content, createFolders = true)
     }
-    for ((path, language, content) <- testSources) {
+    for ((path, _, content) <- testSources) {
       val path0 = dir / name / "test" / "src" / path
       os.write(path0, content, createFolders = true)
     }

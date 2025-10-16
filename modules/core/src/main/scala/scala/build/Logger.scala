@@ -5,6 +5,7 @@ import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.{OutputStream, PrintStream}
 
+import scala.annotation.unused
 import scala.build.errors.{BuildException, Diagnostic, Severity}
 import scala.build.internals.FeatureType
 import scala.scalanative.build as sn
@@ -49,7 +50,7 @@ trait Logger {
 
   def cliFriendlyDiagnostic(
     message: String,
-    cliFriendlyMessage: String,
+    @unused cliFriendlyMessage: String,
     severity: Severity = Severity.Warning,
     positions: Seq[Position] = Nil
   ): Unit = diagnostic(message, severity, positions)

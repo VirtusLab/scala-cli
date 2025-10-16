@@ -130,7 +130,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     // compilerMaker should be a lazy val to prevent download a JAVA 17 for bloop when users run the repl without sources
     lazy val compilerMaker = options.shared.compilerMaker(threads)
 
-    val directories = Directories.directories
+    Directories.directories
 
     def doRunRepl(
       buildOptions: BuildOptions,
@@ -145,7 +145,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         programArgs = programArgs,
         allArtifacts = allArtifacts,
         mainJarsOrClassDirs = mainJarsOrClassDirs,
-        directories = directories,
         logger = logger,
         allowExit = allowExit,
         dryRun = options.sharedRepl.replDryRun,
@@ -291,14 +290,12 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     programArgs: Seq[String],
     allArtifacts: Seq[Artifacts],
     mainJarsOrClassDirs: Seq[os.Path],
-    directories: scala.build.Directories,
     logger: Logger,
     allowExit: Boolean,
     dryRun: Boolean,
     runMode: RunMode.HasRepl,
     successfulBuilds: Seq[Build.Successful]
   ): Either[BuildException, Unit] = either {
-
     val setupPython = options.notForBloopOptions.python.getOrElse(false)
 
     val cache             = options.internal.cache.getOrElse(FileCache())
@@ -461,15 +458,15 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     }
     def ammoniteArtifacts(): Either[BuildException, ReplArtifacts] =
       ReplArtifacts.ammonite(
-        scalaParams,
-        options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
-        allArtifacts.flatMap(_.userDependencies),
-        allArtifacts.flatMap(_.extraClassPath),
-        allArtifacts.flatMap(_.extraSourceJars),
-        value(options.finalRepositories),
-        logger,
-        cache,
-        directories,
+        scalaParams = scalaParams,
+        ammoniteVersion =
+          options.notForBloopOptions.replOptions.ammoniteVersion(scalaParams.scalaVersion, logger),
+        dependencies = allArtifacts.flatMap(_.userDependencies),
+        extraClassPath = allArtifacts.flatMap(_.extraClassPath),
+        extraSourceJars = allArtifacts.flatMap(_.extraSourceJars),
+        extraRepositories = value(options.finalRepositories),
+        logger = logger,
+        cache = cache,
         addScalapy =
           if (setupPython)
             Some(options.notForBloopOptions.scalaPyVersion.getOrElse(Constants.scalaPyVersion))
@@ -477,7 +474,12 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
       ).left.map {
         case FetchingDependenciesError(e: ResolutionError.CantDownloadModule, positions)
             if shouldUseAmmonite && e.module.name.value == s"ammonite_${scalaParams.scalaVersion}" =>
-          CantDownloadAmmoniteError(e.version, scalaParams.scalaVersion, e, positions)
+          CantDownloadAmmoniteError(
+            e.versionConstraint.asString,
+            scalaParams.scalaVersion,
+            e,
+            positions
+          )
         case other => other
       }
 

@@ -535,8 +535,16 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
             case (b, 1) if b.head.scope != Scope.Main => Some(Configuration(b.head.scope.name))
             case _                                    => None
           }
-        logger.debug(s"Dependency ${dep0.module.organization}:${dep0.module.name}:${dep0.version}")
-        (dep0.module.organization, dep0.module.name, dep0.version, config, dep0.minimizedExclusions)
+        logger.debug(
+          s"Dependency ${dep0.module.organization}:${dep0.module.name}:${dep0.versionConstraint.asString}"
+        )
+        (
+          dep0.module.organization,
+          dep0.module.name,
+          dep0.versionConstraint.asString,
+          config,
+          dep0.minimizedExclusions
+        )
       }
     val url = publishOptions.url.map(_.value)
     logger.debug(s"Published project URL: ${url.getOrElse("(not set)")}")
@@ -592,14 +600,9 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
       organization = coursier.Organization(org),
       moduleName = coursier.ModuleName(moduleName),
       version = ver,
-      packaging = None,
       url = url,
-      name = Some(moduleName), // ?
       dependencies = dependencies,
       description = Some(description),
-      license = license,
-      scm = scm,
-      developers = developers,
       time = LocalDateTime.ofInstant(now, ZoneOffset.UTC),
       hasDoc = docJarOpt.isDefined,
       hasSources = sourceJarOpt.isDefined
@@ -907,13 +910,13 @@ object Publish extends ScalaCommand[PublishOptions] with BuildCommandHelpers {
 
     val isSnapshot0 = modVersionOpt.exists(_._2.endsWith("SNAPSHOT"))
     if isSnapshot0 then logger.message("Publishing a SNAPSHOT version...")
-    val authOpt0 = value(authOpt(
+    val authOpt0: Option[Authentication] = value(authOpt(
       repo = repoParams.repo.repo(isSnapshot0).root,
       isLegacySonatype = repoParams.isSonatype
     ))
     val asciiRegex        = """[\u0000-\u007f]*""".r
-    val usernameOnlyAscii = authOpt0.exists(auth => asciiRegex.matches(auth.user))
-    val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(pass => asciiRegex.matches(pass)))
+    val usernameOnlyAscii = authOpt0.exists(_.userOpt.exists(asciiRegex.matches))
+    val passwordOnlyAscii = authOpt0.exists(_.passwordOpt.exists(asciiRegex.matches))
 
     if repoParams.shouldAuthenticate && authOpt0.isEmpty then
       logger.diagnostic(

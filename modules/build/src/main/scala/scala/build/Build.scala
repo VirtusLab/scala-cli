@@ -909,7 +909,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     logger: Logger,
     artifacts: Artifacts,
@@ -929,7 +928,13 @@ object Build {
 
     val scalaCompilerParamsOpt = artifacts.scalaOpt match {
       case Some(scalaArtifacts) =>
-        val params = value(options.scalaParams).getOrElse {
+        val params = value {
+          options.scalaParams match {
+            case Left(buildException) if maybeRecoverOnError(buildException).isEmpty =>
+              Right(None) // this will effectively try to fall back to a pure Java build
+            case otherwise => otherwise
+          }
+        }.getOrElse {
           sys.error(
             "Should not happen (inconsistency between Scala parameters in BuildOptions and ScalaArtifacts)"
           )
@@ -1051,7 +1056,7 @@ object Build {
       scalaCompiler = scalaCompilerParamsOpt,
       scalaJsOptions =
         if (options.platform.value == Platform.JS)
-          Some(value(options.scalaJsOptions.config(logger)))
+          Some(value(options.scalaJsOptions.config(logger, maybeRecoverOnError)))
         else None,
       scalaNativeOptions =
         if (options.platform.value == Platform.Native)
@@ -1074,7 +1079,6 @@ object Build {
     sources: Sources,
     generatedSources: Seq[GeneratedSource],
     options: BuildOptions,
-    compilerJvmVersionOpt: Option[Positioned[Int]],
     scope: Scope,
     compiler: ScalaCompiler,
     logger: Logger,
@@ -1115,7 +1119,6 @@ object Build {
           sources,
           generatedSources,
           options0,
-          compilerJvmVersionOpt,
           scope,
           logger,
           artifacts,
@@ -1168,17 +1171,16 @@ object Build {
         case Some(error) => value(Left(error))
       }
 
-    val (classesDir0, scalaParams, artifacts, project, projectChanged) = value {
+    val (classesDir0, scalaParams, artifacts, project, _) = value {
       prepareBuild(
-        inputs,
-        sources,
-        generatedSources,
-        options,
-        compiler.jvmVersion,
-        scope,
-        compiler,
-        logger,
-        buildClient
+        inputs = inputs,
+        sources = sources,
+        generatedSources = generatedSources,
+        options = options,
+        scope = scope,
+        compiler = compiler,
+        logger = logger,
+        buildClient = buildClient
       )
     }
 

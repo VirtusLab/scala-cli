@@ -92,8 +92,8 @@ final case class Platform(
         .left.map(CompositeBuildException(_))
     }
 
-    allBuildOptions.headOption.fold(BuildOptions()) { buildOptions =>
-      val mergedBuildOptions = allBuildOptions.foldLeft(BuildOptions())(_ orElse _)
+    allBuildOptions.headOption.fold(BuildOptions()) { _ =>
+      val mergedBuildOptions = allBuildOptions.foldLeft(BuildOptions())(_.orElse(_))
       val mainPlatformOpt    =
         mergedBuildOptions.scalaOptions.platform.map(_.value) // shouldn't be empty…
       val extraPlatforms = ConfigMonoid.sum {

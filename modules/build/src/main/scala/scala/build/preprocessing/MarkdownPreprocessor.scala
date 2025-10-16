@@ -112,7 +112,6 @@ case object MarkdownPreprocessor extends Preprocessor {
       value(MarkdownCodeBlockProcessor.process(
         codeBlocks,
         reportingPath,
-        scopePath,
         suppressWarningOptions,
         logger,
         maybeRecoverOnError

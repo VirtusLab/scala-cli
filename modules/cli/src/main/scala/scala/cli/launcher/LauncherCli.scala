@@ -2,11 +2,14 @@ package scala.cli.launcher
 
 import coursier.Repositories
 import coursier.cache.FileCache
-import coursier.core.Version
 import coursier.util.{Artifact, Task}
+import coursier.version.Version
 import dependency.*
 
+import scala.build.EitherCps.{either, value}
+import scala.build.errors.BuildException
 import scala.build.internal.CsLoggerUtil.CsCacheExtensions
+import scala.build.internal.Util.safeFullDetailedArtifacts
 import scala.build.internal.{Constants, OsLibc, Runner}
 import scala.build.options.ScalaVersionUtil.fileWithTtl0
 import scala.build.options.{BuildOptions, JavaOptions}
@@ -16,62 +19,67 @@ import scala.cli.commands.shared.{CoursierOptions, LoggingOptions}
 import scala.xml.XML
 
 object LauncherCli {
-  def runAndExit(version: String, options: LauncherOptions, remainingArgs: Seq[String]): Nothing = {
-    val logger          = LoggingOptions().logger
-    val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
-    val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
-    val scalaParameters = ScalaParameters(scalaVersion)
-    val snapshotsRepo   = Seq(
-      Repositories.central,
-      Repositories.sonatype("snapshots"),
-      RepositoryUtils.snapshotsRepository,
-      RepositoryUtils.scala3NightlyRepository
-    )
-
-    val cliVersion: String =
-      if version == "nightly"
-      then resolveNightlyScalaCliVersion(cache, scalaParameters.scalaBinaryVersion)
-      else version
-    val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$cliVersion")
-
-    val fetchedScalaCli =
-      Artifacts.fetchAnyDependencies(
-        dependencies = scalaCliDependency.map(Positioned.none),
-        extraRepositories = snapshotsRepo,
-        paramsOpt = Some(scalaParameters),
-        logger = logger,
-        cache = cache.withMessage(s"Fetching ${ScalaCli.fullRunnerName} $cliVersion"),
-        classifiersOpt = None
-      ) match {
-        case Right(value) => value
-        case Left(value)  =>
-          System.err.println(value.message)
-          sys.exit(1)
-      }
-
-    val scalaCli = fetchedScalaCli.fullDetailedArtifacts.collect {
-      case (_, _, _, Some(f)) => os.Path(f, os.pwd)
-    }
-
-    val buildOptions = BuildOptions(
-      javaOptions = JavaOptions(
-        jvmIdOpt = Some(OsLibc.defaultJvm(OsLibc.jvmIndexOs)).map(Positioned.none)
+  def runAndExit(
+    version: String,
+    options: LauncherOptions,
+    remainingArgs: Seq[String]
+  ): Either[BuildException, Nothing] =
+    either {
+      val logger          = LoggingOptions().logger
+      val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
+      val scalaVersion    = options.cliScalaVersion.getOrElse(scalaCliScalaVersion(version))
+      val scalaParameters = ScalaParameters(scalaVersion)
+      val snapshotsRepo   = Seq(
+        Repositories.central,
+        Repositories.sonatype("snapshots"),
+        RepositoryUtils.snapshotsRepository,
+        RepositoryUtils.scala3NightlyRepository
       )
-    )
 
-    val exitCode =
-      Runner.runJvm(
-        javaCommand = buildOptions.javaHome().value.javaCommand,
-        javaArgs = buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
-        classPath = scalaCli,
-        mainClass = "scala.cli.ScalaCli",
-        args = remainingArgs,
-        logger = logger,
-        allowExecve = true
-      ).waitFor()
+      val cliVersion: String =
+        if version == "nightly"
+        then resolveNightlyScalaCliVersion(cache, scalaParameters.scalaBinaryVersion)
+        else version
+      val scalaCliDependency = Seq(dep"org.virtuslab.scala-cli::cli:$cliVersion")
 
-    sys.exit(exitCode)
-  }
+      val fetchedScalaCli =
+        Artifacts.fetchAnyDependencies(
+          dependencies = scalaCliDependency.map(Positioned.none),
+          extraRepositories = snapshotsRepo,
+          paramsOpt = Some(scalaParameters),
+          logger = logger,
+          cache = cache.withMessage(s"Fetching ${ScalaCli.fullRunnerName} $cliVersion"),
+          classifiersOpt = None
+        ) match {
+          case Right(value) => value
+          case Left(value)  =>
+            System.err.println(value.message)
+            sys.exit(1)
+        }
+
+      val scalaCli: Seq[os.Path] =
+        value(fetchedScalaCli.fullDetailedArtifacts0.safeFullDetailedArtifacts)
+          .collect { case (_, _, _, Some(f)) => os.Path(f, os.pwd) }
+
+      val buildOptions = BuildOptions(
+        javaOptions = JavaOptions(
+          jvmIdOpt = Some(OsLibc.defaultJvm(OsLibc.jvmIndexOs)).map(Positioned.none)
+        )
+      )
+
+      val exitCode =
+        Runner.runJvm(
+          javaCommand = buildOptions.javaHome().value.javaCommand,
+          javaArgs = buildOptions.javaOptions.javaOpts.toSeq.map(_.value.value),
+          classPath = scalaCli,
+          mainClass = "scala.cli.ScalaCli",
+          args = remainingArgs,
+          logger = logger,
+          allowExecve = true
+        ).waitFor()
+
+      sys.exit(exitCode)
+    }
 
   def scalaCliScalaVersion(cliVersion: String): String =
     if cliVersion == "nightly" then Constants.defaultScalaVersion

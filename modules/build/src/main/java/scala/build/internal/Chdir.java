@@ -1,6 +1,6 @@
 package scala.build.internal;
 
-import coursier.jvm.ErrnoException;
+import coursier.exec.ErrnoException;
 
 public final class Chdir {
 

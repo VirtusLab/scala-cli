@@ -3,6 +3,8 @@ package scala.cli.commands.package0
 import ai.kien.python.Python
 import caseapp.*
 import caseapp.core.help.HelpFormat
+import coursier.core
+import coursier.core.Resolution
 import coursier.launcher.*
 import dependency.*
 import os.{BasePathImpl, FilePath, Path, SegmentedPath}
@@ -830,7 +832,6 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
     provided: Seq[dependency.AnyModule],
     logger: Logger
   ): Either[BuildException, Seq[os.Path]] = either {
-
     logger.debug(s"${provided.length} provided dependencies")
     val res = builds.map(_.artifacts.resolution.getOrElse {
       sys.error("Internal error: expected resolution to have been kept")
@@ -841,19 +842,47 @@ object Package extends ScalaCommand[PackageOptions] with BuildCommandHelpers {
         .sequence
         .left.map(CompositeBuildException(_))
     }
-    val modulesSet   = modules.toSet
-    val providedDeps = res
-      .flatMap(_.dependencyArtifacts.map(_._1))
-      .filter(dep => modulesSet.contains(dep.module))
-    val providedRes = res.map(_.subset(providedDeps))
-    val fileMap     = builds.flatMap(_.artifacts.detailedRuntimeArtifacts).distinct
+    val modulesSet                         = modules.toSet
+    val providedDeps: Seq[core.Dependency] = value {
+      res
+        .map(_.dependencyArtifacts0.safeArtifacts.map(_.map(_._1)))
+        .sequence
+        .left
+        .map(CompositeBuildException(_))
+        .map(_.flatten.filter(dep => modulesSet.contains(dep.module)))
+    }
+    val providedRes: Seq[Resolution] = value {
+      res
+        .map(_.subset0(providedDeps).left.map(CoursierDependencyError(_)))
+        .sequence
+        .left
+        .map(CompositeBuildException(_))
+    }
+    val fileMap = builds.flatMap(_.artifacts.detailedRuntimeArtifacts).distinct
       .map { case (_, _, artifact, path) => artifact -> path }
       .toMap
-    val providedFiles = providedRes
-      .flatMap(r => coursier.Artifacts.artifacts(r, Set.empty, None, None, true))
-      .distinct
-      .map(_._3)
-      .map(a => fileMap.getOrElse(a, sys.error(s"should not happen (missing: $a)")))
+    val providedFiles: Seq[os.Path] = value {
+      providedRes
+        .map(r =>
+          coursier.Artifacts.artifacts0(
+            resolution = r,
+            classifiers = Set.empty,
+            attributes = Seq.empty,
+            mainArtifactsOpt = None,
+            artifactTypesOpt = None,
+            classpathOrder = true
+          ).safeArtifacts
+        )
+        .sequence
+        .left
+        .map(CompositeBuildException(_))
+        .map {
+          _.flatten
+            .distinct
+            .map(_._3)
+            .map(a => fileMap.getOrElse(a, sys.error(s"should not happen (missing: $a)")))
+        }
+    }
     logger.debug {
       val it = Iterator(s"${providedFiles.size} provided JAR(s)") ++
         providedFiles.toVector.map(_.toString).sorted.iterator.map(f => s"  $f")

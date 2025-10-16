@@ -26,7 +26,7 @@ class BspServer(
     with JavaBuildServerForwardStubs
     with JvmBuildServerForwardStubs
     with HasGeneratedSourcesImpl {
-  private var client: Option[BuildClient] = None
+  private val client: Option[BuildClient] = None
 
   @volatile private var intelliJ: Boolean = presetIntelliJ
   def isIntelliJ: Boolean                 = intelliJ

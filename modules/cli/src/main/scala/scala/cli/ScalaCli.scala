@@ -1,7 +1,7 @@
 package scala.cli
 
 import bloop.rifle.FailedToStartServerException
-import coursier.core.Version
+import coursier.version.Version
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
 import java.util.Locale
 
+import scala.build.EitherCps.{either, value}
 import scala.build.internal.Constants
 import scala.build.internals.EnvVar
 import scala.cli.commands.CommandUtils
@@ -69,7 +70,7 @@ object ScalaCli {
 
   private def partitionArgs(args: Array[String]): (Array[String], Array[String]) = {
     val systemProps = args.takeWhile(_.startsWith("-D"))
-    (systemProps, args.drop(systemProps.size))
+    (systemProps, args.drop(systemProps.length))
   }
 
   private def setSystemProps(systemProps: Array[String]): Unit = {
@@ -204,7 +205,7 @@ object ScalaCli {
     // load java properties from config
     for {
       configDb   <- ConfigDbUtils.configDb.toOption
-      properties <- configDb.get(Keys.javaProperties).getOrElse(Nil)
+      properties <- configDb.get(Keys.javaProperties).getOrElse(Nil).iterator
     }
       properties.foreach { opt =>
         opt.stripPrefix("-D").split("=", 2) match {
@@ -235,76 +236,78 @@ object ScalaCli {
       )
   }
 
-  private def main0(args: Array[String]): Unit = {
+  private def main0(args: Array[String]): Unit = either {
     loadJavaProperties(cwd = os.pwd) // load java properties to detect launcher kind
-    val remainingArgs = LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
-      case Left(e) =>
-        System.err.println(e.message)
-        sys.exit(1)
-      case Right((launcherOpts, args0)) =>
-        maybeLauncherOptions = Some(launcherOpts)
-        launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
-          case Some(ver) =>
-            val powerArgs              = launcherOpts.powerOptions.toCliArgs
-            val initialScalaRunnerArgs = launcherOpts.scalaRunner
-            val finalScalaRunnerArgs   = (Version(ver) match
-              case v if v < Version("1.4.0") && !ver.contains("nightly") =>
-                initialScalaRunnerArgs.copy(
-                  skipCliUpdates = None,
-                  predefinedCliVersion = None,
-                  initialLauncherPath = None
-                )
-              case v
-                  if v < Version("1.5.0-34-g31a88e428-SNAPSHOT") && v < Version("1.5.1") &&
-                  !ver.contains("nightly") =>
-                initialScalaRunnerArgs.copy(
-                  predefinedCliVersion = None,
-                  initialLauncherPath = None
-                )
-              case _ if initialScalaRunnerArgs.initialLauncherPath.nonEmpty =>
-                initialScalaRunnerArgs
-              case _ =>
-                initialScalaRunnerArgs.copy(
-                  predefinedCliVersion = Some(ver),
-                  initialLauncherPath = Some(CommandUtils.getAbsolutePathToScalaCli(progName))
-                )
-            ).toCliArgs
-            val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
-            LauncherCli.runAndExit(ver, launcherOpts, newArgs)
-          case _ if
-                javaMajorVersion < Constants.minimumLauncherJavaVersion
-                && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
-            System.err.println(
-              s"[${Console.RED}error${Console.RESET}] Java $javaMajorVersion is not supported with this Scala CLI (JVM) launcher."
-            )
-            System.err.println(
-              s"[${Console.RED}error${Console.RESET}] Please upgrade to at least Java ${Constants.minimumLauncherJavaVersion} or use a native Scala CLI launcher instead."
-            )
-            sys.exit(1)
-          case _ if
-                javaMajorVersion >= Constants.minimumLauncherJavaVersion
-                && javaMajorVersion < Constants.minimumBloopJavaVersion
-                && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
-            JavaLauncherCli.runAndExit(args)
-          case None =>
-            launcherOpts.scalaRunner.progName
-              .foreach(pn => progName = pn)
-            if launcherOpts.powerOptions.power then
-              isSipScala = false
-              args0.toArray
-            else
-              // Parse again to register --power at any position
-              // Don't consume it, GlobalOptions parsing will do it
-              PowerOptions.parser.ignoreUnrecognized.parse(args0) match {
-                case Right((powerOptions, _)) =>
-                  if powerOptions.power then
-                    isSipScala = false
-                  args0.toArray
-                case Left(e) =>
-                  System.err.println(e.message)
-                  sys.exit(1)
-              }
-        }
+    val remainingArgs = value {
+      LauncherOptions.parser.stopAtFirstUnrecognized.parse(args.toVector) match {
+        case Left(e) =>
+          System.err.println(e.message)
+          sys.exit(1)
+        case Right((launcherOpts, args0)) =>
+          maybeLauncherOptions = Some(launcherOpts)
+          launcherOpts.cliVersion.map(_.trim).filter(_.nonEmpty) match {
+            case Some(ver) =>
+              val powerArgs              = launcherOpts.powerOptions.toCliArgs
+              val initialScalaRunnerArgs = launcherOpts.scalaRunner
+              val finalScalaRunnerArgs   = (Version(ver) match
+                case v if v < Version("1.4.0") && !ver.contains("nightly") =>
+                  initialScalaRunnerArgs.copy(
+                    skipCliUpdates = None,
+                    predefinedCliVersion = None,
+                    initialLauncherPath = None
+                  )
+                case v
+                    if v < Version("1.5.0-34-g31a88e428-SNAPSHOT") && v < Version("1.5.1") &&
+                    !ver.contains("nightly") =>
+                  initialScalaRunnerArgs.copy(
+                    predefinedCliVersion = None,
+                    initialLauncherPath = None
+                  )
+                case _ if initialScalaRunnerArgs.initialLauncherPath.nonEmpty =>
+                  initialScalaRunnerArgs
+                case _ =>
+                  initialScalaRunnerArgs.copy(
+                    predefinedCliVersion = Some(ver),
+                    initialLauncherPath = Some(CommandUtils.getAbsolutePathToScalaCli(progName))
+                  )
+              ).toCliArgs
+              val newArgs = powerArgs ++ finalScalaRunnerArgs ++ args0
+              LauncherCli.runAndExit(ver, launcherOpts, newArgs)
+            case _ if
+                  javaMajorVersion < Constants.minimumLauncherJavaVersion
+                  && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
+              System.err.println(
+                s"[${Console.RED}error${Console.RESET}] Java $javaMajorVersion is not supported with this Scala CLI (JVM) launcher."
+              )
+              System.err.println(
+                s"[${Console.RED}error${Console.RESET}] Please upgrade to at least Java ${Constants.minimumLauncherJavaVersion} or use a native Scala CLI launcher instead."
+              )
+              sys.exit(1)
+            case _ if
+                  javaMajorVersion >= Constants.minimumLauncherJavaVersion
+                  && javaMajorVersion < Constants.minimumBloopJavaVersion
+                  && sys.props.get("scala-cli.kind").exists(_.startsWith("jvm")) =>
+              JavaLauncherCli.runAndExit(args.toSeq)
+            case None =>
+              launcherOpts.scalaRunner.progName
+                .foreach(pn => progName = pn)
+              if launcherOpts.powerOptions.power then
+                isSipScala = false
+                Right(args0.toArray)
+              else
+                // Parse again to register --power at any position
+                // Don't consume it, GlobalOptions parsing will do it
+                PowerOptions.parser.ignoreUnrecognized.parse(args0) match {
+                  case Right((powerOptions, _)) =>
+                    if powerOptions.power then
+                      isSipScala = false
+                    Right(args0.toArray)
+                  case Left(e) =>
+                    System.err.println(e.message)
+                    sys.exit(1)
+                }
+          }
+      }
     }
     val (systemProps, scalaCliArgs) = partitionArgs(remainingArgs)
     if systemProps.nonEmpty then launcherJavaPropArgs = systemProps.toList

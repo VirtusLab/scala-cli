@@ -7,8 +7,8 @@ import caseapp.core.help.Help
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
 import coursier.cache.FileCache
-import coursier.core.Version
 import coursier.util.Task
+import coursier.version.Version
 import dependency.AnyDependency
 import dependency.parser.DependencyParser
 

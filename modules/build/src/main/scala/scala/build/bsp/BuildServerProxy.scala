@@ -63,10 +63,12 @@ class BuildServerProxy(
   override def buildTargetScalacOptions(params: b.ScalacOptionsParams)
     : CompletableFuture[b.ScalacOptionsResult] = bspServer().buildTargetScalacOptions(params)
 
+  @deprecated
   override def buildTargetScalaTestClasses(params: b.ScalaTestClassesParams)
     : CompletableFuture[b.ScalaTestClassesResult] =
     bspServer().buildTargetScalaTestClasses(params)
 
+  @deprecated
   override def buildTargetScalaMainClasses(params: b.ScalaMainClassesParams)
     : CompletableFuture[b.ScalaMainClassesResult] =
     bspServer().buildTargetScalaMainClasses(params)

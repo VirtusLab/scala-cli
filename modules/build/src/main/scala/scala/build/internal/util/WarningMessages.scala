@@ -21,7 +21,7 @@ object WarningMessages {
         val distinctFeatureTypes                  = namesAndTypes.map(_._2).distinct
         val (bulletPointList, featureNameToPrint) = if (distinctFeatureTypes.size == 1)
           (
-            namesAndTypes.map((name, fType) => s" - `$name`")
+            namesAndTypes.map((name, _) => s" - `$name`")
               .mkString(nl),
             s"${distinctFeatureTypes.head}s" // plural form
           )

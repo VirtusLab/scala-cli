@@ -2,6 +2,7 @@ package scala.build.internal
 
 import java.util.function.Supplier
 
+import scala.annotation.unused
 import scala.build.Logger
 
 /** On the JVM, provides [[JavaParserProxyJvm]] as [[JavaParserProxy]] instance.
@@ -18,10 +19,10 @@ import scala.build.Logger
   */
 class JavaParserProxyMaker {
   def get(
-    archiveCache: Object, // Actually a ArchiveCache[Task], but having issues with the higher-kind type param from Java…
-    javaClassNameVersionOpt: Option[String],
-    logger: Logger,
-    javaCommand: Supplier[String]
+    @unused archiveCache: Object, // Actually a ArchiveCache[Task], but having issues with the higher-kind type param from Java…
+    @unused javaClassNameVersionOpt: Option[String],
+    @unused logger: Logger,
+    @unused javaCommand: Supplier[String]
   ): JavaParserProxy =
     new JavaParserProxyJvm
 }

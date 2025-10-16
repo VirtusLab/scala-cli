@@ -106,8 +106,16 @@ final case class ScalaJsOptions(
 
   def finalVersion = version.map(_.trim).filter(_.nonEmpty).getOrElse(Constants.scalaJsVersion)
 
-  private def configUnsafe(logger: Logger): Either[BuildException, BloopConfig.JsConfig] = for {
-    isFullOpt <- fullOpt
+  private def configUnsafe(
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException]
+  ): Either[BuildException, BloopConfig.JsConfig] = for {
+    isFullOpt <- {
+      fullOpt match {
+        case Left(be) if maybeRecoverOnError(be).isEmpty => Right(false)
+        case otherwise                                   => otherwise
+      }
+    }
   } yield {
     val kind = moduleKind(logger) match {
       case ScalaJsLinkerConfig.ModuleKind.CommonJSModule => BloopConfig.ModuleKindJS.CommonJSModule
@@ -130,8 +138,11 @@ final case class ScalaJsOptions(
     )
   }
 
-  def config(logger: Logger): Either[BuildException, BloopConfig.JsConfig] =
-    configUnsafe(logger)
+  def config(
+    logger: Logger,
+    maybeRecoverOnError: BuildException => Option[BuildException] = e => Some(e)
+  ): Either[BuildException, BloopConfig.JsConfig] =
+    configUnsafe(logger, maybeRecoverOnError)
 
   def linkerConfig(logger: Logger): ScalaJsLinkerConfig = {
     val esFeatureDefaults = ScalaJsLinkerConfig.ESFeatures()

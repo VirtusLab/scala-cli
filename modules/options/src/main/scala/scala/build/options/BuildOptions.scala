@@ -288,26 +288,26 @@ final case class BuildOptions(
   lazy val scalaParams: Either[BuildException, Option[ScalaParameters]] = either {
     val params =
       if EnvVar.Internal.ci.valueOpt.isEmpty then
-        computeScalaParams(Constants.version, finalCache, value(finalRepositories)).orElse(
+        computeScalaParams(
+          cache = finalCache,
+          repositories = value(finalRepositories)
+        ).orElse {
           // when the passed scala version is missed in the cache, we always force a cache refresh
           // https://github.com/VirtusLab/scala-cli/issues/1090
           computeScalaParams(
-            Constants.version,
-            finalCache.withTtl(0.seconds),
-            value(finalRepositories)
+            cache = finalCache.withTtl(0.seconds),
+            repositories = value(finalRepositories)
           )
-        )
+        }
       else
         computeScalaParams(
-          Constants.version,
-          finalCache.withTtl(0.seconds),
-          value(finalRepositories)
+          cache = finalCache.withTtl(0.seconds),
+          repositories = value(finalRepositories)
         )
     value(params)
   }
 
   private[build] def computeScalaParams(
-    scalaCliVersion: String,
     cache: FileCache[Task] = finalCache,
     repositories: Seq[Repository] = Nil
   ): Either[BuildException, Option[ScalaParameters]] = either {

@@ -29,11 +29,10 @@ object HasHashData:
   inline given derive[T](using m: Mirror.ProductOf[T]): HasHashData[T] =
     inline m match
       case p: Mirror.ProductOf[T] =>
-        new HasHashData[T]:
-          def add(prefix: String, main: T, update: String => Unit): Unit =
-            val labels =
-              constValueTuple[p.MirroredElemLabels].productIterator.toList.map(_.toString)
-            doAdd[m.MirroredElemTypes, T](0, main, prefix, labels, update)
+        (prefix: String, main: T, update: String => Unit) =>
+          val labels =
+            constValueTuple[p.MirroredElemLabels].productIterator.toList.map(_.toString)
+          doAdd[m.MirroredElemTypes, T](0, main, prefix, labels, update)
 
   given asIs[T](using hasher: HashedType[T]): HasHashData[T] =
     (prefix, t, update) => update(s"$prefix=${hasher.hashedValue(t)}")

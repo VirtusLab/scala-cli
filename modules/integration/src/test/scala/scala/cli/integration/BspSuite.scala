@@ -167,7 +167,7 @@ trait BspSuite { _: ScalaCliSuite =>
         proc.join(2.seconds.toMillis)
         proc.destroy()
         proc.join(2.seconds.toMillis)
-        proc.destroyForcibly()
+        proc.destroy(shutdownGracePeriod = 0)
       }
     }
 

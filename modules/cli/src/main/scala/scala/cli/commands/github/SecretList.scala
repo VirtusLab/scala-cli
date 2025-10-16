@@ -32,18 +32,22 @@ object SecretList extends ScalaCommand[SecretListOptions] {
     backend: SttpBackend[Identity, Any],
     logger: Logger
   ): Either[GitHubApiError, GitHubApi.SecretList] = either {
-
     // https://docs.github.com/en/rest/reference/actions#list-repository-secrets
+    val uri = uri"https://api.github.com/repos/$repoOrg/$repoName/actions/secrets"
+    logger.debug(s"Listing secrets: attempting request: $uri")
     val r = basicRequest
-      .get(uri"https://api.github.com/repos/$repoOrg/$repoName/actions/secrets")
+      .get(uri)
       .header("Authorization", s"token ${token.value}")
       .header("Accept", "application/vnd.github.v3+json")
       .send(backend)
 
-    if (r.code.code != 200)
-      value(Left(new GitHubApiError(
-        s"Unexpected status code ${r.code.code} in response when listing secrets of $repoOrg/$repoName"
-      )))
+    if r.code.code != 200 then
+      value {
+        Left(new GitHubApiError(
+          s"Unexpected status code ${r.code.code} in response when listing secrets of $repoOrg/$repoName"
+        ))
+      }
+    else logger.debug("Listing secrets: request successful")
 
     // FIXME Paging
 
@@ -55,7 +59,7 @@ object SecretList extends ScalaCommand[SecretListOptions] {
         )))
       case Right(value) => value
     }
-    readFromString(body)(GitHubApi.secretListCodec)
+    readFromString(body)(using GitHubApi.secretListCodec)
   }
 
   override def runCommand(

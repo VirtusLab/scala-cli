@@ -4,7 +4,7 @@ import caseapp.*
 import caseapp.core.help.HelpFormat
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import com.github.plokhotnyuk.jsoniter_scala.macros.*
-import coursier.core
+import coursier.version.Version
 
 import java.net.{HttpURLConnection, URL, URLConnection}
 import java.nio.charset.StandardCharsets
@@ -30,8 +30,8 @@ object Update extends ScalaCommand[UpdateOptions] {
     prerelease: Boolean,
     tag_name: String
   ) {
-    lazy val version: core.Version =
-      coursier.core.Version(tag_name.stripPrefix("v"))
+    lazy val version: Version =
+      Version(tag_name.stripPrefix("v"))
     def actualRelease: Boolean =
       !draft && !prerelease
   }
@@ -47,8 +47,8 @@ object Update extends ScalaCommand[UpdateOptions] {
         tokenOpt.toSeq.map(tk => "Authorization" -> s"token ${tk.value}")
 
     try {
-      val resp = download(url, headers: _*)
-      readFromArray(resp)(releaseListCodec).filter(_.actualRelease)
+      val resp = download(url, headers*)
+      readFromArray(resp)(using releaseListCodec).filter(_.actualRelease)
         .maxByOption(_.version)
         .map(_.version.repr)
         .toRight(CheckScalaCliVersionError(s"No $fullRunnerName versions found in $url"))

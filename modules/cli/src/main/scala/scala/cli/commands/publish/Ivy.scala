@@ -1,8 +1,7 @@
 package scala.cli.commands.publish
 
-import coursier.core.{Configuration, MinimizedExclusions, ModuleName, Organization, Type}
+import coursier.core.{Configuration, MinimizedExclusions, ModuleName, Organization}
 import coursier.publish.Pom
-import coursier.publish.Pom.{Developer, License, Scm}
 
 import java.time.format.DateTimeFormatterBuilder
 import java.time.temporal.ChronoField
@@ -26,10 +25,10 @@ object Ivy {
     organization: Organization,
     moduleName: ModuleName,
     version: String,
-    packaging: Option[Type] = None,
+    // TODO: packaging: Option[Type] = None,
     description: Option[String] = None,
     url: Option[String] = None,
-    name: Option[String] = None,
+    // TODO: name: Option[String] = None,
     // TODO Accept full-fledged coursier.Dependency
     dependencies: Seq[(
       Organization,
@@ -38,9 +37,9 @@ object Ivy {
       Option[Configuration],
       MinimizedExclusions
     )] = Nil,
-    license: Option[License] = None,
-    scm: Option[Scm] = None,
-    developers: Seq[Developer] = Nil,
+    // TODO: license: Option[License] = None,
+    // TODO: scm: Option[Scm] = None,
+    // TODO: developers: Seq[Developer] = Nil,
     time: LocalDateTime = LocalDateTime.now(ZoneOffset.UTC),
     hasPom: Boolean = true,
     hasDoc: Boolean = true,
