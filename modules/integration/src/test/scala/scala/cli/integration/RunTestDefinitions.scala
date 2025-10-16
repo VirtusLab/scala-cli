@@ -2426,7 +2426,11 @@ abstract class RunTestDefinitions
         val res = os.proc(TestUtil.cli, "run", ".", "--runner", extraOptions)
           .call(cwd = root, stderr = os.Pipe)
         expect(res.out.trim() == expectedMessage)
-        expect(!res.err.trim().contains(legacyRunnerWarning))
+        val legacyWarningCheck = {
+          val check = res.err.trim().contains(legacyRunnerWarning)
+          if (actualScalaVersion.startsWith("2")) check else !check
+        }
+        expect(legacyWarningCheck)
       }
   }
 

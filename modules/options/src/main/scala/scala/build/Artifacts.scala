@@ -146,12 +146,18 @@ object Artifacts {
       scalaVersion = scalaParams.scalaVersion
     } yield scalaVersion).getOrElse(defaultScalaVersion)
 
-    val shouldUseLegacyRunners =
+    val shouldUseLegacyScala3Runners =
       scalaVersion.startsWith("3") &&
       scalaVersion.coursierVersion < s"$scala3LtsPrefix.0".coursierVersion
+    val shouldUseLegacyScala2Runners = scalaVersion.startsWith("2")
+    val shouldUseLegacyRunners       = shouldUseLegacyScala2Runners || shouldUseLegacyScala3Runners
 
     val jvmTestRunnerDependencies =
       if addJvmTestRunner then {
+        val runnerLegacyVersion =
+          if scalaVersion.startsWith("3")
+          then runnerScala30LegacyVersion
+          else runnerScala2LegacyVersion
         val testRunnerVersion0 =
           if shouldUseLegacyRunners then {
             logger.message(
@@ -471,6 +477,10 @@ object Artifacts {
               else Nil
             val runnerVersion0 =
               if shouldUseLegacyRunners then {
+                val runnerLegacyVersion =
+                  if shouldUseLegacyScala3Runners
+                  then runnerScala30LegacyVersion
+                  else runnerScala2LegacyVersion
                 logger.message(
                   s"""$warnPrefix Scala $scalaVersion is no longer supported by the runner module.
                      |$warnPrefix Defaulting to a legacy runner module version: $runnerLegacyVersion.

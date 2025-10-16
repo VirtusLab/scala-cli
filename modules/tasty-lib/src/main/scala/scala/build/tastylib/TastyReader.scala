@@ -16,14 +16,14 @@ package scala.build.tastylib
 
 import java.io.OutputStream
 
-import scala.build.tastylib.TastyBuffer._
+import scala.build.tastylib.TastyBuffer.*
 import scala.collection.mutable
 
 class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base: Int = 0) {
 
   def this(bytes: Array[Byte]) = this(bytes, 0, bytes.length)
 
-  private[this] var bp: Int = start
+  private var bp: Int = start
 
   def pos: Int                  = bp
   def read: TastyReader.Bytes   = TastyReader.Bytes(bytes, start, bp)
@@ -50,7 +50,7 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
   def readNat(): Int = readLongNat().toInt
   def readInt(): Int = readLongInt().toInt
 
-  def readLongNat(): Long = {
+  private def readLongNat(): Long = {
     var b = 0L
     var x = 0L
     while ({
@@ -62,7 +62,7 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
     x
   }
 
-  def readLongInt(): Long = {
+  private def readLongInt(): Long = {
     var b       = bytes(bp)
     var x: Long = (b << 1).toByte >> 1
     bp += 1
@@ -95,6 +95,7 @@ class TastyReader(val bytes: Array[Byte], val start: Int, val end: Int, val base
   }
 
   def doUntil(end: Addr)(op: => Unit): Unit = {
+    // noinspection LoopVariableNotUpdated
     while (bp < index(end)) op
     assert(bp == index(end))
   }

@@ -1,6 +1,6 @@
 package scala.build.testrunner
 
-import sbt.testing.{Logger => SbtTestLogger, _}
+import sbt.testing.{Logger as SbtTestLogger, *}
 
 import java.io.{File, PrintStream}
 import java.nio.file.{Path, Paths}
@@ -21,8 +21,8 @@ object TestRunner {
   )
 
   def classPath(loader: ClassLoader): Seq[Path] = {
-    def helper(loader: ClassLoader): Stream[Path] =
-      if (loader == null) Stream.empty
+    def helper(loader: ClassLoader): LazyList[Path] =
+      if (loader == null) LazyList.empty
       else {
         val paths = loader match {
           case u: java.net.URLClassLoader =>
@@ -32,14 +32,14 @@ object TestRunner {
                   Seq(Paths.get(url.toURI).toAbsolutePath)
                 case _ => Nil // FIXME Warn about this
               }
-              .toStream
+              .to(LazyList)
           case cl if cl.getClass.getName == "jdk.internal.loader.ClassLoaders$AppClassLoader" =>
             // Required with JDK-11
             sys.props.getOrElse("java.class.path", "")
               .split(File.pathSeparator)
-              .toStream
+              .to(LazyList)
               .map(Paths.get(_))
-          case _ => Stream.empty // FIXME Warn about this
+          case _ => LazyList.empty // FIXME Warn about this
         }
         paths #::: helper(loader.getParent)
       }

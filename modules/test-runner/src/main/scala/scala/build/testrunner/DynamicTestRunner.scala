@@ -1,11 +1,11 @@
 package scala.build.testrunner
 
-import sbt.testing.{Logger => _, _}
+import sbt.testing.{Logger as _, *}
 
 import java.util.regex.Pattern
 
 import scala.annotation.tailrec
-import scala.build.testrunner.FrameworkUtils._
+import scala.build.testrunner.FrameworkUtils.*
 
 object DynamicTestRunner {
 
@@ -134,7 +134,7 @@ object DynamicTestRunner {
                 new TaskDef(cls.getName.stripSuffix("$"), fp, false, Array(new SuiteSelector))
             }
             .toVector
-          val initialTasks = runner.tasks(taskDefs.toArray)
+          val initialTasks = runner.tasks(taskDefs.toArray).toSeq
           val events       = TestRunner.runTasks(initialTasks, out)
           val failed       = events.exists { ev =>
             ev.status == Status.Error ||

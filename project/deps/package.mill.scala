@@ -3,7 +3,9 @@ import mill._
 import scalalib._
 
 object Cli {
-  def runnerLegacyVersion = "1.7.1" // last runner version to support pre-LTS Scala 3 versions
+  def runnerScala30LegacyVersion =
+    "1.7.1" // last runner version to support pre-LTS Scala 3 versions
+  def runnerScala2LegacyVersion = "1.9.1" // last runner version to support pre-Scala-3 versions
 }
 
 object Scala {
@@ -30,8 +32,7 @@ object Scala {
   val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = runnerScala3 +: allScala2
-  val testRunnerScalaVersions = (runnerScalaVersions ++ allScala3).distinct
+  val runnerScalaVersions = Seq(runnerScala3, scala213)
 
   def scalaJs    = "1.20.1"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version

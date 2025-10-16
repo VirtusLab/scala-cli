@@ -1593,7 +1593,7 @@ jobs:
     - name: Print version
       run: ./mill -i show project.publish.finalPublishVersion
     - name: Publish to Sonatype Central
-      run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts '{__[],_,test-runner[2.13.17],test-runner[2.12.20],runner[2.13.17],runner[2.12.20]}.publishArtifacts'
+      run: ./mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts '{__[],_}.publishArtifacts'
       if: env.SHOULD_PUBLISH == 'true'
       env:
         MILL_PGP_SECRET_BASE64: ${{ secrets.PGP_SECRET }}
