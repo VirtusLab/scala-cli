@@ -814,13 +814,6 @@ trait ScalaCliScalafixModule extends ScalafixModule {
   }
 }
 
-// meant to be used with modules which still have to be cross-compiled on Scala 2.12
-trait ScalaCliScalafixLegacyModule extends ScalaCliScalafixModule {
-  override def scalafixConfig: T[Option[os.Path]] = Task {
-    Some(Task.workspace / ".scalafix.legacy.conf")
-  }
-}
-
 trait ScalaCliCrossSbtModule extends CrossSbtModule with ScalaCliModule
 
 trait ScalaCliModule extends ScalaModule {

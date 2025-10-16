@@ -1,12 +1,11 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
-import com.github.plokhotnyuk.jsoniter_scala.macros._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
+import com.github.plokhotnyuk.jsoniter_scala.macros.*
 
 import scala.cli.commands.SpecificationLevel
-import scala.cli.config.PublishCredentialsAsJson._
-import scala.cli.config.RepositoryCredentialsAsJson._
-import scala.cli.config.Util._ // only used in 2.12, unused import in 2.13
+import scala.cli.config.PublishCredentialsAsJson.*
+import scala.cli.config.RepositoryCredentialsAsJson.*
 
 /** A configuration key
   */
@@ -73,7 +72,7 @@ object Key {
       extends EntryError("Error parsing config JSON", Some(cause))
 
   final class MalformedValue(
-    entry: Key[_],
+    entry: Key[?],
     input: Seq[String],
     messageOrExpectedShape: Either[String, String],
     cause: Option[Throwable] = None
@@ -89,7 +88,7 @@ object Key {
       )
 
   private final class MalformedEntry(
-    entry: Key[_],
+    entry: Key[?],
     messages: ::[String]
   ) extends EntryError(
         s"Malformed entry ${entry.fullName}, " +
@@ -153,7 +152,7 @@ object Key {
   ) extends Key[PasswordOption] {
     def parse(json: Array[Byte]): Either[EntryError, PasswordOption] =
       try {
-        val str = readFromArray(json)(stringJsonCodec)
+        val str = readFromArray(json)(using stringJsonCodec)
         PasswordOption.parse(str).left.map { e =>
           new MalformedValue(this, Seq(str), Right(e))
         }
@@ -163,7 +162,7 @@ object Key {
           Left(new JsonReaderError(e))
       }
     def write(value: PasswordOption): Array[Byte] =
-      writeToArray(value.asString.value)(stringJsonCodec)
+      writeToArray(value.asString.value)(using stringJsonCodec)
     def asString(value: PasswordOption): Seq[String] = Seq(value.asString.value)
     def fromString(values: Seq[String]): Either[MalformedValue, PasswordOption] =
       values match {

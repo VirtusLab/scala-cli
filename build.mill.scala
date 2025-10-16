@@ -17,7 +17,6 @@ import settings.{
   LocalRepo,
   PublishLocalNoFluff,
   ScalaCliCrossSbtModule,
-  ScalaCliScalafixLegacyModule,
   ScalaCliScalafixModule,
   jvmPropertiesFileName,
   localRepoResourcePath,
@@ -94,11 +93,11 @@ object cliBootstrapped extends ScalaCliPublishModule {
   }
 }
 
-object `specification-level` extends Cross[SpecificationLevel](Scala.all)
+object `specification-level` extends Cross[SpecificationLevel](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object `build-macros` extends Cross[BuildMacros](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object config     extends Cross[Config](Scala.all) with CrossScalaDefaultToInternal
+object config     extends Cross[Config](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
 object options    extends Cross[Options](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
 object directives extends Cross[Directives](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
@@ -648,27 +647,9 @@ trait Config extends ScalaCliCrossSbtModule
   override def crossScalaVersion: String                     = crossValue
   override def moduleDeps: Seq[SonatypeCentralPublishModule] =
     Seq(`specification-level`(crossScalaVersion))
-  override def ivyDeps: T[Agg[Dep]] = {
-    val maybeCollectionCompat =
-      if (crossScalaVersion.startsWith("2.12.")) Seq(Deps.collectionCompat)
-      else Nil
-    super.ivyDeps() ++ maybeCollectionCompat ++ Agg(
-      Deps.jsoniterCoreJava8
-    )
-  }
-  override def compileIvyDeps: T[Agg[Dep]] = super.compileIvyDeps() ++ Agg(
-    Deps.jsoniterMacrosJava8
-  )
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ Seq("-release", "8")
-  }
-
-  // Disabling Scalafix in 2.13 and 3, so that it doesn't remove
-  // some compatibility-related imports, that are actually only used
-  // in Scala 2.12.
-  override def fix(args: String*): Command[Unit] =
-    if (crossScalaVersion.startsWith("2.12.")) super.fix(args: _*)
-    else Task.Command(())
+  override def ivyDeps: T[Agg[Dep]]          = super.ivyDeps() ++ Agg(Deps.jsoniterCore)
+  override def compileIvyDeps: T[Agg[Dep]]   = super.compileIvyDeps() ++ Agg(Deps.jsoniterMacros)
+  override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq("-deprecation")
 }
 
 trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with HasTests

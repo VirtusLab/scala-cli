@@ -1,6 +1,6 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core.{Key => _}
+import com.github.plokhotnyuk.jsoniter_scala.core.Key as _
 
 import scala.cli.commands.SpecificationLevel
 
@@ -142,7 +142,7 @@ object Keys {
   )
 
   // Kept for binary compatibility
-  val repositoriesMirrors = repositoryMirrors
+  val repositoriesMirrors: Key.StringListEntry = repositoryMirrors
 
   // setting indicating if the global interactive mode was suggested
   val globalInteractiveWasSuggested = new Key.BooleanEntry(
@@ -169,7 +169,7 @@ object Keys {
       "Publishing credentials, syntax: repositoryAddress value:user value:password [realm]"
   )
 
-  def all: Seq[Key[_]] = Seq[Key[_]](
+  def all: Seq[Key[?]] = Seq[Key[?]](
     actions,
     defaultRepositories,
     ghToken,
@@ -194,5 +194,5 @@ object Keys {
     userName,
     userUrl
   )
-  lazy val map: Map[String, Key[_]] = all.map(e => e.fullName -> e).toMap
+  lazy val map: Map[String, Key[?]] = all.map(e => e.fullName -> e).toMap
 }

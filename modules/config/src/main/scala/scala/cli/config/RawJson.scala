@@ -1,9 +1,9 @@
 package scala.cli.config
 
-import com.github.plokhotnyuk.jsoniter_scala.core._
+import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 import java.nio.charset.StandardCharsets
-import java.util.Arrays
+import java.util
 
 import scala.util.Try
 import scala.util.hashing.MurmurHash3
@@ -12,7 +12,7 @@ import scala.util.hashing.MurmurHash3
 private[config] final case class RawJson(value: Array[Byte]) {
   override lazy val hashCode: Int        = MurmurHash3.arrayHash(value)
   override def equals(obj: Any): Boolean = obj match {
-    case that: RawJson => Arrays.equals(value, that.value)
+    case that: RawJson => util.Arrays.equals(value, that.value)
     case _             => false
   }
   override def toString: String =
