@@ -37,6 +37,7 @@ object Ivy {
       Option[Configuration],
       MinimizedExclusions
     )] = Nil,
+    // https://github.com/VirtusLab/scala-cli/issues/3914
     // TODO: license: Option[License] = None,
     // TODO: scm: Option[Scm] = None,
     // TODO: developers: Seq[Developer] = Nil,
