@@ -130,7 +130,6 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
     // compilerMaker should be a lazy val to prevent download a JAVA 17 for bloop when users run the repl without sources
     lazy val compilerMaker = options.shared.compilerMaker(threads)
 
-    Directories.directories
 
     def doRunRepl(
       buildOptions: BuildOptions,
