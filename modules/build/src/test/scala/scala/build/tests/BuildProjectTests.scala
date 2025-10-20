@@ -77,7 +77,7 @@ class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
     val artifacts = options.artifacts(logger, Scope.Test).orThrow
 
     val project =
-      Build.buildProject(inputs, sources, Nil, options, None, Scope.Main, logger, artifacts).orThrow
+      Build.buildProject(inputs, sources, Nil, options, Scope.Main, logger, artifacts).orThrow
 
     expect(project.workspace == inputs.workspace)
   }

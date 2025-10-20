@@ -2371,7 +2371,7 @@ abstract class RunTestDefinitions
                   .spawn(cwd = root, env = Map("SCALA_CLI_EXTRA_TIMEOUT" -> "120 seconds"))
               }.zipWithIndex
             processes.foreach { case (p, _) => p.waitFor() }
-            processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+            processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
             processes.foreach { case (p, i) => expect(p.stdout.trim() == s"iteration $i") }
         }
       }
@@ -2455,7 +2455,7 @@ abstract class RunTestDefinitions
               .spawn(cwd = root)
           }.zipWithIndex
         processes.foreach { case (p, _) => p.waitFor() }
-        processes.foreach { case (p, _) => expect(p.exitCode == 0) }
+        processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
 }

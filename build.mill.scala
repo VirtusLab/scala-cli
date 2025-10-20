@@ -917,7 +917,7 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   }
 
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion)
+    super.scalacOptions() ++ asyncScalacOptions(crossScalaVersion) ++ Seq("-deprecation")
   }
   override def javacOptions: T[Seq[String]] = Task {
     super.javacOptions() ++ Seq("--release", "16")

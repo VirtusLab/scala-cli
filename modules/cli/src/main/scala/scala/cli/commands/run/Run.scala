@@ -572,15 +572,13 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
         def base(s: String): String = fwd(s).replaceAll(".*/", "")
         runMode match {
           case RunMode.Default =>
-            val sourceFiles = builds.head.inputs.sourceFiles().map {
-              case s: ScalaFile    => fwd(s.path.toString)
-              case s: Script       => fwd(s.path.toString)
-              case s: MarkdownFile => fwd(s.path.toString)
-              case s: OnDisk       => fwd(s.path.toString)
-              case s               => s.getClass.getName
+            val sourceFiles = builds.head.inputs.sourceFiles().flatMap {
+              case s: ScalaFile => Some(fwd(s.path.toString))
+              case s: OnDisk    => Some(fwd(s.path.toString))
+              case null         => None
             }.filter(_.nonEmpty).distinct
             val sources     = sourceFiles.mkString(File.pathSeparator)
-            val sourceNames = sourceFiles.map(base(_)).mkString(File.pathSeparator)
+            val sourceNames = sourceFiles.map(base).mkString(File.pathSeparator)
 
             val baseJavaProps = builds.head.options.javaOptions.javaOpts.toSeq.map(_.value.value)
               ++ Seq(s"-Dscala.sources=$sources", s"-Dscala.source.names=$sourceNames")

@@ -60,7 +60,7 @@ object BuiltInRules extends CommandHelpers {
     mainSources: Sources,
     testSources: Sources,
     logger: Logger
-  )(using ScalaCliInvokeData): Unit = {
+  ): Unit = {
     // Only initial inputs are used, new inputs discovered during processing of
     // CrossSources.forInput may be shared between projects
     val writableInputs: Seq[OnDisk] = inputs.flattened()

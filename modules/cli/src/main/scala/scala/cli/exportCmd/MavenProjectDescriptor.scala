@@ -1,6 +1,7 @@
 package scala.cli.exportCmd
 import dependency.{AnyDependency, NoAttributes, ScalaNameAttributes}
 
+import scala.annotation.unused
 import scala.build.errors.BuildException
 import scala.build.internal.Constants
 import scala.build.options.{BuildOptions, Scope, ShadowingSeq}
@@ -42,7 +43,7 @@ final case class MavenProjectDescriptor(
   }
 
   // todo: fill this - to be done in separate issue to reduce scope for maven export
-  private def javaOptionsSettings(options: BuildOptions): MavenProject =
+  private def javaOptionsSettings(@unused options: BuildOptions): MavenProject =
     MavenProject(
       settings = Nil
     )
@@ -164,7 +165,6 @@ final case class MavenProjectDescriptor(
 
   private def plugins(
     options: BuildOptions,
-    scope: Scope,
     jdkVersion: String,
     sourcesMain: Sources
   ): MavenProject = {
@@ -174,8 +174,8 @@ final case class MavenProjectDescriptor(
     val javacOptions = javacOptionsSettings(options)
 
     val mavenJavaPlugin = buildJavaCompilerPlugin(javacOptions, jdkVersion)
-    val mavenExecPlugin = buildJavaExecPlugin(javacOptions, jdkVersion)
-    val scalaPlugin     = buildScalaPlugin(javacOptions, jdkVersion, getScalaVersion(options))
+    val mavenExecPlugin = buildJavaExecPlugin(jdkVersion)
+    val scalaPlugin     = buildScalaPlugin(jdkVersion)
 
     val reqdPlugins =
       if (pureJava) Seq(mavenJavaPlugin, mavenExecPlugin) else Seq(mavenJavaPlugin, scalaPlugin)
@@ -185,11 +185,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  private def buildScalaPlugin(
-    javacOptions: Seq[String],
-    jdkVersion: String,
-    scalaVersion: String
-  ): MavenPlugin = {
+  private def buildScalaPlugin(jdkVersion: String): MavenPlugin = {
     val execElements =
       <executions>
         <execution>
@@ -240,10 +236,7 @@ final case class MavenProjectDescriptor(
     )
   }
 
-  private def buildJavaExecPlugin(
-    javacOptions: Seq[String],
-    jdkVersion: String
-  ): MavenPlugin =
+  private def buildJavaExecPlugin(jdkVersion: String): MavenPlugin =
     MavenPlugin(
       "org.codehaus.mojo",
       "exec-maven-plugin",
@@ -276,7 +269,7 @@ final case class MavenProjectDescriptor(
       javaOptionsSettings(optionsMain),
       dependencySettings(optionsMain, optionsTest, Scope.Main, sourcesMain),
       customResourcesSettings(optionsMain),
-      plugins(optionsMain, Scope.Main, jdk, sourcesMain),
+      plugins(optionsMain, jdk, sourcesMain),
       projectArtifactSettings(mavenAppGroupId, mavenAppArtifactId, mavenAppVersion)
     )
     Right(projectChunks.foldLeft(MavenProject())(_ + _))

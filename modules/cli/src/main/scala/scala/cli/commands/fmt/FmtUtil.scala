@@ -158,7 +158,7 @@ object FmtUtil {
     def withUpdatedVersion(content: String, v: String): String = {
       val doc = docFrom(content)
       if (doc.hasPath("version"))
-        doc.withValueText("version", '"' + v + '"').render
+        doc.withValueText("version", s"\"$v\"").render
       else {
         // prepend to the beggining of file
         val sb = new StringBuilder

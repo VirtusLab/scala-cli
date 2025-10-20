@@ -260,7 +260,7 @@ object TestUtil {
       Thread.sleep(100L)
       if (proc.isAlive()) {
         Thread.sleep(1000L)
-        proc.destroyForcibly()
+        proc.destroy(shutdownGracePeriod = 0)
       }
     }
   }

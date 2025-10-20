@@ -56,6 +56,7 @@ object LocalRepo {
     loader: ClassLoader = Thread.currentThread().getContextClassLoader
   ): Option[String] = {
     val archiveUrl = loader.getResource(resourcePath)
+    logger.debug(s"archive url: $archiveUrl")
 
     if archiveUrl == null then None
     else {
@@ -70,6 +71,7 @@ object LocalRepo {
         }
 
       val repoDir = baseDir / version
+      logger.debug(s"repo dir: $repoDir")
 
       if !os.exists(repoDir) then
         withLock((repoDir / os.up).toNIO, version) {
@@ -77,6 +79,7 @@ object LocalRepo {
           // potential race conditions between initial check and lock acquisition
           if !os.exists(repoDir) then
             val tmpRepoDir = repoDir / os.up / s".$version.tmp"
+            logger.debug(s"tmp repo dir: $tmpRepoDir")
             os.remove.all(tmpRepoDir)
             using(archiveUrl.openStream()) { is =>
               using(WrappedZipInputStream.create(new BufferedInputStream(is))) { zis =>
@@ -87,6 +90,7 @@ object LocalRepo {
         }
 
       val repo = "ivy:" + repoDir.toNIO.toUri.toASCIIString + "/[defaultPattern]"
+      logger.debug(s"local repo (ivy): $repo")
       Some(repo)
     }
   }

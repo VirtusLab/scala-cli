@@ -25,8 +25,7 @@ trait ExportScalaOrientedBuildToolsTestDefinitions {
     }
   }
 
-  def testZioTest(testClassName: String, testArgs: Seq[String] = Nil): Unit = {
-
+  def testZioTest(testClassName: String): Unit = {
     val testInput = TestInputs(
       // todo: remove this hack after the PR https://github.com/VirtusLab/scala-cli/pull/3046 is merged
       os.rel / "Hello.scala"    -> """object Hello extends App""",

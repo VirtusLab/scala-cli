@@ -155,32 +155,30 @@ final class BspImpl(
 
     val (classesDir0Main, scalaParamsMain, artifactsMain, projectMain, buildChangedMain) = value {
       val res = Build.prepareBuild(
-        allInputs,
-        sourcesMain,
-        generatedSourcesMain,
-        options0Main,
-        None,
-        Scope.Main,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Main)
+        inputs = allInputs,
+        sources = sourcesMain,
+        generatedSources = generatedSourcesMain,
+        options = options0Main,
+        scope = Scope.Main,
+        compiler = currentBloopSession.remoteServer,
+        logger = persistentLogger,
+        buildClient = localClient,
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Main)
       )
       res.left.map((_, Scope.Main))
     }
 
     val (classesDir0Test, scalaParamsTest, artifactsTest, projectTest, buildChangedTest) = value {
       val res = Build.prepareBuild(
-        allInputs,
-        sourcesTest,
-        generatedSourcesTest,
-        options0Test,
-        None,
-        Scope.Test,
-        currentBloopSession.remoteServer,
-        persistentLogger,
-        localClient,
-        maybeRecoverOnError(Scope.Test)
+        inputs = allInputs,
+        sources = sourcesTest,
+        generatedSources = generatedSourcesTest,
+        options = options0Test,
+        scope = Scope.Test,
+        compiler = currentBloopSession.remoteServer,
+        logger = persistentLogger,
+        buildClient = localClient,
+        maybeRecoverOnError = maybeRecoverOnError(Scope.Test)
       )
       res.left.map((_, Scope.Test))
     }

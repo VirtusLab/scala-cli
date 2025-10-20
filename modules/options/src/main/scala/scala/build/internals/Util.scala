@@ -131,7 +131,7 @@ object Util {
     else p.toString
 
   def printablePath(p: Either[String, os.Path]): String =
-    p.fold(identity, printablePath(_))
+    p.fold(identity, printablePath)
 
   extension (fullDetailedArtifacts: Seq[(
     Dependency,
@@ -156,5 +156,17 @@ object Util {
         .sequence
         .left
         .map(CompositeBuildException(_))
+  }
+
+  extension (artifacts: Seq[(Dependency, Either[VariantPublication, Publication], Artifact)]) {
+    def safeArtifacts: Either[BuildException, Seq[(
+      Dependency,
+      Publication,
+      Artifact
+    )]] =
+      artifacts
+        .map { case (d, p, a) => (d, p, a, None) }
+        .safeFullDetailedArtifacts
+        .map(_.map { case (d, p, a, _) => (d, p, a) })
   }
 }

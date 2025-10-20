@@ -56,7 +56,7 @@ class Default(actualHelp: => RuntimeCommandsHelp)
           options.shared.snippet.executeMarkdown.nonEmpty ||
           (options.shared.extraClasspathWasPassed && options.sharedRun.mainClass.mainClass.nonEmpty)
         if shouldDefaultToRun then RunOptions.parser else ReplOptions.parser
-      }.parse(options.legacyScala.filterNonDeprecatedArgs(rawArgs, progName, logger)) match
+      }.parse(options.legacyScala.filterNonDeprecatedArgs(rawArgs, progName, logger).toSeq) match
         case Left(e)                              => error(e)
         case Right((replOptions: ReplOptions, _)) => Repl.runCommand(replOptions, args, logger)
         case Right((runOptions: RunOptions, _))   =>

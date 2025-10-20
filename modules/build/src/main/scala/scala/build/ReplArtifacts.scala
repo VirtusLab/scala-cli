@@ -49,7 +49,6 @@ object ReplArtifacts {
     extraRepositories: Seq[Repository],
     logger: Logger,
     cache: FileCache[Task],
-    directories: Directories,
     addScalapy: Option[String]
   ): Either[BuildException, ReplArtifacts] = either {
     val scalapyDeps =
