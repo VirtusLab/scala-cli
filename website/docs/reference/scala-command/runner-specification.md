@@ -200,6 +200,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -994,6 +1002,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -1588,6 +1604,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2209,6 +2233,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2850,6 +2882,14 @@ Extra options passed to `clang` verbatim during linking
 
 List of compile options
 
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
+
 **--native-target**
 
 Build target type
@@ -3465,6 +3505,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4118,6 +4166,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4831,6 +4887,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -5800,6 +5864,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 

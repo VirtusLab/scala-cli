@@ -904,6 +904,18 @@ Use default linking settings
 
 List of compile options
 
+### `--native-c-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C files only)
+
+### `--native-cpp-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C++ files only)
+
 ### `--native-compile-defaults`
 
 `IMPLEMENTATION specific` per Scala Runner specification

@@ -1455,6 +1455,14 @@ Use default linking settings
 
 List of compile options
 
+### `--native-c-compile`
+
+List of compile options (C files only)
+
+### `--native-cpp-compile`
+
+List of compile options (C++ files only)
+
 ### `--native-compile-defaults`
 
 [Internal]

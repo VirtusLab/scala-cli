@@ -273,6 +273,8 @@ final case class SharedOptions(
       linkingOptions = nativeLinking,
       linkingDefaults = nativeLinkingDefaults,
       compileOptions = nativeCompile,
+      cCompileOptions = nativeCCompile,
+      cppCompileOptions = nativeCppCompile,
       compileDefaults = nativeCompileDefaults,
       embedResources = embedResources,
       buildTargetStr = nativeTarget,
