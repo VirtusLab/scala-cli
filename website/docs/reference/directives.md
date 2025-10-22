@@ -300,6 +300,9 @@ Set parameters for packaging
 
 `//> using packaging.dockerCmd` _docker-command_
 
+`//> using packaging.dockerExtraDirectories` _directories_
+`//> using packaging.dockerExtraDirectory` _directory_
+
 
 
 #### Examples
@@ -322,6 +325,10 @@ Set parameters for packaging
 `//> using packaging.dockerCmd sh`
 
 `//> using packaging.dockerCmd node`
+
+`//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2`
+
+`//> using packaging.dockerExtraDirectory path/to/directory`
 
 ### Platform
 

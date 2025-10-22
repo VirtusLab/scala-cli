@@ -10,11 +10,13 @@ import scala.build.errors.{
   BuildException,
   CompositeBuildException,
   MalformedInputError,
-  ModuleFormatError
+  ModuleFormatError,
+  WrongDirectoryPathError
 }
 import scala.build.options.*
 import scala.build.options.packaging.{DockerOptions, NativeImageOptions}
 import scala.cli.commands.SpecificationLevel
+import scala.util.Try
 
 @DirectiveGroupName("Packaging")
 @DirectivePrefix("packaging.")
@@ -28,6 +30,10 @@ import scala.cli.commands.SpecificationLevel
 @DirectiveExamples("//> using packaging.dockerImageRepository scala-cli")
 @DirectiveExamples("//> using packaging.dockerCmd sh")
 @DirectiveExamples("//> using packaging.dockerCmd node")
+@DirectiveExamples(
+  "//> using packaging.dockerExtraDirectories path/to/directory1 path/to/directory2"
+)
+@DirectiveExamples("//> using packaging.dockerExtraDirectory path/to/directory")
 @DirectiveUsage(
   """using packaging.packageType [package type]
     |using packaging.output [destination path]
@@ -38,6 +44,7 @@ import scala.cli.commands.SpecificationLevel
     |using packaging.dockerImageRegistry [image registry]
     |using packaging.dockerImageRepository [image repository]
     |using packaging.dockerCmd [docker command]
+    |using packaging.dockerExtraDirectories [directories]
     |""".stripMargin,
   """`//> using packaging.packageType` _package-type_
     |
@@ -57,6 +64,9 @@ import scala.cli.commands.SpecificationLevel
     |
     |`//> using packaging.dockerCmd` _docker-command_
     |
+    |`//> using packaging.dockerExtraDirectories` _directories_
+    |`//> using packaging.dockerExtraDirectory` _directory_
+    |
     |""".stripMargin
 )
 @DirectiveDescription("Set parameters for packaging")
@@ -70,7 +80,10 @@ final case class Packaging(
   dockerImageTag: Option[String] = None,
   dockerImageRegistry: Option[String] = None,
   dockerImageRepository: Option[String] = None,
-  dockerCmd: Option[String] = None
+  dockerCmd: Option[String] = None,
+  @DirectiveName("dockerExtraDirectory")
+  dockerExtraDirectories: DirectiveValueParser.WithScopePath[List[Positioned[String]]] =
+    DirectiveValueParser.WithScopePath.empty(Nil)
 ) extends HasBuildOptions {
   def buildOptions: Either[BuildException, BuildOptions] = either {
     val maybePackageTypeOpt = packageType
@@ -110,6 +123,23 @@ final case class Packaging(
         .left.map(CompositeBuildException(_))
     }
 
+    val cwd              = dockerExtraDirectories.scopePath
+    val extraDirectories = value {
+      dockerExtraDirectories
+        .value
+        .map { posPathStr =>
+          val eitherRootPathOrBuildException =
+            Directive.osRoot(cwd, posPathStr.positions.headOption)
+          eitherRootPathOrBuildException.flatMap { root =>
+            Try(os.Path(posPathStr.value, root))
+              .toEither
+              .left.map(new WrongDirectoryPathError(_))
+          }
+        }
+        .sequence
+        .left.map(CompositeBuildException(_))
+    }
+
     BuildOptions(
       internal = InternalOptions(
         keepResolution = provided0.nonEmpty || packageTypeOpt.contains(PackageType.Spark)
@@ -124,7 +154,8 @@ final case class Packaging(
             imageRegistry = dockerImageRegistry,
             imageRepository = dockerImageRepository,
             imageTag = dockerImageTag,
-            cmd = dockerCmd
+            cmd = dockerCmd,
+            extraDirectories = extraDirectories
           ),
           nativeImageOptions = NativeImageOptions(
             graalvmArgs = graalvmArgs

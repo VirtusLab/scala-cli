@@ -1118,12 +1118,61 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
     }
   }
 
-  if (Properties.isLinux)
+  def dockerWithExtraDirsTest(): Unit = {
+    val codePath       = os.rel / "src" / "Hello.scala"
+    val extraFileName  = "extraFile.txt"
+    val extraFileDir   = os.rel / "extraDir"
+    val extraFilePath  = extraFileDir / extraFileName
+    val imageName      = "extradir"
+    val expectedOutput = "hello"
+    val inputs         = TestInputs(
+      codePath ->
+        s"""//> using toolkit default
+           |
+           |object Smth extends App {
+           |  val content = 
+           |   os.walk(os.pwd)
+           |     .filter(os.isFile)
+           |     .filter(_.endsWith(os.rel / "$extraFileName"))
+           |     .headOption
+           |     .map(file => os.read(file).trim())
+           |     .getOrElse("No matching files found")
+           |  println(content)
+           |}
+           |""".stripMargin,
+      extraFilePath -> expectedOutput
+    )
+    inputs.fromRoot { root =>
+      os.proc(
+        TestUtil.cli,
+        "--power",
+        "package",
+        codePath,
+        "--docker",
+        "--docker-image-repository",
+        imageName,
+        "--docker-extra-directories",
+        root / extraFileDir,
+        "-f"
+      ).call(cwd = root)
+      val output = os.proc("docker", "run", imageName).call(cwd = root).out.trim()
+      expect(output == expectedOutput)
+    }
+  }
+
+  if (Properties.isLinux) {
     test("pass java options to docker") {
       TestUtil.retryOnCi() {
         javaOptionsDockerTest()
       }
     }
+
+    test("pass extra directory to docker") {
+      TestUtil.retryOnCi() {
+        dockerWithExtraDirsTest()
+      }
+    }
+  }
 
   test("default values in help") {
     TestInputs.empty.fromRoot { root =>

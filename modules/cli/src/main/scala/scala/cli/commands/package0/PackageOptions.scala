@@ -219,7 +219,8 @@ final case class PackageOptions(
             imageRepository = packager.dockerImageRepository,
             imageTag = packager.dockerImageTag,
             cmd = packager.dockerCmd,
-            isDockerEnabled = Some(docker)
+            isDockerEnabled = Some(docker),
+            extraDirectories = packager.dockerExtraDirectories.map(os.Path(_, os.pwd))
           ),
           nativeImageOptions = NativeImageOptions(
             graalvmJvmId = packager.graalvmJvmId.map(_.trim).filter(_.nonEmpty),
