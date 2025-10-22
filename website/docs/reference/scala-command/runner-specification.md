@@ -178,7 +178,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -199,6 +199,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -972,7 +980,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -993,6 +1001,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -1567,7 +1583,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -1588,6 +1604,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2188,7 +2212,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -2209,6 +2233,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -2828,7 +2860,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -2849,6 +2881,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -3444,7 +3484,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -3465,6 +3505,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4097,7 +4145,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -4118,6 +4166,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -4810,7 +4866,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -4831,6 +4887,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 
@@ -5779,7 +5843,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 **--native-version**
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 **--native-mode**
 
@@ -5800,6 +5864,14 @@ Extra options passed to `clang` verbatim during linking
 **--native-compile**
 
 List of compile options
+
+**--native-c-compile**
+
+List of compile options (C files only)
+
+**--native-cpp-compile**
+
+List of compile options (C++ files only)
 
 **--native-target**
 

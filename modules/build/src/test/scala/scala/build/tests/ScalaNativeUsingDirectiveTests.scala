@@ -150,6 +150,48 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
+  for { directiveKey <- Seq("nativeCCompile", "native-c-compile") }
+    test(s"ScalaNativeOptions for $directiveKey") {
+      val expectedOption1 = "compileOption1"
+      val expectedOption2 = "compileOption2"
+      val inputs          = TestInputs(
+        os.rel / "p.sc" ->
+          s"""//> using $directiveKey $expectedOption1 $expectedOption2
+             |def foo() = println("hello foo")
+             |""".stripMargin
+      )
+
+      inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+        assert(
+          maybeBuild.options.scalaNativeOptions.cCompileOptions.head == expectedOption1
+        )
+        assert(
+          maybeBuild.options.scalaNativeOptions.cCompileOptions.drop(1).head == expectedOption2
+        )
+      }
+    }
+
+  for { directiveKey <- Seq("nativeCppCompile", "native-cpp-compile") }
+    test(s"ScalaNativeOptions for $directiveKey") {
+      val expectedOption1 = "compileOption1"
+      val expectedOption2 = "compileOption2"
+      val inputs          = TestInputs(
+        os.rel / "p.sc" ->
+          s"""//> using $directiveKey $expectedOption1 $expectedOption2
+             |def foo() = println("hello foo")
+             |""".stripMargin
+      )
+
+      inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
+        assert(
+          maybeBuild.options.scalaNativeOptions.cppCompileOptions.head == expectedOption1
+        )
+        assert(
+          maybeBuild.options.scalaNativeOptions.cppCompileOptions.drop(1).head == expectedOption2
+        )
+      }
+    }
+
   test("ScalaNativeOptions for native-linking and no value") {
     val inputs = TestInputs(
       os.rel / "p.sc" ->

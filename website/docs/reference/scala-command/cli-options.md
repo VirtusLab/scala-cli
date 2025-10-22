@@ -854,7 +854,7 @@ Enable Scala Native. To show more options for Scala Native pass `--help-native`
 
 `SHOULD have` per Scala Runner specification
 
-Set the Scala Native version (0.5.8 by default).
+Set the Scala Native version (0.5.9 by default).
 
 ### `--native-mode`
 
@@ -903,6 +903,18 @@ Use default linking settings
 `SHOULD have` per Scala Runner specification
 
 List of compile options
+
+### `--native-c-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C files only)
+
+### `--native-cpp-compile`
+
+`SHOULD have` per Scala Runner specification
+
+List of compile options (C++ files only)
 
 ### `--native-compile-defaults`
 

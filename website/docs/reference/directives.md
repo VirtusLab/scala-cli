@@ -512,6 +512,10 @@ Add Scala Native options
 
 `//> using nativeCompile` _value1_ _value2_ …
 
+`//> using nativeCCompile` _value1_ _value2_ …
+
+`//> using nativeCppCompile` _value1_ _value2_ …
+
 `//> using nativeLinking` _value1_ _value2_ …
 
 `//> using nativeClang` _value_
@@ -537,9 +541,13 @@ Add Scala Native options
 
 `//> using nativeLto full`
 
-`//> using nativeVersion 0.5.8`
+`//> using nativeVersion 0.5.9`
 
 `//> using nativeCompile -flto=thin`
+
+`//> using nativeCCompile -std=c17`
+
+`//> using nativeCppCompile -std=c++17 -fcxx-exceptions`
 
 `//> using nativeLinking -flto=thin`
 
