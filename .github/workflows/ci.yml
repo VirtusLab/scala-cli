@@ -1398,7 +1398,7 @@ jobs:
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "zulu:17"
-    - uses: actions/setup-node@v5
+    - uses: actions/setup-node@v6
       with:
         node-version: 24
     - name: Build documentation
