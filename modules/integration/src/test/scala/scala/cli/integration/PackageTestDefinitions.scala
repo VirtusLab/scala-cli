@@ -1130,13 +1130,14 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
         s"""//> using toolkit default
            |
            |object Smth extends App {
-           |  val file =
-           |    os.list(os.pwd)
-           |      .filter(os.isFile)
-           |      .filter(_.endsWith(os.rel / "$extraFileName"))
-           |      .head
-           |  val contents = os.read(file).trim()
-           |  println(contents)
+           |  val content = 
+           |   os.walk(os.pwd)
+           |     .filter(os.isFile)
+           |     .filter(_.endsWith(os.rel / "$extraFileName"))
+           |     .headOption
+           |     .map(file => os.read(file).trim())
+           |     .getOrElse("No matching files found")
+           |  println(content)
            |}
            |""".stripMargin,
       extraFilePath -> expectedOutput
