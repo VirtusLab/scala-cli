@@ -116,7 +116,7 @@ object Export extends ScalaCommand[ExportOptions] {
         }
     }
     val launchersTask = cache.logger.using(Task.gather.gather(launcherTasks))
-    val launchers     = launchersTask.unsafeRun()(cache.ec)
+    val launchers     = launchersTask.unsafeRun()(using cache.ec)
     MillProjectDescriptor(Constants.millVersion, projectName, launchers, logger)
   }
 

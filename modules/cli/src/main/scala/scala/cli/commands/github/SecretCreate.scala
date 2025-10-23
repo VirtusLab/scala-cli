@@ -71,7 +71,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
 
     logger.debug(s"Public key: $publicKeyRespBody")
 
-    readFromString(publicKeyRespBody)(GitHubApi.publicKeyCodec)
+    readFromString(publicKeyRespBody)(using GitHubApi.publicKeyCodec)
   }
 
   def createOrUpdate(
@@ -99,7 +99,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     // https://docs.github.com/en/rest/reference/actions#create-or-update-a-repository-secret
     val uri =
       uri"https://api.github.com/repos/$repoOrg/$repoName/actions/secrets/$secretName"
-    val requestBody = writeToArray(content)(GitHubApi.encryptedSecretCodec)
+    val requestBody = writeToArray(content)(using GitHubApi.encryptedSecretCodec)
 
     if (printRequest)
       System.out.write(requestBody)
@@ -146,7 +146,7 @@ object SecretCreate extends ScalaCommand[SecretCreateOptions] {
     val pubKey = options.publicKey.filter(_.trim.nonEmpty) match {
       case Some(path) =>
         val content = os.read.bytes(os.Path(path, os.pwd))
-        readFromArray(content)(GitHubApi.publicKeyCodec)
+        readFromArray(content)(using GitHubApi.publicKeyCodec)
       case None =>
         publicKey(
           options.shared.repoOrg,

@@ -294,7 +294,7 @@ object Config extends ScalaCommand[ConfigOptions] {
   /** Check whether to ask for an update depending on the provided key.
     */
   private def checkIfAskForUpdate(
-    entry: Key[_],
+    entry: Key[?],
     newValues: Seq[String],
     db: ConfigDb,
     options: ConfigOptions

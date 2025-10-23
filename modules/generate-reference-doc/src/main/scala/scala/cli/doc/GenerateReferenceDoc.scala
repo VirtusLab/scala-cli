@@ -77,7 +77,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     }
   }
 
-  private def actualHelp(command: Command[_]): Help[_] =
+  private def actualHelp(command: Command[?]): Help[?] =
     command match {
       case ext: scala.cli.commands.pgp.ExternalCommand =>
         ext.actualHelp
@@ -122,7 +122,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       |""".stripMargin
 
   private def cliOptionsContent(
-    commands: Seq[Command[_]],
+    commands: Seq[Command[?]],
     allArgs: Seq[Arg],
     nameFormatter: Formatter[Name],
     onlyRestricted: Boolean = false
@@ -232,7 +232,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
   }
 
   private def optionsReference(
-    commands: Seq[Command[_]],
+    commands: Seq[Command[?]],
     nameFormatter: Formatter[Name]
   ): String = {
     val b = new StringBuilder
@@ -261,7 +261,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     b.section(scalacOptionForwarding)
 
-    def optionsForCommand(command: Command[_]): Unit = {
+    def optionsForCommand(command: Command[?]): Unit = {
       val supportedArgs = actualHelp(command).args
       val argsByLevel   = supportedArgs.groupBy(_.level)
 
@@ -312,7 +312,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
     b.toString
   }
 
-  private def commandsContent(commands: Seq[Command[_]], onlyRestricted: Boolean): String = {
+  private def commandsContent(commands: Seq[Command[?]], onlyRestricted: Boolean): String = {
 
     val b = new StringBuilder
 
@@ -334,7 +334,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
 
     val (hiddenCommands, mainCommands) = commands.partition(_.hidden)
 
-    def addCommand(c: Command[_], additionalIndentation: Int = 0): Unit = {
+    def addCommand(c: Command[?], additionalIndentation: Int = 0): Unit = {
 
       val origins = c.parser0.args.flatMap(_.origin.toSeq).map(cleanUpOrigin).distinct.sorted
 
@@ -421,7 +421,7 @@ object GenerateReferenceDoc extends CaseApp[InternalDocOptions] {
       else "## using directives"
     )
 
-    def addHandlers(handlers: Seq[DirectiveHandler[_]]): Unit =
+    def addHandlers(handlers: Seq[DirectiveHandler[?]]): Unit =
       for (handler <- handlers.sortBy(_.name)) {
         b.append(
           s"""### ${handler.name}

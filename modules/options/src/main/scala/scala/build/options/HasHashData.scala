@@ -56,7 +56,7 @@ object HasHashData:
 
   given set[T](using hasher: HashedType[T], ordering: Ordering[T]): HasHashData[Set[T]] =
     (name, opt, update) =>
-      opt.toVector.sorted(ordering)
+      opt.toVector.sorted(using ordering)
         .foreach(t => update(s"$name=${hasher.hashedValue(t)}"))
 
   given map[K, V](using
@@ -65,7 +65,7 @@ object HasHashData:
     ordering: Ordering[K]
   ): HasHashData[Map[K, V]] =
     (name, map0, update) =>
-      for ((k, v) <- map0.toVector.sortBy(_._1)(ordering))
+      for ((k, v) <- map0.toVector.sortBy(_._1)(using ordering))
         update(
           s"$name+=${hasherK.hashedValue(k)}${hasherV.hashedValue(v)}"
         ) // should't we seperate key and value here?

@@ -71,7 +71,7 @@ object FetchExternalBinary {
     val res      = archiveCache.cache.loggerOpt.getOrElse(CacheLogger.nop).use {
       logger.log(s"Getting $url")
       archiveCache.get(artifact)
-        .unsafeRun()(archiveCache.cache.ec)
+        .unsafeRun()(using archiveCache.cache.ec)
     }
     val fileOpt = res match {
       case Left(nf: ArtifactError.NotFound) =>

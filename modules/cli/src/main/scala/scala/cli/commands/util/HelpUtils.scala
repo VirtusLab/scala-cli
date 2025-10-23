@@ -3,7 +3,7 @@ package scala.cli.commands.util
 import caseapp.core.help.{Help, HelpFormat}
 
 object HelpUtils {
-  extension (help: Help[_]) {
+  extension (help: Help[?]) {
     private def abstractHelp(
       format: HelpFormat,
       showHidden: Boolean

@@ -116,7 +116,7 @@ final case class Project(
 
   def writeBloopFile(strictCheck: Boolean, logger: Logger): Boolean = {
     lazy val bloopFileContent =
-      writeAsJsonToArray(bloopFile)(BloopCodecs.codecFile)
+      writeAsJsonToArray(bloopFile)(using BloopCodecs.codecFile)
     val dest    = directory / ".bloop" / s"$projectName.json"
     val doWrite =
       if (strictCheck)

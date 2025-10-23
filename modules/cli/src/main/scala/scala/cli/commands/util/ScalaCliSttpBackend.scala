@@ -14,7 +14,7 @@ class ScalaCliSttpBackend(
   logger: Logger
 ) extends SttpBackend[Identity, Any] {
 
-  override def send[T, R >: Any with Effect[Identity]](request: Request[T, R]): Response[T] = {
+  override def send[T, R >: Any & Effect[Identity]](request: Request[T, R]): Response[T] = {
     logger.debug(s"HTTP ${request.method} ${request.uri}")
     if (logger.verbosity >= 3)
       logger.debug(s"request: '${request.show()}'")

@@ -82,7 +82,7 @@ object PasswordOption extends LowPriorityPasswordOption {
       // line is added by sys.process, but wouldn't if the new line is legit and is in
       // the original output).
 
-      val b = new ProcessBuilder(command: _*)
+      val b = new ProcessBuilder(command*)
       b.redirectInput(ProcessBuilder.Redirect.INHERIT)
       b.redirectError(ProcessBuilder.Redirect.INHERIT)
       b.redirectOutput(ProcessBuilder.Redirect.PIPE)

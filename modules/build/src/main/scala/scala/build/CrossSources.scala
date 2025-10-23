@@ -52,7 +52,7 @@ final case class CrossSources(
     buildOptions
       .filter(_.requirements.isEmpty)
       .map(_.value)
-      .foldLeft(baseOptions)(_ orElse _)
+      .foldLeft(baseOptions)(_.orElse(_))
 
   private def needsScalaVersion =
     paths.exists(_.needsScalaVersion) ||
@@ -80,7 +80,7 @@ final case class CrossSources(
           .flatMap(_.withScalaVersion(retainedScalaVersion).toSeq)
           .filter(_.requirements.isEmpty)
           .map(_.value)
-          .foldLeft(sharedOptions0)(_ orElse _)
+          .foldLeft(sharedOptions0)(_.orElse(_))
 
         val platform = buildOptionsWithScalaVersion.platform
 
@@ -246,7 +246,7 @@ object CrossSources {
         scopedRequirementsByRoot
           .getOrElse(path.root, Nil)
           .flatMap(_.valueFor(path).toSeq)
-          .foldLeft(BuildRequirements())(_ orElse _)
+          .foldLeft(BuildRequirements())(_.orElse(_))
 
       // Scala CLI treats all `.test.scala` files tests as well as
       // files from within `test` subdirectory from provided input directories
@@ -266,7 +266,7 @@ object CrossSources {
     } yield {
       val baseReqs0 = baseReqs(preprocessedSource.scopePath)
       preprocessedSource.optionsWithTargetRequirements :+ WithBuildRequirements(
-        preprocessedSource.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+        preprocessedSource.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
         opts
       )
     }).flatten
@@ -281,7 +281,7 @@ object CrossSources {
         case d: PreprocessedSource.OnDisk =>
           val baseReqs0 = baseReqs(d.scopePath)
           WithBuildRequirements(
-            d.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            d.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
             (d.path, d.path.relativeTo(allInputs.workspace))
           ) -> d.directivesPositions
       }
@@ -291,7 +291,7 @@ object CrossSources {
         case m: PreprocessedSource.InMemory =>
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
-            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            m.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
             Sources.InMemory(m.originalPath, m.relPath, m.content, m.wrapperParamsOpt)
           ) -> m.directivesPositions
       }
@@ -301,7 +301,7 @@ object CrossSources {
         case m: PreprocessedSource.UnwrappedScript =>
           val baseReqs0 = baseReqs(m.scopePath)
           WithBuildRequirements(
-            m.requirements.fold(baseReqs0)(_ orElse baseReqs0),
+            m.requirements.fold(baseReqs0)(_.orElse(baseReqs0)),
             Sources.UnwrappedScript(m.originalPath, m.relPath, m.wrapScriptFun)
           ) -> m.directivesPositions
       }

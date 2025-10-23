@@ -63,7 +63,7 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
       mainSources.buildOptions
     }
 
-    val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options orElse _).getOrElse(options)
+    val joinedBuildOpts = maybeSourceBuildOptions.toOption.map(options.orElse(_)).getOrElse(options)
     joinedBuildOpts.artifacts(logger, Scope.Main)
   }
 
@@ -211,11 +211,12 @@ object SetupIde extends ScalaCommand[SetupIdeOptions] {
     implicit val mapCodec: JsonValueCodec[Map[String, String]] = JsonCodecMaker.make
 
     val json                         = gson.toJson(details)
-    val scalaCliOptionsForBspJson    = writeToArray(options.shared)(SharedOptions.jsonCodec)
-    val scalaCliLaunchOptsForBspJson = writeToArray(finalLauncherOptions)(LauncherOptions.jsonCodec)
-    val scalaCliBspInputsJson        = writeToArray(ideInputs)
-    val envsForBsp          = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
-    val scalaCliBspEnvsJson = writeToArray(envsForBsp)
+    val scalaCliOptionsForBspJson    = writeToArray(options.shared)(using SharedOptions.jsonCodec)
+    val scalaCliLaunchOptsForBspJson =
+      writeToArray(finalLauncherOptions)(using LauncherOptions.jsonCodec)
+    val scalaCliBspInputsJson = writeToArray(ideInputs)
+    val envsForBsp            = sys.env.filter((key, _) => EnvVar.allBsp.map(_.name).contains(key))
+    val scalaCliBspEnvsJson   = writeToArray(envsForBsp)
 
     if (inputs.workspaceOrigin.contains(WorkspaceOrigin.HomeDir))
       value(Left(new WorkspaceError(

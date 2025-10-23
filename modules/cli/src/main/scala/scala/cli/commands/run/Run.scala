@@ -239,7 +239,7 @@ object Run extends ScalaCommand[RunOptions] with BuildCommandHelpers {
       /** A handle to the Runner process, used to kill the process if it's still alive when a change
         * occured and restarts are allowed or to wait for it if restarts are not allowed
         */
-      val processOpt = AtomicReference(Option.empty[(Process, CompletableFuture[_])])
+      val processOpt = AtomicReference(Option.empty[(Process, CompletableFuture[?])])
 
       /** shouldReadInput controls whether [[WatchUtil.waitForCtrlC]](that's keeping the main thread
         * alive) should try to read StdIn or just call wait()

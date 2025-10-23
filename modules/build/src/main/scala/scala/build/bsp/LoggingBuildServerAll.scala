@@ -5,8 +5,7 @@ import ch.epfl.scala.bsp4j as b
 import java.util.concurrent.CompletableFuture
 
 class LoggingBuildServerAll(
-  val underlying: b.BuildServer with b.ScalaBuildServer with b.JavaBuildServer with b.JvmBuildServer
-    with ScalaScriptBuildServer
+  val underlying: b.BuildServer & b.ScalaBuildServer & b.JavaBuildServer & b.JvmBuildServer & ScalaScriptBuildServer
 ) extends LoggingBuildServer with LoggingScalaBuildServer with LoggingJavaBuildServer
     with LoggingJvmBuildServer
     with ScalaScriptBuildServer {
