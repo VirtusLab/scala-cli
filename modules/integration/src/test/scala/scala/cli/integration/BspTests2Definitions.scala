@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait BspTests2Definitions { _: BspTestDefinitions =>
+trait BspTests2Definitions { this: BspTestDefinitions =>
   for {
     useDirectives        <- Seq(true, false)
     (directive, options) <- Seq(

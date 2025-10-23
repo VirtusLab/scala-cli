@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-trait RunSnippetTestDefinitions { _: RunTestDefinitions =>
+trait RunSnippetTestDefinitions { this: RunTestDefinitions =>
   test("correctly run a script snippet") {
     emptyInputs.fromRoot { root =>
       val msg       = "Hello world"

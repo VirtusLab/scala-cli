@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
-trait BspTests3Definitions { _: BspTestDefinitions =>
+trait BspTests3Definitions { this: BspTestDefinitions =>
   test("BSP class wrapper for Scala 3") {
     val (script1, script2) = "script1.sc" -> "script2.sc"
     val inputs             = TestInputs(

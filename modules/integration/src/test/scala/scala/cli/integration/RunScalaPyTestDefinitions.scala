@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait RunScalaPyTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaPyTestDefinitions { this: RunTestDefinitions =>
   private def maybeScalapyPrefix =
     if (actualScalaVersion.startsWith("2.13.")) ""
     else "import me.shadaj.scalapy.py" + System.lineSeparator()

@@ -4,12 +4,12 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.File
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 /** For the `compile` counterpart, refer to [[CompileScalacCompatTestDefinitions]] */
 trait RunScalacCompatTestDefinitions {
-  _: RunTestDefinitions =>
+  this: RunTestDefinitions =>
 
   final val smithyVersion     = "1.50.0"
   private def shutdownBloop() =

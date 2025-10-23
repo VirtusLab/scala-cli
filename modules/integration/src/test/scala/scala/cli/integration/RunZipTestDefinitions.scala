@@ -6,7 +6,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 import scala.cli.integration.TestInputs.compress
 
-trait RunZipTestDefinitions { _: RunTestDefinitions =>
+trait RunZipTestDefinitions { this: RunTestDefinitions =>
   test("Zip with multiple Scala files") {
     val inputs = TestInputs(
       os.rel / "Hello.scala" ->

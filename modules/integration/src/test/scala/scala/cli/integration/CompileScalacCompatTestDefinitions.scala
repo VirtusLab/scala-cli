@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 /** For the `run` counterpart, refer to [[RunScalacCompatTestDefinitions]] */
-trait CompileScalacCompatTestDefinitions { _: CompileTestDefinitions =>
+trait CompileScalacCompatTestDefinitions { this: CompileTestDefinitions =>
   if (actualScalaVersion.startsWith("3"))
     test("consecutive -language:* flags are not ignored") {
       val sourceFileName = "example.scala"

@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 
 abstract class ReplTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   test("dry run (default)") {

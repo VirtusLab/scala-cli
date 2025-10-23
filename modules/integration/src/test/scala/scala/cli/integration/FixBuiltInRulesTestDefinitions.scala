@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.util.Properties
 
-trait FixBuiltInRulesTestDefinitions { _: FixTestDefinitions =>
+trait FixBuiltInRulesTestDefinitions { this: FixTestDefinitions =>
   test("basic built-in rules") {
     val mainFileName = "Main.scala"
     val inputs       = TestInputs(

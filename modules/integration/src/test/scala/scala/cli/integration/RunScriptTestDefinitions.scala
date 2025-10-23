@@ -7,7 +7,7 @@ import java.io.File
 import scala.cli.integration.TestUtil.normalizeConsoleOutput
 import scala.util.Properties
 
-trait RunScriptTestDefinitions { _: RunTestDefinitions =>
+trait RunScriptTestDefinitions { this: RunTestDefinitions =>
   def simpleScriptTest(ignoreErrors: Boolean = false, extraArgs: Seq[String] = Nil): Unit = {
     val fileName = "simple.sc"
     val message  = "Hello"

@@ -6,11 +6,11 @@ import java.io.File
 import java.nio.file.Paths
 import java.util.zip.ZipFile
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class PublishTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected def extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   protected object TestCase {

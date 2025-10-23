@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import scala.annotation.unused
 
-trait TestScalaVersionArgs extends ScalaCliSuite { _: TestScalaVersion =>
+trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   override def group: ScalaCliSuite.TestGroup =
     if (actualScalaVersion.startsWith("2.12.")) ScalaCliSuite.TestGroup.Third
     else if (actualScalaVersion.startsWith("2.13.")) ScalaCliSuite.TestGroup.Second
@@ -20,26 +20,26 @@ trait TestScalaVersionArgs extends ScalaCliSuite { _: TestScalaVersion =>
   lazy val actualScalaVersion: String = scalaVersionOpt.getOrElse(Constants.defaultScala)
 }
 
-sealed trait TestScalaVersion { _: TestScalaVersionArgs =>
+sealed trait TestScalaVersion { this: TestScalaVersionArgs =>
   def scalaVersionOpt: Option[String]
 }
-trait Test213 extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait Test213 extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala213)
 }
-trait Test212 extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait Test212 extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala212)
 }
-trait Test3Lts extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait Test3Lts extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3Lts)
 }
-trait Test3NextRc extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait Test3NextRc extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3NextRc)
 }
 @unused // TestDefault should normally be mixed in instead
-trait Test3Next extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait Test3Next extends TestScalaVersion { this: TestScalaVersionArgs =>
   override lazy val scalaVersionOpt: Option[String] = Some(Constants.scala3Next)
 }
-trait TestDefault extends TestScalaVersion { _: TestScalaVersionArgs =>
+trait TestDefault extends TestScalaVersion { this: TestScalaVersionArgs =>
   // this effectively should make the launcher default to 3.next
   override lazy val scalaVersionOpt: Option[String] = None
 }

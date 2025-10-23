@@ -6,7 +6,7 @@ import scala.cli.integration.TestUtil.ProcOps
 import scala.concurrent.duration.DurationInt
 import scala.util.{Properties, Try}
 
-trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
+trait RunWithWatchTestDefinitions { this: RunTestDefinitions =>
   // TODO make this pass reliably on Mac CI
   if (!Properties.isMac || !TestUtil.isCI) {
     val expectedMessage1 = "Hello"
@@ -378,10 +378,11 @@ trait RunWithWatchTestDefinitions { _: RunTestDefinitions =>
           val output1 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output1 == expectedMessage1)
           proc.printStderrUntilRerun(timeout)(ec)
-          val Some((resourcePath, newResourceContent)) =
+          val (resourcePath, newResourceContent) =
             resourcesInputs(directive = directive, resourceContent = expectedMessage2)
               .files
               .find(_._1.toString.contains("resources"))
+              .get
           os.write.over(root / resourcePath, newResourceContent)
           val output2 = TestUtil.readLine(proc.stdout, ec, timeout)
           expect(output2 == expectedMessage2)
