@@ -22,6 +22,7 @@ import scala.build.options.validation.ValidationException
 import scala.build.postprocessing.*
 import scala.build.postprocessing.LineConversion.scalaLineToScLineShift
 import scala.collection.mutable.ListBuffer
+import scala.compiletime.uninitialized
 import scala.concurrent.duration.DurationInt
 import scala.util.Properties
 import scala.util.control.NonFatal
@@ -1303,7 +1304,7 @@ object Build {
     }
 
     private val lock                  = new Object
-    private var f: ScheduledFuture[?] = _
+    private var f: ScheduledFuture[?] = uninitialized
     private val waitFor               = 50.millis
     private val runnable: Runnable    = { () =>
       lock.synchronized {

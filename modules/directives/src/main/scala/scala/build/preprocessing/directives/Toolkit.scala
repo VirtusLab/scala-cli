@@ -207,7 +207,7 @@ object Toolkit {
             .map(s => BuildOptions.empty.withScopeRequirement(s))
             .getOrElse(BuildOptions.empty.withEmptyRequirements)
         } { (acc, boWithReqs) =>
-          acc.map(_ orElse boWithReqs.value)
+          acc.map(_.orElse(boWithReqs.value))
         }
       }
     }

@@ -75,7 +75,7 @@ object CachedBinary {
     md.update("</config>".getBytes(charset))
     md.update(Constants.version.getBytes)
     md.update(0: Byte)
-    for (h <- builds.map(_.options).reduce(_ orElse _).hash) {
+    for (h <- builds.map(_.options).reduce(_.orElse(_)).hash) {
       md.update(h.getBytes(charset))
       md.update(0: Byte)
     }

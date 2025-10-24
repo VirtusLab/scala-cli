@@ -1,13 +1,13 @@
 package scala.build
 
-final case class EitherFailure[E](v: E, cps: EitherCps[_]) extends RuntimeException:
+final case class EitherFailure[E](v: E, cps: EitherCps[?]) extends RuntimeException:
   override def fillInStackTrace() = this // disable stack trace generation
 
 class EitherCps[E]
 
 object EitherCps:
   def value[E, V](using
-    cps: EitherCps[_ >: E]
+    cps: EitherCps[? >: E]
   )(from: Either[E, V]) = // Adding a context bounds breaks incremental compilation
     from match
       case Left(e)  => throw EitherFailure(e, cps)

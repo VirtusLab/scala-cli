@@ -12,7 +12,7 @@ import scala.cli.commands.util.CommandHelpers
 import scala.cli.internal.{CliLogger, ProcUtil}
 
 abstract class PgpCommand[T](implicit myParser: Parser[T], help: Help[T])
-    extends Command()(myParser, help)
+    extends Command()(using myParser, help)
     with CommandHelpers with RestrictableCommand[T] {
   override protected def invokeData: ScalaCliInvokeData =
     ScalaCliInvokeData(

@@ -227,9 +227,9 @@ case object ScalaPreprocessor extends Preprocessor {
     if (preprocessedDirectives.isEmpty) None
     else {
       val allRequirements    = Seq(preprocessedDirectives.globalReqs)
-      val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_ orElse _)
+      val summedRequirements = allRequirements.foldLeft(BuildRequirements())(_.orElse(_))
       val allOptions         = Seq(preprocessedDirectives.globalUsings)
-      val summedOptions      = allOptions.foldLeft(BuildOptions())(_ orElse _)
+      val summedOptions      = allOptions.foldLeft(BuildOptions())(_.orElse(_))
       val lastContentOpt     = preprocessedDirectives.strippedContent
         .orElse(if (isSheBang) Some(content0) else None)
       val directivesPositions = preprocessedDirectives.directivesPositions.map { pos =>

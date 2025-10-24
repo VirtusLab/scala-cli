@@ -29,7 +29,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       .filter(path => os.exists(path) && os.isFile(path))
       .map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(SharedOptions.jsonCodec)
+        readFromArray(content)(using SharedOptions.jsonCodec)
       }.getOrElse(options.shared)
 
   private def latestLauncherOptions(options: BspOptions): LauncherOptions =
@@ -38,7 +38,7 @@ object Bsp extends ScalaCommand[BspOptions] {
       .filter(path => os.exists(path) && os.isFile(path))
       .map { optionsPath =>
         val content = os.read.bytes(os.Path(optionsPath, os.pwd))
-        readFromArray(content)(LauncherOptions.jsonCodec)
+        readFromArray(content)(using LauncherOptions.jsonCodec)
       }.getOrElse(launcherOptions)
   private def latestEnvsFromFile(options: BspOptions): Map[String, String] =
     options.envs
@@ -121,7 +121,7 @@ object Bsp extends ScalaCommand[BspOptions] {
               sharedBuildOptions          = crossSources.sharedOptions(baseOptions)
               scopedSources <- crossSources.scopedSources(sharedBuildOptions)
               resolvedBuildOptions =
-                scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(_ orElse _)
+                scopedSources.buildOptionsFor(Scope.Main).foldRight(sharedBuildOptions)(_.orElse(_))
             yield (crossInputs, resolvedBuildOptions)
           }.getOrElse(initialInputs -> baseOptions)
 

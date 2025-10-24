@@ -33,7 +33,7 @@ import scala.cli.util.ConfigDbUtils.*
 import scala.cli.{CurrentParams, ScalaCli}
 
 abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T], inHelp: Help[T])
-    extends Command()(myParser, inHelp)
+    extends Command()(using myParser, inHelp)
     with NeedsArgvCommand with CommandHelpers with RestrictableCommand[T] {
 
   private val globalOptionsAtomic: AtomicReference[GlobalOptions] =
@@ -143,7 +143,7 @@ abstract class ScalaCommand[T <: HasGlobalOptions](implicit myParser: Parser[T],
                   .withInput(prefix)
                   .withScalaVersion(sv)
                   .complete()
-                  .unsafeRun()(cache.ec)
+                  .unsafeRun()(using cache.ec)
               }
               if (completions.isEmpty) Nil
               else {

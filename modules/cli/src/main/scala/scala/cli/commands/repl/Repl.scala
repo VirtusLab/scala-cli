@@ -323,7 +323,7 @@ object Repl extends ScalaCommand[ReplOptions] with BuildCommandHelpers {
         // https://github.com/VirtusLab/scala-cli/pull/1616#issuecomment-1333283174
         // for context.
         val dirs = successfulBuilds.map(_.inputs.workspace) ++ Seq(os.pwd)
-        (props0, pythonPathEnv(dirs: _*))
+        (props0, pythonPathEnv(dirs*))
       }
       else
         (Nil, Map.empty[String, String])

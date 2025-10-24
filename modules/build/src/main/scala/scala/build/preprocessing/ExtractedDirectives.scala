@@ -65,7 +65,7 @@ object ExtractedDirectives {
       }
 
       val strictDirectives = directivesOpt.toSeq.flatMap { directives =>
-        def toStrictValue(value: UsingValue): Seq[Value[_]] = value match {
+        def toStrictValue(value: UsingValue): Seq[Value[?]] = value match {
           case uvs: UsingValues   => uvs.values.asScala.toSeq.flatMap(toStrictValue)
           case el: EmptyLiteral   => Seq(EmptyValue(el))
           case sl: StringLiteral  => Seq(StringValue(sl.getValue(), sl))

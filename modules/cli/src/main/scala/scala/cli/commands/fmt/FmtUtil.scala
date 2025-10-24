@@ -205,7 +205,7 @@ object FmtUtil {
         content + addSep + values
       }
 
-    val doNothing = identity[String] _
+    val doNothing = identity[String]
     val combined  = List(
       version.fold(doNothing)(v => withUpdatedVersion(_, v)),
       runnerDialect.fold(doNothing)(v => withUpdatedDialect(_, v)),

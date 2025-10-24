@@ -17,7 +17,7 @@ import scala.build.{Position, Positioned}
 abstract class DirectiveValueParser[+T] {
   def parse(
     key: String,
-    values: Seq[Value[_]],
+    values: Seq[Value[?]],
     scopePath: ScopePath,
     path: Either[String, os.Path]
   ): Either[BuildException, T]
@@ -32,7 +32,7 @@ object DirectiveValueParser {
       extends DirectiveValueParser[U] {
     def parse(
       key: String,
-      values: Seq[Value[_]],
+      values: Seq[Value[?]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, U] =
@@ -42,14 +42,14 @@ object DirectiveValueParser {
   abstract class DirectiveSingleValueParser[+T] extends DirectiveValueParser[T] {
     def parseValue(
       key: String,
-      value: Value[_],
+      value: Value[?],
       cwd: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T]
 
     final def parse(
       key: String,
-      values: Seq[Value[_]],
+      values: Seq[Value[?]],
       scopePath: ScopePath,
       path: Either[String, os.Path]
     ): Either[BuildException, T] =

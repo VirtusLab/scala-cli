@@ -5,7 +5,7 @@ import java.lang.reflect.Field
 object SafeLazyVals {
   private val debug = false
 
-  private[this] val unsafe: sun.misc.Unsafe =
+  private val unsafe: sun.misc.Unsafe =
     classOf[sun.misc.Unsafe].getDeclaredFields.nn.find { field =>
       field.nn.getType == classOf[sun.misc.Unsafe] && {
         field.nn.setAccessible(true)

@@ -113,7 +113,7 @@ object AsmTestRunner {
           .map { p =>
             val clsName      = classPathEntry.relativize(p).toString.stripSuffix(".class")
             def openStream() = Files.newInputStream(p)
-            (clsName, openStream _)
+            (clsName, () => openStream())
           }
           .toVector // fully consume stream before closing it
           .iterator
@@ -142,7 +142,7 @@ object AsmTestRunner {
               }) baos.write(buf, 0, read)
               val clsName      = ent.getName.stripSuffix(".class")
               def openStream() = new ByteArrayInputStream(baos.toByteArray)
-              (clsName, openStream _)
+              (clsName, () => openStream())
             }
             finally if (is != null) is.close()
           }

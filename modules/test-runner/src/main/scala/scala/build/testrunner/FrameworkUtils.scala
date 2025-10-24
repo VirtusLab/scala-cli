@@ -150,7 +150,7 @@ object FrameworkUtils {
     val frameworkCls = classOf[Framework]
     (preferredClasses.iterator ++ listClasses(classPath, true))
       .flatMap { name =>
-        val it: Iterator[Class[_]] =
+        val it: Iterator[Class[?]] =
           try Iterator(loader.loadClass(name))
           catch {
             case _: ClassNotFoundException | _: UnsupportedClassVersionError | _: NoClassDefFoundError | _: IncompatibleClassChangeError =>
@@ -166,7 +166,7 @@ object FrameworkUtils {
             Modifier.isPublic(c.getModifiers) && c.getParameterCount == 0
           }
 
-        val it: Iterator[Class[_]] =
+        val it: Iterator[Class[?]] =
           if (frameworkCls.isAssignableFrom(cls) && !isAbstract && publicConstructorCount == 1)
             Iterator(cls)
           else
@@ -188,7 +188,7 @@ object FrameworkUtils {
   // adapted from https://github.com/com-lihaoyi/mill/blob/ab4d61a50da24fb7fac97c4453dd8a770d8ac62b/scalalib/src/Lib.scala#L156-L172
   def matchFingerprints(
     loader: ClassLoader,
-    cls: Class[_],
+    cls: Class[?],
     fingerprints: Array[Fingerprint]
   ): Option[Fingerprint] = {
     val isModule               = cls.getName.endsWith("$")

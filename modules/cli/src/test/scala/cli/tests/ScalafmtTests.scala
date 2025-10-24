@@ -55,7 +55,7 @@ class ScalafmtTests extends TestUtil.ScalaCliSuite {
          |under tag v$defaultScalafmtVersion.""".stripMargin
     try {
       val resp    = TestUtil.downloadFile(url).orThrow
-      val release = readFromArray(resp)(releaseCodec)
+      val release = readFromArray(resp)(using releaseCodec)
       val assets  = release.assets.map(_.name)
 
       assert(
