@@ -7,8 +7,30 @@ COMMAND="cli[].base-image.writeDefaultNativeImageScript"
 # see https://www.graalvm.org/release-notes/22_2/#native-image
 export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
+is_windows() { [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] }
+
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+if is_windows; then
+  # prevent /d from being converted to d:\
+  export MSYS_NO_PATHCONV=1
+  export MSYS2_ARG_CONV_EXCL="*"
+  function setCodePage {
+    local CODEPAGE=$1 ; shift
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP /t REG_SZ /d $CODEPAGE /f
+  }
+  function getCodePage {
+    reg query "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP | sed -E -e 's#.* ##'
+  }
+  SAVED_CODEPAGE=`getCodePage`
+  function atexit {
+    if [ -n "$SAVED_CODEPAGE" ]; then
+      setCodePage "$SAVED_CODEPAGE" # put things back like we found them
+    fi
+  }
+  trap atexit EXIT INT TERM
+
+  setCodePage 65001 # set code page to UTF-8 before GraalVM compile
+
   ./mill.bat -i ci.copyJvm --dest jvm
   export JAVA_HOME="$(pwd -W | sed 's,/,\\,g')\\jvm"
   export GRAALVM_HOME="$JAVA_HOME"
