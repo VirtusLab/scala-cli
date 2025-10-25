@@ -7,10 +7,8 @@ COMMAND="cli[].base-image.writeDefaultNativeImageScript"
 # see https://www.graalvm.org/release-notes/22_2/#native-image
 export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
-is_windows() { [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]] }
-
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
-if is_windows; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
   # prevent /d from being converted to d:\
   export MSYS_NO_PATHCONV=1
   export MSYS2_ARG_CONV_EXCL="*"
