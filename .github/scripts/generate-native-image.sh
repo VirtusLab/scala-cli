@@ -7,26 +7,29 @@ COMMAND="cli[].base-image.writeDefaultNativeImageScript"
 # see https://www.graalvm.org/release-notes/22_2/#native-image
 export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 
+export MSYS_NO_PATHCONV=1 # prevent /d from being converted to d:\
+export MSYS2_ARG_CONV_EXCL="*"
+
+function setCodePage {
+  local CODEPAGE=$1 ; shift
+  reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP /t REG_SZ /d $CODEPAGE /f
+}
+function getCodePage {
+  reg query "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP | grep '[0-9]' | sed -E -e 's#[^0-9]*$##' -e 's#^.*[^0-9]##'
+}
+SAVED_CODEPAGE=`getCodePage`
+echo "SAVED_CODEPAGE[$SAVED_CODEPAGE]" 1>&2
+
+function atexit {
+  if [ -n "$SAVED_CODEPAGE" ]; then
+    set -x
+    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP /t REG_SZ /d $SAVED_CODEPAGE /f
+  fi
+}
+
 # Using 'mill -i' so that the Mill process doesn't outlive this invocation
 if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
-  # prevent /d from being converted to d:\
-  export MSYS_NO_PATHCONV=1
-  export MSYS2_ARG_CONV_EXCL="*"
-  function setCodePage {
-    local CODEPAGE=$1 ; shift
-    reg add "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP /t REG_SZ /d $CODEPAGE /f
-  }
-  function getCodePage {
-    reg query "HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage" /v ACP | sed -E -e 's#.* ##'
-  }
-  SAVED_CODEPAGE=`getCodePage`
-  function atexit {
-    if [ -n "$SAVED_CODEPAGE" ]; then
-      setCodePage "$SAVED_CODEPAGE" # put things back like we found them
-    fi
-  }
   trap atexit EXIT INT TERM
-
   setCodePage 65001 # set code page to UTF-8 before GraalVM compile
 
   ./mill.bat -i ci.copyJvm --dest jvm
