@@ -105,8 +105,9 @@ object core           extends Cross[Core](Scala.scala3MainVersions) with CrossSc
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 object runner        extends Cross[Runner](Scala.runnerScalaVersions) with CrossScalaDefaultToRunner
-object `test-runner` extends TestRunner
-object `tasty-lib`   extends Cross[TastyLib](Scala.scala3MainVersions)
+object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
+    with CrossScalaDefaultToRunner
+object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 // Runtime classes used within native image on Scala 3 replacing runtime from Scala
 object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
@@ -436,7 +437,7 @@ trait Core extends ScalaCliCrossSbtModule
   def constantsFile: T[PathRef] = Task(persistent = true) {
     val dir                 = Task.dest / "constants"
     val dest                = dir / "Constants.scala"
-    val testRunnerMainClass = `test-runner`
+    val testRunnerMainClass = `test-runner`(crossScalaVersion)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
     val runnerMainClass = build.runner(crossScalaVersion)
@@ -445,7 +446,7 @@ trait Core extends ScalaCliCrossSbtModule
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
-    val testRunnerOrganization = `test-runner`
+    val testRunnerOrganization = `test-runner`(crossScalaVersion)
       .pomSettings()
       .organization
     val code =
@@ -465,8 +466,8 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scalaNativeVersion = "${Deps.Versions.scalaNative}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
-         |  def testRunnerModuleName = "${`test-runner`.artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`.publishVersion()}"
+         |  def testRunnerModuleName = "${`test-runner`(crossScalaVersion).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(crossScalaVersion).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
          |
          |  def runnerOrganization = "${build.runner(crossScalaVersion).pomSettings().organization}"
@@ -726,7 +727,7 @@ trait Build extends ScalaCliCrossSbtModule
     options(crossScalaVersion),
     directives(crossScalaVersion),
     `scala-cli-bsp`,
-    `test-runner`,
+    `test-runner`(crossScalaVersion),
     `tasty-lib`(crossScalaVersion)
   )
   override def scalacOptions: T[Seq[String]] = Task {
@@ -1273,10 +1274,9 @@ trait Runner extends CrossSbtModule
   }
 }
 
-trait TestRunner extends SbtModule
+trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  override def scalaVersion: T[String]       = Scala.runnerScala3
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
   }
@@ -1321,7 +1321,7 @@ object `local-repo` extends LocalRepo {
   def developingOnStubModules = false
 
   override def stubsModules: Seq[PublishLocalNoFluff] =
-    Seq(runner(Scala.runnerScala3), `test-runner`)
+    Seq(runner(Scala.runnerScala3), `test-runner`(Scala.runnerScala3))
 
   override def version: T[String] = runner(Scala.runnerScala3).publishVersion()
 }
