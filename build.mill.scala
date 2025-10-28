@@ -1261,22 +1261,14 @@ trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with Has
 trait Runner extends SbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  override def scalaVersion: T[String]       = Scala.scala3Lts
+  override def scalaVersion: T[String]       = Scala.runnerScala3
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
   }
   override def mainClass: T[Option[String]] = Some("scala.cli.runner.Runner")
   override def sources: T[Seq[PathRef]]     = Task.Sources {
-    val scala3DirNames =
-      if (scalaVersion().startsWith("3.")) {
-        val name =
-          if (scalaVersion().contains("-RC")) "scala-3-unstable"
-          else "scala-3-stable"
-        Seq(name)
-      }
-      else
-        Nil
-    val extraDirs = scala3DirNames.map(name => PathRef(moduleDir / "src" / "main" / name))
+    val scala3DirName = if (scalaVersion().contains("-RC")) "scala-3-unstable" else "scala-3-stable"
+    val extraDirs     = Seq(PathRef(moduleDir / "src" / "main" / scala3DirName))
     super.sources() ++ extraDirs
   }
 }
@@ -1284,7 +1276,7 @@ trait Runner extends SbtModule
 trait TestRunner extends SbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  override def scalaVersion: T[String]       = Scala.scala3Lts
+  override def scalaVersion: T[String]       = Scala.runnerScala3
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
   }
