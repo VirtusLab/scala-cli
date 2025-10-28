@@ -32,7 +32,7 @@ object Scala {
   val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = Seq(runnerScala3, scala3MainVersions).distinct
+  val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
 
   def scalaJs    = "1.20.1"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
