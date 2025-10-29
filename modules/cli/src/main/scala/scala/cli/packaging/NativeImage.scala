@@ -4,6 +4,7 @@ import java.io.File
 
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
+import scala.build.internals.ConsoleUtils.ScalaCliConsole.warnPrefix
 import scala.build.internals.EnvVar
 import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
@@ -209,6 +210,12 @@ object NativeImage {
         val needsProcessing =
           builds.head.scalaParams.map(_.scalaVersion.coursierVersion)
             .exists(sv => (sv >= "3.0.0".coursierVersion) && (sv < "3.3.0".coursierVersion))
+        if needsProcessing then
+          logger.message(
+            s"""$warnPrefix building native images with Scala 3 older than 3.3.0 is deprecated.
+               |$warnPrefix support will be dropped in a future Scala CLI version.
+               |$warnPrefix it is advised to upgrade to a more recent Scala version.""".stripMargin
+          )
         val (classPath, toClean, scala3extraOptions) =
           if needsProcessing then {
             val cpString         = processedClassPath.mkString(File.pathSeparator)
