@@ -1,11 +1,12 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters._
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with Test3NextRc {
@@ -77,17 +78,18 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
       val bspOptions      = jsonOptions ++ launcherOptions ++ envOptions
       withBsp(inputs, Seq("."), bspOptions = bspOptions, reuseRoot = Some(root)) {
         (_, _, remoteServer) =>
-          async {
-            val targets = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val targets = remoteServer.workspaceBuildTargets().asScala.await
               .getTargets.asScala
               .filter(!_.getId.getUri.contains("-test"))
               .map(_.getId())
             val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+            val expectedStatusCode = b.StatusCode.OK
+            expect(compileResult.getStatusCode == expectedStatusCode)
             val runResult =
-              await(remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala)
-            expect(runResult.getStatusCode == b.StatusCode.OK)
+              remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
+            expect(runResult.getStatusCode == expectedStatusCode)
           }
       }
     }

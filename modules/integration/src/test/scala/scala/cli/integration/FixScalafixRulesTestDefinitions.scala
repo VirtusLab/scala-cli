@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 trait FixScalafixRulesTestDefinitions {
-  _: FixTestDefinitions =>
+  this: FixTestDefinitions =>
   protected val scalafixConfFileName: String = ".scalafix.conf"
   protected def scalafixUnusedRuleOption: String
   protected def noCrLf(input: String): String =

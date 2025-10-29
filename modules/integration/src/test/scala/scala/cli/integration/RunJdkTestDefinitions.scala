@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.ProcOps
 import scala.util.{Properties, Try}
 
-trait RunJdkTestDefinitions { _: RunTestDefinitions =>
+trait RunJdkTestDefinitions { this: RunTestDefinitions =>
   def canUseScalaInstallationWrapper: Boolean =
     actualScalaVersion.startsWith("3") && actualScalaVersion.split('.').drop(1).head.toInt >= 5
 

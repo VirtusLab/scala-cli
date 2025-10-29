@@ -166,7 +166,7 @@ object Deps {
   def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
   // Force using of 2.13 - is there a better way?
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
+  def coursierArchiveCache = mvn"io.get-coursier:coursier-archive-cache_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
   def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
   def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
@@ -213,7 +213,6 @@ object Deps {
   def pprint             = mvn"com.lihaoyi::pprint:0.9.3"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.4"
-  def scalaAsync         = mvn"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
   def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"
   def scalafmtCli        = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?

@@ -9,7 +9,7 @@ abstract class ExportMillTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs
     with ExportCommonTestDefinitions
     with ExportScalaOrientedBuildToolsTestDefinitions
-    with MillTestHelper { _: TestScalaVersion =>
+    with MillTestHelper { this: TestScalaVersion =>
   override val prepareTestInputs: TestInputs => TestInputs = _.withMillJvmOpts
 
   override val outputDir: RelPath                    = millOutputDir

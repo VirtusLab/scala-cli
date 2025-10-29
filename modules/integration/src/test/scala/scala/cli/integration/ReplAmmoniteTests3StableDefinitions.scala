@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.util.Properties
 
 trait ReplAmmoniteTests3StableDefinitions {
-  _: ReplTestDefinitions with ReplAmmoniteTestDefinitions =>
+  this: ReplTestDefinitions & ReplAmmoniteTestDefinitions =>
   if (!actualScalaVersion.equals(actualMaxAmmoniteScalaVersion)) {
     lazy val defaultScalaVersionString =
       s" with Scala $actualScalaVersion (the default version, may downgrade)"

@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 import scala.cli.integration.Constants.munitVersion
 
 abstract class TestTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   private val utestVersion                     = "0.8.3"
   private val zioTestVersion                   = "2.1.17"

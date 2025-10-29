@@ -994,13 +994,13 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   override def scalaVersion: T[String] = sv
 
-  def sv: String = Scala.scala213
+  def sv: String = Scala.scala3Lts
 
   def tmpDirBase: T[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "working-dir")
   }
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
 
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
@@ -1016,7 +1016,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
-      Deps.scalaAsync,
       Deps.slf4jNop,
       Deps.usingDirectives
     )
@@ -1253,7 +1252,7 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
 }
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
-  override def scalaVersion: T[String] = Scala.scala213
+  override def scalaVersion: T[String] = Scala.scala3Lts
   override def ivyDeps: T[Agg[Dep]]    = super.ivyDeps() ++ Agg(
     Deps.osLib
   )

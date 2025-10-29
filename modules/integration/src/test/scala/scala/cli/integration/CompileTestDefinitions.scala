@@ -12,7 +12,7 @@ abstract class CompileTestDefinitions
     with TestScalaVersionArgs
     with CompilerPluginTestDefinitions
     with CompileScalacCompatTestDefinitions
-    with SemanticDbTestDefinitions { _: TestScalaVersion =>
+    with SemanticDbTestDefinitions { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   private lazy val bloopDaemonDir = BloopUtil.bloopDaemonDir {
@@ -576,7 +576,8 @@ abstract class CompileTestDefinitions
         .filter(_.last.endsWith(".class"))
         .filter(os.isFile(_))
         .map(_.relativeTo(outputDir))
-      expect(classFiles.contains(os.rel / "Hello.class"))
+      val path = os.rel / "Hello.class"
+      expect(classFiles.contains(path))
     }
   }
 

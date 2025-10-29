@@ -1,13 +1,14 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
 import java.nio.file.Files
 
-import scala.async.Async.{async, await}
+import scala.cli.integration.TestUtil.await
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.jdk.CollectionConverters._
+import scala.concurrent.Future
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
@@ -60,14 +61,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
     test(s"bsp ($testMessage)") {
       withBsp(simpleBenchmarkingInputs(directiveString), Seq(".", "--power") ++ jmhOptions) {
         (_, _, remoteServer) =>
-          async {
-            val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+          Future {
+            val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
             val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
             expect(targets.length == 2)
 
             val compileResult =
-              await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-            expect(compileResult.getStatusCode == b.StatusCode.OK)
+              remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+            val expectedStatusCode = b.StatusCode.OK
+            expect(compileResult.getStatusCode == expectedStatusCode)
 
           }
       }
@@ -94,14 +96,15 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
         )
         withBsp(inputs, Seq("."), bspOptions = jsonOptions, reuseRoot = Some(root)) {
           (_, _, remoteServer) =>
-            async {
-              val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
+            Future {
+              val buildTargetsResp = remoteServer.workspaceBuildTargets().asScala.await
               val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).toSeq
               expect(targets.length == 2)
 
               val compileResult =
-                await(remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala)
-              expect(compileResult.getStatusCode == b.StatusCode.OK)
+                remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
+              val expectedStatusCode = b.StatusCode.OK
+              expect(compileResult.getStatusCode == expectedStatusCode)
             }
         }
       }

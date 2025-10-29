@@ -2,7 +2,7 @@ package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
 
-trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
+trait SemanticDbTestDefinitions { this: CompileTestDefinitions =>
   def javaHelloWorld(packageName: String, mainClassName: String): String =
     s"""package $packageName;
        |
@@ -57,9 +57,8 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
           .filter(!_.segments.exists(_ == "bloop-internal-classes"))
         expect(semDbFiles.length == 1)
         val semDbFile = semDbFiles.head
-        expect(
-          semDbFile.endsWith(os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb")
-        )
+        val path      = os.rel / "META-INF" / "semanticdb" / "foo" / "Test.java.semanticdb"
+        expect(semDbFile.endsWith(path))
       }
   }
 
@@ -167,17 +166,13 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
             .filter(!_.segments.exists(_ == "bloop-internal-classes"))
           expect(semDbFiles.length == 2)
           val semDbFile1 = semDbFiles.find(_.last == s"$sourceFileName1.semanticdb").get
-          expect(
-            semDbFile1.endsWith(
-              os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 / s"$sourceFileName1.semanticdb"
-            )
-          )
+          val relPath1   =
+            os.rel / "META-INF" / "semanticdb" / sourceDir1 / package1 / s"$sourceFileName1.semanticdb"
+          expect(semDbFile1.endsWith(relPath1))
           val semDbFile2 = semDbFiles.find(_.last == s"$sourceFileName2.semanticdb").get
-          expect(
-            semDbFile2.endsWith(
-              os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 / s"$sourceFileName2.semanticdb"
-            )
-          )
+          val relPath2   =
+            os.rel / "META-INF" / "semanticdb" / sourceDir2 / package2 / s"$sourceFileName2.semanticdb"
+          expect(semDbFile2.endsWith(relPath2))
         }
       }
   }
@@ -204,11 +199,8 @@ trait SemanticDbTestDefinitions { _: CompileTestDefinitions =>
             .filter(_.last.endsWith(".semanticdb"))
             .filter(!_.segments.exists(_ == "bloop-internal-classes"))
           expect(semDbFiles.length == 1)
-          expect(
-            semDbFiles.head.endsWith(
-              os.rel / "META-INF" / "semanticdb" / "foo" / "Test.sc.semanticdb"
-            )
-          )
+          val relPath = os.rel / "META-INF" / "semanticdb" / "foo" / "Test.sc.semanticdb"
+          expect(semDbFiles.head.endsWith(relPath))
       }
     }
 }
