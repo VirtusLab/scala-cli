@@ -6,6 +6,7 @@ object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
   def runnerScala2LegacyVersion = "1.9.1" // last runner version to support pre-Scala-3 versions
+  def scala3GraalLegacyVersion  = "1.9.1" // last version to support pre-3.3 processing for Graal
 }
 
 object Scala {
@@ -214,7 +215,10 @@ object Deps {
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
   def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.4"
   def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
+  def scala3Graal = mvn"org.virtuslab.scala-cli::scala3-graal:${Cli.scala3GraalLegacyVersion}"
+  def scala3GraalProcessor =
+    mvn"org.virtuslab.scala-cli::scala3-graal-processor:${Cli.scala3GraalLegacyVersion}"
+  def scalafmtCli = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     mvn"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

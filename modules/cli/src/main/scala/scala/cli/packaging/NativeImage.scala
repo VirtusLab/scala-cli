@@ -5,7 +5,7 @@ import java.io.File
 import scala.annotation.tailrec
 import scala.build.internal.{ManifestJar, Runner}
 import scala.build.internals.EnvVar
-import scala.build.{Build, Logger, Positioned}
+import scala.build.{Build, Logger, Positioned, coursierVersion}
 import scala.cli.errors.GraalVMNativeImageError
 import scala.cli.graal.{BytecodeProcessor, TempCache}
 import scala.cli.internal.CachedBinary
@@ -206,7 +206,9 @@ object NativeImage {
         // seems native-image doesn't correctly parse paths in manifests - this is especially a problem on Windows
         wrongSimplePathsInManifest = true
       ) { processedClassPath =>
-        val needsProcessing = builds.head.scalaParams.exists(_.scalaVersion.startsWith("3."))
+        val needsProcessing =
+          builds.head.scalaParams.map(_.scalaVersion.coursierVersion)
+            .exists(sv => (sv >= "3.0.0".coursierVersion) && (sv < "3.3.0".coursierVersion))
         val (classPath, toClean, scala3extraOptions) =
           if needsProcessing then {
             val cpString         = processedClassPath.mkString(File.pathSeparator)
