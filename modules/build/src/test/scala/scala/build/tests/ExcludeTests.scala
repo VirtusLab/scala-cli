@@ -6,13 +6,13 @@ import coursier.cache.{ArchiveCache, ArtifactError, Cache}
 import coursier.util.{Artifact, EitherT, Task}
 
 import java.io.File
+
 import scala.build.Ops.*
-import scala.build.Sources
-import scala.build.CrossSources
 import scala.build.errors.ExcludeDefinitionError
 import scala.build.input.ScalaCliInvokeData
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.preprocessing.Preprocessor
+import scala.build.{CrossSources, Sources}
 import scala.concurrent.ExecutionContext
 
 class ExcludeTests extends TestUtil.ScalaCliBuildSuite {

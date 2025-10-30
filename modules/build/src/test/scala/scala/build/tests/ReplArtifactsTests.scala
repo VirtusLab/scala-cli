@@ -4,12 +4,12 @@ import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.FileCache
 import dependency.ScalaParameters
 
-import scala.build.{Directories, Logger, ReplArtifacts}
+import scala.build.{Logger, ReplArtifacts}
 
 class ReplArtifactsTests extends TestUtil.ScalaCliBuildSuite {
 
   def scalaPyTest(version: String, usesFormerOrg: Boolean = false): Unit =
-    TestInputs.withTmpDir("replartifactstests") { root =>
+    TestInputs.withTmpDir("replartifactstests") { _ =>
       val artifacts = ReplArtifacts.ammonite(
         scalaParams = ScalaParameters("2.13.8"),
         ammoniteVersion = "2.5.4",

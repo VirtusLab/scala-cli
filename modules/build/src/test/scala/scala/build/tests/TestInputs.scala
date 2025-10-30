@@ -3,14 +3,14 @@ package scala.build.tests
 import bloop.rifle.BloopRifleConfig
 
 import java.nio.charset.StandardCharsets
-import scala.build.{Build, BuildThreads, Builds, Directories}
+
 import scala.build.compiler.{BloopCompilerMaker, SimpleScalaCompilerMaker}
 import scala.build.errors.BuildException
-import scala.build.input.{Inputs, ScalaCliInvokeData, SubCommand}
-import scala.build.internal.Util
+import scala.build.input.{Inputs, ScalaCliInvokeData}
 import scala.build.options.{BuildOptions, Scope}
-import scala.util.control.NonFatal
+import scala.build.{Build, BuildThreads, Builds}
 import scala.util.Try
+import scala.util.control.NonFatal
 
 final case class TestInputs(
   files: Seq[(os.RelPath, String)],

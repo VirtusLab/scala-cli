@@ -1,10 +1,11 @@
 package scala.build.tests
 
-import scala.build.{Build, Positioned}
-import scala.build.options.{BuildOptions, Platform}
 import munit.Assertions.assertEquals
 
 import java.util.concurrent.TimeUnit
+
+import scala.build.options.{BuildOptions, Platform}
+import scala.build.{Build, Positioned}
 import scala.concurrent.duration.FiniteDuration
 
 object TestUtil {

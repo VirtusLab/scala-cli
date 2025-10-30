@@ -1,10 +1,10 @@
 package scala.build.tests
 
-import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, ScriptPreprocessor}
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.input.{Inputs, MarkdownFile, ScalaCliInvokeData, Script, SourceScalaFile}
+import scala.build.input.{MarkdownFile, ScalaCliInvokeData, Script, SourceScalaFile}
 import scala.build.options.SuppressWarningOptions
+import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, ScriptPreprocessor}
 
 class PreprocessingTests extends TestUtil.ScalaCliBuildSuite {
 

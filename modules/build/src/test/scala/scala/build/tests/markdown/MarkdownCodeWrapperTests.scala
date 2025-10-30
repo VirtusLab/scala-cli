@@ -1,17 +1,10 @@
 package scala.build.tests.markdown
 
-import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.build.Position
-import scala.build.errors.{BuildException, MarkdownUnclosedBackticksError}
 import scala.build.internal.AmmUtil
-import scala.build.preprocessing.directives.StrictDirective
-import scala.build.preprocessing.{
-  ExtractedDirectives,
-  PreprocessedMarkdown,
-  PreprocessedMarkdownCodeBlocks
-}
+import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
+import scala.build.preprocessing.{PreprocessedMarkdown, PreprocessedMarkdownCodeBlocks}
 import scala.build.tests.TestUtil
 import scala.build.tests.markdown.MarkdownTestUtil.*
 

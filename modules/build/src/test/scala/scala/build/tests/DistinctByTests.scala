@@ -1,8 +1,6 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
-
-import scala.build.CollectionOps.distinctBy
 class DistinctByTests extends TestUtil.ScalaCliBuildSuite {
   case class Message(a: String, b: Int)
   val distinctData = Seq(
