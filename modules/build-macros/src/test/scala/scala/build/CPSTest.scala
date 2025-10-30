@@ -1,6 +1,6 @@
 package scala.build
 
-import EitherCps._
+import scala.build.EitherCps.*
 
 class CPSTest extends munit.FunSuite {
 
