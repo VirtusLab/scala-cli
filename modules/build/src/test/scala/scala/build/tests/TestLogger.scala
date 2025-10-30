@@ -3,9 +3,10 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
-import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
+import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.PrintStream
+
 import scala.build.Logger
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
@@ -75,10 +76,6 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     sn.Logger.nullLogger
   def scalaNativeCliInternalLoggerOptions: List[String] =
     List()
-  def bloopBspStderr: Option[Nothing] = None
-  def bloopBspStdout: Option[Nothing] = None
-  def bloopCliInheritStdout: Boolean  = false
-  def bloopCliInheritStderr: Boolean  = false
 
   def compilerOutputStream: PrintStream = System.err
 

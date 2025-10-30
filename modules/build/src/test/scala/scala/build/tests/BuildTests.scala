@@ -8,6 +8,7 @@ import com.google.gson.Gson
 import dependency.parser.DependencyParser
 
 import java.io.IOException
+
 import scala.build.Ops.*
 import scala.build.errors.{
   DependencyFormatError,
@@ -45,7 +46,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  def sv2: String = Constants.defaultScala213Version
+  def sv2: String                  = Constants.defaultScala213Version
   val defaultOptions: BuildOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
@@ -54,7 +55,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     scriptOptions = ScriptOptions(Some(true))
   )
 
-  def sv3: String = Constants.defaultScalaVersion
+  def sv3: String                        = Constants.defaultScalaVersion
   val defaultScala3Options: BuildOptions = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),

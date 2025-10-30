@@ -4,6 +4,7 @@ import munit.AnyFixture
 import munit.Assertions.assertEquals
 
 import java.util.concurrent.TimeUnit
+
 import scala.build.options.{BuildOptions, Platform}
 import scala.build.{Build, Positioned}
 import scala.concurrent.duration.FiniteDuration

@@ -8,6 +8,7 @@ import dependency.*
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+
 import scala.build.Ops.*
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.input.ScalaCliInvokeData
