@@ -6,10 +6,7 @@ import scala.cli.ScalaCliCommands
 import scala.cli.commands.shared.HasGlobalOptions
 
 class OptionsCheck extends TestUtil.ScalaCliSuite {
-  for (
-    command <-
-      new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands
-  )
+  for (command <- new ScalaCliCommands("scala-cli", "scala-cli", "Scala CLI").commands)
     test(s"No duplicated options in ${command.names.head.mkString(" ")}") {
       command.ensureNoDuplicates()
     }
