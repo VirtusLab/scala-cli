@@ -79,7 +79,7 @@ final case class TestInputs(
     buildThreads: BuildThreads, // actually only used when bloopConfigOpt is non-empty
     bloopConfigOpt: Option[BloopRifleConfig],
     fromDirectory: Boolean = false
-  )(f: (os.Path, Inputs, Builds) => T) =
+  )(f: (os.Path, Inputs, Builds) => T): T =
     withBuilds(options, buildThreads, bloopConfigOpt, fromDirectory)((p, i, builds) =>
       builds match {
         case Left(e)  => throw e
@@ -174,7 +174,7 @@ object TestInputs {
         Runtime.getRuntime.addShutdownHook(
           new Thread("remove-dir-windows") {
             setDaemon(true)
-            override def run() =
+            override def run(): Unit =
               try os.remove.all(f)
               catch {
                 case NonFatal(e) =>

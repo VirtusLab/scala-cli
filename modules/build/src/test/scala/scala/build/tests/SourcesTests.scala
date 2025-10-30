@@ -1,33 +1,36 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.{ArchiveCache, Cache}
-import coursier.util.{Artifact, Task}
+import coursier.cache.Cache.Fetch
+import coursier.cache.{ArchiveCache, ArtifactError, Cache}
+import coursier.util.{Artifact, EitherT, Task}
 import dependency.*
 
+import java.io.File
 import java.nio.charset.StandardCharsets
-
 import scala.build.Ops.*
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.input.ScalaCliInvokeData
 import scala.build.internal.ScalaJsLinkerConfig
 import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
+import scala.build.preprocessing.Preprocessor
 import scala.build.{CrossSources, Position, Sources}
+import scala.concurrent.ExecutionContext
 
 class SourcesTests extends TestUtil.ScalaCliBuildSuite {
-
-  def scalaVersion       = "2.13.5"
-  def scalaParams        = ScalaParameters(scalaVersion)
-  def scalaBinaryVersion = scalaParams.scalaBinaryVersion
+  def scalaVersion: String         = "2.13.5"
+  def scalaParams: ScalaParameters = ScalaParameters(scalaVersion)
+  def scalaBinaryVersion: String   = scalaParams.scalaBinaryVersion
 
   given ScalaCliInvokeData = ScalaCliInvokeData.dummy
 
-  val preprocessors = Sources.defaultPreprocessors(
+  val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
     ArchiveCache().withCache(
       new Cache[Task] {
-        def fetch                    = _ => sys.error("shouldn't be used")
-        def file(artifact: Artifact) = sys.error("shouldn't be used")
-        def ec                       = sys.error("shouldn't be used")
+        def fetch: Fetch[Task] = _ => sys.error("shouldn't be used")
+        def file(artifact: Artifact): EitherT[Task, ArtifactError, File] =
+          sys.error("shouldn't be used")
+        def ec: ExecutionContext = sys.error("shouldn't be used")
       }
     ),
     None,
@@ -74,7 +77,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           )
             .orThrow
 
-        val obtainedDeps = sources.buildOptions.classPathOptions.extraDependencies.toSeq.toSeq.map(
+        val obtainedDeps = sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(
           _.value
         )
 
@@ -122,7 +125,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
       )
       expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 0)
+      expect(sources.inMemory.isEmpty)
     }
   }
 
@@ -155,7 +158,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
       expect(sources.paths.length == 1)
       expect(sources.inMemory.length == 1)
-      expect(sources.inMemory(0).generatedRelPath.last == "AmmDummy.scala")
+      expect(sources.inMemory.head.generatedRelPath.last == "AmmDummy.scala")
     }
   }
 
@@ -195,7 +198,7 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
         sources.buildOptions.classPathOptions.extraDependencies.toSeq.map(_.value) == expectedDeps
       )
       expect(sources.paths.isEmpty)
-      expect(sources.inMemory.length == 0)
+      expect(sources.inMemory.isEmpty)
     }
   }
 
@@ -605,22 +608,22 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
       val jsOptions = sources.buildOptions.scalaJsOptions
       val jsConfig  = jsOptions.linkerConfig(TestLogger())
       expect(
-        jsOptions.version == Some("1.8.0"),
+        jsOptions.version.contains("1.8.0"),
         jsOptions.mode.nameOpt.contains("mode"),
-        jsOptions.moduleKindStr == Some("commonjs"),
-        jsOptions.checkIr == Some(true),
-        jsOptions.emitSourceMaps == true,
-        jsOptions.dom == Some(true),
-        jsOptions.noOpt == Some(true)
+        jsOptions.moduleKindStr.contains("commonjs"),
+        jsOptions.checkIr.contains(true),
+        jsOptions.emitSourceMaps,
+        jsOptions.dom.contains(true),
+        jsOptions.noOpt.contains(true)
       )
       expect(
         jsConfig.moduleKind == ScalaJsLinkerConfig.ModuleKind.CommonJSModule,
-        jsConfig.checkIR == true,
-        jsConfig.sourceMap == true,
-        jsConfig.jsHeader == Some("#!/usr/bin/env node\n"),
-        jsConfig.esFeatures.allowBigIntsForLongs == true,
-        jsConfig.esFeatures.avoidClasses == false,
-        jsConfig.esFeatures.avoidLetsAndConsts == false,
+        jsConfig.checkIR,
+        jsConfig.sourceMap,
+        jsConfig.jsHeader.contains("#!/usr/bin/env node\n"),
+        jsConfig.esFeatures.allowBigIntsForLongs,
+        !jsConfig.esFeatures.avoidClasses,
+        !jsConfig.esFeatures.avoidLetsAndConsts,
         jsConfig.esFeatures.esVersion == "ES2017",
         jsConfig.moduleSplitStyle == ScalaJsLinkerConfig.ModuleSplitStyle.SmallestModules
       )

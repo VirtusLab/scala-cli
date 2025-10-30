@@ -16,7 +16,6 @@ import scala.build.{CrossSources, Sources}
 import scala.concurrent.ExecutionContext
 
 class ExcludeTests extends TestUtil.ScalaCliBuildSuite {
-
   val preprocessors: Seq[Preprocessor] = Sources.defaultPreprocessors(
     archiveCache = ArchiveCache().withCache(
       new Cache[Task] {

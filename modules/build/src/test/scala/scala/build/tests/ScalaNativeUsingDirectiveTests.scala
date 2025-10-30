@@ -1,5 +1,6 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
 import scala.build.errors.UsingDirectiveValueNumError
@@ -8,12 +9,11 @@ import scala.build.tests.util.BloopServer
 import scala.build.{BuildThreads, Directories, LocalRepo}
 
 class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
+  val buildThreads: BuildThreads            = BuildThreads.create()
+  def bloopConfig: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
 
-  val buildThreads = BuildThreads.create()
-  def bloopConfig  = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   val buildOptions = BuildOptions(
     internal = InternalOptions(
@@ -142,7 +142,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
 
     inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.options.scalaNativeOptions.compileOptions(0) == "compileOption1"
+        maybeBuild.options.scalaNativeOptions.compileOptions.head == "compileOption1"
       )
       assert(
         maybeBuild.options.scalaNativeOptions.compileOptions(1) == "compileOption2"
@@ -215,7 +215,7 @@ class ScalaNativeUsingDirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
     inputs.withLoadedBuild(buildOptions, buildThreads, bloopConfig) { (_, _, maybeBuild) =>
       assert(
-        maybeBuild.options.scalaNativeOptions.linkingOptions(0) == "linkingOption1"
+        maybeBuild.options.scalaNativeOptions.linkingOptions.head == "linkingOption1"
       )
       assert(
         maybeBuild.options.scalaNativeOptions.linkingOptions(1) == "linkingOption2"

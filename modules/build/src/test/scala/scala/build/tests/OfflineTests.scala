@@ -7,9 +7,9 @@ import scala.build.tests.Constants
 import scala.build.{BuildThreads, Directories}
 
 class OfflineTests extends TestUtil.ScalaCliBuildSuite {
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-offline-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions     = BuildOptions(
+  val extraRepoTmpDir: os.Path  = os.temp.dir(prefix = "scala-cli-tests-offline-")
+  val directories: Directories  = Directories.under(extraRepoTmpDir)
+  val baseOptions: BuildOptions = BuildOptions(
     internal = InternalOptions(
       cache = Some(FileCache()
         .withLocation(directories.cacheDir.toString)
@@ -17,7 +17,7 @@ class OfflineTests extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  val buildThreads = BuildThreads.create()
+  val buildThreads: BuildThreads = BuildThreads.create()
 
   for (
     defaultVersion <- Seq(

@@ -7,7 +7,6 @@ import dependency.ScalaParameters
 import scala.build.{Logger, ReplArtifacts}
 
 class ReplArtifactsTests extends TestUtil.ScalaCliBuildSuite {
-
   def scalaPyTest(version: String, usesFormerOrg: Boolean = false): Unit =
     TestInputs.withTmpDir("replartifactstests") { _ =>
       val artifacts = ReplArtifacts.ammonite(

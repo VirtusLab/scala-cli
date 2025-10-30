@@ -23,11 +23,10 @@ import scala.concurrent.duration.DurationInt
 
 class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
   override def munitFlakyOK: Boolean = TestUtil.isCI
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val buildThreads    = BuildThreads.create()
-  val baseOptions     = BuildOptions(
+  val extraRepoTmpDir: os.Path       = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories       = Directories.under(extraRepoTmpDir)
+  val buildThreads: BuildThreads     = BuildThreads.create()
+  val baseOptions                    = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger()),
       keepDiagnostics = true
@@ -53,7 +52,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("3.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scalaParams.scalaVersion.startsWith("3") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.nightly argument does not lead to scala3 nightly build option"
@@ -65,7 +64,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("3.1.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     expect(
       scalaParams.scalaVersion.startsWith("3.1.") && scalaParams.scalaVersion.endsWith("-NIGHTLY"),
       "-S 3.1.nightly argument does not lead to scala 3.1. nightly build option"
@@ -170,7 +169,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("3.1.2-RC1"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scalaParams.scalaVersion == "3.1.2-RC1",
       "-S 3.1.2-RC1 argument does not lead to 3.1.2-RC1 build option"
@@ -213,7 +212,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("2.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.nightly argument does not lead to scala2 nightly build option"
@@ -226,7 +225,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("2.13.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.13.nightly argument does not lead to scala2 nightly build option"
@@ -239,7 +238,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("3.lts"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scala3LtsRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 3.lts argument does not lead to scala3 LTS"
@@ -252,7 +251,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("2.12.nightly"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scala2NightlyRegex.unapplySeq(scalaParams.scalaVersion).isDefined,
       "-S 2.12.nightly argument does not lead to scala2 nightly build option"
@@ -265,7 +264,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
         scalaVersion = Some(MaybeScalaVersion("2.13.9-bin-4505094"))
       )
     )
-    val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+    val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
     assert(
       scalaParams.scalaVersion == "2.13.9-bin-4505094",
       "-S 2.13.9-bin-4505094 argument does not lead to 2.13.9-bin-4505094 scala version in build option"
@@ -281,7 +280,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
     )
   }
 
-  val expectedScalaVersions = Seq(
+  val expectedScalaVersions: Seq[(Option[String], String)] = Seq(
     None           -> defaultScalaVersion,
     Some("2.13.2") -> "2.13.2",
     Some("3.0.1")  -> "3.0.1",
@@ -300,7 +299,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
           cache = Some(FileCache().withTtl(0.seconds))
         )
       )
-      val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+      val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
 
       val expectedScalaParams = ScalaParameters(expectedScalaVersion)
 
@@ -364,7 +363,7 @@ class BuildOptionsTests extends TestUtil.ScalaCliBuildSuite {
       testDescription =
         s"-S $prefix should choose the $expectedVersionDescription version ($expectedVersion), not necessarily the latest stable ($latestMatchingVersion) $launcherDefaultVersionDescription"
     } test(testDescription) {
-      val scalaParams = options.scalaParams.orThrow.getOrElse(???)
+      val scalaParams = options.scalaParams.orThrow.getOrElse(sys.error("should not happen"))
 
       val expectedScalaParams = ScalaParameters(expectedVersion)
 
