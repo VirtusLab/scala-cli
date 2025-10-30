@@ -39,6 +39,7 @@ import mill._
 import mill.api.Loose
 import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
+import mill.define.Task.Simple
 import mill.testrunner.TestResult
 
 import _root_.scala.util.{Properties, Using}
@@ -108,15 +109,6 @@ object runner        extends Cross[Runner](Scala.runnerScalaVersions) with Cross
 object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
     with CrossScalaDefaultToRunner
 object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Runtime classes used within native image on Scala 3 replacing runtime from Scala
-object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Main app used to process classpath within build itself
-object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
 object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
@@ -685,38 +677,6 @@ trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with Has
   }
 }
 
-trait Scala3Runtime extends CrossSbtModule with ScalaCliPublishModule {
-  override def crossScalaVersion: String = crossValue
-  override def ivyDeps: T[Agg[Dep]]      = super.ivyDeps()
-}
-
-trait Scala3Graal extends ScalaCliCrossSbtModule
-    with ScalaCliPublishModule with ScalaCliScalafixModule {
-  override def crossScalaVersion: String = crossValue
-  override def ivyDeps: T[Agg[Dep]]      = super.ivyDeps() ++ Agg(
-    Deps.asm,
-    Deps.osLib
-  )
-
-  override def resources: T[Seq[PathRef]] = Task.Sources {
-    val extraResourceDir = Task.dest / "extra"
-    // scala3RuntimeFixes.jar is also used within
-    // resource-config.json and BytecodeProcessor.scala
-    os.copy.over(
-      `scala3-runtime`(crossScalaVersion).jar().path,
-      extraResourceDir / "scala3RuntimeFixes.jar",
-      createFolders = true
-    )
-    super.resources() ++ Seq(mill.PathRef(extraResourceDir))
-  }
-}
-
-trait Scala3GraalProcessor extends CrossScalaModule with ScalaCliPublishModule {
-  override def moduleDeps: Seq[SonatypeCentralPublishModule] =
-    Seq(`scala3-graal`(crossScalaVersion))
-  override def finalMainClass: T[String] = "scala.cli.graal.CoursierCacheProcessor"
-}
-
 trait Build extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
@@ -926,7 +886,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     `build-module`(crossScalaVersion),
     config(crossScalaVersion),
-    `scala3-graal`(crossScalaVersion),
     `specification-level`(crossScalaVersion)
   )
 
@@ -948,7 +907,9 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp,
-    Deps.scalafixInterfaces
+    Deps.scalafixInterfaces,
+    Deps.scala3Graal,         // TODO: drop this if we ever bump internal JDK to 24+
+    Deps.scala3GraalProcessor // TODO: drop this if we ever bump internal JDK to 24+
   )
   override def compileIvyDeps: T[Agg[Dep]] = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -956,13 +917,21 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   )
   override def mainClass: T[Option[String]] = Some("scala.cli.ScalaCli")
 
+  private def scala3GraalProcessorClassPath: T[Agg[PathRef]] = T {
+    resolveDeps(T {
+      val bind = bindDependency()
+      Agg(Deps.scala3GraalProcessor).map(bind)
+    })()
+  }
+
   override def nativeImageClassPath: T[Seq[PathRef]] = Task {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
     val cache     = Task.dest / "native-cp"
-    // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
+    // `scala3-graal-processor`.run() does not give me output and I cannot pass dynamically computed values like classpath
+    // TODO: drop this if we ever bump internal JDK to 24+
     val res = mill.util.Jvm.callProcess(
-      mainClass = `scala3-graal-processor`(crossScalaVersion).finalMainClass(),
-      classPath = `scala3-graal-processor`(crossScalaVersion).runClasspath().map(_.path),
+      mainClass = "scala.cli.graal.CoursierCacheProcessor",
+      classPath = scala3GraalProcessorClassPath().map(_.path).toList,
       mainArgs = Seq(cache.toNIO.toString, classpath)
     )
     val cp = res.out.trim()
