@@ -19,14 +19,14 @@ import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.*
 
 class BspServerTests extends TestUtil.ScalaCliBuildSuite {
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions     = BuildOptions(
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val baseOptions              = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
-  val buildThreads = BuildThreads.create()
+  val buildThreads: BuildThreads = BuildThreads.create()
 
   def getScriptBuildServer(
     generatedSources: Seq[GeneratedSource],

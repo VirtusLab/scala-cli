@@ -1,13 +1,13 @@
 package scala.build.tests
 
 import bloop.config.Config.LinkerMode
+import bloop.rifle.BloopRifleConfig
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.Gson
 import dependency.parser.DependencyParser
 
 import java.io.IOException
-
 import scala.build.Ops.*
 import scala.build.errors.{
   DependencyFormatError,
@@ -26,13 +26,12 @@ import scala.util.Properties
 abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
 
-  val buildThreads   = BuildThreads.create()
-  def bloopConfigOpt =
-    if (server) Some(BloopServer.bloopConfig)
-    else None
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  def bloopConfigOpt: Option[BloopRifleConfig] =
+    if server then Some(BloopServer.bloopConfig) else None
 
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -46,8 +45,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     )
   )
 
-  def sv2            = Constants.defaultScala213Version
-  val defaultOptions = baseOptions.copy(
+  def sv2: String = Constants.defaultScala213Version
+  val defaultOptions: BuildOptions = baseOptions.copy(
     scalaOptions = baseOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv2)),
       scalaBinaryVersion = None
@@ -55,8 +54,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     scriptOptions = ScriptOptions(Some(true))
   )
 
-  def sv3                  = Constants.defaultScalaVersion
-  val defaultScala3Options = defaultOptions.copy(
+  def sv3: String = Constants.defaultScalaVersion
+  val defaultScala3Options: BuildOptions = defaultOptions.copy(
     scalaOptions = defaultOptions.scalaOptions.copy(
       scalaVersion = Some(MaybeScalaVersion(sv3)),
       scalaBinaryVersion = None
@@ -109,7 +108,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple$package.class",
           "simple$package.tasty"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -133,7 +132,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "other$package.class",
           "other$package.tasty"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -184,7 +183,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple.class",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
 
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val semDb     = os.read.bytes(outputDir / "META-INF" / "semanticdb" / "simple.sc.semanticdb")
@@ -238,7 +237,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple$package.tasty",
         "META-INF/semanticdb/simple.sc.semanticdb"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
       val outputDir = build.outputOpt.getOrElse(sys.error("no build output???"))
       val tastyData = TastyData.read(os.read.bytes(outputDir / "simple$_.tasty")).orThrow
       val names     = tastyData.names.simpleNames
@@ -263,7 +262,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple.class",
           "simple.sjsir"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -284,7 +283,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
           "simple.class",
           "simple.nir"
         )
-        maybeBuild.orThrow.assertNoDiagnostics
+        maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
   if (!Properties.isWin)
@@ -307,7 +306,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple$.class",
         "simple$delayedInit$body.class"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -336,7 +335,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
         "simple2$delayedInit$body.class",
         "simple2.class"
       )
-      maybeBuild.orThrow.assertNoDiagnostics
+      maybeBuild.orThrow.assertNoDiagnostics()
     }
   }
 
@@ -647,7 +646,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val buildOptions = defaultOptions.copy(
       scalaOptions = defaultOptions.scalaOptions.copy(
         scalacOptions = ShadowingSeq.from(
-          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine(_))
+          cliScalacOptions.map(ScalacOpt(_)).map(Positioned.commandLine)
         )
       )
     )
@@ -678,7 +677,7 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
     val buildOptions = defaultOptions.copy(
       javaOptions = defaultOptions.javaOptions.copy(
         javaOpts = ShadowingSeq.from(
-          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine(_))
+          cliJavaOptions.map(JavaOpt(_)).map(Positioned.commandLine)
         )
       )
     )

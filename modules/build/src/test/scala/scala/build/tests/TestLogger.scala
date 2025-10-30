@@ -3,15 +3,15 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
-import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
+import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
 
+import java.io.PrintStream
 import scala.build.Logger
 import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
 import scala.scalanative.build as sn
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
-
   override def log(diagnostics: Seq[Diagnostic]): Unit = {
     diagnostics.foreach { d =>
       System.err.println(d.positions.map(_.render()).mkString("/") ++ ": " ++ d.message)
@@ -75,16 +75,16 @@ case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logg
     sn.Logger.nullLogger
   def scalaNativeCliInternalLoggerOptions: List[String] =
     List()
-  def bloopBspStderr        = None
-  def bloopBspStdout        = None
-  def bloopCliInheritStdout = false
-  def bloopCliInheritStderr = false
+  def bloopBspStderr: Option[Nothing] = None
+  def bloopBspStdout: Option[Nothing] = None
+  def bloopCliInheritStdout: Boolean  = false
+  def bloopCliInheritStderr: Boolean  = false
 
-  def compilerOutputStream = System.err
+  def compilerOutputStream: PrintStream = System.err
 
-  def verbosity =
-    if (debug) 2
-    else if (info) 0
+  def verbosity: Int =
+    if debug then 2
+    else if info then 0
     else -1
 
   override def experimentalWarning(featureName: String, featureType: FeatureType): Unit =

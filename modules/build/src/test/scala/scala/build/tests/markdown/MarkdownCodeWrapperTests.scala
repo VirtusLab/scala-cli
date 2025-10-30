@@ -7,6 +7,7 @@ import scala.build.internal.markdown.{MarkdownCodeBlock, MarkdownCodeWrapper}
 import scala.build.preprocessing.{PreprocessedMarkdown, PreprocessedMarkdownCodeBlocks}
 import scala.build.tests.TestUtil
 import scala.build.tests.markdown.MarkdownTestUtil.*
+import scala.language.reflectiveCalls
 
 class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -199,17 +200,13 @@ class MarkdownCodeWrapperTests extends TestUtil.ScalaCliBuildSuite {
 
   def showDiffs(result: CodeWrapper, expect: String): Unit = {
     val actual: String = result match {
-      case (Some(s), None, None) =>
-        s.code
-      case (None, Some(s), None) =>
-        s.code
-      case (None, None, Some(s)) =>
-        s.code
-      case _ =>
-        result.toString
+      case (Some(s), None, None) => s.code
+      case (None, Some(s), None) => s.code
+      case (None, None, Some(s)) => s.code
+      case _                     => result.toString
 
     }
-    if actual.toString != expect.toString then
+    if actual != expect then
       for (((a, b), i) <- (actual zip expect).zipWithIndex)
         if (a != b) {
           val aa = TestUtil.c2s(a)

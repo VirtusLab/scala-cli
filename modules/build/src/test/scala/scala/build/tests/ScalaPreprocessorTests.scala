@@ -57,7 +57,7 @@ class ScalaPreprocessorTests extends TestUtil.ScalaCliBuildSuite {
     }
   }
 
-  val lastUsingLines = Seq(
+  val lastUsingLines: Seq[(String, String)] = Seq(
     "//> using dep com.lihaoyi::os-lib::0.8.1 com.lihaoyi::os-lib::0.8.1" -> "string literal",
     "//> using scala 2.13.7"                                              -> "numerical string",
     "//> using objectWrapper true"                                        -> "boolean literal",

@@ -12,14 +12,14 @@ import scala.build.{BuildThreads, Directories, LocalRepo}
 
 class ActionableDiagnosticTests extends TestUtil.ScalaCliBuildSuite {
 
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions     = BuildOptions(
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-actionable-diagnostic-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val baseOptions              = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
-  val buildThreads = BuildThreads.create()
+  val buildThreads: BuildThreads = BuildThreads.create()
 
   def path2url(p: os.Path): String = p.toIO.toURI.toURL.toString
 

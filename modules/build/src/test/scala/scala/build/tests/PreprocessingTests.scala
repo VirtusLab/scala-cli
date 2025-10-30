@@ -7,7 +7,6 @@ import scala.build.options.SuppressWarningOptions
 import scala.build.preprocessing.{MarkdownPreprocessor, ScalaPreprocessor, ScriptPreprocessor}
 
 class PreprocessingTests extends TestUtil.ScalaCliBuildSuite {
-
   test("Report error if scala file not exists") {
     val logger    = TestLogger()
     val scalaFile = SourceScalaFile(os.temp.dir(), os.SubPath("NotExists.scala"))
