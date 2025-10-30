@@ -303,9 +303,9 @@ trait BuildMacros extends ScalaCliCrossSbtModule
     else super.compileIvyDeps() ++ Agg(Deps.scalaReflect(crossScalaVersion))
   }
 
-  object test extends ScalaCliTests {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     override def scalacOptions: T[Seq[String]] = Task {
-      super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+      super.scalacOptions() ++ Seq("-deprecation")
     }
 
     def testNegativeCompilation(): Command[Unit] = Task.Command(exclusive = true) {
