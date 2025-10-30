@@ -669,7 +669,8 @@ trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with Has
   override def repositoriesTask: Task[Seq[Repository]] =
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends ScalaCliTests {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
+    override def scalacOptions = super.scalacOptions() ++ Seq("-deprecation")
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = Task {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
