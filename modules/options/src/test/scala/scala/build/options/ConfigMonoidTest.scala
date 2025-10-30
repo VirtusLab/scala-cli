@@ -7,7 +7,6 @@ case class Inner(
 )
 
 object Inner {
-  import ConfigMonoid.*
   implicit def monoid: ConfigMonoid[Inner] = ConfigMonoid.derive
 }
 
