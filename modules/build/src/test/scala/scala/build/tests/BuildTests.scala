@@ -4,33 +4,24 @@ import bloop.config.Config.LinkerMode
 import ch.epfl.scala.bsp4j
 import com.eed3si9n.expecty.Expecty.expect
 import com.google.gson.Gson
-import coursier.cache.ArtifactError
 import dependency.parser.DependencyParser
 
 import java.io.IOException
+
 import scala.build.Ops.*
 import scala.build.errors.{
   DependencyFormatError,
   InvalidBinaryScalaVersionError,
   ScalaNativeCompatibilityError
 }
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOpt,
-  MaybeScalaVersion,
-  ScalaJsMode,
-  ScalacOpt,
-  ScriptOptions,
-  ShadowingSeq
-}
+import scala.build.options.*
 import scala.build.tastylib.TastyData
 import scala.build.tests.TestUtil.*
 import scala.build.tests.util.BloopServer
 import scala.build.{Build, BuildThreads, Directories, LocalRepo, Positioned}
+import scala.jdk.CollectionConverters.*
 import scala.meta.internal.semanticdb.TextDocuments
 import scala.util.Properties
-import scala.jdk.CollectionConverters.*
 
 abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
   private def hasDiagnostics = server
@@ -966,7 +957,8 @@ abstract class BuildTests(server: Boolean) extends TestUtil.ScalaCliBuildSuite {
              |""".stripMargin
       }
 
-      val testInputs = TestInputs(mainInput +: additionalInputs: _*)
+      val allInputs  = mainInput +: additionalInputs
+      val testInputs = TestInputs(allInputs*)
 
       testInputs.withBuild(options, buildThreads, bloopConfigOpt) { (_, _, maybeBuild) =>
         expect(maybeBuild.exists(_.success))

@@ -716,8 +716,9 @@ trait Build extends ScalaCliCrossSbtModule
   override def repositoriesTask: Task[Seq[Repository]] =
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends ScalaCliTests {
-    override def ivyDeps: T[Loose.Agg[Dep]] = super.ivyDeps() ++ Agg(
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
+    override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq("-deprecation")
+    override def ivyDeps: T[Loose.Agg[Dep]]    = super.ivyDeps() ++ Agg(
       Deps.pprint,
       Deps.slf4jNop
     )

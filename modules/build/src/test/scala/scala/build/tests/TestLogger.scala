@@ -3,13 +3,12 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import coursier.cache.CacheLogger
 import coursier.cache.loggers.{FallbackRefreshDisplay, RefreshLogger}
-import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
+import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
-import scala.build.errors.BuildException
 import scala.build.Logger
-import scala.scalanative.build as sn
-import scala.build.errors.Diagnostic
+import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.internals.FeatureType
+import scala.scalanative.build as sn
 
 case class TestLogger(info: Boolean = true, debug: Boolean = false) extends Logger {
 

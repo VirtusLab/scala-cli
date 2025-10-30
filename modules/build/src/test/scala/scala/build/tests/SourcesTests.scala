@@ -6,12 +6,13 @@ import coursier.util.{Artifact, Task}
 import dependency.*
 
 import java.nio.charset.StandardCharsets
+
 import scala.build.Ops.*
-import scala.build.{CrossSources, Position, Sources}
 import scala.build.errors.{UsingDirectiveValueNumError, UsingDirectiveWrongValueTypeError}
 import scala.build.input.ScalaCliInvokeData
-import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
 import scala.build.internal.ScalaJsLinkerConfig
+import scala.build.options.{BuildOptions, Scope, SuppressWarningOptions}
+import scala.build.{CrossSources, Position, Sources}
 
 class SourcesTests extends TestUtil.ScalaCliBuildSuite {
 
@@ -699,8 +700,9 @@ class SourcesTests extends TestUtil.ScalaCliBuildSuite {
           SuppressWarningOptions()
         )
       assert(crossSourcesResult.isRight)
-      val Right(CrossSources(onDiskSources, _, _, _, _, _)) =
+      val CrossSources(onDiskSources, _, _, _, _, _) =
         crossSourcesResult.map(_._1)
+          .getOrElse(sys.error("should not happen"))
       val onDiskPaths = onDiskSources.map(_.value._1.last)
       expect(onDiskPaths == inputArgs)
     }

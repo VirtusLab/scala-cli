@@ -3,23 +3,16 @@ package scala.build.tests
 import bloop.rifle.BloopRifleLogger
 import com.eed3si9n.expecty.Expecty.expect
 import coursier.cache.CacheLogger
-import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
+import org.scalajs.logging.{Logger as ScalaJsLogger, NullLogger}
 
 import java.io.PrintStream
+
 import scala.build.Ops.*
-import scala.build.errors.{BuildException, Diagnostic, Severity}
+import scala.build.errors.{BuildException, Diagnostic}
 import scala.build.input.Inputs
 import scala.build.internals.FeatureType
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  JavaOptions,
-  ScalaOptions,
-  ScalacOpt,
-  Scope,
-  ShadowingSeq
-}
-import scala.build.{Build, LocalRepo, Logger, Position, Positioned, Sources}
+import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.{Build, LocalRepo, Logger, Sources}
 
 class BuildProjectTests extends TestUtil.ScalaCliBuildSuite {
 

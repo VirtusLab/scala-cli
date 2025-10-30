@@ -2,17 +2,13 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
 import scala.build.Ops.EitherThrowOps
-import scala.build.errors.ToolkitDirectiveMissingVersionError
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
   MaybeScalaVersion,
   Platform,
   ScalaOptions,
-  ScalacOpt,
-  Scope,
   ScriptOptions
 }
 import scala.build.tests.util.BloopServer
@@ -152,7 +148,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     test(
       s"object wrapper forced with ${if (useDirectives) directive else optionName}"
     ) {
-      inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
+      inputs.withBuild(options.orElse(baseOptions), buildThreads, bloopConfigOpt) {
         (root, _, maybeBuild) =>
           expect(maybeBuild.orThrow.success)
           val projectDir = os.list(root / ".scala-build").filter(
@@ -195,7 +191,7 @@ class ScriptWrapperTests extends TestUtil.ScalaCliBuildSuite {
     test(
       s"App object wrapper forced with ${if (useDirectives) directive else optionName}"
     ) {
-      inputs.withBuild(options orElse baseOptions, buildThreads, bloopConfigOpt) {
+      inputs.withBuild(options.orElse(baseOptions), buildThreads, bloopConfigOpt) {
         (root, _, maybeBuild) =>
           expect(maybeBuild.orThrow.success)
           val projectDir = os.list(root / ".scala-build").filter(

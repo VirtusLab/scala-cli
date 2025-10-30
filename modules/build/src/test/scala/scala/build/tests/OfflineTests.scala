@@ -1,31 +1,10 @@
 package scala.build.tests
+import coursier.cache.FileCache
 
-import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.{CacheLogger, FileCache}
-import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
-
-import java.util.concurrent.TimeUnit
-import scala.build.Ops.*
-import scala.build.bsp.{
-  BspServer,
-  ScalaScriptBuildServer,
-  WrappedSourceItem,
-  WrappedSourcesItem,
-  WrappedSourcesParams,
-  WrappedSourcesResult
-}
-import scala.build.errors.{
-  InvalidBinaryScalaVersionError,
-  NoValidScalaVersionFoundError,
-  ScalaVersionError,
-  UnsupportedScalaVersionError
-}
-import scala.build.internal.ClassCodeWrapper
-import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.errors.ScalaVersionError
+import scala.build.options.{BuildOptions, InternalOptions}
 import scala.build.tests.Constants
-import scala.build.{Build, BuildThreads, Directories, GeneratedSource, LocalRepo}
-import scala.collection.mutable.ArrayBuffer
-import scala.jdk.CollectionConverters.*
+import scala.build.{BuildThreads, Directories}
 
 class OfflineTests extends TestUtil.ScalaCliBuildSuite {
   val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-offline-")
@@ -58,7 +37,7 @@ class OfflineTests extends TestUtil.ScalaCliBuildSuite {
       )
 
       testInputs.withBuild(baseOptions, buildThreads, None) {
-        (root, _, maybeBuild) =>
+        (_, _, maybeBuild) =>
           maybeBuild match {
             case Left(e: ScalaVersionError) =>
               munit.Assertions.fail(
