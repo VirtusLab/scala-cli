@@ -2,22 +2,11 @@ package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
 import scala.Console.println
 import scala.build.Ops.EitherThrowOps
-import scala.build.errors.ToolkitDirectiveMissingVersionError
-import scala.build.options.{
-  BuildOptions,
-  InternalOptions,
-  MaybeScalaVersion,
-  Platform,
-  ScalaOptions,
-  ScalacOpt,
-  Scope,
-  ScriptOptions
-}
+import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.tests.util.BloopServer
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position}
 
 class SourceGeneratorTests extends TestUtil.ScalaCliBuildSuite {
 

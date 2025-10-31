@@ -1,9 +1,15 @@
 package scala.build.tests
 
+import bloop.rifle.BloopRifleConfig
 import com.eed3si9n.expecty.Expecty.expect
 
-import java.io.IOException
-import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
+import scala.build.Ops.EitherThrowOps
+import scala.build.errors.{
+  CompositeBuildException,
+  DependencyFormatError,
+  FetchingDependenciesError,
+  ToolkitDirectiveMissingVersionError
+}
 import scala.build.options.{
   BuildOptions,
   InternalOptions,
@@ -13,24 +19,13 @@ import scala.build.options.{
   Scope
 }
 import scala.build.tests.util.BloopServer
-import build.Ops.EitherThrowOps
-import dependency.AnyDependency
-
-import scala.build.errors.{
-  CompositeBuildException,
-  DependencyFormatError,
-  FetchingDependenciesError,
-  ToolkitDirectiveMissingVersionError
-}
+import scala.build.{Build, BuildThreads, Directories, LocalRepo, Position, Positioned}
 
 class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
-
-  val buildThreads = BuildThreads.create()
-
-  def bloopConfigOpt = Some(BloopServer.bloopConfig)
-
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
-  val directories     = Directories.under(extraRepoTmpDir)
+  val buildThreads: BuildThreads               = BuildThreads.create()
+  def bloopConfigOpt: Option[BloopRifleConfig] = Some(BloopServer.bloopConfig)
+  val extraRepoTmpDir: os.Path                 = os.temp.dir(prefix = "scala-cli-tests-extra-repo-")
+  val directories: Directories                 = Directories.under(extraRepoTmpDir)
 
   override def afterAll(): Unit = {
     TestInputs.tryRemoveAll(extraRepoTmpDir)
@@ -109,17 +104,17 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
     )
     testInputs.withBuilds(baseOptions, buildThreads, bloopConfigOpt) {
       (_, _, maybeBuilds) =>
-        val expectedVersion  = "latest.release"
-        val builds           = maybeBuilds.orThrow
-        val Some(mainBuild)  = builds.get(Scope.Main)
-        val Some(toolkitDep) =
-          mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        val expectedVersion = "latest.release"
+        val builds          = maybeBuilds.orThrow
+        val mainBuild       = builds.get(Scope.Main).get
+        val toolkitDep      =
+          mainBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value).get
         expect(toolkitDep.organization == Constants.toolkitOrganization)
         expect(toolkitDep.name == Constants.toolkitName)
         expect(toolkitDep.version == expectedVersion)
-        val Some(testBuild)      = builds.get(Scope.Test)
-        val Some(toolkitTestDep) =
-          testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value)
+        val testBuild      = builds.get(Scope.Test).get
+        val toolkitTestDep =
+          testBuild.options.classPathOptions.extraDependencies.toSeq.headOption.map(_.value).get
         expect(toolkitTestDep.organization == Constants.toolkitOrganization)
         expect(toolkitTestDep.name == Constants.toolkitTestName)
         expect(toolkitTestDep.version == expectedVersion)
@@ -138,6 +133,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           maybeBuilds match
             case Left(ToolkitDirectiveMissingVersionError(_, errorKey)) =>
               expect(errorKey == toolkitDirectiveKey)
+            case _ => sys.error("should not happen")
       }
     }
   for (scope <- Scope.all) {
@@ -350,10 +346,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
       os.rel / dummySourcesJar -> "dummy-sources"
     ).withBuild(baseOptions, buildThreads, bloopConfigOpt) {
       (root, _, maybeBuild) =>
-        val build     = maybeBuild.orThrow
-        val Some(jar) = build.options.classPathOptions.extraClassPath.headOption
+        val build = maybeBuild.orThrow
+        val jar   = build.options.classPathOptions.extraClassPath.head
         expect(jar == root / dummyJar)
-        val Some(sourceJar) = build.options.classPathOptions.extraSourceJars.headOption
+        val sourceJar = build.options.classPathOptions.extraSourceJars.head
         expect(sourceJar == root / dummySourcesJar)
     }
   }
@@ -466,7 +462,10 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
         errors match {
           case error: CompositeBuildException =>
             expect(error.exceptions.length == 2)
-            expect(error.exceptions.forall(_.isInstanceOf[FetchingDependenciesError]))
+            expect(error.exceptions.forall {
+              case _: FetchingDependenciesError => true
+              case _                            => false
+            })
             expect(error.exceptions.forall(_.positions.length == 1))
 
             {
@@ -516,7 +515,7 @@ class DirectiveTests extends TestUtil.ScalaCliBuildSuite {
           |""".stripMargin
     )
     testInputs.withBuild(Scala322Options, buildThreads, bloopConfigOpt, scope = Scope.Test) {
-      (root, _, maybeBuild) => expect(maybeBuild.exists(_.success))
+      (_, _, maybeBuild) => expect(maybeBuild.exists(_.success))
     }
   }
 }

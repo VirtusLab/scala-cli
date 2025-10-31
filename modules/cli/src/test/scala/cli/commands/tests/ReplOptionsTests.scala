@@ -7,7 +7,6 @@ import scala.cli.commands.repl.{Repl, ReplOptions, SharedReplOptions}
 import scala.cli.commands.shared.{SharedOptions, SharedPythonOptions}
 
 class ReplOptionsTests extends munit.FunSuite {
-
   test("ScalaPy version") {
     val ver         = "X.Y.Z"
     val replOptions = ReplOptions(
@@ -32,5 +31,4 @@ class ReplOptionsTests extends munit.FunSuite {
     val buildOptions  = Repl.buildOptions0(replOptions, maxVersion, maxLtsVersion)
     expect(buildOptions.scalaOptions.scalaVersion.flatMap(_.versionOpt).contains(maxVersion))
   }
-
 }

@@ -8,7 +8,6 @@ import scala.cli.commands.shared.CoursierOptions
 import scala.cli.launcher.LauncherCli
 
 class LauncherCliTest extends TestUtil.ScalaCliSuite {
-
   test("resolve nightly version".flaky) {
     val logger          = TestLogger()
     val cache           = CoursierOptions().coursierCache(logger.coursierLogger(""))
@@ -19,7 +18,7 @@ class LauncherCliTest extends TestUtil.ScalaCliSuite {
     expect(nightlyCliVersion.endsWith("-SNAPSHOT"))
   }
 
-  val expectedScalaCliVersions = Seq(
+  val expectedScalaCliVersions: Seq[(String, String)] = Seq(
     "0.1.2"                       -> Constants.defaultScala212Version,
     "0.1.1+43-g15666b67-SNAPSHOT" -> Constants.defaultScala212Version,
     "0.1.3"                       -> Constants.defaultScala213Version,
@@ -29,8 +28,6 @@ class LauncherCliTest extends TestUtil.ScalaCliSuite {
   for ((cliVersion, expectedScalaVersion) <- expectedScalaCliVersions)
     test(s"use expected scala version for Scala CLI launcher: $cliVersion") {
       val scalaVersion = LauncherCli.scalaCliScalaVersion(cliVersion)
-
       expect(scalaVersion == expectedScalaVersion)
     }
-
 }

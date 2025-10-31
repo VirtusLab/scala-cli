@@ -12,5 +12,4 @@ class ArgSplitterTest extends TestUtil.ScalaCliSuite {
     val input = args.map(_.mkString("   ", " ", "")).mkString(" ", "\n", "")
     assertEquals(ArgSplitter.splitToArgs(input), args.flatten)
   }
-
 }

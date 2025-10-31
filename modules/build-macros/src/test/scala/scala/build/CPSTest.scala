@@ -1,13 +1,13 @@
 package scala.build
 
-import EitherCps._
+import scala.build.EitherCps.*
 
 class CPSTest extends munit.FunSuite {
 
   val failed1: Either[Int, String] = Left(1)
   val ok: Either[Int, String]      = Right("OK")
 
-  def checkResult(expected: Either[Int, String])(res: => Either[Int, String]) =
+  def checkResult(expected: Either[Int, String])(res: => Either[Int, String]): Unit =
     assertEquals(expected, res)
 
   test("Basic CPS test") {
