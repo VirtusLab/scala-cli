@@ -39,6 +39,7 @@ import mill._
 import mill.api.Loose
 import scalalib.{publish => _, _}
 import mill.contrib.bloop.Bloop
+import mill.define.Task.Simple
 import mill.testrunner.TestResult
 
 import _root_.scala.util.{Properties, Using}
@@ -104,18 +105,10 @@ object directives extends Cross[Directives](Scala.scala3MainVersions)
 object core           extends Cross[Core](Scala.scala3MainVersions) with CrossScalaDefaultToInternal
 object `build-module` extends Cross[Build](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
-object runner        extends Runner
-object `test-runner` extends TestRunner
-object `tasty-lib`   extends Cross[TastyLib](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Runtime classes used within native image on Scala 3 replacing runtime from Scala
-object `scala3-runtime` extends Cross[Scala3Runtime](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Logic to process classes that is shared between build and the scala-cli itself
-object `scala3-graal` extends Cross[Scala3Graal](Scala.scala3MainVersions)
-    with CrossScalaDefaultToInternal
-// Main app used to process classpath within build itself
-object `scala3-graal-processor` extends Cross[Scala3GraalProcessor](Scala.scala3MainVersions)
+object runner        extends Cross[Runner](Scala.runnerScalaVersions) with CrossScalaDefaultToRunner
+object `test-runner` extends Cross[TestRunner](Scala.runnerScalaVersions)
+    with CrossScalaDefaultToRunner
+object `tasty-lib` extends Cross[TastyLib](Scala.scala3MainVersions)
     with CrossScalaDefaultToInternal
 
 object `scala-cli-bsp` extends JavaModule with ScalaCliPublishModule {
@@ -436,16 +429,16 @@ trait Core extends ScalaCliCrossSbtModule
   def constantsFile: T[PathRef] = Task(persistent = true) {
     val dir                 = Task.dest / "constants"
     val dest                = dir / "Constants.scala"
-    val testRunnerMainClass = `test-runner`
+    val testRunnerMainClass = `test-runner`(crossScalaVersion)
       .mainClass()
       .getOrElse(sys.error("No main class defined for test-runner"))
-    val runnerMainClass = build.runner
+    val runnerMainClass = build.runner(crossScalaVersion)
       .mainClass()
       .getOrElse(sys.error("No main class defined for runner"))
     val detailedVersionValue =
       if (`local-repo`.developingOnStubModules) s"""Some("${vcsState()}")"""
       else "None"
-    val testRunnerOrganization = `test-runner`
+    val testRunnerOrganization = `test-runner`(crossScalaVersion)
       .pomSettings()
       .organization
     val code =
@@ -465,13 +458,13 @@ trait Core extends ScalaCliCrossSbtModule
          |  def scalaNativeVersion = "${Deps.Versions.scalaNative}"
          |
          |  def testRunnerOrganization = "$testRunnerOrganization"
-         |  def testRunnerModuleName = "${`test-runner`.artifactName()}"
-         |  def testRunnerVersion = "${`test-runner`.publishVersion()}"
+         |  def testRunnerModuleName = "${`test-runner`(crossScalaVersion).artifactName()}"
+         |  def testRunnerVersion = "${`test-runner`(crossScalaVersion).publishVersion()}"
          |  def testRunnerMainClass = "$testRunnerMainClass"
          |
-         |  def runnerOrganization = "${build.runner.pomSettings().organization}"
-         |  def runnerModuleName = "${build.runner.artifactName()}"
-         |  def runnerVersion = "${build.runner.publishVersion()}"
+         |  def runnerOrganization = "${build.runner(crossScalaVersion).pomSettings().organization}"
+         |  def runnerModuleName = "${build.runner(crossScalaVersion).artifactName()}"
+         |  def runnerVersion = "${build.runner(crossScalaVersion).publishVersion()}"
          |  def runnerScala30LegacyVersion = "${Cli.runnerScala30LegacyVersion}"
          |  def runnerScala2LegacyVersion = "${Cli.runnerScala2LegacyVersion}"
          |  def runnerMainClass = "$runnerMainClass"
@@ -684,38 +677,6 @@ trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with Has
   }
 }
 
-trait Scala3Runtime extends CrossSbtModule with ScalaCliPublishModule {
-  override def crossScalaVersion: String = crossValue
-  override def ivyDeps: T[Agg[Dep]]      = super.ivyDeps()
-}
-
-trait Scala3Graal extends ScalaCliCrossSbtModule
-    with ScalaCliPublishModule with ScalaCliScalafixModule {
-  override def crossScalaVersion: String = crossValue
-  override def ivyDeps: T[Agg[Dep]]      = super.ivyDeps() ++ Agg(
-    Deps.asm,
-    Deps.osLib
-  )
-
-  override def resources: T[Seq[PathRef]] = Task.Sources {
-    val extraResourceDir = Task.dest / "extra"
-    // scala3RuntimeFixes.jar is also used within
-    // resource-config.json and BytecodeProcessor.scala
-    os.copy.over(
-      `scala3-runtime`(crossScalaVersion).jar().path,
-      extraResourceDir / "scala3RuntimeFixes.jar",
-      createFolders = true
-    )
-    super.resources() ++ Seq(mill.PathRef(extraResourceDir))
-  }
-}
-
-trait Scala3GraalProcessor extends CrossScalaModule with ScalaCliPublishModule {
-  override def moduleDeps: Seq[SonatypeCentralPublishModule] =
-    Seq(`scala3-graal`(crossScalaVersion))
-  override def finalMainClass: T[String] = "scala.cli.graal.CoursierCacheProcessor"
-}
-
 trait Build extends ScalaCliCrossSbtModule
     with ScalaCliPublishModule
     with HasTests
@@ -726,7 +687,7 @@ trait Build extends ScalaCliCrossSbtModule
     options(crossScalaVersion),
     directives(crossScalaVersion),
     `scala-cli-bsp`,
-    `test-runner`,
+    `test-runner`(crossScalaVersion),
     `tasty-lib`(crossScalaVersion)
   )
   override def scalacOptions: T[Seq[String]] = Task {
@@ -925,7 +886,6 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   def moduleDeps: Seq[SonatypeCentralPublishModule] = Seq(
     `build-module`(crossScalaVersion),
     config(crossScalaVersion),
-    `scala3-graal`(crossScalaVersion),
     `specification-level`(crossScalaVersion)
   )
 
@@ -947,7 +907,9 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
     Deps.signingCli.exclude((organization, "config_2.13")),
     Deps.slf4jNop, // to silence jgit
     Deps.sttp,
-    Deps.scalafixInterfaces
+    Deps.scalafixInterfaces,
+    Deps.scala3Graal,         // TODO: drop this if we ever bump internal JDK to 24+
+    Deps.scala3GraalProcessor // TODO: drop this if we ever bump internal JDK to 24+
   )
   override def compileIvyDeps: T[Agg[Dep]] = super.compileIvyDeps() ++ Agg(
     Deps.jsoniterMacros,
@@ -955,13 +917,21 @@ trait Cli extends CrossSbtModule with ProtoBuildModule with CliLaunchers
   )
   override def mainClass: T[Option[String]] = Some("scala.cli.ScalaCli")
 
+  private def scala3GraalProcessorClassPath: T[Agg[PathRef]] = T {
+    resolveDeps(T {
+      val bind = bindDependency()
+      Agg(Deps.scala3GraalProcessor).map(bind)
+    })()
+  }
+
   override def nativeImageClassPath: T[Seq[PathRef]] = Task {
     val classpath = super.nativeImageClassPath().map(_.path).mkString(File.pathSeparator)
     val cache     = Task.dest / "native-cp"
-    // `scala3-graal-processor`.run() do not give me output and I cannot pass dynamically computed values like classpath
+    // `scala3-graal-processor`.run() does not give me output and I cannot pass dynamically computed values like classpath
+    // TODO: drop this if we ever bump internal JDK to 24+
     val res = mill.util.Jvm.callProcess(
-      mainClass = `scala3-graal-processor`(crossScalaVersion).finalMainClass(),
-      classPath = `scala3-graal-processor`(crossScalaVersion).runClasspath().map(_.path),
+      mainClass = "scala.cli.graal.CoursierCacheProcessor",
+      classPath = scala3GraalProcessorClassPath().map(_.path).toList,
       mainArgs = Seq(cache.toNIO.toString, classpath)
     )
     val cp = res.out.trim()
@@ -993,13 +963,13 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
     with ScalaCliScalafixModule {
   override def scalaVersion: T[String] = sv
 
-  def sv: String = Scala.scala213
+  def sv: String = Scala.scala3Lts
 
   def tmpDirBase: T[PathRef] = Task(persistent = true) {
     PathRef(Task.dest / "working-dir")
   }
   override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++ Seq("-Xasync", "-deprecation")
+    super.scalacOptions() ++ Seq("-deprecation")
   }
 
   override def ivyDeps: T[Agg[Dep]] = super.ivyDeps() ++ Agg(
@@ -1015,7 +985,6 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
       Deps.jsoniterCore,
       Deps.libsodiumjni,
       Deps.pprint,
-      Deps.scalaAsync,
       Deps.slf4jNop,
       Deps.usingDirectives
     )
@@ -1252,39 +1221,30 @@ trait CliIntegration extends SbtModule with ScalaCliPublishModule with HasTests
 }
 
 trait CliIntegrationDocker extends SbtModule with ScalaCliPublishModule with HasTests {
-  override def scalaVersion: T[String] = Scala.scala213
+  override def scalaVersion: T[String] = Scala.scala3Lts
   override def ivyDeps: T[Agg[Dep]]    = super.ivyDeps() ++ Agg(
     Deps.osLib
   )
 }
 
-trait Runner extends SbtModule
+trait Runner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  override def scalaVersion: T[String]       = Scala.scala3Lts
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
   }
   override def mainClass: T[Option[String]] = Some("scala.cli.runner.Runner")
   override def sources: T[Seq[PathRef]]     = Task.Sources {
-    val scala3DirNames =
-      if (scalaVersion().startsWith("3.")) {
-        val name =
-          if (scalaVersion().contains("-RC")) "scala-3-unstable"
-          else "scala-3-stable"
-        Seq(name)
-      }
-      else
-        Nil
-    val extraDirs = scala3DirNames.map(name => PathRef(moduleDir / "src" / "main" / name))
+    val scala3DirName =
+      if (crossScalaVersion.contains("-RC")) "scala-3-unstable" else "scala-3-stable"
+    val extraDirs = Seq(PathRef(moduleDir / "src" / "main" / scala3DirName))
     super.sources() ++ extraDirs
   }
 }
 
-trait TestRunner extends SbtModule
+trait TestRunner extends CrossSbtModule
     with ScalaCliPublishModule
     with ScalaCliScalafixModule {
-  override def scalaVersion: T[String]       = Scala.scala3Lts
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++ Seq("-release", "8", "-deprecation")
   }
@@ -1328,9 +1288,10 @@ object `local-repo` extends LocalRepo {
    */
   def developingOnStubModules = false
 
-  override def stubsModules: Seq[PublishLocalNoFluff] = Seq(runner, `test-runner`)
+  override def stubsModules: Seq[PublishLocalNoFluff] =
+    Seq(runner(Scala.runnerScala3), `test-runner`(Scala.runnerScala3))
 
-  override def version: T[String] = runner.publishVersion()
+  override def version: T[String] = runner(Scala.runnerScala3).publishVersion()
 }
 
 // Helper CI commands

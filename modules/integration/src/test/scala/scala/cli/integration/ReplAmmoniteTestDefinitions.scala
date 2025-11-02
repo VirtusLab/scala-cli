@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-trait ReplAmmoniteTestDefinitions { _: ReplTestDefinitions =>
+trait ReplAmmoniteTestDefinitions { this: ReplTestDefinitions =>
   protected val retrieveScalaVersionCode: String = if (actualScalaVersion.startsWith("2."))
     "scala.util.Properties.versionNumberString"
   else "dotty.tools.dotc.config.Properties.simpleVersionString"

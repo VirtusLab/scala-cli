@@ -9,7 +9,7 @@ import java.nio.charset.Charset
   * compile-only dependencies.
   */
 trait ExportScalaOrientedBuildToolsTestDefinitions {
-  _: ExportCommonTestDefinitions & ScalaCliSuite & TestScalaVersionArgs =>
+  this: ExportCommonTestDefinitions & ScalaCliSuite & TestScalaVersionArgs =>
 
   def compileOnlyTest(mainClass: String): Unit = {
     val userName = "John"

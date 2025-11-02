@@ -1,13 +1,13 @@
 package scala.cli.integration
 
-import ch.epfl.scala.{bsp4j => b}
+import ch.epfl.scala.bsp4j as b
 import com.eed3si9n.expecty.Expecty.expect
 
-import scala.async.Async.{async, await}
-import scala.concurrent.ExecutionContext
-import scala.jdk.CollectionConverters._
+import scala.cli.integration.TestUtil.await
+import scala.concurrent.{ExecutionContext, Future}
+import scala.jdk.CollectionConverters.*
 
-trait ScriptWrapperTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions =>
+trait ScriptWrapperTestDefinitions extends ScalaCliSuite { this: BspTestDefinitions =>
   private def appWrapperSnippet(wrapperName: String)    = s"object $wrapperName extends App {"
   private def classWrapperSnippet(wrapperName: String)  = s"final class $wrapperName$$_"
   private def objectWrapperSnippet(wrapperName: String) = s"object $wrapperName {"
@@ -64,12 +64,13 @@ trait ScriptWrapperTestDefinitions extends ScalaCliSuite { _: BspTestDefinitions
       extraOptionsOverride = extraOptionsOverride
     ) {
       (root, _, remoteServer) =>
-        async {
-          val buildTargetsResp = await(remoteServer.workspaceBuildTargets().asScala)
-          val targets          = buildTargetsResp.getTargets.asScala.map(_.getId).asJava
-          val compileParams    = new b.CompileParams(targets)
-          val buildResp        = await(remoteServer.buildTargetCompile(compileParams).asScala)
-          expect(buildResp.getStatusCode == b.StatusCode.OK)
+        Future {
+          val buildTargetsResp   = remoteServer.workspaceBuildTargets().asScala.await
+          val targets            = buildTargetsResp.getTargets.asScala.map(_.getId).asJava
+          val compileParams      = new b.CompileParams(targets)
+          val buildResp          = remoteServer.buildTargetCompile(compileParams).asScala.await
+          val expectedStatusCode = b.StatusCode.OK
+          expect(buildResp.getStatusCode == expectedStatusCode)
           val projectDir = os.list(root / Constants.workspaceDirName).filter(
             _.baseName.startsWith(root.baseName + "_")
           )

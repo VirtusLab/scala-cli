@@ -6,7 +6,7 @@ import com.virtuslab.using_directives.reporter.ConsoleReporter
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.transport.URIish
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import scala.util.matching.Regex
 

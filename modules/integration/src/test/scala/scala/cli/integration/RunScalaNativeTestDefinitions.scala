@@ -5,7 +5,7 @@ import com.eed3si9n.expecty.Expecty.expect
 import scala.cli.integration.TestUtil.removeAnsiColors
 import scala.util.Properties
 
-trait RunScalaNativeTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaNativeTestDefinitions { this: RunTestDefinitions =>
 
   def simpleNativeScriptCode(
     message: String,

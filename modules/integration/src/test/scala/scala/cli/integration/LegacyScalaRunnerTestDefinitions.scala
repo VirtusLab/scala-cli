@@ -1,7 +1,7 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-trait LegacyScalaRunnerTestDefinitions { _: DefaultTests =>
+trait LegacyScalaRunnerTestDefinitions { this: DefaultTests =>
   test("default to the run sub-command when a script snippet is passed with -e") {
     TestInputs.empty.fromRoot { root =>
       val msg       = "Hello world"

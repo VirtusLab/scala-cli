@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 
 import scala.cli.integration.util.DockerServer
 import scala.io.Codec
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
 abstract class RunTestDefinitions
@@ -23,7 +23,7 @@ abstract class RunTestDefinitions
     with RunScalaPyTestDefinitions
     with RunZipTestDefinitions
     with RunJdkTestDefinitions
-    with CoursierScalaInstallationTestHelper { _: TestScalaVersion =>
+    with CoursierScalaInstallationTestHelper { this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
   protected val emptyInputs: TestInputs        = TestInputs(os.rel / ".placeholder" -> "")
 
@@ -182,9 +182,8 @@ abstract class RunTestDefinitions
     val url = "https://gist.github.com/alexarchambault/7b4ec20c4033690dd750ffd601e540ec"
     emptyInputs.fromRoot { root =>
       os.proc(TestUtil.cli, extraOptions, escapedUrls(url)).call(cwd = root)
-      expect(
-        !os.exists(root / ".scala-build")
-      ) // virtual source should not create workspace dir in cwd
+      val path = root / ".scala-build"
+      expect(!os.exists(path)) // virtual source should not create workspace dir in cwd
     }
   }
 

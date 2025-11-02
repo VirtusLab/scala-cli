@@ -3,7 +3,7 @@ package scala.cli.integration
 import com.eed3si9n.expecty.Expecty.expect
 
 abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   private def readJson(path: os.ReadablePath): String =
     readJson(os.read(path))
 
@@ -48,35 +48,36 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val jsonContents = readJson(exportJsonProc.out.text())
 
-      expect(jsonContents ==
+      val expectedJsonContents =
         s"""{
-          |"projectVersion":"1.1.2",
-          |"scalaVersion":"${Constants.scala3Next}",
-          |"platform":"JVM",
-          |"jvmVersion":"adopt:11",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
-          |   "dependencies": [
-          |     {
-          |       "groupId":"com.lihaoyi",
-          |       "artifactId": {
-          |         "name":"os-lib",
-          |         "fullName": "os-lib_3"
-          |       },
-          |       "version":"0.7.8"
-          |     }
-          |   ],
-          |   "resolvers": [
-          |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../local-repo/...",
-          |     "ivy:file:.../.ivy2/local/"
-          |   ]
-          | }
-          |}
-          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
-          |}
-          |""".replaceAll("\\s|\\|", ""))
+           |"projectVersion":"1.1.2",
+           |"scalaVersion":"${Constants.scala3Next}",
+           |"platform":"JVM",
+           |"jvmVersion":"adopt:11",
+           |"scopes": {
+           | "main": {
+           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
+           |   "dependencies": [
+           |     {
+           |       "groupId":"com.lihaoyi",
+           |       "artifactId": {
+           |         "name":"os-lib",
+           |         "fullName": "os-lib_3"
+           |       },
+           |       "version":"0.7.8"
+           |     }
+           |   ],
+           |   "resolvers": [
+           |     "https://repo1.maven.org/maven2",
+           |     "ivy:file:.../local-repo/...",
+           |     "ivy:file:.../.ivy2/local/"
+           |   ]
+           | }
+           |}
+           |,"scalaCliVersion":"1.1.1-SNAPSHOT"
+           |}
+           |""".replaceAll("\\s|\\|", "")
+      expect(jsonContents == expectedJsonContents)
     }
   }
 
@@ -106,77 +107,78 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       val jsonContents = readJson(exportJsonProc.out.text())
 
-      expect(jsonContents ==
+      val expectedJsonContents =
         s"""{
-          |"scalaVersion":"3.2.2",
-          |"platform":"Native",
-          |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
-          |   "scalacOptions":["-Xasync"],
-          |   "scalaCompilerPlugins": [
-          |     {
-          |       "groupId": "org.wartremover",
-          |       "artifactId": {
-          |         "name": "wartremover",
-          |         "fullName": "wartremover_3.2.2"
-          |       },
-          |       "version": "3.0.9"
-          |     }
-          |   ],
-          |   "dependencies": [
-          |     {
-          |       "groupId":"com.lihaoyi",
-          |       "artifactId": {
-          |         "name":"os-lib",
-          |         "fullName": "os-lib_3"
-          |       },
-          |       "version":"0.7.8"
-          |     }
-          |   ],
-          |   "resolvers": [
-          |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../local-repo/...",
-          |     "ivy:file:.../.ivy2/local/"
-          |   ]
-          | },
-          | "test": {
-          |   "sources":["${withEscapedBackslashes(root / "unit.test.scala")}"],
-          |   "scalacOptions":["-Xasync"],
-          |   "scalaCompilerPlugins": [
-          |     {
-          |       "groupId": "org.wartremover",
-          |       "artifactId": {
-          |         "name": "wartremover",
-          |         "fullName": "wartremover_3.2.2"
-          |       },
-          |       "version": "3.0.9"
-          |     }
-          |   ],
-          |   "dependencies": [
-          |     {
-          |       "groupId": "com.lihaoyi",
-          |       "artifactId": {
-          |         "name":"os-lib",
-          |         "fullName": "os-lib_3"
-          |       },
-          |       "version": "0.7.8"
-          |     }
-          |   ],
-          |   "resolvers": [
-          |     "https://oss.sonatype.org/content/repositories/snapshots",
-          |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../local-repo/...",
-          |     "ivy:file:.../.ivy2/local/"
-          |   ],
-          |   "resourceDirs":["${withEscapedBackslashes(root / "resources")}"],
-          |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
-          |  }
-          |}
-          |,"scalaCliVersion":"1.1.1-SNAPSHOT"
-          |}
-          |""".replaceAll("\\s|\\|", ""))
+           |"scalaVersion":"3.2.2",
+           |"platform":"Native",
+           |"scalaNativeVersion":"${Constants.scalaNativeVersion}",
+           |"scopes": {
+           | "main": {
+           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
+           |   "scalacOptions":["-Xasync"],
+           |   "scalaCompilerPlugins": [
+           |     {
+           |       "groupId": "org.wartremover",
+           |       "artifactId": {
+           |         "name": "wartremover",
+           |         "fullName": "wartremover_3.2.2"
+           |       },
+           |       "version": "3.0.9"
+           |     }
+           |   ],
+           |   "dependencies": [
+           |     {
+           |       "groupId":"com.lihaoyi",
+           |       "artifactId": {
+           |         "name":"os-lib",
+           |         "fullName": "os-lib_3"
+           |       },
+           |       "version":"0.7.8"
+           |     }
+           |   ],
+           |   "resolvers": [
+           |     "https://repo1.maven.org/maven2",
+           |     "ivy:file:.../local-repo/...",
+           |     "ivy:file:.../.ivy2/local/"
+           |   ]
+           | },
+           | "test": {
+           |   "sources":["${withEscapedBackslashes(root / "unit.test.scala")}"],
+           |   "scalacOptions":["-Xasync"],
+           |   "scalaCompilerPlugins": [
+           |     {
+           |       "groupId": "org.wartremover",
+           |       "artifactId": {
+           |         "name": "wartremover",
+           |         "fullName": "wartremover_3.2.2"
+           |       },
+           |       "version": "3.0.9"
+           |     }
+           |   ],
+           |   "dependencies": [
+           |     {
+           |       "groupId": "com.lihaoyi",
+           |       "artifactId": {
+           |         "name":"os-lib",
+           |         "fullName": "os-lib_3"
+           |       },
+           |       "version": "0.7.8"
+           |     }
+           |   ],
+           |   "resolvers": [
+           |     "https://oss.sonatype.org/content/repositories/snapshots",
+           |     "https://repo1.maven.org/maven2",
+           |     "ivy:file:.../local-repo/...",
+           |     "ivy:file:.../.ivy2/local/"
+           |   ],
+           |   "resourceDirs":["${withEscapedBackslashes(root / "resources")}"],
+           |   "customJarsDecls":["${withEscapedBackslashes(root / "TEST.jar")}"]
+           |  }
+           |}
+           |,"scalaCliVersion":"1.1.1-SNAPSHOT"
+           |}
+           |""".replaceAll("\\s|\\|", "")
+      expect(jsonContents == expectedJsonContents)
     }
   }
 
@@ -212,48 +214,48 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
 
       expect(exportJsonProc.out.text().isEmpty)
 
-      val fileContents = readJson(root / "json_dir" / "export.json")
-
-      expect(fileContents ==
+      val fileContents         = readJson(root / "json_dir" / "export.json")
+      val expectedFileContents =
         s"""{
-          |"scalaVersion": "3.1.3",
-          |"platform": "JS",
-          |"scalaJsVersion": "${Constants.scalaJsVersion}",
-          |"jsEsVersion":"es2015",
-          |"scopes": {
-          | "main": {
-          |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
-          |   "scalacOptions": ["-Xasync"],
-          |   "scalaCompilerPlugins": [
-          |     {
-          |       "groupId": "org.wartremover",
-          |       "artifactId": {
-          |         "name": "wartremover",
-          |         "fullName": "wartremover_3.1.3"
-          |       },
-          |       "version": "3.0.9"
-          |     }
-          |   ],
-          |   "dependencies": [
-          |     {
-          |       "groupId": "com.lihaoyi",
-          |       "artifactId": {
-          |         "name": "os-lib",
-          |         "fullName": "os-lib_3"
-          |       },
-          |       "version": "0.7.8"
-          |     }
-          |   ],
-          |   "resolvers": [
-          |     "https://repo1.maven.org/maven2",
-          |     "ivy:file:.../local-repo/...",
-          |     "ivy:file:.../.ivy2/local/"
-          |   ]
-          | }
-          |},
-          |"scalaCliVersion":"1.1.1-SNAPSHOT"
-          |}
-          |""".replaceAll("\\s|\\|", ""))
+           |"scalaVersion": "3.1.3",
+           |"platform": "JS",
+           |"scalaJsVersion": "${Constants.scalaJsVersion}",
+           |"jsEsVersion":"es2015",
+           |"scopes": {
+           | "main": {
+           |   "sources": ["${withEscapedBackslashes(root / "Main.scala")}"],
+           |   "scalacOptions": ["-Xasync"],
+           |   "scalaCompilerPlugins": [
+           |     {
+           |       "groupId": "org.wartremover",
+           |       "artifactId": {
+           |         "name": "wartremover",
+           |         "fullName": "wartremover_3.1.3"
+           |       },
+           |       "version": "3.0.9"
+           |     }
+           |   ],
+           |   "dependencies": [
+           |     {
+           |       "groupId": "com.lihaoyi",
+           |       "artifactId": {
+           |         "name": "os-lib",
+           |         "fullName": "os-lib_3"
+           |       },
+           |       "version": "0.7.8"
+           |     }
+           |   ],
+           |   "resolvers": [
+           |     "https://repo1.maven.org/maven2",
+           |     "ivy:file:.../local-repo/...",
+           |     "ivy:file:.../.ivy2/local/"
+           |   ]
+           | }
+           |},
+           |"scalaCliVersion":"1.1.1-SNAPSHOT"
+           |}
+           |""".replaceAll("\\s|\\|", "")
+      expect(fileContents == expectedFileContents)
 
       val exportToExistingProc = os.proc(
         TestUtil.cli,
@@ -269,9 +271,8 @@ abstract class ExportJsonTestDefinitions extends ScalaCliSuite with TestScalaVer
         .call(cwd = root, check = false, mergeErrIntoOut = true)
 
       expect(exportToExistingProc.exitCode != 0)
-      expect(
-        exportToExistingProc.out.text().contains(s"Error: ${root / "json_dir"} already exists.")
-      )
+      val jsonDirPath = root / "json_dir"
+      expect(exportToExistingProc.out.text().contains(s"Error: $jsonDirPath already exists."))
     }
   }
 

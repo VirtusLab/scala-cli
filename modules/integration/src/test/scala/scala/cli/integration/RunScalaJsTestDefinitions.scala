@@ -4,7 +4,7 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import scala.cli.integration.TestUtil.removeAnsiColors
 
-trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
+trait RunScalaJsTestDefinitions { this: RunTestDefinitions =>
   def simpleJsTestOutput(extraArgs: String*): String = {
     val fileName = "simple.sc"
     val message  = "Hello"
@@ -323,7 +323,8 @@ trait RunScalaJsTestDefinitions { _: RunTestDefinitions =>
         extraOptions
       )
         .call(cwd = root).out.trim()
-      expect(os.exists(absOutDir / "main.wasm"))
+      val path = absOutDir / "main.wasm"
+      expect(os.exists(path))
 
       // TODO : Run WASM using node. Requires node 22.
     }

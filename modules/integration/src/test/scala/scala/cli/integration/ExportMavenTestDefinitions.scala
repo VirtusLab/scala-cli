@@ -2,7 +2,7 @@ package scala.cli.integration
 
 abstract class ExportMavenTestDefinitions extends ScalaCliSuite
     with TestScalaVersionArgs with ExportCommonTestDefinitions with MavenTestHelper {
-  _: TestScalaVersion & MavenLanguageMode =>
+  this: TestScalaVersion & MavenLanguageMode =>
   override def exportCommand(args: String*): os.proc =
     os.proc(
       TestUtil.cli,

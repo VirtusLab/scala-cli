@@ -6,6 +6,7 @@ object Cli {
   def runnerScala30LegacyVersion =
     "1.7.1" // last runner version to support pre-LTS Scala 3 versions
   def runnerScala2LegacyVersion = "1.9.1" // last runner version to support pre-Scala-3 versions
+  def scala3GraalLegacyVersion  = "1.9.1" // last version to support pre-3.3 processing for Graal
 }
 
 object Scala {
@@ -17,9 +18,9 @@ object Scala {
   def scala3NextPrefix = "3.7"
   def scala3Next       = s"$scala3NextPrefix.3" // the newest/next version of Scala
   def scala3NextAnnounced = scala3Next // the newest/next version of Scala that's been announced
-  def scala3NextRc          = s"$scala3NextPrefix.4-RC1" // the latest RC version of Scala Next
+  def scala3NextRc          = s"$scala3NextPrefix.4-RC3" // the latest RC version of Scala Next
   def scala3NextRcAnnounced =
-    s"$scala3NextPrefix.3-RC3" // the latest announced RC version of Scala Next
+    s"$scala3NextPrefix.4-RC1" // the latest announced RC version of Scala Next
 
   // The Scala version used to build the CLI itself.
   def defaultInternal = sys.props.get("scala.version.internal").getOrElse(scala3Lts)
@@ -32,7 +33,7 @@ object Scala {
   val allScala3           = Seq(scala3Lts, scala3Next, scala3NextAnnounced, scala3NextRc).distinct
   val all                 = (allScala2 ++ allScala3 ++ defaults).distinct
   val scala3MainVersions  = (defaults ++ allScala3).distinct
-  val runnerScalaVersions = Seq(runnerScala3, scala213)
+  val runnerScalaVersions = (Seq(runnerScala3) ++ scala3MainVersions).distinct
 
   def scalaJs    = "1.20.1"
   def scalaJsCli = scalaJs // this must be compatible with the Scala.js version
@@ -166,7 +167,7 @@ object Deps {
   def collectionCompat = mvn"org.scala-lang.modules::scala-collection-compat:2.13.0"
   // Force using of 2.13 - is there a better way?
   def coursier             = mvn"io.get-coursier:coursier_2.13:${Versions.coursier}"
-  def coursierArchiveCache = mvn"io.get-coursier::coursier-archive-cache:${Versions.coursier}"
+  def coursierArchiveCache = mvn"io.get-coursier:coursier-archive-cache_2.13:${Versions.coursier}"
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "*"))
   def coursierCli = mvn"io.get-coursier::coursier-cli:${Versions.coursierCli}"
   def coursierJvm = mvn"io.get-coursier:coursier-jvm_2.13:${Versions.coursier}"
@@ -212,10 +213,12 @@ object Deps {
   def osLib              = mvn"com.lihaoyi::os-lib:0.11.5"
   def pprint             = mvn"com.lihaoyi::pprint:0.9.3"
   def pythonInterface    = mvn"io.github.alexarchambault.python:interface:0.1.0"
-  def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.4"
-  def scalaAsync         = mvn"org.scala-lang.modules::scala-async:1.0.1".exclude("*" -> "*")
+  def pythonNativeLibs   = mvn"ai.kien::python-native-libs:0.2.5"
   def scalac(sv: String) = mvn"org.scala-lang:scala-compiler:$sv"
-  def scalafmtCli        = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
+  def scala3Graal = mvn"org.virtuslab.scala-cli::scala3-graal:${Cli.scala3GraalLegacyVersion}"
+  def scala3GraalProcessor =
+    mvn"org.virtuslab.scala-cli::scala3-graal-processor:${Cli.scala3GraalLegacyVersion}"
+  def scalafmtCli = mvn"org.scalameta:scalafmt-cli_2.13:${Versions.scalafmt}"
   // Force using of 2.13 - is there a better way?
   def scalaJsEnvJsdomNodejs =
     mvn"org.scala-js:scalajs-env-jsdom-nodejs_2.13:1.1.0"

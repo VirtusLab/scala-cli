@@ -1,12 +1,12 @@
 package scala.cli.integration
 
 import com.eed3si9n.expecty.Expecty.expect
-import org.jsoup._
+import org.jsoup.*
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 abstract class DocTestDefinitions extends ScalaCliSuite with TestScalaVersionArgs {
-  _: TestScalaVersion =>
+  this: TestScalaVersion =>
   protected lazy val extraOptions: Seq[String] = scalaVersionArgs ++ TestUtil.extraOptions
 
   for {

@@ -6,7 +6,7 @@ import java.nio.charset.Charset
 
 import scala.util.Properties
 
-trait ExportCommonTestDefinitions { _: ScalaCliSuite & TestScalaVersionArgs =>
+trait ExportCommonTestDefinitions { this: ScalaCliSuite & TestScalaVersionArgs =>
   protected lazy val extraOptions: Seq[String] =
     scalaVersionArgs ++ TestUtil.extraOptions ++ Seq("--suppress-experimental-warning")
 
