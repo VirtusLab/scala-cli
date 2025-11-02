@@ -1058,31 +1058,182 @@ abstract class RunTestDefinitions
   }
 
   test("UTF-8") {
-    val message  = "Hello from TestÅÄÖåäö"
-    val fileName = "TestÅÄÖåäö.scala"
+    import java.nio.charset.StandardCharsets.UTF_8
+    val win1252 = Charset.forName("windows-1252")
+    def utfBytes(op: os.Path): String = op.last.toString.getBytes(UTF_8).map("%02x".format(_)).mkString(" ")
+    val utfTag   = "ÅÄÖåäö"
+    val message  = s"Hello from Test$utfTag"
+    val fileName = s"Test$utfTag.scala"
+    val extraOptions = Seq("--server=false") // shadow
+
+    def dumpProcessTree(): Unit = {
+      System.err.printf("scala.sources[%s]\n", sys.props("scala.sources"))
+      import java.lang.ProcessHandle
+      def displayAncestors(ph: ProcessHandle): Unit = {
+        import java.util.Optional
+        val parentHandle: Optional[ProcessHandle] = ph.parent()
+        if (parentHandle.isPresent) {
+          val parent = parentHandle.get()
+          val command = parent.info().command().orElse("N/A")
+          System.err.println(s"PID: ${parent.pid()}, Command: $command")
+          displayAncestors(parent)
+        } else {
+          System.err.println("--- Reached top of process tree ---")
+        }
+      }
+      System.err.println("--- Process Ancestry ---")
+      // Display the current process first
+      val currentHandle = ProcessHandle.current()
+      val currentCommand = currentHandle.info().command().orElse("N/A")
+      System.err.println(s"PID: ${currentHandle.pid()} (Current Process), Command: $currentCommand")
+      displayAncestors(ProcessHandle.current())
+    }
+
+    def showEncoding(file: os.Path): Unit = {
+      printf("======= jvm encoding configuration:\n")
+      import scala.sys.process.*
+      System.err.printf("message[%s]\n", message)
+      System.err.printf("fileName[%s]\n", fileName)
+      System.err.printf("code-page: [%s]\n", ("chcp.com".!!).trim)
+      System.err.printf("JAVA_TOOL_OPTIONS[%s]\n", System.getenv("JAVA_TOOL_OPTIONS"))
+      System.err.printf("native.encoding = %s\n",  System.getProperty("native.encoding"))
+      System.err.printf("sun.jnu.encoding = %s\n", System.getProperty("sun.jnu.encoding"))
+      System.err.printf("file.encoding = %s\n",    System.getProperty("file.encoding"))
+      System.err.printf("Charset.defaultCharset = %s\n", Charset.defaultCharset())
+      System.err.printf("classpath = %s\n",        System.getProperty("java.class.path"))
+      System.err.printf("Class name = %s\n", getClass.getName)
+      System.err.printf("TestUtil.cli with extraOptions [%s %s]\n", TestUtil.cli.mkString(" "), extraOptions.mkString(" "))
+      System.err.printf("======= filename and file contents encoding:\n")
+      System.err.printf("### [%s]\n", file)
+      System.err.println(file.last.toString.getBytes(UTF_8).map("%02x".format(_)).mkString(" "))
+      if (!os.exists(file)) {
+        printf("########### not found: [%s]\n", file)
+        printf("nio: [%s]\n", file.toNIO.toString)
+      } else {
+        val scriptContents = os.read(file)
+        System.err.printf("####### scriptContents:[\n%s\n]\n", scriptContents)
+        val nonAscii = scriptContents.replaceAll("[\\x00-\\x7F]", "").distinct
+        System.err.printf("nonAscii[%s]\nnonAscii.getBytes.length[%d]\n", nonAscii, nonAscii.getBytes.length)
+      }
+    }
+    def mojibakedPaths(original: os.Path): (os.Path, os.Path) = {
+      printf("0-string: %s\n", original.last.toString)
+      printf("0-bytes: %s\n", utfBytes(original))
+      val onemojibake = os.Path(
+        new String(original.last.toString.getBytes(UTF_8), win1252),
+        original / os.up
+      )
+      printf("1-string: %s\n", onemojibake.last.toString)
+      printf("1-bytes: %s\n", utfBytes(onemojibake))
+      val dblmojibake = os.Path(
+        new String(onemojibake.last.toString.getBytes(UTF_8), win1252),
+        original / os.up
+      )
+      printf("2-string: %s\n", dblmojibake.last.toString)
+      printf("2-bytes: %s\n", utfBytes(dblmojibake))
+      (onemojibake, dblmojibake)
+    }
+
+    def mojibakedCopies(original: os.Path): (os.Path, os.Path) = {
+      val (onemojibake, dblmojibake) = mojibakedPaths(original)
+      //val onemojibake = "TestÃ…Ã„Ã–Ã¥Ã¤Ã¶.scala"
+      //val dblmojibake = "TestÃƒâ€¦Ãƒâ€žÃƒâ€“ÃƒÂ¥ÃƒÂ¤ÃƒÂ¶.scala"
+      if (original != onemojibake) {
+        os.copy(original, onemojibake)
+        if (onemojibake != dblmojibake) {
+          os.copy(onemojibake, dblmojibake)
+        }
+      }
+      (onemojibake, dblmojibake)
+    }
+
+    val scriptContents = """
+//> using dep com.lihaoyi::os-lib:0.11.6
+object TestÅÄÖåäö {
+  import scala.jdk.CollectionConverters.*
+  import scala.sys.process.*
+  System.err.printf("code-page: [%s]\n", ("chcp.com".!!).trim)
+  System.err.printf("wherebash: [%s]\n", ("where.exe bash.exe".!!).trim)
+  System.err.printf("JAVA_TOOL_OPTIONS[%s]\n", System.getenv("JAVA_TOOL_OPTIONS"))
+  System.err.printf("native.encoding = %s\n",  System.getProperty("native.encoding"))
+  System.err.printf("sun.jnu.encoding = %s\n", System.getProperty("sun.jnu.encoding"))
+  System.err.printf("file.encoding = %s\n",    System.getProperty("file.encoding"))
+  System.err.printf("classpath = %s\n",        System.getProperty("java.class.path"))
+  System.err.printf("Charset.defaultCharset = %s\n", java.nio.charset.Charset.defaultCharset())
+  System.err.printf("Class name = %s\n", getClass.getName)
+  def dumpProcessTree(): Unit = {
+    System.err.printf("scala.sources[%s]", sys.props("scala.sources").toString)
+    import java.lang.ProcessHandle
+    def displayAncestors(ph: ProcessHandle): Unit = {
+      import java.util.Optional
+      val parentHandle: Optional[ProcessHandle] = ph.parent()
+      if (parentHandle.isPresent) {
+        val parent = parentHandle.get()
+        val command = parent.info().command().orElse("N/A")
+        System.err.printf(s"PID: ${parent.pid()}, Command: ${command}")
+        displayAncestors(parent)
+      } else {
+        System.err.printf("--- Reached top of process tree ---")
+      }
+    }
+    System.err.printf("--- Process Ancestry ---")
+    // Display the current process first
+    val currentHandle = ProcessHandle.current()
+    val currentCommand = currentHandle.info().command().orElse("N/A")
+    System.err.printf(s"PID: ${currentHandle.pid()} (Current Process), Command: ${currentCommand}")
+    displayAncestors(ProcessHandle.current())
+  }
+  def main(args: Array[String]): Unit = {
+    System.out.printf("Hello from TestÅÄÖåäö")
+    dumpProcessTree()
+  }
+}
+"""
     val inputs   = TestInputs(
       os.rel / fileName ->
-        s"""object TestÅÄÖåäö {
-           |  def main(args: Array[String]): Unit = {
-           |    println("$message")
-           |  }
-           |}
-           |""".stripMargin
+      scriptContents
     )
     inputs.fromRoot { root =>
+      dumpProcessTree()
+      val original = root / fileName
+      val (onemoji,dblmoji) = mojibakedCopies(original)
+
+      showEncoding(original)
+
+      System.err.printf("=======================\n")
+      System.err.printf("onemoji.exists: %s [%s]\n", os.exists(onemoji), onemoji.last.toString)
+      System.err.printf("dblmoji.exists: %s [%s]\n", os.exists(dblmoji), dblmoji.last.toString)
+      System.err.printf("onemoji.path: %s\n", onemoji.toString)
+      System.err.printf("dblmoji.path: %s\n", dblmoji.toString)
+      System.err.printf("=======================\n")
+
       val res = os.proc(
         TestUtil.cli,
+        "-Dfile.encoding=UTF-8",
+        "-Dsun.jnu.encoding=UTF-8",
+        "-Dnative.encoding=UTF-8",
         "-Dtest.scala-cli.debug-charset-issue=true",
         "run",
         extraOptions,
-        fileName
+        fileName,
       )
-        .call(cwd = root)
-      if (res.out.text(Codec.default).trim != message) {
-        pprint.err.log(res.out.text(Codec.default).trim)
+        .call(
+          cwd = root,
+          check = false,
+//          stdout = os.Pipe
+        )
+     
+      val raw = res.out.bytes
+      val decoded = new String(raw, UTF_8).trim
+      val msg = message.getBytes(UTF_8)
+
+      if (decoded != message) {
+        pprint.err.log(decoded)
         pprint.err.log(message)
+        pprint.err.log("msg:"+msg.map("%02x".format(_)).mkString(" "))
+        pprint.err.log("raw:"+raw.map("%02x".format(_)).mkString(" "))
       }
-      expect(res.out.text(Codec.default).trim == message)
+      expect(decoded == message)
     }
   }
 
