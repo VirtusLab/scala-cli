@@ -7,7 +7,6 @@ case class Inner(
 )
 
 object Inner {
-  import ConfigMonoid.*
   implicit def monoid: ConfigMonoid[Inner] = ConfigMonoid.derive
 }
 
@@ -52,6 +51,5 @@ class ConfigMonoidTest extends munit.FunSuite {
 
     assertEquals(Outer.monoid.orElse(outer1, outer2).name, Some("o1"))
     assertEquals(Outer.monoid.orElse(outer2, outer1).name, Some("o2"))
-
   }
 }

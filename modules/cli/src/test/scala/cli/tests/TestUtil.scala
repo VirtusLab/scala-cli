@@ -2,6 +2,7 @@ package cli.tests
 
 import coursier.cache.{ArtifactError, FileCache}
 import coursier.util.{Artifact, Task}
+import munit.AnyFixture
 
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -23,7 +24,7 @@ object TestUtil {
 
     override def munitTimeout = new FiniteDuration(120, TimeUnit.SECONDS)
 
-    val testStartEndLogger = new Fixture[Unit]("files") {
+    val testStartEndLogger: Fixture[Unit] = new Fixture[Unit]("files") {
       def apply(): Unit = ()
 
       override def beforeEach(context: BeforeEach): Unit = {
@@ -41,7 +42,7 @@ object TestUtil {
       }
     }
 
-    override def munitFixtures = List(testStartEndLogger)
+    override def munitFixtures: Seq[AnyFixture[?]] = List(testStartEndLogger)
   }
 
   def downloadFile(url: String): Either[ArtifactError, Array[Byte]] = {
