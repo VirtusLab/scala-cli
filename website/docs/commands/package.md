@@ -163,7 +163,7 @@ The docker image name parameter `--docker-image-repository` is mandatory.
 
 The following command generates a `hello-docker` image with the `latest` tag:
 
-```bash
+```bash ignore
 scala-cli --power package --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 
@@ -174,7 +174,7 @@ docker run hello-docker:latest
 
 <ChainedSnippets>
 
-```bash
+```bash ignore
 docker run hello-docker
 ```
 
@@ -191,7 +191,7 @@ Hello from Docker
 You can also create Docker images for Scala.js and Scala Native applications.
 The following command shows how to create a Docker image (`--docker`) for a Scala.js (`--js`) application:
 
-```bash
+```bash ignore
 scala-cli --power package --js --docker HelloDocker.scala --docker-image-repository hello-docker
 ```
 <!-- Expected:
