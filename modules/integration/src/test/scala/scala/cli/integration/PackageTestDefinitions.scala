@@ -1161,13 +1161,15 @@ abstract class PackageTestDefinitions extends ScalaCliSuite with TestScalaVersio
   }
 
   if (Properties.isLinux) {
-    test("pass java options to docker") {
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("pass java options to docker".flaky) {
       TestUtil.retryOnCi() {
         javaOptionsDockerTest()
       }
     }
 
-    test("pass extra directory to docker") {
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("pass extra directory to docker".flaky) {
       TestUtil.retryOnCi() {
         dockerWithExtraDirsTest()
       }
