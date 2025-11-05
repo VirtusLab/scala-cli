@@ -17,7 +17,7 @@ This Scala CLI version switches the default Scala versions:
 
 ```bash
 scala-cli version
-# Scala CLI version: 1.9.1
+# Scala CLI version: 1.10.0
 # Scala version (default): 3.7.4
 ```
 
@@ -38,7 +38,7 @@ scala-cli repl
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3936](https://github.com/VirtusLab/scala-cli/pull/3936)
 
-### Support for adding extra directories to a docker image with `--docker-extra-directories` or `//> using packaging.dockerExtraDirectories`
+### Support for adding extra directories to a docker image
 This feature adds the ability to include additional directories in Docker images. 
 Users can now specify extra directories to be copied into a Docker image during the build process.
 The directories can be passed with the `--docker-extra-directories` command line option or `//> using packaging.dockerExtraDirectories` directive.
@@ -59,7 +59,7 @@ When building GraalVM native images with Scala CLI and Scala versions older than
 # [warning] support will be dropped in a future Scala CLI version.
 # [warning] it is advised to upgrade to a more recent Scala version
 ```
-While the native images will still be built, they will be removed in a future Scala CLI version.
+While the native images will still be built, the functionality will be removed in a future Scala CLI version.
 It is advised to migrate projects to Scala 3.3 or newer.
 
 Additionally, the following modules have been dropped and will no longer be published:
