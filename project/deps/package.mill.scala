@@ -182,7 +182,7 @@ object Deps {
     .exclude(("com.github.plokhotnyuk.jsoniter-scala", "jsoniter-scala-core_2.13"))
   def dependency    = mvn"io.get-coursier::dependency:0.3.2"
   def dockerClient  = mvn"com.spotify:docker-client:8.16.0"
-  def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.0"
+  def expecty       = mvn"com.eed3si9n.expecty::expecty:0.17.1"
   def fansi         = mvn"com.lihaoyi::fansi:0.5.1"
   def giter8        = mvn"org.foundweekends.giter8:giter8:0.16.2"
   def guava         = mvn"com.google.guava:guava:33.4.8-jre"
