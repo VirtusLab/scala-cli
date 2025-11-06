@@ -10,7 +10,7 @@ import ReactPlayer from 'react-player'
 
 ## [v1.10.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.10.0)
 
-### Support for Scala 3.7.4 and 2.13.17
+### Change default Scala versions to 3.7.4 and 2.13.17
 This Scala CLI version switches the default Scala versions:
 - default Scala 3 to 3.7.4
 - default Scala 2.13 to 2.13.17
@@ -38,7 +38,7 @@ scala-cli repl
 
 Added by [@Gedochao](https://github.com/Gedochao) in [#3936](https://github.com/VirtusLab/scala-cli/pull/3936)
 
-### Support for adding extra directories to a docker image
+### Support for adding extra directories to a Docker image
 This feature adds the ability to include additional directories in Docker images. 
 Users can now specify extra directories to be copied into a Docker image during the build process.
 The directories can be passed with the `--docker-extra-directories` command line option or `//> using packaging.dockerExtraDirectories` directive.
