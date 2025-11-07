@@ -326,7 +326,14 @@ trait BuildMacros extends ScalaCliCrossSbtModule
 
       val sv                                                = scalaVersion()
       def compile(extraSources: os.Path*): os.CommandResult =
-        os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
+        os.proc(
+          "scala-cli",
+          "--cli-default-scala-version",
+          sv,
+          "compile",
+          cpsSource,
+          extraSources
+        ).call(
           check = false,
           mergeErrIntoOut = true,
           cwd = Task.workspace

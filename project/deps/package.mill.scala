@@ -10,14 +10,15 @@ object Cli {
 }
 
 object Scala {
-  def scala212         = "2.12.20"
-  def scala213         = "2.13.17"
-  def scala3LtsPrefix  = "3.3"                  // used for the LTS version tags
-  def scala3Lts        = s"$scala3LtsPrefix.7"  // the LTS version currently used in the build
-  def runnerScala3     = scala3Lts
-  def scala3NextPrefix = "3.7"
-  def scala3Next       = s"$scala3NextPrefix.3" // the newest/next version of Scala
-  def scala3NextAnnounced = scala3Next // the newest/next version of Scala that's been announced
+  def scala212            = "2.12.20"
+  def scala213            = "2.13.17"
+  def scala3LtsPrefix     = "3.3"                  // used for the LTS version tags
+  def scala3Lts           = s"$scala3LtsPrefix.7"  // the LTS version currently used in the build
+  def runnerScala3        = scala3Lts
+  def scala3NextPrefix    = "3.7"
+  def scala3Next          = s"$scala3NextPrefix.4" // the newest/next version of Scala
+  def scala3NextAnnounced =
+    s"$scala3NextPrefix.3" // the newest/next version of Scala that's been announced
   def scala3NextRc          = s"$scala3NextPrefix.4-RC3" // the latest RC version of Scala Next
   def scala3NextRcAnnounced =
     s"$scala3NextPrefix.4-RC1" // the latest announced RC version of Scala Next
