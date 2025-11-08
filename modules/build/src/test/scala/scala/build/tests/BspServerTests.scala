@@ -1,13 +1,10 @@
 package scala.build.tests
 
 import com.eed3si9n.expecty.Expecty.expect
-import coursier.cache.CacheLogger
-import org.scalajs.logging.{NullLogger, Logger as ScalaJsLogger}
 
 import java.util.concurrent.TimeUnit
+
 import scala.build.Ops.*
-import scala.build.{Build, BuildThreads, Directories, GeneratedSource, LocalRepo}
-import scala.build.options.{BuildOptions, InternalOptions, Scope}
 import scala.build.bsp.{
   BspServer,
   ScalaScriptBuildServer,
@@ -16,20 +13,20 @@ import scala.build.bsp.{
   WrappedSourcesParams,
   WrappedSourcesResult
 }
+import scala.build.options.{BuildOptions, InternalOptions, Scope}
+import scala.build.{Build, BuildThreads, Directories, GeneratedSource, LocalRepo}
 import scala.collection.mutable.ArrayBuffer
 import scala.jdk.CollectionConverters.*
-import scala.build.bsp.{WrappedSourcesItem, WrappedSourcesResult}
-import scala.build.internal.ClassCodeWrapper
 
 class BspServerTests extends TestUtil.ScalaCliBuildSuite {
-  val extraRepoTmpDir = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
-  val directories     = Directories.under(extraRepoTmpDir)
-  val baseOptions     = BuildOptions(
+  val extraRepoTmpDir: os.Path = os.temp.dir(prefix = "scala-cli-tests-bsp-server-")
+  val directories: Directories = Directories.under(extraRepoTmpDir)
+  val baseOptions              = BuildOptions(
     internal = InternalOptions(
       localRepository = LocalRepo.localRepo(directories.localRepoDir, TestLogger())
     )
   )
-  val buildThreads = BuildThreads.create()
+  val buildThreads: BuildThreads = BuildThreads.create()
 
   def getScriptBuildServer(
     generatedSources: Seq[GeneratedSource],

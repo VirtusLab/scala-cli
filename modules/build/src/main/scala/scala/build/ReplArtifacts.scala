@@ -93,16 +93,28 @@ object ReplArtifacts {
     addScalapy: Option[String],
     javaVersion: Int
   ): Either[BuildException, ReplArtifacts] = either {
-    val isScala2 = scalaParams.scalaVersion.startsWith("2.")
-    val replDep  =
-      if isScala2 then dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}"
-      else dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}"
+    val isScala2             = scalaParams.scalaVersion.startsWith("2.")
+    val firstNewReplNightly  = "3.8.0-RC1-bin-20251101-389483e-NIGHTLY".coursierVersion
+    val firstNewReplRc       = "3.8.0-RC1".coursierVersion
+    val firstNewReplStable   = "3.8.0".coursierVersion
+    val scalaCoursierVersion = scalaParams.scalaVersion.coursierVersion
+    val shouldUseNewRepl     =
+      !isScala2 &&
+      ((scalaCoursierVersion >= firstNewReplNightly) || (scalaCoursierVersion >= firstNewReplRc) || scalaCoursierVersion >= firstNewReplStable)
+    val replDeps =
+      if isScala2 then Seq(dep"org.scala-lang:scala-compiler:${scalaParams.scalaVersion}")
+      else if shouldUseNewRepl then
+        Seq(
+          dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}",
+          dep"org.scala-lang::scala3-repl:${scalaParams.scalaVersion}"
+        )
+      else Seq(dep"org.scala-lang::scala3-compiler:${scalaParams.scalaVersion}")
     val scalapyDeps =
       addScalapy.map(ver => dep"${Artifacts.scalaPyOrganization(ver)}::scalapy-core::$ver").toSeq
     val externalDeps                          = dependencies ++ scalapyDeps
     val replArtifacts: Seq[(String, os.Path)] = value {
       Artifacts.artifacts(
-        Seq(replDep).map(Positioned.none),
+        replDeps.map(Positioned.none),
         repositories,
         Some(scalaParams),
         logger,

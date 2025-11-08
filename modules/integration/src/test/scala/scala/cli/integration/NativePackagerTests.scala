@@ -409,7 +409,8 @@ class NativePackagerTests extends ScalaCliSuite {
     ((Properties.isMac || Properties.isWin) && !TestUtil.isCI)
 
   if (hasDocker) {
-    test("building docker image") {
+    // TODO: restore this test when `registry-1.docker.io` is stable again
+    test("building docker image".flaky) {
       TestUtil.retryOnCi() {
         runTest()
       }

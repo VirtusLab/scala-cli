@@ -303,9 +303,9 @@ trait BuildMacros extends ScalaCliCrossSbtModule
     else super.compileIvyDeps() ++ Agg(Deps.scalaReflect(crossScalaVersion))
   }
 
-  object test extends ScalaCliTests {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
     override def scalacOptions: T[Seq[String]] = Task {
-      super.scalacOptions() ++ asyncScalacOptions(scalaVersion())
+      super.scalacOptions() ++ Seq("-deprecation")
     }
 
     def testNegativeCompilation(): Command[Unit] = Task.Command(exclusive = true) {
@@ -326,7 +326,14 @@ trait BuildMacros extends ScalaCliCrossSbtModule
 
       val sv                                                = scalaVersion()
       def compile(extraSources: os.Path*): os.CommandResult =
-        os.proc("scala-cli", "compile", "-S", sv, cpsSource, extraSources).call(
+        os.proc(
+          "scala-cli",
+          "--cli-default-scala-version",
+          sv,
+          "compile",
+          cpsSource,
+          extraSources
+        ).call(
           check = false,
           mergeErrIntoOut = true,
           cwd = Task.workspace
@@ -669,7 +676,8 @@ trait Options extends ScalaCliCrossSbtModule with ScalaCliPublishModule with Has
   override def repositoriesTask: Task[Seq[Repository]] =
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends ScalaCliTests {
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
+    override def scalacOptions = super.scalacOptions() ++ Seq("-deprecation")
     // uncomment below to debug tests in attach mode on 5005 port
     // def forkArgs = Task {
     //   super.forkArgs() ++ Seq("-agentlib:jdwp=transport=dt_socket,server=n,address=localhost:5005,suspend=y")
@@ -716,8 +724,9 @@ trait Build extends ScalaCliCrossSbtModule
   override def repositoriesTask: Task[Seq[Repository]] =
     Task.Anon(super.repositoriesTask() ++ deps.customRepositories)
 
-  object test extends ScalaCliTests {
-    override def ivyDeps: T[Loose.Agg[Dep]] = super.ivyDeps() ++ Agg(
+  object test extends ScalaCliTests with ScalaCliScalafixModule {
+    override def scalacOptions: T[Seq[String]] = super.scalacOptions() ++ Seq("-deprecation")
+    override def ivyDeps: T[Loose.Agg[Dep]]    = super.ivyDeps() ++ Agg(
       Deps.pprint,
       Deps.slf4jNop
     )

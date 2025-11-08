@@ -2270,7 +2270,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite
     useScalaWrapper <- Seq(false, true)
     if actualScalaVersion.coursierVersion >= "3.5.0".coursierVersion
     scalaVersion =
-      if (actualScalaVersion == Constants.scala3NextRc) Constants.scala3NextRcAnnounced
+      if actualScalaVersion == Constants.scala3NextRc then Constants.scala3NextRcAnnounced
+      if actualScalaVersion == Constants.scala3Next then Constants.scala3NextAnnounced
       else actualScalaVersion
     withLauncher = (root: os.Path) =>
       (f: Seq[os.Shellable] => Unit) =>
