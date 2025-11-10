@@ -10,7 +10,9 @@ export USE_NATIVE_IMAGE_JAVA_PLATFORM_MODULE_SYSTEM=false
 export MSYS_NO_PATHCONV=1 # prevent /d from being converted to d:\
 export MSYS2_ARG_CONV_EXCL="*"
 
-is_windows_shell=$([[ "$OSTYPE" == msys || "$OSTYPE" == cygwin ]] && echo true || echo false)
+function is_windows_shell {
+  [[ "$OSTYPE" == msys || "$OSTYPE" == cygwin ]]
+}
 
 function setCodePage {
   if is_windows_shell; then
@@ -23,8 +25,10 @@ function getCodePage {
     reg query 'HKLM\SYSTEM\CurrentControlSet\Control\Nls\CodePage' /v ACP | tr -d '[\r\n]' | grep '[0-9]' | sed -E -e 's#[^0-9]*$##' -e 's#^.*[^0-9]##'
   fi
 }
-SAVED_CODEPAGE=`getCodePage`
-echo "SAVED_CODEPAGE[$SAVED_CODEPAGE]" 1>&2
+if is_windows_shell; then
+  SAVED_CODEPAGE=`getCodePage`
+  echo "SAVED_CODEPAGE[$SAVED_CODEPAGE]" 1>&2
+fi
 
 function atexit {
   if [ -n "$SAVED_CODEPAGE" ]; then
