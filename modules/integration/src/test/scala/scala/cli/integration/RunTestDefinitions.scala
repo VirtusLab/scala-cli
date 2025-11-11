@@ -1132,7 +1132,6 @@ abstract class RunTestDefinitions
       System.err.println(s"""
         os.proc(
           ${testCli.mkString(" ")},
-          "run",
           ${extraOptions.mkString(" ")},
           ${fileName.replace('\\', '/')}
         )
@@ -1149,7 +1148,6 @@ abstract class RunTestDefinitions
       inputs.fromRoot { root =>
         val res = os.proc(
           testCli,
-          "run",
           extraOptions,
           fileName
         )
