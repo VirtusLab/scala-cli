@@ -9,7 +9,7 @@ import ReactPlayer from 'react-player'
 # Release notes
 
 ## [v1.10.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.10.1)
-This is a small release, chiefly aiming to mend [#3949](https://github.com/VirtusLab/scala-cli/issues/3949), which affected several of our users.
+This is a bugfix release, chiefly aiming to mend [#3949](https://github.com/VirtusLab/scala-cli/issues/3949), which affected several of our users.
 ### Fixes
 * Ensure Coursier logger gets initialized while downloading JVMs by [@Gedochao](https://github.com/Gedochao) in [#3951](https://github.com/VirtusLab/scala-cli/pull/3951)
 ### Documentation changes
