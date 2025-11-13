@@ -68,8 +68,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
 
             val compileResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(compileResult.getStatusCode == expectedStatusCode)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
 
           }
       }
@@ -103,8 +102,7 @@ class JmhTests extends ScalaCliSuite with JmhSuite with BspSuite {
 
               val compileResult =
                 remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-              val expectedStatusCode = b.StatusCode.OK
-              expect(compileResult.getStatusCode == expectedStatusCode)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
             }
         }
       }

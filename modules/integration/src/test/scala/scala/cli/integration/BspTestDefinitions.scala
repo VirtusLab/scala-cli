@@ -252,9 +252,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val actualStatusCode   = resp.getStatusCode
-          val expectedStatusCode = b.StatusCode.OK
-          expect(actualStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         val compileProducts = os.walk(classDir).filter(os.isFile(_)).map(_.relativeTo(classDir))
@@ -299,9 +297,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         val compileResp =
           remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-        val actualStatusCode   = compileResp.getStatusCode
-        val expectedStatusCode = b.StatusCode.ERROR
-        expect(actualStatusCode == expectedStatusCode)
+        expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams: b.PublishDiagnosticsParams =
           extractDiagnosticsParams(root / "Test.scala", localClient)
@@ -355,9 +351,8 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             .buildTargetCompile(new b.CompileParams(targets))
             .asScala
             .await
-        val actualStatusCode   = compileResp.getStatusCode
-        val expectedStatusCode = b.StatusCode.ERROR
-        expect(actualStatusCode == expectedStatusCode)
+        val actualStatusCode = compileResp.getStatusCode
+        expect(actualStatusCode == b.StatusCode.ERROR)
 
         val diagnosticsParams = {
           val diagnostics = localClient.diagnostics()
@@ -495,8 +490,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             .buildTargetCompile(new b.CompileParams(targets))
             .asScala
             .await
-        val expectedStatusCode = b.StatusCode.OK
-        expect(compileResp.getStatusCode == expectedStatusCode)
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
 
         def checkDirectivesInMultipleFilesWarnings(
           fileName: String,
@@ -561,8 +555,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
@@ -602,8 +595,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         val didChangeParamsOptFuture = Future.firstCompletedOf(Seq(
@@ -673,8 +665,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
@@ -721,8 +712,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         val didChangeParamsOptFuture = Future.firstCompletedOf(Seq(
@@ -786,8 +776,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         {
@@ -824,8 +813,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         {
           val resp = remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
         }
 
         expect(changeFuture.isCompleted)
@@ -918,8 +906,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala.await
-            val expectedErrorStatusCode = b.StatusCode.ERROR
-            expect(resp.getStatusCode == expectedErrorStatusCode)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             val dependencyOptions = List("--dependency", "com.lihaoyi::os-lib::0.8.0")
             os.proc(TestUtil.cli, "setup-ide", ".", dependencyOptions ++ extraOptions)
@@ -938,8 +925,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp0 =
               remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava))
                 .asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(resp0.getStatusCode == expectedStatusCode)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
           }
       }
     }
@@ -971,8 +957,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala.await
-            val expectedStatusCode = b.StatusCode.ERROR
-            expect(resp.getStatusCode == expectedStatusCode)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             val depName           = "os-lib"
             val depVersion        = "0.8.1"
@@ -1029,8 +1014,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala.await
-            val expectedErrorStatusCode = b.StatusCode.ERROR
-            expect(resp.getStatusCode == expectedErrorStatusCode)
+            expect(resp.getStatusCode == b.StatusCode.ERROR)
 
             os.proc(TestUtil.cli, "setup-ide", dir1, dir2, extraOptions)
               .call(
@@ -1048,8 +1032,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp0 =
               remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava))
                 .asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(resp0.getStatusCode == expectedStatusCode)
+            expect(resp0.getStatusCode == b.StatusCode.OK)
           }
       }
 
@@ -1073,8 +1056,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
           val resp =
             remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
               .asScala.await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(resp.getStatusCode == expectedStatusCode)
+          expect(resp.getStatusCode == b.StatusCode.OK)
 
           val reloadResp    = remoteServer.workspaceReload().asScala.await
           val responseError = extractWorkspaceReloadResponse(reloadResp).getOrElse {
@@ -1117,8 +1099,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         val compileResp =
           remoteServer.buildTargetCompile(new b.CompileParams(targets)).asScala.await
-        val expectedOkStatusCode = b.StatusCode.OK
-        expect(compileResp.getStatusCode == expectedOkStatusCode)
+        expect(compileResp.getStatusCode == b.StatusCode.OK)
 
         // after reload compilation should fail, Utils.scala file contains invalid scala code
         val updatedUtilsFile =
@@ -1132,8 +1113,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
         val resp0 =
           remoteServer.buildTargetCompile(new b.CompileParams(targets0.asJava)).asScala.await
-        val expectedStatusCode = b.StatusCode.ERROR
-        expect(resp0.getStatusCode == expectedStatusCode)
+        expect(resp0.getStatusCode == b.StatusCode.ERROR)
       }
     }
   }
@@ -1174,8 +1154,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
             val errorResponse =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedErrorStatusCode = b.StatusCode.ERROR
-            expect(errorResponse.getStatusCode == expectedErrorStatusCode)
+            expect(errorResponse.getStatusCode == b.StatusCode.ERROR)
 
             val javacOptions = Seq(
               "--javac-opt",
@@ -1202,8 +1181,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val okResponse =
               remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava))
                 .asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(okResponse.getStatusCode == expectedStatusCode)
+            expect(okResponse.getStatusCode == b.StatusCode.OK)
           }
       }
 
@@ -1245,8 +1223,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val resp =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(resp.getStatusCode == expectedStatusCode)
+            expect(resp.getStatusCode == b.StatusCode.OK)
 
             val updatedSourceFile =
               s"""//> using jvm 19
@@ -1271,8 +1248,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
             val errorResponse =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedOkStatusCode = b.StatusCode.OK
-            expect(errorResponse.getStatusCode == expectedOkStatusCode)
+            expect(errorResponse.getStatusCode == b.StatusCode.OK)
             expect(localClient.logMessages().exists(_.getMessage.startsWith(
               "Error reading API from class file: ReloadTest : java.lang.UnsupportedClassVersionError: ReloadTest has been compiled by a more recent version of the Java Runtime"
             )))
@@ -1287,7 +1263,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val okResponse =
               remoteServer.buildTargetCompile(new b.CompileParams(reloadedTargets.asJava))
                 .asScala.await
-            expect(okResponse.getStatusCode == expectedOkStatusCode)
+            expect(okResponse.getStatusCode == b.StatusCode.OK)
           }
       }
 
@@ -1339,8 +1315,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
 
             val resp =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedOkStatusCode = b.StatusCode.OK
-            expect(resp.getStatusCode == expectedOkStatusCode)
+            expect(resp.getStatusCode == b.StatusCode.OK)
           }
       }
     }
@@ -1478,8 +1453,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .buildTargetCompile(new b.CompileParams(targets.asJava))
               .asScala
               .await
-          val expectedOkStatusCode = b.StatusCode.OK
-          expect(compileResp.getStatusCode == expectedOkStatusCode)
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
 
           val mainTarget    = targets.find(!_.getUri.contains("-test")).get
           val runRespFuture =
@@ -1683,8 +1657,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .buildTargetCompile(new b.CompileParams(targets))
               .asScala
               .await
-          val expectedErrorCode = b.StatusCode.ERROR
-          expect(compileResp.getStatusCode == expectedErrorCode)
+          expect(compileResp.getStatusCode == b.StatusCode.ERROR)
 
           val diagnosticsParams = {
             val diagnostics = localClient.diagnostics()
@@ -1774,8 +1747,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             val compileRes = remoteServer.buildTargetCompile(
               new b.CompileParams(List(mainTarget.getId).asJava)
             ).asScala.await
-            val expectedOkStatusCode = b.StatusCode.OK
-            expect(compileRes.getStatusCode == expectedOkStatusCode)
+            expect(compileRes.getStatusCode == b.StatusCode.OK)
             // ensure that the source jar is in the dependency sources
             val dependencySourcesResp =
               remoteServer
@@ -1849,8 +1821,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .buildTargetCompile(new b.CompileParams(targets))
               .asScala
               .await
-          val expectedOkStatusCode = b.StatusCode.OK
-          expect(compileResp.getStatusCode == expectedOkStatusCode)
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
 
           val diagnosticsParams = {
             val diagnostics = localClient.diagnostics()
@@ -1975,11 +1946,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 .map(_.getId())
               val compileResult =
                 remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-              val expectedOkStatusCode = b.StatusCode.OK
-              expect(compileResult.getStatusCode == expectedOkStatusCode)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
               val runResult =
                 remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-              expect(runResult.getStatusCode == expectedOkStatusCode)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
             }
         }
       }
@@ -2013,11 +1983,10 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 .map(_.getId())
               val compileResult =
                 remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-              val expectedStatusCode = b.StatusCode.OK
-              expect(compileResult.getStatusCode == expectedStatusCode)
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
               val runResult =
                 remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-              expect(runResult.getStatusCode == expectedStatusCode)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
             }
         }
       }
@@ -2096,17 +2065,13 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .map(_.getId())
             val compileResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            if (powerIsSet) {
-              val expectedStatusCode = b.StatusCode.OK
-              expect(compileResult.getStatusCode == expectedStatusCode)
+            if powerIsSet then {
+              expect(compileResult.getStatusCode == b.StatusCode.OK)
               val runResult =
                 remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-              expect(runResult.getStatusCode == expectedStatusCode)
+              expect(runResult.getStatusCode == b.StatusCode.OK)
             }
-            else {
-              val expectedStatusCode = b.StatusCode.ERROR
-              expect(compileResult.getStatusCode == expectedStatusCode)
-            }
+            else expect(compileResult.getStatusCode == b.StatusCode.ERROR)
           }
       }
     }
@@ -2133,8 +2098,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             // compilation should fail before reload, as --power mode is off
             val compileBeforeReloadResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedErrorStatusCode = b.StatusCode.ERROR
-            expect(compileBeforeReloadResult.getStatusCode == expectedErrorStatusCode)
+            expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
 
             // enable --power mode via env for setup-ide
             os.proc(TestUtil.cli, "setup-ide", scriptName, extraOptions)
@@ -2146,13 +2110,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             expect(reloadResponse.isEmpty)
             val compileAfterReloadResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedOkStatusCode = b.StatusCode.OK
-            expect(compileAfterReloadResult.getStatusCode == expectedOkStatusCode)
+            expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
 
             // code should also be runnable via BSP now
             val runResult =
               remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-            expect(runResult.getStatusCode == expectedOkStatusCode)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }
     }
@@ -2190,8 +2153,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             // compilation should fail before reload, as --power mode is off
             val compileBeforeReloadResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedErrorStatusCode = b.StatusCode.ERROR
-            expect(compileBeforeReloadResult.getStatusCode == expectedErrorStatusCode)
+            expect(compileBeforeReloadResult.getStatusCode == b.StatusCode.ERROR)
 
             // enable --power mode via config
             os.proc(TestUtil.cli, "config", "power", "true")
@@ -2203,13 +2165,12 @@ abstract class BspTestDefinitions extends ScalaCliSuite
             expect(reloadResponse.isEmpty)
             val compileAfterReloadResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedOkStatusCode = b.StatusCode.OK
-            expect(compileAfterReloadResult.getStatusCode == expectedOkStatusCode)
+            expect(compileAfterReloadResult.getStatusCode == b.StatusCode.OK)
 
             // code should also be runnable via BSP now
             val runResult =
               remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-            expect(runResult.getStatusCode == expectedOkStatusCode)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }
     }
@@ -2379,8 +2340,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
               .buildTargetCompile(new b.CompileParams(targets.asJava))
               .asScala
               .await
-          val expectedStatusCode = b.StatusCode.OK
-          expect(compileResp.getStatusCode == expectedStatusCode)
+          expect(compileResp.getStatusCode == b.StatusCode.OK)
           expect(os.read(root / stderrFile).contains("Scheduling compilation"))
         }
     }
@@ -2415,8 +2375,7 @@ abstract class BspTestDefinitions extends ScalaCliSuite
                 .buildTargetCompile(new b.CompileParams(targets.asJava))
                 .asScala
                 .await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(compileResp.getStatusCode == expectedStatusCode)
+            expect(compileResp.getStatusCode == b.StatusCode.OK)
             expect(os.read(root / stderrFile).contains("Scheduling compilation"))
           }
       }
