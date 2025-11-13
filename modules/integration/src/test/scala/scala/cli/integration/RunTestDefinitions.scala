@@ -1069,7 +1069,8 @@ abstract class RunTestDefinitions
 
     def cliOptions = utfOptions.flatMap(opt => Seq("--java-opt", opt))
 
-    def code = """
+    def code =
+      """
 object MAINCLASS {
   def props(s: String): String = Option(sys.props(s)).getOrElse("")
   val fileName = sys.props("scala.source.names")
@@ -1089,9 +1090,7 @@ object MAINCLASS {
   }
 }
 """.trim
-    val scriptContents = {
-      code.replaceAll("MAINCLASS", basename)
-    }
+    val scriptContents = code.replaceAll("MAINCLASS", basename)
     System.err.printf("%s\n", scriptContents)
     // assert(scriptContents.contains(testTag) && !scriptContents.contains(utf8tag))
 
@@ -1115,7 +1114,8 @@ object MAINCLASS {
     System.err.println(s"extraOptions: ${extraOptions.mkString(" ")}")
     if (sys.props("os.name").toLowerCase.contains("windows")) {
       import scala.sys.process.*
-      val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+      val codepage =
+        "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
       System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
       System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
     }
