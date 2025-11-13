@@ -1,0 +1,39 @@
+name: windows-reg-import
+description: Import a .reg file and verify those registry values (best-effort)
+inputs:
+  reg-file:
+    description: "Path to .reg file (relative to \${{ github.workspace }})"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Attempt to import custom registry (best-effort)
+      shell: pwsh
+      run: |
+        try {
+          $regFile = Join-Path $env:GITHUB_WORKSPACE "${{ inputs.reg-file }}"
+          if (-not (Test-Path $regFile)) {
+            Write-Warning "Registry file not found (skipping): $regFile"
+          } else {
+            Write-Host "Importing registry from $regFile (attempting, non-fatal)"
+            reg import $regFile 2>&1 | ForEach-Object { Write-Host $_ }
+          }
+        } catch {
+          Write-Warning "Registry import failed (ignored): $_"
+        }
+
+    - name: Attempt to verify registry values (best-effort)
+      shell: pwsh
+      run: |
+        try {
+          $acp = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\CodePage' -Name ACP -ErrorAction Stop).ACP
+          Write-Host "ACP = $acp"
+        } catch {
+          Write-Warning "Failed to read ACP (ignored): $_"
+        }
+        try {
+          $eb = (Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Nls\MUILanguagePreferences' -Name EnableBetaUnicode -ErrorAction Stop).EnableBetaUnicode
+          Write-Host "EnableBetaUnicode = $eb"
+        } catch {
+          Write-Warning "Failed to read EnableBetaUnicode (ignored): $_"
+        }

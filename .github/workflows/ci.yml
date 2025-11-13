@@ -746,6 +746,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -778,6 +783,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -819,6 +829,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -860,6 +875,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
@@ -901,6 +921,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - name: Import custom registry and verify
+        uses: ./.github/actions/windows-reg-import
+        with:
+          reg-file: .github/ci/windows/custom.reg
+        continue-on-error: true
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -942,6 +967,11 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+      - name: Import custom registry and verify
+        uses: ./.github/actions/windows-reg-import
+        with:
+          reg-file: .github/ci/windows/custom.reg
+        continue-on-error: true
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -1518,6 +1548,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"
@@ -1824,6 +1859,11 @@ jobs:
       with:
         fetch-depth: 0
         submodules: true
+    - name: Import custom registry and verify
+      uses: ./.github/actions/windows-reg-import
+      with:
+        reg-file: .github/ci/windows/custom.reg
+      continue-on-error: true
     - uses: VirtusLab/scala-cli-setup@v1
       with:
         jvm: "temurin:17"

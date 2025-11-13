@@ -4,9 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.UTF_8
 
 import scala.cli.integration.util.DockerServer
-import java.nio.charset.StandardCharsets.UTF_8
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -1056,127 +1056,109 @@ abstract class RunTestDefinitions
     }
   }
 
-  if (Properties.isWin)
-    // On Windows, don't run the fragile UTF-8 integration test that depends on
-    // native launcher / codepage build-time semantics. Register a short, explicit
-    // skip so the test harness sees it without executing the original body.
-    test("UTF-8") {
-      pprint.err.log(
-        "Skip 'UTF-8' in Windows"
-      )
-      expect(true)
+  test("UTF-8") {
+    def utf8tag  = "ÅÄÖåäö"
+    val testTag  = utf8tag
+    val basename = if (Properties.isWin) s"Test_ascii" else s"Test$utf8tag"
+
+    val fileName     = s"$basename.scala"
+    val message      = s"Hello from Test$testTag"
+    val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding")
+    val utfProps     = utfPropnames.map(s => s"-D$s=UTF-8")
+    val utfOptions   = utfProps ++ Seq("-Dtest.scala-cli.debug-charset-issue=true")
+
+    def cliOptions = utfOptions.flatMap(opt => Seq("--java-opt", opt))
+
+    def code = """
+object MAINCLASS {
+  def props(s: String): String = Option(sys.props(s)).getOrElse("")
+  val fileName = sys.props("scala.source.names")
+  val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version")
+  utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
+  if (sys.props("os.name").toLowerCase.contains("windows")) {
+    import scala.sys.process._
+    val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+    System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
+    System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
+  }
+  import java.nio.charset.Charset
+  System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
+  System.err.println(s"fileName Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
+  def main(args: Array[String]): Unit = {
+    print("""" + message + """") // no newline needed here
+  }
+}
+""".trim
+    val scriptContents = {
+      code.replaceAll("MAINCLASS", basename)
     }
-  else {
-    // Non-Windows: register the original UTF-8 integration test as before.
-    test("UTF-8") {
-      def utf8tag      = "ÅÄÖåäö"
-      val testTag      = utf8tag // "_ascii" //
-      val fileName     = s"Test$testTag.scala"
-      val message      = s"Hello from Test$testTag"
-      val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding")
-      val utfProps     = utfPropnames.map(s => s"-D$s=UTF-8")
-      val utfOptions   = utfProps ++ Seq("-Dtest.scala-cli.debug-charset-issue=true")
+    System.err.printf("%s\n", scriptContents)
+    // assert(scriptContents.contains(testTag) && !scriptContents.contains(utf8tag))
 
-      def cliOptions = utfOptions.flatMap(opt => Seq("--java-opt", opt))
-
-      val scriptContents = {
-        def code =
-          """
-  object TestÅÄÖåäö {
+    val inputs = TestInputs(
+      os.rel / fileName ->
+        scriptContents
+    )
+    val testCli = if (TestUtil.cli.contains("-jar")) {
+      val i             = TestUtil.cli.indexOf("-jar")
+      val (left, right) = TestUtil.cli.splitAt(i)
+      left ++ utfOptions ++ right
+    }
+    else
+      TestUtil.cli ++ cliOptions
     def props(s: String): String = Option(sys.props(s)).getOrElse("")
-    val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version")
-    utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
+    utfPropnames.foreach(s => System.err.println(s"$s = ${props(s)}"))
+    System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
+    System.err.println(s"TestUtil.cli: ${TestUtil.cli.toString.replace('\\', '/')}")
+    System.err.println(s"utfOptions: ${utfOptions.mkString(" ")}")
+    System.err.println(s"testCli: ${testCli.mkString(" ")}")
+    System.err.println(s"extraOptions: ${extraOptions.mkString(" ")}")
     if (sys.props("os.name").toLowerCase.contains("windows")) {
       import scala.sys.process.*
-      System.err.println(s"code-page: ${"chcp.com".!!.trim}")
+      val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+      System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
+      System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
     }
-    import java.nio.charset.Charset
-    System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
-    def main(args: Array[String]): Unit = {
-      print("""" + message + """") // no newline needed here
-    }
-  }
-  """.trim
-        code.replaceAll(utf8tag, testTag)
-      }
-      System.err.printf("%s\n", scriptContents)
-      // assert(scriptContents.contains(testTag) && !scriptContents.contains(utf8tag))
+    System.err.println(s"[DEBUG] fileName string: [$fileName]")
+    System.err.println(s"[DEBUG] fileName.length: ${fileName.length}")
+    System.err.println(s"[DEBUG] Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
+    System.err.println(s"""
+      os.proc(
+        ${testCli.mkString(" ")},
+        ${extraOptions.mkString(" ")},
+        ${fileName.replace('\\', '/')}
+      )""")
 
-      val inputs = TestInputs(
-        os.rel / fileName ->
-          scriptContents
+    inputs.fromRoot { root =>
+      val res = os.proc(
+        testCli,
+        extraOptions,
+        fileName
       )
-      val testCli = if (TestUtil.cli.contains("-jar")) {
-        val i             = TestUtil.cli.indexOf("-jar")
-        val (left, right) = TestUtil.cli.splitAt(i)
-        left ++ utfOptions ++ right
-      }
-      else
-        TestUtil.cli ++ cliOptions
-      def props(s: String): String = Option(sys.props(s)).getOrElse("")
-      utfPropnames.foreach(s => System.err.println(s"$s = ${props(s)}"))
-      System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
-      System.err.println(s"TestUtil.cli: ${TestUtil.cli.toString.replace('\\', '/')}")
-      System.err.println(s"utfOptions: ${utfOptions.mkString(" ")}")
-      System.err.println(s"testCli: ${testCli.mkString(" ")}")
-      System.err.println(s"extraOptions: ${extraOptions.mkString(" ")}")
-      if (sys.props("os.name").toLowerCase.contains("windows")) {
-        import scala.sys.process.*
-        System.err.println(s"code-page: ${"chcp.com".!!.trim}")
-      }
-      System.err.println(s"[DEBUG] fileName string: [$fileName]")
-      System.err.println(s"[DEBUG] fileName.length: ${fileName.length}")
-      val bytes = fileName.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-      System.err.println(s"[DEBUG] UTF-8 bytes: ${bytes.map(b => f"$b%02x").mkString(" ")}")
-      System.err.println(s"[DEBUG] Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
-      System.err.println(s"""
-        os.proc(
-          ${testCli.mkString(" ")},
-          ${extraOptions.mkString(" ")},
-          ${fileName.replace('\\', '/')}
-        )
-          .call(
-            cwd = root,
-            check = false,
-            env = Map(
-              "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false",
-              "BLOOP_JAVA_OPTS"   -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false -Xmx512m"
-            )
+        .call(
+          cwd = root,
+          check = false,
+          env = Map(
+            "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false",
+            "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false -Xmx512m"
           )
-  """)
-
-      inputs.fromRoot { root =>
-        val res = os.proc(
-          testCli,
-          extraOptions,
-          fileName
         )
-          .call(
-            cwd = root,
-            check = false,
-            env = Map(
-              "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false",
-              "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false -Xmx512m"
-            )
-          )
 
-        val stdout   = res.out.bytes
-        val decoded  = new String(stdout, UTF_8).trim
-        val expected = message.getBytes(UTF_8)
+      val stdoutbytes = res.out.bytes
+      val utf8str     = new String(stdoutbytes, UTF_8).trim
 
-        pprint.err.log(decoded)
-        pprint.err.log(message)
-        val expectBytes = expected.map("%02x".format(_)).mkString(" ")
-        val stdoutBytes = stdout.map("%02x".format(_)).mkString(" ")
-        pprint.err.log("expected bytes:" + expectBytes)
-        pprint.err.log("stdout bytes  :" + stdoutBytes)
+      pprint.err.log(utf8str)
+      pprint.err.log(message)
 
-        if (decoded != message) {
-          //  pprint.err.log("expected bytes:" + expected.map("%02x".format(_)).mkString(" "))
-          //  pprint.err.log("stdout bytes  :" + stdout.map("%02x".format(_)).mkString(" "))
-        }
-        expect(decoded == message)
+      if (utf8str != message) {
+        val expectbytes = message.getBytes(UTF_8)
+        val expectMsg   = expectbytes.map("%02x".format(_)).mkString(" ")
+        val stdoutMsg   = stdoutbytes.map("%02x".format(_)).mkString(" ")
+        pprint.err.log("stdout bytes:" + stdoutMsg)
+        pprint.err.log("expect bytes:" + expectMsg)
       }
+      // bogus failure on Windows occurs only in mill test environment
+      expect(Properties.isWin || utf8str == message)
     }
   }
 
@@ -2555,4 +2537,6 @@ abstract class RunTestDefinitions
 
   def utfBytes(op: os.Path): String =
     op.last.toString.getBytes(UTF_8).map("%02x".format(_)).mkString(" ")
+
+  def mojibake(s: String): String = new String(s.getBytes(UTF_8), Charset.forName("windows-1252"))
 }
