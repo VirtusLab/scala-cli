@@ -8,6 +8,20 @@ import ReactPlayer from 'react-player'
 
 # Release notes
 
+## [v1.10.1](https://github.com/VirtusLab/scala-cli/releases/tag/v1.10.1)
+This is a bugfix release, chiefly aiming to mend [#3949](https://github.com/VirtusLab/scala-cli/issues/3949), which affected several of our users.
+### Fixes
+* Ensure Coursier logger gets initialized while downloading JVMs by [@Gedochao](https://github.com/Gedochao) in [#3951](https://github.com/VirtusLab/scala-cli/pull/3951)
+### Documentation changes
+* Back port of documentation changes to main by @github-actions[bot] in [#3948](https://github.com/VirtusLab/scala-cli/pull/3948)
+### Build and internal changes
+* Revert some of expecty 0.17.1 workarounds by [@Gedochao](https://github.com/Gedochao) in [#3937](https://github.com/VirtusLab/scala-cli/pull/3937)
+### Updates
+* Bump Node to 24 for the docs website by [@Gedochao](https://github.com/Gedochao) in [#3947](https://github.com/VirtusLab/scala-cli/pull/3947)
+* Update scala-cli.sh launcher for 1.10.0 by @github-actions[bot] in [#3946](https://github.com/VirtusLab/scala-cli/pull/3946)
+
+**Full Changelog**: https://github.com/VirtusLab/scala-cli/compare/v1.10.0...v1.10.1
+
 ## [v1.10.0](https://github.com/VirtusLab/scala-cli/releases/tag/v1.10.0)
 
 ### Change default Scala versions to 3.7.4 and 2.13.17
@@ -21,7 +35,7 @@ scala-cli version
 # Scala version (default): 3.7.4
 ```
 
-Added by [@Gedochao](https://github.com/Gedochao) in https://github.com/VirtusLab/scala-cli/pull/3942 and https://github.com/VirtusLab/scala-cli/pull/3895
+Added by [@Gedochao](https://github.com/Gedochao) in [#3942](https://github.com/VirtusLab/scala-cli/pull/3942) and [#3895](https://github.com/VirtusLab/scala-cli/pull/3895)
 
 ### Support for the new Scala 3.8 REPL
 As per https://github.com/scala/scala3/pull/24243, Scala 3 REPL has been extracted to [a separate artifact](https://repo.scala-lang.org/ui/packages/gav:%2F%2Forg.scala-lang:scala3-repl_3/3.8.0-RC1-bin-20251101-389483e-NIGHTLY) 
@@ -50,7 +64,7 @@ The directories can be passed with the `--docker-extra-directories` command line
 ```bash ignore
 scala-cli --power package . --docker --docker-image-repository repo --docker-extra-directories path/to/directory
 ```
-Added by [@btomala](https://github.com/btomala) and [@Gedochao](https://github.com/Gedochao) in https://github.com/VirtusLab/scala-packager/pull/250 and https://github.com/VirtusLab/scala-cli/pull/3908
+Added by [@btomala](https://github.com/btomala) and [@Gedochao](https://github.com/Gedochao) in [VirtusLab/scala-packager#250]https://github.com/VirtusLab/scala-packager/pull/250 and [#3908](https://github.com/VirtusLab/scala-cli/pull/3908)
 
 ### Deprecate support for building GraalVM native images with Scala pre-3.3
 When building GraalVM native images with Scala CLI and Scala versions older than 3.3.0, the following warning will now be printed:
@@ -83,7 +97,7 @@ Those include:
 
 From this point on, they will only be published for Scala 3.
 
-Added by [@Gedochao](https://github.com/Gedochao) in https://github.com/VirtusLab/scala-cli/pull/3911 and https://github.com/VirtusLab/scala-cli/pull/3912
+Added by [@Gedochao](https://github.com/Gedochao) in [#3911](https://github.com/VirtusLab/scala-cli/pull/3911) and [#3912](https://github.com/VirtusLab/scala-cli/pull/3912)
 
 ### Features
 * Bump `scala-packager` to 0.2.1 & enable adding extra directories to a docker image by [@Gedochao](https://github.com/Gedochao) & [@btomala](https://github.com/btomala) in [#3908](https://github.com/VirtusLab/scala-cli/pull/3908)
