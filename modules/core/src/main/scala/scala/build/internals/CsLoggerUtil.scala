@@ -36,6 +36,7 @@ object CsLoggerUtil {
                 ()
               )
             )
+            updatedLogger.init()
             cache.withLogger(updatedLogger)
           }
           else cache
