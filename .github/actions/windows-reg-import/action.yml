@@ -2,7 +2,7 @@ name: windows-reg-import
 description: Import a .reg file and verify those registry values (best-effort)
 inputs:
   reg-file:
-    description: "Path to .reg file (relative to ${{ github.workspace }})"
+    description: "Path to the .reg file"
     required: true
 runs:
   using: "composite"
