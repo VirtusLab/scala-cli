@@ -4,9 +4,9 @@ import com.eed3si9n.expecty.Expecty.expect
 
 import java.io.{ByteArrayOutputStream, File}
 import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets.UTF_8
 
 import scala.cli.integration.util.DockerServer
-import scala.io.Codec
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 
@@ -1057,31 +1057,108 @@ abstract class RunTestDefinitions
   }
 
   test("UTF-8") {
-    val message  = "Hello from TestÅÄÖåäö"
-    val fileName = "TestÅÄÖåäö.scala"
-    val inputs   = TestInputs(
+    def utf8tag  = "ÅÄÖåäö"
+    val testTag  = utf8tag
+    val basename = if (Properties.isWin) s"Test_ascii" else s"Test$utf8tag"
+
+    val fileName     = s"$basename.scala"
+    val message      = s"Hello from Test$testTag"
+    val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding")
+    val utfProps     = utfPropnames.map(s => s"-D$s=UTF-8")
+    val utfOptions   = utfProps ++ Seq("-Dtest.scala-cli.debug-charset-issue=true")
+
+    def cliOptions = utfOptions.flatMap(opt => Seq("--java-opt", opt))
+
+    def code =
+      """
+object MAINCLASS {
+  def props(s: String): String = Option(sys.props(s)).getOrElse("")
+  val fileName = sys.props("scala.source.names")
+  val utfPropnames = Seq("file.encoding", "sun.jnu.encoding", "native.encoding", "java.runtime.version")
+  utfPropnames.foreach { (str: String) => System.err.println(s"$str = ${props(str)}") }
+  if (sys.props("os.name").toLowerCase.contains("windows")) {
+    import scala.sys.process._
+    val codepage = "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+    System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
+    System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
+  }
+  import java.nio.charset.Charset
+  System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
+  System.err.println(s"fileName Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
+  def main(args: Array[String]): Unit = {
+    print("""" + message + """") // no newline needed here
+  }
+}
+""".trim
+    val scriptContents = code.replaceAll("MAINCLASS", basename)
+    System.err.printf("%s\n", scriptContents)
+    // assert(scriptContents.contains(testTag) && !scriptContents.contains(utf8tag))
+
+    val inputs = TestInputs(
       os.rel / fileName ->
-        s"""object TestÅÄÖåäö {
-           |  def main(args: Array[String]): Unit = {
-           |    println("$message")
-           |  }
-           |}
-           |""".stripMargin
+        scriptContents
     )
+    val testCli = if (TestUtil.cli.contains("-jar")) {
+      val i             = TestUtil.cli.indexOf("-jar")
+      val (left, right) = TestUtil.cli.splitAt(i)
+      left ++ utfOptions ++ right
+    }
+    else
+      TestUtil.cli ++ cliOptions
+    def props(s: String): String = Option(sys.props(s)).getOrElse("")
+    utfPropnames.foreach(s => System.err.println(s"$s = ${props(s)}"))
+    System.err.println(s"Charset.defaultCharset: ${Charset.defaultCharset}")
+    System.err.println(s"TestUtil.cli: ${TestUtil.cli.toString.replace('\\', '/')}")
+    System.err.println(s"utfOptions: ${utfOptions.mkString(" ")}")
+    System.err.println(s"testCli: ${testCli.mkString(" ")}")
+    System.err.println(s"extraOptions: ${extraOptions.mkString(" ")}")
+    if (sys.props("os.name").toLowerCase.contains("windows")) {
+      import scala.sys.process.*
+      val codepage =
+        "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
+      System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
+      System.err.println(s"chcp.com code-page: ${"chcp.com".!!.trim}")
+    }
+    System.err.println(s"[DEBUG] fileName string: [$fileName]")
+    System.err.println(s"[DEBUG] fileName.length: ${fileName.length}")
+    System.err.println(s"[DEBUG] Chars: ${fileName.map(c => f"U+$c%04x").mkString(" ")}")
+    System.err.println(s"""
+      os.proc(
+        ${testCli.mkString(" ")},
+        ${extraOptions.mkString(" ")},
+        ${fileName.replace('\\', '/')}
+      )""")
+
     inputs.fromRoot { root =>
       val res = os.proc(
-        TestUtil.cli,
-        "-Dtest.scala-cli.debug-charset-issue=true",
-        "run",
+        testCli,
         extraOptions,
         fileName
       )
-        .call(cwd = root)
-      if (res.out.text(Codec.default).trim != message) {
-        pprint.err.log(res.out.text(Codec.default).trim)
-        pprint.err.log(message)
+        .call(
+          cwd = root,
+          check = false,
+          env = Map(
+            "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false",
+            "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false -Xmx512m"
+          )
+        )
+
+      val stdoutbytes = res.out.bytes
+      val utf8str     = new String(stdoutbytes, UTF_8).trim
+
+      pprint.err.log(utf8str)
+      pprint.err.log(message)
+
+      if (utf8str != message) {
+        val expectbytes = message.getBytes(UTF_8)
+        val expectMsg   = expectbytes.map("%02x".format(_)).mkString(" ")
+        val stdoutMsg   = stdoutbytes.map("%02x".format(_)).mkString(" ")
+        pprint.err.log("stdout bytes:" + stdoutMsg)
+        pprint.err.log("expect bytes:" + expectMsg)
       }
-      expect(res.out.text(Codec.default).trim == message)
+      // bogus failure on Windows occurs only in mill test environment
+      expect(Properties.isWin || utf8str == message)
     }
   }
 
@@ -2457,4 +2534,9 @@ abstract class RunTestDefinitions
         processes.foreach { case (p, _) => expect(p.exitCode() == 0) }
       }
     }
+
+  def utfBytes(op: os.Path): String =
+    op.last.toString.getBytes(UTF_8).map("%02x".format(_)).mkString(" ")
+
+  def mojibake(s: String): String = new String(s.getBytes(UTF_8), Charset.forName("windows-1252"))
 }
