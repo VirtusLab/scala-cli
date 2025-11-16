@@ -126,18 +126,10 @@ object integration extends CliIntegration {
       Deps.jgit,
       Deps.jsoup
     )
-    override def forkArgs = Seq(
-      "-Dfile.encoding=UTF-8",
-      "-Dnative.encoding=UTF-8",
-      "-Dsun.jnu.encoding=UTF_8"
-    )
     override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
-      "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false",
-      "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8  -Dnative-encoding=UTF-8 -Dtest.scala-cli.debug-charset-issue=false -Xmx512m"
+      "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8",
+      "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Xmx512m"
     )
-    override def scalacOptions: T[Seq[String]] = Task {
-      super.scalacOptions() ++ Seq("-encoding", "UTF-8")
-    }
   }
   object docker extends CliIntegrationDocker {
     object test extends ScalaCliTests {
