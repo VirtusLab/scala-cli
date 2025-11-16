@@ -128,7 +128,7 @@ object integration extends CliIntegration {
     )
     override def forkEnv: T[Map[String, String]] = super.forkEnv() ++ Seq(
       "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8",
-      "BLOOP_JAVA_OPTS" -> "-Dfile.encoding=UTF-8 -Xmx512m"
+      "BLOOP_JAVA_OPTS"   -> "-Dfile.encoding=UTF-8 -Xmx512m"
     )
   }
   object docker extends CliIntegrationDocker {
