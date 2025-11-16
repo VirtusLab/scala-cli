@@ -85,11 +85,10 @@ class BspTests3NextRc extends BspTestDefinitions with BspTests3Definitions with 
               .map(_.getId())
             val compileResult =
               remoteServer.buildTargetCompile(new b.CompileParams(targets.asJava)).asScala.await
-            val expectedStatusCode = b.StatusCode.OK
-            expect(compileResult.getStatusCode == expectedStatusCode)
+            expect(compileResult.getStatusCode == b.StatusCode.OK)
             val runResult =
               remoteServer.buildTargetRun(new b.RunParams(targets.head)).asScala.await
-            expect(runResult.getStatusCode == expectedStatusCode)
+            expect(runResult.getStatusCode == b.StatusCode.OK)
           }
       }
     }
