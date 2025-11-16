@@ -1058,7 +1058,6 @@ abstract class RunTestDefinitions
 
   test("UTF-8") {
     def utf8tag   = "ÅÄÖåäöΔЖ"
-    //val testTag   = utf8tag
     val classname = s"Q$utf8tag"
     val basename  = classname // if (Properties.isWin) s"Test_ascii" else classname
 
@@ -1095,16 +1094,16 @@ object MAINCLASS {
   }
 }
 """.trim
-    val scriptContents = 
+    val scriptContents =
       code.replaceAll("MAINCLASS", classname).replaceAll("FILENAME", fileName)
-    //System.err.printf("%s\n", scriptContents)
+    // System.err.printf("%s\n", scriptContents)
 
     val inputs = TestInputs(
       os.rel / fileName ->
         scriptContents
     )
-    
-    val jvmDir = os.pwd.toString.replace('\\', '/').replaceAll("/out/.*", "")+"/jvm"
+
+    val jvmDir = os.pwd.toString.replace('\\', '/').replaceAll("/out/.*", "") + "/jvm"
 
     // the build jvm respects system code page, temurin:17 does not
     val testCli = if Properties.isWin && TestUtil.cli.contains("-jar") then
@@ -1127,7 +1126,8 @@ object MAINCLASS {
           val codepage =
             "reg query 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage' /v ACP".!!.trim
           System.err.println(s"registry code-page: ${codepage.replaceAll("[^0-9]", "")}")
-          } catch {
+        }
+        catch {
           case _: Throwable =>
         }
       }
@@ -1141,16 +1141,15 @@ object MAINCLASS {
   ${extraOptions.mkString(" ")},
   ${fileName.replace('\\', '/')}
 )""".trim)
-    val runenv = if (Properties.isWin) {
+    val runenv = if (Properties.isWin)
       Map(
         "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8",
-        "JAVA_HOME"         -> jvmDir,
+        "JAVA_HOME"         -> jvmDir
       )
-    } else {
+    else
       Map(
-        "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8",
+        "JAVA_TOOL_OPTIONS" -> "-Dfile.encoding=UTF-8"
       )
-    }
 
     inputs.fromRoot { root =>
       System.err.println("================== pre os.proc.call")
