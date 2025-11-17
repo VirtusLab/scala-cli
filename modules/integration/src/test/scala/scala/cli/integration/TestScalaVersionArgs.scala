@@ -18,6 +18,11 @@ trait TestScalaVersionArgs extends ScalaCliSuite { this: TestScalaVersion =>
   }
 
   lazy val actualScalaVersion: String = scalaVersionOpt.getOrElse(Constants.defaultScala)
+
+  def isScala38OrNewer: Boolean =
+    Constants.scala38Versions
+      .map(_.coursierVersion)
+      .exists(_ <= actualScalaVersion.coursierVersion)
 }
 
 sealed trait TestScalaVersion { this: TestScalaVersionArgs =>
